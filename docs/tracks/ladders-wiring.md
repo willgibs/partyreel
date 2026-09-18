@@ -1,6 +1,6 @@
 ---
 track: ladders-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "00e82dba"         # the launch-prep SHA the branch was cut from
 board: type-phone, rounding # both retired by this lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -314,9 +314,9 @@ normal while the two glow boards sit over the reading budget; 0 ROUTES failing i
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; phase 1 at `55e444ea` (merged early into launch-prep at `5a5c6eb4`); phase 2 at <sha>; synced with launch-prep at <sha>
-- Gates, phase 1 (on its own commit, each step's own exit code): see the phase 1 commit message; the synced tree's line replaces this one at handoff
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file, plus the retirement exception (`touchpoints.ts`, `touchpoints.test.ts`: only type-phone's and rounding's own lines), the generated `docs/design/library.md` and `rules.generated.json`, and the listed system doc
+- Head: the handoff commit (this manifest alone) on top of `1e16bbaa`, pushed; phase 1 at `55e444ea` (merged early into launch-prep at `5a5c6eb4`); phase 2 at `7f72e68f`; synced with launch-prep at `5a5c6eb4` in the merge `1e16bbaa` (launch-prep had moved four commits: the phase 1 merge, the lab rebuild `d37be90e`, the new lanes' manifests `33f1de95`, batch nine `d62dac22`; the one conflict, the generated `library.md`, was regenerated with `rules.generated.json`, never hand-merged)
+- Gates on the synced tree (`1e16bbaa`), each step's own exit code: design:rules 0, specimens 0 (no diff), typecheck 0, lint 0 (0 errors, the 8 existing warnings), test 0 (228 files, 2,143 tests), build 0 (254 pages; the rounding `screen/` route left), lab:smoke 1 (204 checks, 0 routes failing; the two glow boards over the reading budget, as expected), lab:demo 0 ("no open step to press": batch nine put album-hero and river-visual on the record, and neither retired board appears). Each phase's own commit also passed the whole gate (its message says so)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is 99 paths: 90 under `owns`, this manifest, the two listed system docs (`design-system.md`, `guest-flow.md`), the two generated files (`docs/design/library.md`, `rules.generated.json`), the retirement exception (`touchpoints.ts`, `touchpoints.test.ts`: only type-phone's and rounding's own lines, nothing reordered or reformatted), and the two approved one-line exceptions (`gallery/playgrounds.tsx`, `(shell)/library/components/gallery-demos.tsx`, each gaining `"cta"`). Phase 1's paths are already on launch-prep through `5a5c6eb4`
 - Course corrections from the Orchestrator (2026-09-18): `sandbox/registry.test.ts` left `owns` (it moves `anchorFor` onto a fixture id itself); the standing-board example tests take a fixture, or the first standing board under an `it.runIf` guard, never a named board (done as the "Standing-board examples" line below says); widened policies never scan `src/app/(dev)/` or `src/components/lab/`; the three lanes cut today register their boards at the head of the shared lists, so this lane removed only its own two boards' lines and reordered nothing
 - Type, the two clamps (printed by the board's own `fluid()` from git `41dcd591^`, after it had regenerated the other 27 declarations byte for byte): `--text-prose: clamp(1.5rem, 1.28rem + 0.94vw, 2.125rem)` (leading `clamp(1.89rem, 1.688rem + 0.86vw, 2.465rem)`, -0.024em; was `clamp(1.125rem, 0.773rem + 1.5vw, 2.125rem)`) and `--text-subhead: clamp(1.25rem, 1.162rem + 0.38vw, 1.5rem)` (leading `clamp(1.65rem, 1.566rem + 0.36vw, 1.89rem)`, -0.018em); `TYPE_STEPS` gained `subhead`
 - Type, the 126 (a comment-aware TypeScript AST scan of every h1-h6, `*Title` / `*Heading` and `font-heading` element in production code): 24 CardTitle overrides dropped (the card step applies again), 45 to `subsection`, 15 to `subhead` (the seven stock pairs among them), 9 to `page`, 6 to `section` (prices, storage and calculator readouts), 1 to `chapter` (/help's ghost folio), 3 to `card-title`, 1 index numeral to the body face (/contact), and 22 left and named: 15 depicted (9 files), 6 Inter labels (5 files), 1 false positive (the blog article's lead-in paragraph size, on its prose wrapper). Beyond the 126: the MDX h2/h3 through `prose-h2:text-prose prose-h3:text-subhead` on both article wrappers, the home FAQ's bare h3 onto `card-title`, `card.tsx`'s small-card `text-sm` dropped (a small card's title keeps the card step: its padding shrinks, its role does not)
@@ -336,4 +336,12 @@ normal while the two glow boards sit over the reading budget; 0 ROUTES failing i
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). The lane wired both ladders Will ruled on 2026-09-18 and
+retired both boards. Type (phase 1, merged early at `5a5c6eb4`): the law became the ORDER, `prose` rose to
+24 at a phone and a tenth step, `subhead` (20 to 24), named the pair seven sub-heads wore; all 126
+off-ladder heading-face elements took the step their role calls for or were named in the widened
+`type-ladder-policy.test.ts`, and the display trim now tracks its leading (the caps 2px under the gap at
+375, was 5). Corners (phase 2): family C in quarters (an 8px surface, a 12px floating layer with 8px rows,
+a 4px photograph with the gap pinned to it), 3xl and 4xl set to `initial`, a `cta` Button on 46 sites, the
+guest sheet on the floating corner, `--shadow-float` and `--radius-action-lg` retired, and `cn()` taught
+the radius tokens.
