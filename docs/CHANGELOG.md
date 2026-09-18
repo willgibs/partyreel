@@ -161,8 +161,10 @@ reference, never a cap and a test.
   after Will's sign-in and MFA step-up on the admin preview host: partyreel.com now runs the surface module (inert on
   the apex until its flag is set), the jobs console on three kinds with the Worker's queue-depth reading, the purge
   sub-sweeps and the limiters that report, and the static chart aliases; the four new boards answer 404 without a
-  key. `partyreel-admin`'s production build is READY. The domain move is the one step the Orchestrator's guardrails
-  refused (a DNS-class change), so it is Will's dashboard click; the apex flag and redeploy follow it.
+  key. `partyreel-admin`'s production build went READY, Will moved the domain in the dashboard (the API move is the one
+  step the Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy verified it (the apex domain object
+  lives under his personal account), and the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy: partyreel.com
+  404s `/admin`, admin.partyreel.com serves only the portal. The cutover closed the same night.
 
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as

@@ -170,7 +170,16 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   READY on `109cfac9` (built by `POST /v13/deployments` with `gitSource`, since the project's own build of the push
   had no env yet) and its allow-list probed exactly as the table above; the callback is in the Supabase list. WILL
   signs in there through the account chooser (`partyr33l@gmail.com`) and completes the MFA step-up onto `/admin`. (4) The milestone landed (milestone-26, `df173c2e`): `CRON_SECRET` is on the admin project, both production
-  builds are READY, partyreel.com serves `df173c2e`. LEFT, in this order: the domain move, which is WILL'S CLICK
+  builds are READY, partyreel.com serves `df173c2e`. The domain moved (Will's click, 2026-09-18 late) and came up
+  "Verification Required": the apex domain object lives under Will's PERSONAL Vercel account, so a subdomain added
+  to a team project needs a fresh `_vercel` TXT (`vc-domain-verify=admin.partyreel.com,<token>`); DNS is at GoDaddy,
+  the stale admin token's record was edited to the new value in Chrome (Will signed in), and
+  `POST /v9/projects/<admin>/domains/admin.partyreel.com/verify` answered verified on the first try; the admin host
+  then served the admin project (`/pricing` 404, `/admin` → login). The apex flag and redeploy followed (production `dpl_5eV2X9KiAuQVAmh2GB7BN1UTdW25`, READY; partyreel.com 404s
+  `/admin`, the marketing routes 200, `/dashboard` gates, the lab 404 keyless; the admin host `/admin` → login,
+  `/pricing` 404). DONE bar checks (e) and (g), Will's sign-in and the three pages, and (f), tomorrow's single purge
+  run in `job_runs`. Historic
+  detail of the click, for the record: the domain move was WILL'S CLICK
   (the classifier refuses the Orchestrator's `DELETE /v9/projects/partyreel/domains/admin.partyreel.com` +
   `POST /v10/projects/partyreel-admin/domains` as a DNS-class change): in the dashboard, project `partyreel` →
   Settings → Domains → remove `admin.partyreel.com`, then project `partyreel-admin` → Settings → Domains → add

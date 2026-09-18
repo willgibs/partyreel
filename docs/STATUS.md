@@ -38,7 +38,7 @@ album hero's round three went "too boring" that way).
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
 | `admin` | the admin portal's shape, round one: the operator's home, the navigation, density, colour for state, destructive actions, the health strip, on the real components with fixtures; an on-brand devtool per Will's ruling | integrated at `d6305818`; on the desk (seven steps at 1440 by 900; the questions closed by the Orchestrator, in the CHANGELOG) |
-| `admin-split` | the admin as its own Vercel project on this one repo, serving only the admin; the main project stops serving it; the cutover runbook for the Orchestrator | integrated at `7f3738ba`; the preview host proven (the allow-list probed, Will's sign-in and MFA step-up done); on `main` at milestone-26 with `partyreel-admin`'s production build READY; left: the domain move (Will's dashboard click), then the apex flag and redeploy (`tracks/orchestrator.md`) |
+| `admin-split` | the admin as its own Vercel project on this one repo, serving only the admin; the main project stops serving it; the cutover runbook for the Orchestrator | integrated at `7f3738ba`; the preview host proven (the allow-list probed, Will's sign-in and MFA step-up done); on `main` at milestone-26; the domain moved and verified (a fresh `_vercel` TXT at GoDaddy), the apex flagged and redeployed: DONE |
 | `admin-jobs` | the four backend jobs with no heartbeat (the backup queue and dead letters, the purge's sub-sweeps, email, the limiters) onto the console with health, kill switches and alerts | integrated at `3ad58b1c` (the cross-lane patch applied in the merge); the migration applied, the advisor set unchanged; the Worker deployed (`d7b16bcc`) |
 | `loose-ends` | six ROADMAP lines as seven decisions on their real surfaces: the admin chart cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces | integrated at `b83b7c3d`; on the desk; one question his (the reading of the two ambient pieces that had nothing to vary); a real chart-token bug found, on the ROADMAP's Now list |
 | `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
@@ -61,10 +61,11 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-26` (`df173c2e`, merged 2026-09-18 late from the `launch-prep` tip
   `353ad884`: the admin split's code, the jobs console on three kinds, the chart aliases static, four boards behind
-  the key); `launch-prep` is level with it. **The admin cutover** is one click from done: `partyreel-admin`'s
-  production build of `main` is READY; `admin.partyreel.com` still points at `partyreel` until Will moves it in the
-  dashboard (the API domain move is refused by the Orchestrator's guardrails), after which the apex gets
-  `NEXT_PUBLIC_SURFACE=app` and a redeploy (`tracks/orchestrator.md`). **The `launch-prep` alias**
+  the key); `launch-prep` is level with it. **The admin cutover is complete** (2026-09-18, late):
+  `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
+  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Tomorrow's `job_runs` should
+  show one purge run, and Will's sign-in at the admin host plus `/admin/metrics`, `/admin/albums` and `/admin/forensics`
+  are the last two runbook checks. **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
   on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**.
   Vercel's cap is 100 deployments per trailing day on every path, so `[preview]` stays the Orchestrator's,
@@ -88,7 +89,7 @@ read-only, so re-auth with the DB scope or use the dashboard SQL editor when a D
 `partyreel-backup` (Bucket-Locked, WNAM); **Stripe** `acct_1TcStrPtjqmVkBwk` (TEST; the live cutover is a
 launch task); **Sentry** org `partyreel`; **Resend** (`partyreel.com` verified; auth email rides Resend SMTP);
 **Google OAuth** P3 web client; the in-app operator `partyr33l@gmail.com` (`is_admin` + TOTP MFA); **Vercel**
-on the P3 team (Hobby; the Pro cutover, DNS to Cloudflare and the repo transfer are launch-time cutovers).
+on the P3 team (two projects on one repo, `partyreel` and `partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare (GoDaddy today; Will cleared the move on 2026-09-18, its runbook is a ROADMAP line) and the repo transfer are launch-time cutovers).
 "Allow new signups" stays ON (account-from-guest and email+password create depend on it; anonymous sign-ins
 stay OFF). Already configured, never redo: the R2 buckets, creds, CORS and abort-multipart lifecycle rule;
 the apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products, prices, webhook, Billing
