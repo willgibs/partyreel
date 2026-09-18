@@ -50,6 +50,7 @@ export type RulingId =
   | "river-visual"
   | "privacy-hero"
   | "album-page"
+  | "gallery-width"
   | "pricing-plan-cards"
   | "pricing-calculator"
   | "contact-identity"
@@ -73,6 +74,7 @@ export type RulingId =
 export type SandboxId =
   | "privacy-hero"
   | "album-page"
+  | "gallery-width"
   | "album-hero"
   | "river-visual";
 
@@ -642,6 +644,29 @@ export const RULINGS: Ruling[] = [
       note: "Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes",
       variants: ["The album", "The motion", "The album's light", "A second light"],
       tracks: ["heroes"],
+    },
+  },
+  {
+    id: "gallery-width",
+    title: "Gallery width",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-18: galleries use the width of a laptop or a desktop, with small tiles and more columns, never a wide two)",
+    shipped: null,
+    why: "The guest album is capped at 632 px and two columns on every screen, the host's at 1280 and three; four decisions set the tile, the width, the words and the host's.",
+    lives: [
+      "src/components/guest/guest-masonry.tsx",
+      "src/components/guest/event-experience.tsx",
+      "src/components/shared/masonry.tsx",
+    ],
+    board: {
+      note: "Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame",
+      variants: [
+        "The tile size",
+        "The gallery's width",
+        "Where the words sit",
+        "The host's galleries",
+      ],
     },
   },
 ];

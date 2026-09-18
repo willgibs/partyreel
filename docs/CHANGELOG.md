@@ -56,6 +56,11 @@ against a reference, never a cap and a test.
 - Four boards cut on three lanes (`33f1de95`), each from measured facts: `privacy-hero` and `album-page`
   (`heroes`), `river-card`, `gallery-width`. An exploration's preview may now be a function of the board's
   state, so a staged decision can draw at the answer it waits on.
+- `gallery-width` round one integrated: four decisions, each option the real guest or host event page in a
+  `Frame` at 1280, 1512 and 1920 with its columns measured inside it. The tile (180, 240 or 300 px;
+  240), the width (the full window or the app's 1280 column; full), where the words sit (the album's
+  edge or centred; edge, added once the wide page showed it), and whether the host follows (same). The
+  candidate is one `column-width` per gallery from `sm` up, so the phone keeps its two columns.
 
 **Next.** The four boards integrate and his sitting runs on them in the new step; then the wiring lanes
 (the album page, the river, the privacy hero, the galleries); then a milestone (`main` is 1,089 commits

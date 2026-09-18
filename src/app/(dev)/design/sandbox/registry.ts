@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
+import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 
@@ -25,6 +26,7 @@ import { RIVER_VISUAL } from "./river-visual/spec";
 export const BOARDS: readonly BoardSpec[] = [
   PRIVACY_HERO,
   ALBUM_PAGE,
+  GALLERY_WIDTH,
   RIVER_VISUAL,
   ALBUM_HERO,
 ];
