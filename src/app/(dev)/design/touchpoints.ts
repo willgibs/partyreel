@@ -52,6 +52,7 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "cursor-backdrop"
+  | "image-trail"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -83,6 +84,7 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "cursor-backdrop"
+  | "image-trail"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -649,6 +651,31 @@ export const RULINGS: Ruling[] = [
         "What switches it",
         "How it arrives",
         "Where it sits",
+        "At a phone",
+      ],
+    },
+  },
+  {
+    id: "image-trail",
+    title: "The image trail",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-18: our own cursor-tracking image trail, for the marketing site somewhere, else banked)",
+    shipped: null,
+    why: "A photograph born every time the cursor has travelled far enough, sliding to it and decaying behind it, drawn on the real pages it could live on.",
+    lives: [
+      "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
+      "src/components/marketing/sections/home/cinema-close.tsx",
+      "src/components/marketing/system/page-hero.tsx",
+    ],
+    board: {
+      note: "Six decisions, each on a whole screen of the real site at 1440 and 375: how close the photographs come, how long they live and how they go, how they arrive, how big they are, which page they live on (the privacy hero, the home page's last screen, the 404 on paper, or banked) and what a phone does; the pointer scripted for the still and live on the desk",
+      variants: [
+        "The density",
+        "The decay",
+        "The entrance",
+        "The size",
+        "The home",
         "At a phone",
       ],
     },
