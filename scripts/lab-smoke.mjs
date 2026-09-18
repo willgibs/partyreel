@@ -247,9 +247,8 @@ function boardRoot(html, id) {
  * anything `hidden` or `aria-hidden`, and outside script, style and template.
  *
  * ★ A SPECIMEN IS NOT PROSE, and this is the line that makes the budget mean
- * anything. A board showing the real home page renders the home page's copy;
- * the media kit shows a dozen catalogues' own names on purpose. Those are words to LOOK
- * at, not words to read, so everything inside a stage (`data-stage-fit`), on a
+ * anything. A board showing the real home page renders the home page's copy,
+ * on purpose. Those are words to LOOK at, not words to read, so everything inside a stage (`data-stage-fit`), on a
  * production ground (`data-ground`), inside a frame or inside a `<pre>` paste is excluded. What is left
  * is the board's own voice: its answer, its ledes, its labels and its notes,
  * which is exactly what "it reads like a PhD" was about.

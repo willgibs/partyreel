@@ -112,7 +112,9 @@ excuse, which is the machine that forced them apart. Two rules stopped being pro
 fails a board past round 1 with no ledger, and options are never forced apart. He kept none of the 510
 lines, so `voice-picks` shipped his three answers and a new `voice` board rebuilds the voice from won
 lines. He specified that form himself after withdrawing a two-draft idea of his own: a shape that "would
-likely require many fine notes over one cohesive answer" is the wrong shape, whatever its content.
+likely require many fine notes over one cohesive answer" is the wrong shape, whatever its content. **The
+seventh:** the media kit killed for generated frames, one Higgsfield month before launch (ROADMAP); no
+agent tracks an image's rights, so the stills' `credit` field went with the board.
 
 - `light-wiring` (merged `47bba92a`; bible 10 and 11 ruled and the ledger gone in the same window). Depth
   became four techniques with one job each: the step and the ring everywhere, `--shadow-lift` only where one
@@ -166,8 +168,7 @@ object with `indexOf("{", indexOf("defineBoard("))`, which CLAMPS to 0 when the 
 did not understand was silently mis-scanned rather than refused; and a tile always drew in a 1440 canvas,
 so a phone column arrived as a thumbnail.
 
-**Next.** Card's wiring is in flight; the brand-voice board's deletion follows it. His sitting continues on
-rounding, the album hero, the media kit and river-visual.
+**Next.** His sitting continues on type-phone, rounding, the album hero and river-visual.
 
 ## 2026-09-16 — The stepped review round: the review as an onboarding form, every board reshaped into steps (`02c409b4` to `dd77fc9e`)
 

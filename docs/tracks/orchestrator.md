@@ -272,7 +272,15 @@ palette and light first), pasted in batches with Copy so far.
   calls that had sat in the ROADMAP as prose. Its previews were wrong once and corrected at `8d7f0031`: a
   `vw` clamp reads the browser's width, so a "375 column" on a 1550 page drew the 1440 sizes under a 375
   label. Frames fixed it, and the `vw` lesson is in `traps.ts`.
-  ★ Still mine: nothing outstanding. The four boards Will is stuck with (media-kit, album-hero, rounding,
-  river-visual) clear in their present shape, and the old authoring surface is scrubbed when they do.
+- **The media kit killed** (Will, the seventh batch): reviewed at `8c510621` (`rule=no`, `spend=hold`,
+  `shoot=park`; crowds kept off the record by his ruling that no agent tracks an image's rights), then
+  deleted whole in the commit after it, call sheet included ("delete it all, start blank"), with the 22
+  staged stock photos and `public/design/`. The `credit` field left `MarketingImage` at his instruction so
+  none carries forward; the SWC count-glue policy went with the only files it scanned and its gotcha is in
+  `marketing-content.md`. Every frame is generated in one Higgsfield month before launch (ROADMAP, researched
+  2026-09-17: prices, the MCP, Article 50). ASSETS 6, 7 and 13 withdrawn.
+  ★ Still mine: nothing outstanding. The three boards Will is stuck with (album-hero, rounding,
+  river-visual) clear in their present shape, and the old authoring surface is scrubbed when they do. The
+  media kit was the last keep-any board, so the gallery walk has no user left and goes with that scrub.
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.

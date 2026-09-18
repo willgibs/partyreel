@@ -3,7 +3,6 @@ import type { ComponentType } from "react";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { GlowDoctrineBoard } from "@/app/(dev)/design/sandbox/glow-doctrine/board";
 import { GlowMomentsBoard } from "@/app/(dev)/design/sandbox/glow-moments/board";
-import { MediaKitBoard } from "@/app/(dev)/design/sandbox/media-kit/board";
 import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { RoundingBoard } from "@/app/(dev)/design/sandbox/rounding/board";
 import { TypePhoneBoard } from "@/app/(dev)/design/sandbox/type-phone/board";
@@ -29,7 +28,6 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "glow-doctrine": { Component: GlowDoctrineBoard },
   "glow-moments": { Component: GlowMomentsBoard },
-  "media-kit": { Component: MediaKitBoard },
   rounding: { Component: RoundingBoard },
   "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },

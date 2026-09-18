@@ -125,8 +125,8 @@ chroma zero (put it on A and any cool card on B and the question "is the cool do
 itself in one gesture), and Ember is the one warm card kept so the reversal is visible rather than
 asserted. Every card now lays a **colourful mix of five photographs** on its own well, spanning gold,
 pastel, night blue, laser and a warm stage, because that mix is exactly what the warm tones were said to
-clash with. The two hard cases (a white dress on a white wall, and one candle) are still asked for from the
-media kit.
+clash with. The two hard cases (a white dress on a white wall, and one candle) were asked of the media kit's
+shoot and withdrawn with it on 2026-09-17; the Higgsfield month can make them if the ramp is re-judged.
 
 ## Round six, the clarity round: the board became a catalog
 

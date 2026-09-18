@@ -283,7 +283,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 326
+          "line": 325
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -291,7 +291,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 371
+          "line": 370
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 401
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 500
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 534
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -323,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -331,7 +331,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 564
         }
       ]
     },
@@ -550,7 +550,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 326
+          "line": 325
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -558,7 +558,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 371
+          "line": 370
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -566,7 +566,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 401
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -574,7 +574,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 500
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -582,7 +582,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 534
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -590,7 +590,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -598,7 +598,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 564
         }
       ]
     },
@@ -678,7 +678,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 326
+          "line": 325
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -686,7 +686,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 371
+          "line": 370
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -694,7 +694,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 401
+          "line": 400
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -702,7 +702,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 500
+          "line": 499
         },
         {
           "title": "computes one anchor everywhere",
@@ -710,7 +710,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 534
+          "line": 533
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -718,7 +718,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 554
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -726,7 +726,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 564
         }
       ]
     },
@@ -4876,13 +4876,6 @@
     }
   ],
   "policies": [
-    {
-      "file": "src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts",
-      "scope": "engineering",
-      "title": "A count can never glue itself to its noun",
-      "summary": "a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as \"24marketing\".",
-      "line": 1
-    },
     {
       "file": "src/app/(marketing)/marketing-css-policy.test.ts",
       "scope": "marketing",

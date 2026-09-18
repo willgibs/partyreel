@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 19 policies · 242 contracts on 42 components · 7 standing boards.**
+**22 laws · 18 policies · 242 contracts on 42 components · 6 standing boards.**
 
 ## What binds you
 
@@ -148,7 +148,7 @@ Will's pacing principle: visual attention is spent at the opener and earned back
 
 **18. Every frame is ours: no stock photography on a marketing surface, and a page argues in photographs wherever it can.**
 
-Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock at launch; the media-kit exploration finds what a license lets us use and plans the kit Will makes himself (2026-09-14).
+Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month (2026-09-17). An image we use is one we hold the rights to, so nothing tracks them.
 
 <small>enforced by `src/lib/constants/marketing-media.test.ts` · `/design/library/rules/every-frame-is-ours`</small>
 
@@ -216,7 +216,6 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 
 | policy | refuses | test |
 | --- | --- | --- |
-| A count can never glue itself to its noun | a multi-line JSX text run that opens with a space and holds an HTML entity, which Next 16's SWC renders as "24marketing". | `src/app/(dev)/design/sandbox/media-kit/board-jsx.test.ts:1` |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
 | Bible 15: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
 | Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
@@ -365,7 +364,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `glow-doctrine` | shared | Two light systems: our spill engine for light from a lit thing, and the vendored border-beam for an object that IS the live thing |
 | `glow-moments` | shared | Thirteen moments argued against the doctrine, including where a beam is allowed, then the whole page they compose into |
-| `media-kit` | marketing | Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot) |
 | `type-phone` | shared | Three decisions, no page: the marketing sub-head tier, the dead-link title, and whether the display step's optical trim tracks its leading. Every option is the real surface in a 375 column at true pixels, which the shape makes structural rather than optional |
 | `rounding` | shared | Six families as cards, each the card, the menu, the photograph and the button at true size plus a 375 frame; two families on the same real page scroll-locked; four questions (the button rung, the derived ladder, the dead rungs, the album's gap) |
 | `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |

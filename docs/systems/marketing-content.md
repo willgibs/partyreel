@@ -616,6 +616,12 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   in-repo `slugify` that `extractHeadings` also uses (no `rehype-slug`), so an anchor and the on-this-page
   ToC cannot drift apart.
 - **The `next/og` images load NO font.** The built-in font dodges the Next-16 satori font gotcha. Don't add a custom font loader.
+- **A count can glue itself to its noun.** Next 16's SWC drops the LEADING whitespace of a JSX text run
+  that both spans more than one source line and holds an HTML entity (`&rsquo;`, `&nbsp;`), so
+  `{n} marketing pages` renders "24marketing" in exactly that case. tsc does not reproduce it, and a
+  prettier reflow can create the shape in a file nobody meant to change. Put an explicit `{" "}` after
+  the expression, or keep the run on one line. (The guard that caught it scanned only the media kit's
+  own board, and went with it on 2026-09-17.)
 - **The event page emits OG tags but `robots: { index: false }`.** `/e/[token]` sets `generateMetadata`
   (event name/description + the per-event OG) so links unfurl in chat, but the opaque `qr_token` must NEVER
   be indexed. `robots.ts` also disallows `/e/`, `/dashboard`, `/admin`, `/login`, `/auth`, `/api/`. The

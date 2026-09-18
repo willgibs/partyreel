@@ -73,7 +73,6 @@ export type SandboxId =
   | "river-visual"
   | "glow-doctrine"
   | "glow-moments"
-  | "media-kit"
   | "rounding"
   | "type-phone";
 
@@ -544,26 +543,17 @@ export const RULINGS: Ruling[] = [
     id: "media-kit",
     title: "The media kit",
     surface: "marketing",
-    ruled: "open (the revamp's catalog, 2026-09-16)",
-    shipped: null,
-    why: "Bible 18 written down: no stock at launch, every frame ours or under a license we can name; the sources surveyed, the kit planned, a candidate first batch staged.",
+    ruled:
+      "2026-09-17, killed at round seven: Will chose generated frames over stock or a shoot, made in one Higgsfield month once the site is shaped, and ruled that no agent tracks an image's rights",
+    shipped:
+      "the credit field gone from the marketing stills and their type, so no generated frame can carry one",
+    why: "Killed: stock was the wrong supply and the shoot is off; every frame will be generated for its slot, in one look, from a brief written when the track starts.",
     lives: [
-      "docs/specs/media-kit.md",
+      "docs/design/rulings.md",
       "src/lib/constants/marketing-media.ts",
       "docs/ASSETS.md",
+      "docs/specs/media-kit.md",
     ],
-    board: {
-      note: "Thirteen real catalogues as cards, ranked by whether they hold a release, each with its clause, its price and a contact sheet at the real card size, ship above the line and kill below; four questions about the thirteen (the rule, the spend, the crowds, the shoot)",
-      variants: [
-        "Unsplash+",
-        "iStock",
-        "Stocksy",
-        "Adobe Stock",
-        "Artgrid",
-        "Web Summit",
-        "Flickr CC",
-      ],
-    },
   },
   {
     id: "type-phone",

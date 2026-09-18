@@ -277,7 +277,7 @@ export const BIBLE: BibleRule[] = [
     group: "surfaces",
     statement:
       "Every frame is ours: no stock photography on a marketing surface, and a page argues in photographs wherever it can.",
-    why: "Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock at launch; the media-kit exploration finds what a license lets us use and plans the kit Will makes himself (2026-09-14).",
+    why: "Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month (2026-09-17). An image we use is one we hold the rights to, so nothing tracks them.",
     enforcedBy: ["src/lib/constants/marketing-media.test.ts"],
     ruledBy: "Will",
     ruledOn: RATIFIED,

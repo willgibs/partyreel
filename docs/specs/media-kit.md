@@ -1,264 +1,44 @@
-# The media kit: sourcing, licensing, and the kit we make
+# The media kit: killed, and every frame is generated instead
 
-> **ROLE:** the standing proposal for where every photograph on a Partyreel surface comes from: the
-> rule, the places ranked, the money, the kit Will shoots, and what a wiring round does with a
-> ruling. **BELONGS HERE:** what is ruled and what is open, plus the operative detail a board cannot
-> hold (the verbatim licence clauses, the call sheet, the harvest procedure). **NOT HERE:** the
-> argument for any of it (that is the board, `/design/lab/media-kit`), which assets have been asked
-> for or delivered (that is [`../ASSETS.md`](../ASSETS.md)), how a marketing page is built (that is
-> [`../systems/marketing-content.md`](../systems/marketing-content.md)), or the wiring itself.
-> **GROWS BY:** refine in place. It is a proposal, never a ledger and never a history: git holds
-> every round that got here.
+> **STATUS: KILLED** (Will, 2026-09-17, at round seven). It proposes nothing. The board went whole:
+> the 36-frame call sheet, the 13 catalogues and their contact sheets, the $56 plan and the 22 staged
+> stock photographs, with nothing carried forward ("delete it all, start blank"). His words are in
+> [`docs/design/rulings.md`](../design/rulings.md); the manifest the site reads is
+> [`src/lib/constants/marketing-media.ts`](../../src/lib/constants/marketing-media.ts); the asks it
+> held are withdrawn or parked in [`docs/ASSETS.md`](../ASSETS.md); and what replaces it is a line in
+> [`docs/ROADMAP.md`](../ROADMAP.md) under the major overhauls. This file is kept only until the spec
+> docs of retired boards are folded and deleted together (ROADMAP, "the lab").
 
-> **STATUS: A PROPOSAL.** Nothing here is in force. Bible 18 ("every frame is ours") is ratified; the
-> operative detail below is this track's recommendation and waits on Will's ruling. No production
-> byte has changed on this track: the twelve stand-ins are untouched and the staged batch lives under
-> `public/design/media-kit/`, which no marketing surface reads. The board is
-> `/design/lab/media-kit`; the four questions live in its `spec.ts` and this document does not
-> restate them.
+## Why it was killed
 
----
+Seven rounds went into where our photographs could come from, and they came back with a survey of
+stock: thirteen catalogues ranked by whether they hold a release, their clauses quoted, a $56 bridge,
+and a shoot to replace it. Looking at that stock is what showed Will the answer sat upstream of all
+of it. Stock limits the site three ways, in his words: "it's hard to find many high-quality photos
+packs recognizably from the same event and licensable, for any packs we could find we're limited to
+what it contains and may not fit perfectly, and we're paying a lot of money to support our visual
+needs."
 
-## 0. What is true today
+His answer is to generate every frame: a moodboard for one look, then each photograph made for the
+slot it fills, inside one month of Higgsfield once more of the site is shaped. The shoot is off: "No
+idea where this originally came from."
 
-All twelve entries in `MARKETING_IMAGES`
-([`src/lib/constants/marketing-media.ts`](../../src/lib/constants/marketing-media.ts)) carry one
-line, `license: "unsplash (per lab-pack comment; provenance unverified)"`, and nothing else: no
-author, no source URL, no retrieval date. The lab pack they were copied from was empty when this
-track opened, so the trail is gone from the tree. Reading the licence settles it faster than hunting
-the trail would: Unsplash's free terms exclude recognisable people, and all twelve are full of them.
+★ **The machinery went with it, on purpose.** The board had grown a six-fact provenance rule, a
+question about whether every face in a crowd needs signed permission, and a pinned `provenance.json`.
+He ruled all of it out of the agents' work: "if we're using images, it inherently means we have the
+licenses to do so. Our AI chat agents do not need to track photo subjects and whether or not we had
+that permission." So no agent adds a credit line, a source, a release check or a rights question to
+an image. The manifest's `credit` field is gone from the type as well as from the twelve stills, so it
+cannot come back with the generated set.
 
-The exposure is the site rather than the blog: 40 production files across 24 routes, with four ids in
-the footer strip and two in the nav panel, both of which live in the group layouts, so six frames are
-on every marketing page before a reader scrolls. `exposure.test.ts` recounts it from the tree, so the
-numbers on the board cannot go stale.
+## What was ruled
 
----
+- **`rule=no`**: no attribution on a production image, and no per-entry provenance.
+- **`spend=hold`**: no Unsplash+ month and no iStock frames; the $56 bridge (ASSETS row 13) is
+  withdrawn.
+- **`shoot=park`**: no photo shoot; the 36-master kit it was for (ASSETS row 7) is withdrawn.
+- **Crowds**: deliberately not recorded, at his instruction.
 
-## 1. The rule (proposed)
-
-**1.1 Every frame on a Partyreel surface is one of exactly two things.** **Ours**, photographed,
-filmed, drawn, rendered or generated by Will or by Partyreel, which is the default and the only thing
-that ships at launch on a surface a reader studies; or **licensed**, under a named licence whose
-permitting clause is quoted on the entry, with the author, the source URL and the retrieval date
-recorded. There is no third category. A frame whose provenance cannot be stated in one line is not a
-frame we own, it is a liability with a nice colour palette.
-
-**1.2 Six fields become required.** `author`, `sourceUrl` and `retrieved` are optional on
-`MarketingImage["credit"]` today; they become required, `license` becomes a union rather than free
-text, and two fields join them:
-
-```ts
-type People = "none" | "unidentifiable" | "identifiable";
-
-credit:
-  | { kind: "ours"; author: string; created: string; how: string; people: People }
-  | {
-      kind: "licensed";
-      license: LicenseId;
-      /** The sentence of the licence that permits this use, QUOTED, not named. */
-      clause: string;
-      author: string;
-      sourceUrl: string;
-      retrieved: string;
-      people: People;
-      /** Required when `people` is "identifiable": why it may still ship. */
-      caution?: string;
-    };
-```
-
-`clause` is quoted rather than named because a platform name proves nothing about what was agreed and
-a source can vanish. `people` is the field that does the work.
-
-**1.3 The test asserts the shape, not the emptiness.** It runs today on the 22 staged records
-(`candidates.ts` and `public/design/media-kit/provenance.json`, pinned against each other field by
-field by `provenance.test.ts`), so the rule is a suite that passes rather than a proposal.
-
-**1.4 A recognisable face with no signed permission cannot ship.** No free tier supplies a model
-release, so `people: "identifiable"` without a `caution` is refused. This is the line the whole
-sourcing sheet is ranked by, and question 3 on the board is where it is decided for crowds.
-
----
-
-## 2. The places, ranked
-
-Thirteen real catalogues, the data in
-[`sources.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/sources.ts), each carrying its price,
-its licence clause **verbatim** from the licence page on the date it was read, its release position
-and the kinds of event it can actually serve. The board is the catalog; this table is the index.
-
-| Place | Price | Faces | The board's call |
-| --- | --- | --- | --- |
-| Unsplash+ | $20 a month, perpetual for what is pulled inside it | Released, warranted to $10,000 | **ship** |
-| iStock Essentials | $12 a photo | Getty warrants the release | **ship** |
-| Stocksy United | $35 a frame | Released by policy | refine |
-| Adobe Stock | $9.99 a photo from a credit pack | Release filed by the contributor | refine |
-| Artgrid | $299 a year, perpetual after cancellation | Commissioned shoots | refine |
-| Web Summit's Flickr | Free, for a credit line | Nobody signed | refine |
-| Flickr, CC BY 2.0 | Free, for a credit line | Nobody signed | refine |
-| Envato Elements | $198 a year, and files die with it | Per item, warranted nowhere | kill |
-| Nappy | Free | No release travels with the file | kill |
-| Mixkit | Free, revocable | No releases | kill |
-| Coverr | Free | Releases obtained, none passed on | kill |
-| Death to Stock | $199 a year, rented | Nothing warranted to us | kill |
-| Creative Market | $40 to $100 a bundle | Rarely stated | kill |
-
-**Ranked by release, not by price, and that inverts an earlier survey.** Every kind of event this
-product sells into is a room full of recognisable people, so a free library with nobody's signed
-permission is not the cheap option, it is the one that cannot supply the frames. Round three's survey
-also ran licences and sources together and led with CC0 1.0, which is a legal instrument rather than
-a place with photographs in it; `LICENCES` in the same file keeps that clause-by-clause survey, and
-it is a separate list on purpose.
-
-**Six draw no contact sheet, for four different reasons**, measured with a plain client on
-2026-09-15. Each card carries its own; `plan.test.ts` refuses a source with neither a sheet nor a
-reason, and refuses a drawn one that carries an excuse.
-
-| Place | A plain client gets | Why there is no sheet |
-| --- | --- | --- |
-| Adobe Stock | `403` | Refuses outright; nothing to route around short of driving a browser. |
-| Stocksy United | `403` | The same. The most carefully curated library here is the one the board can show least of. |
-| Creative Market | `403` | The same. The cheap wedding album is taken entirely on its own description. |
-| Artgrid | `200`, an empty shell | The clips are fetched client side. A 200 is not a readable catalogue. |
-| Death to Stock | `200`, then `404` on every browse path | The 15,000 visuals are behind the membership its rental clause describes. |
-| Coverr | `200`, and it reads completely | Nothing refused it; the reading IS its verdict. Its `party` page is 70 Coverr clips, 23 of them AI generations, beside 34 iStock results in one grid. |
-
-**Unsplash+ was a seventh blank and it draws now**, which is the lesson worth keeping: it had been
-left out on the claim that the paid tier sits behind an account, and nobody had measured it. The
-board's whole thesis is that a catalogue must be drawn rather than described, and an unchecked
-sentence about why one cannot be drawn is the same failure in the opposite costume.
-
----
-
-## 3. The plan: what to buy
-
-The rows and the arithmetic are [`plan.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/plan.ts),
-derived from the sources' own cards, with `plan.test.ts` refusing a row whose source does not exist,
-a spend that does not match the card, or a total that is not the sum of the rows.
-
-One month of **Unsplash+ at $20** covers all five kinds of event. The conference rooms are the only
-frames paid for one at a time: **three iStock Essentials at $12**. **$56 in total**, or $41 while the
-$7 launch promotion runs. Anything downloaded inside the month stays licensed for ever.
-
-The asymmetry is the argument. Licensing the photographs is $56 and licensing the films is $299 a
-year, so the clips line costs more than every photograph put together, and it is the one line a shoot
-deletes outright: a film of strangers cannot carry a product whose claim is that the frames came from
-the party you were at.
-
----
-
-## 4. The kit Will makes
-
-Thirty six photographs, six each for weddings, birthdays, corporate, conferences, festivals and
-trips, shot in one night at an event we host and run on Partyreel, with a release signed at the door.
-The call sheet is data:
-[`shoot.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/shoot.ts), codes `W1` to `T6`, each frame
-naming what happens in it, where the camera is, what the light is doing, the crops it has to survive
-and the manifest ids it inherits. (The shoot keeps its own six groups: conferences is a different
-night from an office party, even though a stock catalogue folds the two into "corporate".)
-
-**Every crop comes from a real surface**, never from taste: the 4:5 card and its 22-to-78 ladder are
-`blog-covers.ts`; the 1200x630 centre crop is the share card, which ignores the ladder; 120 px is the
-narrowest the home hero's corridor draws a frame; 512 square is `ASSETS.md` row 2; 512x640 and
-720x900 are rows 9 and 12.
-
-**All twelve stand-ins are inherited by id.** `W1` takes `wedding-golden` and `wedding-arch`, `W2`
-`wedding-toast`, `W3` `reception-hall`, `W4` `wedding-petals`, `W6` `reception-table` and
-`wedding-rings`, `B1` `party-balloons`, `S1` `festival-crowd`, `S2` `concert-confetti`, `S4`
-`festival-lights`, `S5` `party-dj`.
-
-**Four of the 36 are the palette board's hard cases** (`ASSETS.md` row 7), marked rather than asked
-for separately, because a ramp is only ever wrong against media that fights it: `W5` high key, `W3`
-low key, `W2` candle warm, `S4` stage cool. **Three show a guest holding a phone up**: `K3`, `S3`,
-`T4`.
-
-**What a frame must survive**, each from a surface the twelve already feed:
-
-1. **1600 px long edge, a third portrait.** Eleven of the twelve stand-ins are landscape and none is
-   wider than 900 px, so one portrait currently feeds every vertical slot in the product.
-2. **Readable at 120 px.** The hero corridor draws a frame between 70 and 290 px, where a wide room
-   shot is grey mush. Tight framing is the biggest single lift available to the set.
-3. **Survives the crop ladder**, six positions from 22 percent left to 78 percent right. Put
-   something in both halves.
-4. **Dark and warm, the left 55 percent in the lower third of the range.** That is what buys a hero
-   with no scrim over the media, which is bible 1 held rather than argued.
-5. **No frame needs a face in focus**, because the type sits over the left half of the hero. It is
-   also what keeps most of the kit clear of the release question.
-
-One night closes nine of the twelve rows in [`../ASSETS.md`](../ASSETS.md). Row 5 changes the shape
-of the answer: if the shoot is run AS a Partyreel event, the guests' own uploads seed the demo event,
-and the live QR on every hero board points at a real album instead of fixtures.
-
----
-
-## 5. What a wiring round does with a ruling
-
-1. **Start with the chrome.** Four ids are in the footer strip and two in the nav panel, both in the
-   group layouts, so those six frames are on every marketing page. Cheapest six to fix, most visible.
-2. **Keep the ids.** A replacement takes the id of the stand-in it replaces, or every blog cover
-   moves under its published article.
-3. **The per-post bridge is its own deliberate change**: 23 `cover:` lines in frontmatter, made once,
-   with the before and after looked at. It is not a side effect of swapping files.
-4. **Files in, entries in, one commit.** `public/marketing/{img,posters,reels}` and
-   `MARKETING_IMAGES` change together or the orphan test fails, which is the point of it.
-5. **Widths and heights are real.** The orientation assertion reads them.
-6. **Re-render both reels** per section 6, or replace them with the delivered film.
-7. **Raise the test** to the shape in 1.2 in the same commit, so the new entries are the first ones
-   it holds. `provenance.test.ts` is the working prototype to lift from.
-8. **Check both geometries by eye** on three posts: the 4:5 card at its ladder position AND the
-   1200x630 share card, which centre-crops and shows a different part of the frame.
-9. **Delete the bridge.** Any licensed frame carried as a stopgap is removed, not left because it
-   still looks fine.
-
----
-
-## 6. Re-rendering the two recorded reels
-
-Two reels in the manifest are stand-ins pinned to stand-in clip ids, so replacing the media means
-re-rendering them. Budget for it, but it is **not a code edit**, which is a round-one claim this doc
-withdrew. The engine encodes in a browser (`src/lib/reel/engine/encode.ts`, brokered by
-`render-service.ts`); the Lambda path was torn down 2026-07-08, so there is no headless renderer to
-point at a file. Both recipes are already in the parity page's `CLIP_SETS` picker, in order:
-
-| Recipe | Clip set on the page | Style | Seed | Orientation |
-| --- | --- | --- | --- | --- |
-| `hero-candidate-01` | Marketing: mixed 6 | `classic` | 73 | portrait |
-| `hero-candidate-02` | Marketing: festival arc | `golden` | 73 | landscape |
-
-`runbook.ts`'s `matchClipSet` checks that against the manifest rather than asserting it, and
-`runbook.test.ts` fails the day either list drifts.
-
----
-
-## 7. How the contact sheets are built, and why nothing is copied
-
-The board draws 26 contact sheets, 308 frames, each one **the source's own thumbnail hotlinked from
-the source's own CDN**:
-[`catalogue.ts`](../../src/app/\(dev\)/design/sandbox/media-kit/catalogue.ts) holds URLs and no
-files. That is the honest way to show a catalogue we have not bought: a watermarked comp stays a
-watermarked comp, a paid frame is never copied into this repo, and `plan.test.ts` refuses an entry
-that is a local path. The board renders them with a plain `<img>` rather than `next/image` for the
-same reason, and the applied swap block hotlinks for the same reason again: the optimizer would leave
-a cached copy of another company's comp on our infrastructure.
-
-To rebuild it, read each source's public search page and take the thumbnail URLs out of the markup:
-
-- **Flickr** `flickr.com/search/?user_id=<id>&license=4&text=<query>` (licence 4 is CC BY 2.0, 9 is
-  CC0), thumbnails on `live.staticflickr.com/<server>/<id>_<secret>_z.jpg`.
-- **iStock** `istockphoto.com/search/2/image?phrase=<query>`, watermarked comps on
-  `media.istockphoto.com/id/<id>/photo/<slug>.jpg`.
-- **Envato Elements** `elements.envato.com/photos?terms=<query>`, previews on
-  `elements-resized.envatousercontent.com` (signed and long).
-- **Nappy** `nappy.co/search?q=<query>`, `images.nappy.co/photo/<id>.jpg`.
-- **Mixkit** `mixkit.co/free-stock-video/<topic>/`, poster frames on
-  `assets.mixkit.co/videos/<id>/<id>-thumb-360-0.jpg`.
-- **Unsplash+** `unsplash.com/s/photos/<query>?license=plus`, released frames on
-  `plus.unsplash.com/premium_photo-<id>`. Take them from the embedded search payload, never from the
-  `<link rel="preload">` tags in the head: those repeat ONE photo at twelve widths, and pairing a
-  thumbnail to the nearest anchor there maps two frames onto one photo page. Drop the `ixid` tracking
-  token and keep the rest of the source's own query string.
-
-Every URL was confirmed to answer 200 with an image content type to a request carrying a
-`partyreel.com` referer on 2026-09-15, so none is hotlink-protected today. A tile whose URL stops
-answering falls back to a labelled slate naming its source, which is the sheet telling the truth
-about a catalogue that moved rather than a broken page.
+The twelve stand-ins stay on the site until the generated set replaces them, before launch. The swap
+itself (each replacement keeps the id of the still it replaces, then the two recorded reels re-render)
+is written where it is enforced, in the manifest's header.

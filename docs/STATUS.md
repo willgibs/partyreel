@@ -29,7 +29,7 @@ tiles on one specimen, show before choose, "None of these" as a pick-one board's
 time for a keep-any board, staged follow-ups, the desk's rows as steps, "Copy so far" omitting what the
 ledger holds), then every board was reshaped into steps four agents at a time with no new exploration.
 Every reshaped board is under the standard 1,200 words. **The round is closed and its sitting is running**:
-Start the review walks what is left (type-phone, rounding, the album hero, the media kit, river-visual), and
+Start the review walks what is left (type-phone, rounding, the album hero, river-visual), and
 a pick's wiring round is cut the day he makes it (a favourite becomes a working version, the board retires).
 **The sitting (2026-09-17), batch by batch:** the hero (`stream=stack-above`) and the palette (`graphite`,
 no accent), the aurora ruled off light grounds; the type scale, with the throw and the aurora kept
@@ -41,7 +41,8 @@ wordmark delivered and wired** (alone, on every door; the icon to come). **The s
 closing floating surfaces, and **the brand voice exploration killed unruled** at round seven, where it had
 arrived with no review ever recorded (six voices, 510 strings, 4,121 lines). Three picks stand and ship
 (`noun=album`, `unfurl=join`, `counts=hero`); the voice restarts as a board built from won lines, and
-an unreviewed second round is a test now.
+an unreviewed second round is a test now. **The seventh:** the media kit killed for generated frames,
+and no agent tracks an image's rights.
 
 | track | returns | state |
 | --- | --- | --- |
@@ -57,7 +58,7 @@ an unreviewed second round is a test now.
 | `type-phone` (round one) | **the first question-first exploration** (`defineExploration`): the three type calls the ladder left open, as three decisions with every option drawn at 375 in its own surface | built 2026-09-18; waiting on Will |
 | `rounding` (round seven) | pick-one: the winner from the six or none, the button, ladder, dead-rung and gap questions as tiles at true pixels | integrated at `7d90465c`, 684 words, no declaration |
 | `brand-voice` (round seven) | pick-one over six voices, with the noun, unfurl, counts and scope as steps | **killed unruled and deleted** (no review in seven rounds; 4,121 lines gone at his instruction). `voice-picks` shipped his three answers at `2735ad92`; bible 20 and 21 point at the new `voice` board, which is next |
-| `media-kit` (round seven) | keep-any as a gallery (a kept card is a purchase, priced on the card), the crowds question as two tiles, the rule, spend and shoot questions means-only | integrated at `61063785`, 1,077 words, no declaration |
+| `media-kit` (round seven) | keep-any over thirteen stock catalogues, with the rule, crowds, spend and shoot as steps | **killed and deleted**: every frame generated instead, in one Higgsfield month once the site is shaped and before launch (ROADMAP). `rule=no`, `spend=hold`, `shoot=park`; the crowds answer kept off the record by his ruling that no agent tracks an image's rights, and the stills' `credit` field gone with it; ASSETS 6, 7 and 13 withdrawn |
 
 ## The previous round: the revamp (2026-09-16, `5cdebfe0` to `48bd3bdc`)
 
@@ -110,11 +111,10 @@ prune crons and the shared `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 The desk derives the steps (`/design/lab?key=`); the assets are in [`ASSETS.md`](ASSETS.md). Next from him:
-the stepped sitting, board by board (rounding, the album hero, the media kit, river-visual), pasted in
-batches with Copy so far; the three phone-end type calls, now answerable on `type-phone`; the assets still
-open: the menu ground photograph (row 14), the grain tile and the worst-case overlap pair (rows 15 and 16),
-the bright-edged tile set (row 17), the v1 icon (row 19), and the media kit's 36 masters and $56 bridge,
-which its spend and shoot steps now ask. The bible-20 question (naming or shape) becomes the new `voice`
-board's first ask rather than dying with brand-voice. The standing submenu bug is FIXED (`SubContent` is
-portalled; its symptom was a clip by a transformed parent, not a blank). The launch-gated tasks
-are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
+the stepped sitting, board by board (rounding, the album hero, river-visual), pasted in batches with Copy
+so far; the three phone-end type calls, now answerable on `type-phone`; the assets still open: the grain
+tile and the worst-case overlap pair (rows 15 and 16), the bright-edged tile set (row 17) and the v1 icon
+(row 19). The bible-20 question (naming or shape) becomes the new `voice` board's first ask rather than
+dying with brand-voice. The standing submenu bug is FIXED (`SubContent` is portalled; its symptom was a
+clip by a transformed parent, not a blank). The launch-gated tasks are the ROADMAP's Launch checkpoint
+(`[human]` / `[eng]` / `[content]`).

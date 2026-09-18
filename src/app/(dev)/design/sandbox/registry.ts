@@ -3,7 +3,6 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { GLOW_DOCTRINE } from "./glow-doctrine/spec";
 import { GLOW_MOMENTS } from "./glow-moments/spec";
-import { MEDIA_KIT } from "./media-kit/spec";
 import { RIVER_VISUAL } from "./river-visual/spec";
 import { ROUNDING } from "./rounding/spec";
 import { TYPE_PHONE } from "./type-phone/spec";
@@ -36,7 +35,6 @@ export const BOARDS: readonly BoardSpec[] = [
   RIVER_VISUAL,
   GLOW_DOCTRINE,
   GLOW_MOMENTS,
-  MEDIA_KIT,
   ROUNDING,
   ALBUM_HERO,
   TYPE_PHONE,
