@@ -200,6 +200,14 @@ answer, so a round can unlock the next question once it returns, and two decisio
 between them are independent pieces he can take in any order. Prefer more rounds of narrower questions
 to one wide one.
 
+**Offer the fix at its source.** When a question is a symptom of the system (a page reads wrong because
+a token is wrong), the options include fixing the system, not only living with it on the page:
+`type-phone` offered two ways to live with a broken ladder and none that fixed it, which Will called "a
+huge oversight on a problem with an obvious solution" (2026-09-18). **And measure every tile before it
+ships:** a preview shows what its option's words claim, checked on screen rather than computed. The same
+board drew one option with its formula's sign backwards, so the tile he judged showed the opposite of
+the words he picked.
+
 What NOT to build: a page with argument, a verdict essay, departures, assets, or keep / refine / kill
 over N cards. "Simply designing a few variations will always beat a mountain of research text", and a
 question wrapped in a research paper is the thing this replaced. `src/app/(dev)/design/sandbox/type-phone`

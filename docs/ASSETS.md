@@ -19,10 +19,13 @@ edit); no agent edits it (asks go in the manifest's Handoff, one bullet per asse
 **Status:** `requested` → `delivered` → `wired`; `parked` when the round that asked was not ruled in but
 the asset still serves a queued idea; `withdrawn` when nothing uses it (the row stays as the record).
 
-**The source, from 2026-09-17:** what a shoot or a licence was going to supply is generated in one
+**The source, from 2026-09-18:** every image and every video on the site is generated in one
 Higgsfield month once more of the site is shaped (ROADMAP, major overhauls). Nothing is shot or
 licensed, and no row tracks where an image came from (Will: "if we're using images, it inherently
-means we have the licenses to do so").
+means we have the licenses to do so"). **An ask names the slot, never the picture:** where the frame
+sits, its size and aspect, the crops it must survive and where type lands on it. The agent that runs
+the month researches Higgsfield's tooling first and writes every final prompt itself, so the creative
+detail in older rows is context for it, not a prompt.
 
 | # | what | spec | asked by | replaces (id) | status | where |
 | --- | --- | --- | --- | --- | --- | --- |

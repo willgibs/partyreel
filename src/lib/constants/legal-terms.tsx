@@ -525,6 +525,12 @@ export const TERMS_SECTIONS: LegalSection[] = [
       p(
         "Content in an album comes from hosts and guests, not from us. We do not endorse it, and we are not responsible for it or for what anyone with access to an album does with it.",
       ),
+      // Our own images, never a guest's: this sits after the sentence that
+      // separates the two so it can only read as the "us" side. It is the
+      // whole disclosure by Will's ruling (2026-09-18): no mark on any image.
+      p(
+        "We may use generative artificial-intelligence tools to create some of the images and videos on our website, in our marketing and in our demo event.",
+      ),
     ],
   },
   {

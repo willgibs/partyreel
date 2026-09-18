@@ -319,7 +319,6 @@ describe("the board registry", () => {
   const UNREVIEWED_BEFORE_THE_RULE = new Set([
     "album-hero", // r3, waiting on his four picks and three recommendation calls
     "river-visual", // r2, not yet walked
-    "rounding", // r7, five steps open, next after floating surfaces
   ]);
 
   it("has a review on the record before a board opens a second round", () => {

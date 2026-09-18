@@ -8,6 +8,48 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · the type ladder keeps its order at a phone and nothing is set off it; the corners are C in quarters; every image and video is generated, with one line in the Terms
+
+**Became:** `docs/reviews/type-phone.json` round 1 (`subhead` and `dead-link` left open with his words,
+`display-trim=clamped`) and `docs/reviews/rounding.json` round 7 (`family=c`, `actions=today`,
+`ladder=quarters`, `dead-rungs=drop`, `gap=pinned`), then one lane, `ladders-wiring`, that wires both
+and retires both boards. The type half: `prose`'s phone end from 18 to 24 with 1440 unmoved, so the
+paper h2 and the marketing 404 read as h2s at a phone; a tenth step, `subhead` (20 at a phone, 24 at
+1440), naming the pair seven headings already wore as stock classes; every heading-face element onto
+the step its role calls for; the ladder's law restated as the order rather than the travel. The trim
+ships as the option's words said, `(1em - 1lh)/2 - 0.19em`, because the tile he judged was drawn with the
+sign backwards: it trimmed less at a phone, the opposite of its own "sits on its line at both ends". The
+corners: an 8px surface, a 12px floating layer with its rows derived at 8, a 4px photograph and the gap
+pinned to it; the steps in quarters with the top two dropped; buttons at 0.4 of their height with a `cta`
+size for the 44px button and the guest sheet on the floating corner. And one sentence at the end of the
+Terms' Disclaimers, version 1.2.
+
+Verbatim, on the sub-head tier: "I wish there was an obvious third pick, which is to fix the mobile type
+scale ladder so the upper heading is larger. That problem snuck by when I only reviewed the desktop
+version. We should have a very clear heading hierarchy on mobile as well. Only offering options to keep
+the sub larger or to match was a huge oversight on a problem with an obvious solution."
+
+Verbatim, on the dead-link title, which binds every type question after it: "404 should inherit our
+established type scale, maybe using an H2-3 size. Between this and the last question, we really
+shouldn't have any one-off adding instances. Everything should be addressed in our design system type
+ladder. That either means adding new styles to the ladder or using styles from the ladder on existing
+one-offs. Unless it's a helpful global addition, I prefer not to add one-offs to the library to keep
+consistent standards."
+
+Verbatim, on the corner ladder: "This keeps the final pixel calculations much cleaner."
+
+Verbatim, on generated media: "Good research on Higgsfield. We'll likely extend this to all of our images
+and videos for consistency. Since we'll be attempting to create very real photos, we can play it safe and
+add a small note wherever it fits best in our legal docs along the lines of 'we may use generative AI' or
+something light to cover. Don't need to take any chances if it's that easy. However, don't want to markup
+any images themselves."
+
+Verbatim, on the prompts: "For the image 'prompts' themselves, the requirements will likely change as we
+upgrade the full marketing site, so we don't need to preserve much of that. The requested assets from
+agents may continue to grow, but I'd like the new agent handling our Higgsfield generations to write the
+final image/video prompts itself once it becomes an expert on Higgsfield tooling and prompting from deep
+research. That way we're generating the most engaging, polished content possible."
+
 ## 2026-09-17 · the media kit is killed; every frame is generated in one Higgsfield month, and nothing tracks an image's rights
 
 **Became:** `docs/reviews/media-kit.json` round 7 (`rule=no`, `spend=hold`, `shoot=park`; the crowds
