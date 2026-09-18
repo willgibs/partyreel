@@ -51,6 +51,25 @@ markdown behind a request-time `readFileSync`. Read the other two from the repo.
 loads from outside the repo is invisible to the next agent, so name what it gave you in the board's
 Departures or the manifest's Record.
 
+## Inspiration: the Mobbin MCP
+
+Mobbin (the connected MCP: `search_screens`, `search_flows`, `search_sections`) is a library of real
+product UI, screens, flows and sections, searched in plain language and returned as images to read. An
+exploratory UI agent is ENCOURAGED, never required, to reach for it when a board wants new concepts on
+the table or a specific target (a section, a screen, a flow, a UI element, a style): search, read the
+screens, and design from the ground up; a screen you leaned on is cited by its Mobbin link in the
+board's context or the manifest's Record so the influence is visible. It is a way in, not a shortcut:
+an agent that always looks up inspiration first may never find its own, so use it when it opens a door
+and skip it when the idea is already alive. Its images are for reading only, never for the repo (no
+image is copied into `public/` or a board; every image on the site is the Higgsfield month's), and a
+screen's look is a reference for a decision, never a component to trace.
+
+Verbatim (Will, 2026-09-18, after the first use): "I'd like a note in our docs/lab that encourages other
+exploratory UI agents to use the Mobbin MCP tool as well so it isn't a one-off usage the first time it
+was added. I don't want to make it a hard rule (agents that always look up inspo may never find their
+own creativity), but it's an incredible way to get some new concepts on the board or specifically target
+different design ideas of new sections, screens, flows, UI elements, styles, etc."
+
 ## Boards: the review surface
 
 A board exists to get one question answered in a single screen, so its shape is a craft problem of

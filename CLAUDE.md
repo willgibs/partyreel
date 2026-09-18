@@ -75,8 +75,10 @@ and `docs/design/library.md` after a contract, policy, `for` line or `touchpoint
 and DB ops; project `ddafaemglzmuekbtjwzn`; no CLI, migrations land via `apply_migration`; MCP-created RPCs inherit
 an `anon` EXECUTE grant: [database-security.md](docs/systems/database-security.md)) · Cloudflare R2 (account
 `8bd90d2f6a374d6cdff2f379e929b060`, bucket `partyreel`; cannot mint tokens or set CORS) · Vercel (deploys and logs;
-never env vars or domains) · Stripe (acct `acct_1TcStrPtjqmVkBwk`; one mode per key, check `retrieve_balance` →
-`livemode` first) · shadcn (no `form` item in radix-nova; ours is hand-authored) · the browser pane and Chrome for UI.
+never env vars or domains) · Stripe (acct `acct_1TcStrPtjqmVkBwk`, TEST; `list_available_accounts_or_orgs` → `livemode`
+first) · Mobbin (real product screens, flows and sections for inspiration, encouraged and never required:
+[guidance.md](docs/design/guidance.md)) · Resend (the sending domain, logs, deliverability) · shadcn (no `form` item in
+radix-nova; ours is hand-authored) · the browser pane and Chrome for UI.
 
 ## Local dev vs. live testing
 

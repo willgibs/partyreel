@@ -143,9 +143,9 @@ retired `type-phone`; both agents were told so by message.
   CLAUDE, AGENTS, ASSETS, rulings, `docs/reviews/` or `bible.ts`, and never track image rights,
   provenance or credits nor mark an image as AI (Will's ruling).
 - **The account.** From 2026-09-18 the Orchestrator runs on a second Claude account (Fable), with every
-  MCP re-connected there: Supabase, Vercel, Resend, Mobbin, Context7, Cloudflare and Sentry answer; the Stripe
-  and shadcn MCPs named in CLAUDE.md are NOT connected on it (neither is needed before the launch work or a new
-  shadcn component). `.claude/settings.local.json` allow-lists Context7 under its old server id, so it prompts.
+  MCP re-connected there: Supabase, Vercel, Resend, Mobbin, Context7, Cloudflare, Sentry and (since the same afternoon)
+  Stripe answer (TEST, `acct_1TcStrPtjqmVkBwk`, verified through `list_available_accounts_or_orgs`); the shadcn
+  MCP named in CLAUDE.md is still not connected on it, and is needed only for a new shadcn component.
 - **The gate** before any `[preview]` push, each step on its own exit code: `pnpm design:rules`, `node
   "src/app/(dev)/design/gallery/collect-specimens.mjs"`, typecheck, lint (8 known warnings), test, build,
   `pnpm lab:smoke` (0 failing), `pnpm lab:demo --key <key>` (0 failing).

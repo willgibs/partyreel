@@ -136,7 +136,9 @@ The manifest is the init. The whole prompt for the new session:
 > the last round first. Anything the goal leaves open goes under the manifest's Questions
 > with your recommended answer, and you carry on with the recommendation. Design law is the bible on
 > `/design/library/rules` and the component contracts on `/design/library`; everything else is
-> precedent: rising tides (bible 22), from the ground up, in the lab first. Boot per
+> precedent: rising tides (bible 22), from the ground up, in the lab first. When a board wants new
+> concepts or a specific target (a section, a screen, a flow, an element), the Mobbin MCP is there for
+> inspiration, encouraged and never required (`docs/design/guidance.md`). Boot per
 > `docs/PROGRAM.md` "Agent boot", build, then hand off by filling the manifest's Handoff and Record,
 > setting `status: handed-off`, and pushing. The chat report is one line: "handed off at <sha>".
 
