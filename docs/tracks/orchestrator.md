@@ -106,8 +106,8 @@ retired `type-phone`; both agents were told so by message.
 | `glass` | integrated at `30aaf705` (handed off `f8ab4ad9`; seven steps, 250 smoke checks; one unused import cleaned at the record) | done | Opus, :3132 | nothing; round two is cut from his notes |
 | `admin` | integrated at `d6305818` (handed off `ed090c3b`; the `admin` surface added to touchpoints.ts at the merge) | done | Opus, :3132 | nothing |
 | `admin-split` | integrated at `7f3738ba` (handed off `a4104a50`) | done | Opus, :3133 | the cutover, below |
-| `image-trail` | cut 2026-09-18 night from Will's first note: the trail engine, the `image-trail` board and `privacy-hero` round two | building | Opus, :3135 | everything |
-| `cursor-backdrop` | cut the same night: demo six's switching backdrop on the marketing site's UI-forward chapters | building | Opus, :3136 | everything |
+| `image-trail` | integrated at `dd44692e` (handed off `60983fea`; privacy-hero's round-one verdict transcribed first at `e140d3ad`) | done | Opus, :3135 | nothing |
+| `cursor-backdrop` | integrated at `592955ab` (handed off `859d88dc`) | done | Opus, :3136 | nothing |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |

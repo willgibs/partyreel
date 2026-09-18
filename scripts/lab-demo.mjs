@@ -75,7 +75,9 @@ const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
   argv.includes(name) ? (argv[argv.indexOf(name) + 1] ?? fallback) : fallback;
 const base = opt("--base", "http://localhost:3000").replace(/\/+$/, "");
-const key = opt("--key", "");
+// The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
+// so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
+const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");
 const onlyBoard = opt("--board", "");
 const onlyStep = opt("--only", "");
 const threshold = Number(opt("--threshold", 0.1));

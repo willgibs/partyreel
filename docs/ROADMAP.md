@@ -20,6 +20,9 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `cursor-backdrop` (2026-09-18): the wiring caps the served width and keeps the pool at five or six (a full-bleed layer at 2880 decodes at about 22 MB); the entering photograph's offset could scale with pointer speed (one line in the engine); the phone's `scroll` rule reads the section's real scroll progress rather than the board's scripted path.
+- From `image-trail` (2026-09-18): `defineExploration` should dedupe its flattened `configs` by id (three boards carry the same six-line filter); `field.ts`'s `TrailSpec`, `field-layer.tsx`'s trail rendering and `field.css`'s `.fld-smear` / `.fld-ghost` are dead since `spirals.ts` went and only `album-page` still reads that module (a lane owning `album-page` cuts them).
+
 
 
 The lab and the kit:

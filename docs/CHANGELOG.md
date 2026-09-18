@@ -13,49 +13,29 @@
 
 ## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
 
-**What Will did.** The eighth batch (`00e82dba`) answered both ladders. `type-phone` r1 came back with its
-two phone calls open and one direction, "fix the mobile type scale ladder so the upper heading is larger",
-and a rule for every type question after it: "we really shouldn't have any one-off adding instances.
-Everything should be addressed in our design system type ladder." `rounding` r7 picked family C,
-`actions=today`, `ladder=quarters` ("This keeps the final pixel calculations much cleaner."),
-`dead-rungs=drop` and `gap=pinned`. Generated media got its one sentence in the Terms (version 1.2), and no
-image carries a mark. The ninth batch (`d62dac22`) closed album-hero r3 (`composition=none`: "my calm
-instruction messed us up - now it feels too boring"; `w880` with the bottom faded and the lamp under it
-"wrong"; `headline=lg`, `no-script=settled`, `copy=page`) and river-visual r2 (`placement=card`, `code=in`
-as an Easter egg with no label, `guest-photos=ghost`). He answered `proportion` with the lab itself: "The
-top preview UI of our lab is covered by the answer UI, and I cannot scroll it". In chat, the album hero gets
-a round four at the home hero's pace, subtle, and galleries run wide with "a smaller size and add more
-columns. Not go wide and keep 2 col." The calm lesson is PROGRAM.md's now: a relative note is answered
-against a reference, never a cap and a test.
+**What Will did.** The eighth batch (`00e82dba`) answered both ladders: `type-phone` r1 with "fix the mobile
+type scale ladder so the upper heading is larger" and the rule for every type question after it ("Everything
+should be addressed in our design system type ladder"); `rounding` r7 with family C, `ladder=quarters`,
+`dead-rungs=drop`, `gap=pinned`. Generated media got its one sentence in the Terms (1.2). The ninth batch
+(`d62dac22`) closed album-hero r3 (`composition=none`: "my calm instruction messed us up - now it feels too
+boring"; `w880`, `headline=lg`, `no-script=settled`, `copy=page`) and river-visual r2 (`placement=card`,
+`code=in`, `guest-photos=ghost`), and answered `proportion` with the lab itself ("The top preview UI of our lab
+is covered by the answer UI"). The calm lesson is PROGRAM.md's: a relative note is answered against a
+reference, never a cap and a test.
 
-- `ladders-wiring` (phase 1 merged early at `5a5c6eb4`, phase 2 at `d2db2629`; bible 5 and 8 ruled and
-  15's numbers, both ledgers gone). The type ladder's law became the ORDER: `prose` 18 to 24 at a phone with
-  1440 unmoved, a tenth step `subhead` (20 to 24) naming the pair seven sub-heads wore, all 126 off-ladder
-  heading-face elements onto the step their role calls for or named in `type-ladder-policy.test.ts`, and the
-  display trim tracking its leading (the caps 2px under the gap at 375, was 5). The corners became family C
-  in quarters: an 8px surface, a 12px floating layer with 8px rows, a 4px photograph with the gallery gap
-  pinned to it, 3xl and 4xl set to `initial` so Tailwind's defaults cannot return, a `cta` Button on 46
-  sites, the guest sheet on the floating corner, `--shadow-float` and `--radius-action-lg` retired. Its
-  finding: `cn()` did not know the radius tokens, so a token corner and a stock one both survived and the
-  stylesheet's order picked (`RADIUS_TOKENS` teaches it).
-- The lab's step, rebuilt (`d37be90e`): the preview is the page and the answer is a dock. Every option is
-  mounted once at its true size, flipped (one visible, the rest inert and paused) or side by side when they
-  all fit; a sticky head names the option on the stage and the scale it is drawn at; a sticky dock holds
-  the options, Back, Pick and Next, the note and "not clear". The step lands on the recommendation, keys
-  cover the rest (1-9, x for A and B, g, n, ?, Enter from the note), and a staged decision is drawn wearing
-  the board's decided answers. The re-paste he saw had two causes, both fixed: a transcribed `?` stayed in
-  the walk, and the walk's end composed its message with no ledger check (`alreadySent`, one rule for both
-  composers). `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK and a stage starting below 0.6 of a screen; it
-  passed all ten steps reopened locally to measure it.
-- The glow boards retired with nothing open (5,613 lines and both ledgers), and with them a leak: the lab's
-  global `[data-lit]` rule restyled production's bright edge for the rest of a session once a glow board had
-  been visited. The floors that counted boards' stylesheets (at least five sheets, over thirty keyframes,
-  more than one lab sheet, the first standing board) became checks on the fixed files, so no retirement can
-  turn them red; the standing-board list in `touchpoints.test.ts` is derived from the registry. `lab:smoke`
-  passes whole again, so its exit code is a real gate.
-- Four boards cut on three lanes (`33f1de95`), each from measured facts: `privacy-hero` and `album-page`
-  (`heroes`), `river-card`, `gallery-width`. An exploration's preview may now be a function of the board's
-  state, so a staged decision can draw at the answer it waits on.
+- `ladders-wiring` (`5a5c6eb4`, `d2db2629`; bible 5 and 8 ruled): the type ladder's law became the ORDER
+  (`prose` 24 at a phone, a tenth step `subhead`, 126 off-ladder heading elements onto their step or named in
+  `type-ladder-policy.test.ts`, the trim tracking its leading) and the corners family C in quarters (8 / 12 /
+  4 with the gallery gap pinned, 3xl and 4xl set to `initial`, a `cta` Button on 46 sites, `--shadow-float`
+  and `--radius-action-lg` retired). Its finding: `cn()` did not know the radius tokens (`RADIUS_TOKENS`).
+- The lab's step, rebuilt (`d37be90e`): the preview is the page (every option mounted once at true size,
+  flipped or side by side, a sticky head naming it) and the answer is a dock (1-9, x, g, n, ?, Enter); a
+  transcribed `?` leaves the walk and the walk's end checks the ledger (`alreadySent`); `lab:demo` fails
+  CLIPPED, UNLABELLED, NO DOCK and a stage below 0.6 of a screen.
+- The glow boards retired with nothing open, and with them the `[data-lit]` leak into production's bright
+  edge; the stylesheet floors became checks on fixed files; `lab:smoke` passes whole, so its exit is a gate.
+- Four boards cut on three lanes (`33f1de95`): `privacy-hero` and `album-page` (`heroes`), `river-card`,
+  `gallery-width`; a board's preview may be a function of its state.
 - `gallery-width` round one integrated: four decisions, each option the real guest or host event page in a
   `Frame` at 1280, 1512 and 1920 with its columns measured inside it. The tile (180, 240 or 300 px;
   240), the width (the full window or the app's 1280 column; full), where the words sit (the album's
@@ -163,6 +143,20 @@ against a reference, never a cap and a test.
   landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
   advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
 
+- `cursor-backdrop` integrated (`592955ab`; cut `9e2a573b`): demo six as a board, six decisions on the shipped
+  home sections imported and drawn in place: which UI-forward section takes the first switching photograph
+  backdrop (`full-quality` recommended), how the copy survives eight photographs (a glass pane; the muted tier
+  leaves the copy over media, measured against every photograph's worst block), what switches it (the cursor's
+  position across the section), how it arrives (a slide from the way you moved), where it sits in the
+  dark/light run (on a strip of all fifteen sections), and the phone (the scroll). A pure engine with a
+  scripted pointer; 61.7 frames a second under a 4x throttle; the pool's decode cost and the stand-ins' size
+  became the "room frames" asset ask (row 20).
+- `image-trail` integrated (`dd44692e`; cut `9e2a573b`): our own image trail as one pure engine (a photograph born on travel, sliding to
+  the source and decaying behind it; no dependency; the keeper holds the newest while the hand rests, the shy
+  fade yields to the words it crosses) and two boards on it: `image-trail` round one (density, the decay, the
+  entrance, the size, the home on real pages, the phone) and `privacy-hero` round two, the same trail fed by
+  a path where the cursor would be, replacing round one's spirals and wake after Will's none (`rush`, two
+  notches over the home hero, recommended). Round one's verdict was transcribed from chat into the ledger.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48 commits)
   after Will's sign-in and MFA step-up on the admin preview host: partyreel.com now runs the surface module (inert on
   the apex until its flag is set), the jobs console on three kinds with the Worker's queue-depth reading, the purge
