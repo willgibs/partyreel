@@ -146,10 +146,17 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full
-  runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE: the code on
-  `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only. NOT done, in order: (1) WILL, the Vercel
-  dashboard, with the scope switcher on **Partyreel Team** (his first attempt landed outside it: the team's project
-  list still shows only `partyreel`): Add New → Project → import `willgibs/partyreel`, name `partyreel-admin`,
+  runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on
+  `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only; the project `partyreel-admin`
+  (`prj_gJhEa7ul4ehpQljDI1EIm6d9jd9D`, created by Will in the dashboard; the original token and the connector were
+  project-scoped and could not see it until he minted a team token and reconnected the connector); its settings
+  mirrored; its env copied and VERIFIED value by value (★ the first copy wrote ciphertext: see CLAUDE.md's env line);
+  the Sentry upload trio (`SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`) deliberately NOT on the admin project
+  (its build failed on `Project not found` in the source-map upload; the DSN stays, so runtime errors still report;
+  its own Sentry project is the ROADMAP line); the admin preview `/auth/callback**` in the Supabase redirect list
+  (Orchestrator, in Chrome). The cron toggle is not in the API (`crons` is rejected by PATCH); `CRON_SECRET` withheld
+  is the guard until the milestone. Historic, for the record: (1) the Vercel
+  dashboard step was: with the scope switcher on **Partyreel Team**, Add New → Project → import `willgibs/partyreel`, name `partyreel-admin`,
   framework Next.js, root the repository root (the REST token answers 403 to project creation and the Vercel MCP reuses the project already
   linked to the repo); it deploys `main` once on creation, harmless, since `main` has no surface code and the domain
   stays on `partyreel`. (2) Orchestrator, by REST once the project exists: mirror the settings (Node 24.x, `iad1`,
@@ -178,7 +185,10 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   the branch alias (`aliasAssigned` stays empty, no error) and the alias keeps serving the older build; assign it by
   hand, `POST /v2/deployments/<id>/aliases` with `{"alias":"partyreel-git-launch-prep-partyreel.vercel.app"}`, then
   re-check the page (2026-09-18: `0681652c` sat READY behind the canceled `40a26a55` for three minutes, and a stuck
-  queue had held it 80 minutes before that). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+  queue had held it 80 minutes before that). ★ `aliasAssigned: true` on a deployment is NOT proof either: `109cfac9`
+  reported it while `GET /v4/aliases/<alias>` still named the previous build, and the prune then deleted that
+  build, so the desk answered DEPLOYMENT_NOT_FOUND for a few minutes. After every build read the alias RECORD
+  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
