@@ -148,6 +148,14 @@ retired `type-phone`; both agents were told so by message.
   MCP re-connected there: Supabase, Vercel, Resend, Mobbin, Context7, Cloudflare, Sentry and (since the same afternoon)
   Stripe answer (TEST, `acct_1TcStrPtjqmVkBwk`, verified through `list_available_accounts_or_orgs`); the shadcn
   MCP named in CLAUDE.md is still not connected on it, and is needed only for a new shadcn component.
+- **A merge deletes the manifest with `git rm -f`.** The lane's handoff commit modifies its manifest, so
+  the merge stages it as changed and a plain `git rm` refuses; the refusal broke a chained script once
+  (2026-09-18) and the next block committed the wrong merge under the wrong message. So: one script per merge,
+  `set -e` with a trap, every step on its own exit code, never a `&&` chain that a `;` can skip past.
+- **The RULINGS rows' keep-both.** Two lanes appending rows after river-visual's conflict with git's hunk
+  ending INSIDE the first lane's last row (the two closing lines are common to both sides), so a plain
+  union of ours and theirs needs that row's `},\n  },\n  {` put back by hand before the next row; typecheck
+  before the commit catches it.
 - **The gate** before any `[preview]` push, each step on its own exit code: `pnpm design:rules`, `node
   "src/app/(dev)/design/gallery/collect-specimens.mjs"`, typecheck, lint (8 known warnings), test, build,
   `pnpm lab:smoke` (0 failing), `pnpm lab:demo --key <key>` (0 failing).
