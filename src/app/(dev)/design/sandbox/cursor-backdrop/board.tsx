@@ -67,42 +67,66 @@ function cfgFrom(
 
 /**
  * ★ THE HEIGHTS ARE MEASURED, NOT CHOSEN. A `Frame` is a real viewport and
- * needs a number before anything has rendered, so these are the sections' own
- * rendered heights, read off the running board at 1440 and at 375 and recorded
- * in `docs/tracks/cursor-backdrop.md`. The caption under every frame then
- * reports what the section ACTUALLY measured inside it: if the two disagree,
- * the caption is the truth (the rule gallery-width paid for).
+ * needs its number before anything has rendered, so each of these is the room's
+ * own rendered height, read off the running board at 1440 and at 375 with
+ * Chrome (2026-09-18; the method is in `docs/tracks/cursor-backdrop.md`). They
+ * are per TREATMENT because a treatment changes the section's height: a pane
+ * adds its own padding, and a half-bleed squeezes the copy into 54 percent of
+ * the width, which costs `full-quality` 49 px at 1440 and 284 px at a phone.
+ * The caption under every frame then reports what the room ACTUALLY measured
+ * inside it: if the two disagree, the caption is the truth (the rule
+ * gallery-width paid for).
  */
-const H: Record<SectionId, { desktop: number; phone: number }> = {
-  "full-quality": { desktop: 536, phone: 812 },
-  "no-app": { desktop: 712, phone: 858 },
-  "pricing-teaser": { desktop: 672, phone: 1004 },
+const H: Record<
+  SectionId,
+  Record<LegibilityId, { desktop: number; phone: number }>
+> = {
+  "full-quality": {
+    plate: { desktop: 647, phone: 793 },
+    scrim: { desktop: 535, phone: 658 },
+    half: { desktop: 584, phone: 942 },
+  },
+  "no-app": {
+    plate: { desktop: 904, phone: 952 },
+    scrim: { desktop: 792, phone: 812 },
+    half: { desktop: 792, phone: 1064 },
+  },
+  "pricing-teaser": {
+    plate: { desktop: 806, phone: 1027 },
+    scrim: { desktop: 694, phone: 915 },
+    half: { desktop: 694, phone: 1028 },
+  },
 };
 
-/** A plate adds its own padding above and below the section. */
-const PLATE_PAD = 112;
-/** A paper chapter under lg compresses its sections' padding (PaperChapter). */
+/** `scrim` is the bare section: it adds no box of its own. */
 const heightOf = (
   section: SectionId,
   at: "desktop" | "phone",
   legibility: LegibilityId,
-) => H[section][at] + (legibility === "plate" ? PLATE_PAD : 0);
+) => H[section][legibility][at];
 
 /**
- * THE POOL'S COST, measured with Chrome over the running board at 1440 (the
- * method and the date are in the track's manifest). Over the wire it is the
- * eight optimised files `next/image` serves; decoded, it is what the compositor
- * holds while the section is on screen, and that is the number that decides how
- * big a pool a full-bleed section may have.
+ * THE POOL'S COST, measured with Chrome against the running board at 1440
+ * (2026-09-18). Over the wire it is the eight AVIF files `next/image` serves;
+ * decoded, it is what the browser holds while the section is on screen, and
+ * THAT is the number that decides how many photographs a full-bleed section may
+ * cycle.
+ *
+ * ★ AND THE ASSET ASK IS IN THE THIRD NUMBER. The stand-in photographs are 700
+ * to 900 px wide, so a full-bleed section at 1440 upscales them 1.6x to 2.1x:
+ * they are the wrong shape for this effect, not just the wrong pictures. A
+ * replacement at 2880 (a full-bleed section on a 2x laptop) decodes at about 22
+ * MB EACH, so a pool of eight would be 177 MB of bitmap. Whichever the Higgsfield
+ * month delivers, the wiring round caps the served width and keeps the pool small.
  */
 export const POOL_COST = {
   files: 8,
-  overTheWireKb: 752,
-  decodedMb: 17.3,
+  overTheWireKb: 423,
+  decodedMb: 17.4,
   servedWidth: 900,
 };
 
-const costLine = `The pool: ${POOL_COST.files} photographs, ${POOL_COST.overTheWireKb} KB over the wire, about ${POOL_COST.decodedMb} MB decoded while the section is on screen.`;
+const costLine = `The pool: ${POOL_COST.files} photographs, ${POOL_COST.overTheWireKb} KB over the wire as AVIF, about ${POOL_COST.decodedMb} MB decoded while the section is on screen; served at ${POOL_COST.servedWidth} px, so a full-bleed section at 1440 upscales them.`;
 
 /* ── the measurement under every frame ───────────────────────────────────── */
 
@@ -171,12 +195,12 @@ function Scene({
     <Frame
       id={id}
       w={w}
-      // With no backdrop there is no plate, so the section keeps its own height.
+      // With no backdrop there is no box around it: `scrim` is the bare section.
       h={heightOf(pick, at, backdrop ? leg : "scrim")}
       title={at === "desktop" ? "1440" : "375"}
       caption={
         <>
-          {entry.name} — {entry.where}. Measured in the frame:{" "}
+          {entry.name}, {entry.where}. Measured in the frame:{" "}
           {h === null ? "…" : `${h} px tall`}. {backdrop ? costLine : null}{" "}
           {note}
         </>
@@ -200,6 +224,17 @@ function Scene({
   );
 }
 
+/**
+ * ★ THE STRIP IS 560 PX BECAUSE 400 WAS UNREADABLE. Fifteen bands sharing 400 px
+ * average 26 px each and the whole thing reads as a list of rows rather than as
+ * a page with a rhythm; at 560 the difference between the hero and the pricing
+ * teaser is something you can see. The photograph band is the one being judged,
+ * so it has to look like a photograph at this size.
+ */
+const STRIP_H = 560;
+/** The strip plus the dark room it sits in (padding both sides). */
+const STRIP_BOX = STRIP_H + 80;
+
 /** The rhythm's evidence: the page's chapters, then the section at 1:1. */
 function PageScene({ id, state }: { id: string; state: BoardState }) {
   const rhythm = rhythmOf(state.rhythm);
@@ -210,12 +245,12 @@ function PageScene({ id, state }: { id: string; state: BoardState }) {
     <Frame
       id={id}
       w={1440}
-      h={480 + heightOf(pick, "desktop", leg)}
+      h={STRIP_BOX + heightOf(pick, "desktop", leg)}
       title="1440"
       caption={`The home page's fifteen sections at their measured share of its height, then the section at 1:1 on the ground this option puts it on. ${costLine}`}
     >
       <div className="dark bg-background px-10 py-10" data-mkt="">
-        <ChapterStrip rhythm={rhythm} height={400} />
+        <ChapterStrip rhythm={rhythm} height={STRIP_H} />
       </div>
       <Room
         section={pick}
@@ -254,7 +289,7 @@ const PREVIEWS: PreviewsFor<typeof CURSOR_BACKDROP> = {
       id="cb-leg-plate"
       state={s}
       legibility="plate"
-      note="Worst photograph in the pool: the copy reads at 9.4:1 over the pane."
+      note="Measured over every photograph in the pool: 4.9:1 at the worst local spot (the club floor), 8.1:1 typical. The body copy leaves the muted tier over media: at the muted ink no treatment clears 4.5:1."
     />
   ),
   "legibility.scrim": (s) => (
@@ -262,7 +297,7 @@ const PREVIEWS: PreviewsFor<typeof CURSOR_BACKDROP> = {
       id="cb-leg-scrim"
       state={s}
       legibility="scrim"
-      note="Worst photograph in the pool: the copy reads at 6.1:1 through the scrim."
+      note="Measured over every photograph: 5.6:1 at the worst spot. A scrim has no blur, so four of the eight photographs put a blown highlight straight under the words and the scrim has to be heavy enough for that one."
     />
   ),
   "legibility.half": (s) => (
@@ -270,7 +305,7 @@ const PREVIEWS: PreviewsFor<typeof CURSOR_BACKDROP> = {
       id="cb-leg-half"
       state={s}
       legibility="half"
-      note="The copy is on the section's own ground, so contrast is the page's own 15.9:1."
+      note="The copy is on the section's own ground, so the contrast is the page's own: 18.5:1, and the muted tier survives. The cost is the column: full quality drops from 896 px of copy to 778."
     />
   ),
 

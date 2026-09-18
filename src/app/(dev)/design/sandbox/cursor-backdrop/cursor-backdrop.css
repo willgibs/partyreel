@@ -56,28 +56,35 @@
 
 /* ── the copy's treatment ───────────────────────────────────────────────── */
 
-/* SCRIM. Heaviest where the section's own boundaries are and lightest through
-   the middle, so the photograph survives where the copy is thinnest and the two
-   hairline edges of the section still read. The paper ground takes the same
-   shape in white: a dark scrim under dark ink would make the copy LESS legible,
-   which is the trap a single scrim value walks into. */
+/* SCRIM. Heaviest at the section's own boundaries and lightest through the
+   middle, so the photograph survives where the copy is thinnest and the two
+   hairlines still read. The paper ground takes the same shape in white: a dark
+   scrim under dark ink would make the copy LESS legible, which is the trap a
+   single scrim value walks into.
+
+   ★ THE MIDDLE IS 0.62 BECAUSE OF ONE PHOTOGRAPH. A scrim has no blur, so a
+   blown highlight in the picture is a blown highlight under the words: four of
+   the eight photographs peak at a luminance of 1.0 inside the copy's band. At
+   the 0.56 a scrim "looks right" at, the worst of them leaves the copy at
+   4.46:1; 0.62 takes it to 5.60:1. Measured, not chosen (the track's manifest
+   holds the method). */
 [data-cb-legibility="scrim"] .cb-veil {
   background: linear-gradient(
     180deg,
-    rgb(0 0 0 / 0.78) 0%,
-    rgb(0 0 0 / 0.56) 30%,
-    rgb(0 0 0 / 0.56) 70%,
-    rgb(0 0 0 / 0.8) 100%
+    rgb(0 0 0 / 0.82) 0%,
+    rgb(0 0 0 / 0.62) 30%,
+    rgb(0 0 0 / 0.62) 70%,
+    rgb(0 0 0 / 0.84) 100%
   );
 }
 
 .surface-paper [data-cb-legibility="scrim"] .cb-veil {
   background: linear-gradient(
     180deg,
-    rgb(255 255 255 / 0.9) 0%,
-    rgb(255 255 255 / 0.76) 30%,
-    rgb(255 255 255 / 0.76) 70%,
-    rgb(255 255 255 / 0.92) 100%
+    rgb(255 255 255 / 0.92) 0%,
+    rgb(255 255 255 / 0.8) 30%,
+    rgb(255 255 255 / 0.8) 70%,
+    rgb(255 255 255 / 0.94) 100%
   );
 }
 
@@ -89,6 +96,21 @@
 [data-cb-legibility="plate"] .cb-content {
   padding-block: 3.5rem;
   padding-inline: clamp(1rem, 4vw, 3.5rem);
+}
+
+/* ★ AT A PHONE THE PANE GOES EDGE TO EDGE, and that is a composition rather
+   than a breakpoint tweak. At 375 the inline padding leaves a 16 px border of
+   photograph, which reads as a dark card with a coloured rim and not as a room
+   at all. Full width, square sides, and the photograph becomes two bands the
+   pane sits between. */
+@media (width < 640px) {
+  [data-cb-legibility="plate"] .cb-content {
+    padding-block: 2.75rem;
+    padding-inline: 0;
+  }
+  .cb-plate {
+    border-radius: 0;
+  }
 }
 
 .cb-plate {
@@ -107,13 +129,31 @@
 }
 
 /* On paper the pane is a bright one: the ink is dark, so the backdrop has to be
-   lifted rather than dropped, and the recipe inverts around brightness 1. */
+   lifted rather than dropped and the recipe inverts around brightness 1. The
+   white is 0.60 for the same measured reason the dark tint is 0.22: the paper
+   chapter's ink sits at a relative luminance of 0.003, and a photograph with a
+   black region under the words leaves it at 3.7:1 through a 0.42 veil and 7.0:1
+   through a 0.60 one. */
 .surface-paper .cb-plate {
-  background-color: rgb(255 255 255 / 0.42);
-  -webkit-backdrop-filter: blur(var(--cb-blur, 26px)) brightness(1.75)
-    saturate(1.25);
-  backdrop-filter: blur(var(--cb-blur, 26px)) brightness(1.75) saturate(1.25);
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.5);
+  background-color: rgb(255 255 255 / 0.6);
+  -webkit-backdrop-filter: blur(var(--cb-blur, 26px)) brightness(1.8)
+    saturate(1.2);
+  backdrop-filter: blur(var(--cb-blur, 26px)) brightness(1.8) saturate(1.2);
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.55);
+}
+
+/* ★ OVER A PHOTOGRAPH THE BODY COPY LEAVES THE MUTED TIER, and this is the
+   finding the measurement forced. The ladder's muted ink sits at a relative
+   luminance of 0.364 on cinema, and NO treatment short of a nearly opaque
+   scrim gets it past 4.5:1 over the worst photograph in the pool: the pane at
+   its own numbers leaves it at 2.1:1 and a 0.62 scrim at 2.5:1. So a section
+   that stands on a photograph pays for it by spending its one hierarchy step:
+   over media the body is the full foreground, and the hierarchy comes from
+   size and weight instead. `half` keeps the muted tier, because there its copy
+   is on the section's own ground with nothing behind it. */
+[data-cb-legibility="plate"] .cb-content .text-muted-foreground,
+[data-cb-legibility="scrim"] .cb-content .text-muted-foreground {
+  color: var(--foreground);
 }
 
 /* HALF. The photograph keeps the end 46 percent of the section, the copy keeps
@@ -164,18 +204,27 @@
   pointer-events: none;
 }
 
+/* ★ THE RAIL IS ACHROMATIC, and that is bible 1 rather than a shortage of
+   ideas: the identity has no brand colour, the media is the colour, so the live
+   tick is told apart by BRIGHTNESS and HEIGHT and not by a hue. Each tick
+   carries a one-pixel dark halo so it survives a photograph that is white
+   exactly where it sits. */
 .cb-tick {
   width: 2px;
-  height: 10px;
+  height: 9px;
   border-radius: 1px;
-  background: currentColor;
-  opacity: 0.18;
+  background: color-mix(in oklab, var(--foreground) 62%, transparent);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28);
+  opacity: 0.5;
 }
 
 .cb-tick[data-on] {
-  height: 16px;
+  height: 18px;
   opacity: 1;
-  background: var(--accent-strong, var(--primary));
+  background: var(--foreground);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.35),
+    0 0 12px 0 color-mix(in oklab, var(--foreground) 45%, transparent);
 }
 
 /* ── the scripted pointer, drawn ──────────────────────────────────────────
@@ -238,12 +287,21 @@
   overflow: hidden;
 }
 
+/* ★ A SHARE IS `flex-grow`, NEVER `height`. A percentage height on a flex-column
+   child is ignored the moment the child can shrink, so the first draft of this
+   strip collapsed all fifteen bands to their text and argued for a rhythm that
+   was really "every section is one line tall". Growing from a zero basis is the
+   only form that holds, and the floor is there for the trust strip, which is
+   0.8 percent of the page and would otherwise be invisible. */
 .cb-band {
   position: relative;
   display: flex;
+  flex-basis: 0;
+  flex-shrink: 1;
   align-items: center;
   padding-inline: 0.75rem;
   font-size: 11px;
   letter-spacing: 0.04em;
-  min-height: 14px;
+  min-height: 13px;
+  overflow: hidden;
 }

@@ -347,14 +347,20 @@ export function Backdrop({
  * The plate the copy sits on when `legibility` is `plate`: the Glass board's
  * `frost` recipe, which is the one the app's chrome over photographs is being
  * asked about in the same round (`sandbox/glass/recipes.ts`). Numbers, not a
- * look: blur 26, brightness 0.55, saturate 1.6, black 12 percent, a 16 percent
- * top edge. If Will rules a different recipe there, this moves with it.
+ * look, so a ruling there moves this with it.
+ *
+ * ★ ONE NUMBER IS OURS, AND IT WAS MEASURED. `frost` paints black at 12 percent
+ * over the blurred backdrop, and a section-scale pane is a much bigger bet than
+ * a pill: over the brightest photograph in this pool the copy lands at 4.00:1
+ * through 12 percent and 4.88:1 through 22. The blur is what buys the rest (a
+ * 26 px blur drops that photograph's worst local spot from a luminance of 1.0
+ * to 0.93), which is the whole argument for a pane over a scrim.
  */
 export const PLATE_VARS = {
   "--cb-blur": "26px",
   "--cb-brightness": "0.55",
   "--cb-saturate": "1.6",
-  "--cb-tint": "0.12",
+  "--cb-tint": "0.22",
   "--cb-edge": "0.16",
 } as CSSProperties;
 
