@@ -246,7 +246,10 @@ the archetype).
 ### Model delegation
 
 The Orchestrator carries judgment and curation; volume work fans out to cheaper agents, at most four
-at once on this machine, one process each.
+at once on this machine, one process each. Since 2026-09-18 (Will): the Orchestrator's own tokens are the
+scarce resource, so it plans, judges and integrates while a lane runs on Opus for big, ambiguous, multi-file
+work and on Sonnet for fast, direct UI work; the choice is the Orchestrator's on every spawn, and a lab
+agent stays light enough on rules to keep its creative energy for the board.
 
 ### Rules are provisional
 
