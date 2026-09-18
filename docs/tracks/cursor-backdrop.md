@@ -164,6 +164,7 @@ this lane booted is fixed on the tip and passes here.)
 
 ```
 docs/design/library.md
+docs/tracks/cursor-backdrop.md
 src/app/(dev)/design/(shell)/lab/boards.ts
 src/app/(dev)/design/sandbox/cursor-backdrop/backdrop-engine.test.ts
 src/app/(dev)/design/sandbox/cursor-backdrop/backdrop-engine.ts
@@ -177,7 +178,7 @@ src/app/(dev)/design/sandbox/registry.ts
 src/app/(dev)/design/touchpoints.ts
 ```
 
-Eight files inside `owns`; three are the registration exception (this board's own lines only, both
+Eight files inside `owns`, plus this manifest; three are the registration exception (this board's own lines only, both
 sides kept at the merge); `docs/design/library.md` is the artifact `pnpm design:rules` regenerates and
 was committed with it. Nothing under `src/components/marketing/` moved: the real sections are
 IMPORTED and wrapped, and the one thing a wrapper cannot do from outside (tagging the cards for the
