@@ -165,7 +165,7 @@ export const ADMIN = defineExploration({
           id: "badges",
           label: "Four states, four colours, in the chip",
           means:
-            "Green, amber, red and blue in chips and dots only. Text, rows and surfaces stay achromatic.",
+            "Green, amber, red and blue in chips, dots and a status word. Rows and surfaces stay achromatic.",
         },
         {
           id: "rows",
