@@ -119,13 +119,13 @@ retired `type-phone`; both agents were told so by message.
 | `guest-shape` | integrated at `beee6325` (handed off `83f46ed4`, zero stale, no conflicts; three questions relayed) | done | Opus, :3136 | nothing |
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
-| `demo-event` | cut 2026-09-19 from Will's stacking steer: the demo as the product's first impression, on the real guest components with a demo fixture | building | Opus, :3131 | everything |
+| `demo-event` | integrated at `e3a2c1b6` (handed off `02ecd169`, ten stale; the RULINGS-row conflict resolved by the Orchestrator); three questions relayed | done | Opus, :3131 | nothing; the seat is free |
 | `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
 | `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
 | `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
 | `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
 | `first-event` | cut 2026-09-19 on the seat press-page freed: a host's first event from "Create" to a code on the table | building | Opus, :3135 | everything |
-| `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
+| `app-pricing` | integrated at `0379c529` (handed off `36994195`, four stale; the RULINGS-row conflict against demo-event resolved by the Orchestrator); three questions relayed | done | Opus, :3136 | nothing; the seat is free |
 | `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
@@ -263,6 +263,12 @@ phone. 8. no test touches the wizard's UI, the limit refusal or the event page's
 are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
+
+- **A manifest never lists another lane's manifest under `reads`** (2026-09-19): `pricing-page.md` read
+  `docs/tracks/app-pricing.md` so the two pricing boards could see each other's goal; the app-pricing merge deleted
+  that file and `track-manifests.test.ts` ("read ... does not exist") turned the merged tree's gate red, with the desk's
+  tracks page failing one smoke check on the dead link. Point a sibling read at the board's `spec.ts` instead (it
+  survives the merge), and fix a stale read in the merge's record commit (the lane keeps origin's line at its sync).
 
 - **The admin cutover, CLOSED 2026-09-19 05:02 UTC (every runbook check done; the block stays as the record).** The lane's full
   runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on

@@ -22,7 +22,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/components/marketing/system/cta-band.tsx
   - src/components/app/checkout-button.tsx
   - src/app/(dev)/design/sandbox/loose-ends/spec.ts
-  - docs/tracks/app-pricing.md
+  - src/app/(dev)/design/sandbox/app-pricing/spec.ts
 ---
 
 # lp/pricing-page

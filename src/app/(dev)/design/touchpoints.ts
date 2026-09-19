@@ -54,7 +54,9 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-pricing"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "app-shape"
@@ -91,9 +93,11 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "first-event"
+  | "app-pricing"
   | "press-page"
   | "contact-page"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "admin"
@@ -666,6 +670,53 @@ export const RULINGS: Ruling[] = [
         "In a hand",
         "The empty event",
         "The first photograph",
+    id: "app-pricing",
+    title: "Pricing in the app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+    shipped: null,
+    why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
+    lives: [
+      "docs/PRICING.md",
+      "docs/systems/billing-caps.md",
+      "src/lib/constants/tiers.ts",
+      "src/components/app/dashboard/storage-meter.tsx",
+      "src/components/app/event-password-control.tsx",
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to",
+      variants: [
+        "The object",
+        "The first view",
+        "How much it carries",
+        "The second layer",
+      ],
+    },
+  },
+  {
+    id: "demo-event",
+    title: "The live demo",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    lives: [
+      "src/lib/demo.ts",
+      "src/app/demo/route.ts",
+      "src/components/guest/event-experience.tsx",
+      "src/components/marketing/chrome/footer-demo.tsx",
+      "src/components/marketing/system/demo-cta-link.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
+      variants: [
+        "The first seconds",
+        "Adding a photo",
+        "What a door promises",
+        "Scanned off a laptop",
       ],
     },
   },
