@@ -145,38 +145,39 @@ moves, never reveal-gated); the glow contract and placement tests; `section-ligh
 
 ## Handoff (replaces the chat report)
 
-**Head:** `c635cb5c` on `lp/album-wiring` carries every line of the work; the branch tip is the one commit
-after it that writes this SHA down. **Synced THREE times, never rebased**, because `origin/launch-prep`
-moved under this lane twice while it was handing off: 15 commits at `01c5ae23`, 7 more at `af5dc983`
-(`gallery-wiring`, `trail-wiring`), and 8 more at `c635cb5c` (`app-shape`), the last on top of `7f5c1b27`.
-Every conflict was in a registration file and every one was resolved so BOTH intents survive:
+**Head:** `9f3623c3` on `lp/album-wiring` carries every line of the work; the branch tip is the one commit
+after it that writes this SHA down. **Synced FOUR times, never rebased**, because `origin/launch-prep` kept
+moving under this lane while it was handing off: 15 commits at `01c5ae23`, 7 at `af5dc983`
+(`gallery-wiring`, `trail-wiring`), 8 at `c635cb5c` (`app-shape`) and 6 at `9f3623c3` (`river-wiring`), the
+last on top of `848d6bd3`. Every conflict was in a registration file and every one was resolved so BOTH
+intents survive:
 
 | file | resolution |
 | --- | --- |
-| `sandbox/registry.ts` | `ALBUM_MOTION` and `APP_SHAPE` both at the head; `GALLERY_WIDTH`, `IMAGE_TRAIL`, `ALBUM_HERO` and `ALBUM_PAGE` all stay removed, with their imports |
+| `sandbox/registry.ts` | `ALBUM_MOTION` and `APP_SHAPE` at the head; `GALLERY_WIDTH`, `IMAGE_TRAIL`, `RIVER_CARD`, `RIVER_VISUAL`, `ALBUM_HERO` and `ALBUM_PAGE` all stay removed, with their imports |
 | `(shell)/lab/boards.ts` | the same, on the component map and its imports |
-| `touchpoints.ts` | `RulingId` keeps both new ids; `SandboxId` keeps `album-motion` and `app-shape` and loses all four retired ones; both new RULINGS rows stand, `album-motion` first |
-| `library/components/gallery-demos.tsx` | both lanes' entries at the head, `album-stream` then `trail` (git cut my entry's closing braces at the conflict boundary; they were put back by hand) |
-| `rules/component-notes.ts` | both lanes' `for` lines at the head under the trail lane's comment, which states the convention for all three |
+| `touchpoints.ts` | `RulingId` keeps every new id; `SandboxId` keeps `album-motion` and `app-shape` and loses all six retired ones; both new RULINGS rows stand, `album-motion` first |
+| `library/components/gallery-demos.tsx` | three lanes' entries at the head (`album-stream`, `trail`, the river's) and both helper functions, `CinemaGround` and `QrDoorPicture`; git cut my entry's closing braces and my helper's closer at two conflict boundaries and both were put back by hand |
+| `rules/component-notes.ts` | every lane's `for` lines at the head under the trail lane's comment, which states the convention for all of them |
 | `docs/design/library.md`, `gallery/specimens.generated.json` | generated, so regenerated rather than hand-merged |
 
 The trail lane's repoints of three `sandbox/privacy-hero/` files at `src/components/shared/trail/` came
-through untouched, and the whole gate was re-run on each synced tree.
+through untouched, and the whole gate was re-run on every synced tree.
 
 **The gate, each on its own exit code, on the synced tree**
 
 | step | exit | note |
 | --- | --- | --- |
-| `pnpm design:rules` | 0 | 700 contracts on 53 components |
-| `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` | 0 | 128 specimens on 93 entries |
+| `pnpm design:rules` | 0 | 733 contracts on 55 components |
+| `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` | 0 | 131 specimens on 94 entries |
 | `pnpm typecheck` | 0 | |
 | `pnpm lint` | 0 | the 8 known warnings, none new |
-| `pnpm test` | 0 | 2,509 passing |
+| `pnpm test` | 0 | 2,514 passing |
 | `pnpm build` | 0 | dev server killed by port first |
-| `pnpm lab:smoke --base http://localhost:3131` | 0 | 274 checks, 0 failing; `album-motion` 237 words of 1200 |
+| `pnpm lab:smoke --base http://localhost:3131` | 0 | 271 checks, 0 failing; `album-motion` 237 words of 1200 |
 | `pnpm lab:demo --board album-motion` | 0 | 1 step, 3 options, every option drawn, 3.6 screens, 234 words |
 
-After each sync the page re-measured unchanged: the hero's foot to the album's top edge is still 750 px at
+After every sync the page re-measured unchanged: the hero's foot to the album's top edge is still 750 px at
 1440, the masonry still draws three columns of 287, both stream layers still put 24 frames in the DOM, the
 stage is still `inert`, and the h1 still sits at 184 and does not move.
 
@@ -187,7 +188,7 @@ manifest, the one listed system doc, or the registration exception:
 docs/design/library.md                                          generated artifact (design:rules)
 docs/systems/design-system.md                                   the one listed system-doc edit
 docs/tracks/album-wiring.md                                     this manifest
-src/app/(dev)/design/(shell)/lab/boards.ts                      registration: album-motion in beside app-shape, four out
+src/app/(dev)/design/(shell)/lab/boards.ts                      registration: album-motion in beside app-shape, six out
 src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx  registration: my entry beside the trail lane's
 src/app/(dev)/design/gallery/specimens.generated.json           generated artifact (collect-specimens)
 src/app/(dev)/design/rules/component-notes.ts                   registration: my two `for` lines beside the trail lane's
@@ -195,7 +196,7 @@ src/app/(dev)/design/rules/rules.generated.json                 generated artifa
 src/app/(dev)/design/sandbox/album-hero/**        (9 deleted)   owns
 src/app/(dev)/design/sandbox/album-page/**        (8 deleted)   owns
 src/app/(dev)/design/sandbox/album-motion/**      (3 added)     owns
-src/app/(dev)/design/sandbox/registry.ts                        registration: album-motion in beside app-shape, four out
+src/app/(dev)/design/sandbox/registry.ts                        registration: album-motion in beside app-shape, six out
 src/app/(dev)/design/touchpoints.ts                             registration: the unions and three RULINGS rows
 src/app/(marketing)/(cinema)/features/album/page.tsx            owns
 src/components/marketing/sections/features/album/**  (5)        owns
