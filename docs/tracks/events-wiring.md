@@ -200,7 +200,7 @@ cross-event ground; the phone's trim; `SectionShell`'s subhead step.
 
 ## Handoff (replaces the chat report)
 
-- Head `HEAD_SHA`, pushed; synced with `launch-prep` at `304a813b` (it moved once, during the round; the merge was clean,
+- Head `181b26bd`, pushed; synced with `launch-prep` at `304a813b` (it moved once, during the round; the merge was clean,
   no conflicts in any owned file).
 - **Gates on the synced tree, each its own exit code:** `design:rules` ok (130 components, 839 contracts, 18 policies) ·
   specimens ok (131 on 94 entries) · `typecheck` ok · `lint` ok (0 errors, the 8 known warnings) · `test` ok (2,606 on
