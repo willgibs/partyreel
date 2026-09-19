@@ -4,13 +4,7 @@ import { CANVAS, ExplorationBoard, Frame } from "@/components/lab";
 import type { Mode } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import {
-  ACCESS,
-  APERTURE,
-  type ConceptId,
-  SEAL,
-  sealStepMs,
-} from "./concepts";
+import { ACCESS, APERTURE, type ConceptId, SEAL, sealStepMs } from "./concepts";
 import { PrivacyHero } from "./hero";
 import { PRIVACY_HERO } from "./spec";
 

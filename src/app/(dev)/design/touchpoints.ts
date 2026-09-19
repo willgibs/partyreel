@@ -678,7 +678,7 @@ export const RULINGS: Ruling[] = [
     title: "The privacy page's hero",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-19: the spiral/orbit arrival didn't land, \"totally different concept... more fitting for its theme\"; round three draws three new, still concepts instead)",
+      'open (Will, 2026-09-19: the spiral/orbit arrival didn\'t land, "totally different concept... more fitting for its theme"; round three draws three new, still concepts instead)',
     shipped: null,
     why: "Three still concepts (a breathing aperture, a turn-taking grid, sealed cards) built on what privacy means, not a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [

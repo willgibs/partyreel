@@ -35,7 +35,7 @@ export const PRIVACY_HERO = defineExploration({
     n: 3,
     date: "2026-09-19",
     changed:
-      "Round two's spiral field is gone: \"I don't really like this arrival animation as part of the spiral/orbit.\" Asked what next: \"Let's go with a totally different concept... more fitting for its theme.\" Three concepts, none of them flying photographs, built on what privacy means instead.",
+      'Round two\'s spiral field is gone: "I don\'t really like this arrival animation as part of the spiral/orbit." Asked what next: "Let\'s go with a totally different concept... more fitting for its theme." Three concepts, none of them flying photographs, built on what privacy means instead.',
   },
   bible: [1, 13, 14, 22],
   context:

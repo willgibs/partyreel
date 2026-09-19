@@ -56,7 +56,10 @@ export function ApertureConcept({ mode }: { mode: Mode }) {
 
   return (
     <div className="cpt-layer" aria-hidden style={vars}>
-      <div className="apr-wash" style={{ filter: `blur(${APERTURE.blurPx[mode]}px)` }}>
+      <div
+        className="apr-wash"
+        style={{ filter: `blur(${APERTURE.blurPx[mode]}px)` }}
+      >
         <Image
           src={photoOf(4).src}
           alt=""

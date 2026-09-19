@@ -170,5 +170,8 @@ export function sealCards(mode: Mode): { x: number; y: number }[] {
   const total = n * w + (n - 1) * gap;
   const startX = (CANVAS[mode].w - total) / 2 + w / 2;
   const y = mode === "desktop" ? 800 : 680;
-  return Array.from({ length: n }, (_, i) => ({ x: startX + i * (w + gap), y }));
+  return Array.from({ length: n }, (_, i) => ({
+    x: startX + i * (w + gap),
+    y,
+  }));
 }
