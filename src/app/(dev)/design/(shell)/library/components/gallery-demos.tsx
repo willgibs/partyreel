@@ -178,62 +178,62 @@ function TrailWords() {
   );
 }
 
-/**
- * THE IMAGE TRAIL'S LIBRARY ENTRY. It sits at the head of the entries because
- * three wiring lanes add one this round; the Orchestrator keeps all of them.
- */
-const TRAIL_ENTRY: GalleryEntry = {
-  id: "trail",
-  badge: "new",
-  family: "components",
-  section: "Surfaces",
-  lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
-  specimens: [
-    {
-      label: "On paper, under a cursor",
-      hint: "draw across it. A photograph is born every time the hand has travelled far enough, arrives BEHIND the cursor and turns the way it was thrown. Stop moving and the newest one simply stays with you (the keeper) while the trail behind it goes, and the loop stops asking for frames entirely while it stands.",
-      node: (
-        <div className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground">
-          <Trail
-            source="pointer"
-            className="flex min-h-[26rem] flex-col items-center justify-center px-6 py-12"
-          >
-            <TrailWords />
-          </Trail>
-        </div>
-      ),
-    },
-    {
-      label: "and walking its own figure at a phone",
-      hint: "375 px, where there is no cursor and a drag is a scroll: the trail walks a wander of its own at the same pace, alive the moment the page opens and asking nothing of a finger. The figure never repeats inside a visit and opens somewhere else on the next one.",
-      node: (
-        <div
-          className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground"
-          style={{ width: 375 }}
-        >
-          <Trail
-            source="path"
-            className="flex min-h-[32rem] flex-col items-center justify-center px-5 py-12"
-          >
-            <TrailWords />
-          </Trail>
-        </div>
-      ),
-    },
-    {
-      label: "With nothing to stay off",
-      hint: "no children, so no words are measured and no photograph yields anywhere: the trail whole, which is what a placement that puts its own copy beside it would get. This is also the one to watch the decay in, three seconds from laid down to gone.",
-      node: (
-        <div className="overflow-hidden rounded-lg border">
-          <Trail source="pointer" className="min-h-[22rem]" />
-        </div>
-      ),
-    },
-  ],
-};
-
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
-  TRAIL_ENTRY,
+  // ★ THE IMAGE TRAIL, at the head of the entries because three wiring lanes add
+  // one this round and each landing at the top is what keeps the three merges
+  // apart; the Orchestrator keeps all of them. Declared INLINE rather than as a
+  // named const: collect-specimens.mjs lifts each specimen's `node` expression
+  // out of this array's own source, and an entry hoisted into a variable would
+  // render perfectly and ship with no code panel.
+  {
+    id: "trail",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
+    specimens: [
+      {
+        label: "On paper, under a cursor",
+        hint: "draw across it. A photograph is born every time the hand has travelled far enough, arrives BEHIND the cursor and turns the way it was thrown. Stop moving and the newest one simply stays with you (the keeper) while the trail behind it goes, and the loop stops asking for frames entirely while it stands.",
+        node: (
+          <div className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground">
+            <Trail
+              source="pointer"
+              className="flex min-h-[26rem] flex-col items-center justify-center px-6 py-12"
+            >
+              <TrailWords />
+            </Trail>
+          </div>
+        ),
+      },
+      {
+        label: "and walking its own figure at a phone",
+        hint: "375 px, where there is no cursor and a drag is a scroll: the trail walks a wander of its own at the same pace, alive the moment the page opens and asking nothing of a finger. The figure never repeats inside a visit and opens somewhere else on the next one.",
+        node: (
+          <div
+            className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground"
+            style={{ width: 375 }}
+          >
+            <Trail
+              source="path"
+              className="flex min-h-[32rem] flex-col items-center justify-center px-5 py-12"
+            >
+              <TrailWords />
+            </Trail>
+          </div>
+        ),
+      },
+      {
+        label: "With nothing to stay off",
+        hint: "no children, so no words are measured and no photograph yields anywhere: the trail whole, which is what a placement that puts its own copy beside it would get. This is also the one to watch the decay in, three seconds from laid down to gone.",
+        node: (
+          <div className="overflow-hidden rounded-lg border">
+            <Trail source="pointer" className="min-h-[22rem]" />
+          </div>
+        ),
+      },
+    ],
+  },
   {
     id: "button",
     badge: "updated",
