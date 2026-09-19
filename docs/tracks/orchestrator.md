@@ -255,7 +255,10 @@ look; the one guest `@contract-for` is the empty state's.
   queue had held it 80 minutes before that). ★ `aliasAssigned: true` on a deployment is NOT proof either: `109cfac9`
   reported it while `GET /v4/aliases/<alias>` still named the previous build, and the prune then deleted that
   build, so the desk answered DEPLOYMENT_NOT_FOUND for a few minutes. After every build read the alias RECORD
-  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). ★ A `[preview]` push can
+  also produce NO deployment at all (`fc9eed26`, 2026-09-19: nothing appeared in five minutes while every earlier push
+  had); `POST /v13/deployments` with `gitSource` (`alias-watch2.mjs`'s sibling script in the scratchpad, or by hand)
+  creates it, and the watch then finds it by sha. After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
