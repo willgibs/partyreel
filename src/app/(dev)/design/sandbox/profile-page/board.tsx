@@ -4,297 +4,134 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
+import { GUESTS, GUESTS_BIG, PEOPLE, whoOf } from "./fixtures";
 import {
-  CardSheet,
-  ClaimShowcase,
-  type ClaimOption,
-  ListShowcase,
-  type ListOption,
-  NamedShowcase,
-  namedOf,
-  type NamedOption,
-  NoPage,
-} from "./album";
-import { PEOPLE, whoOf } from "./fixtures";
-import {
-  type BlockOption,
-  type BodyOption,
-  type HeadOption,
-  type IdentityOption,
-  ProfilePage,
-  type ViewerId,
-  viewerOf,
-} from "./profile";
+  arrivedOf,
+  QuickLookShowcase,
+  ViewAllPage,
+  ViewAllShowcase,
+  WayBackShowcase,
+} from "./reach";
 import {
   Ground,
-  measureHead,
+  measureBack,
+  measureCard,
   measureList,
-  measurePictures,
-  measureReach,
   Scene,
-  type ScreenId,
   screenOf,
 } from "./scene";
 import { PROFILE_PAGE } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the real profile or the real
- * album at a real viewport, phone first, with one thing changed.
+ * THE PREVIEWS, and nothing else: every option is the real guest list or the
+ * real profile at a real viewport, phone first, with one thing changed.
  *
- * ★ EVERY PREVIEW IS A FUNCTION OF THE BOARD'S STATE. The screen is a knob all
- * eight decisions share and every picture reads it; so are whose page it is and
- * who is looking. A decision staged behind another is drawn WEARING that
- * answer, which is the point of the staging: the head, the body, the top block
- * and the block affordance are each judged inside whichever container `exists`
- * settled on, and the claim and the list inside whichever list `named` settled
- * on. Going back redraws the earlier ones in the world he chose rather than the
- * one this board assumed.
+ * ★ EVERY PREVIEW IS A FUNCTION OF THE BOARD'S STATE, as round one's was: the
+ * screen is a knob all three decisions share, `who` picks the profile
+ * `quick-look` and `way-back` draw, `count` is `view-all`'s own knob (24 or
+ * 240), and `arrived` is `way-back`'s own (a chip tapped on the wedding, or
+ * some other way in).
  *
- * ★ A STAGED DECISION WEARS ITS PARENT'S RECOMMENDATION UNTIL HE ANSWERS.
- * `defineExploration` mirrors every ask as a control whose default IS the
- * recommendation and `useBoardState` fills each declared control, so there is
- * never an unanswered value to read.
- *
- * ★ THE GROUND IS TODAY'S PRODUCT, NOT THIS BOARD'S OWN ANSWERS. A decision is
- * drawn against what ships, so no question quietly arrives wearing the answer
- * to one he has not been asked: the head stays today's logo-and-button under
- * `made-of`, the body stays today's grey names under `head`, and the guest list
- * stays the wrapping one under `claim`. The only exception is the staging
- * itself, and `exists` is the one thing the four page decisions all wear.
+ * ★ NONE OF THE THREE IS STAGED BEHIND ANOTHER. Round one staged four
+ * decisions behind `exists` because they were parts of one container; these
+ * three are independent components of one nav problem, and Will may answer
+ * them in any order.
  */
 
-const TODAY = {
-  head: "today" as HeadOption,
-  body: "events" as BodyOption,
-  identity: "today" as IdentityOption,
-  block: "overflow" as BlockOption,
-};
-
-const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
+const screen = (s: BoardState) => screenOf(s.screen as string);
 const who = (s: BoardState) => PEOPLE[whoOf(s.who as string)];
-const viewer = (s: BoardState): ViewerId => viewerOf(s.viewer as string);
 
-/**
- * ONE PAGE DECISION'S PICTURE. It takes the whole page's state and overrides
- * only the axis being judged, so the frame under a question is the real
- * composition and not a cut-out of one part of it.
- */
-function page(
+/* ── view-all ─────────────────────────────────────────────────────────────── */
+
+function viewAll(
   s: BoardState,
-  id: string,
-  title: string,
-  over: Partial<{
-    head: HeadOption;
-    identity: IdentityOption;
-    body: BodyOption;
-    block: BlockOption;
-  }>,
-  measure: (root: HTMLElement, win: Window) => string,
+  option: "inline" | "sheet" | "modal" | "page",
 ) {
-  const person = who(s);
-  const shape = { ...TODAY, ...over };
-  // The overflow opens only where it IS the question (see profile.tsx).
-  const menuOpen = over.block !== undefined;
+  const items = s.count === "small" ? GUESTS : GUESTS_BIG;
+  if (option === "page") {
+    return (
+      <Scene
+        id="view-all-page"
+        screen={screen(s)}
+        title="Its own page"
+        measure={measureList}
+      >
+        <Ground>
+          <ViewAllPage items={items} />
+        </Ground>
+      </Scene>
+    );
+  }
   return (
-    <Scene id={id} screen={screen(s)} title={title} measure={measure}>
+    <Scene
+      id={`view-all-${option}`}
+      screen={screen(s)}
+      title="The full list, from the faces row"
+      measure={measureList}
+    >
       <Ground>
-        <ProfilePage
-          person={person}
-          head={shape.head}
-          identity={shape.identity}
-          body={shape.body}
-          block={shape.block}
-          viewer={viewer(s)}
-          menuOpen={menuOpen}
+        <ViewAllShowcase option={option} items={items} />
+      </Ground>
+    </Scene>
+  );
+}
+
+/* ── quick-look ───────────────────────────────────────────────────────────── */
+
+function quickLook(s: BoardState, option: "sheet" | "adaptive" | "none") {
+  return (
+    <Scene
+      id={`quick-look-${option}`}
+      screen={screen(s)}
+      title="What a name opens first"
+      measure={measureCard}
+    >
+      <Ground>
+        <QuickLookShowcase
+          option={option}
+          person={who(s)}
+          screen={screen(s)}
         />
       </Ground>
     </Scene>
   );
 }
 
-/* ── exists: the container ───────────────────────────────────────────────── */
+/* ── way-back ─────────────────────────────────────────────────────────────── */
 
-const exists = (s: BoardState, option: "page" | "card" | "none") => {
-  if (option === "page")
-    return page(s, "exists-page", "The page", {}, measurePictures);
+function wayBack(s: BoardState, option: "pill" | "menu" | "none") {
   return (
     <Scene
-      id={`exists-${option}`}
+      id={`way-back-${option}`}
       screen={screen(s)}
-      title={option === "card" ? "A card, no address" : "No person page"}
-      caption={
-        option === "card"
-          ? "Raised from a chip on the album. There is no URL for this, so nothing links to it and nothing indexes it"
-          : "The same twenty-four names, with nothing behind any of them"
-      }
+      title="Back to the scanned event"
+      measure={measureBack}
     >
       <Ground>
-        {option === "card" ? <CardSheet person={who(s)} /> : <NoPage />}
+        <WayBackShowcase
+          option={option}
+          person={who(s)}
+          arrived={arrivedOf(s.arrived as string)}
+        />
       </Ground>
     </Scene>
   );
-};
-
-/* ── the staged page decisions ───────────────────────────────────────────── */
-
-/** A decision staged behind `exists` is only ASKED in the world where a person
- *  has a page. When `exists` settled on a card the page parts are drawn inside
- *  the card, and when it settled on none there is nothing to draw. */
-function staged(
-  s: BoardState,
-  id: string,
-  title: string,
-  over: Partial<{
-    head: HeadOption;
-    identity: IdentityOption;
-    body: BodyOption;
-    block: BlockOption;
-  }>,
-  measure: (root: HTMLElement, win: Window) => string,
-) {
-  if (s.exists === "none")
-    return (
-      <Scene
-        id={`${id}-none`}
-        screen={screen(s)}
-        title={title}
-        short
-        caption="There is no page to put this on: exists answered none"
-      >
-        <Ground>
-          <NoPage />
-        </Ground>
-      </Scene>
-    );
-  if (s.exists === "card")
-    return (
-      <Scene
-        id={`${id}-card`}
-        screen={screen(s)}
-        title={title}
-        caption="Inside the card, because exists answered card: no head, and no address"
-      >
-        <Ground>
-          <CardSheet person={who(s)} />
-        </Ground>
-      </Scene>
-    );
-  return page(s, id, title, over, measure);
 }
-
-/* ── the pictures ────────────────────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof PROFILE_PAGE> = {
-  "exists.page": (s) => exists(s, "page"),
-  "exists.card": (s) => exists(s, "card"),
-  "exists.none": (s) => exists(s, "none"),
+  "view-all.inline": (s) => viewAll(s, "inline"),
+  "view-all.sheet": (s) => viewAll(s, "sheet"),
+  "view-all.modal": (s) => viewAll(s, "modal"),
+  "view-all.page": (s) => viewAll(s, "page"),
 
-  "head.today": (s) =>
-    staged(s, "head-today", "The head", { head: "today" }, measureHead),
-  "head.guest": (s) =>
-    staged(s, "head-guest", "The head", { head: "guest" }, measureHead),
-  "head.bare": (s) =>
-    staged(s, "head-bare", "The head", { head: "bare" }, measureHead),
+  "quick-look.sheet": (s) => quickLook(s, "sheet"),
+  "quick-look.adaptive": (s) => quickLook(s, "adaptive"),
+  "quick-look.none": (s) => quickLook(s, "none"),
 
-  "made-of.events": (s) =>
-    staged(
-      s,
-      "body-events",
-      "What fills it",
-      { body: "events" },
-      measurePictures,
-    ),
-  "made-of.covers": (s) =>
-    staged(
-      s,
-      "body-covers",
-      "What fills it",
-      { body: "covers" },
-      measurePictures,
-    ),
-  "made-of.wall": (s) =>
-    staged(s, "body-wall", "What fills it", { body: "wall" }, measurePictures),
-
-  "identity.today": (s) =>
-    staged(s, "id-today", "The top", { identity: "today" }, measurePictures),
-  "identity.counts": (s) =>
-    staged(s, "id-counts", "The top", { identity: "counts" }, measurePictures),
-  "identity.line": (s) =>
-    staged(s, "id-line", "The top", { identity: "line" }, measurePictures),
-
-  "block.overflow": (s) =>
-    staged(s, "block-overflow", "Block", { block: "overflow" }, measureReach),
-  "block.inline": (s) =>
-    staged(s, "block-inline", "Block", { block: "inline" }, measureReach),
-  "block.report": (s) =>
-    staged(s, "block-report", "Block", { block: "report" }, measureReach),
-
-  "named.everyone": (s) => named(s, "everyone"),
-  "named.handles": (s) => named(s, "handles"),
-  "named.optout": (s) => named(s, "optout"),
-
-  "claim.account": (s) => claim(s, "account"),
-  "claim.after": (s) => claim(s, "after"),
-  "claim.inline": (s) => claim(s, "inline"),
-
-  "list.wrap": (s) => list(s, "wrap"),
-  "list.cap": (s) => list(s, "cap"),
-  "list.faces": (s) => list(s, "faces"),
+  "way-back.pill": (s) => wayBack(s, "pill"),
+  "way-back.menu": (s) => wayBack(s, "menu"),
+  "way-back.none": (s) => wayBack(s, "none"),
 };
-
-/* ── the album side ──────────────────────────────────────────────────────── */
-
-function named(s: BoardState, option: NamedOption) {
-  return (
-    <Scene
-      id={`named-${option}`}
-      screen={screen(s)}
-      title="Who an album names"
-      measure={measureList}
-    >
-      <Ground>
-        <NamedShowcase option={option} />
-      </Ground>
-    </Scene>
-  );
-}
-
-function claim(s: BoardState, option: ClaimOption) {
-  const membership = namedOf(s.named as string);
-  return (
-    <Scene
-      id={`claim-${option}`}
-      screen={screen(s)}
-      title="Where the handle is offered"
-      short
-      caption={
-        option === "account"
-          ? "The shipped card, drawn at rest: its live control debounces a signed-in Server Function on every keystroke"
-          : "Press it: the offer is real state here and reaches nothing"
-      }
-    >
-      <Ground>
-        <ClaimShowcase option={option} membership={membership} />
-      </Ground>
-    </Scene>
-  );
-}
-
-function list(s: BoardState, option: ListOption) {
-  const membership = namedOf(s.named as string);
-  return (
-    <Scene
-      id={`list-${option}`}
-      screen={screen(s)}
-      title="The list at a real wedding"
-      measure={measureList}
-    >
-      <Ground>
-        <ListShowcase option={option} membership={membership} />
-      </Ground>
-    </Scene>
-  );
-}
 
 export function ProfilePageBoard() {
   return <ExplorationBoard spec={PROFILE_PAGE} previews={PREVIEWS} />;

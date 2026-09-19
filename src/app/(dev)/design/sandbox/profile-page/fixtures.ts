@@ -4,24 +4,33 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 /**
  * ONE CAST, SEEN FROM EVERY SIDE.
  *
- * Every picture on this board is the same six people and the same wedding, so
- * what moves between options is the SHAPE of a person's page and never who is
- * on it. The cast is the one the track asks for, and each member exists to make
- * a different question answerable:
+ * Every picture on this board is the same wedding, so what moves between
+ * options is the SHAPE of a person's page and the album's guest list, never
+ * who is on it. The cast is the one round one asked for, and each member
+ * still answers a round-two question:
  *
- *  - MAYA hosts. Two albums, one open and one password-locked, so the profile's
- *    hosted grid has both badges and the cover-masking rule (covers on open
- *    events only) is visible rather than described.
- *  - PRIYA only ever went to parties. Three attended, one of them hidden by her
- *    own key, and nothing hosted. Her page is the whole argument of `made-of`:
- *    today it is four words and two dates.
- *  - NOOR joined and has not been anywhere. The shared `EmptyState`.
- *  - JAY has no handle. On the guest list he is a chip that is not a link, and
- *    on the marketing page he is the person the sentence is about.
- *  - SAM is in a mutual block with the viewer, which is the one state where the
- *    page must NOT change shape (a vanishing control leaks the block).
+ *  - MAYA hosts. Two albums, one open and one password-locked, so the
+ *    profile's hosted grid has both badges. Her quick-look card carries three
+ *    covers, the busiest `SmallCovers` draws before it would need a "+N more".
+ *  - PRIYA only ever went to parties: two attended, one hidden by her own key,
+ *    nothing hosted. Her page is `quick-look`'s ordinary case and the one this
+ *    round's previews default to (the page the round is about).
+ *  - NOOR joined and has not been anywhere: the shared `EmptyState` on the
+ *    full page, and "nothing here yet" on the quick-look card.
+ *  - JAY has no handle: a chip that is not a link, wherever a chip still
+ *    renders.
  *  - `@maya-g` is a dead handle. It is not drawn: the 404 is not a decision on
  *    this board (the manifest's Questions say why), and it stays a 404.
+ *
+ * ★ ROUND TWO ADDS ONE FIXTURE: `GUESTS_BIG`, 240 signed-in uploaders, Will's
+ * own edge case scaled down a factor of four from his imagined thousand. The
+ * round-one cast of 24 (`GUESTS`) stays for the ordinary wedding; `view-all`'s
+ * `count` control switches between them so both scales sit in the same frame.
+ *
+ * ★ SAM, `GUESTS_WITH_HANDLES` AND `MY_CHIP_INDEX` LEFT WITH ROUND ONE. They
+ * answered `block` (a mutual block's viewer) and `named`/`claim` (a handles-
+ * only membership, one marked chip); all three are ruled, so nothing on this
+ * board varies a viewer's relationship or a membership rule any more.
  *
  * ★ EVERY PICTURE IS A MARKETING STILL, AND NOTHING NEW WAS ASKED FOR. The
  * fourteen bootstrap images are the only stills the repo holds; avatars are the
@@ -184,19 +193,6 @@ export const NOOR: Person = {
   photos: [],
 };
 
-export const SAM: Person = {
-  id: "u-sam",
-  name: "Sam Whitlock",
-  slug: "sam",
-  avatar: pic(7),
-  joined: "Joined April 2026",
-  line: "",
-  hosted: [],
-  attended: [WEDDING],
-  hidden: [],
-  photos: [],
-};
-
 export const PEOPLE = { maya: MAYA, priya: PRIYA, noor: NOOR } as const;
 export type WhoId = keyof typeof PEOPLE;
 /** Priya is the default, because hers is the page the round is about. */
@@ -262,11 +258,48 @@ export const GUESTS: Chip[] = NAMES.map(([displayName, slug], i) => ({
   avatarUrl: i % 3 === 0 ? pic(i + 1) : null,
 }));
 
-/** The same list, with only the claimed handles left standing. */
-export const GUESTS_WITH_HANDLES = GUESTS.filter((g) => g.slug);
+/* ── The edge case: 240 signed-in uploaders ──────────────────────────────── */
 
-/** The chip that is the viewer's own, for the inline claim. */
-export const MY_CHIP_INDEX = 1; // Jay Alder, no handle.
+/**
+ * TWO HUNDRED AND FORTY, A QUARTER OF WILL'S IMAGINED THOUSAND.
+ *
+ * "I can imagine an edge case with a thousand guests, and you click 'View
+ * All', and all of a sudden you have a page 100 screens tall all at once"
+ * (docs/design/rulings.md). 240 is close enough to argue the same failure
+ * mode inside a board's reading budget, and it is generated rather than typed
+ * by hand: the same ratios round one's 24 used (about a fifth with a handle,
+ * about a third with a picture), so the two lists read as the same wedding at
+ * two sizes rather than two different fixtures.
+ */
+const FIRST_NAMES = [
+  "Priya", "Jay", "Sam", "Noor", "Dele", "Ana", "Tomas", "Hana", "Marcus",
+  "Zainab", "Ellis", "Fiona", "Ravi", "Greta", "Oscar", "Lena", "Kofi", "Ines",
+  "Danny", "Yusuf", "Claire", "Theo", "Mira", "Bea", "Leon", "Amara", "Felix",
+  "Junko", "Otis", "Sade", "Piotr", "Naledi", "Quinn", "Rosa", "Iker",
+  "Meiling", "Bram", "Aisha", "Dov", "Wren",
+] as const;
+const LAST_NAMES = [
+  "Raman", "Alder", "Whitlock", "Haddad", "Adeyemi", "Ferreira", "Berg",
+  "Ito", "Lowe", "Musa", "Kwan", "Doherty", "Chandra", "Lindqvist", "Mbeki",
+  "Fischer", "Mensah", "Oliveira", "Whelan", "Karim", "Bonnet", "Novak",
+  "Solberg", "Camilleri", "Reyes",
+] as const;
+
+/** Decorrelated on purpose: `i % 40` alone would repeat First Last pairs in
+ *  visible blocks of 40, which reads as generated rather than a guest list. */
+function bigName(i: number): string {
+  const first = FIRST_NAMES[i % FIRST_NAMES.length];
+  const last = LAST_NAMES[(i * 7 + 3) % LAST_NAMES.length];
+  return `${first} ${last}`;
+}
+
+export const GUESTS_BIG: Chip[] = Array.from({ length: 240 }, (_, i) => ({
+  id: `gb-${i}`,
+  displayName: bigName(i),
+  slug: i % 5 === 0 ? `guest${i}` : null,
+  avatarMarker: null,
+  avatarUrl: i % 3 === 0 ? pic(i + 1) : null,
+}));
 
 /* ── The album under it all ──────────────────────────────────────────────── */
 

@@ -243,3 +243,35 @@ export function measureReach(root: HTMLElement, win: Window): string {
     share ? ` of a ${Math.round(row!.width)}px row (${share}%)` : ""
   }, ${Math.round(r.top)}px down`;
 }
+
+/** How big a quick-look surface stands against the screen it opened on, which
+ *  is the whole of `quick-look`: a peek that costs half the screen is not a
+ *  peek. Absent on purpose for the option that skips a surface entirely. */
+export function measureCard(root: HTMLElement, win: Window): string {
+  const card = root.querySelector<HTMLElement>("[data-pp-card]");
+  if (!card)
+    return "no quick-look card on this option: a tap opens the full page directly";
+  const r = card.getBoundingClientRect();
+  const pct = Math.round(
+    ((r.width * r.height) / (win.innerWidth * win.innerHeight)) * 100,
+  );
+  return `the card stands ${Math.round(r.width)}x${Math.round(
+    r.height,
+  )}px, ${pct}% of a ${win.innerWidth}x${win.innerHeight} screen`;
+}
+
+/** What `way-back` actually added, wherever it lives: a pill under the header
+ *  or a row inside the account menu. Reports the browser's-back fallback when
+ *  an option (or `arrived=direct`) adds nothing, which is the honest picture
+ *  of that option rather than a blank measurement. Kept apart from
+ *  `measureReach`: that probe already reads `[data-pp-act]` for the follow and
+ *  block cluster, which sits on every one of these pages too. */
+export function measureBack(root: HTMLElement, win: Window): string {
+  const el = root.querySelector<HTMLElement>("[data-pp-back]");
+  if (!el)
+    return `nothing added: the browser's own back is the only way, on a ${win.innerWidth}px screen`;
+  const r = el.getBoundingClientRect();
+  return `${Math.round(r.width)}x${Math.round(r.height)}px, ${Math.round(
+    r.top,
+  )}px down a ${win.innerHeight}px screen`;
+}
