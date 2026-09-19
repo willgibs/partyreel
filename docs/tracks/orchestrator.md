@@ -139,7 +139,7 @@ retired `type-phone`; both agents were told so by message.
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
 | `error-pages` | cut at `1feccb00` (the overnight round, the seat admin-triage freed; the last of the twelve): every failure page as one grammar | open | Sonnet, :3134 | the handoff |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |
-| `site-chrome` | cut at `ee45b8f3` (the overnight round, the seat emails freed): the marketing header, the mega panel, the phone's menu and the footer | open | Opus, :3135 | the handoff |
+| `site-chrome` | integrated at `6a7e6f2f` (handed off `b6b23f33`, ten stale; the registration conflicts resolved by the Orchestrator); three calls carried; four ROADMAP lines | done | Opus, :3135 | nothing; the seat is free |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
 | `how-it-works` | cut at `449d9b52` (the overnight round, the seat help-center freed): the page that tells the loop beside the article that tells it too | open | Sonnet, :3136 | the handoff |
 

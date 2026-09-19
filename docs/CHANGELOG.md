@@ -96,6 +96,16 @@ and relayed here for his morning. The records follow in the order the lanes hand
   the sentence over the list, the bio's moderation, the person-report inbox, the 404 and the phone step cut). A shipped
   defect: `/u/[slug]`'s identity row squeezes the name column to about 90 px at 375. Six ROADMAP lines.
 
+- `site-chrome` integrated (`6a7e6f2f`; cut `ee45b8f3`): the marketing header, the mega panel, the phone's menu and the footer
+  as eight decisions in a true frame over a real page at 1440 and 375, the nav forked with its route as a prop, the
+  material left to `glass` round two: the shape (flat links, the mega panel retired), what it holds (three groups,
+  Resources folded into the footer), the returning host ("Dashboard" from a presence-only cookie hint, never a name), the
+  phone's menu (a flat sheet), on scroll (64 px, as today), the foot's job (a closing invitation), the foot's door ("Start
+  free" always, the demo when set), two doors to one loop (one door). Three calls carried (retire the 2026-08-28 nav round
+  whole; a marketing island may read presence only; the header-to-footer mirror pin becomes a footer-column guard). Four
+  captures caught defects invisible in review. Four ROADMAP lines (the `/#faq` row; "four steps"; nav labels under a
+  transparent bar over a bright photograph; the dead `markOnly` branch).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
