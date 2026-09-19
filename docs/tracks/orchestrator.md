@@ -151,6 +151,7 @@ retired `type-phone`; both agents were told so by message.
 | `profile-wiring` | cut at `b30445d9` (batch four): `profile-page`'s eight picks to production, the handle free, two migrations proposed; the board stays for round two | open | Opus, :3133 | the handoff; the migrations applied; the red-team on the alias |
 | `footer-close` | cut at `b30445d9` (batch four): `site-chrome` round two, the footer against the closing CTA (his ask by name) | open | Sonnet, :3134 | the handoff; on the desk |
 | `profile-reach` | cut at `b30445d9` (batch four): `profile-page` round two on View all, the quick-look and the way back | open | Sonnet, :3135 | the handoff; on the desk |
+| `lab-tides` | cut at `11f03ef9` (Will's standing ask, 2026-09-19: rising tides on the lab workflow): the accrued lab notes landed (the `lab:demo` port trap and stall, the constructor's defaults and dedupe, the frame's quirks mode, a responsive variant in a frame, the collector's blind spot, the settle, the dock from a step) and the carried calls rendered on the desk | open | Opus, :3136 | the handoff; the grammar change landed at the merge if proposed |
 
 **The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Every board is cut (`profile-page` took the first freed seat, :3133; `how-it-works` the second, :3136; `export-flow` the third, :3132; `site-chrome` the fourth, :3135; `event-type-pages` the fifth, :3131; `error-pages` the sixth, :3134); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. CLOSED 2026-09-19 10:40 UTC: every lane integrated and recorded with `[preview]` on each record, twelve boards on the desk, every seat free, nothing asked of Will; the alias rebuilt onto the closing record `5910d489` at 10:58 UTC, seven deployments pruned, the wired surfaces red-teamed signed out (clean).
 
@@ -168,6 +169,9 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
    wiring handoff: the merge (a retirement removes registration lines; a round-two lane rewrites its own RULINGS row), the gate
    (its demo step on a board still on the desk), the record in the CHANGELOG's evening-sitting entry, `[preview]`, the alias moved
    onto the record, the prune, the red-team listed in the manifest; `profile-wiring`'s migrations applied before its gate.
+   `lab-tides` (Opus, :3136) took the sixth seat the same evening on his standing ask (rulings.md: "continue to take notes and
+   Rising Tides our lab workflow"); the lab notes accrue under the ROADMAP's "The lab and the kit" and are cut as lab lanes
+   whenever a seat is free, never asked first.
 0. **Batch three (2026-09-19, the morning sitting; the plan in the Orchestrator's plan file, the words in rulings.md):**
    `errors-wiring`, `loop-wiring` and `event-identity` cut at `22438704` on :3131 to :3133. At each wiring handoff: the merge
    with the board's directory and registration lines gone and its RULINGS row rewritten as shipped, the gate (its demo
