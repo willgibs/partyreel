@@ -24,54 +24,43 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   `type-ladder-policy.test.ts`, the trim tracking its leading) and the corners family C in quarters (8 / 12 /
   4 with the gallery gap pinned, 3xl and 4xl set to `initial`, a `cta` Button on 46 sites, `--shadow-float`
   and `--radius-action-lg` retired). Its finding: `cn()` did not know the radius tokens (`RADIUS_TOKENS`).
-- The lab's step, rebuilt (`d37be90e`): the preview is the page (every option mounted once at true size,
-  flipped or side by side, a sticky head naming it) and the answer is a dock (1-9, x, g, n, ?, Enter); a
-  transcribed `?` leaves the walk and the walk's end checks the ledger (`alreadySent`); `lab:demo` fails
-  CLIPPED, UNLABELLED, NO DOCK and a stage below 0.6 of a screen.
-- The glow boards retired with nothing open, and with them the `[data-lit]` leak into production's bright
-  edge; the stylesheet floors became checks on fixed files; `lab:smoke` passes whole, so its exit is a gate.
-- Four boards cut on three lanes (`33f1de95`): `privacy-hero` and `album-page` (`heroes`), `river-card`,
-  `gallery-width`; a board's preview may be a function of its state.
+- The lab's step, rebuilt (`d37be90e`): the preview is the page (every option mounted once at true size, flipped
+  or side by side, a sticky head naming it) and the answer is a dock (1-9, x, g, n, ?, Enter); a transcribed `?`
+  leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK and a stage below 0.6 of a screen.
+- The glow boards retired with nothing open, and with them the `[data-lit]` leak into production's bright edge; `lab:smoke` passes whole.
+- Four boards cut on three lanes (`33f1de95`): `privacy-hero` and `album-page` (`heroes`), `river-card`, `gallery-width`.
 - `gallery-width` round one integrated: four decisions, each option the real guest or host event page in a `Frame` at
   1280, 1512 and 1920 with its columns measured inside it: the tile (240), the width (full), where the words sit
   (edge) and whether the host follows (same); one `column-width` per gallery from `sm` up, the phone keeps two.
 
 - The Orchestrator changed seats mid-round (a weekly limit, three lanes mid-work; a second account resumed all
   three the same day: Fable orchestrating, boards on Sonnet, wiring on Opus, PROGRAM.md "Model delegation").
-- `heroes` integrated (`6b5ea1bf`): `privacy-hero` (answered none, then round two, then round three) and
-  `album-page` (answered whole, wired below), every option a real Frame at 1440 and 375.
-- `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state, the river's
-  production home `src/components/shared/river/` with two contracts and a Library entry; the ghost's numbers his.
+- `heroes` integrated (`6b5ea1bf`): `privacy-hero` (none, then round two, then three) and `album-page` (answered whole, wired below).
+- `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state; the river's production home `src/components/shared/river/`, two contracts, a Library entry.
 - `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and
   unlinked: where it sits, where the photographs end, what it opens (the short `/demo` link fixes the scan floor)
   and what the short door does; every drawn code exactly 3.0 px a module.
-- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines
-  in the places they are read with three or four close candidates each, bible 20's question first (does the first win
-  bind the other seven); every option a real surface at 1440 and 375.
+- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines in the
+  places they are read with three or four close candidates each, bible 20's question first; every option a real surface.
 - `body-type` integrated (`130236c2`; cut `707d99a2`): the body and label ladder as seven decisions, every number
-  measured in the frame: a guest's reading copy (16 recommended), the app's body (14), marketing copy fluid 16 to 18,
-  the caption step and floor (12), the label pair (12 on 0.14em), buttons on the ladder, line height 2 x size minus 8.
-  Two questions: the four step names, and one size for caption and label.
-- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of the Glass exploration on the app's chrome over
-  photographs: four recipes in numbers (Frost recommended), one grade or two, the lightbox's backdrop, the chips over
-  tiles at a phone, the reel's controls, the host's row, the light ground on its own step, every cost read off the
-  compositor trace under a 4x throttle. Marketing and the aurora marriage are round two, after his notes.
+  measured in the frame: a guest's reading copy (16), the app's body (14), marketing copy fluid 16 to 18, the caption
+  floor (12), the label pair (12 on 0.14em), buttons on the ladder, line height 2 x size minus 8. Two questions his.
+- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of Glass on the app's chrome over photographs: four
+  recipes in numbers (Frost recommended), one grade or two, the lightbox's backdrop, the chips over tiles at a phone,
+  the reel's controls, the host's row, the light ground; every cost read off the compositor under a 4x throttle.
 - `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines as seven decisions on their real surfaces
-  (the admin chart's cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces).
-  Found on the way and fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted by
-  `@theme inline`, so a series read by name painted black; the aliases are `@theme static` now.
-- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word,
-  1,138 commits: Graphite, the type and corner ladders, the Aurora with shadows by role, the home hero's band and
-  the v1 wordmark, Card's floating layer, the three voice picks and the river on the empty album; the lab gated.
+  (the admin chart's cast, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces). Found and
+  fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted; they are `@theme static` now.
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word, 1,138
+  commits: Graphite, the ladders, the Aurora, the home hero's band and the v1 wordmark, the river on the empty album; the lab gated.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
   admin components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list recommended),
   the nav (a rail plus a command palette), density (a table with a reading pane), state colour (the chip),
   destructive acts (a sheet sized to the damage), health (a band under the bar), the bar (44 px). Four questions
   closed by the Orchestrator (in git at the merge); three defects it found in the shipped portal are on the ROADMAP.
-- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
-  tree: one pure module, `src/lib/surface`, decides which surface a build serves for the proxy, the `requireAdmin`
-  seam and the purge cron (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving both,
-  which is the rollback). The cutover ran the same night through the preview proof and closed with milestone-26.
+- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the tree:
+  one pure module, `src/lib/surface`, decides which surface a build serves for the proxy, `requireAdmin` and the purge
+  cron (admin an allow-list, app 404ing `/admin`, unset both); the cutover ran the same night and closed with milestone-26.
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`,
   `derived`) through the one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter
   depths on every run (any dead letter a failure); the purge's four account-looping sweeps became jobs with their
@@ -131,16 +120,23 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   laptop (the two screens as one session), how many parties (one). Three questions carried on their recommendations
   (the entry-modal pin narrows to the owner at the wiring; the pairing's transport is the wiring's; the demo's
   server side is UI-only, a Security line). Reading the captures caught seven defects, fixed.
+- `app-pricing` integrated (`0379c529`; cut `e442fc55`): pricing inside the app as eight decisions on the shipped chrome
+  with four hosts (Free at a locked password, Free out of room, a Pro subscriber, a pass holder) at 1440 and 375,
+  every number read from `tiers.ts` and no preview able to reach Stripe: what a click opens (a sheet in a hand, a
+  dialog at a laptop; asked at 375 where the three separate), what it opens on (the reason they clicked), how much it
+  holds (fitted: 58 percent of a laptop window against parity's 95, and a phone screen parity scrolls), how `/pricing`
+  stays a click away (a quiet line), the pass (one line and a button), the doors (plus a plan row in the user menu;
+  the third option is app-shape's `you`, drawn), how a locked control asks (a lock chip), what Checkout returns to
+  (the control itself, open, the receipt above). Three questions carried; five defects caught in the captures, fixed.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album
   pours out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the
   lab's card engine folded into the shared river as one `origin` argument, the code and the settled flow in the
   server's own HTML (3.007 px a module at 1440, 3.118 at 375); `CARD_COPY_SCRIM`, his one bottom-left gradient on
   every media-forward card, measured per pixel; `/demo` ships as the 307 the code encodes; the closing rows took the
   tall door. Two questions carried (the QR door's title over a bright photograph; the closing row's line). Both boards retired.
-- `privacy-concept` integrated (`6c99e128`): privacy-hero round three replaced the spirals with three concepts on
-  the page's own theme, still or nearly still: a breathing aperture, a grid where tiles take turns clearing
-  (recommended), sealed photo cards that lift one at a time; every number in the copy checked against the
-  constants, every static element clear of the real lockup's measured ink at both breakpoints.
+- `privacy-concept` integrated (`6c99e128`): privacy-hero round three replaced the spirals with three concepts on the
+  page's own theme, still or nearly still: a breathing aperture, a grid where tiles take turns clearing (recommended),
+  sealed photo cards that lift; every number checked against the constants, clear of the lockup's measured ink.
 - `album-wiring` integrated (`2ca47448`; cut `97207988`, synced four times): the album page's hero from two ruled
   boards: the live guest album under the host's header at 896, its foot dissolving, lit from behind by the Glow halo,
   photographs falling out of the room around the words into the album's top edge at the home hero's pace; the stream
