@@ -43,36 +43,55 @@ import { VOICE } from "./voice/spec";
  * it: the ruling lives on in its RULINGS row (touchpoints.ts), the words in
  * docs/design/rulings.md, and the board in git. A lane adds or removes ONLY its
  * own board's lines here (the registration and retirement exceptions,
- * docs/tracks/orchestrator.md): a new board at the head of the list.
+ * docs/tracks/orchestrator.md): a new board at the head of the list, moved
+ * into its leverage place by the Orchestrator at the next record (below).
+ */
+/**
+ * ★ THE DESK'S ORDER IS THIS ARRAY'S ORDER, AND IT IS ORDERED BY LEVERAGE (Will,
+ * 2026-09-19, verbatim in docs/design/rulings.md): "our board groups should be
+ * ordered by leverage, such that if a question/group compounds into a later
+ * question/group, the more atomic question is handled first... for any
+ * potential snowball effects, the earlier influence is addressed first." He
+ * reviews what is presented, top to bottom, so a board whose answer changes
+ * another board's question sits ABOVE it; boards that touch nothing else sit
+ * at the foot in any order. The chain as it stands: the voice binds every line
+ * on every board (bible 20 and 21); the body ladder sizes every reading slot;
+ * Glass is the material the two shapes' chrome wears; the host app's shape and
+ * the guest experience's shape decide the parts (app-vocabulary), the doors
+ * (app-door, app-pricing), the first event, the upload, the viewer, curation,
+ * the reel and the export; the admin's shape decides triage; the demo's promise
+ * decides every demo door, the footer's included. A lane still adds a NEW board
+ * at the head of this list (the registration exception keeps merges
+ * line-disjoint); the Orchestrator moves it into its place at the next record.
  */
 export const BOARDS: readonly BoardSpec[] = [
-  SITE_CHROME,
-  PROFILE_PAGE,
-  EXPORT_FLOW,
-  ADMIN_TRIAGE,
-  MEDIA_VIEWER,
-  EMAILS,
-  REEL_STUDIO,
-  HELP_CENTER,
-  HOST_CURATION,
-  GUEST_UPLOAD,
-  FIRST_EVENT,
+  VOICE,
+  BODY_TYPE,
+  GLASS,
+  APP_SHAPE,
+  GUEST_SHAPE,
+  APP_VOCABULARY,
+  ADMIN,
   APP_DOOR,
+  DEMO_EVENT,
   PRICING_PAGE,
   APP_PRICING,
-  PRESS_PAGE,
-  CONTACT_PAGE,
-  APP_VOCABULARY,
-  DEMO_EVENT,
-  GUEST_SHAPE,
-  ALBUM_MOTION,
-  APP_SHAPE,
-  ADMIN,
-  LOOSE_ENDS,
-  GLASS,
-  BODY_TYPE,
-  VOICE,
+  FIRST_EVENT,
+  GUEST_UPLOAD,
+  MEDIA_VIEWER,
+  HOST_CURATION,
+  REEL_STUDIO,
+  EXPORT_FLOW,
+  ADMIN_TRIAGE,
+  HELP_CENTER,
+  EMAILS,
+  SITE_CHROME,
+  PROFILE_PAGE,
   PRIVACY_HERO,
+  ALBUM_MOTION,
+  LOOSE_ENDS,
+  CONTACT_PAGE,
+  PRESS_PAGE,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

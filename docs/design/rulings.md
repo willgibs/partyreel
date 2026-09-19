@@ -8,6 +8,18 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the desk is ordered by leverage across boards: the earlier influence first
+
+**Became:** a standing rule the Orchestrator keeps, not a round. The desk lists boards in the order of `BOARDS` in
+`sandbox/registry.ts`, and that order is by leverage: a board whose answer changes another board's question sits above
+it, and boards that touch nothing else sit at the foot in any order (`voice` first, since bible 20 and 21 bind every
+line on every board; then the body ladder, Glass, the host app's shape and the guest experience's shape, the parts under
+them, the admin's shape, the doors, the demo's promise, and only then the boards that ride on those). A lane still
+registers a new board at the head of the list (the merge stays line-disjoint) and the Orchestrator moves it into its
+place at the next record. The preview key echoed in a lane's terminal is not rotated ("Preview key doesn't matter").
+
+Verbatim: "Fantastic work! Preview key doesn't matter. As an added note, as you wind these tracks down and prepare the next alias - our board groups should be ordered by leverage, such that if a question/group compounds into a later question/group, the more atomic question is handled first. We've done a good job of this within groups and over rounds, but wanted to ensure that's how we're also prioritizing across groups. I'm reviewing what's presented to me, so you're in charge of ensuring the execution order makes sense to allow for increasing clarity rather than conflict. For groups who have no impact on other groups and exist somewhat independently, these can be ordered however. This isn't an intense request to rank every question we have by priority, just ensuring that for any potential snowball effects, the earlier influence is addressed first."
+
 ## 2026-09-19 · the lab workflow itself rides rising tides: the decision-per-question shape is the throughput engine, keep improving it
 
 **Became:** a standing directive, not a round. The decision-per-question shape (`defineExploration`, one question per
