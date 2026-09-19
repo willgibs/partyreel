@@ -29,6 +29,9 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "guest-upload"
+  | "first-event"
+  | "pricing-page"
+  | "press-page"
   | "contact-page"
   | "entry"
   | "upload"
@@ -53,7 +56,10 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-door"
+  | "app-pricing"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "app-shape"
@@ -90,8 +96,14 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "guest-upload"
+  | "first-event"
+  | "app-door"
+  | "pricing-page"
+  | "app-pricing"
+  | "press-page"
   | "contact-page"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "admin"
@@ -660,6 +672,169 @@ export const RULINGS: Ruling[] = [
         "A dozen at once",
         "Waiting for the host",
         "A file that will not go",
+      ],
+    },
+  },
+  {
+    id: "first-event",
+    title: "A host's first event",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: the host app is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The moment a host gets once: a style picked against a link that 404s, a refusal that inserts the row first, no paper anywhere in the product, and no live signal.",
+    lives: [
+      "src/components/app/create-event-wizard.tsx",
+      "src/components/app/event-qr.tsx",
+      "src/components/app/qr-preset-picker.tsx",
+      "src/components/app/event-share-dialog.tsx",
+      "src/components/app/event-uploads.tsx",
+      "src/app/(app)/dashboard/new/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes",
+      variants: [
+        "What creating asks",
+        "The code's style",
+        "The Free host's second",
+        "Out of the screen",
+        "Where she lands",
+        "In a hand",
+        "The empty event",
+        "The first photograph",
+      ],
+    },
+  },
+  {
+    id: "app-door",
+    title: "The door into the host app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": login and signup is one of the surfaces he named, and everything is open to relitigate from the ground up)',
+    shipped: null,
+    why: "The door asked from the foundation: what it asks for, how many account surfaces there are, what /login is, and what stands between a new account and the app.",
+    lives: [
+      "docs/systems/auth-accounts.md",
+      "src/app/(auth)/login/page.tsx",
+      "src/components/auth/login-form.tsx",
+      "src/components/auth/password-sign-in.tsx",
+      "src/components/auth/email-sign-in.tsx",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/app/welcome-flow.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real auth components with fixtures at 1440 and 375: what the door asks for first, how many account surfaces the product has, what stands between a new account and the app, what /login is as a page, what happens when a new account's email already has one, how the door fails, and what a host the browser already knows meets",
+      variants: [
+        "What the door asks for",
+        "How many doors",
+        "The first screen",
+        "The page",
+        "The returning host",
+      ],
+    },
+  },
+  {
+    id: "pricing-page",
+    title: "The pricing page",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the marketing pricing page, "a more granular exploration than simply comparing new page versions themselves at such a high level")',
+    shipped: null,
+    why: "The page asked part by part rather than version by version: the opening, the plan row, the size, the pass, the fit, the sheet, the close and the phone, one question each.",
+    lives: [
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+      "src/components/marketing/sections/pricing/",
+      "docs/systems/marketing-content.md",
+    ],
+    board: {
+      note: "Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands",
+      variants: [
+        "What the page opens on",
+        "How Free and Pro stand",
+        "Choosing a size",
+        "Where the pass stands",
+        "Find your size",
+        "The grid, the table, the band",
+        "The questions and the close",
+        "The page in a hand",
+      ],
+    },
+  },
+  {
+    id: "app-pricing",
+    title: "Pricing in the app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+    shipped: null,
+    why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
+    lives: [
+      "docs/PRICING.md",
+      "docs/systems/billing-caps.md",
+      "src/lib/constants/tiers.ts",
+      "src/components/app/dashboard/storage-meter.tsx",
+      "src/components/app/event-password-control.tsx",
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to",
+      variants: [
+        "The object",
+        "The first view",
+        "How much it carries",
+        "The second layer",
+      ],
+    },
+  },
+  {
+    id: "demo-event",
+    title: "The live demo",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    lives: [
+      "src/lib/demo.ts",
+      "src/app/demo/route.ts",
+      "src/components/guest/event-experience.tsx",
+      "src/components/marketing/chrome/footer-demo.tsx",
+      "src/components/marketing/system/demo-cta-link.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
+      variants: [
+        "The first seconds",
+        "Adding a photo",
+        "What a door promises",
+        "Scanned off a laptop",
+      ],
+    },
+  },
+  {
+    id: "press-page",
+    title: "What Partyreel hands the world",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": /press is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "Seven decisions on the real page pieces: who it is for, the sheet, the words, the facts, whether anyone is named, the close, and the reading order.",
+    lives: [
+      "src/app/(marketing)/(cinema)/press/page.tsx",
+      "src/components/marketing/press/press-section.tsx",
+      "src/components/marketing/press/press-sheet.tsx",
+      "src/lib/constants/press.ts",
+    ],
+    board: {
+      note: "Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom",
+      variants: [
+        "Who the page is for",
+        "What the sheet shows",
+        "How the words hand over",
+        "How checkable the facts are",
+        "Whether anyone is named",
+        "How the page closes",
+        "How the page reads",
       ],
     },
   },

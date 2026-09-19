@@ -119,13 +119,14 @@ retired `type-phone`; both agents were told so by message.
 | `guest-shape` | integrated at `beee6325` (handed off `83f46ed4`, zero stale, no conflicts; three questions relayed) | done | Opus, :3136 | nothing |
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
-| `demo-event` | cut 2026-09-19 from Will's stacking steer: the demo as the product's first impression, on the real guest components with a demo fixture | building | Opus, :3131 | everything |
-| `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
+| `demo-event` | integrated at `e3a2c1b6` (handed off `02ecd169`, ten stale; the RULINGS-row conflict resolved by the Orchestrator); three questions relayed | done | Opus, :3131 | nothing; the seat is free |
+| `app-door` | integrated at `2960db15` (handed off `04dad397`, seven stale; the registration conflicts resolved by the Orchestrator); four questions relayed | done | Opus, :3132 | nothing; the seat is free |
 | `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
 | `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
-| `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
-| `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
-| `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
+| `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
+| `first-event` | integrated at `728513ee` (handed off `02bc13e2`, six stale; the registration conflicts resolved by the Orchestrator); six questions relayed | done | Opus, :3135 | nothing; the seat is free |
+| `app-pricing` | integrated at `0379c529` (handed off `36994195`, four stale; the RULINGS-row conflict against demo-event resolved by the Orchestrator); three questions relayed | done | Opus, :3136 | nothing; the seat is free |
+| `pricing-page` | integrated at `f79a8037` (handed off `bc3b9674`, one stale, no conflicts); three questions relayed | done | Opus, :3134 | nothing; the seat is free |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -262,6 +263,20 @@ phone. 8. no test touches the wizard's UI, the limit refusal or the event page's
 are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
+
+- **Two RULINGS rows added at the same anchor conflict across a row boundary** (2026-09-19, from `first-event` and
+  `app-pricing` at their syncs): the two rows share their four closing lines, so "keep both sides' added lines" drops
+  them and the array never closes. The fix is `],` `},` `},` `{` spliced between the two sides (the Orchestrator's merge
+  scripts do it; the spawn brief now tells a lane to do the same at its own sync).
+- **Concurrent lanes share the scratchpad directory** (2026-09-19, from `app-door`): one lane's `capture.mjs` at the
+  scratchpad's root overwrote another's mid-session, and a fixed CDP port put one lane's driver on another lane's Chrome
+  (two stray directories landed in a worktree). The spawn brief now sends a lane's scratch files to `<scratchpad>/<track>/`
+  and makes it check any debugging port it opens; the built-in browser pane is shared too (own tabs only).
+- **A manifest never lists another lane's manifest under `reads`** (2026-09-19): `pricing-page.md` read
+  `docs/tracks/app-pricing.md` so the two pricing boards could see each other's goal; the app-pricing merge deleted
+  that file and `track-manifests.test.ts` ("read ... does not exist") turned the merged tree's gate red, with the desk's
+  tracks page failing one smoke check on the dead link. Point a sibling read at the board's `spec.ts` instead (it
+  survives the merge), and fix a stale read in the merge's record commit (the lane keeps origin's line at its sync).
 
 - **The admin cutover, CLOSED 2026-09-19 05:02 UTC (every runbook check done; the block stays as the record).** The lane's full
   runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on
