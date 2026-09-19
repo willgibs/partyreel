@@ -75,8 +75,8 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
   round's closing record (the cap freed on its own by 06:00 UTC; the 89548cbb hold lasted a day); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
   100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
   day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
-  red-teamed on it signed out on 2026-09-19 (the album page, the QR door, `/demo`, the guest album at 1280 / 1512 / 1920 / 375,
-  the root 404): clean; the signed-in half (the host event page, the guest album as the host) waits on Will's account chooser.
+  red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the
+  guest album at 1280 / 1512 / 1920 / 375 both ways, the host event page at 1440 and 375, the dashboard, the root 404): clean.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 2,530 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
   `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.
@@ -105,7 +105,7 @@ His sitting continues on the desk (twenty-seven boards unruled after batch three
 `app-door`, `contact-page`, `press-page`, `app-pricing`, `pricing-page`, `first-event`, `guest-upload`, `media-viewer`,
 `reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`, `export-flow`, `site-chrome`),
 and `event-identity` joins it when its lane lands. The two wiring lanes of batch three land on the alias for his eye
-(their calls his to overrule are in their manifests). The signed-in half of the overnight round's red-team (the host event
-page, the guest album as the host) waits on his account chooser. Calls his to overrule from earlier lanes: the home's live
+(their calls his to overrule are in their manifests). The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
+the host at 1280 / 1512 / 1920 / 375, the dashboard) ran in his Chrome session on 2026-09-19 and was clean. Calls his to overrule from earlier lanes: the home's live
 demo as the paper chapter's opener and the album heading at `lg`; the ghost's fade; type inside a picture counts as
 depicted; the album at 896. Assets open: rows 15, 16, 19 and 23. The launch-gated tasks are the ROADMAP's Launch checkpoint.
