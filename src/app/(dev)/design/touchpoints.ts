@@ -29,6 +29,10 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "error-pages"
+  | "how-it-works"
+  | "site-chrome"
+  | "profile-page"
+  | "export-flow"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -103,6 +107,10 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "error-pages"
+  | "how-it-works"
+  | "site-chrome"
+  | "profile-page"
+  | "export-flow"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -687,6 +695,122 @@ export const RULINGS: Ruling[] = [
         "The surround",
         "The private event",
         "The global crash",
+      ],
+    },
+  },
+  {
+    id: "how-it-works",
+    title: "The page that tells the loop",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": every surface is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one: the page beside its article, who it greets, the step count, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/how-it-works/page.tsx",
+      "src/components/marketing/sections/how-it-works/spine.tsx",
+      "src/components/marketing/sections/how-it-works/step-frames.tsx",
+      "src/components/marketing/sections/how-it-works/reel-payoff.tsx",
+      "src/components/marketing/sections/how-it-works/pricing-pointer.tsx",
+      "content/help/how-partyreel-works.mdx",
+    ],
+    board: {
+      note: "Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close",
+      variants: [
+        "The pair",
+        "Who first",
+        "The steps",
+        "The pictures",
+        "The shape",
+        "The proof",
+        "The page in a hand",
+        "The close",
+      ],
+    },
+  },
+  {
+    id: "site-chrome",
+    title: "The marketing site's chrome",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, the header, the panel, the phone's menu and the footer, unprotected like the rest)",
+    shipped: null,
+    why: "Eight decisions on the real chrome: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, and two doors to one loop.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/chrome/marketing-header.tsx",
+      "src/components/marketing/chrome/mega-panel.tsx",
+      "src/components/marketing/chrome/mobile-menu.tsx",
+      "src/components/marketing/chrome/marketing-footer.tsx",
+      "src/lib/constants/marketing-nav.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names",
+      variants: [
+        "The shape",
+        "What it holds",
+        "The returning host",
+        "The phone's menu",
+        "On scroll",
+        "The foot's job",
+      ],
+    },
+  },
+  {
+    id: "profile-page",
+    title: "What a person is here",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the guest pages are unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one asks whether a person has a page at all, what fills it beyond two dates, who an album publishes, and when a handle is ever offered.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/app/(guest)/u/[slug]/page.tsx",
+      "src/components/social/guest-list.tsx",
+      "src/components/social/follow-button.tsx",
+      "src/components/social/profile-actions-menu.tsx",
+      "src/components/social/profile-slug-control.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached",
+      variants: [
+        "The page",
+        "The head",
+        "What fills it",
+        "The top",
+        "Block",
+        "The named",
+        "The claim",
+        "The list",
+      ],
+    },
+  },
+  {
+    id: "export-flow",
+    title: "Getting everything out",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the download act is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one asks the take-it-home act from the foundation: what a guest takes, the wait, a tap with no answer, a hollow zip, the limit, and where the file lands.",
+    lives: [
+      "docs/systems/uploads-and-r2.md",
+      "src/components/app/export/export-dialog.tsx",
+      "src/components/app/export/use-export-download.ts",
+      "src/lib/export/export-service.ts",
+      "src/app/api/export/host/route.ts",
+      "workers/export/src/index.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone",
+      variants: [
+        "What a guest takes",
+        "The wait",
+        "A tap with no answer",
+        "The limit",
+        "Where the file lands",
       ],
     },
   },

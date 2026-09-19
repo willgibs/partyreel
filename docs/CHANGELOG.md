@@ -75,6 +75,46 @@ and relayed here for his morning. The records follow in the order the lanes hand
   caught defects the gate could not. Five ROADMAP lines, one on the lab itself (a responsive Tailwind variant never
   reaches a board's frame). The smoke crawler's 400-page cap ran out at 24 boards (every step is a page); raised to 800.
 
+- `export-flow` integrated (`afde9ca3`; cut `5649285b`): getting everything out for a host and a guest as eight decisions on
+  the real dialog's shell and body reproduced over fixture summaries run through the shipped arithmetic, phone first, a
+  scoped `fetch` guard refusing every export request: what Download hands a guest (their own shots first, the album under),
+  the Videos chip for a teaser (stays and says why), the wait (the dialog holds until it lands), a mint that never answers
+  (it gives up and offers Try again), a hollow zip (it says what did not make it), the 2,000-item cap (the product splits
+  it and never refuses), what keeping the album means (the link first, the zip under it), the phone (the copy names where
+  the file lands). Five calls carried (a guest's own uploads are identifiable server-side; the Worker may tell the page a
+  nonce and a written count; parts split by items; SELECTED left to `app-vocabulary`'s bar; the dialog reproduced, not
+  opened). Seven ROADMAP lines: the app goes blind at the tap (no timeout, a silent skip, no iOS answer).
+
+- `profile-page` integrated (`b75cd30a`; cut `c74a509d`): what a person is on Partyreel beyond one album as eight decisions
+  over one cast at one wedding, phone first, two roots with four and two staged behind them, the social controls forked so
+  no press reaches a row: whether a person has a page at all (the page), what stands above it (the album's own header),
+  what it is made of (every party as a card: an attendee's first screen goes from 2 percent picture to 48), what the top
+  says (one line of their own, capped and moderated), how a person blocks (inside a Report menu, drawn as a future), who an
+  album names (everyone signed in, and the marketing sentence that denies it corrected), when a handle is offered (right
+  after their photographs land, free to claim), how the guest list draws (a row of faces: 450 px in twelve rows becomes 24
+  in one). Eight calls carried on their recommendations (two loosenings of the ruled privacy scope, the handle's Pro gate,
+  the sentence over the list, the bio's moderation, the person-report inbox, the 404 and the phone step cut). A shipped
+  defect: `/u/[slug]`'s identity row squeezes the name column to about 90 px at 375. Six ROADMAP lines.
+
+- `site-chrome` integrated (`6a7e6f2f`; cut `ee45b8f3`): the marketing header, the mega panel, the phone's menu and the footer
+  as eight decisions in a true frame over a real page at 1440 and 375, the nav forked with its route as a prop, the
+  material left to `glass` round two: the shape (flat links, the mega panel retired), what it holds (three groups,
+  Resources folded into the footer), the returning host ("Dashboard" from a presence-only cookie hint, never a name), the
+  phone's menu (a flat sheet), on scroll (64 px, as today), the foot's job (a closing invitation), the foot's door ("Start
+  free" always, the demo when set), two doors to one loop (one door). Three calls carried (retire the 2026-08-28 nav round
+  whole; a marketing island may read presence only; the header-to-footer mirror pin becomes a footer-column guard). Four
+  captures caught defects invisible in review. Four ROADMAP lines (the `/#faq` row; "four steps"; nav labels under a
+  transparent bar over a bright photograph; the dead `markOnly` branch).
+
+- `how-it-works` integrated (`e623e65e`; cut `449d9b52`): the page that tells the loop beside the article that tells it too,
+  eight decisions on the real page pieces at 1440 and 375, every option measured in windows and by the first product
+  picture's depth: the pair (both kept, each its own name), who (the undecided host, as today), the steps (six two-sided,
+  step one's sentence made true), the pictures (the site's own frames), the shape (a two-column ledger, host and guest,
+  stacked below `sm`), the proof (a door to the live demo), the phone (the real `PhoneFrame`), the close (one closing
+  section). One call carried (the optional close asked). The lane ran its demo without `--base` and read "0 steps" as a
+  desk-wide fault; the Orchestrator's gate on its own port found the eight steps (the ROADMAP's `lab:demo` default line
+  stands). Four ROADMAP lines (the step-count trap, the label collision, the unread single source, the catalogue gap).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
