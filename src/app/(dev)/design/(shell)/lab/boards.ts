@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
+import { AppShapeBoard } from "@/app/(dev)/design/sandbox/app-shape/board";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
@@ -31,6 +32,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "app-shape": { Component: AppShapeBoard },
   "image-trail": { Component: ImageTrailBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },

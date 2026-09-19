@@ -51,6 +51,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
   | "admin"
@@ -94,7 +95,8 @@ export type SandboxId =
   | "river-card"
   | "gallery-width"
   | "album-hero"
-  | "river-visual";
+  | "river-visual"
+  | "app-shape";
 
 export type Ruling = {
   id: RulingId;
@@ -626,6 +628,30 @@ export const RULINGS: Ruling[] = [
         "400, the card",
         "240, the thumbnail",
         "The placements",
+      ],
+    },
+  },
+  {
+    id: "app-shape",
+    title: "The host app's shape",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/shared/app-shell.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
+      variants: [
+        "The host's home",
+        "The event as a place",
+        "Moving around",
+        "In a hand",
       ],
     },
   },
