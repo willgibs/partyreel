@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { portalSkinProps, type MarketingSkin } from "./portal-skin";
+import { useSignedInHint } from "./session-hint";
 
 /**
  * THE MOBILE MENU (rebuilt full-screen, 2026-08-28, Will's ruling). The old
@@ -52,6 +53,12 @@ export function MarketingNavMobile({
 }) {
   const portal = portalSkinProps(skin);
   const pathname = usePathname();
+  // The same presence HINT the bar's right cluster reads (session-hint.tsx
+  // holds the reasoning, and the word "hint" is load-bearing: /dashboard
+  // re-checks). The sheet's foot is the phone's whole right cluster, so it
+  // must swap with it or a signed-in host would meet two doors to /login the
+  // moment they opened the menu.
+  const signedIn = useSignedInHint();
   const [open, setOpen] = useState(false);
   // Single-open accordion: a full-screen list stays scannable only while at
   // most one group is expanded. Reset on close so the menu always OPENS tidy,
@@ -128,16 +135,26 @@ export function MarketingNavMobile({
         </nav>
 
         <div className="flex shrink-0 flex-col gap-2 border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <SheetClose asChild>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/login">Log in</Link>
-            </Button>
-          </SheetClose>
-          <SheetClose asChild>
-            <Button asChild size="lg">
-              <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
-            </Button>
-          </SheetClose>
+          {signedIn ? (
+            <SheetClose asChild>
+              <Button asChild size="lg">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            </SheetClose>
+          ) : (
+            <>
+              <SheetClose asChild>
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/login">Log in</Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button asChild size="lg">
+                  <Link href={MARKETING_CTA.href}>{MARKETING_CTA.label}</Link>
+                </Button>
+              </SheetClose>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

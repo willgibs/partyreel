@@ -1973,6 +1973,105 @@
       ]
     },
     {
+      "id": "header-shell",
+      "file": "src/components/marketing/chrome/header-shell.tsx",
+      "names": [
+        "HeaderShell"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "starts visible and stays visible inside the reveal zone",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "leaves once the reader commits to scrolling away",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 104
+        },
+        {
+          "title": "comes back on ANY upward movement, with no threshold to clear",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 114
+        },
+        {
+          "title": "comes back at the top of the page without a gesture",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 126
+        },
+        {
+          "title": "hides the SOLID posture on the same signal, not a second rule",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 138
+        },
+        {
+          "title": "stays reachable while it is out of the way",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 152
+        },
+        {
+          "title": "never hides while something inside it is focused",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "never hides with a nav panel or the phone sheet open",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 176
+        },
+        {
+          "title": "honours reduced motion, keeping the function and dropping the slide",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 185
+        },
+        {
+          "title": "animates the property the translate utility actually sets",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 189
+        },
+        {
+          "title": "moves the bar by transform alone: the height knob is untouched",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 197
+        }
+      ]
+    },
+    {
       "id": "marketing-footer",
       "file": "src/components/marketing/chrome/marketing-footer.tsx",
       "names": [
@@ -1987,7 +2086,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 26
+          "line": 31
         },
         {
           "title": "never nests .dark (the standing --gallery* rule)",
@@ -1995,7 +2094,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 86
+          "line": 91
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -2003,7 +2102,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 94
+          "line": 99
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -2011,7 +2110,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 102
+          "line": 107
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -2019,7 +2118,98 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 122
+          "line": 127
+        },
+        {
+          "title": "offers Start free with a demo event configured",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "offers Start free with NO demo event configured",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "stands the invitation down with the demo, and only the invitation",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "keeps the index and the legal bar in both states",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "id": "session-hint",
+      "file": "src/components/marketing/chrome/session-hint.tsx",
+      "names": [
+        "HeaderActions"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "prerenders the stranger's bar even for a signed-in reader",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 43
+        },
+        {
+          "title": "offers Log in and Start free to a stranger",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 51
+        },
+        {
+          "title": "swaps both doors for ONE way back in, to the real route",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 61
+        },
+        {
+          "title": "reads a chunked session, which is what a real one usually is",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "never reads a mid-OAuth verifier as a session",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 79
+        },
+        {
+          "title": "never reads an emptied cookie as a session",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 87
         }
       ]
     },
@@ -8271,6 +8461,79 @@
           ],
           "file": "src/lib/shared/sampled-palette.test.ts",
           "line": 160
+        }
+      ]
+    },
+    {
+      "id": "use-scroll-direction",
+      "file": "src/lib/shared/use-scroll-direction.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "shows the bar at the head of the page, whatever came before",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 26
+        },
+        {
+          "title": "does not hide until the reader commits past the hysteresis",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 34
+        },
+        {
+          "title": "measures the hysteresis from the furthest point, not the last flip",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 42
+        },
+        {
+          "title": "returns on ANY upward movement, with no threshold to clear",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 50
+        },
+        {
+          "title": "holds still inside the band rather than flickering",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 56
+        },
+        {
+          "title": "reads a rubber-band overscroll as the top, never as a scroll up",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 65
+        },
+        {
+          "title": "ignores sub-pixel jitter on a fractional-DPR display",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 69
+        },
+        {
+          "title": "seeds SHOWN even on a page that loads already deep",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 75
         }
       ]
     }

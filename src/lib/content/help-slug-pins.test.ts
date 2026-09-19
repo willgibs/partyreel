@@ -11,8 +11,11 @@ import { getAllSlugs } from "./help";
  * slug is named so the sweep is mechanical when one has to move.
  */
 const PINNED: Record<string, string> = {
-  "how-partyreel-works":
-    "chrome/mega-panel.tsx, features/page.tsx, how-it-works/spine.tsx",
+  // `two-doors=one` (Will, 2026-09-19): the Resources mega-panel card now
+  // points at /how-it-works, so the chrome links this article from NOWHERE and
+  // chrome/mega-panel.tsx leaves this list. features/page.tsx left it earlier
+  // and was never swept; the walkthrough's own foot link is the last literal.
+  "how-partyreel-works": "how-it-works/spine.tsx",
   "customize-and-share-your-qr": "features/qr/page.tsx",
   "how-guests-join-and-upload": "features/album/page.tsx, constants/contact.ts",
   "storage-plans-and-limits": "features/album/page.tsx",

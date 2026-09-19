@@ -132,13 +132,55 @@ export function MarketingFooter() {
   );
 }
 
-/** Register one: the demo invitation. */
+/**
+ * THE FOOTER'S ONE ACTION, and the only one a (paper) route gets: CtaBand sits
+ * above the footer on cinema pages but nowhere on /about, /press, /careers or
+ * a 404. Deliberately SECONDARY to the demo (a hairline, not a fill) so the
+ * two do not compete, and hand-rolled on purpose: the slab's .surface-ink set
+ * would let a Button paint, but the outline register is the point. It is a
+ * 44px action, so it wears the 44px action's corner (ctaCorner), not the 40px
+ * one.
+ *
+ * ★ AT EVERY WIDTH, IN BOTH STATES (`foot-door=always`, Will 2026-09-19:
+ * "Start free always, the demo when it is set"). It used to be `lg`-only AND
+ * inside the demo branch, so a phone reader reached the end of /about with
+ * nothing to do at all, and an unset demo token took the site's only footer
+ * action down with it on every page. One rule now, not two: a conversion
+ * action is never wired to whether a demo event happens to be configured, and
+ * never to a breakpoint either. At phone width it lands under the invitation,
+ * which reads as a ladder (a quiet link to look, a bordered button to act)
+ * rather than as two competing offers.
+ */
+function StartFree() {
+  return (
+    <Link
+      href={MARKETING_CTA.href}
+      {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
+      className={cn(
+        "mkt-learn inline-flex items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97]",
+        ctaCorner,
+      )}
+    >
+      {MARKETING_CTA.label}
+      <LearnChevron />
+    </Link>
+  );
+}
+
+/** Register one: the demo invitation, and the action beside it. */
 function SignOff() {
   // Never a dead CTA (the DemoCtaLink contract): with no demo event configured
   // the QR would encode the marketing site the visitor is already on, so the
-  // whole invitation stands down to the thesis.
+  // INVITATION stands down to the thesis. The ACTION does not go with it (see
+  // StartFree); no Reveal on this branch, because nothing in it carries a cut
+  // and an observer for two static elements is an island for nothing.
   if (!DEMO_EVENT_URL) {
-    return <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>;
+    return (
+      <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+        <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>
+        <StartFree />
+      </div>
+    );
   }
   return (
     <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -181,26 +223,10 @@ function SignOff() {
           </Link>
         </div>
       </div>
-      {/* The footer's one conversion action, and the only one a (paper) route
-          gets: CtaBand sits above the footer on cinema pages but nowhere on
-          /about, /press, /careers or a 404. Deliberately SECONDARY to the demo
-          (a hairline, not a fill) so the two do not compete, and hand-rolled
-          on purpose: the slab's .surface-ink set would let a Button paint, but
-          the outline register is the point. It also gives the register a
-          right edge; without it the row left ~600px of dead space, the exact
-          wireframe quality this pass exists to remove. It is a 44px action,
-          so it wears the 44px action's corner (ctaCorner), not the 40px one. */}
-      <Link
-        href={MARKETING_CTA.href}
-        {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
-        className={cn(
-          "mkt-learn hidden items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex",
-          ctaCorner,
-        )}
-      >
-        {MARKETING_CTA.label}
-        <LearnChevron />
-      </Link>
+      {/* It also gives the register a right edge; without it the row left
+          ~600px of dead space, the exact wireframe quality this pass exists to
+          remove. */}
+      <StartFree />
     </Reveal>
   );
 }
