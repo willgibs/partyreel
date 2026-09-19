@@ -80,6 +80,46 @@
    a note rather than a rule, because the next board to reach for an accent
    edge on a shadcn Card will hit the same thing. */
 
+/* ★ THE ROW SHAPE'S TWO SIZES, AS A MEDIA QUERY RATHER THAN A `sm:` UTILITY.
+   Responsive variants do not reach a board's frame: `sm:w-[200px]` and
+   `lg:inline` both came back unapplied in the capture pass (the split row
+   measured 1112 px wide at 1440 instead of 200, and a column that said
+   `hidden lg:inline` never appeared), while plain arbitrary values like
+   `w-[560px]` render fine. A board's own sheet is adopted into the frame's
+   realm, so a media query written here behaves exactly as it will in
+   production. Left as a note for the next board that needs one. */
+.tri-row-shot {
+  aspect-ratio: 3 / 2;
+  width: 100%;
+}
+
+.tri-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* The album a closed report belongs to: a column of its own once there is room
+   for one, and gone when there is not. */
+.tri-log-album {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .tri-row-shot {
+    aspect-ratio: 1 / 1;
+    width: 200px;
+    flex: none;
+  }
+  .tri-row {
+    flex-direction: row;
+    gap: 1.25rem;
+  }
+  .tri-log-album {
+    display: inline;
+  }
+}
+
 /* The one measured number this board draws over a picture: the frame's real
    edge in CSS pixels, read off the laid-out document (board.tsx). */
 .tri-measure {

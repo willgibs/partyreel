@@ -81,8 +81,7 @@ function Shot({
       className={cn(
         "relative overflow-hidden rounded-lg bg-muted",
         size === "fill" && "aspect-[3/2] w-full",
-        size === "row" &&
-          "aspect-[3/2] w-full sm:aspect-square sm:w-[200px] sm:shrink-0",
+        size === "row" && "tri-row-shot",
         typeof size === "number" && "aspect-square",
         className,
       )}
@@ -304,7 +303,7 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
           words about 100 px, which renders one word a line with the status chip
           sitting on top of the first one: the first 375 capture pass caught it.
           A row shape that cannot narrow is not a row shape. */}
-      <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:gap-5">
+      <div className="tri-row px-6 py-5">
         {/* An album report names no frame, so it takes the row's whole width
             rather than 200 px of dashed nothing beside three short lines. */}
         {row.media ? <Shot row={row} size="row" /> : null}
@@ -379,7 +378,7 @@ function ClosedReport({
           makes a flex item's automatic minimum size 0, so beside a flex-1
           sibling this album's name was being squeezed to nothing. The first
           capture pass caught it as a missing column. */}
-      <span className="hidden w-44 shrink-0 truncate text-right text-xs text-muted-foreground lg:inline">
+      <span className="tri-log-album w-44 shrink-0 truncate text-right text-xs text-muted-foreground">
         {row.event}
       </span>
       <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
