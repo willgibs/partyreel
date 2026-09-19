@@ -390,6 +390,12 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **Phone widths in Will's Chrome do not take (2026-09-19):** the extension's `resize_window` reports success at 375 but the
+  tab's inner width stays 1440, so a 375 pass of a public surface runs in the built-in pane (`resize_window` preset `mobile`,
+  a real 375x812 viewport) and Will's Chrome is kept for the signed-in surfaces at 1440. The admin host has its own
+  launch-prep git alias (`partyreel-admin-git-launch-prep-partyreel.vercel.app`, auto-assigned by Vercel, no cap hold) for
+  the portal's refused paths.
+
 - **Will granted full sign-in privileges for testing** (2026-09-19: "you have full login privileges on Partyreel across Google
   Sign In and Password Sign In for our own testing... doesn't make sense to gate that step"). The Orchestrator uses a session
   he has opened (his Chrome, through the Claude in Chrome tools) or the Google account chooser; it still never types a
