@@ -224,6 +224,14 @@ question wrapped in a research paper is the thing this replaced. The first worke
 the ninth batch's four boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) are the
 examples once they land, and the older boards still open predate this and are cleared, not copied.
 
+**The shape is the throughput engine, and the workflow rides rising tides too** (Will, 2026-09-19, after four batches in
+it: "this evolving lab system has massively increased our actual throughput of agent exploration work that actually
+makes it to production... I'm flying through platform-wide upgrades every review batch, without risking anything by
+setting off new explorations"). His standing ask: "continue to take notes and Rising Tides our lab workflow with new
+opportunities for improvements you may discover as we go." So the Orchestrator keeps the notes (the ROADMAP's "The lab
+and the kit" bucket: what would make a sitting faster, a board truer, a handoff cleaner) and cuts a lab lane on them
+whenever a seat is free, without asking; a lab lane is still sized in days and never delays a board.
+
 ### Every round gets Will's notes
 
 No second round of the same work is cut without his notes on the first (Will, 2026-09-16: agents
