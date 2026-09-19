@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "event-type-pages"
   | "media-viewer"
   | "emails"
   | "reel-studio"
@@ -100,6 +101,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "event-type-pages"
   | "media-viewer"
   | "emails"
   | "reel-studio"
@@ -658,6 +660,32 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "event-type-pages",
+    title: "The event-type landing pages",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, every surface unprotected, \"at worst, net neutral and fully deleted\")",
+    shipped: null,
+    why: "One template renders all four types today. Round one asks whether that holds, what each hero shows, one hero component or two, who is greeted, and the mid-page proof.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/events/page.tsx",
+      "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
+      "src/lib/constants/events.ts",
+      "src/components/marketing/sections/events/event-hero-media.tsx",
+      "src/components/marketing/sections/events/type-directory.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone",
+      variants: [
+        "One page or four",
+        "The hero's picture",
+        "The proof",
+        "How many",
+      ],
+    },
   },
   {
     id: "media-viewer",

@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { EVENT_TYPE_PAGES } from "./event-type-pages/spec";
 import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
@@ -42,6 +43,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  EVENT_TYPE_PAGES,
   MEDIA_VIEWER,
   EMAILS,
   REEL_STUDIO,

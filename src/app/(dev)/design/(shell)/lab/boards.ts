@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { EventTypePagesBoard } from "@/app/(dev)/design/sandbox/event-type-pages/board";
 import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
@@ -42,6 +43,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "event-type-pages": { Component: EventTypePagesBoard },
   "media-viewer": { Component: MediaViewerBoard },
   emails: { Component: EmailsBoard },
   "reel-studio": { Component: ReelStudioBoard },
