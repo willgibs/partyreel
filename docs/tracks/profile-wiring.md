@@ -208,7 +208,7 @@ rules; the marker's words (Host / Guest); the person report shipping now; the af
 
 ## Handoff (replaces the chat report)
 
-- Head `HEAD_SHA`, pushed; synced with `origin/launch-prep` at `304a813b` (merged, docs only, no conflicts).
+- Head `9a6861e3`, pushed (this line's own commit; the tree is that of `eba8ee1a`); synced with `origin/launch-prep` at `304a813b` (merged, docs only, no conflicts).
 - Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok (130 components, 826
   contracts, 18 policies) · specimen collector ok (131 specimens on 94 entries) · `pnpm typecheck` ok
   · `pnpm lint` ok (the 8 known warnings, 0 errors) · `pnpm test` ok (2603 passing, 246 files) ·
