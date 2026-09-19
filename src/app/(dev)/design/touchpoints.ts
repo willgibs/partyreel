@@ -54,6 +54,7 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "app-shape"
@@ -92,6 +93,7 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "admin"
@@ -636,6 +638,31 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "demo-event",
+    title: "The live demo",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    lives: [
+      "src/lib/demo.ts",
+      "src/app/demo/route.ts",
+      "src/components/guest/event-experience.tsx",
+      "src/components/marketing/chrome/footer-demo.tsx",
+      "src/components/marketing/system/demo-cta-link.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
+      variants: [
+        "The first seconds",
+        "Adding a photo",
+        "What a door promises",
+        "Scanned off a laptop",
+      ],
+    },
   },
   {
     id: "press-page",
