@@ -1,0 +1,127 @@
+/* THE SURFACES THAT CANNOT BE THE REAL ONE, QUOTED RATHER THAN INVENTED.
+
+   Two things in this flow portal to `document.body`, and the script inside a
+   lab frame runs in the BOARD PAGE's realm (the subtree is portalled into the
+   iframe document, so `document` is still the lab page's). A real radix
+   `DialogContent` and a real sonner toast would therefore land on the lab page
+   instead of inside the picture being judged. `guest-shape/dialogs.tsx` hit
+   this first for these same four guest dialogs; `host-curation.css` hit it for
+   the toast. So both boxes are reproduced here on the app's own tokens, and
+   everything INSIDE them is the shipped component.
+
+   ★ FIXED, NOT ABSOLUTE, EXACTLY AS THE ORIGINALS ARE. The frame IS the
+   viewport, so a fixed box lands where a host or a guest really sees it; an
+   absolute one inside a min-h-full column pins to the bottom of the CONTENT and
+   falls out of the picture. */
+
+/* `DialogOverlay`: black at 10 percent with the backdrop blur behind it. */
+.xf-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in oklab, black 10%, transparent);
+}
+@supports (backdrop-filter: blur(2px)) {
+  .xf-scrim {
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* `DialogContent`'s own box at the export dialog's `sm:max-w-[26rem]`: the
+   float corner, popover ink, the hairline ring and the layer shadow. */
+.xf-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
+  display: grid;
+  gap: 1rem;
+  width: calc(100% - 2rem);
+  max-width: 26rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-float);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-layer);
+  outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  outline-offset: -1px;
+}
+/* A grid item's `min-width: auto` lets one wide child push the column past the
+   panel, and then every row below it hangs out of the box. The shipped dialog
+   never hit it because nothing in it demanded the width; anything an option
+   adds can. */
+.xf-dialog > * {
+  min-width: 0;
+}
+
+/* sonner's box on the app's own tokens, at sonner's own 13px, drawn STILL: a
+   toast a reader cannot catch is a toast they cannot judge. */
+.xf-toast {
+  position: fixed;
+  z-index: 60;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  max-width: 22rem;
+  padding: 0.875rem 1rem;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: var(--radius-float);
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-layer);
+}
+/* Sonner goes edge to edge under 600px, which is where a guest always is. */
+.xf-toast[data-screen="375"] {
+  right: 1rem;
+  left: 1rem;
+  max-width: none;
+}
+/* The ruled success tone (globals.css), so the copy is judged in its real ink. */
+.xf-toast[data-tone="success"] {
+  background: var(--success);
+  color: var(--success-foreground);
+  border-color: color-mix(in oklch, var(--success), black 12%);
+}
+.xf-toast[data-tone="error"] {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  border-color: color-mix(in oklch, var(--destructive), black 12%);
+}
+
+/* iOS Safari's own chrome, quoted only as far as the decision needs: the bar at
+   the foot of the screen with the download arrow lit, and the share sheet that
+   rises over it. Neither is ours to design; they are drawn so the option that
+   hands the file to one of them can be judged against the option that does not. */
+.xf-ios-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 92%, var(--foreground));
+  color: var(--muted-foreground);
+}
+.xf-sheet {
+  position: fixed;
+  inset-inline: 0.5rem;
+  bottom: 0.5rem;
+  z-index: 60;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-layer);
+  outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
+  outline-offset: -1px;
+}

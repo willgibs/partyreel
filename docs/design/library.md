@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 24 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 29 standing boards.**
 
 ## What binds you
 
@@ -377,6 +377,11 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | board | surface | the question |
 | --- | --- | --- |
 | `event-type-pages` | marketing | Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone |
+| `how-it-works` | marketing | Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close |
+| `site-chrome` | marketing | Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names |
+| `profile-page` | guest | Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached |
+| `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
+| `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
 | `media-viewer` | shared | Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address |
 | `emails` | shared | Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox |
 | `reel-studio` | host | Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel |

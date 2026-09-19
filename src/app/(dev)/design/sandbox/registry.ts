@@ -1,6 +1,11 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { EVENT_TYPE_PAGES } from "./event-type-pages/spec";
+import { HOW_IT_WORKS } from "./how-it-works/spec";
+import { SITE_CHROME } from "./site-chrome/spec";
+import { PROFILE_PAGE } from "./profile-page/spec";
+import { EXPORT_FLOW } from "./export-flow/spec";
+import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
@@ -44,6 +49,11 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   EVENT_TYPE_PAGES,
+  HOW_IT_WORKS,
+  SITE_CHROME,
+  PROFILE_PAGE,
+  EXPORT_FLOW,
+  ADMIN_TRIAGE,
   MEDIA_VIEWER,
   EMAILS,
   REEL_STUDIO,
