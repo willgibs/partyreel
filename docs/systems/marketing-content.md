@@ -639,9 +639,14 @@ so the guest-attribution line ("every upload has a real person behind it") and c
   image share one RPC per request.
 - **404: the double-chrome boundary.** Five `not-found.tsx` (root catch-all + one per route
   group) share ONE animated core ([`not-found-screen.tsx`](../../src/components/shared/not-found-screen.tsx),
-  presentational, NO `Container`/chrome). The root [`not-found.tsx`](../../src/app/not-found.tsx) renders
-  its OWN `MarketingHeader`/`Footer` because UNMATCHED URLs fall through to `app/layout.tsx` with no group
-  chrome; but a `notFound()` thrown INSIDE the marketing group renders the root boundary INSIDE
+  presentational, NO `Container`/chrome; since `errors-wiring` (2026-09-19) it takes `visual` OR `icon`, a
+  `help` line and, on the crash screens only, a `digest`; the strip stands where the icon was on the group
+  404s and the marketing 500, the root 404 keeps `Compass` over its trail, and the marketing 404 alone has no
+  help line because its actions and footnote already name help and contact). The root
+  [`not-found.tsx`](../../src/app/not-found.tsx) renders its OWN `MarketingHeader`/`Footer` because UNMATCHED
+  URLs fall through to `app/layout.tsx` with no group chrome (on the admin build it branches on
+  `surface() === "admin"`, inlined at build time, to the portal's own screen with no marketing chrome and one
+  link to `/admin`; no route and no proxy change); but a `notFound()` thrown INSIDE the marketing group renders the root boundary INSIDE
   `(marketing)/layout.tsx`, which ALREADY renders header/footer → the chrome **double-stacks**. So a
   [`(marketing)/not-found.tsx`](../../src/app/(marketing)/not-found.tsx) boundary renders ONLY the
   centered content (lost-visitor copy single-sourced in

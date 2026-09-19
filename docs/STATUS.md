@@ -58,7 +58,7 @@ album hero's round three went "too boring" that way).
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, hollow, the cap, the object, the teaser's chips, the phone; on the real dialog's shell and body over fixture summaries | integrated at `afde9ca3`; on the desk; five calls carried on their recommendations (in the CHANGELOG); seven ROADMAP lines |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | integrated at `6a7e6f2f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); four ROADMAP lines |
 | `event-type-pages` | the hub and the four type pages | answered whole (batch three) with his steer that the pages need a fresh visual identity; `event-identity` (Opus, :3133, cut `22438704`) opens the ground-up round before the direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire |
-| `error-pages` | every failure page as one grammar | answered whole (batch three, 2026-09-19); wiring in `errors-wiring` (Opus, :3131, cut `22438704`): the shared primitive, the help line, the strip as the icon, the digest, every surface's chrome, the lock in the family, the portal 404, a way home; the board retires at its merge |
+| `error-pages` | every failure page as one grammar | wired and retired at `98909b34` (`errors-wiring`, 2026-09-19: `NotFoundScreen` the one primitive with visual, help and digest slots, a root error boundary, the strip as the marketing icon, the guest bar, the lock in the family, the portal 404 on the admin host, a way home on the last-resort screen; Sentry one event per crash, none per 404); on the alias for Will's eye; five calls his to overrule (in the CHANGELOG) |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
@@ -71,14 +71,14 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
   `353ad884`); `launch-prep` is ahead by the overnight round's records. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
-  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the `loop-wiring`
-  record (`[preview]`, 2026-09-19 evening: `/how-it-works` rebuilt, the stepper on the home); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
+  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the `errors-wiring`
+  record (`[preview]`, 2026-09-19 evening: every failure page one grammar, after `/how-it-works` and the home's stepper at `e2d3c79a`); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
   100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
   day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
   red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the
   guest album at 1280 / 1512 / 1920 / 375 both ways, the host event page at 1440 and 375, the dashboard, the root 404): clean.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 2,555 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
+- **Tests:** about 2,565 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
   `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup Action (about 06:30 UTC) are live; the
   deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip); the Worker's queue and dead-letter depth reading is deployed (`d7b16bcc`).
@@ -104,8 +104,8 @@ His sitting continues on the desk (twenty-seven boards unruled after batch three
 `body-type`, `admin`, `app-shape`, `guest-shape`, `app-vocabulary`, privacy-hero round three, `album-motion`, `demo-event`,
 `app-door`, `contact-page`, `press-page`, `app-pricing`, `pricing-page`, `first-event`, `guest-upload`, `media-viewer`,
 `reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`, `export-flow`, `site-chrome`),
-and `event-identity` joins it when its lane lands. `loop-wiring` is on the alias for his eye (`/how-it-works`, the home's stepper; five calls his to
-overrule, in the CHANGELOG); `errors-wiring` lands there next. The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
+and `event-identity` joins it when its lane lands. Both wiring lanes are on the alias for his eye (`/how-it-works` with the home's stepper; every failure page), five
+calls each his to overrule (in the CHANGELOG). The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
 the host at 1280 / 1512 / 1920 / 375, the dashboard) ran in his Chrome session on 2026-09-19 and was clean. Calls his to overrule from earlier lanes: the home's live
 demo as the paper chapter's opener and the album heading at `lg`; the ghost's fade; type inside a picture counts as
 depicted; the album at 896. Assets open: rows 15, 16, 19 and 23. The launch-gated tasks are the ROADMAP's Launch checkpoint.

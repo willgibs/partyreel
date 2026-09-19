@@ -45,8 +45,26 @@ answer). Two notes for the record only: kids are never a target user; a partners
   second button. Three ROADMAP lines (the `film-strip` section id's misnomer, the article's five steps against the
   page's six, no Library specimen for the stepper).
 
-**Next.** `errors-wiring` judged on the alias next, the identity round on the desk; his sitting on the other twenty-seven
-boards, with `/how-it-works` and the home's stepper on the alias for his eye.
+- **`errors-wiring` merged at `98909b34`** (2026-09-19, Opus; cut `22438704`): Will's eight verdicts on `error-pages`
+  landed as production and the board retired. `NotFoundScreen` became the one primitive every failure page draws from,
+  with a `visual` slot typed as a union with `icon` (no screen says the same thing twice), a `help` slot in its own
+  stagger step and a `digest` slot rendering the new `error-digest.tsx` (the sentence, the code, a Copy with a receipt
+  that survives a rejecting clipboard); `RouteError` folded into it and kept the reporting effect, which a source scan
+  refuses inside the primitive. A new root `src/app/error.tsx` closed the gap where a crash inside a route group's OWN
+  layout skipped every branded boundary. The strip took the icon's place on the group 404s and the marketing 500, the
+  root 404 kept `Compass` over its trail, the guest crash gained a session-less `GuestBar`, the private lock joined the
+  family with a homepage link under the real `GuestHeader`, the admin host answers `/features` and `/nope` as the portal
+  through one build-inlined `surface()` branch (no route, no proxy change), and the last-resort screen gained a plain
+  anchor home and a copyable code. Sentry, proved locally on a production build: nine crash renders, nine `render:*`
+  events; twenty-odd 404 loads, none. Gate 32 green on the merged tree (lint 0 with the 8 known warnings, 2,565 tests, build 254 pages, `lab:smoke` 453 checks whole with the board gone from its table, `lab:demo` 8 steps on `site-chrome`). Five calls his to overrule on the alias: the strip as the icon on both
+  marketing screens; `Compass` on the root 404; the admin's "Check the runbook." unlinked; `/contact` on the auth
+  crash; the marketing 404 gaining no help line (it already carries the help center as an action and contact in its
+  footnote). Six ROADMAP lines from the lane (a `render:root` area, a probe for `global-error` now that the boom probe
+  lands on the root boundary, the Library's crash mock a round behind, one copy-with-a-receipt primitive, the group
+  404s' `min-h-[60vh]` box, a runbook page); the probe's comment refreshed in the record.
+
+**Next.** The identity round on the desk when `event-identity` lands; his sitting on the other twenty-seven boards, with
+`/how-it-works`, the home's stepper and every failure page on the alias for his eye.
 
 
 ## 2026-09-19 — The overnight round: twelve boards cut from read-only maps and integrated while Will slept (`d1923907` onward)

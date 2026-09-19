@@ -995,11 +995,16 @@ generic default). Copy rules: plain language, no em-dashes (bible 19), no intern
 wording itself is open like every other line on the site (bible 21), so a round that improves
 an error message is doing its job, not breaking a contract.
 
-**Boundaries:** every route group has an `error.tsx` → the shared `RouteError` (generic copy +
-`digest` as the support handle; it NEVER renders `error.message`, which is the security invariant)
-tagged `render:app|guest|marketing|admin|auth` in Sentry; `global-error.tsx` is dependency-free
-(own html/body, inline styles) for root-layout death. The gated `/design/lab/tools/boom` probe throws on
-purpose to verify the chain against the real prod build (dev shows the overlay instead).
+**Boundaries:** every route group has an `error.tsx` → the shared `RouteError` (one line each; it draws
+`NotFoundScreen` with a per-area help line and the `digest` as the support handle through `error-digest.tsx`,
+a Copy with a receipt; it NEVER renders `error.message`, which is the security invariant) tagged
+`render:app|guest|marketing|admin|auth` in Sentry; the ROOT `src/app/error.tsx` (since `errors-wiring`,
+2026-09-19) catches a crash inside a group's OWN layout, which no group boundary can, and tags `render:global`
+like `global-error.tsx`, which is dependency-free (own html/body, inline styles, a plain `<a href="/">` home
+and the code) for root-layout death. `captureError` lives in the crash wrappers only, never in
+`NotFoundScreen` (a capture there would file every real 404; `failure-grammar.test.tsx` scans for it). The
+gated `/design/lab/tools/boom` probe throws on purpose to verify the chain against the real prod build (dev
+shows the overlay instead); it lands on the root boundary now, so `global-error` has no probe.
 `notFound()` is never caught by these. **The ROOT 404 (`app/not-found.tsx`, every unmatched URL)
 stands on the image trail** (Will, `home=notfound`, 2026-09-19): the marketing block on its forced
 paper ground with photographs laid down behind the words, a `<Trail>` from
