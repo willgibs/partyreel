@@ -25,6 +25,16 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* shared / album-stream (added by lp/album-wiring at the HEAD, so the three
+     lanes of this round can each add their own without touching another's) */
+  "src/components/shared/album-stream/album-stream.tsx": {
+    for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
+  },
+  "src/components/shared/album-stream/stream-engine.ts": {
+    for: "that stream's arithmetic alone (no React, no DOM, nothing measured): a horizontal is affine in the hero's half-width and a vertical is px from the album's own top edge, so one table is right at every window",
+    unspecimened: "pure functions; the stream above is what they draw",
+  },
+
   /* marketing / chrome */
   "src/components/marketing/chrome/marketing-footer.tsx": {
     for: "the ink slab closing every marketing page: the demo invite, the index, the legal bar",

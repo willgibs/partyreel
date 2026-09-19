@@ -1,0 +1,98 @@
+/* THE LIVE ALBUM STAGE'S OWN SHEET (the album-wiring lane, 2026-09-19).
+   Classes under `alb-` only and NO keyframe (src/app/keyframe-uniqueness.test.ts
+   reads every sheet in the repo); the light is the Glow engine's own clock. */
+
+/* THE COLUMN COUNT, SET FROM THE OUTSIDE. `GuestMasonry` is the guest album's
+   real component and it is `columns-2` at every width, which is the phone it
+   was designed for. The marketing stage drives it through a variable rather
+   than forking the product (the sandbox's doctrine, kept): two at a phone and
+   three from 768 up, where the column is wide enough for them.
+   ★ IT IS UNLAYERED ON PURPOSE. Tailwind's utilities sit in `@layer utilities`
+   and a layered rule loses to an unlayered one whatever its specificity, so
+   this wins without an `!important` and without raising specificity.
+   ★ IT NAMES THE PRODUCT'S CLASS, which is a coupling: if the guest album's
+   own width work renames `columns-2`, this quietly stops applying and the
+   stage falls back to whatever that component does. That is the safe failure
+   (an album with the wrong number of columns, never a broken one), and it is
+   flagged for the merge rather than hidden behind a test. */
+.alb-grid :where([class~="columns-2"]) {
+  column-count: var(--alb-cols, 2);
+}
+
+/* THE STAGE'S TWO GEOMETRIES, chosen here so every number stays in the engine
+   (`STAGE` and `GAP`, stream-engine.ts) and arrives as a custom property. A
+   Tailwind breakpoint variant cannot read a module, and writing 600 and 430
+   into a class string would put the album's edge in two places while the
+   stream aims at one of them. 1024 is `LG_MIN`, the home hero's breakpoint. */
+.alb-stage {
+  --alb-h: var(--alb-h-base);
+  --alb-fade: var(--alb-fade-base);
+  margin-top: var(--alb-gap-base);
+}
+@media (min-width: 1024px) {
+  .alb-stage {
+    --alb-h: var(--alb-h-lg);
+    --alb-fade: var(--alb-fade-lg);
+    margin-top: var(--alb-gap-lg);
+  }
+}
+
+/* Three columns once the column is wide enough to hold them (Will's `visual`:
+   "three columns at 896 and two at a phone"). */
+@media (min-width: 768px) {
+  .alb-grid {
+    --alb-cols: 3;
+  }
+}
+
+/* THE FOOT DISSOLVES. Will, on the width: "If this width makes the dashboard
+   visual too tall, we can fade out the bottom. May look better either way." So
+   the frame is clipped to a height and its last stretch fades to nothing, and
+   the album reads as going on rather than as a box with a floor. A MASK, never
+   a scrim: nothing is laid over a photograph (bible 1). */
+.alb-clip {
+  height: var(--alb-h);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--alb-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--alb-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--alb-fade) * 0.2),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--alb-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--alb-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--alb-fade) * 0.2),
+    transparent 100%
+  );
+}
+
+/* THE HALO'S OBJECT. Will's `light=halo`: "The Glow halo, lighting the frame
+   from behind so its rim and chrome glow while the photographs stay clean." The
+   frame's own card is lifted off it and laid UNDER the wash, so the light
+   climbs the rim, the window bar and the header type from behind while the
+   face of the thing, the photographs, stays exactly as it is (bible 1).
+
+   ★ CLIPPED TO THE OBJECT, AND NOT WITH `overflow`. A halo is clipped to the
+   thing it backlights (globals.css's halo block: rendered in a padded box AROUND
+   an object it reads as a soft rectangle floating behind it). `clip-path` says
+   that exactly, in the object's own silhouette, where `overflow: hidden` would
+   say "cut this light at a straight edge" and rightly trip
+   glow-placement.test.ts. The radius is the frame's own. */
+.alb-halo {
+  background: var(--card);
+  border-radius: var(--radius-2xl);
+  clip-path: inset(0 round var(--radius-2xl));
+  /* ★ THE LIGHT'S BOX IS THE ALBUM A READER CAN SEE, not the frame's natural
+     height. A halo's mask is a share of its OWN box (globals.css: an ellipse at
+     46%), so around a 1600 px frame the clear core lands below the fold and the
+     rim lights nothing. Filling the clip makes it 896 by 600, which is the
+     album as it is drawn, and the foot's fade then takes the light down with
+     the photographs. */
+  height: 100%;
+}
+.alb-halo .alb-frame {
+  background: transparent;
+}
