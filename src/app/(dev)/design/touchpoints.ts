@@ -68,6 +68,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "event-identity"
   | "app-door"
   | "app-pricing"
   | "app-vocabulary"
@@ -107,6 +108,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "event-identity"
   | "event-type-pages"
   | "site-chrome"
   | "profile-page"
@@ -677,6 +679,34 @@ export const RULINGS: Ruling[] = [
   // way to Partyreel rather than nothing at all. NotFoundScreen became the one
   // primitive every failure page draws from, RouteError folded into it, and the
   // board left sandbox/ with the round; docs/design/rulings.md keeps his words.
+  {
+    id: "event-identity",
+    title: "The event pages' visual identity",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the pages were a fast V1 and "could use a total visual identity redesign now that other areas like the homepage are progressing beyond them under Rising Tides")',
+    shipped: null,
+    why: "The hub and four type pages from the ground up: the hero's theme in one shared lockup, the section under it, the arc, the cards, the proof, the ladder, the phone.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/events/page.tsx",
+      "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
+      "src/components/marketing/sections/events/event-hero-media.tsx",
+      "src/components/marketing/sections/events/type-directory.tsx",
+      "src/components/marketing/sections/events/reel-angle-band.tsx",
+    ],
+    board: {
+      note: "Seven decisions as concepts on the real /events pieces and the shared engines, on weddings and on conferences (the type the manifest has no honest still for), at 1440 and 375: the hero's theme, the section under it, the arc, the cards, the proof, the ladder, the phone",
+      variants: [
+        "The hero's theme",
+        "The second section",
+        "The arc",
+        "The cards",
+        "The proof",
+      ],
+      tracks: ["event-identity"],
+    },
+  },
   {
     id: "error-pages",
     title: "Every failure page as one grammar",
