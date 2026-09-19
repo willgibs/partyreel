@@ -115,7 +115,7 @@ ones the board could not ask him, each with the answer the lane proceeded on:
 
 ## Handoff (replaces the chat report)
 
-- **Head:** `41bd7d67` on `origin/lp/app-shape` (this manifest alone; the code head is the merge `7a7ccd11`, which is what every gate below ran on), synced (`git merge origin/launch-prep` at `53d08570`, no rebase;
+- **Head:** the tip of `origin/lp/app-shape`. The CODE head is the merge `7a7ccd11` and every gate below ran on it; the commits after it touch this manifest and nothing else. Synced (`git merge origin/launch-prep` at `53d08570`, no rebase;
   one conflict, the generated `docs/design/library.md`, resolved by regenerating).
 - **The gate on the synced tree, each on its own exit code:** `pnpm design:rules` 0 · the specimen collector 0 ·
   `pnpm typecheck` 0 · `pnpm lint` 0 (the 8 known warnings, none in this lane) · `pnpm test` 0 (2,471 passing) ·
