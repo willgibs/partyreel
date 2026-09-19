@@ -28,7 +28,9 @@ import {
   type Path,
   PHONE_BELOW,
   type Pt,
+  pickPhase,
   replay,
+  shyWindow,
   stillAt,
   trailSpec,
   trailWalk,
@@ -108,10 +110,13 @@ export type TrailSource = {
 export function TrailLayer({
   spec,
   source,
+  shy,
   className,
 }: {
   spec: TrailSpec;
   source: TrailSource;
+  /** The window the words stand in (`shyWindow`), when there are words. */
+  shy?: ReturnType<typeof shyWindow>;
   className?: string;
 }) {
   const reduced = usePrefersReducedMotion();
@@ -328,7 +333,27 @@ export function TrailLayer({
 
   return (
     // aria-hidden and nothing focusable: this is weather, not content.
-    <div aria-hidden className={cn("trl-layer", className)} ref={host}>
+    <div
+      aria-hidden
+      data-trail-shy={shy ? "" : undefined}
+      className={cn("trl-layer", className)}
+      ref={host}
+      style={
+        shy
+          ? ({
+              "--trl-shy-a": shy.alpha,
+              "--trl-x0": `${shy.x0}px`,
+              "--trl-x1": `${shy.x1}px`,
+              "--trl-x2": `${shy.x2}px`,
+              "--trl-x3": `${shy.x3}px`,
+              "--trl-y0": `${shy.y0}px`,
+              "--trl-y1": `${shy.y1}px`,
+              "--trl-y2": `${shy.y2}px`,
+              "--trl-y3": `${shy.y3}px`,
+            } as CSSProperties)
+          : undefined
+      }
+    >
       {paths.map((_, i) =>
         Array.from({ length: spec.pool }, (_, slot) => {
           const b = boxOf(spec, slot);
@@ -380,11 +405,10 @@ export function TrailLayer({
 type Geo = {
   box: Box;
   words?: { cx: number; cy: number; hx: number; hy: number };
-  /** Where this visit opens on the walk. Fixed for the visit (the resting
-   *  composition and the loop have to agree on one curve) and different between
-   *  visits, so a reader who lands here twice does not watch the same
-   *  choreography twice. It rides the measurement because it is decided at the
-   *  same moment and read at the same moment. */
+  /** Where this visit opens on the walk: the best of a few random openings
+   *  (`pickPhase`), fixed for the visit because the resting composition and the
+   *  loop have to agree on one curve. It rides the measurement because it is
+   *  decided at the same moment and read at the same moment. */
   phase: number;
 };
 
@@ -438,27 +462,33 @@ export function Trail({
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const phase = Math.random() * 600;
     const measure = () => {
       const r = el.getBoundingClientRect();
       // No layout yet (a hidden tab's first frame, or a test with no layout
       // engine): draw nothing rather than solve a composition in a zero box.
       if (r.width < 1 || r.height < 1) return;
       const w = words.current?.getBoundingClientRect();
-      const next: Geo = {
-        phase,
-        box: { w: r.width, h: r.height },
-        words:
-          w && w.width > 0 && w.height > 0
-            ? {
-                cx: w.left - r.left + w.width / 2,
-                cy: w.top - r.top + w.height / 2,
-                hx: w.width / 2,
-                hy: w.height / 2,
-              }
-            : undefined,
-      };
-      setGeo((prev) => (sameGeo(prev, next) ? prev : next));
+      const box = { w: r.width, h: r.height };
+      const block =
+        w && w.width > 0 && w.height > 0
+          ? {
+              cx: w.left - r.left + w.width / 2,
+              cy: w.top - r.top + w.height / 2,
+              hx: w.width / 2,
+              hy: w.height / 2,
+            }
+          : undefined;
+      setGeo((prev) =>
+        sameGeo(prev, { box, words: block, phase: 0 })
+          ? prev
+          : // The opening is chosen HERE and only here: re-measuring the same
+            // box must not re-deal the composition under a reader.
+            {
+              box,
+              words: block,
+              phase: prev?.phase ?? pickPhase(trailSpec(box), box, block),
+            },
+      );
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -467,8 +497,9 @@ export function Trail({
     return () => ro.disconnect();
   }, []);
 
-  const spec = useMemo(
-    () => (geo ? trailSpec(geo.box, geo.words) : null),
+  const spec = useMemo(() => (geo ? trailSpec(geo.box) : null), [geo]);
+  const shy = useMemo(
+    () => (geo?.words ? shyWindow(geo.box, geo.words) : undefined),
     [geo],
   );
   const trail = useMemo<TrailSource | null>(() => {
@@ -484,7 +515,7 @@ export function Trail({
 
   return (
     <div ref={stage} className={cn("trl-stage", className)}>
-      {spec && trail && <TrailLayer spec={spec} source={trail} />}
+      {spec && trail && <TrailLayer spec={spec} source={trail} shy={shy} />}
       <div ref={words} className="relative">
         {children}
       </div>

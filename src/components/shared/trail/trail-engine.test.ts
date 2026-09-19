@@ -18,11 +18,15 @@ import {
   litAt,
   type Path,
   PHONE_BELOW,
+  pickPhase,
   poolFor,
   POOL_CEILING,
   replay,
   screenOf,
+  SHY,
   shyness,
+  shyWindow,
+  stillAt,
   trailSpec,
   trailWalk,
   type TrailSpec,
@@ -540,9 +544,10 @@ describe("the ruled spec, derived rather than typed", () => {
     );
   });
 
-  it("carries the words it was handed, and none when it was handed none", () => {
-    const words = { cx: 720, cy: 360, hx: 224, hy: 158 };
-    expect(trailSpec(desktop, words).shy).toMatchObject(words);
+  it("leaves the words to the window rather than dimming each card by them", () => {
+    // A card is one opacity, so dimming it by its overlap dims the half of it
+    // standing on clean paper too, and overlapping cards composite past any
+    // per-card floor. The window on the layer does both jobs exactly.
     expect(trailSpec(desktop).shy).toBeUndefined();
   });
 
@@ -561,6 +566,107 @@ describe("the ruled spec, derived rather than typed", () => {
     expect(at(desktop)).toBeGreaterThan(0);
   });
 });
+
+describe("the shy window the words stand in", () => {
+  const box = { w: 1440, h: 600 };
+  const words = { cx: 720, cy: 300, hx: 224, hy: 190 };
+
+  it("opens exactly on the words and feathers outward from them", () => {
+    const w = shyWindow(box, words);
+    expect(w.x1).toBe(words.cx - words.hx);
+    expect(w.x2).toBe(words.cx + words.hx);
+    expect(w.y1).toBe(words.cy - words.hy);
+    expect(w.y2).toBe(words.cy + words.hy);
+    // The soft edge runs OUTWARD: nothing inside the block is ever at full
+    // strength, and nothing outside the feather is ever touched.
+    expect(w.x0).toBeLessThan(w.x1);
+    expect(w.x3).toBeGreaterThan(w.x2);
+    expect(w.y0).toBeLessThan(w.y1);
+    expect(w.y3).toBeGreaterThan(w.y2);
+  });
+
+  it("feathers over the card's own width, so a photograph dissolves rather than hits a wall", () => {
+    const w = shyWindow(box, words);
+    expect(w.x1 - w.x0).toBeGreaterThan(trailSpec(box).size * 0.25);
+    expect(w.x1 - w.x0).toBe(w.y1 - w.y0);
+  });
+
+  it("carries the alpha whose UNION is the floor, not the floor itself", () => {
+    // CSS composites mask layers with `add` (a + b - ab), so two gradients each
+    // carrying the floor would leave nearly twice it over the words. This is
+    // the one thing the sheet cannot work out for itself.
+    const a = shyWindow(box, words).alpha;
+    expect(a).toBeLessThan(SHY.floor);
+    expect(a + a - a * a).toBeCloseTo(SHY.floor, 3);
+  });
+
+  it("is narrower than the box it is cut in, or there would be no trail to see", () => {
+    const w = shyWindow(box, words);
+    expect(w.x0).toBeGreaterThan(0);
+    expect(w.x3).toBeLessThan(box.w);
+  });
+});
+
+describe("the opening the composition is chosen from", () => {
+  const box = { w: 1440, h: 600 };
+  const words = { cx: 720, cy: 300, hx: 224, hy: 190 };
+  const spec = trailSpec(box);
+
+  /** How much lit photograph stands clear of the words at the resting moment,
+   *  which is what makes the first frame a composition rather than a smudge. */
+  const clear = (phase: number) => {
+    const at = stillAt(spec);
+    let score = 0;
+    for (const { frame } of litAt(
+      replay(spec, [trailWalk(box, phase)], at),
+      spec,
+      at,
+    )) {
+      if (frame.x < 0 || frame.x > box.w || frame.y < 0 || frame.y > box.h)
+        continue;
+      if (
+        Math.abs(frame.x - words.cx) < words.hx &&
+        Math.abs(frame.y - words.cy) < words.hy
+      )
+        continue;
+      score += frame.opacity * frame.scale;
+    }
+    return score;
+  };
+
+  it("keeps the best of the openings it tried, never the first one it dealt", () => {
+    const tries = [0.02, 0.51, 0.13, 0.77, 0.36];
+    let i = 0;
+    const picked = pickPhase(spec, box, words, () => tries[i++], tries.length);
+    const scores = tries.map((t) => clear(t * 600));
+    expect(clear(picked)).toBeCloseTo(Math.max(...scores), 6);
+    expect(Math.max(...scores)).toBeGreaterThan(Math.min(...scores));
+  });
+
+  it("still opens somewhere different on the next visit", () => {
+    // The floor under the composition is raised; the choreography is not fixed.
+    const a = pickPhase(spec, box, words, mulberry(1));
+    const b = pickPhase(spec, box, words, mulberry(2));
+    expect(a).not.toBe(b);
+  });
+
+  it("answers a real opening even when there are no words to stand clear of", () => {
+    expect(pickPhase(spec, box, undefined, mulberry(3))).toBeGreaterThanOrEqual(
+      0,
+    );
+  });
+});
+
+/** A tiny seeded generator, so "a different visit" is a test rather than luck. */
+function mulberry(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 describe("the photographs", () => {
   it("names only ids the media manifest knows, never a path", () => {

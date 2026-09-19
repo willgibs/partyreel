@@ -32,6 +32,33 @@
   opacity: 1;
 }
 
+/* ★ THE SHY FADE: the window the words stand in (trail-engine.ts, `shyWindow`).
+   Two gradients, one per axis, whose opaque regions UNION: a pixel is whole
+   unless it is inside both bands, which is exactly the block's rectangle, and
+   the ramps are the soft edge a photograph dissolves over as it crosses. The
+   trail is at `--trl-shy-a` on each gradient there, whose union is the ruled
+   floor, and the layer isolates, so the floor holds however many photographs
+   overlap inside it. Nothing is ever laid OVER a photograph (bible 1): the
+   photograph yields, which is what reads as passing behind the words. */
+.trl-layer[data-trail-shy] {
+  --trl-shy: rgb(0 0 0 / var(--trl-shy-a));
+  mask-image:
+    linear-gradient(
+      to right,
+      #000 var(--trl-x0),
+      var(--trl-shy) var(--trl-x1),
+      var(--trl-shy) var(--trl-x2),
+      #000 var(--trl-x3)
+    ),
+    linear-gradient(
+      to bottom,
+      #000 var(--trl-y0),
+      var(--trl-shy) var(--trl-y1),
+      var(--trl-shy) var(--trl-y2),
+      #000 var(--trl-y3)
+    );
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .trl-layer {
     transition: opacity 520ms var(--ease-emphasis);

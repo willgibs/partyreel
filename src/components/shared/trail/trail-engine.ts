@@ -783,12 +783,70 @@ const RULED = {
   shrinkMs: 2500,
   endScale: 0.34,
   lag: 0.1,
-  /** How faint a photograph goes over the words, and how much of it has to be
-   *  over them to get there. A fifth is where type reads cleanly at every size
-   *  in the block (the eyebrow decides it: small, muted, and the casualty in the
-   *  board's first capture) while the photograph is still visibly there. */
-  shy: { floor: 0.22, cover: 0.34 },
 } as const;
+
+/**
+ * ★ THE SHY FADE, AND WHY IT IS A WINDOW RATHER THAN A DIMMER (the trail-wiring
+ * lane, 2026-09-19). The mechanism is Will's and it is kept: a photograph goes
+ * faint where it crosses the words and comes back over a soft edge, so the trail
+ * reads as passing BEHIND them and never as a scrim laid on top (bible 1). What
+ * changed is where it is applied, and measurement is what changed it.
+ *
+ * The board dimmed each CARD by how much of its own area lay over the block.
+ * Driving a hand straight across the real 404 and sampling the composited pixels
+ * inside each line's own glyph boxes found the description line at **1.49:1**,
+ * and retuning the two numbers moved it between 2.2 and 5.1 from run to run.
+ * Both failures are structural, not tuning:
+ *
+ *   · a card is one opacity, so a card half over the block dimmed the half that
+ *     was on clean paper too, for no reason a reader can see; and
+ *   · the trail OVERLAPS by design at this density, so two faint cards over one
+ *     line composite to nearly twice one card's weight, and three to three
+ *     times. A per-card floor can only ever be a lottery.
+ *
+ * A window on the LAYER fixes both at once. The layer isolates, so the cards
+ * composite among themselves FIRST and the window applies to the result: the
+ * floor becomes a guarantee whatever stacks inside it, and a card is clipped
+ * rather than dimmed, so the part of it standing on clean paper stays whole.
+ *
+ * `FLOOR` is what the trail is worth over the words. A photograph that is solid
+ * black, at this floor over paper, still leaves the muted description 4.87:1 and
+ * the headline 13.4:1, so the worst case clears the body-copy bar rather than
+ * landing near it. `FEATHER` is how far outside the block the window opens back
+ * up, as a share of the card's own width: half a photograph, so a card crossing
+ * the edge dissolves over its own width rather than hitting a wall.
+ */
+export const SHY = { floor: 0.16, feather: 0.5 } as const;
+
+/**
+ * The window the words punch in the layer, in px along each axis, plus the alpha
+ * each of its two gradients carries.
+ *
+ * ★ THE ALPHA IS NOT THE FLOOR, and this is the one piece of arithmetic the CSS
+ * cannot do for itself. A rectangular window needs two gradients (one per axis)
+ * whose OPAQUE regions union, and CSS composites mask layers with `add`, which
+ * is `a + b - ab` rather than `max(a, b)`. Outside either band that is still 1,
+ * which is right; inside both it would be `2f - f²`, which is nearly twice the
+ * floor. So each gradient carries `1 - sqrt(1 - floor)`, whose union is exactly
+ * the floor. Pure, so `trail-engine.test.ts` can hold it to that.
+ */
+export function shyWindow(
+  box: Box,
+  words: { cx: number; cy: number; hx: number; hy: number },
+) {
+  const feather = Math.round(screenOf(box).size * SHY.feather);
+  return {
+    x0: Math.round(words.cx - words.hx - feather),
+    x1: Math.round(words.cx - words.hx),
+    x2: Math.round(words.cx + words.hx),
+    x3: Math.round(words.cx + words.hx + feather),
+    y0: Math.round(words.cy - words.hy - feather),
+    y1: Math.round(words.cy - words.hy),
+    y2: Math.round(words.cy + words.hy),
+    y3: Math.round(words.cy + words.hy + feather),
+    alpha: +(1 - Math.sqrt(1 - SHY.floor)).toFixed(4),
+  };
+}
 
 /**
  * ★ A PHONE IS NOT A SMALL DESKTOP. Only the card's size changes, and the
@@ -803,8 +861,18 @@ const RULED = {
  * its ring is sized for its own walk exactly.
  */
 const SCREEN = {
-  desktop: { size: 180, walk: 500, hand: 900 },
-  phone: { size: 100, walk: 210, hand: 210 },
+  desktop: { size: 180, walk: 500, hand: 900, rx: 0.4, ry: 0.38 },
+  /**
+   * ★ A PHONE'S WALK REACHES FURTHER, and the reason is the words. A column is
+   * narrow enough that the 404's block fills almost all of it, so a walk with a
+   * laptop's reach spends its whole visit behind the words and the screen Will
+   * asked to be "alive the moment it is opened" opens on four ghosts. Reaching
+   * nearly to the top and bottom edges puts the clear bands above and below the
+   * block inside the figure, and a sine DWELLS at its extremes (its time is
+   * arcsine-distributed), so widening the reach spends proportionally more of
+   * the visit exactly where there is nothing to stay off.
+   */
+  phone: { size: 100, walk: 210, hand: 210, rx: 0.44, ry: 0.46 },
 } as const;
 
 /** Below this the phone's numbers apply: the board asked its phone question of
@@ -815,14 +883,12 @@ export const screenOf = (box: Box) =>
   box.w < PHONE_BELOW ? SCREEN.phone : SCREEN.desktop;
 
 /**
- * The ruled spec for a real box, with the words it has to stay off. `words` is
- * measured off the rendered block rather than declared, so the shy fade tracks
- * the actual lines at any width instead of a table that was true at two.
+ * The ruled spec for a real box. The words it has to stay off are not in here:
+ * they are a WINDOW on the layer (`shyWindow`), measured off the rendered block
+ * rather than declared, so the shy fade tracks the actual lines at any width
+ * instead of a table that was true at two.
  */
-export function trailSpec(
-  box: Box,
-  words?: { cx: number; cy: number; hx: number; hy: number },
-): TrailSpec {
+export function trailSpec(box: Box): TrailSpec {
   const screen = screenOf(box);
   const base: TrailSpec = {
     ...RULED,
@@ -831,7 +897,6 @@ export function trailSpec(
     entrance: "flick",
     pool: 8,
     keeper: true,
-    shy: words ? { ...words, ...RULED.shy } : undefined,
   };
   // The ring is derived from the life and the density rather than typed, so a
   // longer decay or a denser trail pays for its own nodes.
@@ -845,13 +910,14 @@ export function trailSpec(
  * behind the type until its stroke was widened).
  */
 export function trailWalk(box: Box, phase = 0): Path {
-  const rx = box.w * 0.4;
-  const ry = box.h * 0.38;
+  const screen = screenOf(box);
+  const rx = box.w * screen.rx;
+  const ry = box.h * screen.ry;
   return wanderPath({
     centre: { x: box.w / 2, y: box.h / 2 },
     rx,
     ry,
-    speed: wanderSpeed(rx, ry, screenOf(box).walk),
+    speed: wanderSpeed(rx, ry, screen.walk),
     phase,
   });
 }
@@ -862,3 +928,53 @@ export function trailWalk(box: Box, phase = 0): Path {
  * trail still filling up from nothing.
  */
 export const stillAt = (spec: TrailSpec) => Math.round(lifeMs(spec) * 2.4);
+
+/**
+ * ★ AND THE COMPOSITION IS CHOSEN, NOT DEALT. Where a visit opens on the walk
+ * decides what the FIRST frame looks like, and the first frame is what a reader
+ * who asked for less motion looks at for as long as they are on the page. Left
+ * to chance, one visit meets the trail streaming across the paper and the next
+ * meets it entirely behind the words, which is a blank 404 with a ghost on it.
+ *
+ * So a handful of openings are tried and the best one is kept: the score is how
+ * much lit photograph is standing CLEAR of the words at that moment, which is
+ * exactly what makes a composition rather than a smudge. The candidates are
+ * random, so a reader who lands here twice still does not watch the same
+ * choreography twice; only the floor under it is raised.
+ *
+ * It is a few thousand arithmetic steps, run once when a box is measured, never
+ * in the loop, and `rand` is a parameter so a test can walk it.
+ */
+export function pickPhase(
+  spec: TrailSpec,
+  box: Box,
+  words: { cx: number; cy: number; hx: number; hy: number } | undefined,
+  rand: () => number = Math.random,
+  tries = 5,
+): number {
+  const at = stillAt(spec);
+  let best = 0;
+  let bestScore = -1;
+  for (let i = 0; i < tries; i++) {
+    const phase = rand() * 600;
+    const lit = litAt(replay(spec, [trailWalk(box, phase)], at), spec, at);
+    let score = 0;
+    for (const { frame } of lit) {
+      if (frame.x < 0 || frame.x > box.w || frame.y < 0 || frame.y > box.h)
+        continue;
+      // A photograph the words are standing on is not part of the composition.
+      if (
+        words &&
+        Math.abs(frame.x - words.cx) < words.hx &&
+        Math.abs(frame.y - words.cy) < words.hy
+      )
+        continue;
+      score += frame.opacity * frame.scale;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = phase;
+    }
+  }
+  return best;
+}
