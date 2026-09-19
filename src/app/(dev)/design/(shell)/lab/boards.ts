@@ -1,6 +1,5 @@
 import type { ComponentType } from "react";
 
-import { ErrorPagesBoard } from "@/app/(dev)/design/sandbox/error-pages/board";
 import { EventTypePagesBoard } from "@/app/(dev)/design/sandbox/event-type-pages/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
@@ -48,7 +47,6 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "error-pages": { Component: ErrorPagesBoard },
   "event-type-pages": { Component: EventTypePagesBoard },
   "site-chrome": { Component: SiteChromeBoard },
   "profile-page": { Component: ProfilePageBoard },

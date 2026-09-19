@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarX2 } from "lucide-react";
 
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 
 // Host-facing 404 for the (app) group — primarily the missing/not-yours dashboard event
@@ -32,6 +32,10 @@ export default function AppNotFound() {
             </Button>
           </>
         }
+        // Will, `ways-out=guided` (2026-09-19). A host who followed a link to an
+        // event that is gone is often asking whether they deleted it, and that
+        // is a help-center question, not a dashboard one.
+        help={<HelpLine href="/help">Visit the help center</HelpLine>}
       />
     </div>
   );

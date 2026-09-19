@@ -25,9 +25,21 @@ export function MarketingNotFound({
    * GROUP 404s keep it (a notFound() thrown inside a marketing route, dark or
    * paper, in a 60vh box that is nobody's whole screen and carries no trail),
    * and so do the 500 screen and the help palette that borrow it.
+   *
+   * ★ AND WHERE IT RUNS, IT RUNS ABOVE THE WORDS NOW (Will, `picture=today`
+   * with his note, 2026-09-19): "it does look weird beneath the content. It may
+   * look better as a replacement for the icon above. The page has one visual
+   * image plus the image trail behind." So the strip is the screen's ONE
+   * visual, standing where the Compass circle stood, and the footnote goes back
+   * to being a line of words. `strip=false` (the root 404, which has the trail
+   * behind it) keeps the Compass, and the union on NotFoundScreen's props makes
+   * "both at once" unrepresentable rather than merely discouraged.
    */
   strip = true,
 }: { strip?: boolean } = {}) {
+  const picture = strip
+    ? ({ visual: <MissingFrameStrip /> } as const)
+    : ({ icon: Compass } as const);
   return (
     <NotFoundScreen
       // The marketing half, so the title takes the `prose` step and not the
@@ -35,7 +47,7 @@ export function MarketingNotFound({
       // sniffed: the root 404 renders OUTSIDE (marketing), so [data-mkt] is
       // absent there and an ancestor selector would read it as the app.
       surface="marketing"
-      icon={Compass}
+      {...picture}
       eyebrow="404"
       title="We lost this page"
       description="The link may be broken or the page may have moved. Let us point you back to Partyreel."
@@ -49,16 +61,20 @@ export function MarketingNotFound({
           </Button>
         </>
       }
+      // ★ NO `help` LINE HERE, AND THAT IS THE ONE PLACE `ways-out=guided`
+      // DOES NOT LAND (a call stated in the errors-wiring Handoff, his to
+      // overrule). The guided verdict exists to give every OTHER surface the
+      // quiet line to a human that "only the marketing pages" already had: the
+      // help center is a full ACTION on this screen and contact sits in the
+      // footnote below it. A fourth pointer would name /help twice, three lines
+      // apart, on the one screen the verdict was generalizing FROM.
       footnote={
-        <div className="flex flex-col items-center gap-8">
-          <span className="text-muted-foreground">
-            Looking for something specific? Try{" "}
-            <FootnoteLink href="/features">features</FootnoteLink>,{" "}
-            <FootnoteLink href="/pricing">pricing</FootnoteLink>, or{" "}
-            <FootnoteLink href="/contact">contact us</FootnoteLink>.
-          </span>
-          {strip && <MissingFrameStrip />}
-        </div>
+        <span className="text-muted-foreground">
+          Looking for something specific? Try{" "}
+          <FootnoteLink href="/features">features</FootnoteLink>,{" "}
+          <FootnoteLink href="/pricing">pricing</FootnoteLink>, or{" "}
+          <FootnoteLink href="/contact">contact us</FootnoteLink>.
+        </span>
       }
     />
   );
@@ -84,8 +100,10 @@ function FootnoteLink({
 // The quiet epilogue: a hand-laid strip of album tiles with one frame missing —
 // the page that went missing, in the product's own visual language. Decorative
 // (aria-hidden), achromatic, static by design (the 404 is a dead end, not a
-// show). It rides the NotFoundScreen footnote slot, so the shared
-// [data-not-found] entrance staggers it in with everything else for free.
+// show). Since Will's `picture` note (2026-09-19) it rides NotFoundScreen's
+// `visual` slot, standing where the icon circle stood rather than trailing the
+// footnote, so the shared [data-not-found] entrance still staggers it in for
+// free and it now arrives FIRST, on beat 0.
 // Tokens only (border/muted), so it reads correctly on paper AND cinema.
 const STRIP_TILES: { missing?: boolean; className?: string }[] = [
   { className: "rotate-[-5deg]" },

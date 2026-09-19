@@ -107,7 +107,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "error-pages"
   | "event-type-pages"
   | "site-chrome"
   | "profile-page"
@@ -672,32 +671,33 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered all eight steps
+  // and left two notes the wiring answered: the photo strip belongs where the
+  // icon was rather than beneath the words, and a private event should offer a
+  // way to Partyreel rather than nothing at all. NotFoundScreen became the one
+  // primitive every failure page draws from, RouteError folded into it, and the
+  // board left sandbox/ with the round; docs/design/rulings.md keeps his words.
   {
     id: "error-pages",
     title: "Every failure page as one grammar",
     surface: "shared",
-    ruled:
-      "open (Will, 2026-09-19: every surface is unprotected, to be reconceived from the ground up)",
-    shipped: null,
-    why: "Twelve failure pages, one round: a shared grammar or not, the ways out, the photo strip, the digest, the surround, the private lock, the admin 404, the last crash.",
+    ruled: "2026-09-19",
+    shipped:
+      "One primitive for every dead end and every crash, a quiet line to a person on each, the photo strip standing where the icon was, a copyable code on every crash, each surface inside its own chrome, the private lock in the family with a way home, the admin host answering as the portal, and a way home on the last-resort screen",
+    why: "A dead end is the page a reader least expected and most needs a way out of, so all twelve of them say it in one grammar, in each surface's own words.",
     lives: [
       "docs/systems/lifecycle-recovery.md",
       "src/components/shared/not-found-screen.tsx",
+      "src/components/shared/error-digest.tsx",
       "src/components/shared/route-error.tsx",
       "src/components/marketing/marketing-not-found.tsx",
       "src/components/marketing/marketing-route-error.tsx",
+      "src/components/admin/admin-not-found-screen.tsx",
+      "src/components/guest/guest-bar.tsx",
+      "src/app/not-found.tsx",
+      "src/app/error.tsx",
       "src/app/global-error.tsx",
     ],
-    board: {
-      note: "Eight decisions on the real failure components with fabricated error and reset props, inside each surface's own chrome, at 1440 with 375 on a shared knob: one grammar or eight, how many ways out, where the photo strip appears, whether a crash shows its code, what surrounds a failure, the private lock, the admin host's 404, and the last-resort crash",
-      variants: [
-        "One grammar",
-        "The ways out",
-        "The surround",
-        "The private event",
-        "The global crash",
-      ],
-    },
   },
   {
     id: "event-type-pages",

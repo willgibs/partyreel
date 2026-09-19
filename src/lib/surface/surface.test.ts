@@ -199,6 +199,17 @@ describe("the rules are actually applied", () => {
     expect(seam).toContain("if (!servesAdmin()) notFound()");
   });
 
+  it("the root 404 answers the admin host as the portal, with no new route", () => {
+    // Will, `admin-404=portal` (2026-09-19). A refused path on the admin
+    // deployment is REWRITTEN to the sentinel, so the root not-found is what
+    // renders it, and the fix had to happen there: a new route would have to
+    // join the allow-list, which is the one thing the sentinel exists to avoid.
+    const notFound = read("src/app/not-found.tsx");
+    expect(notFound).toContain('from "@/lib/surface"');
+    expect(notFound).toContain('surface() === "admin"');
+    expect(notFound).toContain("AdminNotFoundScreen");
+  });
+
   it("the purge cron runs on the app surface only", () => {
     const cron = read("src/app/api/cron/purge/route.ts");
     expect(cron).toContain('import { servesApp } from "@/lib/surface"');
