@@ -54,10 +54,15 @@ export function ErrorDigest({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-1.5 text-xs text-faint",
+        "flex flex-col items-center gap-1.5 text-xs text-muted-foreground",
         className,
       )}
     >
+      {/* `muted-foreground`, not `faint`, and that is measured rather than
+          taste: `faint` at 12px came out at 3.21:1 on paper, and this is a
+          sentence somebody is meant to READ before deciding whether to send
+          the code. The rank below it is carried by the SIZE (12 against the
+          help line's 14), not by fading the words out. */}
       <p>This helps us find what happened if you tell us about it.</p>
       <button
         type="button"
@@ -67,6 +72,12 @@ export function ErrorDigest({
             ?.writeText(digest)
             .then(() => {
               setCopied(true);
+              // The code is `select-all`, so the press that copied it also
+              // highlighted it. That selection is the FALLBACK affordance for
+              // a refused clipboard, so it stays on failure and goes on
+              // success: the receipt says it worked, the highlight would only
+              // say it is still waiting to be dragged over.
+              window.getSelection()?.removeAllRanges();
               if (timer.current) clearTimeout(timer.current);
               timer.current = setTimeout(() => setCopied(false), 1600);
             })

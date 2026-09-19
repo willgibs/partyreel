@@ -136,7 +136,11 @@ export default function GlobalError({
               style={{
                 marginTop: "24px",
                 fontSize: "0.75rem",
-                color: "#999",
+                // #555, the same grey the paragraph above uses, not the old
+                // #999: this is a sentence to READ, and #999 on this ground
+                // measures 2.6:1. The rank below the buttons is carried by the
+                // size, never by fading the words out.
+                color: "#555",
               }}
             >
               <p style={{ margin: "0 0 6px" }}>
@@ -182,7 +186,7 @@ export default function GlobalError({
                     fontSize: "0.625rem",
                     fontWeight: 500,
                     textTransform: "uppercase",
-                    color: "#999",
+                    color: "#666",
                     display: "inline-block",
                     minWidth: "50px",
                     textAlign: "left",
