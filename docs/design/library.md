@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 8 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 9 standing boards.**
 
 ## What binds you
 
@@ -378,6 +378,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
+| `guest-shape` | guest | Seven decisions on the real guest components over one wedding in its four access states, phone first at 375 and also at 1440: the door, one language for nothing-here-yet, the chrome over an album that runs to the window, whether the album admits it is filling, one object for the other four surfaces, what a guest can do about their own photograph, and how many voices ask for an account |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
 | `glass` | shared | Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step |

@@ -51,6 +51,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "guest-shape"
   | "album-motion"
   | "app-shape"
   | "cursor-backdrop"
@@ -85,6 +86,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "guest-shape"
   | "album-motion"
   | "admin"
   | "loose-ends"
@@ -667,6 +669,31 @@ export const RULINGS: Ruling[] = [
         "The event as a place",
         "Moving around",
         "In a hand",
+      ],
+    },
+  },
+  {
+    id: "guest-shape",
+    title: "The guest experience's shape",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "Round one asks the shape from the scan: the door, an album with nothing in it, the chrome over a wide album, the other surfaces, a guest's own photograph.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/app/(guest)/e/[token]/page.tsx",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/entry-shell.tsx",
+      "src/components/guest/gallery-empty-state.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real guest components over one wedding in its four access states, phone first at 375 and also at 1440: the door, one language for nothing-here-yet, the chrome over an album that runs to the window, whether the album admits it is filling, one object for the other four surfaces, what a guest can do about their own photograph, and how many voices ask for an account",
+      variants: [
+        "The door",
+        "Nothing here yet",
+        "The album's chrome",
+        "The other surfaces",
       ],
     },
   },
