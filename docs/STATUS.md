@@ -68,9 +68,9 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   `353ad884`: the admin split's code, the jobs console on three kinds, the chart aliases static, four boards behind
   the key); `launch-prep` is level with it. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
-  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Tomorrow's `job_runs` should
-  show one purge run, and Will's sign-in at the admin host plus `/admin/metrics`, `/admin/albums` and `/admin/forensics`
-  are the last two runbook checks. **The `launch-prep` alias**
+  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Every runbook check is done:
+  `job_runs` showed exactly one scheduled purge run on 2026-09-19 (04:48 UTC) and Will's sign-in at the admin host
+  rendered `/admin/metrics`, `/admin/albums` and `/admin/forensics`. **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
   on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. On 2026-09-19 the
   deployment cap (100 creations a day, canceled ones included) hit while six lanes pushed, so the alias sat on
