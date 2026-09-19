@@ -2185,7 +2185,7 @@
             "the returning host's hint"
           ],
           "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
-          "line": 61
+          "line": 63
         },
         {
           "title": "reads a chunked session, which is what a real one usually is",
@@ -2193,7 +2193,7 @@
             "the returning host's hint"
           ],
           "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
-          "line": 72
+          "line": 74
         },
         {
           "title": "never reads a mid-OAuth verifier as a session",
@@ -2201,7 +2201,7 @@
             "the returning host's hint"
           ],
           "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
-          "line": 79
+          "line": 81
         },
         {
           "title": "never reads an emptied cookie as a session",
@@ -2209,7 +2209,7 @@
             "the returning host's hint"
           ],
           "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
-          "line": 87
+          "line": 89
         }
       ]
     },
