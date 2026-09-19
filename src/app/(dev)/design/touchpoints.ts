@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "guest-upload"
   | "contact-page"
   | "entry"
   | "upload"
@@ -88,6 +89,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "guest-upload"
   | "contact-page"
   | "app-vocabulary"
   | "guest-shape"
@@ -634,6 +636,32 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "guest-upload",
+    title: "The upload act",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "Round one asks the product's core act from the foundation: what the tap opens, how a photograph reads while it flies, and what the page does when one is held or refused.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "src/components/guest/guest-upload.tsx",
+      "src/components/guest/guest-masonry.tsx",
+      "src/lib/guest/use-upload-queue.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are",
+      variants: [
+        "The tap",
+        "Sending",
+        "A dozen at once",
+        "Waiting for the host",
+        "A file that will not go",
+      ],
+    },
   },
   {
     id: "contact-page",

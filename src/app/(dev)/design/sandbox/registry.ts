@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { GUEST_UPLOAD } from "./guest-upload/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { APP_VOCABULARY } from "./app-vocabulary/spec";
 import { ADMIN } from "./admin/spec";
@@ -30,6 +31,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  GUEST_UPLOAD,
   CONTACT_PAGE,
   APP_VOCABULARY,
   GUEST_SHAPE,
