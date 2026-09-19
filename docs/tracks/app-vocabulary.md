@@ -77,7 +77,8 @@ the lightbox button); `lit-edge-contract.test.ts`; no em-dashes; the copy is ope
 
 ## Handoff (replaces the chat report)
 
-- **Head SHA:** `04d66530`.
+- **Head SHA:** `fa9f6a03` (the gate below ran at `04d66530`, the last code commit; this manifest fill is
+  the one commit on top, prose only, nothing the gate touches).
 - **The gate, each step its own exit code, run on the synced (post-merge) tree:**
   - `pnpm design:rules`: ok (regenerated `docs/design/library.md`, `rules/rules.generated.json`).
   - `node src/app/(dev)/design/gallery/collect-specimens.mjs`: ok (regenerated `specimens.generated.json`).
