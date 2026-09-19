@@ -8,6 +8,22 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the lab workflow itself rides rising tides: the decision-per-question shape is the throughput engine, keep improving it
+
+**Became:** a standing directive, not a round. The decision-per-question shape (`defineExploration`, one question per
+decision, every option drawn on the real surface, one paste per sitting) is what turned exploration into production; it
+stays the shape of every round, and the lab workflow is under rising tides like every surface: the Orchestrator keeps
+notes of what would make a sitting faster, a board truer or a handoff cleaner (they accrue under the ROADMAP's "The lab
+and the kit") and lands them as lanes whenever a seat is free, never asking first. The first such lane, `lab-tides`, is
+cut the same evening on the notes already accrued (the `lab:demo` port trap, the constructor drawing every other
+decision's "as today" wearing a candidate, the shared-knob dedupe, the frame's quirks mode, a responsive variant never
+reaching a frame, the specimen collector's blind spot, the desk-wide demo stall, the "same picture" warning's settle)
+plus one opportunity found this sitting: the calls a lane carries on its recommendations live only in the CHANGELOG, so
+the desk should show them on the board for him to answer in the same paste. PROGRAM.md "A round returns DECISIONS"
+carries the principle.
+
+Verbatim: "I'd just like to say this evolving lab system has massively increased our actual throughput of agent exploration work that actually makes it to production. I felt like the huge review boards prior to our decision/winner question strategy would spend rounds digging tto deep into something just to lead to 1-2 production takeways each. Now, I feel like I'm flying through platform-wide upgrades every review batch, without risking anything by setting off new explorations. Great work, and please continue to take notes and Rising Tides our lab workflow with new opportunities for improvements you may discover as we go."
+
 ## 2026-09-19 · the fourth batch: the event pages' identity ruled, the chrome kept full, and a person's page confirmed
 
 **Became:** five lanes. `events-wiring` (Opus) builds the hub and the four type pages to production on the seven
