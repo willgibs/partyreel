@@ -1,6 +1,9 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
+import { EMAILS } from "./emails/spec";
+import { REEL_STUDIO } from "./reel-studio/spec";
+import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
 import { GUEST_UPLOAD } from "./guest-upload/spec";
 import { FIRST_EVENT } from "./first-event/spec";
@@ -40,6 +43,9 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   ADMIN_TRIAGE,
+  EMAILS,
+  REEL_STUDIO,
+  HELP_CENTER,
   HOST_CURATION,
   GUEST_UPLOAD,
   FIRST_EVENT,

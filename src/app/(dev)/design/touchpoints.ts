@@ -29,6 +29,9 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "admin-triage"
+  | "emails"
+  | "reel-studio"
+  | "help-center"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -98,6 +101,9 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "admin-triage"
+  | "emails"
+  | "reel-studio"
+  | "help-center"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -677,6 +683,89 @@ export const RULINGS: Ruling[] = [
         "The legal hold",
         "Once it is closed",
         "Who is told",
+      ],
+    },
+  },
+  {
+    id: "emails",
+    title: "Every email Partyreel sends",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, every mail cut from a read-only map, unprotected like the rest)",
+    shipped: null,
+    why: "Eight decisions on the real templates.ts functions in an inbox mock: one wrapper, the brand, the sender, the foot, the code, the moments, the guest's, and the dark inbox.",
+    lives: [
+      "docs/systems/lifecycle-recovery.md",
+      "docs/systems/notifications-analytics-growth.md",
+      "src/lib/email/templates.ts",
+      "src/lib/email/send.ts",
+      "src/components/app/notification-prefs-form.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox",
+      variants: [
+        "One shell",
+        "The brand",
+        "The sender",
+        "The foot",
+        "The code",
+        "The moments",
+      ],
+    },
+  },
+  {
+    id: "reel-studio",
+    title: "The highlight reel",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "Round one asks the product's North Star from the foundation: the door into the studio, the room at a laptop, and what a guest finally meets.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/guest-flow.md",
+      "src/components/reel/reel-studio.tsx",
+      "src/components/reel/style-rail.tsx",
+      "src/components/reel/studio-moments-picker.tsx",
+      "src/components/guest/guest-reel-card.tsx",
+    ],
+    board: {
+      note: "Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel",
+      variants: [
+        "The door",
+        "The room",
+        "The looks",
+        "The moments",
+        "How a guest watches",
+      ],
+    },
+  },
+  {
+    id: "help-center",
+    title: "Where a problem lands",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the help center is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one: who the hub greets, the index sheet's survival, a how-to's shape, a guest's path in, feedback, troubleshooting's dead end, and search's reach.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/help/page.tsx",
+      "src/app/(marketing)/(cinema)/help/[slug]/page.tsx",
+      "src/components/marketing/help/help-palette.tsx",
+      "src/components/marketing/help/article-feedback.tsx",
+      "src/components/guest/report-dialog.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches",
+      variants: [
+        "Who first",
+        "The hub",
+        "The article",
+        "From the product",
+        "Feedback",
+        "The dead end",
+        "Search",
       ],
     },
   },
