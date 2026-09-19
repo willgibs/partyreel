@@ -93,21 +93,31 @@ const RATIO: Record<Aspect, number> = {
  * the card and the bottom RIGHT, where no copy ever reaches, keeps more of its
  * photograph than it did before -- which is the distinction he asked for.
  *
- * ★ MEASURED, NOT ASSUMED, on every door's real visual at 1440 and 375 (the
- * event cards' own note is the precedent: the ramp was re-cut twice against
- * per-pixel readings, and the conference still sits a hair under AA on
- * purpose, because a third darkening buries every card to serve one image).
+ * ★ MEASURED, NOT ASSUMED, on every door's and every event card's real visual
+ * at 1440 and 375: the copy hidden, the card photographed, the white composited
+ * over each pixel at its own alpha. Against the ramp it replaces, the worst 5
+ * percent of the title's pixels went 7.60 -> 10.89 on Conferences, 9.17 ->
+ * 13.11 on Parties, 11.13 -> 15.05 on Trips (the three the old note called a
+ * hair under AA), and no door moved DOWN. The one that is genuinely hard is the
+ * QR door, where the copy reads over twelve full-luminance photographs in
+ * flight: sampled across a whole 7.6s cycle at 1440 the title (20px/700, which
+ * is AA-large) holds a median of 16.19 with a 1st percentile of 3.16, and the
+ * line a median of 9.63 with a 1st percentile of 4.96. It was 1.00 at the fifth
+ * percentile under the old ramp. The cost of `fall=behind` is that a letter can
+ * cross a bright frame; the ruling took that trade with its eyes open, and this
+ * gradient is what keeps it a moment rather than a state.
+ *
  * An inline style rather than an arbitrary class: one constant in one place
- * beats the same forty-character gradient spelled twice, and a class this long
- * is what `pnpm format` mangles.
+ * beats the same hundred-character gradient spelled twice, and a class this
+ * long is what `pnpm format` mangles.
  */
 export const CARD_COPY_SCRIM: CSSProperties = {
   backgroundImage: [
     // The band: the copy row's ground, gone by the middle of the card.
-    "linear-gradient(to top, oklch(0 0 0 / 0.72) 0%, oklch(0 0 0 / 0.34) 18%, oklch(0 0 0 / 0.08) 38%, transparent 55%)",
+    "linear-gradient(to top, oklch(0 0 0 / 0.78) 0%, oklch(0 0 0 / 0.4) 18%, oklch(0 0 0 / 0.1) 38%, transparent 55%)",
     // The corner: an ellipse springing from the bottom-left, wide enough to
     // carry a title and a two-row line and spent well before the right edge.
-    "radial-gradient(92% 62% at 0% 100%, oklch(0 0 0 / 0.55) 0%, oklch(0 0 0 / 0.3) 34%, oklch(0 0 0 / 0.1) 62%, transparent 85%)",
+    "radial-gradient(92% 62% at 0% 100%, oklch(0 0 0 / 0.62) 0%, oklch(0 0 0 / 0.36) 34%, oklch(0 0 0 / 0.12) 62%, transparent 85%)",
   ].join(", "),
 };
 
@@ -194,10 +204,10 @@ function formatDuration(seconds: number): string {
  * ★ WHAT THE QR DOOR'S CODE OPENS (Will's `opens=short`, 2026-09-19): a short
  * link to the live demo event, at the smallest code that scans. The value is
  * the whole size argument — `/demo` is 25 modules and a 99 px floor, the demo
- * event's own link is 33 and 123 — and the redirect that carries it is
- * `src/app/demo/route.ts`, resolved at request time because the demo's token
- * is a runtime env var. Never the apex again: a code that opens the page the
- * reader is already on is an Easter egg with nothing inside it.
+ * event's own link is 33 and 123, a quarter more card spent on the object the
+ * album is meant to be falling out of. The redirect that carries it is
+ * `src/app/demo/route.ts`. Never the apex again: a code that opens the page
+ * the reader is already on is an Easter egg with nothing inside it.
  */
 const QR_DOOR_VALUE = `${SITE_URL}/demo`;
 
