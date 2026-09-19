@@ -54,6 +54,7 @@ album hero's round three went "too boring" that way).
 | `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's | cut at `d909cb13`, on the seat |
 | `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search; seven decisions on the real help pieces | integrated at `5118c141`; on the desk; four calls carried on their recommendations (in the CHANGELOG) |
 | `profile-page` | what a person is on Partyreel beyond one album: exists, the head, not found, the named, the claim, what a person is, block, the list; phone first | cut at `c74a509d` (2026-09-19, the overnight round), on the seat host-curation freed |
+| `how-it-works` | the page that tells the loop beside the article that tells it too: the pair, who, the steps, the pictures, the shape, the proof, the phone | cut at `449d9b52` (2026-09-19, the overnight round), on the seat help-center freed |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
@@ -76,9 +77,8 @@ and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 2,190 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI
-  runs on `main` and `launch-prep` code pushes only; an `lp/*` push only on `[ci]`). `lab:smoke` passes
-  whole again, so a board over its reading budget is a failure, not a known exception.
+- **Tests:** about 2,530 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
+  `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup GitHub Action (about
   06:30 UTC) are live; the deletion-aware backup prune ships in dry-run (`PRUNE_MODE=live` is a launch flip). The backup Worker's queue and dead-letter depth reading (`admin-jobs`) is deployed (version `d7b16bcc`, 2026-09-18); the two derived cards fill with the 05:00 UTC run.
 - **The repo is public for the interim** (Will, 2026-09-15, after twelve tracks spent the month's private
