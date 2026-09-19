@@ -75,6 +75,16 @@ and relayed here for his morning. The records follow in the order the lanes hand
   caught defects the gate could not. Five ROADMAP lines, one on the lab itself (a responsive Tailwind variant never
   reaches a board's frame). The smoke crawler's 400-page cap ran out at 24 boards (every step is a page); raised to 800.
 
+- `export-flow` integrated (`afde9ca3`; cut `5649285b`): getting everything out for a host and a guest as eight decisions on
+  the real dialog's shell and body reproduced over fixture summaries run through the shipped arithmetic, phone first, a
+  scoped `fetch` guard refusing every export request: what Download hands a guest (their own shots first, the album under),
+  the Videos chip for a teaser (stays and says why), the wait (the dialog holds until it lands), a mint that never answers
+  (it gives up and offers Try again), a hollow zip (it says what did not make it), the 2,000-item cap (the product splits
+  it and never refuses), what keeping the album means (the link first, the zip under it), the phone (the copy names where
+  the file lands). Five calls carried (a guest's own uploads are identifiable server-side; the Worker may tell the page a
+  nonce and a written count; parts split by items; SELECTED left to `app-vocabulary`'s bar; the dialog reproduced, not
+  opened). Seven ROADMAP lines: the app goes blind at the tap (no timeout, a silent skip, no iOS answer).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.

@@ -133,7 +133,7 @@ retired `type-phone`; both agents were told so by message.
 | `media-viewer` | integrated at `596ca8dd` (handed off `0cb453a5`, eighteen stale; the registration conflicts resolved by the Orchestrator); three calls carried; one asset asked | done | Opus, :3131 | nothing; `event-type-pages` takes the seat |
 | `event-type-pages` | cut at `1cf54457` (the overnight round, the seat media-viewer freed): the event-type landing pages, the hub and the four types | open | Sonnet, :3131 | the handoff |
 | `reel-studio` | integrated at `d10149bd` (handed off `e4a157d4`; the registration conflicts resolved by the Orchestrator); four calls carried; five Now lines | done | Opus, :3132 | nothing; `export-flow` takes the seat |
-| `export-flow` | cut at `5649285b` (the overnight round, the seat reel-studio freed): getting everything out, for a host and for a guest | open | Opus, :3132 | the handoff |
+| `export-flow` | integrated at `afde9ca3` (handed off `5b587f70`, zero stale, no conflicts); five calls carried; seven ROADMAP lines | done | Opus, :3132 | nothing; the seat is free (nothing queued) |
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
 | `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
