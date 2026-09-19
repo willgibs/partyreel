@@ -150,6 +150,14 @@ photographs) with the ruling that full-image sections are chapter transitions, u
 and for this instance closing chapter one with the live demo folded into the next; `backdrop-wiring` cut from it.
 `image-trail` r1 begun: `d140`, `decay=long` with three seconds suggested.
 
+**The second batch (build `9720798`, 2026-09-19).** Four boards whole: `image-trail` (`d140`, `long` at his three
+seconds, `flick` "keeping the image trail behind the cursor also allows better cursor visibility", `s180`, the 404
+as its home, `walks` on a new path), `album-page` (`live`, `stream` with two or three variations wanted, `halo`
+"gorgeous", `floor` with a full-image section beneath so the aurora glows from it), `river-card` (`tenth`,
+`behind`, `short`, `tall`, and every card's own bottom-left copy gradient), `gallery-width` (`240`, `full` "all you
+have to do is adjust your browser window", `edge`, `same`); `privacy-hero` round two closed by a `?` and replaced
+by a new concept. Four wiring lanes cut at once; two app boards and the privacy hero's round three follow.
+
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
 they hand off; the domain move, then the apex flag, close the cutover; then the wiring lanes from his notes.

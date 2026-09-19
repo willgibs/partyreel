@@ -8,6 +8,53 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the second batch: the trail's home is the 404, the album's halo, the card's own gradient, galleries run to the window
+
+**Became:** four boards answered whole and wired the same night (`image-trail`, `album-page` with album-hero
+round three, `river-card` with river-visual round two, `gallery-width`); `privacy-hero` round two closed by a `?`
+and replaced by a new-concept round; two app boards to come (`gallery-controls`, `event-header`); an album
+motion board (`album-motion`) drawing two or three variations of the falling-in he loves.
+
+Verbatim, image-trail: `entrance=flick` "Following the way it was thrown rather than the cursor feels a lot more
+natural and fluid. Keeping the image trail behind the cursor also allows better cursor visibility/tracking than
+keeping the image directly beneath it."; `phone=walks` "Different path than current, if that's not a future
+question I'll encounter"; `size=s180`; `home=notfound`.
+
+Verbatim, privacy-hero round two, `pace=?`: "Question is clear, but I don't really like this arrival animation as
+part of the spiral/orbit." Asked what next: "Let's go with a totally different concept... I think we can say the
+image trail was a takeaway win from this. The actual privacy hero can take a different path, maybe more fitting
+for its theme."
+
+Verbatim, album-page: `visual=live` "We will replace the album media before launch, likely with Higgsfield
+generations."; `motion=stream` "I like the direction, but this animation can definitely be improved.", and asked
+what improved means: "I love the images falling into the album. I was just curious to see maybe two to three
+variations of this concept to get an idea of what the best version is. No specific direction on what improvement
+means here yet."; `light=halo` "This is gorgeous and a beautiful delight to make the photos falling into the album
+feel more infused."; `second=floor` "This selection is better than combining with a visual in the 'Everywhere'
+section, but the paper chapter directly beneath and the brightness from his white overwhelms the aurora here and
+makes it less noticeable. Would work much better with a full image background section beneath so it feels like
+it's glowing from that, with a less harsh contrast at the transition that will make the aurora more visible as
+well."
+
+Verbatim, river-card: `place=tenth` "This positioning makes each card version feel more full while still leaving
+breathing room at the top. A subtle dark gradient overlay from the bottom left to allow the text in the card to be
+slightly more visible would be nice. This would stack on top of the existing gradient that fades the photo out,
+more custom the the cards themselves for more distinction between the card copy and its visual. The river has a
+gradient overlay to fade it out for its own visual, then the card would have its own from its text, being treated
+separately so the card's applies to all features & visual pairings."; `fall=behind` "Plus the previously mentioned
+note for the card gradient overlay to add a slight more contrast on all card copy. Not exclusive to the QR code
+card, nor part of the river visual design itself, which keeps its own overlay fade as well."; `opens=short`;
+`short=tall`.
+
+Verbatim, gallery-width: `tile=240` "Could we make image tile size an adjustable option in the galleries, likely
+within/around our filter/sort/controls? I'm honestly not even sure if we built those out yet to handle galleries.
+We could open a ton of app exploratory tracks."; `width=full` "This feels natural at every window size, so all you
+have to do is adjust your browser window to adjust the gallery size, rather than us constrain it at any point.";
+`words=edge` "As an added note to the previous comment about lots of app exploration potential, event headers for
+both hosts and guests is certainly one of those. Left is definitely best for this current positioning, though.
+Maybe an exploration would serve as a better centered version that'd win."; `host=same`. Asked when the two app
+boards open: both, on the next free seats.
+
 ## 2026-09-18 · full-image sections are chapter transitions; cursor-backdrop round one ruled, image-trail begun
 
 **Became:** `cursor-backdrop` round one answered on every step (`section=full-quality`, `legibility=plate`,

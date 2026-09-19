@@ -18,6 +18,32 @@
           "note": "I'd maybe even suggest 3 seconds to calm it down just a bit.",
           "by": "Will",
           "at": "2026-09-19T00:21:26Z"
+        },
+        {
+          "ask": "entrance",
+          "choice": "flick",
+          "note": "Following the way it was thrown rather than the cursor feels a lot more natural and fluid. Keeping the image trail behind the cursor also allows better cursor visibility/tracking than keeping the image directly beneath it.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "size",
+          "choice": "s180",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "home",
+          "choice": "notfound",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "phone",
+          "choice": "walks",
+          "note": "Different path than current, if that's not a future question I'll encounter",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
         }
       ],
       "notes": [],
