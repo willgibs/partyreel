@@ -77,7 +77,8 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
   100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
   day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
   red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the
-  guest album at 1280 / 1512 / 1920 / 375 both ways, the host event page at 1440 and 375, the dashboard, the root 404): clean.
+  guest album at 1280 / 1512 / 1920 / 375 both ways, the host event page at 1440 and 375, the dashboard, the root 404): clean;
+  batch three's surfaces the same evening (`/how-it-works` both sides and the home's stepper at 1440 and 375, the mega panel's card, the help hub's link, the footer heading; the root, paper, cinema, guest and host 404s, the private lock, the host crash with its copyable code, the admin host's `/nope` and `/features` on its own launch-prep alias; Sentry one `render:app` per crash and none per 404): clean.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 2,565 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
   `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.
