@@ -68,9 +68,9 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   `353ad884`: the admin split's code, the jobs console on three kinds, the chart aliases static, four boards behind
   the key); `launch-prep` is level with it. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
-  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Tomorrow's `job_runs` should
-  show one purge run, and Will's sign-in at the admin host plus `/admin/metrics`, `/admin/albums` and `/admin/forensics`
-  are the last two runbook checks. **The `launch-prep` alias**
+  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Every runbook check is done:
+  `job_runs` showed exactly one scheduled purge run on 2026-09-19 (04:48 UTC) and Will's sign-in at the admin host
+  rendered `/admin/metrics`, `/admin/albums` and `/admin/forensics`. **The `launch-prep` alias**
   (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
   on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. On 2026-09-19 the
   deployment cap (100 creations a day, canceled ones included) hit while six lanes pushed, so the alias sat on
@@ -108,7 +108,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. The four wiring lanes and the app round's four boards (`app-shape`, `privacy-concept`, `guest-shape`, `app-vocabulary`; the seams in `tracks/orchestrator.md`, "The app round's map") are integrated and on the desk; from his stacking steer (2026-09-19, while deployments are capped) five more boards build on the free seats: `demo-event`, `app-door`, `contact-page`, `press-page` and `app-pricing` (his ask: pricing inside the app, the marketing page a "learn more" second layer). The desk derives the steps (`/design/lab?key=`): every board of the round is integrated and his sitting is open
+His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. The four wiring lanes and the app round's four boards (`app-shape`, `privacy-concept`, `guest-shape`, `app-vocabulary`; the seams in `tracks/orchestrator.md`, "The app round's map") are integrated and on the desk; from his stacking steer (2026-09-19, while deployments are capped) six more boards build on the seats: `demo-event`, `app-door`, `contact-page`, `press-page`, `app-pricing` (his ask: pricing inside the app, the marketing page a "learn more" second layer) and `pricing-page` (his ask: the marketing pricing page, every part its own decision); queued for the next free seats, at the Orchestrator's discretion: `guest-upload` and `first-event`. The desk derives the steps (`/design/lab?key=`): every board of the round is integrated and his sitting is open
 in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
 marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). Two calls from `backdrop-wiring` are his to overrule on the alias's home page: the live demo moved whole into the paper chapter as its opener (rather than its visual merged into the album section), and the album's heading kept at `lg` beneath it (`text-section` is the first thing to try if the two read as one section). His to
 overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather
