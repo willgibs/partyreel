@@ -1,6 +1,6 @@
 ---
 track: first-event
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "060dfdf4"          # the launch-prep SHA the branch was cut from
 board: first-event      # round one: a host's first event, from "Create" to a code on the table
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -109,26 +109,109 @@ an email is a product-defining capability (drawn, flagged in Questions); no em-d
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **This board WEARS app-shape's recommendations, which Will has not ruled.** The event page is drawn with
+  `event=album` and `share=front`, so the code is already in the event's own header on every landing, empty and
+  first-photograph option, and the board says so in its own context. RECOMMENDED: carry on. None of the three
+  decisions depends on the album being the page; if he rules app-shape differently they redraw inside whatever he
+  picked, and the alternative (drawing today's feed page) would have made every option argue with a page he is
+  already replacing.
+- **A push or an email is a capability, not a look** (`first=tell`). Web push needs a permission prompt, a service
+  worker and a subscription store; an unrequested email needs a preference and an unsubscribe. RECOMMENDED: the
+  option is DRAWN so he can judge the moment and the sentence, and if it wins the capability is his call first
+  (product-defining work is researched before it is built), with `live` shipping meanwhile since the guest
+  doorbell already exists.
+- **If `venue=sheet` wins, the wiring is the ROADMAP's share studio**, not a tail on this round: paper sizes, cut
+  marks, a print stylesheet and a PDF path. RECOMMENDED: cut it as its own track with its own scope.
+- **The product's QR plates meet the scan floor by luck, and one of them misses it.** Measured on this board
+  against the real 56-character link: the create wizard's and the QR designer's preset swatches render at 96 px,
+  which is 2.30 px a module (2.05 for the two presets on error level Q), UNDER the 3 px floor the marketing
+  river's plate enforces and computes for itself (`qrPlateFloorPx`, shared/river/qr-plate.tsx). The 200 px plates
+  are 4.85 and the event card's 232 is 5.64. RECOMMENDED: the wiring gives the product's plates the river's
+  `max()` treatment rather than a typed pixel number, and the swatches either grow past the floor or stop reading
+  as codes a host could test.
+- **The style step previews a link that 404s.** `previewJoinUrl` is `/e/` plus 32 zeroes: the right module density
+  on purpose (share-urls.ts), and a URL no event has, so a host who test-scans the style they are choosing lands
+  on a not-found. RECOMMENDED: whichever option wins, the swatches encode the real token (which exists only after
+  creation, which is `style=after`'s whole argument) or say plainly that they are samples.
+- **Three CTA labels for one act** ("Create my first event", "Create your first event", "New event") is not a
+  decision here because copy is open (bible 21) and the `voice` board owns the words. RECOMMENDED: one label for
+  the act once voice rules, with "first" kept for a host who has none; the board already uses "New event" on the
+  surface where the host has an event already.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (a lab-only round: no shipped fact changed, and the two product findings above belong to the wiring, not to
+  a doc this lane owns)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Share studio: the product's QR plates take the river's module-size floor (`qrPlateFloorPx`) rather than a typed
+  pixel number; the preset swatches at 96 px are 2.3 px a module, under the 3 px floor.
+- Now: the create wizard's style step previews `/e/` plus 32 zeroes, so a host who test-scans the style they are
+  choosing gets a 404.
+- Now: one CTA label for creating an event (three today), once the `voice` board rules the words.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board first-event` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Code at `5a16d192` (the board), with `43135633` repairing a row boundary a merge resolution swallowed; synced
+  with `origin/launch-prep` TWICE, because it moved under the lane mid-handoff: `f394e8db` merged `e486afc8`
+  (`app-pricing`) and `fc842266` merged `f863bc23` (`pricing-page`). Branch tip is this manifest's commit.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok · specimen collector ok (123
+  components, 733 contracts, 18 policies) · `pnpm typecheck` ok · `pnpm lint` ok (the 8 known warnings, 0 errors) ·
+  `pnpm test` ok (2,521 in 241 files) · `pnpm build` ok (254 static pages) · `pnpm lab:smoke --base
+  http://localhost:3135` ok (341 checks, 0 failing; first-event reads 464 words of a 1,200 budget) ·
+  `pnpm lab:demo --board first-event` ok (8 steps, 0 failing; every step draws its options, tallest 1.6 screens).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `src/app/(dev)/design/sandbox/first-event/`
+  (7 files, the owned path) + the three registration exceptions (`sandbox/registry.ts`, `(shell)/lab/boards.ts`,
+  `touchpoints.ts`: one line each at the head of BOARDS, BOARD_COMPONENTS, both unions, and one RULINGS row right
+  after `river-visual`'s) + `docs/design/library.md` as `pnpm design:rules` wrote it + this file.
+- ★ THE MERGE TRAP, for the next lane: the RULINGS conflict hunk SPANS A ROW BOUNDARY, because this lane's row and
+  the other lane's row share the same four closing lines. Keeping "both sides' added lines" literally drops them
+  and the array never closes (it cost this lane two commits). Put `],\n},\n},\n{` back between the two sides.
+- The decisions, one line each (`<id>: the question; the options; the recommendation`):
+  - `asks`: what should creating an event ask for? three fields as today / one field, the name / no field, a name
+    from the day · RECOMMEND **one**.
+  - `style` (after `asks`): where should the code's style be chosen? a wizard step against a dead link as today /
+    on the real code once it exists / out of the flow, Classic until asked · RECOMMEND **after**.
+  - `limit` (after `asks`): what should a Free host at their one event meet? created then refused as today /
+    refused before the form opens / the form opens and says so, both exits in it · RECOMMEND **inplace**.
+  - `venue`: how should the code get from the screen to the venue? two files and a link as today / stock the app
+    prints, cards, a sign, a poster / send it to yourself · RECOMMEND **sheet**.
+  - `landing` (after `venue`): where should a host land the moment the event exists? straight into the event / a
+    beat of its own, then the event / the dashboard, the new event lit · RECOMMEND **beat**.
+  - `hand` (after `venue`, drawn at 375 only): what should a host hold out to a guest at the door? the share
+    dialog as today, 200 px / the code alone, full screen, full brightness, 343 px / the phone becomes the table
+    card, 264 px · RECOMMEND **show**.
+  - `empty`: what should an event's page say before any photograph? No uploads yet as today / a launch list of
+    what is left / the code, full size, in the album's room · RECOMMEND **list**.
+  - `first` (after `empty`): what should mark a guest's first photograph? nothing until she reloads as today / it
+    lands while she is looking / the app goes and finds her, drawn as the message · RECOMMEND **live**.
+- Mobbin citations: none (it was consulted for nothing this round; the options came from the shipped surfaces and
+  from the seams in the Orchestrator's map).
+- Captures: 48 PNGs, every option at 1440 and at 375, at
+  `/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/first-event-captures/`.
+  Reading them against their own words caught seven real defects, all fixed before the handoff: the style step's
+  four codes reported as "no code on the screen" (the shipped picker renders its own `StyledQr`, so the
+  measurement now reaches it by a wrapper); the print sheet's scaled paper mocks flagged as failing a scan floor
+  written for screens; the toast drawn halfway up a 1440 page and landing on the empty card at 375; the in-place
+  refusal still drawing a form in the world where the first question had removed every field; the empty event
+  drawing the code twice, 232 in the header and 420 in the album; the first photograph drawn with four faint
+  future ones behind it, which is five photographs on the step asking about the first; and the message option
+  drawn under the event's own header, quietly saying she was at her laptop the whole time.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `venue` (the app has no paper at all and the marketing site sells three pieces of it), then
+  `hand` at 375, where the three options are 200, 343 and 264 px of code and the caption under each says what a
+  module ends up being.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of a host's first event asked eight decisions in
+three beats, staged so three openers depended on nothing and five questions waited on them: what creating asks
+for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table,
+where a new host lands, what she holds out at the door, what the page says before the first photograph, and what
+marks it when it comes. Every option was drawn on the real create card, the shipped preset picker and real code
+plates over one first-time host at 1440 and 375, with nothing able to write a row, and every caption reported the
+code's module edge read off the frame against the 3 px floor the river's plate enforces. That measurement found
+the product's own miss (the preset swatches sit at 2.3 px a module, under the floor) and the capture pass found
+seven defects in the board itself, all fixed before the handoff.
