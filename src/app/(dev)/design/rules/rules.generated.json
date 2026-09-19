@@ -2170,6 +2170,7 @@
       "id": "feature-door",
       "file": "src/components/marketing/sections/features/shared/feature-door.tsx",
       "names": [
+        "CARD_COPY_SCRIM",
         "FeatureDoor"
       ],
       "specimens": [
@@ -2200,6 +2201,94 @@
           ],
           "file": "src/components/marketing/sections/features/shared/feature-door.test.ts",
           "line": 64
+        },
+        {
+          "title": "never renders a module under the screen-scanning floor",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "takes the floor from the VALUE, so a longer link makes a bigger plate",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "carries the floor into the CSS, not only into the arithmetic",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "draws the quiet zone inside the box, which is what the arithmetic assumes",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 113
+        },
+        {
+          "title": "is decorative, unlinked and unreachable by a keyboard",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 125
+        },
+        {
+          "title": "is one code and one code only",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "puts the birth point between the plate's edges at every shape",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "keeps the whole plate inside the door, however short the door is",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "is manifest photographs, one card each, every one cropped on purpose",
+          "suite": [
+            "the pack the door pours"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "paints the code over both scrims, with the flow between them",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 186
+        },
+        {
+          "title": "points the code at the demo rather than at the page it is already on",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 200
         }
       ]
     },
@@ -5155,6 +5244,213 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "qr-door-frames",
+      "file": "src/components/shared/river/qr-door-frames.ts",
+      "names": [
+        "QR_DOOR_FRAMES",
+        "QR_DOOR_SIZES"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "never renders a module under the screen-scanning floor",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "takes the floor from the VALUE, so a longer link makes a bigger plate",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "carries the floor into the CSS, not only into the arithmetic",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "draws the quiet zone inside the box, which is what the arithmetic assumes",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 113
+        },
+        {
+          "title": "is decorative, unlinked and unreachable by a keyboard",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 125
+        },
+        {
+          "title": "is one code and one code only",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "puts the birth point between the plate's edges at every shape",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "keeps the whole plate inside the door, however short the door is",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "is manifest photographs, one card each, every one cropped on purpose",
+          "suite": [
+            "the pack the door pours"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "paints the code over both scrims, with the flow between them",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 186
+        },
+        {
+          "title": "points the code at the demo rather than at the page it is already on",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 200
+        }
+      ]
+    },
+    {
+      "id": "qr-plate",
+      "file": "src/components/shared/river/qr-plate.tsx",
+      "names": [
+        "QR_CODE_SHARE",
+        "QR_MODULE_FLOOR_PX",
+        "QR_PLATE_PAD_SHARE",
+        "QR_PLATE_SHARE",
+        "QrRiverPlate"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "never renders a module under the screen-scanning floor",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "takes the floor from the VALUE, so a longer link makes a bigger plate",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "carries the floor into the CSS, not only into the arithmetic",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "draws the quiet zone inside the box, which is what the arithmetic assumes",
+          "suite": [
+            "the code stays scannable at every width, with nothing measured"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 113
+        },
+        {
+          "title": "is decorative, unlinked and unreachable by a keyboard",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 125
+        },
+        {
+          "title": "is one code and one code only",
+          "suite": [
+            "the plate is an object in a picture, never a second door"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "puts the birth point between the plate's edges at every shape",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "keeps the whole plate inside the door, however short the door is",
+          "suite": [
+            "the flow is born inside the object it pours out of"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "is manifest photographs, one card each, every one cropped on purpose",
+          "suite": [
+            "the pack the door pours"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "paints the code over both scrims, with the flow between them",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 186
+        },
+        {
+          "title": "points the code at the demo rather than at the page it is already on",
+          "suite": [
+            "the door's layers"
+          ],
+          "file": "src/components/shared/river/qr-plate.test.tsx",
+          "line": 200
+        }
+      ]
     },
     {
       "id": "river-engine",

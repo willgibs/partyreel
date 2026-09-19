@@ -91,10 +91,8 @@ export type SandboxId =
   | "voice"
   | "privacy-hero"
   | "album-page"
-  | "river-card"
   | "gallery-width"
-  | "album-hero"
-  | "river-visual";
+  | "album-hero";
 
 export type Ruling = {
   id: RulingId;
@@ -607,27 +605,26 @@ export const RULINGS: Ruling[] = [
       variants: ["The orbit", "The field, calmed", "The shelf", "The arrival"],
     },
   },
+  // RULED AND RETIRED (round two, 2026-09-18, wired 2026-09-19). Its home is a
+  // CARD, not a section: the flow pours out of the real scannable code in the
+  // QR feature door, and the ghost of it stands on the guest album's empty
+  // state. The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-visual",
     title: "The river, a feature visual",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-15: the river, killed as a hero, streamlined to one flow and kept in the bank)",
-    shipped: null,
-    why: "The river as a section-scale feature visual: one stream dropping out of the code, at three sizes on cinema and paper, banked with its placements, props and cost.",
+    ruled: "2026-09-18 (round two)",
+    shipped:
+      "The river in a card's picture slot, born from the real scannable code, and ghosted on the guest album's empty state",
+    why: "The river's home is a card, not a section: one flow out of the object it is born from, at full luminance everywhere but the empty album, where the PLACEMENT fades it.",
     lives: [
-      "src/components/marketing/system/section-shell.tsx",
-      "src/lib/constants/feature-pages.ts",
+      "src/components/shared/river/river.tsx",
+      "src/components/shared/river/river-engine.ts",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/marketing/sections/features/shared/feature-door.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
-    board: {
-      note: "The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost",
-      variants: [
-        "560, the column",
-        "400, the card",
-        "240, the thumbnail",
-        "The placements",
-      ],
-    },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
   // (full-quality, the plate, the band with its rail, the slide, the rhythm as
@@ -719,27 +716,27 @@ export const RULINGS: Ruling[] = [
       tracks: ["heroes"],
     },
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered every step and
+  // added the ruling that outranks this instance: the card's copy gradient is
+  // the CARD's, "not exclusive to the QR code card, nor part of the river
+  // visual design itself", so it went to every media-forward card on the site.
+  // The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-card",
     title: "The river in the QR door",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: the river goes into the card, the code in it with no label, as an Easter egg, run through its own exploration)",
-    shipped: null,
-    why: "The river in the real QR feature door, in both of its shapes: where the code sits, where the photographs end, what the code opens and what the short door does.",
+    ruled: "2026-09-19",
+    shipped:
+      "The code at a tenth of the tall door with the whole card streaming behind the copy, the card's own bottom-left gradient on every door, and /demo as what the code opens",
+    why: "The QR door's picture is the album pouring out of a real scannable code, and the copy over it reads on a gradient that belongs to the card rather than to any one visual.",
     lives: [
+      "docs/systems/design-system.md#the-media-forward-card",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/features/shared/related-features.tsx",
+      "src/components/marketing/sections/home/event-type-card.tsx",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/app/demo/route.ts",
     ],
-    board: {
-      note: "Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door",
-      variants: [
-        "Where the code sits",
-        "Where the photographs end",
-        "What the code opens",
-        "The short door",
-      ],
-    },
   },
   {
     id: "gallery-width",

@@ -3,15 +3,23 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { StyledQr } from "@/components/app/styled-qr";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import {
+  QR_DOOR_FRAMES,
+  QR_DOOR_SIZES,
+} from "@/components/shared/river/qr-door-frames";
+import {
+  qrRiverOrigin,
+  QrRiverPlate,
+} from "@/components/shared/river/qr-plate";
+import { River } from "@/components/shared/river/river";
 import { featurePage } from "@/lib/constants/feature-pages";
 import {
   marketingImage,
   MARKETING_REELS,
 } from "@/lib/constants/marketing-media";
 import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
-import { resolveQrPreset } from "@/lib/constants/qr-presets";
+import { SITE_URL } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,19 +35,20 @@ import { cn } from "@/lib/utils";
  * Each door carries a SIGNATURE: the feature's own photograph plus the small
  * chip its surface actually draws (the live dot, the approved check, the name
  * chip, the lock, the play badge), so the six doors read as six different
- * rooms rather than six crops of the same album. The QR door is the one
- * non-photograph on purpose: a code is a made object, not a moment, and it
- * renders through the real app renderer on its own white plate, the way the
- * events hub leads conferences with a badge fan instead of a borrowed venue.
- * The old hub used hand-drawn motifs on bare cards for the same "seven
- * identical rectangles" problem; photographs solve it at the size a door
- * deserves, and the motif code went with them.
+ * rooms rather than six crops of the same album. The QR door is the one that
+ * is not a still: the album pours out of a real scannable code standing on
+ * ink (Will's `code=in`, `place=tenth`, `fall=behind`, 2026-09-19), which is
+ * the card visual he called the first truly beautiful one. The old hub used
+ * hand-drawn motifs on bare cards for the same "seven identical rectangles"
+ * problem; photographs solve it at the size a door deserves, and the motif
+ * code went with them.
  *
  * ★ NO LAMP HERE, BY RULING (the event cards' lesson): a row of lit doors is
  * the every-section-gets-a-version failure. The photograph is the colour.
  * ★ NO TILT, NO GLARE (Will). The press affordance stays.
  *
- * Presentational and server-safe (no hooks); StyledQr is the one client leaf.
+ * Presentational and server-safe (no hooks); the river is the one client leaf,
+ * and the code beside it is server-rendered with no JS at all (qr-plate.tsx).
  */
 
 type Aspect = "portrait" | "landscape" | "wide";
@@ -51,6 +60,55 @@ const ASPECT: Record<Aspect, string> = {
   landscape: "aspect-3/2",
   /** 21/9: the hub's full-width lead. */
   wide: "aspect-[16/9] sm:aspect-[21/9]",
+};
+
+/** The same shapes as numbers, for the one visual whose arithmetic needs the
+ *  box: the QR door's river. `wide` is its >=640 ratio, and the QR door is 4:5
+ *  everywhere it ships (Will's `short=tall`), so the pair never disagree where
+ *  it matters. */
+const RATIO: Record<Aspect, number> = {
+  portrait: 5 / 4,
+  landscape: 2 / 3,
+  wide: 9 / 21,
+};
+
+/**
+ * ★ THE MEDIA-FORWARD CARD'S OWN COPY GRADIENT, ruled on river-card round one
+ * and deliberately NOT part of any visual (Will, 2026-09-19): "A subtle dark
+ * gradient overlay from the bottom left to allow the text in the card to be
+ * slightly more visible... This would stack on top of the existing gradient
+ * that fades the photo out, more custom to the cards themselves for more
+ * distinction between the card copy and its visual. The river has a gradient
+ * overlay to fade it out for its own visual, then the card would have its own
+ * from its text, being treated separately so the card's applies to all
+ * features & visual pairings." And: "Not exclusive to the QR code card, nor
+ * part of the river visual design itself, which keeps its own overlay fade as
+ * well."
+ *
+ * So it is ONE string with ONE home, worn by every door here and by the home's
+ * event-type cards, and it replaces the straight bottom-up ramp both used to
+ * carry. Two layers, because "bottom left" is two facts: a band that gives the
+ * whole copy row its ground, and a bloom in the corner the copy starts from.
+ * Their alphas compose (1 - (1-a)(1-b)), so the corner is the darkest point of
+ * the card and the bottom RIGHT, where no copy ever reaches, keeps more of its
+ * photograph than it did before -- which is the distinction he asked for.
+ *
+ * ★ MEASURED, NOT ASSUMED, on every door's real visual at 1440 and 375 (the
+ * event cards' own note is the precedent: the ramp was re-cut twice against
+ * per-pixel readings, and the conference still sits a hair under AA on
+ * purpose, because a third darkening buries every card to serve one image).
+ * An inline style rather than an arbitrary class: one constant in one place
+ * beats the same forty-character gradient spelled twice, and a class this long
+ * is what `pnpm format` mangles.
+ */
+export const CARD_COPY_SCRIM: CSSProperties = {
+  backgroundImage: [
+    // The band: the copy row's ground, gone by the middle of the card.
+    "linear-gradient(to top, oklch(0 0 0 / 0.72) 0%, oklch(0 0 0 / 0.34) 18%, oklch(0 0 0 / 0.08) 38%, transparent 55%)",
+    // The corner: an ellipse springing from the bottom-left, wide enough to
+    // carry a title and a two-row line and spent well before the right edge.
+    "radial-gradient(92% 62% at 0% 100%, oklch(0 0 0 / 0.55) 0%, oklch(0 0 0 / 0.3) 34%, oklch(0 0 0 / 0.1) 62%, transparent 85%)",
+  ].join(", "),
 };
 
 /** One small chip in the app's own tile-chip register (white on a dark wash). */
@@ -132,26 +190,16 @@ function formatDuration(seconds: number): string {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
-/** The QR door's art: the real renderer on a white plate, on ink. A short
- *  value on purpose (the preset switcher's lesson): a full event URL packs
- *  ~33 modules into ~100px and reads as a grey square. Rendered ABOVE the
- *  scrims (it is white on ink, and a scrim over a white plate greys it into
- *  exactly the square the short value avoids), in the upper part of the card
- *  so the copy block below never overlaps it. */
-function QrPlateArt() {
-  return (
-    <span className="absolute inset-x-0 top-0 bottom-[34%] z-10 flex items-center justify-center">
-      <span className="w-fit rounded-lg bg-white p-2.5 ring-1 ring-white/8 transition-transform duration-500 ease-emphasis group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-3">
-        <StyledQr
-          value="https://partyreel.com"
-          size={132}
-          style={resolveQrPreset("classic")}
-          className="w-[clamp(84px,34%,132px)] [&>svg]:h-auto [&>svg]:w-full"
-        />
-      </span>
-    </span>
-  );
-}
+/**
+ * ★ WHAT THE QR DOOR'S CODE OPENS (Will's `opens=short`, 2026-09-19): a short
+ * link to the live demo event, at the smallest code that scans. The value is
+ * the whole size argument — `/demo` is 25 modules and a 99 px floor, the demo
+ * event's own link is 33 and 123 — and the redirect that carries it is
+ * `src/app/demo/route.ts`, resolved at request time because the demo's token
+ * is a runtime env var. Never the apex again: a code that opens the page the
+ * reader is already on is an Easter egg with nothing inside it.
+ */
+const QR_DOOR_VALUE = `${SITE_URL}/demo`;
 
 /** The QR door's ground: ink, under the shared scrims. */
 function InkGround() {
@@ -254,20 +302,45 @@ export function FeatureDoor({
 
         {/* Rest scrim -> hover scrim. 180ms out is the ratified hover
             asymmetry: a card is skimmed, not studied. Bottom-weighted so the
-            copy's ground is the darkest part of the frame. */}
+            copy's ground is the darkest part of the frame. This is THE
+            VISUAL'S OWN FADE, the one the card's gradient stacks over. */}
         <span
           aria-hidden
           className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-70 motion-reduce:transition-none"
         />
-        {/* The copy scrim, measured on the event cards (85% / 60%): ink
-            behind the copy block only, so the photograph above stays bright.
-            This one does not lift. */}
+
+        {/* ★ THE RIVER, BETWEEN THE TWO SCRIMS (Will's `fall=behind`,
+            2026-09-19: "The whole door streams, like the photographs beside
+            it; the words read over moving pictures, under the shade the event
+            cards were measured with"). The layer is the whole point: under
+            BOTH scrims the rest scrim is 40 percent black by the door's middle
+            and every photograph goes to mud; above both, the copy keeps bare
+            ink and the flow stops before the words. Here it runs on behind the
+            copy under the card's own gradient alone. The wrapper takes the
+            door's box, so the flow's own aspect-ratio box lands on it exactly
+            and every length inside stays a fraction of the door. */}
+        {!art && (
+          <div aria-hidden className="absolute inset-0">
+            <River
+              className="rvr-ink"
+              frames={QR_DOOR_FRAMES}
+              ratio={RATIO[aspect]}
+              origin={qrRiverOrigin(RATIO[aspect])}
+              sizes={QR_DOOR_SIZES}
+            />
+          </div>
+        )}
+
+        {/* THE CARD'S OWN COPY GRADIENT. It does not lift on hover. */}
         <span
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-black/85 to-transparent"
+          className="absolute inset-0"
+          style={CARD_COPY_SCRIM}
         />
 
-        {!art && <QrPlateArt />}
+        {/* The code, over everything: a scrim across a white plate greys it
+            into the square a short value exists to avoid. */}
+        {!art && <QrRiverPlate ratio={RATIO[aspect]} value={QR_DOOR_VALUE} />}
 
         {/* The signature chip, where the app draws its tile chips. Decorative:
             hidden from the link's accessible name, which stays the door's
