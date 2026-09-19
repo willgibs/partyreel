@@ -1,6 +1,6 @@
 ---
 track: help-center
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d909cb13"          # the launch-prep SHA the branch was cut from
 board: help-center      # round one: where a host or a guest with a problem lands
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -105,26 +105,78 @@ the copy is open (bible 21). Mobbin is encouraged, never required: help centres,
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The optional eighth decision (THE PHONE) was not asked.** The board read at 370/1200 words with room to spare, but
+  the emblem strip's snap-scrolling shape does not change under any of the seven answers, so a eighth ask would have
+  been a decision about nothing this round changed. Recommended: skip it; revisit only if a later round touches the
+  strip itself.
+- **WHO FIRST asks three of the manifest's four suggested shapes, not four.** "A guest first, unconditionally" was
+  folded out: it is subsumed by `context`, which already opens guest-voiced on the one surface a guest actually
+  meets (a phone, seconds after a scan) without a fourth tile repeating the same picture. Recommended: keep it
+  folded; a plain always-guest-voiced hero is a strictly weaker version of the device-implied one.
+- **FEEDBACK's recommended `beacon` needs a new table and an admin read**, not proposed as a migration this round
+  (lab-only). Recommended: small cost (one insert, one small table, a per-article count somewhere in `/admin`); land
+  it with the wiring round.
+- **ARTICLE's recommended `screen` is a standing content cost**, not a one-time change: every how-to that adopts it
+  wants a maintained illustration per step, and today's fixture only proves the idea on one guest article's three
+  steps. Recommended: land the machinery on the lane most helped by it first (setup, QR, sharing) per the option's
+  own overrule, and leave troubleshooting on prose.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none yet (a lab-only round; nothing shipped that a system doc's facts would need to track)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Help content: no help article emits `FAQPage` JSON-LD though every one is a clean question-and-answer pair (bucket:
+  SEO / content, named by the manifest's own goal regardless of which decision won).
+- Help content: the audience default (host, unless `guest-experience` or `troubleshooting`) guesses wrong more often
+  than right in two categories per the tree at the cut; worth a per-article pass (bucket: content quality).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board help-center` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Head `dae53ff9`, pushed; synced with launch-prep at `9f976f7c` (fast-forward, `docs/tracks/orchestrator.md` only,
+  no conflict)
+- Gates on the synced tree: typecheck ok, lint ok (the 8 known warnings, 0 new), test ok (2533), build ok (254
+  pages); `pnpm design:rules` regenerated `docs/design/library.md`; `pnpm lab:smoke --base http://localhost:3136` ok
+  (372 checks, 0 failing, help-center 370/1200 words); `pnpm lab:demo --board help-center --base
+  http://localhost:3136` ok (7 steps, 0 failing, no CLIPPED, no UNLABELLED, no NO DOCK, no same-picture pairs)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/help-center/*` (owned)
+  + the registration exception (`sandbox/registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts`) + `docs/design/library.md`
+  (generated, `pnpm design:rules`) + this manifest; nothing else
+- The decisions, one line each:
+  - `who-first`: who the hub's hero greets first; the host as today, two doors side by side, or the device implies
+    it; recommended **the device implies it** (a phone opens guest-voiced, a laptop host-voiced, no toggle)
+  - `hub`: whether the full index sheet survives below the hero; as today, a few doors with the sheet gone, or doors
+    then the sheet; recommended **doors, then the sheet** (a lighter first screen, the real index kept lower)
+  - `article`: whether a how-to leans on prose, a checklist, or the real screen beside each step; recommended **the
+    real screen beside each step** (closes the gap between a quoted control and the screen it lives on)
+  - `from-product`: how a guest reaches help from inside the product; nothing as today, a Help entry in the guest's
+    menu, or a link at the moment of trouble; recommended **a link at the moment of trouble** (a failed tile or a
+    wrong password carries its own link to the matching fix)
+  - `feedback`: whether "Did this answer your question?" goes anywhere; ephemeral as today, a counted beacon, or
+    routed and logged; recommended **a counted beacon** (cheap enough to ship without turning every miss into a
+    ticket)
+  - `dead-end`: what a troubleshooting article does with no bigger picture to point to; nothing as today, the
+    Contact band made explicit, or a rung of its own; recommended **a rung of its own** (the calm version of the
+    same act, one article away)
+  - `search`: how far the help search palette reaches; local as today, sitewide, or a visible trigger kept local;
+    recommended **a visible trigger, kept local** (the footer's Resources column and the header panel each gain a
+    plain Search row; the provider stays where its index is actually complete)
+- Assets requested from Will: none. The `article.screen` option's three step illustrations are hand-built from real
+  primitives (`Button`, `CategoryEmblem`) rather than requested art; a wiring round that adopts it is the point to ask
+  for real per-step screenshots of the shipped surfaces.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: `who-first` (it stages `hub`, and the device-implied recommendation is the round's least expected
+  answer), then `article` (the screen option is the one bible-backed by the how-tos-track-shipped-reality rule)
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round one of `help-center` asked seven decisions on the real help
+pieces (`PageHero`, the category emblems, the index sheet, `ChipToc`/`ArticleToc`, `Checklist`, `ArticleFeedback`,
+`ReportDialog`, the search palette) with hand-authored fixture bodies for three real articles, at 1440 and 375:
+who the hub greets first (recommended: the device implies it), whether the index sheet survives (doors, then the
+sheet), whether a how-to shows the real screen beside each step (yes), how a guest reaches help from the product (a
+link at the moment of trouble), whether feedback is recorded (a counted beacon), troubleshooting's dead end (a rung
+of its own), and search's reach (a visible trigger, kept local). Two clipping bugs (`hub.hybrid`, `article.screen`)
+were found and fixed by measuring real rendered iframe heights rather than guessing them. Two ROADMAP one-liners
+carried to Deferred: the missing `FAQPage` JSON-LD and the audience-default miss rate.
