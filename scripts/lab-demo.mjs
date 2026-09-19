@@ -108,16 +108,25 @@ const onlyBoard = opt("--board", "");
 const onlyStep = opt("--only", "");
 const threshold = Number(opt("--threshold", 0.1));
 /**
- * THE SETTLE IS A CEILING NOW, NOT A WAIT (lab-tides, 2026-09-19). It used to
- * be a flat 1,600 ms sleep before every capture, which is both too long for a
- * stage that is already drawn and too short for one whose frames are still
- * fetching photographs: `guest-shape` reported three different "same picture"
- * pairs across four runs on a board whose frames load photographs and a
- * dynamically imported QR. The capture now waits for the frames' own images,
- * their fonts, and then for the view to stop mutating, and `--settle` is the
- * longest it may spend doing so.
+ * THE SETTLE IS A FLOOR, AND THE READINESS CHECK RUNS PAST IT (lab-tides,
+ * 2026-09-19).
+ *
+ * It used to be a flat 1,600 ms sleep, which is not enough for a stage whose
+ * frames are still fetching photographs: `guest-shape` reported three different
+ * "same picture" pairs across four runs on a board whose frames load
+ * photographs and a dynamically imported QR. So the capture now also waits for
+ * the frames' own images, their fonts and the view to stop mutating.
+ *
+ * ★ BUT IT NEVER CAPTURES EARLIER THAN IT USED TO, and that is a correction to
+ * this same change: waiting only for readiness captured a stage 1.3 s sooner,
+ * and `host-curation.undo` (whose options differ by an undo toast that arrives
+ * after the press) went from 1.50% to a FROZEN 0.00%. A capture that is too
+ * early is the same lie as a capture that is too late. `--settle` is the floor
+ * every capture still waits out, and `--settle-max` is the ceiling readiness
+ * may push it to.
  */
 const settle = Number(opt("--settle", 1600));
+const settleMax = Number(opt("--settle-max", settle * 4));
 /** How long a view must be still (no DOM mutations) before it is captured. */
 const quiet = Number(opt("--quiet", 250));
 /**
@@ -425,7 +434,10 @@ async function stageShot(ws, id) {
         document.head.appendChild(hide);
       }
       s.scrollIntoView({ block: 'start' });
-      const until = Date.now() + ${settle};
+      // The floor every capture waits out, and the ceiling readiness may push
+      // it to. Nothing is ever captured before the floor.
+      const floor = Date.now() + ${settle};
+      const until = Date.now() + ${settleMax};
       const nap = (ms) => new Promise((r) => setTimeout(r, ms));
       const docsOf = () => {
         const out = [document];
@@ -465,7 +477,8 @@ async function stageShot(ws, id) {
       // 3. ★ AND THEN STILLNESS, which is the honest end of a settle: a
       //    dynamically imported QR mounts long after load and nothing about a
       //    document says it is coming. The view is captured once it has stopped
-      //    MUTATING for the quiet window, or when the ceiling is reached.
+      //    MUTATING for the quiet window, or when the ceiling is reached. The
+      //    floor below still applies: quiet is not the same as arrived.
       await new Promise((resolve) => {
         let timer = 0;
         const observers = [];
@@ -489,6 +502,8 @@ async function stageShot(ws, id) {
         observers.push({ disconnect: () => clearTimeout(cap) });
         rest();
       });
+      // 4. And never sooner than the flat settle this replaced.
+      if (Date.now() < floor) await nap(floor - Date.now());
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       // The evidence is the frame when there is one: a label over it names
       // the option and would move on a frozen stage too.
