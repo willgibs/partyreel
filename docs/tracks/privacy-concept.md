@@ -62,7 +62,7 @@ join is expected. Mobbin (the MCP) is encouraged, never required: privacy and tr
 
 ## Handoff (replaces the chat report)
 
-- Head `f1d04be18ba2b18c9a989df65d95f1914ce065df`, pushed; synced with `origin/launch-prep` at
+- Head `7c1fce996dba7a2415da5c4a25495d53017da8e0`, pushed; synced with `origin/launch-prep` at
   `89548cbb` (the trail-wiring and app-vocabulary merge): two content conflicts (`board.tsx`, `hero.tsx`,
   both-modified: kept round three's `concepts-layer` imports, dropped the incoming one-line repoint of the
   now-deleted `../image-trail/trail-layer` import) and one modify/delete (`paths.ts`: kept the deletion).
@@ -75,7 +75,9 @@ join is expected. Mobbin (the MCP) is encouraged, never required: privacy and tr
   failing; `privacy-hero` reads at 216 of the 1,200-word budget) · `pnpm lab:demo --base
   http://localhost:3133 --board privacy-hero` ok (1 step, 0 failing: `privacy-hero.concept` draws 2.6
   screens at 182 words, 3 options, the stage moves by up to 28.31 percent between them; no CLIPPED,
-  UNLABELLED or NO DOCK).
+  UNLABELLED or NO DOCK). `pnpm format`'s changed-file detection saw nothing (it diffs against
+  uncommitted work, and everything was already committed by the time it ran); `prettier --check` on the
+  same file set caught real drift on five files and `--write` fixed it directly, gate re-verified after.
 - Lane check (`git diff --name-only origin/launch-prep...HEAD`): every line is under `owns` except
   `touchpoints.ts` (the one permitted registration file, `ruled`/`why` only, exactly as scoped) —
   `sandbox/privacy-hero/{board.tsx, concepts-layer.tsx, concepts.css, concepts.test.ts, concepts.ts,
