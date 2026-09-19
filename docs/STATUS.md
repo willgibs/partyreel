@@ -48,7 +48,7 @@ album hero's round three went "too boring" that way).
 | `guest-upload` | the moment a guest adds a photograph: the tap, sending, held, failed, the batch, the landing, the warning, the words; eight decisions on the shipped guest components over one wedding, phone first | integrated at `1649506c`; on the desk; four questions his (in the CHANGELOG); the batch step's measured numbers are its own argument |
 | `demo-event` | the demo as the product's first impression: the arrival, the framing, the upload as the moment, the way out, what a door promises, the phone scanned off the laptop, how many parties; seven decisions on the shipped demo page, laptop first | integrated at `e3a2c1b6`; on the desk; three questions carried on their recommendations (in the CHANGELOG); one conditional asset (two more curated albums only if the demo becomes three parties) |
 | `media-viewer` | what a photograph opens as when a guest or a host taps a tile: the opening, what it holds, who, next, close up, video, the way out, a link; phone first | cut at `d909cb13` (2026-09-19, the overnight round), on the seat |
-| `reel-studio` | the highlight reel from the studio to a guest's hands: the door, the room, the styles, the moments, a blocked tile, sharing, the wait, how a guest watches; on local replicas, never the portal | cut at `d909cb13`, on the seat |
+| `reel-studio` | the highlight reel from the studio to a guest's hands: the door, the room, the styles, the moments, a blocked tile, sharing, the wait, how a guest watches; eight decisions on local replicas, never the portal | integrated at `d10149bd`; on the desk; four calls carried on their recommendations (in the CHANGELOG); five ROADMAP Now lines (the dead rail, the cap copied four times, the poster card's width, a stale doc line, the cover strip's shape) |
 | `host-curation` | the host's act of reviewing what guests send: the queue, the verb, the peek, keys, undo, new arrivals, the count, whether a refused guest is told; eight decisions on the shipped review surface | integrated at `ff09a50f`; on the desk; five calls carried on their recommendations (in the CHANGELOG); a shipped bug on the ROADMAP's Now list (the hidden-media dim has never rendered) |
 | `admin-triage` | the operator's act on a report inside the admin board's shape: first look, no reason, the verdict, escalate, one idiom for four inboxes, resolved, the phone, the notice | cut at `d909cb13`, on the seat |
 | `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's | cut at `d909cb13`, on the seat |
@@ -60,7 +60,7 @@ album hero's round three went "too boring" that way).
 
 His stepped sitting turned picks into working versions the same day (Graphite, the streaming hero, ladder B, the Aurora,
 the shadows and the bright edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `defineExploration`
-and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
+and `lab:demo`. Its record is in git (`git show 449d9b52:docs/CHANGELOG.md`, "The wind-down").
 
 ## Live state
 
