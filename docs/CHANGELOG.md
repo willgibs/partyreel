@@ -136,8 +136,9 @@ and relayed here for his morning. The records follow in the order the lanes hand
   ROADMAP lines (no root `error.tsx`; the group 404s' fixed 60 vh box; the stale "may have ended" line deleted).
 
 **Next.** The round is closed: twelve boards on the desk for his sitting, every seat free, zero questions asked of him
-mid-lane (every call carried on its lane's recommendation and listed above). Then the alias rebuilt when Vercel's window
-frees, the prune, the red-team of the wiring lanes' surfaces on the alias, and his batches.
+mid-lane (every call carried on its lane's recommendation and listed above). The alias serves the closing record (`5910d489`; the
+window freed on its own), seven deployments pruned, the wiring lanes' surfaces red-teamed on it signed out and clean (the
+signed-in half waits on his account chooser); then his batches.
 
 ## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
 

@@ -71,10 +71,12 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
   `353ad884`); `launch-prep` is ahead by the overnight round's records. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
-  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock;
-  Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
+  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `5910d489`, the overnight
+  round's closing record (the cap freed on its own by 06:00 UTC; the 89548cbb hold lasted a day); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
   100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
-  day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration.
+  day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
+  red-teamed on it signed out on 2026-09-19 (the album page, the QR door, `/demo`, the guest album at 1280 / 1512 / 1920 / 375,
+  the root 404): clean; the signed-in half (the host event page, the guest album as the host) waits on Will's account chooser.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 2,530 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
   `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.
