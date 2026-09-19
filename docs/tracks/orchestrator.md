@@ -115,7 +115,7 @@ retired `type-phone`; both agents were told so by message.
 | `river-wiring` | cut the same night: the river in the QR door at `tenth`, `behind`, `/demo` at 99 px, tall closing rows, every card's own copy gradient; river-card and river-visual retire | building | Opus, :3132 | everything |
 | `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
 | `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |
-| `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
+| `app-shape` | integrated at `aa338766` (handed off `18c9afda`; the registration conflicts resolved by the Orchestrator, retired boards kept gone) | done | Opus, :3135 | nothing |
 | `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
 | `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
 | `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |

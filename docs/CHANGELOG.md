@@ -74,13 +74,9 @@ never a cap and a test.
   (the admin chart's cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces).
   Found on the way and fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted by
   `@theme inline`, so a series read by name painted black; the aliases are `@theme static` now.
-- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
-  word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
-  the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
-  floating layer, the three voice picks and the river on the empty album; the lab gated (404 without a key).
-  Stripe stays TEST; no launch switch flipped. The verification pass on partyreel.com is recorded below the
-  merge in git.
-
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word,
+  1,138 commits: Graphite, the type and corner ladders, the Aurora with shadows by role, the home hero's band and
+  the v1 wordmark, Card's floating layer, the three voice picks and the river on the empty album; the lab gated.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
   admin components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list recommended),
   the nav (a rail plus a command palette), density (a table with a reading pane), state colour (the chip),
@@ -103,15 +99,12 @@ never a cap and a test.
   rate limiters report their failures (QA #19). The lane's cross-lane patch landed in the merge; the additive
   migration is applied with the advisor set unchanged; the Worker deployed the same night (`d7b16bcc`).
 - `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
-  retired. `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
-  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone and a still under reduced
-  motion; the engine and `PhotoSection` are production modules beside the river (two contracts, 48 tests, a Library
-  entry). His fold landed as one line: `live-demo` changed register, so chapter one closes on the photograph and the
-  paper chapter opens on the demo's stage, the order untouched (the merge into the album section was the other
-  reading; his to overrule). Measured: the copy at 5.12:1 over the worst photograph, zero animation frames at rest,
-  the switch compositor work; a zero-area IntersectionObserver that would have shipped the phone rule dead was
-  caught. Row 20's ask is amended to 1200 px delivered, since `next/image` never upscales and the delivered width
-  is the cap on what a full-bleed layer decodes.
+  retired: `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
+  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced
+  motion; the engine and `PhotoSection` production modules beside the river. His fold landed as one line
+  (`live-demo` changed register, so chapter one closes on the photograph and the paper chapter opens on the demo's
+  stage; his to overrule). The copy at 5.12:1 over the worst photograph, zero frames at rest; row 20's ask
+  amended to 1200 px delivered, since the delivered width is the cap on what a full-bleed layer decodes.
 - `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one
   rule in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at
   2 / 5 / 6 / 8 columns of 166 to 245 px at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at
@@ -129,6 +122,17 @@ never a cap and a test.
   the root 404 only (the two group 404s keep their strip; his to widen), `MissingFrameStrip` yielded there and
   stayed elsewhere, scripting off shows clean paper. `image-trail` retired; the privacy-hero board's imports were
   repointed at the production engine until its round three lands.
+- `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one
+  host's Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter`,
+  `EventFilterPills`, `FeedSectionHeader` and `MasonryColumns` at 1440 and 375 through one window knob: what the
+  home opens on (what needs you, recommended), how an event draws on it (a row with the cover behind), what an
+  event's page is (a front page with a door into each room), how seven routes are reached and the way back, where
+  sharing and settings live (on the event; a sheet beside it), where the plan and a host's own photographs live
+  (one place, You), the shape in a hand (a bar at the thumb). Every caption measured inside its frame (the
+  album-as-page gives the photographs 1400 px and six columns against today's 1216 and five; a rail costs a
+  column). Four questions carried on their recommendations: a host rarely runs more than three events and the
+  shape survives it; the bell is reserved, not built; the personal feeds survive under You; the home's heading is
+  placeholder copy for the voice board. The `admin` board's cousin, one seam deeper.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
