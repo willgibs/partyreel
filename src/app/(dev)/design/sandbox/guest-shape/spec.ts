@@ -200,7 +200,7 @@ const DRAFT = defineExploration({
           id: "bar",
           label: "One line over the album",
           means:
-            "The event on the left, the three actions at the album's right edge. A phone has no room for the row, so it keeps the stack.",
+            "At a laptop the event sits left and the three actions at the album's right edge; at a phone they are three equal buttons on one line.",
         },
         {
           id: "dock",

@@ -40,15 +40,24 @@ export const accountOf = (v: string | undefined): AccountShape =>
 export const momentOf = (v: string | undefined): MomentId =>
   v === "save" ? "save" : "gate";
 
-/** The sheet both moments are read on once `dialogs` promotes it. */
+/**
+ * The surface both moments are read on, WEARING THE ANSWER THIS DECISION WAITS
+ * ON: a centred float while the other surfaces are today's dialogs, the door's
+ * sheet once they are promoted. An inline panel is not offered here, because a
+ * gate is the one surface a guest may not scroll past.
+ */
+export type Shell = "dialog" | "sheet";
+
 function Surface({
   screen,
+  shell,
   children,
 }: {
   screen: ScreenId;
+  shell: Shell;
   children: ReactNode;
 }) {
-  if (screen === "1440")
+  if (shell === "dialog" || screen === "1440")
     return (
       <div className="gs-dialog" style={{ maxWidth: "24rem" }}>
         {children}
@@ -173,14 +182,16 @@ export function AccountMoment({
   shape,
   moment,
   screen,
+  shell,
 }: {
   shape: AccountShape;
   moment: MomentId;
   screen: ScreenId;
+  shell: Shell;
 }) {
   if (shape === "two")
     return (
-      <Surface screen={screen}>
+      <Surface screen={screen} shell={shell}>
         {moment === "gate" ? (
           <div className="pt-1">
             <EnterEventPrompt
@@ -196,13 +207,13 @@ export function AccountMoment({
 
   if (shape === "one")
     return (
-      <Surface screen={screen}>
+      <Surface screen={screen} shell={shell}>
         <OneVoice moment={moment} />
       </Surface>
     );
 
   return (
-    <Surface screen={screen}>
+    <Surface screen={screen} shell={shell}>
       {moment === "gate" ? <OneVoice moment="gate" /> : <SavedOffer />}
     </Surface>
   );

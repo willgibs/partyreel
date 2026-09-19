@@ -166,22 +166,34 @@ export function Door({
         data-gs-door
         className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background"
       >
+        {/* ★ ONE NAME PER SCREEN. The gate already carries the event name (and
+            on a locked page it is the only thing the server hands the page), so
+            the invitation's identity block appears only where there is no gate
+            to carry it. The first capture had "Maya & Jay's Wedding" twice on
+            one screen, forty pixels apart. */}
         <div
           className={cn(
-            "mx-auto flex w-full flex-1 flex-col gap-6 px-5 py-10",
-            screen === "1440" ? "max-w-md justify-center" : "max-w-sm",
+            "mx-auto flex w-full flex-1 flex-col justify-center gap-6 px-5 py-10",
+            screen === "1440" ? "max-w-md" : "max-w-sm",
           )}
         >
-          <Invitation fixture={fixture} />
-          <Promises count={f.count} />
           {gated ? (
-            <Gate fixture={fixture} />
+            <>
+              <Gate fixture={fixture} />
+              <div className="border-t border-border/60 pt-5">
+                <Promises count={f.count} />
+              </div>
+            </>
           ) : (
-            <Button size="lg" className="w-full text-[15px]">
-              View the album
-            </Button>
+            <>
+              <Invitation fixture={fixture} />
+              <Promises count={f.count} />
+              <Button size="lg" className="w-full text-[15px]">
+                View the album
+              </Button>
+            </>
           )}
-          <LegalConsentLine newTab className="mt-auto text-center" />
+          <LegalConsentLine newTab className="text-center" />
         </div>
       </div>
     );

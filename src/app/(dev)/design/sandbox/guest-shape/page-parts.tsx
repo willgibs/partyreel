@@ -61,6 +61,15 @@ export const screenOf = (v: string | undefined): ScreenId =>
 /** The page's gutter, the shipped one (`px-5` on the guest page). */
 const GUTTER = "px-5";
 
+/**
+ * ★ THE WORDS KEEP A READABLE COLUMN, THE PHOTOGRAPHS DO NOT. Half of the rule
+ * `gallery-width` landed on 2026-09-18: the album runs to the window's edges,
+ * and the name, the byline and the actions stay in today's 632px column on the
+ * album's left line. Without this a full-width Add is 1,400px of button at a
+ * laptop, which is an artefact of the board rather than the landed shape.
+ */
+const READABLE = "max-w-[632px]";
+
 /* ── the top bar ─────────────────────────────────────────────────────────── */
 
 /**
@@ -84,9 +93,6 @@ export function TopBar() {
 /* ── the event block ─────────────────────────────────────────────────────── */
 
 export type LiveShape = "none" | "line" | "land";
-
-export const liveOf = (v: string | undefined): LiveShape =>
-  v === "none" ? "none" : v === "line" ? "line" : "land";
 
 /**
  * The left-editorial header: the name, the byline, the count, the description.
@@ -191,12 +197,25 @@ export function ActionColumn() {
   );
 }
 
-/** The bar's row: the three actions at the album's right edge. */
+/**
+ * The bar's row: the three actions on one line.
+ *
+ * ★ A PHONE GETS ITS OWN ANSWER, NOT THE COLUMN'S. The first pass let 375 fall
+ * back to `ActionColumn`, and `lab:demo` reported the two options as the same
+ * picture at the board's default screen, which is exactly the "clicking the
+ * configs did not change anything" failure the demo exists to catch. A row at
+ * a phone is three equal buttons on one line: no full-width primary, and the
+ * album starts a row higher.
+ */
 export function ActionRow({ screen }: { screen: ScreenId }) {
   if (screen === "375")
-    // A phone has no room for a row beside the name, so the bar option keeps
-    // the column's own stack there and the decision is a laptop's alone.
-    return <ActionColumn />;
+    return (
+      <div data-gs-actions className="mt-4 flex items-center gap-2">
+        <SaveButton className="flex-1" />
+        <InviteButton className="flex-1" />
+        <AddButton className="h-9 flex-[1.4]" />
+      </div>
+    );
   return (
     <div data-gs-actions className="flex shrink-0 items-center gap-2">
       <SaveButton />
@@ -426,12 +445,10 @@ export function GuestPage({
           )}
         >
           {locked ? (
-            <>
+            <div className={wide ? READABLE : undefined}>
               <EventBlock fixture={fixture} />
-              <div className={wide ? "max-w-md" : undefined}>
-                <Nothing where="locked" shape={nothing} count={f.count} />
-              </div>
-            </>
+              <Nothing where="locked" shape={nothing} count={f.count} />
+            </div>
           ) : (
             <>
               {chrome === "bar" && wide ? (
@@ -440,13 +457,13 @@ export function GuestPage({
                   <ActionRow screen={screen} />
                 </div>
               ) : (
-                <>
+                <div className={wide ? READABLE : undefined}>
                   <EventBlock fixture={fixture} live={live} />
                   {chrome === "column" && <ActionColumn />}
                   {chrome === "bar" && <ActionRow screen={screen} />}
-                </>
+                </div>
               )}
-              {underActions}
+              <div className={wide ? READABLE : undefined}>{underActions}</div>
               <div className="mt-7">
                 {aboveAlbum}
                 {empty ? (

@@ -8,9 +8,15 @@ import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { AccountMoment, type AccountShape, momentOf } from "./account";
+import {
+  AccountMoment,
+  type AccountShape,
+  momentOf,
+  type Shell,
+} from "./account";
 import {
   DialogOverlay,
+  dialogOf,
   type DialogShape,
   InlinePanel,
   whichOf,
@@ -21,15 +27,25 @@ import {
   chromeOf,
   GuestPage,
   type LiveShape,
-  liveOf,
   type NothingShape,
-  nothingOf,
   SCREENS,
   type ScreenId,
   screenOf,
 } from "./page-parts";
 import { GUEST_SHAPE } from "./spec";
 import { MineStrip, UploadPromise, type YoursShape, Yours } from "./yours";
+
+/**
+ * ★ THE GROUND IS TODAY'S PRODUCT, NOT THE BOARD'S OWN RECOMMENDATIONS. Every
+ * picture is the shipped page with ONE thing changed, so a decision never
+ * quietly arrives wearing the answer to a question he has not been asked: the
+ * album's chrome stays the shipped column, an empty screen stays the shipped
+ * two languages, and the album stays silent. The exceptions are the two
+ * staged pairs, where wearing the earlier answer is the whole point of the
+ * staging: `live` is judged on the chrome he picked, and the account voices on
+ * the surface the other dialogs were given.
+ */
+const TODAY = { chrome: "column", nothing: "two", live: "none" } as const;
 
 /**
  * THE PREVIEWS, AND NOTHING ELSE: every option is the guest page at a real
@@ -247,8 +263,8 @@ function doorScreen(shape: DoorShape, s: BoardState) {
       <GuestPage
         screen={screen}
         fixture={fixture}
-        chrome={chromeOf(s.chrome)}
-        nothing={nothingOf(s.nothing)}
+        chrome={TODAY.chrome}
+        nothing={TODAY.nothing}
         dim={shape !== "page"}
         overlay={<Door shape={shape} screen={screen} fixture={fixture} />}
       />
@@ -278,7 +294,7 @@ function nothingScreen(shape: NothingShape, s: BoardState) {
       <GuestPage
         screen={screen}
         fixture={locked ? "password" : "empty"}
-        chrome={chromeOf(s.chrome)}
+        chrome={TODAY.chrome}
         nothing={shape}
       />
     </Screen>
@@ -309,8 +325,8 @@ function chromeScreen(shape: ChromeShape, s: BoardState) {
         screen={screen}
         fixture="open"
         chrome={shape}
-        nothing={nothingOf(s.nothing)}
-        live="none"
+        nothing={TODAY.nothing}
+        live={TODAY.live}
       />
     </Screen>
   );
@@ -333,11 +349,13 @@ function liveScreen(shape: LiveShape, s: BoardState) {
       read={albumRead}
       caption={LIVE_CAPTION[shape]}
     >
+      {/* The one place the chrome answer is worn: where a live signal can sit
+          is a different question once the header stopped carrying the actions. */}
       <GuestPage
         screen={screen}
         fixture="open"
         chrome={chromeOf(s.chrome)}
-        nothing={nothingOf(s.nothing)}
+        nothing={TODAY.nothing}
         live={shape}
       />
     </Screen>
@@ -365,8 +383,8 @@ function dialogScreen(shape: DialogShape, s: BoardState) {
       <GuestPage
         screen={screen}
         fixture="open"
-        chrome={chromeOf(s.chrome)}
-        nothing={nothingOf(s.nothing)}
+        chrome={TODAY.chrome}
+        nothing={TODAY.nothing}
         underActions={
           shape === "inline" ? (
             <div data-gs-inline>
@@ -407,8 +425,8 @@ function yoursScreen(shape: YoursShape, s: BoardState) {
       <GuestPage
         screen={screen}
         fixture="open"
-        chrome={chromeOf(s.chrome)}
-        nothing={nothingOf(s.nothing)}
+        chrome={TODAY.chrome}
+        nothing={TODAY.nothing}
         underActions={shape === "never" ? <UploadPromise /> : undefined}
         aboveAlbum={shape === "mine" ? <MineStrip screen={screen} /> : undefined}
         dim={shape !== "mine"}
@@ -430,6 +448,10 @@ const ACCOUNT_CAPTION: Record<AccountShape, string> = {
 function accountScreen(shape: AccountShape, s: BoardState) {
   const screen = screenFor(s);
   const moment = momentOf(s.moment);
+  // The surface this decision waits on: today's dialogs keep the centred
+  // float; the sheet (and the inline option, which a gate cannot take) put the
+  // two moments on the door's own shell.
+  const shell: Shell = dialogOf(s.dialogs) === "today" ? "dialog" : "sheet";
   return (
     <Screen
       id={`account-${shape}`}
@@ -440,12 +462,17 @@ function accountScreen(shape: AccountShape, s: BoardState) {
       <GuestPage
         screen={screen}
         fixture={moment === "gate" ? "account" : "open"}
-        chrome={chromeOf(s.chrome)}
-        nothing={nothingOf(s.nothing)}
-        live={liveOf(s.live)}
+        chrome={TODAY.chrome}
+        nothing={TODAY.nothing}
+        live={TODAY.live}
         dim
         overlay={
-          <AccountMoment shape={shape} moment={moment} screen={screen} />
+          <AccountMoment
+            shape={shape}
+            moment={moment}
+            screen={screen}
+            shell={shell}
+          />
         }
       />
     </Screen>

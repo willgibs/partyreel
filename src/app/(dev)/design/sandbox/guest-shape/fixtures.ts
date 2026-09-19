@@ -51,13 +51,24 @@ const SHAPES = {
 const ROLL = "PLPTPSPLFPPWPTLPPFLPTPSLPPWPLTPFPL";
 
 /**
- * ★ THE ORDER IS OFFSET, NOT CYCLED. Twelve stills over 34 tiles repeat
- * whatever the order, and a plain cycle lines its repeats up: the tops of two
- * columns land twelve apart and the same photograph sits twice in one row. A
- * stride of 5 against 12 (coprime, so it still visits all twelve) walks the
- * repeats out of each other's rows at both 2 and 6 columns.
+ * ★ THE ORDER IS SEARCHED, NOT CHOSEN. Twelve stills over 34 tiles repeat
+ * about three times each whatever the order, and where the repeats LAND is the
+ * only part an author controls: a stride of five put the same bouquet in three
+ * column-tops at once, and three hand-shuffled runs put the same balloons at
+ * the top of both phone columns, because CSS columns balance by HEIGHT and the
+ * second column starts wherever the halfway mark falls, not at item 17.
+ *
+ * So this order was searched against a model of that balancing at both of the
+ * board's layouts (two columns of 166px in an 812px screen, six of 230px in a
+ * 900px one), scoring every pair of equal stills by how close their boxes land
+ * on the first screen. It is the first order out of 40,000 where no two copies
+ * of one photograph sit side by side or within a tile's height of each other
+ * at either width. The real album (the Higgsfield month's) needs none of this.
  */
-const ORDER = Array.from({ length: ROLL.length }, (_, i) => (i * 5) % 12);
+const ORDER = [
+  1, 9, 3, 8, 11, 4, 5, 2, 0, 6, 7, 10, 3, 4, 1, 9, 10, 2, 6, 5, 7, 11, 0, 8,
+  11, 6, 3, 8, 2, 10, 4, 9, 1, 5,
+] as const;
 
 export const ALBUM: GridMedia[] = [...ROLL].map((letter, i) => {
   const img = MARKETING_IMAGES[ORDER[i] % MARKETING_IMAGES.length];
