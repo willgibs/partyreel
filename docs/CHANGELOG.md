@@ -55,6 +55,16 @@ and relayed here for his morning. The records follow in the order the lanes hand
   light: today's declares a text colour and no background, near-illegible in a dark client). No questions; three ROADMAP
   lines (no plain-text twin; `sendOnce` untested; a stale `PRICING.md` line about the resend cooldown).
 
+- `media-viewer` integrated (`596ca8dd`; cut `d909cb13`): what a photograph opens as, eight decisions on the real viewer's
+  pieces over one open wedding, 375 first with 1440 on a knob, four roots and four staged, every caption measured in the
+  frame: the opening (the photograph grows out of its tile), what stands beside it (one strip at the foot), who took it (the
+  name and the time on the chrome's own line), the next one (the neighbours peek at the edges), how close (pinch inside the
+  viewer; a face in a group photograph is 36 px across on a phone today), a video (a play badge), the way out (swipe it
+  back down into the album), an address (the album's link with the photograph on it). Three calls carried (a guest's
+  photograph never leaves as a file; one shape binds the host's viewer; a zoomed photograph owns both axes until it
+  settles). One asset asked (a real vertical clip, row 23). Three ROADMAP lines (the viewer has no arrival; `MediaTile`'s
+  lazy loading resolves against the top window inside an iframe; six surfaces disagree about what a viewer holds).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
