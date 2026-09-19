@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "help-center"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -96,6 +97,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "help-center"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -650,6 +652,35 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "help-center",
+    title: "Where a problem lands",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the help center is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one: who the hub greets, the index sheet's survival, a how-to's shape, a guest's path in, feedback, troubleshooting's dead end, and search's reach.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/help/page.tsx",
+      "src/app/(marketing)/(cinema)/help/[slug]/page.tsx",
+      "src/components/marketing/help/help-palette.tsx",
+      "src/components/marketing/help/article-feedback.tsx",
+      "src/components/guest/report-dialog.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches",
+      variants: [
+        "Who first",
+        "The hub",
+        "The article",
+        "From the product",
+        "Feedback",
+        "The dead end",
+        "Search",
+      ],
+    },
   },
   {
     id: "host-curation",
