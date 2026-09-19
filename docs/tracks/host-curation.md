@@ -1,7 +1,7 @@
 ---
 track: host-curation
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "d909cb13"          # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "d1923907"          # the launch-prep SHA the branch was cut from
 board: host-curation    # round one: the host's act of reviewing what guests send
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(dev)/design/sandbox/host-curation/
@@ -109,26 +109,100 @@ toasts, "new items" prompts.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The decisions were recut, and the recut is the one call worth quoting back.** THE BIN (the optional eighth)
+  was dropped and a new root put first: THE QUEUE, how a waiting photograph is shown at all. Recommended: keep
+  the recut. The bin is a discoverability bug with one obvious fix and no design question in it, so it is a
+  ROADMAP line below; the 4:5 crop is the act of judging, nothing has ever asked about it, and at 375 it renders
+  a photograph at 112 by 140 with seven on screen at once (measured in the frame). Carried on.
+- **THE QUEUE relitigates a ruling of Will's own**, quoted in `selectable-media-grid.tsx`: "Review = a UNIFORM
+  grid (standardized selection hit-targets, Will 2026-06-22)". The board says so in the decision's `overrule`
+  rather than quietly recommending against him. Recommended: the album's own shapes, on bible 22. Carried on.
+- **THE GUEST TOLD is a policy call, and the most overrulable thing on the board.** Recommended: never, as today,
+  because a refusal is the host's private judgement about their own party and the marketing FAQ answers it in
+  public with "Never". The other two options are drawn in full so overruling costs one click. Carried on.
+- **`peek.viewer` overlaps the `media-viewer` lane**, which was cut on the same night and had not landed a spec
+  when this board was built. If he picks it, the SHAPE of that viewer is `media-viewer`'s to rule and this board
+  has only asked whether the review peek should become it. Recommended: pick `verdict` here and leave the one-viewer
+  question to that lane. Carried on.
+- **THE VERB changes a word and never a row state.** `Reject` still lands pending -> hidden, never removed, and the
+  decision's `lands` line says so, so a wiring lane cannot read a picked `Reject` as permission to wire a delete.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none made: this lane owns no `docs/systems/` path. One correction is owed and is proposed rather than applied:
+  `docs/systems/host-app.md` and `host-media-grid.tsx`'s own comment both describe a hidden tile as "a 1-tap show
+  atop the 30% dim". There is no dim (the first Deferred line). Either the bug is fixed and the sentence stands,
+  or the sentence goes; a wiring lane should not find both.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now**: the hidden-media dim has never rendered anywhere: `masonry.tsx:198` builds the class as
+  `active:scale-[0.98]${dimItem ? "opacity-30" : ""}` with no separator, so the two run into one token Tailwind
+  never emits and a hidden photograph sits in the host album at full brightness. Its only mark is the amber Show
+  chip. One consumer (`host-media-grid.tsx:422`), no test. Found by measuring the frame for this board's `verb`
+  decision, which is drawn unfixed on purpose.
+- **Later**: `ApproveAllPendingButton` has no caller anywhere in the tree: dead code with a live Server Function
+  behind it.
+- **Later**: the lightbox's pending Approve branch can never render: pending media lives in the review queue and
+  the lightbox only ever draws the album grid, which filters it out.
+- **Later**: the review peek's own comment promises Escape closes it and nothing listens for a key; the only way
+  out is the X or the backdrop.
+- **Later**: doc drift on the review grid's columns: the review queue is `grid-cols-3` at 375
+  (`GALLERY_UNIFORM_COLUMNS`) while the masonry album is `columns-2`, so "two columns at a phone" is true of one
+  grid and not the other.
+- **Later**: nothing tells a host the Trash exists: the settings' Deleted card renders only when it is non-empty,
+  so the one place a removed photograph can be recovered from is invisible until something is in it.
+- **Later**: no test covers `useReviewTriage`, `ReviewActions` or the two bulk mutations; `use-selection.test.tsx`
+  covers only the primitive underneath them.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board host-curation` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Head is this commit on `lp/host-curation`, pushed; the code commit is `8aea7685`; synced with `origin/launch-prep` at `9f976f7c` (it had moved; a clean merge, one doc file)
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok, the specimen collector ok, typecheck ok,
+  lint ok (the 8 known warnings), test ok (2,533), build ok (254 pages); `pnpm lab:smoke --base http://localhost:3133`
+  ok (373 checks, 0 failing; the board reads 399 words of 1,200); `pnpm lab:demo --board host-curation` ok (8 steps,
+  0 failing, every step draws its options)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the eight files under
+  `src/app/(dev)/design/sandbox/host-curation/`, this manifest, the three registration files (one line each at the head
+  of `sandbox/registry.ts`, `(shell)/lab/boards.ts` and both unions of `touchpoints.ts`, plus one RULINGS row after
+  `river-visual`'s), and `docs/design/library.md` as `pnpm design:rules` wrote it
+- The decisions, one line each:
+  - `queue`: how should a photograph waiting for approval be shown? the 4:5 grid as today / the album's own shapes /
+    one at a time, whole. **The album's own shapes.**
+  - `verb`: what should the button that refuses an upload be called? Hide for both as today / Reject at the door and
+    Hide after / one word and a Hidden chip on the tile. **Reject at the door, Hide after.**
+  - `peek`: what should a tap on a waiting photograph open? a look as today / a look you can act in / the media viewer
+    with the verdict on its pill. **A look you can act in** (staged behind `queue`).
+  - `keys`: should a host be able to clear a queue from the keyboard? taps only as today / j and k with a and h /
+    arrows with Enter and Backspace and a hint row. **Arrows, with a hint row** (staged behind `peek`).
+  - `undo`: after a bulk act, what should the toast offer? the sentence as today / an Undo on the toast / five seconds
+    before it commits. **An Undo on the toast.**
+  - `arrivals`: one lands mid-visit, what should the queue do? nothing as today / a line that says how many / straight
+    in at the top. **A line that says how many.**
+  - `count`: how many places should say how many are waiting? all three as today / three that agree and lead somewhere /
+    one count on the card. **Three that agree and lead somewhere.**
+  - `told`: should a refused guest ever be told? never as today / a quiet line in their own feed / a message.
+    **Never, as today** (the most overrulable call on the board).
+- Mobbin citations: none. The act was asked from the shipped surface and its own numbers.
+- The captures (every option at 1440 and at 375, 48 of them) and the scripts that took them:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/host-curation/`
+- Assets requested from Will: none. Every still is one of the fourteen bootstrap images every other board reuses.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: **`queue` at 375.** The measured caption under it reads "the biggest upload renders 112 by 140; 7
+  judgeable on screen at once". That is what the product asks a host to judge a stranger's photograph from, and it is
+  the number the whole board turns on. Then `verb`, where the album underneath shows what the word produced and the
+  30 percent dim that was supposed to mark it is missing, because it has never rendered.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of `host-curation` asked the host's act of reviewing what
+guests send as eight decisions on the shipped review surface, at 1440 with 375 on every decision's strip: six roots
+and two staged, the peek behind the queue and the keyboard behind the peek. The triage machine was forked so its two
+Server Functions became a resolved promise at the real round trip while the exit and beat timings kept reading the
+same CSS variables, and nothing on the board could reach a mutation: the album and the guest feed run with pointer
+events off and the bell is drawn from the real pure builder rather than opened. The suggested cut was changed once,
+recorded under Questions: the optional bin was dropped for a new first root, how a waiting photograph is shown at all,
+which relitigates Will's own 2026-06-22 uniform-grid ruling and says so in its overrule line. Measuring the frame for
+the verb decision found a shipped bug, first on the ROADMAP list: `masonry.tsx` concatenates the hidden-media dim
+without a separator, so `opacity-30` has never rendered and a hidden photograph sits in the host album at full
+brightness under a comment that describes a dim.
