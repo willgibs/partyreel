@@ -1,0 +1,85 @@
+/* THE LIVE ALBUM STAGE'S OWN SHEET (the album-wiring lane, 2026-09-19).
+   Classes under `alb-` only and NO keyframe (src/app/keyframe-uniqueness.test.ts
+   reads every sheet in the repo); the light is the Glow engine's own clock. */
+
+/* ★ THE COLUMN COUNT IS THE PRODUCT'S, NOT THE STAGE'S. An earlier draft drove
+   it from outside through a variable, because `GuestMasonry` was `columns-2` at
+   every width and a marketing stage at 896 wanted three. `gallery-wiring` then
+   landed Will's own ruling on the same sitting (`tile=240`, `width=full`): the
+   album asks for as many columns of about 220 px as its box holds, so at 896 it
+   draws four and at a phone two, with no help from here. A stage whose whole
+   value is that it IS the guest album may not then draw a different album, so
+   the override is gone and `masonry.tsx`'s `--album-column` is the one knob.
+   Left here as a note because the temptation to re-add it is obvious: three
+   columns is what his `visual=live` note describes, and it is what the board
+   drew before the gallery ruling moved underneath it. */
+
+/* THE STAGE'S TWO GEOMETRIES, chosen here so every number stays in the engine
+   (`STAGE` and `GAP`, stream-engine.ts) and arrives as a custom property. A
+   Tailwind breakpoint variant cannot read a module, and writing 600 and 430
+   into a class string would put the album's edge in two places while the
+   stream aims at one of them. 1024 is `LG_MIN`, the home hero's breakpoint. */
+.alb-stage {
+  --alb-h: var(--alb-h-base);
+  --alb-fade: var(--alb-fade-base);
+  margin-top: var(--alb-gap-base);
+}
+@media (min-width: 1024px) {
+  .alb-stage {
+    --alb-h: var(--alb-h-lg);
+    --alb-fade: var(--alb-fade-lg);
+    margin-top: var(--alb-gap-lg);
+  }
+}
+
+/* THE FOOT DISSOLVES. Will, on the width: "If this width makes the dashboard
+   visual too tall, we can fade out the bottom. May look better either way." So
+   the frame is clipped to a height and its last stretch fades to nothing, and
+   the album reads as going on rather than as a box with a floor. A MASK, never
+   a scrim: nothing is laid over a photograph (bible 1). */
+.alb-clip {
+  height: var(--alb-h);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--alb-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--alb-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--alb-fade) * 0.2),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--alb-fade)),
+    rgb(0 0 0 / 0.55) calc(100% - var(--alb-fade) * 0.5),
+    rgb(0 0 0 / 0.18) calc(100% - var(--alb-fade) * 0.2),
+    transparent 100%
+  );
+}
+
+/* THE HALO'S OBJECT. Will's `light=halo`: "The Glow halo, lighting the frame
+   from behind so its rim and chrome glow while the photographs stay clean." The
+   frame's own card is lifted off it and laid UNDER the wash, so the light
+   climbs the rim, the window bar and the header type from behind while the
+   face of the thing, the photographs, stays exactly as it is (bible 1).
+
+   ★ CLIPPED TO THE OBJECT, AND NOT WITH `overflow`. A halo is clipped to the
+   thing it backlights (globals.css's halo block: rendered in a padded box AROUND
+   an object it reads as a soft rectangle floating behind it). `clip-path` says
+   that exactly, in the object's own silhouette, where `overflow: hidden` would
+   say "cut this light at a straight edge" and rightly trip
+   glow-placement.test.ts. The radius is the frame's own. */
+.alb-halo {
+  background: var(--card);
+  border-radius: var(--radius-2xl);
+  clip-path: inset(0 round var(--radius-2xl));
+  /* ★ THE LIGHT'S BOX IS THE ALBUM A READER CAN SEE, not the frame's natural
+     height. A halo's mask is a share of its OWN box (globals.css: an ellipse at
+     46%), so around a 1600 px frame the clear core lands below the fold and the
+     rim lights nothing. Filling the clip makes it 896 by 600, which is the
+     album as it is drawn, and the foot's fade then takes the light down with
+     the photographs. */
+  height: 100%;
+}
+.alb-halo .alb-frame {
+  background: transparent;
+}

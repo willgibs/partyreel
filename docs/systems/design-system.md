@@ -232,7 +232,11 @@ full-bleed photograph may close a chapter, open one, or sit between two, so the 
 light through a picture rather than over a hairline; it is used sometimes and never at every cut, or every
 page with chapters grows one above and below its paper chapter and the device reads as a template. The
 home's chapter 1 is the first instance (`full-quality` on `PhotoSection`, which moved the cut up one so the
-live demo opens the paper chapter).
+live demo opens the paper chapter); the album page is the second, and it takes the device's other shape: a
+bare `PhotoSection` with no copy and no plate, standing BETWEEN the two chapters at three scroll steps, so
+the Aurora on the quality section's floor rises into a photograph instead of into paper (Will, 2026-09-19:
+"the brightness from his white overwhelms the aurora here... Would work much better with a full image
+background section beneath so it feels like it's glowing from that").
 
 **A chapter never escalates.** It may close on an **anchor**, a strong visual that wraps its ideas
 together, but only once the sections before it have ramped down. The loudest non-hero section landing

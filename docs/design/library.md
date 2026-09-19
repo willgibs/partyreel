@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 414 contracts on 53 components · 9 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 8 standing boards.**
 
 ## What binds you
 
@@ -355,6 +355,8 @@ Contracted but outside the library's directories:
 - `src/components/reel/publish-light.tsx` (26 guards)
 - `src/components/reel/reel-share-card.tsx` (26 guards)
 - `src/components/reel/reel-studio.tsx` (26 guards)
+- `src/components/shared/album-stream/album-stream.tsx` (11 guards)
+- `src/components/shared/album-stream/stream-engine.ts` (15 guards)
 - `src/components/shared/backdrop/backdrop-engine.ts` (30 guards)
 - `src/components/shared/backdrop/photo-section.tsx` (19 guards)
 - `src/components/shared/backdrop/room-frames.ts` (30 guards)
@@ -374,10 +376,9 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
+| `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
-| `album-page` | marketing | Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
 | `glass` | shared | Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step |
 | `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |

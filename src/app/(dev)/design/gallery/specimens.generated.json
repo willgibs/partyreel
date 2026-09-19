@@ -1,6 +1,10 @@
 {
   "version": 1,
   "code": {
+    "album-stream": [
+      "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
+      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <div\n      className=\"relative isolate overflow-x-clip\"\n      style={{ width: 1280 }}\n    >\n      <AlbumStream />\n      <div style={{ height: 520 }} />\n      <LiveAlbumStage />\n      <div style={{ height: 150 }} />\n    </div>\n  </CinemaGround>\n</div>"
+    ],
     "trail": [
       "<div className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\">\n  <Trail\n    source=\"pointer\"\n    className=\"flex min-h-[26rem] flex-col items-center justify-center px-6 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",
       "<div\n  className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\"\n  style={{ width: 375 }}\n>\n  <Trail\n    source=\"path\"\n    className=\"flex min-h-[32rem] flex-col items-center justify-center px-5 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",

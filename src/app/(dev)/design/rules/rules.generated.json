@@ -3787,6 +3787,252 @@
       "contracts": []
     },
     {
+      "id": "album-stream",
+      "file": "src/components/shared/album-stream/album-stream.tsx",
+      "names": [
+        "AlbumStream",
+        "AlbumStreamPause",
+        "STREAM_LG_MIN"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders every frame with its resting transform and opacity",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 87
+        },
+        {
+          "title": "puts a photograph in the markup for every frame",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "starts no loop at all under reduced motion",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "hides itself from the accessibility tree",
+          "suite": [
+            "it is pure atmosphere"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 114
+        },
+        {
+          "title": "puts nothing focusable on the page",
+          "suite": [
+            "it is pure atmosphere"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 121
+        },
+        {
+          "title": "gives every photograph an empty alt",
+          "suite": [
+            "it is pure atmosphere"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "renders both compositions and lets the sheet choose",
+          "suite": [
+            "the width is never read"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 136
+        },
+        {
+          "title": "measures nothing on mount",
+          "suite": [
+            "the width is never read"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "anchors each layer on the stage's own height and floor",
+          "suite": [
+            "the album's edge is the engine's number"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 151
+        },
+        {
+          "title": "draws each one, and each one differently",
+          "suite": [
+            "the variations"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 163
+        },
+        {
+          "title": "puts as many nodes on the page as the engine solved",
+          "suite": [
+            "the variations"
+          ],
+          "file": "src/components/shared/album-stream/album-stream.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "stream-engine",
+      "file": "src/components/shared/album-stream/stream-engine.ts",
+      "names": [
+        "ASPECTS",
+        "Bp",
+        "GAP",
+        "HALF_MIN",
+        "HOME",
+        "LG_MIN",
+        "LOCK",
+        "ROLLS",
+        "SHIPPED",
+        "STAGE",
+        "STREAMS",
+        "STREAM_LG_MIN",
+        "VARIANTS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "reads the beat and the launch speed off the shipped stream",
+          "suite": [
+            "the reference is the home hero, measured not typed"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 101
+        },
+        {
+          "title": "paces every variant on a whole number of the home hero's beats",
+          "suite": [
+            "the reference is the home hero, measured not typed"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 111
+        },
+        {
+          "title": "never travels faster than the home hero's own stream does",
+          "suite": [
+            "the reference is the home hero, measured not typed"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 126
+        },
+        {
+          "title": "keeps every frame clear of the lockup's column until it is past its foot",
+          "suite": [
+            "no photograph is ever under a word"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 145
+        },
+        {
+          "title": "keeps a phone's frames inside the strip under the lockup",
+          "suite": [
+            "no photograph is ever under a word"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 164
+        },
+        {
+          "title": "keeps every lit pair in the open air at least half a frame apart",
+          "suite": [
+            "no two frames sit on the same pixel"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 180
+        },
+        {
+          "title": "gives every lane a whole number of passes per cycle",
+          "suite": [
+            "no two frames sit on the same pixel"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 209
+        },
+        {
+          "title": "is the stage's own height and floor, not a second table",
+          "suite": [
+            "the album's edge is one number"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 235
+        },
+        {
+          "title": "lands every frame inside the album rather than short of it",
+          "suite": [
+            "the album's edge is one number"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 244
+        },
+        {
+          "title": "is pure: the same age gives the same frame, twice",
+          "suite": [
+            "the rest state and the loop are one picture"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 261
+        },
+        {
+          "title": "writes the horizontal as a calc on the hero's own half-width",
+          "suite": [
+            "the rest state and the loop are one picture"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 271
+        },
+        {
+          "title": "never asks a frame to scale ABOVE the box it was sized to",
+          "suite": [
+            "the rest state and the loop are one picture"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 280
+        },
+        {
+          "title": "ships one of the ones the board draws",
+          "suite": [
+            "the variations"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 300
+        },
+        {
+          "title": "gives each one a caption stating its own measured numbers",
+          "suite": [
+            "the variations"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 304
+        },
+        {
+          "title": "makes each one a different answer, not a different number",
+          "suite": [
+            "the variations"
+          ],
+          "file": "src/components/shared/album-stream/stream-engine.test.ts",
+          "line": 317
+        }
+      ]
+    },
+    {
       "id": "anonymous-info",
       "file": "src/components/shared/anonymous-info.tsx",
       "names": [

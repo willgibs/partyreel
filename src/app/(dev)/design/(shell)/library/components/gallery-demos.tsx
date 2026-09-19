@@ -13,6 +13,8 @@ import {
   GalleryEmptyState,
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
+import { LiveAlbumStage } from "@/components/marketing/sections/features/album/live-album-stage";
+import { AlbumStream } from "@/components/shared/album-stream/album-stream";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import {
   QR_DOOR_FRAMES,
@@ -133,6 +135,24 @@ import {
  */
 
 /**
+ * THE GROUND THE ALBUM STREAM SHIPS ON. Both specimens below are marketing
+ * pieces and the library's components page is the app's skin, so they are given
+ * the cinema chapter they are drawn for; without it the halo has no dark to
+ * spill into and the frames have no room to read against.
+ */
+function CinemaGround({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="dark rounded-lg bg-background p-4 text-foreground"
+      data-mkt=""
+      data-mkt-skin="cinema"
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
  * THE QR DOOR'S PICTURE SLOT, drawn exactly as `feature-door.tsx` composes it:
  * the ink ground, the flow born at the code's centre between the door's two
  * scrims, and the plate over everything. The door's own scrims and copy are on
@@ -216,6 +236,47 @@ function TrailWords() {
 }
 
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  /* THE ALBUM STREAM (added by lp/album-wiring at the HEAD of the list, so the
+     three lanes of this round can each add their own without touching
+     another's; the Orchestrator keeps every side at the merge). */
+  {
+    id: "album-stream",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo. Will ruled both on the album page (visual=live, motion=stream, light=halo, 2026-09-19).",
+    specimens: [
+      {
+        label: "The album, at the scale's 896 step",
+        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 1); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
+        node: <CinemaGround>{<LiveAlbumStage />}</CinemaGround>,
+      },
+      {
+        // ★ ITS COMPOSITION IS THE HERO'S OWN WIDTH, which a library column is
+        // not: every horizontal in the engine is a share of the hero's
+        // half-width, and the layer reads that from its own box. So this block
+        // is pinned to 1280, the narrowest window the side-band composition
+        // serves, and the page itself is where it is judged.
+        label: "and the fall into it",
+        hint: "1280, the narrowest window this composition serves. Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
+        node: (
+          <div className="max-w-full overflow-x-auto">
+            <CinemaGround>
+              <div
+                className="relative isolate overflow-x-clip"
+                style={{ width: 1280 }}
+              >
+                <AlbumStream />
+                <div style={{ height: 520 }} />
+                <LiveAlbumStage />
+                <div style={{ height: 150 }} />
+              </div>
+            </CinemaGround>
+          </div>
+        ),
+      },
+    ],
+  },
   // ★ THE IMAGE TRAIL, at the head of the entries because three wiring lanes add
   // one this round and each landing at the top is what keeps the three merges
   // apart; the Orchestrator keeps all of them. Declared INLINE rather than as a

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
+import { SectionLight } from "@/components/marketing/system/section-light";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { StatBand } from "@/components/marketing/system/stat-band";
 import { GIGABYTE } from "@/lib/constants/tiers";
@@ -15,8 +16,34 @@ import { PHOTO_FORMATS, VIDEO_FORMATS } from "./album-formats";
  * never drift from enforcement. The StatBand carries the stat register (the
  * display face with tabular figures); the formats beneath are words, so they
  * stay on the body face.
+ *
+ * ★ THE PAGE'S SECOND LIGHT IS A FLOOR HERE (Will, `second=floor`, 2026-09-19).
+ * The hero's halo is the page's first light and it is a long way above; this is
+ * the last dark section before the chapter turns, so it takes the Aurora at its
+ * BOTTOM edge only, rising from the line it shares with what comes next, and
+ * the top stays dark so the numbers land in quiet. `both` would put a second
+ * bright line under the section above and the chapter would read as lit end to
+ * end. The home page's closer takes the same composition for the same reason
+ * (`cinema-close.tsx`); no two sections on a page share one (section-light.tsx:
+ * compose it for the place).
+ *
+ * ★ AND THE PHOTOGRAPH BELOW IS WHY IT READS AT ALL. His note on the pick: "the
+ * paper chapter directly beneath and the brightness from his white overwhelms
+ * the aurora here and makes it less noticeable. Would work much better with a
+ * full image background section beneath so it feels like it's glowing from
+ * that, with a less harsh contrast at the transition." So this floor is half of
+ * a pair: `page.tsx` stands a `PhotoSection` under it, and the Aurora rises into
+ * a photograph instead of into paper.
  */
 export function QualitySection() {
+  return (
+    <SectionLight placement="bottom" reach="58%">
+      <QualityBody />
+    </SectionLight>
+  );
+}
+
+function QualityBody() {
   return (
     <SectionShell
       eyebrow="Full quality"
