@@ -817,9 +817,9 @@ export const RULINGS: Ruling[] = [
     title: "What a person is here",
     surface: "guest",
     ruled:
-      'open (Will, 2026-09-19, "the overnight round": the guest pages are unprotected, "at worst, net neutral and fully deleted")',
+      "round one ruled whole (Will, 2026-09-19, the fourth batch); `profile-wiring` wires the eight picks; round two open on the three he left: how View all opens, the quick-look, and the way back to the scanned event",
     shipped: null,
-    why: "Round one asks whether a person has a page at all, what fills it beyond two dates, who an album publishes, and when a handle is ever offered.",
+    why: "Round two, on the three he left open: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable.",
     lives: [
       "docs/systems/profiles-social.md",
       "src/app/(guest)/u/[slug]/page.tsx",
@@ -829,17 +829,8 @@ export const RULINGS: Ruling[] = [
       "src/components/social/profile-slug-control.tsx",
     ],
     board: {
-      note: "Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached",
-      variants: [
-        "The page",
-        "The head",
-        "What fills it",
-        "The top",
-        "Block",
-        "The named",
-        "The claim",
-        "The list",
-      ],
+      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
+      variants: ["View all", "Quick-look", "Way back"],
     },
   },
   {
