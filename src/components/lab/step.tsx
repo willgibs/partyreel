@@ -182,6 +182,14 @@ export function Step({
     step?.kind === "ask"
       ? store.answers[holdId(step.board, step.round, step.askId)]
       : undefined;
+  // ★ AND WHETHER IT HAS ALREADY BEEN PASTED (lab-tides, 2026-09-19). A pasted
+  // answer stays held in the browser until the ledger catches up, which on a
+  // stale alias is the next day. Saying so where the answer is means he never
+  // has to wonder whether an answer he can still see has reached anybody.
+  const sent =
+    step?.kind === "ask"
+      ? store.sent?.[holdId(step.board, step.round, step.askId)]
+      : undefined;
   const choice = held?.choice ?? "";
   const unclear = step?.kind === "ask" && choice === UNCLEAR;
   // ★ "?" IS AN ANSWER, AND IT OWES ITS REASON. The ledger grammar is
@@ -502,6 +510,7 @@ export function Step({
         pictured={pictured}
         choice={choice}
         shown={shown}
+        sent={sent}
         note={held?.note ?? ""}
         unclear={unclear}
         needsWhy={needsWhy}
@@ -1372,6 +1381,7 @@ function Dock({
   pictured,
   choice,
   shown,
+  sent,
   note,
   unclear,
   needsWhy,
@@ -1388,6 +1398,8 @@ function Dock({
   pictured: readonly SessionOption[];
   choice: string;
   shown: string | null;
+  /** When this answer last rode a paste, if it has; it rides again if changed. */
+  sent?: { build: string | null; at: string };
   note: string;
   unclear: boolean;
   needsWhy: boolean;
@@ -1495,6 +1507,14 @@ function Dock({
           {needsWhy && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
               Say what was unclear, then go on.
+            </span>
+          )}
+          {sent && !needsWhy && (
+            <span
+              className="shrink-0 text-[11px] text-faint"
+              title="It rode a paste. Change it and it goes again as a replacement."
+            >
+              {sent.build ? `sent on ${sent.build}` : "sent"}
             </span>
           )}
         </div>

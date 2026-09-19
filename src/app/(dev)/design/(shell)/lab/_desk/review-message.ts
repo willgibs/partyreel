@@ -22,6 +22,8 @@
  * nothing here should ever learn to.
  */
 
+import { boardNoteHoldId } from "./step-id";
+
 export type SessionAnswer = {
   board: string;
   round: number;
@@ -260,21 +262,40 @@ export function composeSoFar(
     answers: Record<string, { choice: string; note: string }>;
     items: Record<string, { verdict: string; note: string }>;
     notes: Record<string, string>;
+    /** The hold ids a previous paste already took (review-store.ts). */
+    sent?: Record<string, unknown>;
   },
   openOf: (board: string) => OpenRound | undefined,
   transcribed: Transcribed = NOTHING_TRANSCRIBED,
   build?: string | null,
-): { message: string; answers: number; items: number; notes: number } {
+  opts: { ignoreSent?: boolean } = {},
+): {
+  message: string;
+  answers: number;
+  items: number;
+  notes: number;
+  /** Exactly the hold ids this message carries, for the Copy button to mark. */
+  included: string[];
+} {
   const answers: SessionAnswer[] = [];
   const items: SessionItem[] = [];
   const notes: SessionNote[] = [];
+  const included: string[] = [];
   const ask = /^(.+)\.r(\d+)\.([^.]+)$/;
   const item = /^(.+)\.r(\d+)\.item\.([^.]+)$/;
+  // ★ AND WHAT A PREVIOUS PASTE ALREADY TOOK (lab-tides, 2026-09-19). The
+  // ledger side of this (`transcribed`) is only as fresh as the build being
+  // read, so on a stale alias it says nothing about the batch he pasted an
+  // hour ago; the browser's own mark does. "Copy everything" passes
+  // `ignoreSent` for the rare case where a paste went missing.
+  const marked = (key: string) =>
+    !opts.ignoreSent && Boolean(store.sent?.[key]);
   // A note rides unless the ledger's open round already holds the same words.
-  const note = (board: string, round: number, text: string) => {
+  const note = (board: string, round: number, text: string, key: string) => {
     const held = transcribed.notes[board] ?? [];
     if (held.some((h) => flatNote(h) === flatNote(text))) return;
     notes.push({ board, round, text });
+    included.push(key);
   };
   for (const [key, held] of Object.entries(store.answers)) {
     const m = ask.exec(key);
@@ -282,8 +303,12 @@ export function composeSoFar(
     const [, board, round, id] = m;
     const open = openOf(board);
     if (open?.round !== Number(round) || !open.asks.includes(id)) continue;
+    if (marked(key)) continue;
     if (!held.choice) {
-      if (held.note?.trim()) note(board, open.round, `on ${id}: ${held.note}`);
+      // A cleared choice whose words survived rides as a note, under the
+      // ANSWER's key, so marking it sent stops the words riding again too.
+      if (held.note?.trim())
+        note(board, open.round, `on ${id}: ${held.note}`, key);
       continue;
     }
     if (alreadySent(transcribed.answers[key], held)) continue;
@@ -294,12 +319,14 @@ export function composeSoFar(
       choice: held.choice,
       note: held.note || undefined,
     });
+    included.push(key);
   }
   for (const [key, held] of Object.entries(store.items)) {
     const m = item.exec(key);
     if (!m || !held.verdict) continue;
     const open = openOf(m[1]);
     if (open?.round !== Number(m[2]) || !open.items.includes(m[3])) continue;
+    if (marked(key)) continue;
     const sent = transcribed.items[key];
     if (sent && sent.verdict === held.verdict && sameNote(sent.note, held.note))
       continue;
@@ -310,6 +337,7 @@ export function composeSoFar(
       verdict: held.verdict,
       note: held.note || undefined,
     });
+    included.push(key);
   }
   for (const [board, text] of Object.entries(store.notes)) {
     if (!text?.trim()) continue;
@@ -317,12 +345,15 @@ export function composeSoFar(
     // and a board with none (retired) takes its notes with it.
     const open = openOf(board);
     if (!open) continue;
-    note(board, open.round, text);
+    const key = boardNoteHoldId(board);
+    if (marked(key)) continue;
+    note(board, open.round, text, key);
   }
   return {
     message: composeMessage(answers, notes, items, [], build),
     answers: answers.length,
     items: items.length,
     notes: notes.length,
+    included,
   };
 }

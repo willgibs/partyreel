@@ -687,3 +687,152 @@ describe("a stamped paste", () => {
     expect(lab.buildDrift("review x r1: a=b", process.cwd())).toBeNull();
   });
 });
+
+/**
+ * A RE-SEND THAT CHANGES NOTHING (lab-tides, 2026-09-19).
+ *
+ * Will's answers stay in his browser after he pastes a batch, and the store
+ * only learns what the ledger holds from the build he is reading: on a stale
+ * alias the next paste carries the first batch again. Refusing the whole
+ * message for it ("site-chrome is in round 2, not r1") threw away the new
+ * answers in the same paste. So a clause that merely repeats the ledger is a
+ * no-op, whatever the board has done since, and anything else is judged
+ * exactly as it was.
+ */
+describe("a stale re-send", () => {
+  const writeLedger = (board: string, ledger: unknown) =>
+    writeFileSync(ledgerFile(board), `${JSON.stringify(ledger, null, 2)}\n`);
+
+  it("repeats an answer the open round already holds as a no-op", () => {
+    const line = `review ${BOARD} r${ROUND}: default=always "the same words"`;
+    const first = lab.run(line, { root, at: "2026-09-19T10:00:00Z" });
+    expect(first.ok).toBe(true);
+    expect(first.summary.find((r) => r[1] === "default")?.[3]).toBe("new");
+
+    const again = lab.run(line, { root, at: "2026-09-19T11:00:00Z" });
+    expect(again.ok).toBe(true);
+    expect(again.summary.find((r) => r[1] === "default")?.[3]).toBe(
+      "unchanged",
+    );
+    // Not re-stamped: a re-send is not a new decision and must not read as one.
+    const answer = readLedger(BOARD).rounds[0].answers.find(
+      (a) => a.ask === "default",
+    );
+    expect(answer).toMatchObject({ choice: "always", note: "the same words" });
+    expect(again.boards).toEqual([]);
+  });
+
+  it("still replaces the answer when he changes his mind", () => {
+    const changed = lab.run(`review ${BOARD} r${ROUND}: default=never`, {
+      root,
+      at: "2026-09-19T12:00:00Z",
+    });
+    expect(changed.summary.find((r) => r[1] === "default")?.[3]).toBe(
+      "replaced",
+    );
+  });
+
+  it("accepts a line for a round the board has left, when it only repeats it", () => {
+    const ledger = readLedger(BOARD);
+    ledger.rounds.push({
+      n: ROUND - 1,
+      opened: "2026-09-14",
+      answers: [
+        { ask: "grain", choice: "five", note: "then", by: "Will" },
+      ] as never,
+      notes: [],
+      items: [],
+    } as never);
+    writeLedger(BOARD, ledger);
+
+    const echo = lab.run(`review ${BOARD} r${ROUND - 1}: grain=five "then"`, {
+      root,
+      at: "2026-09-19T13:00:00Z",
+    });
+    expect(echo.ok).toBe(true);
+    expect(echo.summary[0][3]).toBe("unchanged");
+
+    // A genuinely new answer to a closed round is still refused, by name.
+    const fresh = lab.run(`review ${BOARD} r${ROUND - 1}: grain=three`, {
+      root,
+      at: "2026-09-19T13:05:00Z",
+    });
+    expect(fresh.ok).toBe(false);
+    expect(fresh.errors[0].message).toContain(`not r${ROUND - 1}`);
+    expect(fresh.errors[0].message).toContain("grain=three");
+  });
+
+  it("accepts an ask the spec no longer declares, when it only repeats it", () => {
+    const ledger = readLedger(BOARD);
+    ledger.rounds
+      .find((r) => Number(r.n) === ROUND)!
+      .answers.push({
+        ask: "withdrawn",
+        choice: "kept",
+        by: "Will",
+      } as never);
+    writeLedger(BOARD, ledger);
+
+    const echo = lab.run(`review ${BOARD} r${ROUND}: withdrawn=kept`, {
+      root,
+      at: "2026-09-19T14:00:00Z",
+    });
+    expect(echo.ok).toBe(true);
+    expect(echo.summary[0][3]).toBe("unchanged");
+
+    const fresh = lab.run(`review ${BOARD} r${ROUND}: withdrawn=other`, {
+      root,
+      at: "2026-09-19T14:05:00Z",
+    });
+    expect(fresh.ok).toBe(false);
+    expect(fresh.errors[0].message).toContain("is not an ask on");
+  });
+
+  it("accepts a retired board's re-send, and refuses a new answer to it", () => {
+    writeLedger("gone", {
+      board: "gone",
+      rounds: [
+        {
+          n: 1,
+          opened: "2026-09-01",
+          answers: [{ ask: "shape", choice: "wide", by: "Will" }],
+          notes: [],
+          items: [],
+        },
+      ],
+    });
+    const echo = lab.run("review gone r1: shape=wide", {
+      root,
+      at: "2026-09-19T15:00:00Z",
+    });
+    expect(echo.ok).toBe(true);
+    expect(echo.summary[0][3]).toBe("unchanged");
+
+    const fresh = lab.run("review gone r1: shape=narrow", {
+      root,
+      at: "2026-09-19T15:05:00Z",
+    });
+    expect(fresh.ok).toBe(false);
+    expect(fresh.errors[0].message).toContain("has left the lab");
+  });
+
+  it("keeps a typo a typo: a name that was never a board is refused at the name", () => {
+    const result = lab.run("review neverwas r1: shape=wide", { root });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].message).toContain("is not a standing board");
+    expect(result.errors[0].column).toBe("review ".length + 1);
+  });
+
+  it("does not record the same board note twice", () => {
+    const line = `review ${BOARD} r${ROUND}: note: "one remark, once"`;
+    lab.run(line, { root, at: "2026-09-19T16:00:00Z" });
+    const before = readLedger(BOARD).rounds.find(
+      (r) => Number(r.n) === ROUND,
+    )!.notes.length;
+    const again = lab.run(line, { root, at: "2026-09-19T16:05:00Z" });
+    expect(again.summary[0][3]).toBe("unchanged");
+    expect(
+      readLedger(BOARD).rounds.find((r) => Number(r.n) === ROUND)!.notes.length,
+    ).toBe(before);
+  });
+});

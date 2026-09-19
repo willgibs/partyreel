@@ -121,6 +121,38 @@
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
           "line": 282
+        },
+        {
+          "title": "names every hold id the message carries, and nothing else",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 302
+        },
+        {
+          "title": "leaves out what a previous paste already took",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 324
+        },
+        {
+          "title": "carries a marked entry again once it changes",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 345
+        },
+        {
+          "title": "marks a cleared choice's surviving note under the answer's own key",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 364
         }
       ]
     },
