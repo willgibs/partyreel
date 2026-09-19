@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "emails"
   | "reel-studio"
   | "help-center"
   | "host-curation"
@@ -98,6 +99,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "emails"
   | "reel-studio"
   | "help-center"
   | "host-curation"
@@ -654,6 +656,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "emails",
+    title: "Every email Partyreel sends",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, every mail cut from a read-only map, unprotected like the rest)",
+    shipped: null,
+    why: "Eight decisions on the real templates.ts functions in an inbox mock: one wrapper, the brand, the sender, the foot, the code, the moments, the guest's, and the dark inbox.",
+    lives: [
+      "docs/systems/lifecycle-recovery.md",
+      "docs/systems/notifications-analytics-growth.md",
+      "src/lib/email/templates.ts",
+      "src/lib/email/send.ts",
+      "src/components/app/notification-prefs-form.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox",
+      variants: [
+        "One shell",
+        "The brand",
+        "The sender",
+        "The foot",
+        "The code",
+        "The moments",
+      ],
+    },
   },
   {
     id: "reel-studio",
