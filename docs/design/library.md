@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 22 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 23 standing boards.**
 
 ## What binds you
 
@@ -376,6 +376,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `site-chrome` | marketing | Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names |
 | `emails` | shared | Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox |
 | `reel-studio` | host | Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel |
 | `help-center` | marketing | Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches |

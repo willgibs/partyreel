@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { SITE_CHROME } from "./site-chrome/spec";
 import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
@@ -41,6 +42,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  SITE_CHROME,
   EMAILS,
   REEL_STUDIO,
   HELP_CENTER,

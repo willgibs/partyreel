@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "site-chrome"
   | "emails"
   | "reel-studio"
   | "help-center"
@@ -99,6 +100,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "site-chrome"
   | "emails"
   | "reel-studio"
   | "help-center"
@@ -658,6 +660,34 @@ export const RULINGS: Ruling[] = [
     ],
   },
   {
+    id: "site-chrome",
+    title: "The marketing site's chrome",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, the header, the panel, the phone's menu and the footer, unprotected like the rest)",
+    shipped: null,
+    why: "Eight decisions on the real chrome: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, and two doors to one loop.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/chrome/marketing-header.tsx",
+      "src/components/marketing/chrome/mega-panel.tsx",
+      "src/components/marketing/chrome/mobile-menu.tsx",
+      "src/components/marketing/chrome/marketing-footer.tsx",
+      "src/lib/constants/marketing-nav.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names",
+      variants: [
+        "The shape",
+        "What it holds",
+        "The returning host",
+        "The phone's menu",
+        "On scroll",
+        "The foot's job",
+      ],
+    },
+  },
+  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -883,7 +913,7 @@ export const RULINGS: Ruling[] = [
     title: "Pricing in the app",
     surface: "host",
     ruled:
-      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+      "open (Will, 2026-09-19: \"an in-app pricing modal so we don't take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive 'Learn More' second-layer resource\")",
     shipped: null,
     why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
     lives: [

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
@@ -41,6 +42,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "site-chrome": { Component: SiteChromeBoard },
   emails: { Component: EmailsBoard },
   "reel-studio": { Component: ReelStudioBoard },
   "help-center": { Component: HelpCenterBoard },
