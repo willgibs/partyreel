@@ -59,45 +59,21 @@ never a cap and a test.
   and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
   opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
   short door) and what the short door does. Every drawn code measured exactly 3.0 px a module.
-- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the board Will asked for by name, the voice
-  derived from won lines. Eight real lines in the places they are read, each with three or four candidates a
-  careful writer would weigh and one recommended: bible 20's question first, drawn on the guest sheet's own "No
-  app, no account" beside the same fact affirmed; then the home hero's sentence, /features/curation's headline,
-  the Pro card's line beside Free's, the empty dashboard, the email ask, the empty album and an upload's toast
-  (two of them the same question on two surfaces on purpose). No production byte moved. Its question for Will:
-  whether the first win binds the other seven (the lane recommends yes, re-asking only the won lines that break
-  it in round two).
-
-- `body-type` integrated (`130236c2`; cut `707d99a2` into the fourth seat on Will's yes): the body and label
-  ladder asked as seven decisions rather than schemed, every option the real surface wearing the paste a
-  ruling would land and every number read off the element in its frame. A guest's reading copy at a phone
-  (16 recommended, level with `card-title`), the app's working body (14), marketing copy fluid from 16 to 18,
-  the caption step and the floor (12, retiring 148 arbitrary sizes), the label pair (12 on 0.14em), buttons on
-  the ladder, and the line-height rule (2 x size minus 8, which lands every pair on the 4px grid). The
-  measuring caught three things the first draft had wrong: an arbitrary size inherits Tailwind's 1.5 leading,
-  a feature paragraph wears the guest page's own `text-[15px]`, and a stacked page shell's `min-h-full` eats
-  the frame. Two questions for Will: the four step names (`copy` / `body` / `caption` / `label` recommended),
-  and whether the caption and label steps share one size (yes recommended).
-- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of the Glass exploration Will banked by name,
-  drawn where glass exists for a reason, the app's chrome over photographs. Four recipes named in numbers on
-  the lightbox's action pill (Frost recommended: the most glass that keeps its text), one grade or two (two, the
-  quiet one derived), what sits behind the photograph in the lightbox (the album blurred at half brightness),
-  the chips over tiles at a phone (the quiet grade), the reel's controls, the host's tile row as one bar or
-  three panes, and the light ground on its own step. Every cost read off Chrome's compositor trace under a 4x
-  throttle at 375: the round's surprise is that the product already pays seventeen times the flat cost on its
-  forty tile chips while a full-screen pane costs a seventh of that. Two questions carried on their
-  recommendations (the backdrop belongs in round one; one Library entry with two grades). Marketing, the
-  header's glass layer and the marriage with the aurora are round two, after his notes.
-- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines drawn as seven decisions on their
-  real surfaces. The admin chart ramp's cast in light and in dark on the real `MetricsCharts` (Graphite's cool
-  cast recommended in both), one FAQ look on both FAQs (the shared size moved into a real heading), the home
-  hero at a real 900 px tablet (a composed third geometry), and the album page's three ambient pieces: the
-  phone's screen cycle graded against the home hero's beat (two beats), the Live | Review photograph (the
-  rings), and a proposed lightbox-hint pill (a quiet corner mark). Two briefed pieces had no behaviour to vary,
-  so the lane read them as "which photo" and "propose a pill" and asks whether that reading was meant. Found
-  on the way, a real production bug: four of the five `--color-chart-*` aliases are never emitted by Tailwind's
-  `@theme inline`, so any series read by name through them paints black; production's own page reads only `chart-3` and `brand` literally, so nothing was black on partyreel.com, but the trap was one template string away. Fixed the same evening at the source: the five aliases moved into `theme.css`'s `@theme static` block, which is emitted whole, proved in the compiled CSS; the gotcha is in design-system.md. The desk draws the charts
-  correctly in a real browser; the lane's own captures squished them through the capture path `glass` documented.
+- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines
+  in the places they are read with three or four close candidates each, bible 20's question first (does the first win
+  bind the other seven); every option a real surface at 1440 and 375.
+- `body-type` integrated (`130236c2`; cut `707d99a2`): the body and label ladder as seven decisions, every number
+  measured in the frame: a guest's reading copy (16 recommended), the app's body (14), marketing copy fluid 16 to 18,
+  the caption step and floor (12), the label pair (12 on 0.14em), buttons on the ladder, line height 2 x size minus 8.
+  Two questions: the four step names, and one size for caption and label.
+- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of the Glass exploration on the app's chrome over
+  photographs: four recipes in numbers (Frost recommended), one grade or two, the lightbox's backdrop, the chips over
+  tiles at a phone, the reel's controls, the host's row, the light ground on its own step, every cost read off the
+  compositor trace under a 4x throttle. Marketing and the aurora marriage are round two, after his notes.
+- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines as seven decisions on their real surfaces
+  (the admin chart's cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces).
+  Found on the way and fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted by
+  `@theme inline`, so a series read by name painted black; the aliases are `@theme static` now.
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
   word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
   the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
@@ -148,6 +124,16 @@ never a cap and a test.
   entrance, the size, the home on real pages, the phone) and `privacy-hero` round two, the same trail fed by
   a path where the cursor would be, replacing round one's spirals and wake after Will's none (`rush`, two
   notches over the home hero, recommended). Round one's verdict was transcribed from chat into the ledger.
+- `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
+  retired. `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
+  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone and a still under reduced
+  motion; the engine and `PhotoSection` are production modules beside the river (two contracts, 48 tests, a Library
+  entry). His fold landed as one line: `live-demo` changed register, so chapter one closes on the photograph and the
+  paper chapter opens on the demo's stage, the order untouched (the merge into the album section was the other
+  reading; his to overrule). Measured: the copy at 5.12:1 over the worst photograph, zero animation frames at rest,
+  the switch compositor work; a zero-area IntersectionObserver that would have shipped the phone rule dead was
+  caught. Row 20's ask is amended to 1200 px delivered, since `next/image` never upscales and the delivered width
+  is the cap on what a full-bleed layer decodes.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
