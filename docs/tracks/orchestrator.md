@@ -132,6 +132,7 @@ retired `type-phone`; both agents were told so by message.
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 | `media-viewer` | cut at `d909cb13` (the overnight round): what a photograph opens as, for a guest and a host, phone first | open | Opus, :3131 | the handoff; then `profile-page` on the seat |
 | `reel-studio` | integrated at `d10149bd` (handed off `e4a157d4`; the registration conflicts resolved by the Orchestrator); four calls carried; five Now lines | done | Opus, :3132 | nothing; `export-flow` takes the seat |
+| `export-flow` | cut at `5649285b` (the overnight round, the seat reel-studio freed): getting everything out, for a host and for a guest | open | Opus, :3132 | the handoff |
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
 | `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
