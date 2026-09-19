@@ -115,6 +115,16 @@ and relayed here for his morning. The records follow in the order the lanes hand
   desk-wide fault; the Orchestrator's gate on its own port found the eight steps (the ROADMAP's `lab:demo` default line
   stands). Four ROADMAP lines (the step-count trap, the label collision, the unread single source, the catalogue gap).
 
+- `event-type-pages` integrated (`cee7768c`; cut `1cf54457`): the event-type landing pages, the hub and the four types, as
+  eight decisions on the real pieces (`PageHero`, `EventHeroMedia`, the directory's grammar, `BuiltFor`, `ReelAngleBand`)
+  at 1440 and 375: one page or four (one template, as today), the hero's picture (the split, as today, per the code's own
+  manifest note), one hero (every page on `PageHero`, closing a gap-5 against gap-6 drift), who is greeted (one quiet
+  guest line), the proof (a demo door in the arc, in `demo-event`'s own promise wording), how many (four, unchanged), the
+  directory (two-up, as today), the phone (the measured 183 px FAQ-to-close gap halved, a small stylesheet change). Two
+  calls flagged for his eye (a fifth type and a planner line are unresearched, per the product-defining rule). Seven
+  ROADMAP lines (a stale blog tag, three unlinked posts, triplicated nav copy, a policy scan gap, a stale comment, the
+  hub's missing OpenGraph image, a stale doc line).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
