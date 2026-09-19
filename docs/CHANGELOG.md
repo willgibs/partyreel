@@ -123,6 +123,14 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   page), the sheet (eight plates; the placeholder marks are ASSETS row 19), the words (a paragraph and a line), the
   facts (rows plus a link to the machine-readable copy), a human (a role address), the close (the contact door with
   Press pre-picked, staged behind the human), the arc (today's order). One question his: "Live now" pre-launch.
+- `demo-event` integrated (`e3a2c1b6`; cut `391c40e9`): the demo as the product's first impression, seven decisions
+  on the shipped guest page in demo mode and the real marketing doors, LAPTOP first at 1440 with 375 on a knob
+  (everyone who opens the demo followed a link): the arrival (a screen that hands them a role), the framing (a mark
+  in a header that stays), the upload as the demo's moment (the simulated upload, then the turn), the way out (the
+  blanked Save slot becomes "Start your own"), what a door promises (the party named), the phone scanned off the
+  laptop (the two screens as one session), how many parties (one). Three questions carried on their recommendations
+  (the entry-modal pin narrows to the owner at the wiring; the pairing's transport is the wiring's; the demo's
+  server side is UI-only, a Security line). Reading the captures caught seven defects, fixed.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album
   pours out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the
   lab's card engine folded into the shared river as one `origin` argument, the code and the settled flow in the
