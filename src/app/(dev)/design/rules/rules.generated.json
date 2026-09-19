@@ -1973,12 +1973,60 @@
           "line": 604
         },
         {
+          "title": "does not count itself into the walk when it was reached staged",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 619
+        },
+        {
+          "title": "says a step is moot when the question it waited on went the other way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 628
+        },
+        {
+          "title": "counts itself again once its question is answered its way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 639
+        },
+        {
+          "title": "puts it on the stage head, where a tall stage keeps it on screen",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 658
+        },
+        {
+          "title": "offers it beside the strip on a step whose options are words",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 670
+        },
+        {
+          "title": "adds nothing when the board declares none",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 679
+        },
+        {
           "title": "asks a pick-one catalog's winner on the cards themselves",
           "suite": [
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 613
+          "line": 686
         },
         {
           "title": "walks a keep-any catalog one card at a time",
@@ -1986,7 +2034,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 629
+          "line": 702
         },
         {
           "title": "keeps a catalog as ONE step whichever way it is walked",
@@ -1994,7 +2042,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 636
+          "line": 709
         },
         {
           "title": "fills Next only once every card has a verdict",
@@ -2002,7 +2050,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 641
+          "line": 714
         }
       ]
     },

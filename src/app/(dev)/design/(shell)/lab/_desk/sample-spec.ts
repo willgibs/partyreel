@@ -271,6 +271,34 @@ export const SAMPLE_BOARD = defineBoard({
     },
   ],
 
+  /**
+   * ★ AND IT CARRIES CALLS, because the fixture is where every shape a board
+   * can take is walked before a real board commits to one (lab-tides,
+   * 2026-09-19). These are this lane's own two, written as a lane writes them:
+   * the question its goal left open, the answer it took, and what changes if
+   * he says otherwise. `/design/lab/sample` draws them above the sections.
+   */
+  carried: [
+    {
+      id: "base",
+      question:
+        "Should lab:demo refuse to run when no base is given, or guess the lane's port?",
+      taken:
+        "It refuses, and says why. There is no way to guess a lane's port that is right more often than it is wrong.",
+      overrule:
+        "If one more flag per run is the wrong trade, LAB_BASE in each lane's shell is the same fix with no flag on the line.",
+    },
+    {
+      id: "layers",
+      question:
+        "Should the lab compile a superset of production's utilities so a breakpoint works in a board?",
+      taken:
+        "No. The cascade settlement that fixes it changes how every standing board draws, so it is a round of its own, not a line in this one.",
+      overrule:
+        "If a wiring round is blocked on a board that needs a breakpoint, the superset is the fix and the whole desk is re-read after it.",
+    },
+  ],
+
   lookFirst: [
     {
       section: "walk",

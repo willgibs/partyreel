@@ -607,6 +607,79 @@ describe("a step, staged behind another", () => {
     const gaps = board.drawn.filter(([id]) => id === "gap");
     expect(gaps.every(([, at]) => at.pace === "slow")).toBe(true);
   });
+
+  /**
+   * ★ AND A STAGED STEP REACHED BY URL SAYS WHAT IT IS (lab-tides,
+   * 2026-09-19). Back and Next skip it, but a pasted link, a reload after
+   * answering its prerequisite the other way, or a deep link can land on one,
+   * and it used to draw itself as "step 8 of 7": a number that is not a
+   * position, on a page that is not in the walk. The question still renders,
+   * because a reader who followed a link to it is owed the question.
+   */
+  it("does not count itself into the walk when it was reached staged", () => {
+    step("light.landing", fakeBoard());
+    expect(screen.queryByText(/step \d+ of/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/not in the walk yet: it waits on an earlier answer/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Where should the aurora land?")).toBeInTheDocument();
+  });
+
+  it("says a step is moot when the question it waited on went the other way", () => {
+    setReviewStore({
+      ...EMPTY_REVIEW,
+      answers: { [holdId("light", 5, "register")]: { choice: "accent", note: "" } },
+    });
+    step("light.landing", fakeBoard());
+    expect(
+      screen.getByText(/not in the walk: moot this round/),
+    ).toBeInTheDocument();
+  });
+
+  it("counts itself again once its question is answered its way", () => {
+    setReviewStore({
+      ...EMPTY_REVIEW,
+      answers: {
+        [holdId("light", 5, "register")]: { choice: "identity", note: "" },
+      },
+    });
+    step("light.landing", fakeBoard());
+    expect(screen.getByText(/step \d+ of/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * THE BOARD'S OWN TOOLS, REACHABLE FROM A STEP (lab-tides, 2026-09-19). A
+ * step's dock is the ANSWER's, so a board's own cluster (a Reload frames, a
+ * Replay) was reachable only by leaving the question and opening the whole
+ * board, which is the trip the stepped review exists to end.
+ */
+describe("a step carries the board's own dock cluster", () => {
+  it("puts it on the stage head, where a tall stage keeps it on screen", () => {
+    const board = fakeBoard();
+    board.tools = <button type="button">Reload frames</button>;
+    const { container } = step("light.register", board);
+    const head = container.querySelector("[data-lab-stage-head]")!;
+    expect(
+      within(head as HTMLElement).getByRole("button", {
+        name: "Reload frames",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers it beside the strip on a step whose options are words", () => {
+    const board = fakeBoard();
+    board.tools = <button type="button">Reload frames</button>;
+    step("light.depth", board);
+    expect(
+      screen.getByRole("button", { name: "Reload frames" }),
+    ).toBeInTheDocument();
+  });
+
+  it("adds nothing when the board declares none", () => {
+    const { container } = step("light.register", fakeBoard());
+    expect(container.querySelector("[data-lab-board-tools]")).toBeNull();
+  });
 });
 
 describe("a step on a catalog", () => {

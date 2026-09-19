@@ -15,6 +15,8 @@ import {
   SURFACE_LABEL,
 } from "@/app/(dev)/design/touchpoints";
 import { BoardFrame } from "./board-frame";
+import { SampleBoardPage } from "./sample-board";
+import { SAMPLE_BOARD } from "../_desk/sample-spec";
 import { BOARD_COMPONENTS } from "../boards";
 import { buildStamp } from "@/app/(dev)/design/_data/build-stamp";
 
@@ -47,6 +49,26 @@ export default async function BoardPage({
 }) {
   const key = await requireDesignKey(searchParams);
   const { board: slug } = await params;
+  // ★ THE TEMPLATE'S OWN DRY RUN (lab-tides, 2026-09-19). `/design/lab/sample`
+  // renders the fixture board through the kit's template, so a change to the
+  // template is looked at on a board nobody is being asked to rule on. It is
+  // deliberately not in the registry: it is a tool, not a board.
+  if (slug === SAMPLE_BOARD.id) {
+    return (
+      <BoardFrame
+        id={SAMPLE_BOARD.id}
+        title={SAMPLE_BOARD.title}
+        sections={SAMPLE_BOARD.sections.map((s) => ({
+          id: s.id,
+          label: s.title,
+        }))}
+      >
+        <WidePage>
+          <SampleBoardPage />
+        </WidePage>
+      </BoardFrame>
+    );
+  }
   const session = (await searchParams).session;
   const param = typeof session === "string" ? session : null;
   const ruling = getRuling(slug);
