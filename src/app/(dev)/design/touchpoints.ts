@@ -28,6 +28,8 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "press-page"
+  | "contact-page"
   | "entry"
   | "upload"
   | "gallery"
@@ -89,6 +91,8 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "app-pricing"
+  | "press-page"
+  | "contact-page"
   | "app-vocabulary"
   | "guest-shape"
   | "album-motion"
@@ -658,6 +662,60 @@ export const RULINGS: Ruling[] = [
         "The first view",
         "How much it carries",
         "The second layer",
+      ],
+    },
+  },
+  {
+    id: "press-page",
+    title: "What Partyreel hands the world",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": /press is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "Seven decisions on the real page pieces: who it is for, the sheet, the words, the facts, whether anyone is named, the close, and the reading order.",
+    lives: [
+      "src/app/(marketing)/(cinema)/press/page.tsx",
+      "src/components/marketing/press/press-section.tsx",
+      "src/components/marketing/press/press-sheet.tsx",
+      "src/lib/constants/press.ts",
+    ],
+    board: {
+      note: "Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom",
+      variants: [
+        "Who the page is for",
+        "What the sheet shows",
+        "How the words hand over",
+        "How checkable the facts are",
+        "Whether anyone is named",
+        "How the page closes",
+        "How the page reads",
+      ],
+    },
+  },
+  {
+    id: "contact-page",
+    title: "Reaching a person",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: stack the lab while deployments are capped, /contact cut from his read-only map)",
+    shipped: null,
+    why: "Six decisions on the real desk: the way in, the receipt, an urgent path, the topic picker, the page's rhythm, and what stands beside it.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(paper)/contact/page.tsx",
+      "src/app/(marketing)/(paper)/contact/contact-form.tsx",
+      "src/app/(marketing)/(paper)/contact/actions.ts",
+      "src/lib/constants/contact.ts",
+    ],
+    board: {
+      note: "Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form",
+      variants: [
+        "The way in",
+        "The receipt",
+        "Something urgent",
+        "The topic picker",
+        "The page's identity",
+        "Beside the form",
       ],
     },
   },
