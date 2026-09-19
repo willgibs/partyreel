@@ -111,13 +111,13 @@ retired `type-phone`; both agents were told so by message.
 | `image-trail` | integrated at `dd44692e` (handed off `60983fea`; privacy-hero's round-one verdict transcribed first at `e140d3ad`) | done | Opus, :3135 | nothing |
 | `cursor-backdrop` | integrated at `592955ab` (handed off `859d88dc`) | done | Opus, :3136 | nothing |
 | `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias |
-| `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
-| `river-wiring` | cut the same night: the river in the QR door at `tenth`, `behind`, `/demo` at 99 px, tall closing rows, every card's own copy gradient; river-card and river-visual retire | building | Opus, :3132 | everything |
+| `album-wiring` | integrated at `2ca47448` (handed off `552b19fe` after four syncs); both boards retired, `album-motion` open | done | Opus, :3131 | the red-team on the alias when the cap frees |
+| `river-wiring` | integrated at `5297cb07` (handed off `3d74ad68`; the touchpoints conflict resolved by the Orchestrator); both boards retired | done | Opus, :3132 | the red-team on the alias when the cap frees |
 | `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
 | `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |
-| `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
+| `app-shape` | integrated at `aa338766` (handed off `18c9afda`; the registration conflicts resolved by the Orchestrator, retired boards kept gone) | done | Opus, :3135 | nothing |
 | `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
-| `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
+| `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
@@ -235,6 +235,12 @@ look; the one guest `@contract-for` is the empty state's.
   Orchestrator sets `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION and redeploys `main` (the scratch script
   `apex-flag.mjs`; never before the move, or the portal is dark), then the runbook's checks a to g. Rollback at any
   step: unset the variable on either project; move the domain back the same way.
+- **The deployment cap.** Vercel's Hobby team allows 100 deployment CREATIONS per trailing day, and a canceled one
+  counts: with six lanes pushing working states and TWO projects on the repo, every lane push created two, and the
+  cap hit on 2026-09-19 (`api-deployments-free-per-day`, a 402 on the API too), so the desk sat on `89548cbb`
+  while `app-shape` waited. Since then `vercel.json` carries `git.deploymentEnabled: { "lp/*": false }` (glob keys
+  are supported), so a lane push creates nothing on either project; only `launch-prep` and `main` deploy. The
+  cap is a rolling window: creations age out one by one, and the `[preview]` build resumes when the count drops.
 - **Seats.** Six agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
   challenged yet today... Seems the concurrent local dev builds may be where it gets dicey", then "let's go +1 agent slot
   again... If we ever start going too fast for your preference, that's your call, and let me know"): the machine has 36 GB,

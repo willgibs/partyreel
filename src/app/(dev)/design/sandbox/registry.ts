@@ -2,14 +2,12 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { APP_VOCABULARY } from "./app-vocabulary/spec";
 import { ADMIN } from "./admin/spec";
-import { ALBUM_HERO } from "./album-hero/spec";
-import { ALBUM_PAGE } from "./album-page/spec";
+import { ALBUM_MOTION } from "./album-motion/spec";
+import { APP_SHAPE } from "./app-shape/spec";
 import { BODY_TYPE } from "./body-type/spec";
 import { GLASS } from "./glass/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
-import { RIVER_CARD } from "./river-card/spec";
-import { RIVER_VISUAL } from "./river-visual/spec";
 import { VOICE } from "./voice/spec";
 
 /**
@@ -31,16 +29,14 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   APP_VOCABULARY,
+  ALBUM_MOTION,
+  APP_SHAPE,
   ADMIN,
   LOOSE_ENDS,
   GLASS,
   BODY_TYPE,
   VOICE,
   PRIVACY_HERO,
-  ALBUM_PAGE,
-  RIVER_CARD,
-  RIVER_VISUAL,
-  ALBUM_HERO,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

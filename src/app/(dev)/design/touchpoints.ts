@@ -52,6 +52,8 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "app-vocabulary"
+  | "album-motion"
+  | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
   | "admin"
@@ -85,16 +87,14 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "app-vocabulary"
+  | "album-motion"
   | "admin"
   | "loose-ends"
   | "glass"
   | "body-type"
   | "voice"
   | "privacy-hero"
-  | "album-page"
-  | "river-card"
-  | "album-hero"
-  | "river-visual";
+  | "app-shape";
 
 export type Ruling = {
   id: RulingId;
@@ -590,42 +590,85 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/foundations/page.tsx#radius",
     ],
   },
+  // RULED AND RETIRED (round three, 2026-09-18). Will answered `none` on the
+  // composition and the rest in full; the field it drew became the privacy
+  // hero's, and the three answers that were about THIS page shipped with the
+  // album page's own round. The board left sandbox/ with the wiring;
+  // docs/design/rulings.md keeps his words.
   {
     id: "album-hero",
     title: "The album page's hero",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-15: the burst's field, killed as the home hero, becomes the live album's hero; his six notes of 2026-09-17 sent it back for a custom, calm round three)",
-    shipped: null,
-    why: "Round three answers his notes: a lockup composed for this page as one block, four calm compositions on one engine, the live album centred under each.",
+    ruled: "2026-09-18",
+    shipped:
+      "No composition of its own: the album at the scale's 896 step with its foot faded, the title step for the headline, the page's own copy, and the settled composition with no script",
+    why: "The album under the words IS the hero's visual, so the words take the title step and compete with nothing; the calm caps that made four compositions boring left with it.",
     lives: [
-      "src/app/(marketing)/(cinema)/features/album/page.tsx",
+      "src/components/marketing/sections/features/album/arrivals-hero.tsx",
+      "src/components/marketing/sections/features/album/live-album-stage.tsx",
+      "src/components/marketing/system/page-hero.tsx",
       "src/lib/constants/feature-pages.ts",
     ],
-    board: {
-      note: "Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit",
-      variants: ["The orbit", "The field, calmed", "The shelf", "The arrival"],
-    },
   },
+  // RULED AND RETIRED (round two, 2026-09-18, wired 2026-09-19). Its home is a
+  // CARD, not a section: the flow pours out of the real scannable code in the
+  // QR feature door, and the ghost of it stands on the guest album's empty
+  // state. The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-visual",
     title: "The river, a feature visual",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-15: the river, killed as a hero, streamlined to one flow and kept in the bank)",
-    shipped: null,
-    why: "The river as a section-scale feature visual: one stream dropping out of the code, at three sizes on cinema and paper, banked with its placements, props and cost.",
+    ruled: "2026-09-18 (round two)",
+    shipped:
+      "The river in a card's picture slot, born from the real scannable code, and ghosted on the guest album's empty state",
+    why: "The river's home is a card, not a section: one flow out of the object it is born from, at full luminance everywhere but the empty album, where the PLACEMENT fades it.",
     lives: [
-      "src/components/marketing/system/section-shell.tsx",
-      "src/lib/constants/feature-pages.ts",
+      "src/components/shared/river/river.tsx",
+      "src/components/shared/river/river-engine.ts",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/marketing/sections/features/shared/feature-door.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
+    ],
+  },
+  {
+    id: "album-motion",
+    title: "The album's falling-in",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, asked what improving the falling-in means: "I love the images falling into the album. I was just curious to see maybe two to three variations of this concept to get an idea of what the best version is.")',
+    shipped: null,
+    why: "One decision: which way a photograph reaches the album, drawn on the wired hero so the pick is already built.",
+    lives: [
+      "src/components/shared/album-stream/stream-engine.ts",
+      "src/components/marketing/sections/features/album/arrivals-hero.tsx",
     ],
     board: {
-      note: "The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost",
+      note: "One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's",
+      variants: ["Glide", "Gather", "Cascade"],
+    },
+  },
+  {
+    id: "app-shape",
+    title: "The host app's shape",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/shared/app-shell.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
       variants: [
-        "560, the column",
-        "400, the card",
-        "240, the thumbnail",
-        "The placements",
+        "The host's home",
+        "The event as a place",
+        "Moving around",
+        "In a hand",
       ],
     },
   },
@@ -712,9 +755,9 @@ export const RULINGS: Ruling[] = [
     title: "The privacy page's hero",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-18: the album hero's round-three field becomes the Privacy & trust hero, two spirals, faster, closer, with a decaying trail)",
+      'open (Will, 2026-09-19: the spiral/orbit arrival didn\'t land, "totally different concept... more fitting for its theme"; round three draws three new, still concepts instead)',
     shipped: null,
-    why: "The field recut as two spirals behind the privacy page's words, graded against the home hero's pace: four decisions, each drawn at 1440 and 375.",
+    why: "Three still concepts (a breathing aperture, a turn-taking grid, sealed cards) built on what privacy means, not a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
       "src/components/marketing/system/page-hero.tsx",
@@ -725,50 +768,49 @@ export const RULINGS: Ruling[] = [
       tracks: ["heroes"],
     },
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered every step and
+  // added the note that shaped the page's foot: the floor light needs a full
+  // image section beneath it rather than paper. The board left sandbox/ with
+  // the wiring; the motion's remaining question became `album-motion`.
   {
     id: "album-page",
     title: "The album page's hero, round four",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: a round four at the home hero's pace, a subtle motion in the empty space around the words, the live album under them, a new light)",
-    shipped: null,
-    why: "The album page's top as four decisions: the album under the words, a subtle motion around them at the home hero's pace, the album's light and a second light.",
+    ruled: "2026-09-19",
+    shipped:
+      "The live guest album under the host's own header, photographs falling into its top edge, the Glow halo behind the frame, and the Aurora on the quality section's floor over a full-image section",
+    why: "The page's own sentence, drawn: the album that fills itself under the words, photographs arriving into it, lit from behind so the frame glows and they stay clean.",
     lives: [
       "src/app/(marketing)/(cinema)/features/album/page.tsx",
       "src/components/marketing/sections/features/album/arrivals-hero.tsx",
+      "src/components/marketing/sections/features/album/live-album-stage.tsx",
+      "src/components/marketing/sections/features/album/quality-section.tsx",
+      "src/components/shared/album-stream/album-stream.tsx",
+      "src/components/shared/album-stream/stream-engine.ts",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#album-stream",
     ],
-    board: {
-      note: "Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes",
-      variants: [
-        "The album",
-        "The motion",
-        "The album's light",
-        "A second light",
-      ],
-      tracks: ["heroes"],
-    },
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered every step and
+  // added the ruling that outranks this instance: the card's copy gradient is
+  // the CARD's, "not exclusive to the QR code card, nor part of the river
+  // visual design itself", so it went to every media-forward card on the site.
+  // The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-card",
     title: "The river in the QR door",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: the river goes into the card, the code in it with no label, as an Easter egg, run through its own exploration)",
-    shipped: null,
-    why: "The river in the real QR feature door, in both of its shapes: where the code sits, where the photographs end, what the code opens and what the short door does.",
+    ruled: "2026-09-19",
+    shipped:
+      "The code at a tenth of the tall door with the whole card streaming behind the copy, the card's own bottom-left gradient on every door, and /demo as what the code opens",
+    why: "The QR door's picture is the album pouring out of a real scannable code, and the copy over it reads on a gradient that belongs to the card rather than to any one visual.",
     lives: [
+      "docs/systems/design-system.md#the-media-forward-card",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/features/shared/related-features.tsx",
+      "src/components/marketing/sections/home/event-type-card.tsx",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/app/demo/route.ts",
     ],
-    board: {
-      note: "Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door",
-      variants: [
-        "Where the code sits",
-        "Where the photographs end",
-        "What the code opens",
-        "The short door",
-      ],
-    },
   },
   {
     id: "gallery-width",

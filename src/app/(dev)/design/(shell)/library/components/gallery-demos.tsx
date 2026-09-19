@@ -13,7 +13,17 @@ import {
   GalleryEmptyState,
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
+import { LiveAlbumStage } from "@/components/marketing/sections/features/album/live-album-stage";
+import { AlbumStream } from "@/components/shared/album-stream/album-stream";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
+import {
+  QR_DOOR_FRAMES,
+  QR_DOOR_SIZES,
+} from "@/components/shared/river/qr-door-frames";
+import {
+  qrRiverOrigin,
+  QrRiverPlate,
+} from "@/components/shared/river/qr-plate";
 import { River } from "@/components/shared/river/river";
 import { Trail } from "@/components/shared/trail/trail";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -124,6 +134,53 @@ import {
  * model of the component.
  */
 
+/**
+ * THE GROUND THE ALBUM STREAM SHIPS ON. Both specimens below are marketing
+ * pieces and the library's components page is the app's skin, so they are given
+ * the cinema chapter they are drawn for; without it the halo has no dark to
+ * spill into and the frames have no room to read against.
+ */
+function CinemaGround({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="dark rounded-lg bg-background p-4 text-foreground"
+      data-mkt=""
+      data-mkt-skin="cinema"
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * THE QR DOOR'S PICTURE SLOT, drawn exactly as `feature-door.tsx` composes it:
+ * the ink ground, the flow born at the code's centre between the door's two
+ * scrims, and the plate over everything. The door's own scrims and copy are on
+ * its entry (/design/library/marketing); what this shows is the picture, at the
+ * two widths a door is really drawn at. `rvr-ink` is the placement's ground,
+ * not the theme's: `--shadow-lift` is per theme, and on a light page it is a
+ * dark shadow that vanishes against ink.
+ */
+const DOOR_RATIO = 5 / 4;
+
+function QrDoorPicture({ width }: { width: number }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]"
+      style={{ width, aspectRatio: `1 / ${DOOR_RATIO}` }}
+    >
+      <River
+        className="rvr-ink"
+        frames={QR_DOOR_FRAMES}
+        ratio={DOOR_RATIO}
+        origin={qrRiverOrigin(DOOR_RATIO)}
+        sizes={QR_DOOR_SIZES}
+      />
+      <QrRiverPlate ratio={DOOR_RATIO} value="https://partyreel.com/demo" />
+    </div>
+  );
+}
+
 const buttonSizes = [
   "xs",
   "sm",
@@ -179,6 +236,47 @@ function TrailWords() {
 }
 
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  /* THE ALBUM STREAM (added by lp/album-wiring at the HEAD of the list, so the
+     three lanes of this round can each add their own without touching
+     another's; the Orchestrator keeps every side at the merge). */
+  {
+    id: "album-stream",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo. Will ruled both on the album page (visual=live, motion=stream, light=halo, 2026-09-19).",
+    specimens: [
+      {
+        label: "The album, at the scale's 896 step",
+        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 1); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
+        node: <CinemaGround>{<LiveAlbumStage />}</CinemaGround>,
+      },
+      {
+        // ★ ITS COMPOSITION IS THE HERO'S OWN WIDTH, which a library column is
+        // not: every horizontal in the engine is a share of the hero's
+        // half-width, and the layer reads that from its own box. So this block
+        // is pinned to 1280, the narrowest window the side-band composition
+        // serves, and the page itself is where it is judged.
+        label: "and the fall into it",
+        hint: "1280, the narrowest window this composition serves. Decorative and inert: nothing in it is focusable, every frame carries its resting position as server HTML, and reduced motion leaves that resting frame standing with no loop at all",
+        node: (
+          <div className="max-w-full overflow-x-auto">
+            <CinemaGround>
+              <div
+                className="relative isolate overflow-x-clip"
+                style={{ width: 1280 }}
+              >
+                <AlbumStream />
+                <div style={{ height: 520 }} />
+                <LiveAlbumStage />
+                <div style={{ height: 150 }} />
+              </div>
+            </CinemaGround>
+          </div>
+        ),
+      },
+    ],
+  },
   // ★ THE IMAGE TRAIL, at the head of the entries because three wiring lanes add
   // one this round and each landing at the top is what keeps the three merges
   // apart; the Orchestrator keeps all of them. Declared INLINE rather than as a
@@ -229,6 +327,45 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         node: (
           <div className="overflow-hidden rounded-lg border">
             <Trail source="pointer" className="min-h-[22rem]" />
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "qr-plate",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    title: "The QR door's picture",
+    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door. Will ruled the pair on river-card (2026-09-19): the code a tenth of the way down the tall door, the whole card streaming behind the copy, no label at all, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
+    specimens: [
+      // The two widths the door is really drawn at: (1024 - 32) / 3 in the
+      // /features grid at 1440, and 375 minus the site's gutters on a phone.
+      // Fixed on purpose: the WIDTH is what the scan floor is measured
+      // against, and a library frame is as wide as the window.
+      {
+        label: "The tall door's picture at 1440",
+        hint: "331px: the code lands on 30% of the door, which is its 99px scan floor at exactly this width, and the flow is born inside the plate",
+        node: <QrDoorPicture width={331} />,
+      },
+      {
+        label: "and on a phone",
+        hint: "343px: one geometry, no second tuning; the code grows with the door and can never fall under 3px a module",
+        node: <QrDoorPicture width={343} />,
+      },
+      {
+        // ★ WHY THE PLATE IS ITS OWN LAYER: it rises over both of the door's
+        // scrims, because a scrim across white greys the code into exactly the
+        // square a short value exists to avoid. The flow runs between them.
+        label: "The code alone, on the door's ink",
+        hint: "server-rendered, zero client JS, no link and no label: the door is already one link, and the code is an Easter egg for a camera",
+        node: (
+          <div
+            className="relative aspect-4/5 overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]"
+            style={{ width: 331 }}
+          >
+            <QrRiverPlate ratio={5 / 4} value="https://partyreel.com/demo" />
           </div>
         ),
       },

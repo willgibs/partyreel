@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "ignoreCommand": "node scripts/vercel-ignore-build.mjs",
+  "git": { "deploymentEnabled": { "lp/*": false } },
   "crons": [{ "path": "/api/cron/purge", "schedule": "0 4 * * *" }]
 }
