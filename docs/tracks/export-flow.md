@@ -1,6 +1,6 @@
 ---
 track: export-flow
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5649285b"          # the launch-prep SHA the branch was cut from
 board: export-flow      # round one: getting everything out, for a host and for a guest
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -105,26 +105,106 @@ upload); reduced motion honoured; no em-dashes; the copy is open (bible 21). Mob
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **Can a guest's own uploads be recognised well enough to bundle them?** `means=mine` rests on it.
+  Recommended, and carried: yes. `media.guest_id` identifies a signed-in guest and the `uploads` row's
+  `device_uuid` identifies an anonymous one, so the set exists server-side today; a guest who cleared
+  their browser simply does not get the row, and the album bundle is what they see.
+- **May the Worker tell the page anything at all?** Three answers want it (`wait=panel` needs to know the
+  bytes started, `hollow=after` needs the skipped count, `stuck=timeout` only needs a clock). Recommended,
+  and carried: yes, and cheaply, a `Set-Cookie` nonce on the zip response the page polls for, plus a header
+  carrying how many of the manifest's items were really written. Both are Worker changes that land with the
+  wiring, and the board draws what they would buy without assuming them.
+- **Does the `split` answer to `cap` number its parts by items or by bytes?** Recommended, and carried: by
+  items, `MAX_EXPORT_ITEMS` per part, because that is the Worker CPU ceiling the cap exists for; the byte
+  cap stays a second, rarer guard.
+- **SELECTED was cut for budget.** The bulk bar's direct mint (no confirmation, hidden items silently in)
+  was the ninth suggested decision. Recommended, and carried: it belongs with `app-vocabulary`'s
+  `bulk-toolbar` grammar rather than here, since the question is what that bar's icon means, not what a
+  download is.
+- **The dialog is reproduced, not opened.** The shipped `ExportDialog` is a radix `Dialog` that portals to
+  the board page out of any lab frame, and opening it fetches a summary. Recommended, and carried: quote the
+  shell and keep the body byte for byte (the precedent is `guest-shape/dialogs.tsx` on these same four guest
+  dialogs), rather than add a seam to a shipped file this lane does not own.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (this lane owns only its board directory)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- App / reliability: the export mint has no timeout and no cancel, so a request that hangs leaves the toast
+  spinning and the Download button disabled until the page is reloaded, with nothing said (`stuck`).
+- App / reliability: the export Worker skips an R2 object it cannot find in silence, so an album emptied
+  between the mint and the stream downloads as a valid zip with nothing in it and every surface behaves as
+  if it worked (`hollow`).
+- Marketing / copy: the zip mock says the caps are "deliberately unmentioned" while the album feature copy
+  states "Up to 2,000 items" and the dialog itself never says a number; whichever `cap` option wins, all
+  three have to agree.
+- App / polish: the dialog prints raw integers, so a large album's chips read "2440" and its foot "2440
+  items" with no thousands separator (`export-dialog.tsx`, both the chip count and the foot).
+- Admin: `/admin/exports` is a log and a kill switch with no heartbeat, so a Worker that is down or an
+  export that never completes is visible only as an absence of rows.
+- Live check: no code, help or test says whether the top-level form-POST attachment actually saves on iOS
+  Safari, which is the device most guests are on; one real iPhone answers it (`phone`).
+- App / guest: the bulk bar's "Download selected" skips the dialog and mints with hidden items included,
+  with no confirmation naming the count (`app-vocabulary`'s `bulk-toolbar`).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board export-flow` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: this manifest commit on `lp/export-flow`, pushed; the code is `5d5ad24a`, synced with `origin/launch-prep` at `0c651986`
+  (merge `28002ac3`: registration conflicts in `registry.ts`, `boards.ts` and `touchpoints.ts` resolved by
+  keeping BOTH sides, and the RULINGS hunk spanned a row boundary exactly as warned, so `],` `},` `},` `{`
+  was spliced back between the two sides; `docs/design/library.md` regenerated by `pnpm design:rules`).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok (123 components, 733
+  contracts, 18 policies; it runs the specimen collector, there is no second command) · `pnpm typecheck` ok
+  · `pnpm lint` ok (the 8 known warnings, none in this lane) · `pnpm test` ok (2,545) · `pnpm build` ok (254
+  static pages) · `pnpm lab:smoke --base http://localhost:3132` ok (432 checks, 0 failing; the board reads
+  685 words of a 1,200 budget) · `pnpm lab:demo --board export-flow --base http://localhost:3132` ok (8
+  steps, 0 failing, every step draws its options; tallest 1.5 screens).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`:
+  `docs/design/library.md` (generated) · `src/app/(dev)/design/(shell)/lab/boards.ts` (one line) ·
+  `src/app/(dev)/design/sandbox/export-flow/{board.tsx,dialog.tsx,export-flow.css,fixtures.ts,spec.ts,surfaces.tsx}` ·
+  `src/app/(dev)/design/sandbox/registry.ts` (two lines) · `src/app/(dev)/design/touchpoints.ts` (both
+  unions plus one RULINGS row after `river-visual`). Every line is inside `owns` or the registration
+  exception; this manifest is the only doc touched.
+- The decisions, one line each (four roots, four staged; the recommendation last):
+  - `means`: what Download hands a guest at a party; the whole album as today / their own shots first with
+    the album under / tap what you want then take it. **Their own shots first.**
+  - `chips` (after `means`): what the Videos chip does for a guest who can only ever have photographs; three
+    chips as today / the Videos chip goes / the chip stays and says why. **The chip stays and says why.**
+  - `wait`: what the album shows while the zip is being made; a toast then the browser as today / the dialog
+    holds until it lands / a line under the header and carry on. **The dialog holds until it lands.**
+  - `stuck` (after `wait`): what happens when the mint never comes back; it spins as today / it gives up and
+    offers Try again / Cancel from the first second. **It gives up and offers Try again.**
+  - `hollow` (after `wait`): what is said when the zip comes back hollow; nothing as today / it says what did
+    not make it / nothing downloads at all. **It says what did not make it.**
+  - `cap`: what the dialog does about the 2,000 item limit; unsaid until it blocks as today / said in the
+    foot when it is close / the product splits it and never refuses. **The product splits it.**
+  - `object`: what the dialog offers as keeping the album; one zip as today / the link first with the zip
+    under it / no dialog, it just starts. **The link first.**
+  - `phone` (after `object`): what a phone does with the file; the attachment and whatever iOS does as today
+    / the copy names where it lands / hand it to the phone's share sheet. **The copy names where it lands.**
+- Mobbin: not used this round (encouraged, never required).
+- Captures, every option at 375 and at 1440, forty-eight PNGs plus the measured captions:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/export-flow/shots/`
+  (`captions.txt` holds each tile's head, its words and the caption measured off the frame's own DOM).
+- Assets requested from Will: none. Every tile is a bootstrap still from `MARKETING_IMAGES`.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none in this round. Three answers, if ruled,
+  imply a Worker change at the wiring (a response cookie and a written-count header); nothing is applied here.
+- Look at first: `means` at 375 (the guest's own bundle is the round's one product idea), then `cap` (the
+  refusal already tells the host to do by hand what the product could do for them), then `object` at 375
+  (the album's address in the download dialog). The three staged reliability questions, `stuck`, `hollow`
+  and `phone`, are the map's real defects and are cheap to rule.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). The take-it-home act came back as eight decisions rather
+than a page: four roots (what Download hands a guest, the wait, the 2,000 item limit, what keeping the album
+means) and four staged behind them (the teaser's third chip, a mint that never answers, a zip that comes back
+hollow, where the file lands on a phone), every option drawn on the download dialog over a fixture summary
+run through the shipped arithmetic, phone first at 375 with 1440 on the knob. The dialog's shell was quoted
+because the shipped one is a radix Dialog that portals out of any lab frame and fetches on open; its body is
+the shipped body class for class, both grounds carry the REAL triggers drawn inert, and a scoped fetch guard
+refused every `/api/export` request for as long as a preview was mounted. Reading each capture against its own
+caption caught four defects in the board and one in an option, including a reader that reported the opposite
+of what its option claimed.
