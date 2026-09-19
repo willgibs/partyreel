@@ -935,9 +935,12 @@ function PlateCopy() {
       <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
         The room
       </p>
-      <h3 className="mt-3 font-heading text-section">
+      {/* A <p>, not a heading: a specimen's own words are not part of the
+          library page's outline, and an h3 here lands in its "on this page"
+          list once per specimen under the same text. */}
+      <p className="mt-3 font-heading text-section">
         The picture changes as you move through it.
-      </h3>
+      </p>
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
         Six photographs, one plate, and a rail at the foot that says where you
         are. Nothing fades: the next one arrives from the side you came from and

@@ -3989,7 +3989,7 @@
             "it is atmosphere, and the copy is the only thing in it"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 191
+          "line": 194
         },
         {
           "title": "leaves nothing of its own for a keyboard to land on",
@@ -3997,7 +3997,7 @@
             "it is atmosphere, and the copy is the only thing in it"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 207
+          "line": 210
         },
         {
           "title": "plates the copy, and takes no plate when there is none",
@@ -4005,7 +4005,7 @@
             "it is atmosphere, and the copy is the only thing in it"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 216
+          "line": 219
         },
         {
           "title": "paints every photograph into the first render, with the first eager",
@@ -4013,7 +4013,7 @@
             "it says something when nothing can move"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 234
+          "line": 237
         },
         {
           "title": "writes no inline style before the loop has run",
@@ -4021,7 +4021,7 @@
             "it says something when nothing can move"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 246
+          "line": 249
         },
         {
           "title": "stands perfectly still for a reader who asked for less motion",
@@ -4029,7 +4029,7 @@
             "it says something when nothing can move"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 256
+          "line": 259
         },
         {
           "title": "runs no frame loop until the section is on screen",
@@ -4037,7 +4037,7 @@
             "it costs nothing when nobody is moving"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 273
+          "line": 276
         },
         {
           "title": "STOPS once the photograph has landed and the reader has stopped",
@@ -4045,7 +4045,7 @@
             "it costs nothing when nobody is moving"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 281
+          "line": 284
         },
         {
           "title": "holds the clock off screen instead of teleporting on the way back",
@@ -4053,7 +4053,7 @@
             "it costs nothing when nobody is moving"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 296
+          "line": 299
         },
         {
           "title": "lays one trip wire per ruled step, and nothing else to tap",
@@ -4061,7 +4061,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 326
+          "line": 329
         },
         {
           "title": "switches the photograph as each wire crosses the middle of the screen",
@@ -4069,7 +4069,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 334
+          "line": 337
         },
         {
           "title": "goes BACK when the reader scrolls back up",
@@ -4077,7 +4077,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 346
+          "line": 349
         },
         {
           "title": "takes the wire NEAREST the middle when two are in the band at once",
@@ -4085,7 +4085,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 358
+          "line": 361
         },
         {
           "title": "READS NO LAYOUT AT ALL: not on a step, not in a frame",
@@ -4093,7 +4093,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 383
+          "line": 386
         },
         {
           "title": "draws no rail for a reader with no cursor to track",
@@ -4101,7 +4101,7 @@
             "the reader without a cursor: steps, no taps, no measuring"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 395
+          "line": 398
         },
         {
           "title": "scrubs the pool by position, and comes back to what it left",
@@ -4109,7 +4109,7 @@
             "the reader with a cursor: the band, and the rail"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 407
+          "line": 410
         },
         {
           "title": "lights the rail while the cursor is in the room and gives it back after",
@@ -4117,7 +4117,7 @@
             "the reader with a cursor: the band, and the rail"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 424
+          "line": 427
         },
         {
           "title": "watches no trip wire, so scrolling past never switches under a cursor",
@@ -4125,7 +4125,7 @@
             "the reader with a cursor: the band, and the rail"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 449
+          "line": 452
         },
         {
           "title": "takes whatever pool it is handed, and steps inside it",
@@ -4133,7 +4133,7 @@
             "the pool is a prop, so a second placement is a data change"
           ],
           "file": "src/components/shared/backdrop/photo-section.test.tsx",
-          "line": 458
+          "line": 461
         }
       ]
     },
