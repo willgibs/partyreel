@@ -9,7 +9,11 @@ import { Scene, widthOf } from "./scene";
 import { EmptyShowcase, type EmptyOption } from "./empty-states";
 import { LoadingShowcase, type LoadingOption } from "./loading-surfaces";
 import { GrammarShowcase, type GrammarOption } from "./tile-grammar";
-import { ToolbarShowcase, type ToolbarOption } from "./bulk-toolbar";
+import {
+  GALLERY_LABELLED_ID,
+  ToolbarShowcase,
+  type ToolbarOption,
+} from "./bulk-toolbar";
 import {
   type ControlShape,
   GuestControlsRow,
@@ -45,8 +49,25 @@ const grammar = (s: BoardState, option: GrammarOption) => (
   </Scene>
 );
 
+/** The "label" option's claim ("will not fit its own 375px bar") is measured,
+ *  not typed: read the sketch's own scrollWidth against the room it has. */
+function measureLabelled(root: HTMLElement): string {
+  const el = root.querySelector<HTMLElement>(`#${GALLERY_LABELLED_ID}`);
+  if (!el) return "measuring";
+  const over = el.scrollWidth > el.clientWidth + 1;
+  return over
+    ? `the labelled Gallery row runs ${el.scrollWidth}px in ${el.clientWidth}px: overflows`
+    : `the labelled Gallery row fits: ${el.scrollWidth}px in ${el.clientWidth}px`;
+}
+
 const toolbar = (s: BoardState, option: ToolbarOption) => (
-  <Scene id={`toolbar-${option}`} width={widthOf(s.width)} title="The bulk toolbar" tall>
+  <Scene
+    id={`toolbar-${option}`}
+    width={widthOf(s.width)}
+    title="The bulk toolbar"
+    tall
+    measure={option === "label" ? measureLabelled : undefined}
+  >
     <ToolbarShowcase option={option} />
   </Scene>
 );
