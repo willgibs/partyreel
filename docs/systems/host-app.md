@@ -126,6 +126,18 @@ LOCALLY from the media rows, distinct `guest_id` + host, so it stays host-accura
 events where `getGalleryStats` would zero it, plus config-status chips: visibility Open/Password/Private + an
 Accepting-uploads dot) → a **command bar** → a **stacked, pill-filtered feed**, never tabs.
 
+★ **It is the ONE wide page in the host app** (Will's `host=same`, 2026-09-19: a host sees as many
+photographs at once as a guest). The page marks its root `data-app-wide` and
+[`AppShell`](../../src/components/shared/app-shell.tsx) answers in `:has()` — a page is the layout's
+grandchild and cannot hand a prop back up to it — so BOTH of its containers drop the 1280 cap and keep the
+gutter. The words (the back link, the header block, the command strip) stay at `max-w-7xl` pinned LEFT, the
+FEED takes the window, and logo / heading / pills / section label / first column measure to one left line
+(32px at `lg`). Every OTHER host page is untouched: no `data-app-wide`, so the shell is still the centred
+1280 column. What changed for them is the GRIDS, not the page — `MasonryColumns` now carries the shared
+column rule (`GALLERY_COLUMNS` / `GALLERY_UNIFORM_COLUMNS`, one floor, `--album-column`), so Uploads, Likes,
+the recovery bin, the Reel and the Review queue all went from 3 or 4 fixed columns to ~240px tiles: 5 across
+inside a 1280 column, 6 at 1512 and 8 at 1920 on this page.
+
 **The feed** ([`event-feed/`](../../src/components/app/event-feed/), the DashboardFeed analog): the RSC page
 resolves every section + presigns server-side and hands the **Gallery + Reel** sections to the client
 [`EventFeed`](../../src/components/app/event-feed/event-feed.tsx) as opaque pre-rendered SLOTS; the **Review**
