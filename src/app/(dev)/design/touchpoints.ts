@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "export-flow"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -101,6 +102,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "export-flow"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -660,6 +662,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "export-flow",
+    title: "Getting everything out",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the download act is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one asks the take-it-home act from the foundation: what a guest takes, the wait, a tap with no answer, a hollow zip, the limit, and where the file lands.",
+    lives: [
+      "docs/systems/uploads-and-r2.md",
+      "src/components/app/export/export-dialog.tsx",
+      "src/components/app/export/use-export-download.ts",
+      "src/lib/export/export-service.ts",
+      "src/app/api/export/host/route.ts",
+      "workers/export/src/index.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone",
+      variants: [
+        "What a guest takes",
+        "The wait",
+        "A tap with no answer",
+        "The limit",
+        "Where the file lands",
+      ],
+    },
   },
   {
     id: "admin-triage",
