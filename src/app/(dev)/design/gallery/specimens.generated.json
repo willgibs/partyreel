@@ -46,6 +46,11 @@
       "<div style={{ width: 335 }}>\n  <GalleryEmptyState />\n</div>",
       "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
     ],
+    "photo-section": [
+      "<PhotoSection source=\"pointer\">\n  <PlateCopy />\n</PhotoSection>",
+      "<div style={{ width: 375 }}>\n  <PhotoSection source=\"scroll\">\n    <PlateCopy />\n  </PhotoSection>\n</div>",
+      "<PhotoSection className=\"min-h-56\" />"
+    ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
     ],

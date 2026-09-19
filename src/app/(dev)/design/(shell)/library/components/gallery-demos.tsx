@@ -12,6 +12,7 @@ import {
   GalleryEmptyState,
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
+import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import { River } from "@/components/shared/river/river";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -513,6 +514,44 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
 
   {
+    id: "photo-section",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. Will ruled it a PAGE device on 2026-09-18: a full-image section can close a chapter, open one, or separate two, used sometimes and never at every cut, so a page turns through a picture instead of over a hairline. Its first home closes the home page's first chapter.",
+    specimens: [
+      {
+        label: "The room, under a cursor",
+        hint: "move across it: the pool is indexed by WHERE you are, so going back brings back the photograph you just left. The rail at the foot is that readout, and it is drawn for a cursor and for nothing else.",
+        node: (
+          <PhotoSection source="pointer">
+            <PlateCopy />
+          </PhotoSection>
+        ),
+      },
+      {
+        // ★ `source` is forced HERE and nowhere else. Production asks the
+        // reader's own device; this is the only way to put both rules on one
+        // screen for a reviewer sitting at a laptop.
+        label: "and under a thumb",
+        hint: "scroll THIS page: five of the six pass at steps as the section goes by, never all six and never a tap. Stop scrolling and everything stops, which is the whole point of the rule.",
+        node: (
+          <div style={{ width: 375 }}>
+            <PhotoSection source="scroll">
+              <PlateCopy />
+            </PhotoSection>
+          </div>
+        ),
+      },
+      {
+        label: "With no copy at all",
+        hint: "no children, no plate: the instance that exists to separate two chapters. It is also what a crawler, a tab with scripting off and a reader who asked for less motion get, standing on the pool's first photograph with no loop anywhere.",
+        node: <PhotoSection className="min-h-56" />,
+      },
+    ],
+  },
+
+  {
     id: "tabs",
     family: "components",
     section: "Navigation",
@@ -879,3 +918,34 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
 ];
+
+/**
+ * The copy a plate specimen carries. Deliberately NOT a real marketing section:
+ * the collector derives a component's specimen route from which library module
+ * imports it, so pulling `full-quality.tsx` in here would make the index claim
+ * a home-page section lives in the component gallery.
+ *
+ * The muted line is in it on purpose: over a photograph the plate takes the
+ * body copy off the muted tier (the measured rule in photo-section.css), and
+ * this is where that is visible rather than described.
+ */
+function PlateCopy() {
+  return (
+    <div className="mx-auto max-w-xl px-6 py-12 text-center">
+      <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        The room
+      </p>
+      {/* A <p>, not a heading: a specimen's own words are not part of the
+          library page's outline, and an h3 here lands in its "on this page"
+          list once per specimen under the same text. */}
+      <p className="mt-3 font-heading text-section">
+        The picture changes as you move through it.
+      </p>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        Six photographs, one plate, and a rail at the foot that says where you
+        are. Nothing fades: the next one arrives from the side you came from and
+        the one underneath stays exactly where it was.
+      </p>
+    </div>
+  );
+}

@@ -15,8 +15,9 @@ import {
  * The ratified home order (Will, 2026-08-25: album/curation split, pricing
  * after the reel; 2026-08-26: privacy up beside curation so the paper chapter
  * is contiguous; 2026-09-01: two guest-side sections above the live demo, and
- * the adjacency ruling, which changed layouts, never this order) + the ratified
- * CHAPTER MAP (the mixed-theme ruling). index.ts
+ * the adjacency ruling, which changed layouts, never this order; 2026-09-18:
+ * the chapter-transition ruling, which moved the CUT and again not the order)
+ * + the ratified CHAPTER MAP (the mixed-theme ruling). index.ts
  * renders exactly this array (its Record type pins the pairing), so these
  * byte-pins make any reshuffle or re-chaptering a deliberate act. The test
  * imports section-ids (pure) rather than index because the section tree
@@ -75,15 +76,22 @@ describe("the home section order", () => {
 });
 
 describe("the home chapter map", () => {
-  it("pins the ratified surface per section (7 dark, 3 paper, 5 dark)", () => {
+  it("pins the ratified surface per section (6 dark, 4 paper, 5 dark)", () => {
     expect(HOME_SECTION_SURFACE).toEqual({
       "cinema-hero": "cinema",
       "trust-strip": "cinema",
       decomposition: "cinema",
       "film-strip": "cinema",
       "no-app": "cinema",
+      // ★ THE ONE ID THAT MOVED (Will, 2026-09-18, the chapter-transition
+      // ruling): "we could use this to end the first chapter and combine the
+      // live demo visual currently below into the start of the chapter
+      // after." full-quality wears the switching photograph and ends chapter
+      // 1; the live demo's stage opens the paper chapter. The ORDER above did
+      // not change, which is the point: the page derives its chapters from
+      // this map, so a re-chaptering is one line and a reshuffle is none.
       "full-quality": "cinema",
-      "live-demo": "cinema",
+      "live-demo": "paper",
       album: "paper",
       curation: "paper",
       privacy: "paper",

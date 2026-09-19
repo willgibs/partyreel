@@ -83,7 +83,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "cursor-backdrop"
   | "image-trail"
   | "admin"
   | "loose-ends"
@@ -630,30 +629,29 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
+  // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
+  // (full-quality, the plate, the band with its rail, the slide, the rhythm as
+  // a soft ruling, the phone at four or five scroll steps) and added the
+  // architectural ruling that outranks this instance: a full-image section is a
+  // way to CROSS a chapter cut, used sometimes and never at every one. The
+  // board left sandbox/ with the wiring; docs/design/rulings.md keeps his words.
   {
     id: "cursor-backdrop",
     title: "Cursor backdrop",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: full image background sections that switch the image based on cursor position, in place of the aurora)",
-    shipped: null,
-    why: "The UI-forward sections lean on the aurora or on nothing; a full-bleed photograph that switches with the cursor breaks the strict dark/light run.",
+    ruled: "2026-09-18",
+    shipped:
+      "The photograph section: full-quality on a switching full-bleed pool, the glass plate, the band with the rail at its foot, the slide, and four or five steps at a phone",
+    why: "A full-image section carries a chapter cut, so the page turns through a picture instead of over a hairline, and the photograph is indexed by where the reader is.",
     lives: [
+      "docs/systems/design-system.md#chapters-the-attention-arc",
+      "src/components/shared/backdrop/photo-section.tsx",
+      "src/components/shared/backdrop/backdrop-engine.ts",
+      "src/components/shared/backdrop/room-frames.ts",
       "src/components/marketing/sections/home/full-quality.tsx",
       "src/components/marketing/sections/home/section-ids.ts",
-      "src/components/marketing/system/section-light.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#photo-section",
     ],
-    board: {
-      note: "Six decisions on the shipped sections, imported and drawn in place: which UI-forward section takes a photograph backdrop, what switches it (position, travel or the card under the pointer), how the next photograph arrives, how the copy stays readable over eight different photographs on both grounds, where it sits in the page's dark and light run, and what a phone with no cursor does; the cursor is simulated so a still shows its own cause",
-      variants: [
-        "The section",
-        "The copy over it",
-        "What switches it",
-        "How it arrives",
-        "Where it sits",
-        "At a phone",
-      ],
-    },
   },
   {
     id: "image-trail",

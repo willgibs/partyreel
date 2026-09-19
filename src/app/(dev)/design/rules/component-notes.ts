@@ -255,9 +255,22 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/shared/play-badge.tsx": {
     for: "the this-is-a-video badge on a poster; pointer-transparent, so it never eats a swipe",
   },
-  // A subdirectory, so the collector does not index these two on its own: they
-  // are here because they carry contracts, and the river's Library entry reads
-  // its `for` line from this table like every other component's.
+  // Two subdirectories, so the collector does not index these on its own: they
+  // are here because they carry contracts, and their Library entries read their
+  // `for` lines from this table like every other component's.
+  "src/components/shared/backdrop/backdrop-engine.ts": {
+    for: "the switching backdrop's arithmetic alone (no React, no DOM, nothing in pixels): a position from 0 to 1 goes in, a stack of photographs comes out",
+    unspecimened:
+      "pure functions; the photograph section above is what they draw",
+  },
+  "src/components/shared/backdrop/photo-section.tsx": {
+    for: "a section standing on a full-bleed photograph that switches as the reader moves, its copy on a glass plate; the device that carries a chapter cut",
+  },
+  "src/components/shared/backdrop/room-frames.ts": {
+    for: "the photographs that section stands on, and how many a phone passes: the slot ASSETS row 20 fills, so a generated set lands as a data change",
+    unspecimened:
+      "a list of image ids; the photograph section above is where they are seen",
+  },
   "src/components/shared/river/river-engine.ts": {
     for: "the river's arithmetic alone (no React, no DOM), in fractions of the box, so the server, the browser and a test all compute the same frame",
     unspecimened: "pure functions; the river above is what they draw",

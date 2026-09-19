@@ -4,7 +4,6 @@ import { ADMIN } from "./admin/spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
-import { CURSOR_BACKDROP } from "./cursor-backdrop/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
 import { IMAGE_TRAIL } from "./image-trail/spec";
@@ -32,7 +31,6 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
-  CURSOR_BACKDROP,
   IMAGE_TRAIL,
   ADMIN,
   LOOSE_ENDS,

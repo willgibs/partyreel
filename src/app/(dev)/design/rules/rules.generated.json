@@ -3720,6 +3720,677 @@
       "contracts": []
     },
     {
+      "id": "backdrop-engine",
+      "file": "src/components/shared/backdrop/backdrop-engine.ts",
+      "names": [
+        "DEFAULTS",
+        "EXPO_OUT_CSS",
+        "SLIDE_FRACTION"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "stands on the pool's first photograph with nothing in flight",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 66
+        },
+        {
+          "title": "walks the whole pool across the room, first to last",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 81
+        },
+        {
+          "title": "clamps at both edges rather than wrapping, so neither is a seam",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 89
+        },
+        {
+          "title": "never lands off the pool, at any position, for any pool size",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 94
+        },
+        {
+          "title": "GOES BACK: crossing a band the other way returns the photograph just left",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 104
+        },
+        {
+          "title": "switches only when the band changes, never on movement inside one",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 120
+        },
+        {
+          "title": "passes exactly the ruled number of photographs across the section",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 131
+        },
+        {
+          "title": "starts on the pool's first and ends on its last",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 141
+        },
+        {
+          "title": "samples the pool evenly, and never repeats a photograph on the way",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 151
+        },
+        {
+          "title": "holds the same photograph for the whole of its own step",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 160
+        },
+        {
+          "title": "degrades sanely at the edges of its own arithmetic",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 174
+        },
+        {
+          "title": "is the source, not the width, that picks the rule",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 181
+        },
+        {
+          "title": "places the new photograph on top and keeps the old one where it was",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 192
+        },
+        {
+          "title": "collapses to one the moment the top layer lands",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 201
+        },
+        {
+          "title": "CAPS a fast sweep instead of holding a dozen photographs in flight",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 208
+        },
+        {
+          "title": "keeps the NEWEST when it drops, never the oldest",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 216
+        },
+        {
+          "title": "never empties, whatever it is handed",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 222
+        },
+        {
+          "title": "is not at rest while a photograph is still arriving",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 229
+        },
+        {
+          "title": "is not at rest when the reader is somewhere the section has not caught up to",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 235
+        },
+        {
+          "title": "comes to rest and stays there while the reader holds still",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 240
+        },
+        {
+          "title": "advances by TIME, not by frames, so a slow device lands in the same place",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 253
+        },
+        {
+          "title": "treats a missing or negative delta as no time at all",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 264
+        },
+        {
+          "title": "writes a transform and NOTHING else",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 272
+        },
+        {
+          "title": "starts off its mark by the slide distance and settles on nothing",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 283
+        },
+        {
+          "title": "comes from the LEFT going back and the RIGHT going on",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 294
+        },
+        {
+          "title": "stacks the newest on top",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 304
+        },
+        {
+          "title": "eases out: most of the distance is gone early, so the gap never shows",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 311
+        },
+        {
+          "title": "holds no photograph twice, so no switch is a switch to the same picture",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 327
+        },
+        {
+          "title": "is small enough that a full-bleed decode stays inside the measured budget",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 331
+        },
+        {
+          "title": "leaves a phone fewer photographs than a cursor, which is the ruling",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 339
+        }
+      ]
+    },
+    {
+      "id": "photo-section",
+      "file": "src/components/shared/backdrop/photo-section.tsx",
+      "names": [
+        "PhotoSection"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech",
+          "suite": [
+            "it is atmosphere, and the copy is the only thing in it"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 194
+        },
+        {
+          "title": "leaves nothing of its own for a keyboard to land on",
+          "suite": [
+            "it is atmosphere, and the copy is the only thing in it"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 210
+        },
+        {
+          "title": "plates the copy, and takes no plate when there is none",
+          "suite": [
+            "it is atmosphere, and the copy is the only thing in it"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 219
+        },
+        {
+          "title": "paints every photograph into the first render, with the first eager",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 237
+        },
+        {
+          "title": "writes no inline style before the loop has run",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "stands perfectly still for a reader who asked for less motion",
+          "suite": [
+            "it says something when nothing can move"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 259
+        },
+        {
+          "title": "runs no frame loop until the section is on screen",
+          "suite": [
+            "it costs nothing when nobody is moving"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 276
+        },
+        {
+          "title": "STOPS once the photograph has landed and the reader has stopped",
+          "suite": [
+            "it costs nothing when nobody is moving"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 284
+        },
+        {
+          "title": "holds the clock off screen instead of teleporting on the way back",
+          "suite": [
+            "it costs nothing when nobody is moving"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 299
+        },
+        {
+          "title": "lays one trip wire per ruled step, and nothing else to tap",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 329
+        },
+        {
+          "title": "switches the photograph as each wire crosses the middle of the screen",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 337
+        },
+        {
+          "title": "goes BACK when the reader scrolls back up",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 349
+        },
+        {
+          "title": "takes the wire NEAREST the middle when two are in the band at once",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 361
+        },
+        {
+          "title": "READS NO LAYOUT AT ALL: not on a step, not in a frame",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 386
+        },
+        {
+          "title": "draws no rail for a reader with no cursor to track",
+          "suite": [
+            "the reader without a cursor: steps, no taps, no measuring"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 398
+        },
+        {
+          "title": "scrubs the pool by position, and comes back to what it left",
+          "suite": [
+            "the reader with a cursor: the band, and the rail"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 410
+        },
+        {
+          "title": "lights the rail while the cursor is in the room and gives it back after",
+          "suite": [
+            "the reader with a cursor: the band, and the rail"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 427
+        },
+        {
+          "title": "watches no trip wire, so scrolling past never switches under a cursor",
+          "suite": [
+            "the reader with a cursor: the band, and the rail"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 452
+        },
+        {
+          "title": "takes whatever pool it is handed, and steps inside it",
+          "suite": [
+            "the pool is a prop, so a second placement is a data change"
+          ],
+          "file": "src/components/shared/backdrop/photo-section.test.tsx",
+          "line": 461
+        }
+      ]
+    },
+    {
+      "id": "room-frames",
+      "file": "src/components/shared/backdrop/room-frames.ts",
+      "names": [
+        "ROOM_FRAMES",
+        "ROOM_FRAME_WIDTH",
+        "SCROLL_STEPS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "stands on the pool's first photograph with nothing in flight",
+          "suite": [
+            "the rest state"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 66
+        },
+        {
+          "title": "walks the whole pool across the room, first to last",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 81
+        },
+        {
+          "title": "clamps at both edges rather than wrapping, so neither is a seam",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 89
+        },
+        {
+          "title": "never lands off the pool, at any position, for any pool size",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 94
+        },
+        {
+          "title": "GOES BACK: crossing a band the other way returns the photograph just left",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 104
+        },
+        {
+          "title": "switches only when the band changes, never on movement inside one",
+          "suite": [
+            "the band: the section is a thing you scrub"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 120
+        },
+        {
+          "title": "passes exactly the ruled number of photographs across the section",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 131
+        },
+        {
+          "title": "starts on the pool's first and ends on its last",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 141
+        },
+        {
+          "title": "samples the pool evenly, and never repeats a photograph on the way",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 151
+        },
+        {
+          "title": "holds the same photograph for the whole of its own step",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 160
+        },
+        {
+          "title": "degrades sanely at the edges of its own arithmetic",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 174
+        },
+        {
+          "title": "is the source, not the width, that picks the rule",
+          "suite": [
+            "the phone: four or five at steps, never the whole pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 181
+        },
+        {
+          "title": "places the new photograph on top and keeps the old one where it was",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 192
+        },
+        {
+          "title": "collapses to one the moment the top layer lands",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 201
+        },
+        {
+          "title": "CAPS a fast sweep instead of holding a dozen photographs in flight",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 208
+        },
+        {
+          "title": "keeps the NEWEST when it drops, never the oldest",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 216
+        },
+        {
+          "title": "never empties, whatever it is handed",
+          "suite": [
+            "the stack: a photograph at rest covers what is under it"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 222
+        },
+        {
+          "title": "is not at rest while a photograph is still arriving",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 229
+        },
+        {
+          "title": "is not at rest when the reader is somewhere the section has not caught up to",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 235
+        },
+        {
+          "title": "comes to rest and stays there while the reader holds still",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 240
+        },
+        {
+          "title": "advances by TIME, not by frames, so a slow device lands in the same place",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 253
+        },
+        {
+          "title": "treats a missing or negative delta as no time at all",
+          "suite": [
+            "the clock: it stops, and that is the feature"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 264
+        },
+        {
+          "title": "writes a transform and NOTHING else",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 272
+        },
+        {
+          "title": "starts off its mark by the slide distance and settles on nothing",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 283
+        },
+        {
+          "title": "comes from the LEFT going back and the RIGHT going on",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 294
+        },
+        {
+          "title": "stacks the newest on top",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 304
+        },
+        {
+          "title": "eases out: most of the distance is gone early, so the gap never shows",
+          "suite": [
+            "the slide: it arrives from the side you came from, and nothing fades"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 311
+        },
+        {
+          "title": "holds no photograph twice, so no switch is a switch to the same picture",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 327
+        },
+        {
+          "title": "is small enough that a full-bleed decode stays inside the measured budget",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 331
+        },
+        {
+          "title": "leaves a phone fewer photographs than a cursor, which is the ruling",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/backdrop/backdrop-engine.test.ts",
+          "line": 339
+        }
+      ]
+    },
+    {
       "id": "claim-uploads-on-auth",
       "file": "src/components/shared/claim-uploads-on-auth.tsx",
       "names": [

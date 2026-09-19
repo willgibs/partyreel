@@ -4,7 +4,6 @@ import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
-import { CursorBackdropBoard } from "@/app/(dev)/design/sandbox/cursor-backdrop/board";
 import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { ImageTrailBoard } from "@/app/(dev)/design/sandbox/image-trail/board";
@@ -32,7 +31,6 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "cursor-backdrop": { Component: CursorBackdropBoard },
   "image-trail": { Component: ImageTrailBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
