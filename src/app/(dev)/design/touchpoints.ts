@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "reel-studio"
   | "guest-upload"
   | "first-event"
   | "pricing-page"
@@ -95,6 +96,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "reel-studio"
   | "guest-upload"
   | "first-event"
   | "app-door"
@@ -648,6 +650,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "reel-studio",
+    title: "The highlight reel",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "Round one asks the product's North Star from the foundation: the door into the studio, the room at a laptop, and what a guest finally meets.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/guest-flow.md",
+      "src/components/reel/reel-studio.tsx",
+      "src/components/reel/style-rail.tsx",
+      "src/components/reel/studio-moments-picker.tsx",
+      "src/components/guest/guest-reel-card.tsx",
+    ],
+    board: {
+      note: "Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel",
+      variants: [
+        "The door",
+        "The room",
+        "The looks",
+        "The moments",
+        "How a guest watches",
+      ],
+    },
   },
   {
     id: "guest-upload",

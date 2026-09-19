@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 18 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 19 standing boards.**
 
 ## What binds you
 
@@ -376,6 +376,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `reel-studio` | host | Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `app-door` | host | Seven decisions on the real auth components with fixtures at 1440 and 375: what the door asks for first, how many account surfaces the product has, what stands between a new account and the app, what /login is as a page, what happens when a new account's email already has one, how the door fails, and what a host the browser already knows meets |
