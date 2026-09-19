@@ -29,7 +29,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/components/shared/media-lightbox.tsx
   - src/lib/guest/entry-steps.ts
   - src/app/(dev)/design/sandbox/admin/spec.ts
-  - src/app/(dev)/design/sandbox/gallery-width/spec.ts
 ---
 
 # lp/guest-shape

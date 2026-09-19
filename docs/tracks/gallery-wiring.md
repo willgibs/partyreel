@@ -146,10 +146,11 @@ minimally branded; no em-dashes.
 ## Handoff (replaces the chat report)
 
 - **Head SHA:** the branch tip is the commit that carries this manifest; every gate step below ran on the
-  identical tree at `0426e8aa` (this file is the only change on top of it). Synced: `origin/launch-prep` had moved 3 commits, merged (never rebased) at
-  `236cc03f` (`tracks: app-shape cut on the fifth seat`); the only conflict-adjacent file was
-  `docs/systems/host-app.md` and both sides survive (the merge landed the Orchestrator's three refreshed facts
-  above this lane's new paragraph).
+  identical tree at `0426e8aa` plus the second sync below. **Synced twice, merged and never rebased:** first
+  `origin/launch-prep` at `236cc03f` (`tracks: app-shape cut on the fifth seat`, 3 commits), where the only
+  conflict-adjacent file was `docs/systems/host-app.md` and both sides survive (the merge landed the
+  Orchestrator's three refreshed facts above this lane's new paragraph); then `f47ce3ad` (`tracks: guest-shape
+  cut on the sixth seat`), docs only. The gate was re-run whole after each.
 - **The gate, on the synced tree, each on its own exit code:** `pnpm design:rules` 0 · `node
   "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (123 specimens on 91 entries, unchanged output) ·
   `pnpm typecheck` 0 · `pnpm lint` 0 (the 8 known warnings, none of them new) · `pnpm test` 0 (2467 passed,
@@ -163,9 +164,10 @@ minimally branded; no em-dashes.
   docs/systems/host-app.md                                the listed edit
   docs/tracks/gallery-wiring.md                           this manifest
   docs/tracks/album-wiring.md                             \
-  docs/tracks/river-wiring.md                              |  ONE dead `reads` line each, see below
-  docs/tracks/trail-wiring.md                              |
-  docs/tracks/app-shape.md                                /
+  docs/tracks/river-wiring.md                              |
+  docs/tracks/trail-wiring.md                              |  ONE dead `reads` line each, see below
+  docs/tracks/app-shape.md                                 |
+  docs/tracks/guest-shape.md                              /
   src/app/(app)/dashboard/[eventId]/page.tsx              owns
   src/app/(dev)/design/(shell)/lab/boards.ts              the registration exception (only this board's lines)
   src/app/(dev)/design/sandbox/registry.ts                the registration exception (only this board's lines)
@@ -181,8 +183,8 @@ minimally branded; no em-dashes.
   ```
   `src/components/shared/container.tsx` is claimed and UNTOUCHED: the shell answers `data-app-wide` on its own
   two containers, so the primitive itself never had to learn about width.
-  **The four `docs/tracks/*.md` lines are the one thing outside `owns`, and they are forced.** Four live lanes
-  (album-, river-, trail-wiring, and app-shape cut tonight) each named
+  **The five `docs/tracks/*.md` lines are the one thing outside `owns`, and they are forced.** Five live lanes
+  (album-, river-, trail-wiring, and app-shape and guest-shape cut tonight) each named
   `src/app/(dev)/design/sandbox/gallery-width/spec.ts` under `reads` as the worked example, on the
   Orchestrator's instruction; `track-manifests.test.ts` asserts every read exists, so this lane's ruled deletion
   turns their manifests red. Exactly one line was removed from each, nothing else. Holding the spec back instead
