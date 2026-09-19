@@ -52,7 +52,7 @@ album hero's round three went "too boring" that way).
 | `host-curation` | the host's act of reviewing what guests send: the queue, the verb, the peek, keys, undo, new arrivals, the count, whether a refused guest is told; eight decisions on the shipped review surface | integrated at `ff09a50f`; on the desk; five calls carried on their recommendations (in the CHANGELOG); a shipped bug on the ROADMAP's Now list (the hidden-media dim has never rendered) |
 | `admin-triage` | the operator's act on a report inside the admin board's shape: first look, no reason, the verdict, escalate, one idiom for four inboxes, resolved, the phone, the notice | cut at `d909cb13`, on the seat |
 | `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's | cut at `d909cb13`, on the seat |
-| `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search | cut at `d909cb13`, on the seat |
+| `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search; seven decisions on the real help pieces | integrated at `5118c141`; on the desk; four calls carried on their recommendations (in the CHANGELOG) |
 | `profile-page` | what a person is on Partyreel beyond one album: exists, the head, not found, the named, the claim, what a person is, block, the list; phone first | cut at `c74a509d` (2026-09-19, the overnight round), on the seat host-curation freed |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)

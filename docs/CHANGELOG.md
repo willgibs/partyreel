@@ -124,6 +124,14 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   overrulable). Five calls carried on their recommendations (the recut first root relitigates his 2026-06-22 uniform-grid
   ruling and says so). A shipped bug found in the frame: the hidden-media dim has never rendered (ROADMAP, Now).
 
+- `help-center` integrated (`5118c141`; cut `d909cb13`): where a host or a guest with a problem lands, seven decisions on the
+  real help pieces with hand-authored bodies for three articles at 1440 and 375: who the hub greets first (the device
+  implies it: a phone opens guest-voiced, a laptop host-voiced), whether the index sheet survives (doors, then the sheet),
+  the how-to's shape (the real screen beside each step), help from inside the product (a link at the moment of trouble),
+  feedback (a counted beacon), troubleshooting's dead end (a rung of its own), search's reach (a visible trigger, kept
+  local). Four calls carried on their recommendations (the phone ask skipped; the beacon's table and the screen option's
+  content cost belong to the wiring). Two ROADMAP lines (FAQ structured data; the audience default).
+
 **The second sitting.** The first batch (build `93d00ff`): `cursor-backdrop` r1 whole ("I absolutely love the rail of the
 foot") with the ruling that full-image sections are chapter transitions, never at every cut; `image-trail` begun. The
 second (build `9720798`, 2026-09-19): `image-trail`, `album-page`, `river-card` and `gallery-width` whole; `privacy-hero`
