@@ -8,6 +8,93 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the third batch: the failure grammar, the loop's page with a Host/Guest toggle, and the event pages need a fresh identity
+
+**Became:** three lanes on Opus. `errors-wiring` lands `error-pages` whole (one primitive with per-surface words, a quiet
+help line everywhere, the strip tried as the marketing 404's icon, the digest always with Copy, every surface's own
+chrome, the private lock in the family with a homepage link, a portal-flavoured 404 on the admin host, a way home on the
+global crash; the board retires). `loop-wiring` rebuilds `/how-it-works` on his picks, design-led (one scroll with a
+Host/Guest toggle and a step set per perspective, six cleaner headings, bespoke pictures, a demo-door proof with no
+centred portrait video, one folded close, the pair renamed), promotes the numbered stepper as a shared "How it works"
+overview section in the home's film strip's place, and drops the footer's demo heading one ladder step (his three
+plan-mode answers below); the board retires. `event-identity` opens a ground-up round on the event pages' visual identity
+(the hero's theme inside the shared pattern, the second section, the cards, the proof, the arc, the ladder, the phone)
+before any of the direct picks (one template, four types, the host greeted, the 2x2 directory, `PageHero`, the phone gap)
+wire, since a fresh identity would redo them. Two notes for the record only, never marketing copy: kids are never a
+target user; a partners page for planners comes before launch (ROADMAP).
+
+Verbatim, `error-pages` r1: `picture=today` "However, it does look weird beneath the content. It may look better as a
+replacement for the icon above. The page has one visual image plus the image trail behind as a recently approved cool
+effect for the 404, since it requires clicking a button, creating a cursor tracking opportunity that may "wow" back into
+our site.." `private-event=family` "A simple link to Partyreel homepage here would be nice to capture from an otherwise
+dead-end page." The rest picked without a note: `grammar=shared`, `ways-out=guided`, `code=always`, `surround=shell`,
+`admin-404=portal`, `global-crash=home`.
+
+Verbatim, `event-type-pages` r1: `one-page-or-four=template` "Let's start with the four pages, one template direction, so
+that we can get all four beautiful quickly. Once the full marketing side is at production quality, we can circle back and
+make each more bespoke." `hero-picture=split` "Each one should continue to be media and motion forward, but feel custom
+and themed for its own page. I don't want to set many rules here because each page has its own needs."
+`one-hero=page-hero` "This is more of a short-term answer. This is likely the most common header layout across websites,
+and sites that reuse everywhere in a template feel boring super quickly. Sites whose heroes and headers feel more custom
+per page incentivize more exploration because you always want to see what's next. I'm only selecting this option to state
+that our heroes and headers should share similar design patterns (H1 size, H1 and subhead spacing, button groups etc) to
+maintain some consistency, but simply using these with custom copy per instance will not cut it for production-quality."
+`who-greeted=host` "The extra line for guests or planners start to crowd the hero. Guests who landed on the marketing
+website will quickly understand what the platform is (and if they came from a private event, they'll make that
+connection), and I plan to create a partners page/program in the near-term before launch, that we can point to for
+planners in a different way in some site spots. Currently, planners can explore the site from the perspective of a host."
+`the-proof=demo-door` "This selection makes the most sense, but this section needs a total redesign. All event pages were
+thrown up as a quick V1 and are nowhere near production grade. Could honestly use a total redesign across the event
+pages." `how-many=four` "4 feels nice and balanced, and Trips is a more personal use case that may not be as apparent
+without listing. Schools don't feel like they deserve their own spot, and I'd inherently prefer to avoid making kids a
+target user. That doesn't have to be said in our marketing or made a rule. Just a note to you." `directory=tilt-two-up`
+"This is the best implementation across these three options, and I would like to keep the 2x2 grid on desktop, as it
+introduces each event card more fully and not all at once. However, these event cards themselves could use a total
+redesign." `the-phone=tightened` "As an additional note to my previous one about event pages being very wireframe and they
+were close to production, the type scale system established in our library should be carried across all marketing. But
+as to whether this page is "correct", all event pages need a fresh visual identity as they've been falling behind. For
+example, I hate the " A wedding is the most photographed day of your life, and almost none of those photos ever reach
+you..." bland text just beneath the hero with its tag list, for the second section that needs to catch attention after a
+hero it's doing horribly."
+
+Verbatim, `how-it-works` r1: `pair=renamed` "Two pages, same name is too confusing. One page, folded in either 1) makes us
+remove the more custom page in favor of the post version, or 2) makes us remove the article version that flows in help in
+favor of just the regular page. Don't like either of those options, so both kept with each its own name is best."
+`who=host` "Guests and planners are smart enough to read this from a perspective of a host and understand." `steps=six`
+"These headings could be adjusted a bit to feel more clean, but I think 6 paces the flow well and gives enough room for
+each step to feel more dedicated, full and explained. Only having 5 made us have to crunch steps in, and 3 is better for
+a How it Works overview section (like home or something to lead to the full how it works), but isn't comprehensive enough
+to get the full picture." `pictures=bespoke` "The site's own frames that currently exist on the events page are incredibly
+V1, and were never considered individually, just all thrown up at once with the first version of the events pages. Let's
+make these feel bespoke now that event pages are getting focused treatment." `shape=scroll` "This gave some great ideas.
+For the full how it works walkthrough, let's do one scroll as today. It feels cleanest and creates a more full page.
+However, let's include a toggle above the steps to switch between Host/Guest perspective, and have custom steps for each
+to see both sides, similar to the numbered stepper UI. Additionally, I made a previous question note about using a
+simpler three steps for "How It Works" sections, such as on the homepage, to point into the more comprehensive How It
+Works page. However, I think a numbered stepper would work better, where we can present the full flow within a regular
+height section without feeling crowded or long. Both the one scroll and numbered stepper need their focused design
+efforts, not production grade." `proof=demo` "While this is a great payoff for some pages, I don't want every single page
+to end the same way with the reel. That will feel incredibly repetitive. Also, I haven't been liking using a centered
+mobile portrait video in these sections. It leaves tons of blank space on either side of the reel on desktop. If we're
+using a portrait, we should fill some of the space to one or both sides. Or we can use landscape videos." `phone=?` "I'm
+not sure what's being asked here. How is this "in a guest's hand?"" `close=folded` "With the footer always having the demo
+event QR CTA at its top, this pattern pairs well together. Many pages will end with a final CTA (common example: "Create
+your first event free") paired with "Explore a demo event" beneath, which feels nice to keep the end of the page so
+actionable. However, as a separate exploration, the footer "Explore a demo event." should be a heading size down from
+these closing section H2s to create hierarchy, it's far too big right now."
+
+His additional note, verbatim: "some of the event-type landing pages and page that tells the loop questions made me worry
+we're building a really boring template. These pages should feel very polished, beautiful, and constantly incentivize
+further exploration. Also, the current event pages were thrown up in a very fast V1 under one agent with distilled
+context, so they should in no way be seen as a complete effort that only needs elevation. Honestly, they could use a
+total visual identity redesign now that other areas like the homepage are progressing beyond them under Rising Tides."
+
+His three answers in plan mode, verbatim: the event pages: "A ground-up identity round first (Recommended)"; the loop's
+page: "Sorry, I think I may have confused the loop with being more templated, like a "page loop" for the event-type
+pages. I'd like to reduce my comment to only ensuring that the event type pages don't feel templated. This one feels like
+it should be just fine. My answer is your recommendation to build the page now, design-led."; the footer heading: "Change
+it directly (Recommended)".
+
 ## 2026-09-19 · the overnight round: twelve explorations across the marketing site, the app and the admin, at the Orchestrator's discretion
 
 **Became:** twelve question-first boards (eight asked at first, raised to twelve an hour later on the quality of the maps),

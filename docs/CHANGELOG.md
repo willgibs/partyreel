@@ -7,9 +7,27 @@
 > entry deleted in the same commit. Everything older is in git: `git log --oneline` for the commits,
 > `git show 932fdee9:docs/CHANGELOG.md` for the last full archive (5,495 lines, 2026-07-02 to 09-16),
 > `git show dd77fc9e:docs/CHANGELOG.md` for the Library x Lab round's entry, `git show 52e9afa2:docs/CHANGELOG.md` for the revamp's,
-`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's.
+`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's, `git show 22438704:docs/CHANGELOG.md` for the ladders-and-the-dock round's.
 
 ---
+
+## 2026-09-19 — The morning sitting: the third batch on the overnight desk (`22438704` onward)
+
+**What Will did.** The third batch (build `5910d48`) answered three overnight boards. `error-pages` whole: one grammar,
+a guided way out, the strip kept to marketing (and tried as the icon: "It may look better as a replacement for the icon
+above"), the digest always, every surface's own chrome, the private lock in the family with a homepage link, a portal 404
+on the admin host, a way home on the global crash. `event-type-pages` whole with a steer: one template "so that we can
+get all four beautiful quickly", heroes "custom and themed for its own page" inside shared patterns, the host alone, a
+demo door that "needs a total redesign", four types, the 2x2 grid with the cards redesigned, the phone gap; and "all
+event pages need a fresh visual identity as they've been falling behind". `how-it-works` seven of eight (`phone` a `?`):
+both names kept, the host, six cleaner steps, bespoke pictures, one scroll with a NEW Host/Guest toggle, a demo proof
+without a centred portrait video, one folded close, the footer's demo heading a size down. Three lanes cut: `errors-wiring`,
+`loop-wiring` (built now, design-led, by his answer in plan mode) and `event-identity` (a ground-up round first, by his
+answer). Two notes for the record only: kids are never a target user; a partners page for planners before launch.
+
+**Next.** The two wiring lanes judged on the alias, the identity round on the desk; his sitting on the other twenty-seven
+boards.
+
 
 ## 2026-09-19 — The overnight round: twelve boards cut from read-only maps and integrated while Will slept (`d1923907` onward)
 
@@ -139,110 +157,3 @@ and relayed here for his morning. The records follow in the order the lanes hand
 mid-lane (every call carried on its lane's recommendation and listed above). The alias serves the closing record (`5910d489`; the
 window freed on its own), seven deployments pruned, the wiring lanes' surfaces red-teamed on it signed out and clean (the
 signed-in half waits on his account chooser); then his batches.
-
-## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
-
-**What Will did.** The eighth batch (`00e82dba`) answered both ladders (`type-phone` r1: "Everything should be
-addressed in our design system type ladder"; `rounding` r7: family C, quarters, dead rungs dropped, the gap pinned);
-the Terms got their generated-media sentence. The ninth (`d62dac22`) closed album-hero r3 (`composition=none`: "my
-calm instruction messed us up - now it feels too boring") and river-visual r2, and answered `proportion` with the lab
-itself. The calm lesson is PROGRAM.md's: a relative note is answered against a reference, never a cap and a test.
-
-- `ladders-wiring` (`5a5c6eb4`, `d2db2629`; bible 5 and 8 ruled): the type ladder's law became the ORDER (`prose` 24 at a
-  phone, `subhead`, 126 headings onto their step) and the corners family C in quarters (8 / 12 / 4, `cta` on 46 sites).
-  The lab's step rebuilt (`d37be90e`): the preview is the page, the answer a dock, `lab:demo` fails CLIPPED, UNLABELLED,
-  NO DOCK. The glow boards retired; `lab:smoke` passes whole. Four boards cut (`33f1de95`); `gallery-width` r1 measured
-  its columns inside a `Frame` at 1280, 1512 and 1920 (the tile 240, the width full, the words at the edge, the host the same).
-- The Orchestrator changed seats mid-round (a weekly limit; a second account resumed three lanes: Fable orchestrating, boards
-  on Sonnet, wiring on Opus). Integrated: `heroes` (`6b5ea1bf`), `ghost-wiring` (`31c94253`: the river on the empty album,
-  `src/components/shared/river/`), `river-card` (`3ed62f0c`: the river in the real QR door, 3.0 px a module), `voice`
-  (`e0b92af6`: eight real lines, bible 20 first), `body-type` (`130236c2`: the body and label ladder, seven measured
-  decisions; two questions his), `glass` (`30aaf705`: four recipes, Frost recommended, every cost measured), `loose-ends`
-  (`b83b7c3d`: six ROADMAP lines as seven decisions; four chart aliases fixed at `0681652c`).
-- **milestone-25** (`bf9cbd74`): `main` merged from `707d99a2` on Will's word, 1,138 commits: Graphite, the ladders, the
-  Aurora, the wordmark, the river; the lab gated.
-- `admin` (`d6305818`: the portal's shape as seven decisions on the real components with a Tuesday of fixtures: a ranked home,
-  a rail plus a palette, density, the state chip, destructive acts, a health band, a 44 px bar), `admin-split` (`7f3738ba`:
-  `src/lib/surface` decides which surface a build serves; the cutover closed with milestone-26) and `admin-jobs` (`3ad58b1c`:
-  the jobs console through one pure `jobHealth`, nine jobs, the Worker's depth reading, the purge's sweeps as jobs (QA #27),
-  the limiters reporting (QA #19); the migration applied, the Worker `d7b16bcc`) integrated.
-- `backdrop-wiring` (`9795e370`): `full-quality` wears a switching full-bleed pool behind the glass plate with the band
-  trigger and the foot rail, a still under reduced motion; his fold as one line (chapter one closes on the photograph; his
-  to overrule). 5.12:1; row 20 at 1200 px. `gallery-wiring` (`666ee8bc`): galleries declare a column WIDTH, one rule in
-  `shared/masonry.tsx`: 2 / 5 / 6 / 8 columns at 375 / 1280 / 1512 / 1920, the album 20 px from each edge, the words at 632;
-  two calls for Will. `trail-wiring` (`73451c79`): the trail in `src/components/shared/trail/` at his numbers on the root
-  404, the shy fade a feathered window (4.90:1); the group 404s keep their strip, his to widen. All three boards retired.
-- `app-shape` (`aa338766`): the host app's shape as eight decisions on one host's Saturday night on the shipped `AppShell`,
-  `EventCard`, `FilterChips`, `StorageMeter` and the grids: what the home opens on, how an event draws, what its page is (a
-  front page with a door into each room), how seven routes are reached, sharing, settings, You, a bar at the thumb. Four
-  questions carried. `guest-shape` (`beee6325`): the guest experience's shape as seven decisions on one wedding in four
-  access states, phone first: the door after the scan (one screen), an empty album (the river), the chrome docked at the
-  foot, whether the album admits it is filling, one sheet for four dialogs, a window to take a photograph back, one voice for
-  the account. Three questions carried. `app-vocabulary` (`e442fc55`): the vocabulary under both shapes as seven decisions:
-  three empty-state tiers, one loading primitive only where a route waits, two of four tile grammars unified, icons on both
-  bulk toolbars (measured at 375), the tile-size control remembered per device, one confirm switch.
-- `contact-page` (`a8afce0c`; cut `e442fc55`): how someone reaches a person at Partyreel, six decisions on the real desk
-  over a host mid-event, a planner and a reporter: whether a form is required (it leads), what the sender holds afterwards
-  (the card; a receipt is a send to an unverified address), urgency (a promise per topic), the topic (required), the page
-  against the cinema rhythm (the desk inside a cinema frame), what stands beside the form (the directory). Three findings deferred.
-- `press-page` (`060dfdf4`; cut `e442fc55`): what Partyreel hands the world about itself, seven decisions on the real
-  `PageHero`, `PressSection`, `PressSheet` and copy buttons: who the page is for (one page), the sheet (eight plates; the
-  marks are ASSETS row 19), the words (a paragraph and a line), the facts (rows plus the machine-readable copy), a human (a
-  role address), the close (the contact door with Press pre-picked), the arc (today's). One question his: "Live now" pre-launch.
-- `demo-event` (`e3a2c1b6`; cut `391c40e9`): the demo as the product's first impression, seven decisions on the shipped
-  guest page in demo mode and the real doors, laptop first: the arrival (a screen that hands them a role), the framing (a
-  mark in a header that stays), the upload as the moment (then the turn), the way out (the blanked Save slot becomes "Start
-  your own"), what a door promises (the party named), the phone scanned off the laptop (one session), how many parties
-  (one). Three questions carried (the entry-modal pin; the pairing's transport; the demo's server side is UI-only). Seven defects fixed.
-- `app-pricing` (`0379c529`; cut `e442fc55`): pricing inside the app as eight decisions on the shipped chrome with four
-  hosts, every number from `tiers.ts`, no preview reaching Stripe: what a click opens (a sheet in a hand, a dialog at a
-  laptop), what it opens on (the reason they clicked), how much it holds (fitted: 58 percent of a laptop window against
-  parity's 95), how `/pricing` stays a click away (a quiet line), the pass (one line and a button), the doors (plus a plan
-  row in the user menu; the third option is app-shape's `you`), how a locked control asks (a lock chip), what Checkout
-  returns to (the control itself, open). Three questions carried; five defects fixed.
-- `pricing-page` (`f79a8037`; cut `1928c3c4`): the marketing pricing page as eight decisions, one per part, every option
-  the real pieces with a measured caption and every price from `tiers.ts`: the opening (a fork: the first price 426 px
-  down against 735), the pair (Pro takes the row, Free one line beneath), the size (three rows), the pass (an equal card),
-  the calculator (today's wall), the sheet (the table alone: 2,676 px to 2,053), the close (four questions open), the
-  phone (a swipe row, 1,250 px against 1,850). Three questions carried; three defects fixed.
-- `app-door` (`2960db15`; cut `e442fc55`): login and signup as seven decisions on the shipped auth components, no preview
-  touching the network: what the door asks first (the code), how many account surfaces (one object worn four ways; 0 of 2
-  guest surfaces carry the Terms line), what stands before the app (the name, then a first event ending on a live QR),
-  what `/login` is (the door with the product beside it: 13 percent of a laptop today, 50 beside), an existing email (open
-  it and say so), failure (the ways out as buttons), a host the browser knows (welcome back, one field). Four questions
-  carried; five defects fixed.
-- `first-event` (`728513ee`; cut `060dfdf4`): a host's first event from "Create" to a code on the table, eight decisions in
-  three beats on the real create card, the preset picker and real `StyledQr` plates, every caption reporting the module
-  edge against the 3 px scan floor: what creating asks (the name), where the style is chosen (after, on the real code), a
-  Free host at the limit (the form says so), how the code reaches the venue (stock the app prints), where the host lands
-  (a beat of its own), what a host holds out (the code alone, full screen), the empty event (a launch list), the first
-  photograph (it lands while she looks). Six questions carried; two product misses (swatches at 2.3 px a module; a preview
-  link that 404s). Seven defects fixed.
-- `guest-upload` (`1649506c`; cut `a8afce0c`): the moment a guest adds a photograph as eight decisions, phone first, on
-  the shipped guest components over one wedding, nothing uploading: the tap (two inputs, one carrying `capture`), sending
-  (no chrome until two seconds), held (the guest's own photograph waits under a clock), failed (the tile keeps its reason
-  and a Retry), the batch (one stacked tile: nine tiles hold 43 percent of a phone screen, one holds 11), the landing (the
-  banked shimmer spent once), the warning (the terms at the act; a named stand-in), the words (12 px to 15 px). Four
-  questions carried (the camera input drops multi-select; a guest seeing their own held item; a tile before its bytes;
-  body-type's floor). Four defects fixed.
-- `river-wiring` (`5297cb07`): the album pours out of a real scannable code a tenth down a tall 4:5 door, the card
-  streaming behind the copy; the card engine folded into the shared river as one `origin`; `CARD_COPY_SCRIM` on every
-  media-forward card; `/demo` a 307. Two questions carried. Both boards retired. `privacy-concept` (`6c99e128`): round
-  three, three concepts on the page's theme (a breathing aperture, tiles taking turns clearing, sealed cards).
-  `album-wiring` (`2ca47448`): the live album under the host's header at 896, its foot dissolving, lit by the halo,
-  photographs falling in at the home hero's pace, the stream a pure engine in `src/components/shared/album-stream/`;
-  `album-motion` open with three variations. Three calls his to overrule. Both boards retired.
-- **milestone-26** (`df173c2e`): `main` merged from `353ad884` (48 commits) after Will's sign-in on the admin preview: the
-  surface module, the jobs console, the sub-sweeps, the static chart aliases; the cutover closed the same night (the domain
-  moved by his click, the apex on `NEXT_PUBLIC_SURFACE=app`) and the one purge run on the app surface closed the runbook on
-  2026-09-19.
-
-
-
-**The second sitting.** The first batch (build `93d00ff`): `cursor-backdrop` r1 whole ("I absolutely love the rail of the
-foot") with the ruling that full-image sections are chapter transitions, never at every cut; `image-trail` begun. The
-second (build `9720798`, 2026-09-19): `image-trail`, `album-page`, `river-card` and `gallery-width` whole; `privacy-hero`
-r2 a `?`; four wiring lanes cut.
-
-**Next.** His sitting on the desk (`voice`, `glass`, `loose-ends`, `body-type`, `admin`, `app-shape`, `guest-shape`,
-`app-vocabulary`, privacy-hero round three, `album-motion`); five boards from his stacking steer; then the wiring lanes.

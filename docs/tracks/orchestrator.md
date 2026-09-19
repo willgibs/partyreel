@@ -138,6 +138,9 @@ retired `type-phone`; both agents were told so by message.
 | `profile-page` | integrated at `b75cd30a` (handed off `196b086c`, five stale; the registration conflicts resolved by the Orchestrator); eight calls carried; six ROADMAP lines | done | Opus, :3133 | nothing; the seat is free |
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
 | `error-pages` | integrated at `3d30582f` (handed off `489466f2`, zero stale, no conflicts); three calls carried; the round's last | done | Sonnet, :3134 | nothing; every seat is free |
+| `errors-wiring` | cut at `22438704` (batch three): `error-pages` wired whole, the board retired; the strip as the marketing icon and three more calls his to overrule | open | Opus, :3131 | the handoff; the red-team on the alias incl. Sentry's event list |
+| `loop-wiring` | cut at `22438704` (batch three): `/how-it-works` rebuilt design-led on his picks with a Host/Guest toggle, the stepper overview on the home, the footer heading a step down; the board retired | open | Opus, :3132 | the handoff; the red-team on the alias |
+| `event-identity` | cut at `22438704` (batch three): round one of the event pages' visual identity, ground up, before the direct picks wire | open | Opus, :3133 | the handoff; on the desk |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |
 | `site-chrome` | integrated at `6a7e6f2f` (handed off `b6b23f33`, ten stale; the registration conflicts resolved by the Orchestrator); three calls carried; four ROADMAP lines | done | Opus, :3135 | nothing; the seat is free |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
@@ -154,6 +157,13 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 
 ## Next, in order (batch nine's plan T4 to T6; the plan's words live in rulings.md 2026-09-18 and ROADMAP)
 
+0. **Batch three (2026-09-19, the morning sitting; the plan in the Orchestrator's plan file, the words in rulings.md):**
+   `errors-wiring`, `loop-wiring` and `event-identity` cut at `22438704` on :3131 to :3133. At each wiring handoff: the merge
+   with the board's directory and registration lines gone and its RULINGS row rewritten as shipped, the gate (its demo
+   step on a board still on the desk), the record in the CHANGELOG's morning-sitting entry, `[preview]`, the alias moved
+   onto the record, the prune, the red-team listed in the manifest (Sentry: one event per crash, none per 404). The
+   event pages' direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire only
+   after `event-identity` is ruled.
 1. **Done 2026-09-18:** `heroes`, `river-card` and `ghost-wiring` integrated. Will's next sitting is the four
    new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step, plus the
    ghost on a disposable event on the alias (left standing until he has judged it, then deleted).

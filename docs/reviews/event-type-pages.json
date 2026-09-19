@@ -1,0 +1,69 @@
+{
+  "board": "event-type-pages",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "one-page-or-four",
+          "choice": "template",
+          "note": "Let's start with the four pages, one template direction, so that we can get all four beautiful quickly. Once the full marketing side is at production quality, we can circle back and make each more bespoke.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "hero-picture",
+          "choice": "split",
+          "note": "Each one should continue to be media and motion forward, but feel custom and themed for its own page. I don't want to set many rules here because each page has its own needs.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "one-hero",
+          "choice": "page-hero",
+          "note": "This is more of a short-term answer. This is likely the most common header layout across websites, and sites that reuse everywhere in a template feel boring super quickly. Sites whose heroes and headers feel more custom per page incentivize more exploration because you always want to see what's next. I'm only selecting this option to state that our heroes and headers should share similar design patterns (H1 size, H1 and subhead spacing, button groups etc) to maintain some consistency, but simply using these with custom copy per instance will not cut it for production-quality.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "who-greeted",
+          "choice": "host",
+          "note": "The extra line for guests or planners start to crowd the hero. Guests who landed on the marketing website will quickly understand what the platform is (and if they came from a private event, they'll make that connection), and I plan to create a partners page/program in the near-term before launch, that we can point to for planners in a different way in some site spots. Currently, planners can explore the site from the perspective of a host.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "the-proof",
+          "choice": "demo-door",
+          "note": "This selection makes the most sense, but this section needs a total redesign. All event pages were thrown up as a quick V1 and are nowhere near production grade. Could honestly use a total redesign across the event pages.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "how-many",
+          "choice": "four",
+          "note": "4 feels nice and balanced, and Trips is a more personal use case that may not be as apparent without listing. Schools don't feel like they deserve their own spot, and I'd inherently prefer to avoid making kids a target user. That doesn't have to be said in our marketing or made a rule. Just a note to you.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "directory",
+          "choice": "tilt-two-up",
+          "note": "This is the best implementation across these three options, and I would like to keep the 2x2 grid on desktop, as it introduces each event card more fully and not all at once. However, these event cards themselves could use a total redesign.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        },
+        {
+          "ask": "the-phone",
+          "choice": "tightened",
+          "note": "As an additional note to my previous one about event pages being very wireframe and they were close to production, the type scale system established in our library should be carried across all marketing. But as to whether this page is \"correct\", all event pages need a fresh visual identity as they've been falling behind. For example, I hate the \" A wedding is the most photographed day of your life, and almost none of those photos ever reach you...\" bland text just beneath the hero with its tag list, for the second section that needs to catch attention after a hero it's doing horribly.",
+          "by": "Will",
+          "at": "2026-09-19T17:37:00Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

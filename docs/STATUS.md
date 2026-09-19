@@ -19,7 +19,7 @@ the marketing site and the app is elevated platform-wide; nothing is protected, 
 the guest pages are explicitly open to be reconceived from the ground up ("closer to a Frankenstein's monster";
 his words in `design/rulings.md`).
 
-## The current round: the ladders and the dock (opened 2026-09-18 at `00e82dba`)
+## The current round: the morning sitting (opened 2026-09-19 at `22438704`; the ladders and the dock and the overnight round before it)
 
 Will's eighth and ninth batches finished the sitting the stepped review opened: both ladders answered,
 wired and their boards retired; the album hero and river-visual answered, their wiring waiting on four new
@@ -54,11 +54,11 @@ album hero's round three went "too boring" that way).
 | `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's, the dark inbox | integrated at `2135ce6e`; on the desk; no questions; three ROADMAP Now lines (no plain-text twin, `sendOnce` untested, a stale PRICING line) |
 | `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search; seven decisions on the real help pieces | integrated at `5118c141`; on the desk; four calls carried on their recommendations (in the CHANGELOG) |
 | `profile-page` | what a person is on Partyreel beyond one album: exists, the head, made of, identity, block, who is named, the claim, the list; phone first over one cast | integrated at `b75cd30a`; on the desk; eight calls carried on their recommendations (in the CHANGELOG); a shipped defect and five more on the ROADMAP |
-| `how-it-works` | the page that tells the loop beside the article that tells it too: the pair, who, the steps, the pictures, the shape, the proof, the phone, the close | integrated at `e623e65e`; on the desk; one call carried; four ROADMAP lines (the loop told four ways with three counts) |
+| `how-it-works` | the page that tells the loop | answered (batch three; `phone` a `?` dissolved by the rebuild); built now, design-led, in `loop-wiring` (Opus, :3132, cut `22438704`): the Host/Guest toggle, six cleaner steps, bespoke pictures, the demo proof, one close, the pair renamed, the stepper overview on the home, the footer heading a step down; the board retires at its merge |
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, hollow, the cap, the object, the teaser's chips, the phone; on the real dialog's shell and body over fixture summaries | integrated at `afde9ca3`; on the desk; five calls carried on their recommendations (in the CHANGELOG); seven ROADMAP lines |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | integrated at `6a7e6f2f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); four ROADMAP lines |
-| `event-type-pages` | the event-type landing pages, the hub and the four types: one page or four, the hero's picture, one hero, who is greeted, the proof, how many, the directory, the phone | integrated at `cee7768c`; on the desk; two calls flagged for his eye (in the CHANGELOG); seven ROADMAP lines |
-| `error-pages` | every failure page as one grammar: one grammar, the ways out, the picture, the code, the surround, the private event, the admin's 404, the global crash | integrated at `3d30582f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); three ROADMAP lines |
+| `event-type-pages` | the hub and the four type pages | answered whole (batch three) with his steer that the pages need a fresh visual identity; `event-identity` (Opus, :3133, cut `22438704`) opens the ground-up round before the direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire |
+| `error-pages` | every failure page as one grammar | answered whole (batch three, 2026-09-19); wiring in `errors-wiring` (Opus, :3131, cut `22438704`): the shared primitive, the help line, the strip as the icon, the digest, every surface's chrome, the lock in the family, the portal 404, a way home; the board retires at its merge |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
@@ -86,35 +86,26 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
 
 ## Infrastructure
 
-All backing services run under the owner account **partyr33l@gmail.com ("P3")**: **Supabase** project
-`ddafaemglzmuekbtjwzn` (Pro; daily backups on; the public `avatars` bucket; the MCP may be connected
-read-only, so re-auth with the DB scope or use the dashboard SQL editor when a DB tool answers `permission`);
-**Cloudflare R2** account `8bd90d2f6a374d6cdff2f379e929b060`, buckets `partyreel` (primary, ENAM) and
-`partyreel-backup` (Bucket-Locked, WNAM); **Stripe** `acct_1TcStrPtjqmVkBwk` (TEST; the live cutover is a
-launch task); **Sentry** org `partyreel`; **Resend** (`partyreel.com` verified; auth email rides Resend SMTP);
-**Google OAuth** P3 web client; the in-app operator `partyr33l@gmail.com` (`is_admin` + TOTP MFA); **Vercel**
-on the P3 team (two projects on one repo, `partyreel` and `partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare (GoDaddy today; Will cleared the move on 2026-09-18, its runbook is a ROADMAP line) and the repo transfer are launch-time cutovers).
-"Allow new signups" stays ON (account-from-guest and email+password create depend on it; anonymous sign-ins
-stay OFF). Already configured, never redo: the R2 buckets, creds, CORS and abort-multipart lifecycle rule;
-the apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products, prices, webhook, Billing
-Portal and its ten env values; Supabase TOTP MFA with `admin.partyreel.com/auth/callback` in the redirect
-allow-list and `NEXT_PUBLIC_ADMIN_HOST` (break-glass: delete the TOTP factor in `auth.mfa_factors`); the
-Sentry project, DSN and its four env vars; the media-backup Worker and the DB-backup Action secrets; the
-prune crons and the shared `PRUNE_API_SECRET`.
+All backing services run under the owner account **partyr33l@gmail.com ("P3")**: **Supabase** `ddafaemglzmuekbtjwzn` (Pro,
+daily backups, the public `avatars` bucket); **Cloudflare R2** `8bd90d2f6a374d6cdff2f379e929b060`, buckets `partyreel` and
+`partyreel-backup`; **Stripe** `acct_1TcStrPtjqmVkBwk` (TEST; the live cutover is a launch task); **Sentry** org `partyreel`;
+**Resend** (`partyreel.com` verified; auth email rides Resend SMTP); **Google OAuth** P3 web client; the in-app operator
+`partyr33l@gmail.com` (`is_admin` + TOTP MFA); **Vercel** on the P3 team (two projects on one repo, `partyreel` and
+`partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare and the repo transfer are launch-time cutovers). "Allow new
+signups" stays ON (anonymous sign-ins OFF). Already configured, never redo: the R2 buckets, creds, CORS and the
+abort-multipart rule; the apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST products, prices, webhook,
+Billing Portal and its ten env values; Supabase TOTP MFA with the admin callback in the redirect allow-list (break-glass:
+delete the factor in `auth.mfa_factors`); the Sentry project and its env; the backup Worker and Action secrets; the prune
+crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop`
-whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Every
-lane since is integrated and on the desk: the four wiring lanes, the app round's four boards (`app-shape`, `privacy-concept`,
-`guest-shape`, `app-vocabulary`), the stacking round's eight (`contact-page`, `press-page`, `demo-event`, `app-pricing`,
-`pricing-page`, `app-door`, `first-event`, `guest-upload`), and the overnight round's twelve cut at the Orchestrator's discretion
-while he slept (2026-09-19, "occupy 8 more slots, paced as usual", then twelve), all integrated by 10:40 UTC with every seat
-free: `media-viewer`, `reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`,
-`how-it-works`, `export-flow`, `site-chrome`, `event-type-pages`, `error-pages` (the state of each in the table). The desk derives the
-steps (`/design/lab?key=`): 1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ? marks a
-question unclear; plus the ghost on a disposable event on the alias (its link in chat). Calls his to overrule: from
-`backdrop-wiring` on the home page, the live demo moved whole into the paper chapter as its opener, and the album's heading
-kept at `lg` beneath it; the ghost's fade (grayscale 0.85 at 40 percent); type drawn inside a picture counts as depicted
-(the help emblem, the press kit's plate, /features/qr's sign); the album at 896 rather than 880. The assets still open: the
-grain tile and the worst-case overlap pair (rows 15 and 16) and the v1 icon (row 19). The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
+His sitting continues on the desk (twenty-seven boards unruled after batch three: `voice`, `glass`, `loose-ends`,
+`body-type`, `admin`, `app-shape`, `guest-shape`, `app-vocabulary`, privacy-hero round three, `album-motion`, `demo-event`,
+`app-door`, `contact-page`, `press-page`, `app-pricing`, `pricing-page`, `first-event`, `guest-upload`, `media-viewer`,
+`reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`, `export-flow`, `site-chrome`),
+and `event-identity` joins it when its lane lands. The two wiring lanes of batch three land on the alias for his eye
+(their calls his to overrule are in their manifests). The signed-in half of the overnight round's red-team (the host event
+page, the guest album as the host) waits on his account chooser. Calls his to overrule from earlier lanes: the home's live
+demo as the paper chapter's opener and the album heading at `lg`; the ghost's fade; type inside a picture counts as
+depicted; the album at 896. Assets open: rows 15, 16, 19 and 23. The launch-gated tasks are the ROADMAP's Launch checkpoint.
