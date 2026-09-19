@@ -121,7 +121,7 @@ albums, event apps, RSVP and invitation flows.
 
 ## Handoff (replaces the chat report)
 
-- **Head:** `540ef7cc` on `lp/guest-shape`, synced with `origin/launch-prep` at `161a01a5` (two merges:
+- **Head:** the code at `540ef7cc` on `lp/guest-shape`, with this Handoff commit on top; synced with `origin/launch-prep` at `161a01a5` (two merges:
   the first brought `gallery-wiring`, `app-shape` and three retirements, the second `album-motion`).
 - **The gate on the synced tree**, each on its own exit code: `pnpm typecheck` 0 · `pnpm lint` 0 (the 8
   known warnings) · `pnpm test` 0 (2,506 passing) · `pnpm build` 0 · `pnpm design:rules` 0 and the
