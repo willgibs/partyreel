@@ -13,10 +13,31 @@ import { useInViewOnce } from "@/lib/shared/use-in-view-once";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 
 /**
- * LOUD (the loud/quiet map) and, since round 2, CHAPTER 1's CLOSING ANCHOR in
- * the pacing arc (design-system.md "Chapters"): the one section that wraps
- * the chapter's ideas into a single visual, landing after two quieter
- * sections rather than escalating into the paper cut.
+ * LOUD (the loud/quiet map) and, since the chapter-transition ruling
+ * (2026-09-18), THE PAPER CHAPTER'S OPENER in the pacing arc
+ * (design-system.md "Chapters"): the one section that wraps chapter 1's ideas
+ * into a single visual, now landing just under the cut instead of just above
+ * it.
+ *
+ * ★ IT CHANGED CHAPTERS WITHOUT MOVING (Will, 2026-09-18, ruling the
+ * switching photograph section above): "we could use this to end the first
+ * chapter and combine the live demo visual currently below into the start of
+ * the chapter after." Its neighbours are the same two they always were; only
+ * the ground under it turned to paper, which `section-ids.ts` does in one line.
+ * The trade is a good one: the demo is the album FILLING, so it belongs to the
+ * chapter about the album rather than to the chapter about the party, and a
+ * paper ground makes the tiles pop harder than the cinema card did (bible 1,
+ * the media is the colour). Everything the stage is built from is token-driven,
+ * so nothing here had to change to cross the cut; `PaperChapter` re-declares
+ * [data-mkt] for exactly this reason (the pulse ring is a color-mix over
+ * --foreground and would otherwise stay pre-baked white).
+ *
+ * ★ IT IS A BESPOKE OPENER, WHICH IS WHAT BIBLE 17 ASKS FOR: a lit stage is
+ * one of the ruled chapter-opening devices, and it is a different one from
+ * chapter 1's (the hero's stream) and chapter 3's (the reel). The air above it
+ * is the opener's air; below lg PaperChapter compresses that to its own py-14,
+ * which is right here because the full-bleed photograph above is already a
+ * separator a phone cannot miss.
  *
  * The ratified Direction-C phase machine re-skinned
  * to the always-dark cinema room (the live-direction lab reference), acting
@@ -104,17 +125,18 @@ export function LiveDemo() {
       eyebrow="Live demo"
       heading={SECTION_HEADERS.liveDemo.line}
       subhead={SUBHEAD}
-      /* CHAPTER 1's CLOSING ANCHOR (Will, round 2): "it does a good job as a
-         visual anchor for the first chapter, wrapping all the ideas together in
-         one." It used to sit left-aligned at the body tier and land straight
-         before the paper cut, reading as one more escalation. Now it follows
-         two quieter sections, arrives centred with the heading a tier up and
-         real air above, and reads as the chapter's conclusion. Standard rise,
-         not the cut: the cut is how a chapter OPENS. */
+      /* THE HEADING A TIER UP (Will, round 2): "it does a good job as a visual
+         anchor for the first chapter, wrapping all the ideas together in one."
+         It used to sit left-aligned at the body tier; centred at the chapter
+         step with real air above, it reads as a chapter's own statement, which
+         is now literally its job. Standard rise, not the film cut: the cut
+         would be a second opening device at one seam, and the photograph
+         section above is already the seam's device. */
       /* SYMMETRIC AIR (Will's second pass, 2026-09-01: "more bottom padding for
-         breathing room"). The album no longer overhangs into this section, so
-         the chapter ends here on its own: equal air below the stage reads as
-         the exhale, and the cut plus the album's own top pad add the rest. */
+         breathing room"). The album does not overhang into this section, so the
+         two big visuals of this chapter each keep their own air: equal padding
+         below the stage plus the album's own top pad is the whole separation
+         between them. */
       scale="lg"
       className="py-28 sm:py-36"
     >

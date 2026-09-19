@@ -209,6 +209,13 @@ applies where a chapter holds several distinct sections; where the chapter IS th
 article, a form, a reading surface) it does not.** Two devices at one cut are noise: an opener that
 already carries a straddling object does not also take a second device.
 
+**A full-image section is a way to CROSS a chapter cut** (Will, 2026-09-18): a section standing on a
+full-bleed photograph may close a chapter, open one, or sit between two, so the page turns from dark to
+light through a picture rather than over a hairline; it is used sometimes and never at every cut, or every
+page with chapters grows one above and below its paper chapter and the device reads as a template. The
+home's chapter 1 is the first instance (`full-quality` on `PhotoSection`, which moved the cut up one so the
+live demo opens the paper chapter).
+
 **A chapter never escalates.** It may close on an **anchor**, a strong visual that wraps its ideas
 together, but only once the sections before it have ramped down. The loudest non-hero section landing
 immediately before a cut leaves the next chapter no quiet to open against, and two huge visuals
@@ -222,15 +229,15 @@ Two neighbours may share a register (both quiet, both informative) but never a l
 line is the page's column rhythm read top to bottom: a centred icon three-up after a centred icon
 three-up reads as one long section, and "three centred sections in a row" is the specific failure to
 watch on a paper chapter, where the ground is quiet and only shape carries the pacing. The home's
-answer: chapter 1 runs strip, ledger, three-up, stage; the paper chapter alternates left, centred,
-left with a masthead, a mirrored split and a numbered ledger.
+answer: chapter 1 runs strip, ledger, three-up on a photograph; the paper chapter alternates the centred
+stage, a left masthead, a mirrored split and a numbered ledger.
 
 The home arc: **chapter 1** opens on the hero, supports through the trust strip, the decomposition
-and the film strip, winds down through the two guest-side sections, and closes on the live-demo
-anchor · **chapter 2** (paper) opens on the album as the host's masthead (a left header a tier up,
-the print laid on the desk below-right; no straddle, so the live demo concludes chapter 1 on its own
-air) and covers the album and the host experience · **chapter 3** opens on the reel, supports through
-events and pricing, and closes on the FAQ, the CTA and the tail.
+and the film strip, winds down through the guest-side ledger, and closes on `full-quality` standing on the
+switching photograph · **chapter 2** (paper) opens on the live demo's stage (a lit subject, the vocabulary's
+device, landing just under the photograph) and covers the album as the host's masthead, curation and
+privacy · **chapter 3** opens on the reel, supports through events and pricing, and closes on the FAQ, the
+CTA and the tail.
 
 ## Light: SPILL, BEAM, and the lamp set
 

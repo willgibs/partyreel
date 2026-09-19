@@ -12,9 +12,7 @@
       "<div className=\"space-y-2\">\n  <Label htmlFor=\"ref-name\">Event name</Label>\n  <Input id=\"ref-name\" placeholder=\"Maya & Jay's Wedding\" />\n</div>",
       "<div className=\"space-y-2\">\n  <Input placeholder=\"Default\" />\n  <Input placeholder=\"Disabled\" disabled />\n  <Input placeholder=\"Invalid\" aria-invalid />\n</div>"
     ],
-    "textarea": [
-      "<Textarea placeholder=\"A note for your guests\" />"
-    ],
+    "textarea": ["<Textarea placeholder=\"A note for your guests\" />"],
     "label": [
       "<div className=\"space-y-3\">\n  <div className=\"space-y-1.5\">\n    <Label htmlFor=\"ref-l1\">Enabled</Label>\n    <Input id=\"ref-l1\" placeholder=\"Active field\" />\n  </div>\n  <div className=\"group space-y-1.5\" data-disabled=\"true\">\n    <Label htmlFor=\"ref-l2\">Disabled</Label>\n    <Input id=\"ref-l2\" placeholder=\"Disabled field\" disabled />\n  </div>\n</div>"
     ],
@@ -24,12 +22,8 @@
     "select": [
       "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
     ],
-    "form": [
-      "<FormDemo />"
-    ],
-    "input-otp": [
-      "<OtpDemo />"
-    ],
+    "form": ["<FormDemo />"],
+    "input-otp": ["<OtpDemo />"],
     "card": [
       "<Card>\n  <CardHeader>\n    <CardTitle>Maya &amp; Jay&rsquo;s Wedding</CardTitle>\n    <CardDescription>\n      128 photos and videos from 43 guests\n    </CardDescription>\n  </CardHeader>\n  <CardContent className=\"text-sm text-muted-foreground\">\n    Card content sits here, on the card surface.\n  </CardContent>\n  <CardFooter>\n    <Button size=\"sm\" variant=\"outline\">\n      <Calendar /> June 14\n    </Button>\n  </CardFooter>\n</Card>"
     ],
@@ -46,6 +40,11 @@
       "<div style={{ width: 335 }}>\n  <GalleryEmptyState />\n</div>",
       "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
     ],
+    "photo-section": [
+      "<PhotoSection source=\"pointer\">\n  <PlateCopy />\n</PhotoSection>",
+      "<div style={{ width: 375 }}>\n  <PhotoSection source=\"scroll\">\n    <PlateCopy />\n  </PhotoSection>\n</div>",
+      "<PhotoSection className=\"min-h-56\" />"
+    ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
     ],
@@ -55,12 +54,8 @@
     "progress": [
       "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n</div>"
     ],
-    "password-strength-meter": [
-      "<PasswordStrengthDemo />"
-    ],
-    "sonner": [
-      "<ToastDemo />"
-    ],
+    "password-strength-meter": ["<PasswordStrengthDemo />"],
+    "sonner": ["<ToastDemo />"],
     "dialog": [
       "<Dialog>\n  <DialogTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open dialog\n    </Button>\n  </DialogTrigger>\n  <DialogContent>\n    <DialogHeader>\n      <DialogTitle>Delete this event?</DialogTitle>\n      <DialogDescription>\n        This removes the event and everything in it. There is no undo.\n      </DialogDescription>\n    </DialogHeader>\n    <DialogFooter showCloseButton>\n      <Button variant=\"destructive\" size=\"sm\">\n        Delete\n      </Button>\n    </DialogFooter>\n  </DialogContent>\n</Dialog>"
     ],
@@ -88,9 +83,7 @@
     "play-badge": [
       "<Row>\n  <Poster>\n    <PlayBadge />\n  </Poster>\n  <Poster>\n    <PlayBadge size=\"lg\" />\n  </Poster>\n</Row>"
     ],
-    "masonry": [
-      "<Poster>\n  <CornerPlayBadge />\n</Poster>"
-    ],
+    "masonry": ["<Poster>\n  <CornerPlayBadge />\n</Poster>"],
     "empty-state": [
       "<EmptyState\n  icon={ImageUp}\n  title=\"No photos yet\"\n  description=\"Guests add photos and videos in seconds.\"\n/>",
       "<EmptyState\n  variant=\"quiet\"\n  title=\"Nothing here yet\"\n  description=\"The typographic treatment, no icon chip.\"\n/>"
@@ -98,33 +91,21 @@
     "not-found-screen": [
       "<div className=\"flex justify-center\">\n  <NotFoundScreen\n    icon={Compass}\n    eyebrow=\"404\"\n    title=\"Event not found\"\n    description=\"This link may have expired or the event was removed.\"\n    actions={\n      <Button asChild size=\"sm\">\n        <Link href=\"#\">Back home</Link>\n      </Button>\n    }\n  />\n</div>"
     ],
-    "route-error": [
-      "<RouteErrorMock />"
-    ],
+    "route-error": ["<RouteErrorMock />"],
     "anonymous-info": [
       "<Row>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Anonymous\n    <AnonymousInfo />\n  </span>\n  <span className=\"flex items-center gap-1.5 text-sm\">\n    Host view\n    <AnonymousInfo viewerIsHost />\n  </span>\n</Row>"
     ],
-    "set-name-step": [
-      "<SetNameStepDemo />"
-    ],
-    "legal-consent-line": [
-      "<LegalConsentLine newTab />"
-    ],
-    "page-heading": [
-      "<PageHeading>Dashboard</PageHeading>"
-    ],
+    "set-name-step": ["<SetNameStepDemo />"],
+    "legal-consent-line": ["<LegalConsentLine newTab />"],
+    "page-heading": ["<PageHeading>Dashboard</PageHeading>"],
     "kbd": [
       "<Row className=\"text-sm text-muted-foreground\">\n  <Kbd>&#8593;</Kbd>\n  <Kbd>&#8595;</Kbd>\n  Navigate\n  <Kbd>Esc</Kbd>\n  Close\n</Row>"
     ],
     "container": [
       "<Container className=\"border-x border-dashed border-border py-4 text-center text-xs text-muted-foreground\">\n  max-w-7xl, px-4 / sm:px-6 / lg:px-8\n</Container>"
     ],
-    "action-tooltip": [
-      "<ActionTooltipDemo />"
-    ],
-    "floating-add-button": [
-      "<FloatingAddDemo />"
-    ],
+    "action-tooltip": ["<ActionTooltipDemo />"],
+    "floating-add-button": ["<FloatingAddDemo />"],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
@@ -134,18 +115,12 @@
     "storage-meter": [
       "<StorageMeter\n  storageUsed={1_200_000_000}\n  storageCap={5_000_000_000}\n  storagePct={24}\n  standbyBytes={0}\n  overBudget={false}\n  passExpiry={null}\n  planName=\"Pro\"\n  hasBilling\n  isEventPass={false}\n/>"
     ],
-    "filter-chips": [
-      "<FilterChipsDemo />"
-    ],
+    "filter-chips": ["<FilterChipsDemo />"],
     "event-card-qr": [
       "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share dialog\n  </span>\n</div>"
     ],
-    "qr-preset-picker": [
-      "<QrPresetPickerDemo />"
-    ],
-    "events-empty-teaser": [
-      "<EventsEmptyTeaser />"
-    ],
+    "qr-preset-picker": ["<QrPresetPickerDemo />"],
+    "events-empty-teaser": ["<EventsEmptyTeaser />"],
     "empty-section-teaser": [
       "<EmptySectionTeaser\n  heading=\"Your uploads\"\n  blurb=\"Photos you add to any event show up here.\"\n/>"
     ],
@@ -158,9 +133,7 @@
     "recently-deleted-grid": [
       "<RecentlyDeletedGrid eventId=\"demo\" items={SAMPLE_BIN} />"
     ],
-    "review-section": [
-      "<ReviewSectionDemo />"
-    ],
+    "review-section": ["<ReviewSectionDemo />"],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",
       "<div className=\"dark flex justify-center bg-background p-10\">\n  <div className=\"relative isolate\" style={{ width: 168 }}>\n    <div\n      aria-hidden\n      className=\"pointer-events-none absolute -inset-16\"\n    >\n      <Glow\n        shape=\"throw\"\n        vars={{\n          \"--glw-from-x\": \"50%\",\n          \"--glw-from-y\": \"72%\",\n          \"--glw-reach\": \"72%\",\n          \"--glw-strength\": \"0.5\",\n          \"--glw-base\": \"0.5\",\n          \"--glw-blur\": \"22px\",\n          \"--glw-dur\": \"var(--spill-cadence)\",\n        }}\n      />\n    </div>\n    <div className=\"relative rounded-2xl bg-white p-5\">\n      <div className=\"aspect-square rounded-xl bg-gallery\" />\n    </div>\n  </div>\n</div>",
@@ -194,9 +167,7 @@
     "screen-lamp": [
       "<PageHero\n  scale=\"lg\"\n  entrance=\"cut\"\n  eyebrow=\"Album\"\n  heading=\"One album, filling itself.\"\n  subhead=\"The cut register with a stage: the type holds, the object under it arrives with its own lamp.\"\n  className=\"overflow-x-clip py-12 pb-72\"\n>\n  <div className=\"mt-10\">\n    <ScreenLamp>\n      <div className=\"mx-auto grid max-w-md grid-cols-3 gap-1 rounded-xl border border-border bg-card p-2\">\n        {tiles(\"140px\")}\n      </div>\n    </ScreenLamp>\n  </div>\n</PageHero>"
     ],
-    "cinema-hero": [
-      "<CinemaHero />"
-    ],
+    "cinema-hero": ["<CinemaHero />"],
     "eyebrow": [],
     "caption": [
       "<Caption>\n  Every label, hint and descriptor on the site, in the body face.\n</Caption>"
@@ -207,12 +178,8 @@
     "learn-chevron": [
       "<Link\n  href=\"/contact\"\n  className=\"mkt-learn inline-flex items-center gap-1 text-sm\"\n>\n  Ask a question\n  <LearnChevron />\n</Link>"
     ],
-    "texts-reveal": [
-      "<TextsRevealDemo />"
-    ],
-    "reveal": [
-      "<RevealDemo />"
-    ],
+    "texts-reveal": ["<TextsRevealDemo />"],
+    "reveal": ["<RevealDemo />"],
     "card-grid": [
       "<CardGrid tilt columns={3}>\n  {cards.map((image) => (\n    <div\n      key={image.id}\n      className=\"overflow-hidden rounded-2xl bg-card\"\n    >\n      <Image\n        src={image.src}\n        alt=\"\"\n        width={image.width}\n        height={image.height}\n        sizes=\"(min-width: 640px) 33vw, 100vw\"\n        className=\"aspect-4/3 w-full object-cover\"\n      />\n      <p className=\"px-4 py-3 text-sm font-medium\">{image.subject}</p>\n    </div>\n  ))}\n</CardGrid>"
     ],
@@ -226,9 +193,7 @@
     "conveyor": [
       "<Conveyor>\n  {strip.map((image) => (\n    <Image\n      key={image.id}\n      src={image.src}\n      alt=\"\"\n      width={image.width}\n      height={image.height}\n      sizes=\"240px\"\n      className=\"h-36 w-auto shrink-0 rounded-lg object-cover\"\n    />\n  ))}\n</Conveyor>"
     ],
-    "inline-reel-player": [
-      "<InlineReelPlayer reelId={LIBRARY_REEL_ID} />"
-    ],
+    "inline-reel-player": ["<InlineReelPlayer reelId={LIBRARY_REEL_ID} />"],
     "browser-frame": [
       "<BrowserFrame\n  label={\n    <span className=\"text-[11px]\">partyreel.com/a/maya-and-jay</span>\n  }\n>\n  <div className=\"grid grid-cols-3 gap-1 p-2\">{tiles(\"120px\")}</div>\n</BrowserFrame>"
     ],
@@ -236,18 +201,10 @@
       "<PhoneShell className=\"mx-auto max-w-[220px]\">\n  <p className=\"text-xs font-medium\">Any screen goes here.</p>\n  <p className=\"mt-1 text-[10px] text-muted-foreground\">\n    The album&rsquo;s phones and the getting-in stage compose it.\n  </p>\n</PhoneShell>",
       "<PhoneFrame />"
     ],
-    "album-frame": [
-      "<AlbumFrame />"
-    ],
-    "gallery-frame": [
-      "<GalleryFrame />"
-    ],
-    "qr-frame": [
-      "<QrFrame />"
-    ],
-    "reel-frame": [
-      "<ReelFrame />"
-    ],
+    "album-frame": ["<AlbumFrame />"],
+    "gallery-frame": ["<GalleryFrame />"],
+    "qr-frame": ["<QrFrame />"],
+    "reel-frame": ["<ReelFrame />"],
     "live-qr": [
       "<LiveQr\n  url=\"https://partyreel.com\"\n  caption=\"Scan to open partyreel.com\"\n/>"
     ],
@@ -255,12 +212,8 @@
       "<StatBandDemo animate=\"spin\" />",
       "<StatBandDemo animate=\"pop\" />"
     ],
-    "confetti-burst": [
-      "<ConfettiDemo />"
-    ],
-    "sample-reel-overlay.lazy": [
-      "<OverlayDemo />"
-    ],
+    "confetti-burst": ["<ConfettiDemo />"],
+    "sample-reel-overlay.lazy": ["<OverlayDemo />"],
     "morph-delegate": [
       "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
     ],
@@ -271,22 +224,16 @@
       "<div className=\"rounded-lg bg-gallery p-4\">\n  <DemoTicket />\n</div>",
       "<DemoTicket layout=\"column\" />"
     ],
-    "demo-cta-link": [
-      "<DemoCtaLink source=\"library\" />"
-    ],
+    "demo-cta-link": ["<DemoCtaLink source=\"library\" />"],
     "feature-door": [
       "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",
       "<div className=\"max-w-[14rem]\">\n  <FeatureDoor slug=\"qr\" aspect=\"portrait\" />\n</div>"
     ],
-    "feature-hero-eyebrow": [
-      "<FeatureHeroEyebrow label=\"The live album\" />"
-    ],
+    "feature-hero-eyebrow": ["<FeatureHeroEyebrow label=\"The live album\" />"],
     "ghost-grid": [
       "<div className=\"relative h-40 overflow-hidden rounded-lg border border-border\">\n  <GhostBackdrop cells={8} />\n</div>"
     ],
-    "text-swap": [
-      "<TextSwapDemo />"
-    ],
+    "text-swap": ["<TextSwapDemo />"],
     "related-features": [
       "<RelatedFeatures slugs={[\"qr\", \"curation\", \"sharing\"]} />"
     ],

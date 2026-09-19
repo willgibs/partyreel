@@ -9,11 +9,20 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 /**
- * THE PAPER CHAPTER'S OPENER: the host's masthead (Will's second pass,
- * 2026-09-01). Chapter 2 is the morning after, the host's desk, and this
- * section introduces it: a left header a tier up (the home's first
- * left-aligned opener), a host-framed lead, real air, and the album laid on
- * the desk below-right like a print. Product-real chrome over real manifest
+ * THE HOST'S MASTHEAD (Will's second pass, 2026-09-01): a left header a tier up
+ * (the home's first left-aligned opener), a host-framed lead, real air, and the
+ * album laid on the desk below-right like a print. Chapter 2 is the morning
+ * after, the host's desk, and this is where the chapter turns from watching the
+ * album fill to having it.
+ *
+ * ★ IT IS NO LONGER THE CHAPTER'S FIRST SECTION (the 2026-09-18
+ * chapter-transition ruling moved the cut up one, so the live demo opens this
+ * chapter). The composition is untouched because the pair is untouched: the
+ * demo's centred stage and this left masthead were already neighbours and were
+ * already both at the chapter type step, and only the cut that used to run
+ * between them has gone. If this pair ever reads as one long section, the thing
+ * to try is this heading stepping down to the section tier, not a shape change;
+ * the shapes are already as far apart as the page has. Product-real chrome over real manifest
  * media (the 2026-08-25 rebalance ruling: the easy media collection co-leads
  * the value, not just the reel). The visual composes BrowserFrame + manifest
  * tiles directly because AlbumFrame / GalleryFrame render fixed placeholder
@@ -22,13 +31,14 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * ★ THE STRADDLE CAME OFF THE HOME. For two rounds the card overhung the
  * dark-to-paper cut (a negative top margin, the seam's one signature). Will:
  * the live demo and the album visual sat "very tightly back to back as two
- * huge visuals fighting for attention". So chapter 1 now ends on the live
- * demo with its own air, and this chapter opens on type and air instead of
- * an overhang. The device stays in the vocabulary for other pages' cuts
- * (/about, /help and /blog carry theirs); do not bring it back here.
+ * huge visuals fighting for attention". So each of the two keeps its own air
+ * and neither overhangs anything. The device stays in the vocabulary for other
+ * pages' cuts (/about, /help and /blog carry theirs); do not bring it back
+ * here, and least of all now that the cut above is a photograph rather than a
+ * hairline.
  *
- * The print is max-w-3xl, not 4xl, on purpose: the live-demo stage one cut
- * above is 896px wide, and a second 896px object right after it recreates the
+ * The print is max-w-3xl, not 4xl, on purpose: the live-demo stage above is
+ * 896px wide, and a second 896px object right after it recreates the
  * two-visuals problem, only separated. The frame takes NO shadow (the light
  * ruling, 2026-09-17): since the overhang left, it lies flat on the page, and a
  * flat surface is its border and its ring in either mode. A frame that
