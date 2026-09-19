@@ -116,6 +116,7 @@ retired `type-phone`; both agents were told so by message.
 | `gallery-wiring` | cut the same night: galleries at 240 to the window's edges, words at the edge, the host the same; gallery-width retires | building | Opus, :3133 | everything |
 | `trail-wiring` | cut the same night: the trail on the 404 at his numbers, the phone walking a new path, banked in the Library; image-trail retires | building | Opus, :3134 | everything |
 | `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
+| `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -232,11 +233,12 @@ look; the one guest `@contract-for` is the empty state's.
   Orchestrator sets `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION and redeploys `main` (the scratch script
   `apex-flag.mjs`; never before the move, or the portal is dark), then the runbook's checks a to g. Rollback at any
   step: unset the variable on either project; move the domain back the same way.
-- **Seats.** Five agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
-  challenged yet today... Seems the concurrent local dev builds may be where it gets dicey"): the machine has 36 GB,
+- **Seats.** Six agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
+  challenged yet today... Seems the concurrent local dev builds may be where it gets dicey", then "let's go +1 agent slot
+  again... If we ever start going too fast for your preference, that's your call, and let me know"): the machine has 36 GB,
   a dev server holds 3 to 9 GB, and a `pnpm build` is the spike, so the Orchestrator runs its own gate builds only
   between lane builds where it can and watches `memory_pressure` before a fifth spawn; back to four if a build
-  starves. Ports 3131 to 3135.
+  starves. Ports 3131 to 3136.
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
