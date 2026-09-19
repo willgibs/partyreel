@@ -118,7 +118,12 @@ retired `type-phone`; both agents were told so by message.
 | `app-shape` | integrated at `aa338766` (handed off `18c9afda`; the registration conflicts resolved by the Orchestrator, retired boards kept gone) | done | Opus, :3135 | nothing |
 | `guest-shape` | integrated at `beee6325` (handed off `83f46ed4`, zero stale, no conflicts; three questions relayed) | done | Opus, :3136 | nothing |
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
-| `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |
+| `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
+| `demo-event` | cut 2026-09-19 from Will's stacking steer: the demo as the product's first impression, on the real guest components with a demo fixture | building | Opus, :3131 | everything |
+| `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
+| `contact-page` | cut 2026-09-19: how someone reaches a person at Partyreel, on the real page pieces | building | Sonnet, :3133 | everything |
+| `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
+| `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -202,6 +207,39 @@ the header's "Start for free". 8. `demo.ts` has no direct test; every pin is dow
 marketing "Live demo" mock and the real demo share only the word (ruled decoupled). 10. the ROADMAP's curated-media swap
 is unshipped; today's demo content is placeholder. The `isDemo` password bypass on the row is by design (only `private`
 locks); the token is `NEXT_PUBLIC_DEMO_QR_TOKEN`, excluded from the admin project's env.
+
+**The door into the host app** (2026-09-19, from the map cut for `app-door`): 1. four account surfaces with four
+feature sets and no shared component (`/login`: password, code, Google; the guest gate: code and password, no Google;
+the save prompt: code and Google, no password; the likes prompt, its near copy). 2. `login-form.tsx` redraws the
+Google "G" by hand beside the shared `google-icon.tsx`. 3. only `/login` and the guest welcome carry the Terms line;
+the save and likes prompts create accounts without it. 4. the signup's password step has no strength meter; the
+account page's change form does. 5. three tones for one act (utilitarian, a staged invitation, terse popups). 6. the
+marketing promise "no app, no account" against albums gated behind account creation. 7. "Create account" on an
+existing email silently signs it in. 8. `/welcome`'s tutorial repeats the marketing copy; only the name step is
+load-bearing. 9. no passkeys, no Apple; the guest gate's email button is still an unsized default (ROADMAP).
+
+**/contact** (2026-09-19, from the map cut for `contact-page`): 1. `contact-sheet.tsx` and `press-sheet.tsx` are
+photography proof sheets, not contact surfaces (a naming trap). 2. the last `(paper)` page against the cinema rhythm
+everywhere else (ROADMAP: the move and the identity revisit, unruled). 3. the stationery desk is the site's one
+physical-object skin. 4. no status for a sent note, no urgent path: a host mid-event queues behind a press inquiry
+on the same 8-an-hour gate. 5. a shared office IP can be locked out for an hour (honeypot plus a fail-closed limiter,
+no CAPTCHA, by design). 6. the careers form re-implements the whole contract in parallel. 7. the 2026-08-28 composite
+ruling has no rulings.md entry (predates the ledger). 8. the honeypot is named `website`, a real field elsewhere.
+9. the sender gets no receipt of any kind; `actions.ts` has no end-to-end test.
+
+**/press** (2026-09-19, from the map cut for `press-page`): 1. the kit's mark and icon plates are the retired Aperture
+glyph (ASSETS row 19, the v1 icon, still requested). 2. "Availability: Live now" on a pre-launch branch, ungated.
+3. "kit" names two unrelated things (this downloadable kit; the killed media-kit project). 4. the ROADMAP's
+partnerships kit has nothing on the page for a venue. 5. no spokesperson anywhere; the press-identity round's
+reasoning survives only as a comment pointing at a deleted doc.
+
+**Pricing in the app** (2026-09-19, from the map cut for `app-pricing`): 1. the storage meter's popover is billing's
+only home; the user menu has no billing entry. 2. the same lock is worded two ways (the password control against the
+visibility section). 3. every gated, refusal and banner door leaves the app for `/pricing`; only the popover's two
+buttons reach Stripe. 4. the free reel's watermark, `/account` and `/welcome` carry no upgrade door. 5. the annual
+toggle exists only on marketing; in the app it surfaces through the portal after subscribing. 6. `usd` is hardcoded in
+the webhook and every price label is a hand-written string. `/pricing` is static and tier-blind (it cannot tell a
+signed-in Pro they already subscribe); a held Pro at Checkout is refused with 409 and routed to the portal.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 

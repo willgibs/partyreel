@@ -39,17 +39,15 @@ never a cap and a test.
   edge or centred; edge, added once the wide page showed it), and whether the host follows (same). The
   candidate is one `column-width` per gallery from `sm` up, so the phone keeps its two columns.
 
-- The Orchestrator changed seats mid-round: the previous one was cut by a weekly limit with three lanes
-  mid-work, and a new one on a second account resumed all three the same day (Fable orchestrating; the
-  board lanes on Sonnet, the wiring lane on Opus, by Will's ruling in PROGRAM.md "Model delegation").
+- The Orchestrator changed seats mid-round (a weekly limit, three lanes mid-work; a second account resumed all
+  three the same day: Fable orchestrating, boards on Sonnet, wiring on Opus, PROGRAM.md "Model delegation").
 - `heroes` integrated (`6b5ea1bf`): `privacy-hero` (answered none, then round two, then round three) and
   `album-page` (answered whole, wired below), every option a real Frame at 1440 and 375.
 - `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state, the river's
   production home `src/components/shared/river/` with two contracts and a Library entry; the ghost's numbers his.
-- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled
-  and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
-  opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
-  short door) and what the short door does. Every drawn code measured exactly 3.0 px a module.
+- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and
+  unlinked: where it sits, where the photographs end, what it opens (the short `/demo` link fixes the scan floor)
+  and what the short door does; every drawn code exactly 3.0 px a module.
 - `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines
   in the places they are read with three or four close candidates each, bible 20's question first (does the first win
   bind the other seven); every option a real surface at 1440 and 375.
@@ -71,20 +69,17 @@ never a cap and a test.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
   admin components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list recommended),
   the nav (a rail plus a command palette), density (a table with a reading pane), state colour (the chip),
-  destructive acts (a sheet sized to the damage), health (a band under the bar), the bar (a 44 px tool bar). Four
-  questions closed by the Orchestrator (the product's chart ramp stays `loose-ends`'s; the `admin` surface joined
-  `touchpoints.ts`; nothing at 375 in round one; the palette ships closed behind a key). Three defects it found in
-  the shipped portal are on the ROADMAP.
+  destructive acts (a sheet sized to the damage), health (a band under the bar), the bar (44 px). Four questions
+  closed by the Orchestrator (in git at the merge); three defects it found in the shipped portal are on the ROADMAP.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
   tree: one pure module, `src/lib/surface`, decides which surface a build serves for the proxy, the `requireAdmin`
   seam and the purge cron (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving both,
   which is the rollback). The cutover ran the same night through the preview proof and closed with milestone-26.
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`,
   `derived`) through the one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter
-  depths on every run (any dead letter a failure, alerting where the number arrives); the purge's four
-  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27); `sendOnce` and both
-  rate limiters report their failures (QA #19). The lane's cross-lane patch landed in the merge; the additive
-  migration is applied with the advisor set unchanged; the Worker deployed the same night (`d7b16bcc`).
+  depths on every run (any dead letter a failure); the purge's four account-looping sweeps became jobs with their
+  own switches and per-row isolation (QA #27); `sendOnce` and both rate limiters report their failures (QA #19).
+  The cross-lane patch landed in the merge; the migration applied, advisors unchanged; the Worker deployed (`d7b16bcc`).
 - `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
   retired: `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
   foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced
@@ -95,20 +90,15 @@ never a cap and a test.
 - `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one
   rule in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at
   2 / 5 / 6 / 8 columns of 166 to 245 px at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at
-  632 on the logo's line, the host event page asking the shell for the same shape (`data-app-wide`, answered in
-  `:has()`); every other host page kept its column and gained only the grid. The select grid was patched onto the
-  same constants at the merge so Select never reflows the album. Two calls for Will on the alias: the column-major
-  flow reads newest-down-the-left at eight columns, and the 632-wide action block beside the full-bleed album is
-  his `words=edge` as ruled (the `guest-shape` board's material). `gallery-width` retired.
+  632 on the logo's line, the host event page asking the shell for the same shape (`data-app-wide`); the select grid
+  patched onto the same constants at the merge. Two calls for Will on the alias: the column-major flow reads
+  newest-down-the-left at eight columns; the 632-wide action block beside the full-bleed album. `gallery-width` retired.
 - `trail-wiring` integrated (`73451c79`; cut `97207988`): the image trail left the lab for
   `src/components/shared/trail/` at his numbers (d140, three seconds with the slower shrink, the flick behind the
   cursor, 180 px and 100 at a phone; the keeper and the shy fade named) and the root 404 stands on it, a phone
-  walking its own path. Measuring the real page moved three things the board could not see: the shy fade became a
-  feathered window on the layer after the per-card dimmer left the description line at 1.49:1 (4.90:1 now at both
-  widths), the resting composition is one of five openings, and the phone's walk reaches its edges. The trail rides
-  the root 404 only (the two group 404s keep their strip; his to widen), `MissingFrameStrip` yielded there and
-  stayed elsewhere, scripting off shows clean paper. `image-trail` retired; the privacy-hero board's imports were
-  repointed at the production engine until its round three lands.
+  walking its own path. Measuring the real page moved three things: the shy fade became a feathered window on the
+  layer (the description line 1.49:1 to 4.90:1 at both widths), the resting composition is one of five openings, the
+  phone's walk reaches its edges. The root 404 only (the group 404s keep their strip, his to widen). `image-trail` retired.
 - `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one
   host's Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter`,
   `EventFilterPills`, `FeedSectionHeader` and `MasonryColumns` at 1440 and 375 through one window knob: what the
@@ -127,6 +117,12 @@ never a cap and a test.
   a few-minute window to take a photograph back, one voice for the account. Reading the 42 captures against their
   words caught five defects, fixed. Three questions carried: the growth hook, the profile's chrome and the footers
   as one "where Partyreel appears" board once the shape settles; a guest remove, if it wins, is a server capability.
+- `app-vocabulary` integrated (`e442fc55`; cut `73451c79`): round one of the shared vocabulary under both shapes
+  as seven decisions on the real components at 1440 and 375, never edited: three empty-state tiers over five
+  treatments, one loading primitive wired only where a route has a real wait (the Reel Studio has none and freezes
+  blank), two of four tile grammars unified (the host grid and the bin) and two left distinct, icons on both bulk
+  toolbars (the only grammar the gallery's five actions fit at 375, measured), the tile-size control joining each
+  surface's row and remembered per device, a shared confirm switch for the settings page's two hand-rolled copies.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door stopped being the one made object and
   became the one that moves: the album pours out of a real scannable code a tenth down a tall 4:5 door and the whole
   card streams behind the copy; the lab's card engine folded into the shared river as one `origin` argument (the
@@ -168,7 +164,7 @@ with a full-image section beneath; `river-card`: `tenth`, `behind`, `short`, `ta
 `gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` round two closed by a `?`; four wiring lanes cut at once.
 
 **Next.** His sitting on the desk (`voice`, `glass`, `loose-ends`, `body-type`, `admin`, `app-shape`, `guest-shape`,
-privacy-hero round three, `album-motion`); `app-vocabulary` integrates at its handoff; the wiring lanes from his notes.
+`app-vocabulary`, privacy-hero round three, `album-motion`); five boards from his stacking steer; then the wiring lanes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
