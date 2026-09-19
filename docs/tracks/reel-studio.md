@@ -106,7 +106,7 @@ twenty-eight live canvases on one stage.
 
 ## Handoff (replaces the chat report)
 
-- Head `<pending>`, pushed; synced with `origin/launch-prep` at `9f976f7c` (one docs-only commit, no overlap)
+- The board's code is `5245c81f`; the branch is pushed. Synced with `origin/launch-prep` at `9f976f7c` (one docs-only commit, no overlap), merged at `2a7d6c43`
 - Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok · `pnpm typecheck` ok · `pnpm lint` ok
   (the 8 known warnings) · `pnpm test` ok (2,533) · `pnpm build` ok (254 static pages) ·
   `pnpm lab:smoke --base http://localhost:3132` ok (373 checks, 0 failing; reel-studio reads 706 of 1,200) ·
