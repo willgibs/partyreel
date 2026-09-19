@@ -167,7 +167,55 @@ demo-door proof with or without a video; the landscape reel if one is kept.
   lane) · `pnpm test` ok (2,555 in 242 files) · `pnpm build` ok (254 static pages) ·
   `pnpm lab:smoke --base http://localhost:3132` ok (454 checks, 0 failing, and `how-it-works` gone from the
   reading table)
-- Lane check (`git diff --name-only origin/launch-prep...HEAD`), exceptions and why:
+- Lane check, pasted (`git diff --name-only origin/launch-prep...HEAD`):
+
+```
+  docs/design/library.md
+  docs/tracks/loop-wiring.md
+  src/app/(dev)/design/(shell)/lab/boards.ts
+  src/app/(dev)/design/rules/component-notes.ts
+  src/app/(dev)/design/rules/rules.generated.json
+  src/app/(dev)/design/sandbox/how-it-works/board.tsx
+  src/app/(dev)/design/sandbox/how-it-works/close.tsx
+  src/app/(dev)/design/sandbox/how-it-works/content.ts
+  src/app/(dev)/design/sandbox/how-it-works/pair.tsx
+  src/app/(dev)/design/sandbox/how-it-works/phone.tsx
+  src/app/(dev)/design/sandbox/how-it-works/picture-treatments.tsx
+  src/app/(dev)/design/sandbox/how-it-works/pictures.tsx
+  src/app/(dev)/design/sandbox/how-it-works/proof.tsx
+  src/app/(dev)/design/sandbox/how-it-works/scene.tsx
+  src/app/(dev)/design/sandbox/how-it-works/shape.tsx
+  src/app/(dev)/design/sandbox/how-it-works/spec.ts
+  src/app/(dev)/design/sandbox/how-it-works/spine-list.tsx
+  src/app/(dev)/design/sandbox/how-it-works/state.ts
+  src/app/(dev)/design/sandbox/how-it-works/step-set.ts
+  src/app/(dev)/design/sandbox/how-it-works/steps.tsx
+  src/app/(dev)/design/sandbox/how-it-works/who.tsx
+  src/app/(dev)/design/sandbox/registry.ts
+  src/app/(dev)/design/touchpoints.ts
+  src/app/(marketing)/(cinema)/help/page.tsx
+  src/app/(marketing)/(cinema)/how-it-works/page.tsx
+  src/components/marketing/chrome/marketing-footer.tsx
+  src/components/marketing/chrome/mega-panel.tsx
+  src/components/marketing/mock-parity.test.ts
+  src/components/marketing/sections/home/film-strip.tsx
+  src/components/marketing/sections/how-it-works/demo-door.tsx
+  src/components/marketing/sections/how-it-works/guest-pictures.tsx
+  src/components/marketing/sections/how-it-works/host-pictures.tsx
+  src/components/marketing/sections/how-it-works/picture-parts.tsx
+  src/components/marketing/sections/how-it-works/pricing-pointer.tsx
+  src/components/marketing/sections/how-it-works/reel-payoff.tsx
+  src/components/marketing/sections/how-it-works/side-chip.tsx
+  src/components/marketing/sections/how-it-works/spine.tsx
+  src/components/marketing/sections/how-it-works/step-frames.tsx
+  src/components/marketing/sections/how-it-works/step-picture.tsx
+  src/components/marketing/sections/shared/how-it-works-stepper.test.tsx
+  src/components/marketing/sections/shared/how-it-works-stepper.tsx
+  src/lib/constants/how-it-works.ts
+  src/lib/type-ladder-policy.test.ts
+```
+
+  Grouped, with the exceptions and why:
   - inside `owns`: the page, `sections/how-it-works/*` (five new files, four retired), the stepper and its
     contract, `sections/home/film-strip.tsx`, the footer, the mega panel, the help hub,
     `lib/constants/how-it-works.ts`, the retired board directory
