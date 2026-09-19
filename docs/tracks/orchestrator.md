@@ -113,10 +113,11 @@ retired `type-phone`; both agents were told so by message.
 | `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias |
 | `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
 | `river-wiring` | cut the same night: the river in the QR door at `tenth`, `behind`, `/demo` at 99 px, tall closing rows, every card's own copy gradient; river-card and river-visual retire | building | Opus, :3132 | everything |
-| `gallery-wiring` | cut the same night: galleries at 240 to the window's edges, words at the edge, the host the same; gallery-width retires | building | Opus, :3133 | everything |
+| `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
 | `trail-wiring` | cut the same night: the trail on the 404 at his numbers, the phone walking a new path, banked in the Library; image-trail retires | building | Opus, :3134 | everything |
 | `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
 | `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
+| `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
