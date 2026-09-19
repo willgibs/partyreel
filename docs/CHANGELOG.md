@@ -115,11 +115,18 @@ never a cap and a test.
   home opens on (what needs you, recommended), how an event draws on it (a row with the cover behind), what an
   event's page is (a front page with a door into each room), how seven routes are reached and the way back, where
   sharing and settings live (on the event; a sheet beside it), where the plan and a host's own photographs live
-  (one place, You), the shape in a hand (a bar at the thumb). Every caption measured inside its frame (the
-  album-as-page gives the photographs 1400 px and six columns against today's 1216 and five; a rail costs a
-  column). Four questions carried on their recommendations: a host rarely runs more than three events and the
-  shape survives it; the bell is reserved, not built; the personal feeds survive under You; the home's heading is
-  placeholder copy for the voice board. The `admin` board's cousin, one seam deeper.
+  (one place, You), the shape in a hand (a bar at the thumb); every caption measured inside its frame (the album
+  as page gives the photographs six columns against today's five). Four questions carried: a host rarely runs more
+  than three events; the bell is reserved, not built; the personal feeds survive under You; the home's heading is
+  placeholder copy for the voice board.
+- `guest-shape` integrated (`beee6325`; cut `236cc03f`): round one of the guest experience's shape as seven decisions
+  on one wedding in its four access states, phone first at 375 with 1440 on a knob, the shipped guest components
+  wrapped and the portal-bound shells quoted: the door after the scan (one screen, recommended), how an empty album
+  speaks (the river on both), what sits above an album that runs to the window (the actions docked at the foot),
+  whether the album admits it is filling (the photograph announcing itself), one sheet for the four guest dialogs,
+  a few-minute window to take a photograph back, one voice for the account. Reading the 42 captures against their
+  words caught five defects, fixed. Three questions carried: the growth hook, the profile's chrome and the footers
+  as one "where Partyreel appears" board once the shape settles; a guest remove, if it wins, is a server capability.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door stopped being the one made object and
   became the one that moves: the album pours out of a real scannable code a tenth down a tall 4:5 door and the whole
   card streams behind the copy; the lab's card engine folded into the shared river as one `origin` argument (the
@@ -142,30 +149,26 @@ never a cap and a test.
   1280 (laptops get the phone's), the cut to paper as built (the photograph carries the crossing), the album's
   columns derived from the product's rule. `album-hero` and `album-page` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
-  commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
-  three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
-  aliases; the four new boards answer 404 without a key. The cutover closed the same night: Will moved the domain in
-  the dashboard (the API move is the one step the Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy
-  verified it (the apex domain object lives under his personal account), the apex took `NEXT_PUBLIC_SURFACE=app`
-  with a redeploy, and the live red-team matched the runbook's table (every app route, the lab and the webhook 404
-  on the admin host under GET and POST; the cron there 401 without the secret, `skipped: not_this_surface` with
-  it); Will signed in on the new host and the three env-proving pages rendered.
+  commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console with
+  the Worker's depth reading, the sub-sweeps and the limiters that report, the static chart aliases; the new boards
+  404 without a key. The cutover closed the same night: Will moved the domain in the dashboard (the one step the
+  Orchestrator's guardrails refuse), a fresh `_vercel` TXT at GoDaddy verified it (the apex domain object lives under
+  his personal account), the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy, the live red-team matched the
+  runbook's table (every app route, the lab and the webhook 404 on the admin host under GET and POST; the cron 401
+  without the secret, `skipped: not_this_surface` with it), and his three env-proving pages rendered on the new host.
 
 **The round's second sitting, first batch (build `93d00ff`).** `cursor-backdrop` r1 whole (`full-quality`, `plate`,
 `band` "I absolutely love the rail of the foot", `slide`, `insert` as a soft ruling, `scroll` at four or five
 photographs) with the ruling that full-image sections are chapter transitions, used sometimes, never at every cut,
-and for this instance closing chapter one with the live demo folded into the next; `backdrop-wiring` cut from it.
-`image-trail` r1 begun: `d140`, `decay=long` with three seconds suggested.
+this one closing chapter one; `backdrop-wiring` cut from it. `image-trail` r1 begun: `d140`, `long` at three seconds.
 
 **The second batch (build `9720798`, 2026-09-19).** Four boards whole (`image-trail`: `d140`, `long` at three
 seconds, `flick`, `s180`, the 404, `walks`; `album-page`: `live`, `stream` with variations wanted, `halo`, `floor`
-with a full-image section beneath; `river-card`: `tenth`, `behind`, `short`, `tall` and every card's own copy
-gradient; `gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` round two closed by a `?`. Four wiring
-lanes cut at once; the app round's boards followed on freed seats.
+with a full-image section beneath; `river-card`: `tenth`, `behind`, `short`, `tall`, every card's own copy gradient;
+`gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` round two closed by a `?`; four wiring lanes cut at once.
 
-**Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
-`image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
-they hand off; the domain move, then the apex flag, close the cutover; then the wiring lanes from his notes.
+**Next.** His sitting on the desk (`voice`, `glass`, `loose-ends`, `body-type`, `admin`, `app-shape`, `guest-shape`,
+privacy-hero round three, `album-motion`); `app-vocabulary` integrates at its handoff; the wiring lanes from his notes.
 
 ## 2026-09-17 — The wind-down: the sitting's picks become working versions (`257a690d` to `00e82dba`)
 
