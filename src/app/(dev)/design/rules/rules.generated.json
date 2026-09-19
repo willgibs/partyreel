@@ -5023,6 +5023,8 @@
       "file": "src/components/shared/masonry.tsx",
       "names": [
         "CornerPlayBadge",
+        "GALLERY_COLUMNS",
+        "GALLERY_UNIFORM_COLUMNS",
         "MasonryColumns"
       ],
       "specimens": [

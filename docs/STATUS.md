@@ -15,7 +15,9 @@ zero real users, Stripe in TEST mode, and the launch switches deliberately unspe
 only active thread: work rides `launch-prep` in rounds, each a catalog in the lab, Will's verdicts on the
 desk, then the wiring; partyreel.com changes only at tagged milestone merges. The goal for this stretch
 (Will, 2026-09-14): every page reaches a cohesive informational flow and every point of the design system,
-the marketing site and the app is elevated platform-wide; nothing is protected.
+the marketing site and the app is elevated platform-wide; nothing is protected, and since 2026-09-19 the host app and
+the guest pages are explicitly open to be reconceived from the ground up ("closer to a Frankenstein's monster";
+his words in `design/rulings.md`).
 
 ## The current round: the ladders and the dock (opened 2026-09-18 at `00e82dba`)
 
@@ -33,7 +35,7 @@ album hero's round three went "too boring" that way).
 | the glow boards | `glow-doctrine` and `glow-moments`, records with nothing open | retired with the `[data-lit]` leak; the floors fixed; `lab:smoke` passes whole |
 | `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | `album-page` answered whole (`live`, `stream`, `halo`, `floor` with a full-image section beneath) and wiring in `album-wiring` with album-hero r3; `privacy-hero` round two closed by a `?` ("I don't really like this arrival animation as part of the spiral/orbit"), round three a new concept on the next free seat |
 | `river-card` | the river in the real QR door at 4:5 and 3:2, no label, the code unlinked: where it sits, where the photographs end, what it opens, the short door | answered whole (`tenth`, `behind`, `short`, `tall`) with the cards' own copy gradient ruled; wiring in `river-wiring` with river-visual r2; the boards retire there |
-| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | answered whole (`240`, `full`, `edge`, `same`); wiring in `gallery-wiring`; his two app asks (a tile-size control, event headers with a centred version) become boards on the next free seats |
+| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | wired and retired at `666ee8bc` (`gallery-wiring`): a column width, never a count; 2 / 5 / 6 / 8 columns at 375 / 1280 / 1512 / 1920; a disposable 30-photograph album for his eye is on the alias at `/e/c7809249347d41e0aaf2c9ad27cd3c75` ("Gallery width (disposable)"); his two app asks live in `app-vocabulary` and `guest-shape` |
 | `ghost-wiring` | river-visual's `ghost` on the guest album's empty state, for Will to judge in the app | integrated at `31c94253` (resumed on Opus): the river's production home `src/components/shared/river/`, two contracts, a Library entry; the ghost's numbers (grayscale 0.85 at 40 percent, the board's) are his to overrule |
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
@@ -100,7 +102,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Four wiring lanes are building; three lab boards follow on freed seats. The desk derives the steps (`/design/lab?key=`): all eight boards of the round are integrated and his sitting is open
+His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Four wiring lanes are building; boards follow on freed seats in this order: `app-shape` (the host app from the foundation), `guest-shape` (the guest experience from the scan), `privacy-concept` (round three, a new concept), `app-vocabulary` (empty, loading, the tile, the toolbar, the gallery's controls); the seams they are cut from are in `tracks/orchestrator.md`, "The app round's map". The desk derives the steps (`/design/lab?key=`): all eight boards of the round are integrated and his sitting is open
 in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
 marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). Two calls from `backdrop-wiring` are his to overrule on the alias's home page: the live demo moved whole into the paper chapter as its opener (rather than its visual merged into the album section), and the album's heading kept at `lg` beneath it (`text-section` is the first thing to try if the two read as one section). His to
 overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather

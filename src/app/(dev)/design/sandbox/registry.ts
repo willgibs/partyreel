@@ -4,7 +4,6 @@ import { ADMIN } from "./admin/spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
-import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
@@ -38,7 +37,6 @@ export const BOARDS: readonly BoardSpec[] = [
   PRIVACY_HERO,
   ALBUM_PAGE,
   RIVER_CARD,
-  GALLERY_WIDTH,
   RIVER_VISUAL,
   ALBUM_HERO,
 ];
