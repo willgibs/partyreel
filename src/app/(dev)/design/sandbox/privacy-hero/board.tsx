@@ -6,7 +6,7 @@ import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { TrailPause } from "../image-trail/trail-layer";
+import { TrailPause } from "@/components/shared/trail/trail";
 import { PrivacyHero } from "./hero";
 import {
   type Arms,
