@@ -116,6 +116,14 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   moved by his click, the apex on `NEXT_PUBLIC_SURFACE=app`) and the one purge run on the app surface closed the runbook on
   2026-09-19.
 
+- `host-curation` integrated (`ff09a50f`; cut `d909cb13`, the overnight round's first): the host's act of reviewing what
+  guests send as eight decisions on the shipped review surface, the triage machine forked so nothing reaches a mutation:
+  the queue (the album's own shapes; today's 4:5 grid at 375 judges a stranger's photograph at 112 by 140, seven at once),
+  the verb (Reject at the door, Hide after), the peek (a look you can act in), keys (arrows with a hint row), undo (on the
+  toast), arrivals (a line that says how many), the count (three that agree and lead somewhere), told (never; the most
+  overrulable). Five calls carried on their recommendations (the recut first root relitigates his 2026-06-22 uniform-grid
+  ruling and says so). A shipped bug found in the frame: the hidden-media dim has never rendered (ROADMAP, Now).
+
 **The second sitting.** The first batch (build `93d00ff`): `cursor-backdrop` r1 whole ("I absolutely love the rail of the
 foot") with the ruling that full-image sections are chapter transitions, never at every cut; `image-trail` begun. The
 second (build `9720798`, 2026-09-19): `image-trail`, `album-page`, `river-card` and `gallery-width` whole; `privacy-hero`
