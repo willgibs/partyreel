@@ -1,8 +1,7 @@
 import type { ComponentType } from "react";
 
 import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
-import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
-import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
+import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
@@ -31,6 +30,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "album-motion": { Component: AlbumMotionBoard },
   "image-trail": { Component: ImageTrailBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
@@ -38,9 +38,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "body-type": { Component: BodyTypeBoard },
   voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
-  "album-page": { Component: AlbumPageBoard },
   "river-card": { Component: RiverCardBoard },
   "gallery-width": { Component: GalleryWidthBoard },
-  "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },
 };

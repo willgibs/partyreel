@@ -1,8 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ADMIN } from "./admin/spec";
-import { ALBUM_HERO } from "./album-hero/spec";
-import { ALBUM_PAGE } from "./album-page/spec";
+import { ALBUM_MOTION } from "./album-motion/spec";
 import { BODY_TYPE } from "./body-type/spec";
 import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
@@ -31,6 +30,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  ALBUM_MOTION,
   IMAGE_TRAIL,
   ADMIN,
   LOOSE_ENDS,
@@ -38,11 +38,9 @@ export const BOARDS: readonly BoardSpec[] = [
   BODY_TYPE,
   VOICE,
   PRIVACY_HERO,
-  ALBUM_PAGE,
   RIVER_CARD,
   GALLERY_WIDTH,
   RIVER_VISUAL,
-  ALBUM_HERO,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

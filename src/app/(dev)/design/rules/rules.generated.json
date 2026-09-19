@@ -3705,7 +3705,9 @@
         "AlbumStreamPause",
         "STREAM_LG_MIN"
       ],
-      "specimens": [],
+      "specimens": [
+        "/design/library/components"
+      ],
       "indexed": false,
       "contracts": [
         {

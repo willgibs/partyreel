@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FeatureHeroEyebrow } from "@/components/marketing/sections/features/shared/feature-hero-eyebrow";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { AlbumStream } from "@/components/shared/album-stream/album-stream";
+import type { Variant } from "@/components/shared/album-stream/stream-engine";
 import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
@@ -45,7 +46,20 @@ import { LiveAlbumStage } from "./live-album-stage";
  * and it is `STAGE.floor` on the other side of the same arithmetic, which is
  * why it is written in pixels rather than on the spacing scale.
  */
-export function ArrivalsHero() {
+export function ArrivalsHero({
+  /**
+   * WHICH FALL THE STREAM DRAWS, forced. ★ PRODUCTION NEVER PASSES THIS: the
+   * engine's own `SHIPPED` is the answer, and Will's pick is a one-word change
+   * there. It exists so the `album-motion` board can draw two or three
+   * variations of the falling-in ON THE WIRED HERO rather than on a mock of it,
+   * which is what he asked for ("I was just curious to see maybe two to three
+   * variations of this concept"). `PhotoSection`'s `source` prop carries the
+   * same note for the same reason.
+   */
+  variant,
+}: {
+  variant?: Variant;
+} = {}) {
   const page = featurePage("album");
 
   return (
@@ -64,7 +78,7 @@ export function ArrivalsHero() {
           </Button>
         </>
       }
-      backdrop={<AlbumStream />}
+      backdrop={<AlbumStream variant={variant} />}
       className="relative overflow-x-clip pt-14 pb-[110px] sm:pt-20 lg:pb-[150px]"
     >
       <LiveAlbumStage />
