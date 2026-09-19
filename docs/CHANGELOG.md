@@ -7,9 +7,37 @@
 > entry deleted in the same commit. Everything older is in git: `git log --oneline` for the commits,
 > `git show 932fdee9:docs/CHANGELOG.md` for the last full archive (5,495 lines, 2026-07-02 to 09-16),
 > `git show dd77fc9e:docs/CHANGELOG.md` for the Library x Lab round's entry, `git show 52e9afa2:docs/CHANGELOG.md` for the revamp's,
-`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's, `git show 22438704:docs/CHANGELOG.md` for the ladders-and-the-dock round's.
+`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's, `git show 22438704:docs/CHANGELOG.md` for the ladders-and-the-dock round's, `git show b30445d9:docs/CHANGELOG.md` for the overnight round's.
 
 ---
+
+## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
+
+**What Will did.** The fourth batch (build `e54d4eb`) answered three boards whole, 23 verdicts and no `?`. `event-identity`:
+the hero's theme `object` ("conveys more about how we actually help that event (such as incorporating the QR)"), the
+second section `statement` ("the UI could be improved a lot"), the arc `chapter` ("paper chapter with photo transition"),
+the cards `frame` with a photograph for all four types ("a ton of design polish"; the tucked artifact at 375 banked), the
+proof `door` (the river beautiful, the right half "could use a redesign", the asymmetry kept), the ladder `reading` with
+his own sizes (the hero subhead 20 to 22 at desktop and 20 on a phone, the opening 18, "not a strict hard ruling"), the
+phone `words` toward half-and-half with the visual crossing the fold; and the seven drawings "are not nearly good enough"
+as a final page. `site-chrome`: the panels and all four groups kept ("far more full, established, and trustworthy"),
+Dashboard for a returning host, the accordion sheet, the bar hiding on scroll (a circle-back once it looks beautiful over
+paper), today's three footer registers ("would love to see a couple additional explorations of footers that work well
+with that closing CTA pattern above"), Start free always ("we should always have a demo event set and ready"), one loop
+pointed at from both nav doors. `profile-page`: the page as the core with a quick-look mini version added, the album's
+header (with a worry about the way back), every party as one card group with a host or guest marker and no photographs
+gallery, a bio line with the avatar centred on the name, block inside a Report menu ("a more scalable pattern"), everyone
+named (his reasoning in rulings.md), the claim right after an upload ("Amazing capture method"), a faces row with a View
+all whose shape he asked to see explored. Four answers in plan mode: both nav doors open the page; the profile's eight
+wire now with round two in parallel; handles free for everyone ("We can keep custom event slugs as a pro feature, but
+handles for everyone incentivizes guests to get deeper into our ecosystem"); the event pages wire now, design-led. Five
+lanes cut at `b30445d9`: `events-wiring`, `chrome-wiring` and `profile-wiring` (Opus, production, judged on the alias),
+`footer-close` and `profile-reach` (Sonnet: round two of `site-chrome` on the footer against the closing CTA, and of
+`profile-page` on the three open pieces).
+
+**Next.** The lanes' handoffs, integrated in the program's order with the red-team per lane on the alias (the events
+lane's subhead step is site-wide: an event page and a feature page both measured); his sitting on the other twenty-five
+boards.
 
 ## 2026-09-19 — The morning sitting: the third batch on the overnight desk (`22438704` onward)
 
@@ -82,133 +110,3 @@ answer). Two notes for the record only: kids are never a target user; a partners
 
 **Next.** His sitting on the desk, `event-identity` first (the hero's theme at 1440, then `the-proof=door`), then the
 other twenty-seven boards; `/how-it-works`, the home's stepper and every failure page on the alias for his eye.
-
-
-## 2026-09-19 — The overnight round: twelve boards cut from read-only maps and integrated while Will slept (`d1923907` onward)
-
-**What Will did.** He signed off for the night with two messages (verbatim in `docs/design/rulings.md`): burn the week's
-unspent tokens on lab explorations, "at worst, net neutral and fully deleted"; find the surfaces without him, eight slots,
-then "12 more agent slots throughout the night... paced by a fixed amount of parallel explorations"; no questions until
-morning. Twelve read-only maps (Sonnet, one per surface) found the seams recorded in `tracks/orchestrator.md` ("The overnight
-round's maps"); twelve boards were cut from them, six seats at a time, every open call carried on the lane's recommendation
-and relayed here for his morning. The records follow in the order the lanes handed off.
-
-
-- `host-curation` integrated (`ff09a50f`; cut `d909cb13`, the overnight round's first): the host's act of reviewing what
-  guests send as eight decisions on the shipped review surface, the triage machine forked so nothing reaches a mutation:
-  the queue (the album's own shapes; today's 4:5 grid at 375 judges a stranger's photograph at 112 by 140, seven at once),
-  the verb (Reject at the door, Hide after), the peek (a look you can act in), keys (arrows with a hint row), undo (on the
-  toast), arrivals (a line that says how many), the count (three that agree and lead somewhere), told (never; the most
-  overrulable). Five calls carried on their recommendations (the recut first root relitigates his 2026-06-22 uniform-grid
-  ruling and says so). A shipped bug found in the frame: the hidden-media dim has never rendered (ROADMAP, Now).
-
-- `help-center` integrated (`5118c141`; cut `d909cb13`): where a host or a guest with a problem lands, seven decisions on the
-  real help pieces with hand-authored bodies for three articles at 1440 and 375: who the hub greets first (the device
-  implies it: a phone opens guest-voiced, a laptop host-voiced), whether the index sheet survives (doors, then the sheet),
-  the how-to's shape (the real screen beside each step), help from inside the product (a link at the moment of trouble),
-  feedback (a counted beacon), troubleshooting's dead end (a rung of its own), search's reach (a visible trigger, kept
-  local). Four calls carried on their recommendations (the phone ask skipped; the beacon's table and the screen option's
-  content cost belong to the wiring). Two ROADMAP lines (FAQ structured data; the audience default).
-
-- `reel-studio` integrated (`d10149bd`; cut `d909cb13`): the highlight reel from the studio to a guest's hands as eight
-  decisions on local replicas at 1440 by 900 with 375 on a knob, every reel frame drawn once per style and shared by all
-  24 options, nothing reaching an RPC or an encode: the door (the poster card itself tappable), the room (a workbench, the
-  reel large with the open work beside it; today's wall draws four 348 px frames into a 360 px panel and not one fits
-  whole), the styles (the rail, revived; staged behind the room), the moments (the pool; today's sheet covers 72 percent
-  of the reel it recuts), a blocked tile (a caption), sharing (an Undo), the wait (progress in the player), how a guest
-  watches (today's overlay, the one "today" win). Four calls carried (Download folded into the room; the sheet option
-  replaced by the bench rather than reopening his route ruling; the guest's third option kept to the container; the
-  1280 px poster card around a 360 px reel, his to overrule). Six ROADMAP lines.
-
-- `emails` integrated (`2135ce6e`; cut `d909cb13`): every email Partyreel sends as eight decisions on the ten real templates
-  called with fixture options inside a built inbox mock at 375 and 1440, nothing sent: one shell (one wrapper, two feet),
-  the brand (the wordmark at the head, no new asset), the sender (operator subjects tagged), the foot (an unsubscribe and
-  an address on the commercial-leaning four), the sign-in mail as a labelled mock (digits with a button beneath), the
-  moments (retire the four dormant switches), the guest's (the album link, once), the dark inbox (the shell declares
-  light: today's declares a text colour and no background, near-illegible in a dark client). No questions; three ROADMAP
-  lines (no plain-text twin; `sendOnce` untested; a stale `PRICING.md` line about the resend cooldown).
-
-- `media-viewer` integrated (`596ca8dd`; cut `d909cb13`): what a photograph opens as, eight decisions on the real viewer's
-  pieces over one open wedding, 375 first with 1440 on a knob, four roots and four staged, every caption measured in the
-  frame: the opening (the photograph grows out of its tile), what stands beside it (one strip at the foot), who took it (the
-  name and the time on the chrome's own line), the next one (the neighbours peek at the edges), how close (pinch inside the
-  viewer; a face in a group photograph is 36 px across on a phone today), a video (a play badge), the way out (swipe it
-  back down into the album), an address (the album's link with the photograph on it). Three calls carried (a guest's
-  photograph never leaves as a file; one shape binds the host's viewer; a zoomed photograph owns both axes until it
-  settles). One asset asked (a real vertical clip, row 23). Three ROADMAP lines (the viewer has no arrival; `MediaTile`'s
-  lazy loading resolves against the top window inside an iframe; six surfaces disagree about what a viewer holds).
-
-- `admin-triage` integrated (`30db05e5`; cut `d909cb13`): the operator's act on a report as eight decisions on presentational
-  forks of the admin pieces with one Saturday night's fixtures, inside the `admin` board's shape worn as settled: what a
-  report looks like (the picture beside the reason, a row each: 341 px to 272), a wordless one (nothing drawn), what a
-  verdict costs (a required line that IS the record, into the column empty since the founding migration), what a closed
-  one leaves (one line with a day's Undo: three answered reports from 844 px to 158), the legal-hold door (pre-filled from
-  the report), the phone (see it and stop it; the rail takes 62 percent of a 375 screen today), four inboxes (one control
-  taking each surface's words), who is told (silence, by doctrine, until he rules). Four calls carried. Six captures
-  caught defects the gate could not. Five ROADMAP lines, one on the lab itself (a responsive Tailwind variant never
-  reaches a board's frame). The smoke crawler's 400-page cap ran out at 24 boards (every step is a page); raised to 800.
-
-- `export-flow` integrated (`afde9ca3`; cut `5649285b`): getting everything out for a host and a guest as eight decisions on
-  the real dialog's shell and body reproduced over fixture summaries run through the shipped arithmetic, phone first, a
-  scoped `fetch` guard refusing every export request: what Download hands a guest (their own shots first, the album under),
-  the Videos chip for a teaser (stays and says why), the wait (the dialog holds until it lands), a mint that never answers
-  (it gives up and offers Try again), a hollow zip (it says what did not make it), the 2,000-item cap (the product splits
-  it and never refuses), what keeping the album means (the link first, the zip under it), the phone (the copy names where
-  the file lands). Five calls carried (a guest's own uploads are identifiable server-side; the Worker may tell the page a
-  nonce and a written count; parts split by items; SELECTED left to `app-vocabulary`'s bar; the dialog reproduced, not
-  opened). Seven ROADMAP lines: the app goes blind at the tap (no timeout, a silent skip, no iOS answer).
-
-- `profile-page` integrated (`b75cd30a`; cut `c74a509d`): what a person is on Partyreel beyond one album as eight decisions
-  over one cast at one wedding, phone first, two roots with four and two staged behind them, the social controls forked so
-  no press reaches a row: whether a person has a page at all (the page), what stands above it (the album's own header),
-  what it is made of (every party as a card: an attendee's first screen goes from 2 percent picture to 48), what the top
-  says (one line of their own, capped and moderated), how a person blocks (inside a Report menu, drawn as a future), who an
-  album names (everyone signed in, and the marketing sentence that denies it corrected), when a handle is offered (right
-  after their photographs land, free to claim), how the guest list draws (a row of faces: 450 px in twelve rows becomes 24
-  in one). Eight calls carried on their recommendations (two loosenings of the ruled privacy scope, the handle's Pro gate,
-  the sentence over the list, the bio's moderation, the person-report inbox, the 404 and the phone step cut). A shipped
-  defect: `/u/[slug]`'s identity row squeezes the name column to about 90 px at 375. Six ROADMAP lines.
-
-- `site-chrome` integrated (`6a7e6f2f`; cut `ee45b8f3`): the marketing header, the mega panel, the phone's menu and the footer
-  as eight decisions in a true frame over a real page at 1440 and 375, the nav forked with its route as a prop, the
-  material left to `glass` round two: the shape (flat links, the mega panel retired), what it holds (three groups,
-  Resources folded into the footer), the returning host ("Dashboard" from a presence-only cookie hint, never a name), the
-  phone's menu (a flat sheet), on scroll (64 px, as today), the foot's job (a closing invitation), the foot's door ("Start
-  free" always, the demo when set), two doors to one loop (one door). Three calls carried (retire the 2026-08-28 nav round
-  whole; a marketing island may read presence only; the header-to-footer mirror pin becomes a footer-column guard). Four
-  captures caught defects invisible in review. Four ROADMAP lines (the `/#faq` row; "four steps"; nav labels under a
-  transparent bar over a bright photograph; the dead `markOnly` branch).
-
-- `how-it-works` integrated (`e623e65e`; cut `449d9b52`): the page that tells the loop beside the article that tells it too,
-  eight decisions on the real page pieces at 1440 and 375, every option measured in windows and by the first product
-  picture's depth: the pair (both kept, each its own name), who (the undecided host, as today), the steps (six two-sided,
-  step one's sentence made true), the pictures (the site's own frames), the shape (a two-column ledger, host and guest,
-  stacked below `sm`), the proof (a door to the live demo), the phone (the real `PhoneFrame`), the close (one closing
-  section). One call carried (the optional close asked). The lane ran its demo without `--base` and read "0 steps" as a
-  desk-wide fault; the Orchestrator's gate on its own port found the eight steps (the ROADMAP's `lab:demo` default line
-  stands). Four ROADMAP lines (the step-count trap, the label collision, the unread single source, the catalogue gap).
-
-- `event-type-pages` integrated (`cee7768c`; cut `1cf54457`): the event-type landing pages, the hub and the four types, as
-  eight decisions on the real pieces (`PageHero`, `EventHeroMedia`, the directory's grammar, `BuiltFor`, `ReelAngleBand`)
-  at 1440 and 375: one page or four (one template, as today), the hero's picture (the split, as today, per the code's own
-  manifest note), one hero (every page on `PageHero`, closing a gap-5 against gap-6 drift), who is greeted (one quiet
-  guest line), the proof (a demo door in the arc, in `demo-event`'s own promise wording), how many (four, unchanged), the
-  directory (two-up, as today), the phone (the measured 183 px FAQ-to-close gap halved, a small stylesheet change). Two
-  calls flagged for his eye (a fifth type and a planner line are unresearched, per the product-defining rule). Seven
-  ROADMAP lines (a stale blog tag, three unlinked posts, triplicated nav copy, a policy scan gap, a stale comment, the
-  hub's missing OpenGraph image, a stale doc line).
-
-- `error-pages` integrated (`3d30582f`; cut `1feccb00`, the round's last): every failure page as one grammar, eight
-  decisions on the real not-found pieces and recreations of the three error boundaries with the Sentry effect removed
-  (no lab press reported an event), at 1440 and 375: one grammar (one primitive with per-surface words: `RouteError`
-  folds into `NotFoundScreen` for one added prop at zero visual cost), the ways out (a quiet help or contact line
-  everywhere), the picture (marketing only, as today), the code (always, with Copy), the surround (the surface's own
-  chrome always: a guest crash has no header today), the private event (the not-found family wearing a lock), the
-  admin's 404 (a portal screen with no marketing links), the global crash (Try again and a way home). Three calls
-  carried. A lab gotcha fixed in the board (stacked chromes with `vh` minimums compound against the frame). Three
-  ROADMAP lines (no root `error.tsx`; the group 404s' fixed 60 vh box; the stale "may have ended" line deleted).
-
-**Next.** The round is closed: twelve boards on the desk for his sitting, every seat free, zero questions asked of him
-mid-lane (every call carried on its lane's recommendation and listed above). The alias serves the closing record (`5910d489`; the
-window freed on its own), seven deployments pruned, the wiring lanes' surfaces red-teamed on it signed out and clean (the
-signed-in half waits on his account chooser); then his batches.

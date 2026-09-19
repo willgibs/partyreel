@@ -1,0 +1,69 @@
+{
+  "board": "profile-page",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "exists",
+          "choice": "page",
+          "note": "However, the 'cards/sheets that open' can be used as a 'quick-look' mini version of looking at profiles, with the full page at its own address as the complete version a second click away. That way if I'm looking at a guest list and click 10 different guests, I can see a little more about each and don't have to fully nav across pages for every guest click unless I want to go from the mini card/sheet to their full profile. But the full profile pages are the core of this.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "head",
+          "choice": "guest",
+          "note": "Is this the best complete solution? Seems like it'd be very easy to get far away from the original event you scanned if you start clicking guests, risking not getting back in certain cases. I think this is the best option across these three, but maybe not the best overall solution for our nav in general here.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "made-of",
+          "choice": "covers",
+          "note": "This makes profile pages feel much more full and incentivizes guests to upload to get that beautiful event card on their profile. I was thinking about how your option 1 incentivizes hosting more (if you host the event, you get the cool card and we get paid) but I'd rather incentivize guest uploads in general with 2. However, rather than a separate 'also at' section, maybe we could just have host/guest UI on each event card to denote within a single group. Don't think we need the photographs gallery on the profile page, keeps it more event focused (and feels a bit more private, knowing everything is handled by individual event public visibility on your page).",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "identity",
+          "choice": "line",
+          "note": "Profile picture (avatar) should be center aligned to the name/meta group, so if a bio 1) doesn't exist it looks correct, or 2) does exist and runs at any length, the avatar is still aligned to the top name/meta, not centered lower due to a long bio. Should also have a few rules to prevent worst-case intent bios",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "block",
+          "choice": "report",
+          "note": "This establishes a more scalable pattern/menu for other usage as well.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "named",
+          "choice": "everyone",
+          "note": "Here's more of my reasoning to support. 1. We want guests to be able to easily bypass deeper account creation (like handles/public page) to get to the event and upload, so only displaying with a handle is bad versus all guests who upload. 2.You're only shown as a guest by uploading, and photos require attribution, so it doesn't make sense for someone to want to upload but not be on the guest list. Someone that privacy concerned likely wouldn't upload at all so don't need to handle separately, and you have to remove all your uploads to be removed as a guest. This probably pops a few things up that may need to be clarified.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "claim",
+          "choice": "after",
+          "note": "Amazing capture method without getting in the way of uploading photos. Great idea here.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "list",
+          "choice": "faces",
+          "note": "This is the condensed version once we exceed a certain count, but let's add an option to expand that into the full list. For bigger lists, we should continue to have pagination to expand into groups. I can imagine an edge case with a thousand guests, and you click \"View All\", and all of a sudden you have a page 100 screens tall all at once. Could use an exploration on how to view all from this condensed view (modal, sheet, page, going down existing spot on page, etc)",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

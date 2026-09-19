@@ -14,7 +14,7 @@ owns:
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
   - src/app/globals.css
-  - src/app/theme.css
+  # src/app/theme.css is RELEASED to events-wiring for the fourth batch (the subhead clamp only); back here at its merge
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here
   # (the registration and retirement exceptions, announced 2026-09-18).
@@ -60,6 +60,7 @@ announces:
   - "The wiring of the image-trail round (2026-09-18, late): `backdrop-wiring` owns src/components/shared/backdrop/, src/components/marketing/sections/home/ (the composition and the two sections it moves), sandbox/cursor-backdrop/ (retired at its handoff) and the Library's gallery-demos.tsx; it edits registry.ts, boards.ts and touchpoints.ts only to remove or close its own board's lines. Production bytes: the red-team lands on the alias at the merge."
   - "The second batch's wiring (2026-09-19): four lanes at once, disjoint owns (`album-wiring`: the album feature page, src/components/shared/album-stream/, sandbox/album-hero/, album-page/, album-motion/; `river-wiring`: feature-door.tsx, related-features.tsx, event-type-card.tsx, src/components/shared/river/, src/app/demo/, sandbox/river-card/, river-visual/; `gallery-wiring`: the guest grid and page, src/components/shared/masonry.tsx, container.tsx, app-shell.tsx, the host event page, sandbox/gallery-width/; `trail-wiring`: src/components/shared/trail/, the marketing 404, sandbox/image-trail/). THE REGISTRATION EXCEPTION widens for the round: each lane adds ONLY its own entry at the head of library/components/gallery-demos.tsx and its own `for` lines in rules/component-notes.ts, and removes or rewrites only its own board's lines in registry.ts, boards.ts and touchpoints.ts; the Orchestrator keeps both sides at every merge. Nobody touches sandbox/privacy-hero/ (its round three is a later lane)."
   - "The protocol (2026-09-16): docs/PROGRAM.md is the loop (the round, the question route, integration, the record's depth), docs/tracks/README.md the one-round manifest template and the spawn paragraph; a manifest is deleted in its merge commit from here on."
+  - "The fourth batch (2026-09-19, evening, `b30445d9`): five lanes. `events-wiring` owns `system/page-hero.tsx` (the subhead slot onto the subhead step) and is RELEASED `src/app/theme.css` and `src/lib/utils.ts` for one change, the subhead step's ceiling 24 to 22 (`--text-subhead` and `TYPE_STEPS` together), which moves every `text-subhead` reader by about 2 px at 1440; it retires `event-identity` and `event-type-pages`. `chrome-wiring` owns `src/components/marketing/chrome/` and a new `src/lib/shared/use-scroll-direction.ts`, and may set a presence cookie in `src/lib/supabase/middleware.ts` (a hint, never authorization); `--mkt-header-h` stays 4rem. `profile-wiring` owns the profile, the social components, the guest list's callers and `/admin/reports`, and proposes two additive migrations (`profiles.bio`, `reports.profile_id`) the Orchestrator applies; the handle's Pro gate goes. `footer-close` and `profile-reach` are round two of `site-chrome` and `profile-page` under the registration exception (each rewrites only its own RULINGS row for round two); the wiring lanes never touch those two boards."
 ---
 
 # The integration branch
@@ -145,6 +146,11 @@ retired `type-phone`; both agents were told so by message.
 | `site-chrome` | integrated at `6a7e6f2f` (handed off `b6b23f33`, ten stale; the registration conflicts resolved by the Orchestrator); three calls carried; four ROADMAP lines | done | Opus, :3135 | nothing; the seat is free |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
 | `how-it-works` | integrated at `e623e65e` (handed off `0f9c28a7`, nine stale; the registration conflicts resolved by the Orchestrator); one call carried; the lane's "0 steps" was the `lab:demo` default port, the gate found eight | done | Sonnet, :3136 | nothing; the seat is free |
+| `events-wiring` | cut at `b30445d9` (batch four): the hub and the four type pages to production on `event-identity`'s seven directions and `event-type-pages`' direct picks; both boards retire | open | Opus, :3131 | the handoff; the red-team on the alias |
+| `chrome-wiring` | cut at `b30445d9` (batch four): the bar hides on scroll, a Dashboard hint, Start free always, both nav doors to the page; the board stays for round two | open | Opus, :3132 | the handoff; the red-team on the alias |
+| `profile-wiring` | cut at `b30445d9` (batch four): `profile-page`'s eight picks to production, the handle free, two migrations proposed; the board stays for round two | open | Opus, :3133 | the handoff; the migrations applied; the red-team on the alias |
+| `footer-close` | cut at `b30445d9` (batch four): `site-chrome` round two, the footer against the closing CTA (his ask by name) | open | Sonnet, :3134 | the handoff; on the desk |
+| `profile-reach` | cut at `b30445d9` (batch four): `profile-page` round two on View all, the quick-look and the way back | open | Sonnet, :3135 | the handoff; on the desk |
 
 **The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Every board is cut (`profile-page` took the first freed seat, :3133; `how-it-works` the second, :3136; `export-flow` the third, :3132; `site-chrome` the fourth, :3135; `event-type-pages` the fifth, :3131; `error-pages` the sixth, :3134); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. CLOSED 2026-09-19 10:40 UTC: every lane integrated and recorded with `[preview]` on each record, twelve boards on the desk, every seat free, nothing asked of Will; the alias rebuilt onto the closing record `5910d489` at 10:58 UTC, seven deployments pruned, the wired surfaces red-teamed signed out (clean).
 
@@ -157,6 +163,11 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 
 ## Next, in order (batch nine's plan T4 to T6; the plan's words live in rulings.md 2026-09-18 and ROADMAP)
 
+0. **Batch four (2026-09-19, the evening sitting; the plan in the Orchestrator's plan file, the words in rulings.md):**
+   `events-wiring`, `chrome-wiring`, `profile-wiring`, `footer-close` and `profile-reach` cut at `b30445d9` on :3131 to :3135. At each
+   wiring handoff: the merge (a retirement removes registration lines; a round-two lane rewrites its own RULINGS row), the gate
+   (its demo step on a board still on the desk), the record in the CHANGELOG's evening-sitting entry, `[preview]`, the alias moved
+   onto the record, the prune, the red-team listed in the manifest; `profile-wiring`'s migrations applied before its gate.
 0. **Batch three (2026-09-19, the morning sitting; the plan in the Orchestrator's plan file, the words in rulings.md):**
    `errors-wiring`, `loop-wiring` and `event-identity` cut at `22438704` on :3131 to :3133. At each wiring handoff: the merge
    with the board's directory and registration lines gone and its RULINGS row rewritten as shipped, the gate (its demo

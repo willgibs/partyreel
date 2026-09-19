@@ -8,6 +8,98 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the fourth batch: the event pages' identity ruled, the chrome kept full, and a person's page confirmed
+
+**Became:** five lanes. `events-wiring` (Opus) builds the hub and the four type pages to production on the seven
+directions of `event-identity` and the direct picks of `event-type-pages` (one template, four types, the host alone,
+`PageHero`, the 2x2 directory, the phone gap), judged on the alias: one lit object per type carrying the demo's real
+code, the statement section, the photograph turn into paper, the photograph card for all four types, the door proof with
+its right half redone, the hero subhead on a 20 to 22 clamp with the opening at 18, the phone half-and-half with the
+visual crossing the fold; both boards retire. `chrome-wiring` (Opus) lands `site-chrome`'s four byte-changing picks (the
+bar hides going down and returns coming up, a Dashboard hint for a signed-in host, Start free always with the demo
+beside it when one is set, both nav doors to `/how-it-works`) and keeps the four "as today" picks; the board stays for
+`footer-close` (Sonnet), round two on the footer against the closing CTA, his ask by name. `profile-wiring` (Opus) lands
+`profile-page`'s eight picks (the page on the album's header, one card group with a host or guest marker, a capped bio,
+block inside a Report menu, everyone named with the marketing sentence fixed, the claim right after an upload and FREE
+for everyone, a faces row with an interim View all); `profile-reach` (Sonnet) opens round two on the three pieces he
+left open (how View all opens, the quick-look, the way back to the scanned event). The `on-scroll` circle-back rides
+with glass round two (ROADMAP); the tucked artifact card is banked (ROADMAP); ASSETS row 26 withdraws (`door` won).
+
+Verbatim, `event-identity` r1: `hero-theme=object` "While I like the room behind the words to kind of "theme" each event
+hero, I think the 'one bespoke object, lit' per page conveys more about how we actually help that event (such as
+incorporating the QR). With the future Higgsfield generations, the media in the bespoke objects will also feel more
+themed." `second-section=statement` "While this "one claim, one visual" (doesn't *have* to be picture) section is the
+selection, the UI could be improved a lot. Three beats would feel far too repetitive under every event hero (long enough
+to recognize that pattern over & over), the '4 the party itself' would tuck another strong visual directly underneath
+the bespoke hero visuals, which may feel overwhelming back-to-back." `the-arc=chapter` "This decision is more an answer
+to "all dark, paper chapter, or paper chapter with photo transition" with my answer being "paper chapter with photo
+transition". However, these 7 preview sections are not nearly good enough for an event page this is the proposed final
+page design." `the-cards=frame` "However, with this selection, all events should have a photograph (weddings, parties)
+rather than an artifact (conferences, trips). These cards could use a ton of design polish, only approving the
+photograph as full bg component here. Also: the artifact cards in mobile (conferences, trips) where the artifact is
+slightly tucked is a nice design, maybe useful for something else where the visual could tuck." `the-proof=door` "The
+left side is beautiful with the river, but the real car on the right could use a redesign. Good layout, though. I like
+the asymmetrical two-column, with demo a bit wider." `the-ladder=reading` "However, this is too large font size for the
+hero sub and opening. On desktop, hero sub maybe 20-22 and opening stays 18. On mobile, hero sub at 20 and opening at
+18. These are my best guesses at the sizes that'll look right, not a strict hard ruling - should likely check again with
+preview." `the-phone=words` "However, it should have an appearance closer to half-and-half, but the visual may cross
+above/below the fold as a teaser to incentivize the scroll down to explore more. The copy on this one is too bulky now,
+pushing the visual down too far (sub hero particularly)."
+
+Verbatim, `site-chrome` r1: `shape=panels` "This makes the site feel far more full, established, and trustworthy. Also,
+opening the panel and seeing the pages introduces a lot of the product itself (what features it has, what events we're
+great for, site resources, etc). We'd feel far less reputable, appearing to only have 3 or 0 additional pages to
+explore" `holds=four` "Resources adds a ton of additional content and trust value beyond features and events."
+`phone=sheet` "Making visitors route through a hub every time they want to explore a new page is horrible UX/UI design,
+especially for mobile." `on-scroll=hide` "I would entertain options 1 or 2, but with our alternating dark/light chapters
+and generally dark navs, it appears kind of grey over paper sections and doesn't feel very visually pleasant. If we
+could correct that, so when nav is visible over any chapter it looks beautiful, I'd like to circle back to this again.
+If we return, I'd like the 2 rail version to continue to include the dropdown menus at center." `foot-job=three` "The
+reason I like this one over 3 (the closing invitation) is because most of our pages close with a CTA section in the same
+rough shape as your '3' design. Having those back to back would feel very repetitive, would rather them work together.
+Knowing this now, would love to see a couple additional explorations of footers that work well with that closing CTA
+pattern above." `foot-door=always` "However, we should always have a demo event set and ready." `two-doors=one` "We can
+continue to point to the 'How it Works' page from the resources dropdown card. The pointer in the 'Features' dropdown
+menu is more subtle (like a secondary option), so the How It Works page primary nav link can be that Resources dropdown
+card. Just in case my selection ws wrong and doesn't match what I'm describing, the article version would only live
+under the help center, we'd be pointing to the HIW page version from two separate nav instances. Feel free to clarify
+with me." Picked without a note: `returning=dashboard`.
+
+Verbatim, `profile-page` r1: `exists=page` "However, the 'cards/sheets that open' can be used as a 'quick-look' mini
+version of looking at profiles, with the full page at its own address as the complete version a second click away. That
+way if I'm looking at a guest list and click 10 different guests, I can see a little more about each and don't have to
+fully nav across pages for every guest click unless I want to go from the mini card/sheet to their full profile. But the
+full profile pages are the core of this." `head=guest` "Is this the best complete solution? Seems like it'd be very easy
+to get far away from the original event you scanned if you start clicking guests, risking not getting back in certain
+cases. I think this is the best option across these three, but maybe not the best overall solution for our nav in
+general here." `made-of=covers` "This makes profile pages feel much more full and incentivizes guests to upload to get
+that beautiful event card on their profile. I was thinking about how your option 1 incentivizes hosting more (if you
+host the event, you get the cool card and we get paid) but I'd rather incentivize guest uploads in general with 2.
+However, rather than a separate 'also at' section, maybe we could just have host/guest UI on each event card to denote
+within a single group. Don't think we need the photographs gallery on the profile page, keeps it more event focused (and
+feels a bit more private, knowing everything is handled by individual event public visibility on your page)."
+`identity=line` "Profile picture (avatar) should be center aligned to the name/meta group, so if a bio 1) doesn't exist
+it looks correct, or 2) does exist and runs at any length, the avatar is still aligned to the top name/meta, not
+centered lower due to a long bio. Should also have a few rules to prevent worst-case intent bios" `block=report` "This
+establishes a more scalable pattern/menu for other usage as well." `named=everyone` "Here's more of my reasoning to
+support. 1. We want guests to be able to easily bypass deeper account creation (like handles/public page) to get to the
+event and upload, so only displaying with a handle is bad versus all guests who upload. 2.You're only shown as a guest
+by uploading, and photos require attribution, so it doesn't make sense for someone to want to upload but not be on the
+guest list. Someone that privacy concerned likely wouldn't upload at all so don't need to handle separately, and you
+have to remove all your uploads to be removed as a guest. This probably pops a few things up that may need to be
+clarified." `claim=after` "Amazing capture method without getting in the way of uploading photos. Great idea here."
+`list=faces` "This is the condensed version once we exceed a certain count, but let's add an option to expand that into
+the full list. For bigger lists, we should continue to have pagination to expand into groups. I can imagine an edge case
+with a thousand guests, and you click "View All", and all of a sudden you have a page 100 screens tall all at once.
+Could use an exploration on how to view all from this condensed view (modal, sheet, page, going down existing spot on
+page, etc)"
+
+His four answers in plan mode, verbatim: both nav doors to the page: "Yes, both doors open the page (Recommended)"; the
+profile's scope: "Wire the eight now; round two on the three in parallel (Recommended)"; the handle's gate: "Free to
+claim for everyone, as you recommend it. We can keep custom event slugs as a pro feature, but handles for everyone
+incentivizes guests to get deeper into our ecosystem and hopefully upgrade to host one day."; the event pages: "Wire
+now, design-led, judged on the alias (Recommended)".
+
 ## 2026-09-19 · the third batch: the failure grammar, the loop's page with a Host/Guest toggle, and the event pages need a fresh identity
 
 **Became:** three lanes on Opus. `errors-wiring` lands `error-pages` whole (one primitive with per-surface words, a quiet
