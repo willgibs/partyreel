@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "profile-page"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -96,6 +97,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "profile-page"
   | "host-curation"
   | "guest-upload"
   | "first-event"
@@ -650,6 +652,36 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "profile-page",
+    title: "What a person is here",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the guest pages are unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one asks whether a person has a page at all, what fills it beyond two dates, who an album publishes, and when a handle is ever offered.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/app/(guest)/u/[slug]/page.tsx",
+      "src/components/social/guest-list.tsx",
+      "src/components/social/follow-button.tsx",
+      "src/components/social/profile-actions-menu.tsx",
+      "src/components/social/profile-slug-control.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached",
+      variants: [
+        "The page",
+        "The head",
+        "What fills it",
+        "The top",
+        "Block",
+        "The named",
+        "The claim",
+        "The list",
+      ],
+    },
   },
   {
     id: "host-curation",

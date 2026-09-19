@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
 import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board";
 import { FirstEventBoard } from "@/app/(dev)/design/sandbox/first-event/board";
@@ -38,6 +39,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "profile-page": { Component: ProfilePageBoard },
   "host-curation": { Component: HostCurationBoard },
   "guest-upload": { Component: GuestUploadBoard },
   "first-event": { Component: FirstEventBoard },
