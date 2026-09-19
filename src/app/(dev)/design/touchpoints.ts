@@ -53,6 +53,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-pricing"
   | "app-vocabulary"
   | "demo-event"
   | "guest-shape"
@@ -90,6 +91,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "app-pricing"
   | "press-page"
   | "contact-page"
   | "app-vocabulary"
@@ -638,6 +640,32 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "app-pricing",
+    title: "Pricing in the app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+    shipped: null,
+    why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
+    lives: [
+      "docs/PRICING.md",
+      "docs/systems/billing-caps.md",
+      "src/lib/constants/tiers.ts",
+      "src/components/app/dashboard/storage-meter.tsx",
+      "src/components/app/event-password-control.tsx",
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to",
+      variants: [
+        "The object",
+        "The first view",
+        "How much it carries",
+        "The second layer",
+      ],
+    },
   },
   {
     id: "demo-event",
