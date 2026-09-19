@@ -119,10 +119,12 @@ retired `type-phone`; both agents were told so by message.
 | `guest-shape` | integrated at `beee6325` (handed off `83f46ed4`, zero stale, no conflicts; three questions relayed) | done | Opus, :3136 | nothing |
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
-| `demo-event` | cut 2026-09-19 from Will's stacking steer: the demo as the product's first impression, on the real guest components with a demo fixture | building | Opus, :3131 | everything |
+| `demo-event` | integrated at `e3a2c1b6` (handed off `02ecd169`, ten stale; the RULINGS-row conflict resolved by the Orchestrator); three questions relayed | done | Opus, :3131 | nothing; the seat is free |
 | `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
-| `contact-page` | cut 2026-09-19: how someone reaches a person at Partyreel, on the real page pieces | building | Sonnet, :3133 | everything |
-| `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
+| `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
+| `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
+| `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
+| `first-event` | cut 2026-09-19 on the seat press-page freed: a host's first event from "Create" to a code on the table | building | Opus, :3135 | everything |
 | `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
 | `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
@@ -241,6 +243,24 @@ buttons reach Stripe. 4. the free reel's watermark, `/account` and `/welcome` ca
 toggle exists only on marketing; in the app it surfaces through the portal after subscribing. 6. `usd` is hardcoded in
 the webhook and every price label is a hand-written string. `/pricing` is static and tier-blind (it cannot tell a
 signed-in Pro they already subscribe); a held Pro at Checkout is refused with 409 and routed to the portal.
+
+**The upload act** (2026-09-19, from the map cut for `guest-upload`, queued): 1. the sentences a guest most needs (the
+moderation banner, "Tap to retry") are 12 px, the smallest on the page. 2. `FileDropzone` is built and never rendered
+for a guest. 3. two progress idioms (the uploader's in-tile strip; the masonry's fade for everyone else's arrivals) and
+nothing replaced the banked shimmer for the guest's own tile. 4. hold-for-approval is one toast and no tile. 5. the
+"just landed" check has no exit transition. 6. the banner reads the same whether or not the guest's own item is held.
+7. refusals are precise on the per-event cap and vague everywhere else. 8. the lightbox has no post-upload state. 9. no
+`capture`: camera or library is the OS chooser's call, nothing says "take a photo now". The strikes and cooldown live
+in `password-gate.tsx` and are pinned only through their copy.
+
+**The first event** (2026-09-19, from the map cut for `first-event`, queued): 1. three CTA labels for one act. 2. a Free
+host at the limit gets the row inserted, THEN a toast and a bounce that discards the style they chose. 3. no print
+sheet, table card, sign or poster exists (marketing's `/features/qr` mocks them; the ROADMAP's share studio is the
+generator). 4. two share idioms (the host dialog with files and no native share; the guest sheet with native share).
+5. no live signal host-side for the first photograph (the doorbell is guest-only). 6. the zero-photo state is labelled
+"Rare state" in source though it is every first event's first view. 7. nothing for a host at the venue with only a
+phone. 8. no test touches the wizard's UI, the limit refusal or the event page's first render; the product's QR plates
+are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
