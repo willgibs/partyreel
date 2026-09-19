@@ -324,9 +324,15 @@ export function Nothing({
       return (
         <div data-gs-nothing className="mt-8 space-y-4">
           {line}
-          {/* A dimmer than the empty album's, because a locked page should not
-              promise as loudly as an album already open. */}
-          <div className="opacity-25 grayscale-[85%]">
+          {/* ★ THE RULED DEPTH, ON BOTH SCREENS. The first pass drew the lock's
+              river a stop fainter than the empty album's on the theory that a
+              locked page should not promise as loudly. At 25 percent it was
+              invisible: `lab:demo` measured the whole option at 1.35 percent
+              different from drawing no picture at all, which makes it the
+              `words` option with a river's cost. So both wear the values Will
+              ruled for the empty album (40 percent at 85 percent grayscale)
+              and the lock line above carries the restraint instead. */}
+          <div className="opacity-40 grayscale-[85%]">
             <River frames={GUEST_GHOST_FRAMES} />
           </div>
         </div>

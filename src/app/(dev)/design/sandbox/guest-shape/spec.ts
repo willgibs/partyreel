@@ -163,9 +163,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "river",
-          label: "One picture: the river, at two depths",
+          label: "One picture: the river, on both",
           means:
-            "The river carries both, dimmer behind a lock. Its nine frames are local stand-ins, never the event's own, so a locked page leaks exactly what it leaks today.",
+            "The river carries both screens at one depth. Its nine frames are local stand-ins, never the event's own, so a locked page leaks exactly what it leaks today.",
         },
         {
           id: "words",
@@ -176,7 +176,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "river",
       because:
-        "The river is already the ruled picture for an empty album, and behind a lock it says the same thing with the light turned down. Two languages for one idea is the seam, not the feature.",
+        "The river is already the ruled picture for an empty album, and a locked page is saying the same thing: photographs are coming. Two unrelated languages for one idea is the seam, not the feature.",
       overrule:
         "If a locked page should look locked rather than full, the shape-only backdrop is the more honest wall.",
       lands:

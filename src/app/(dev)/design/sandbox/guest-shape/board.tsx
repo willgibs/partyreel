@@ -276,8 +276,7 @@ function doorScreen(shape: DoorShape, s: BoardState) {
 
 const NOTHING_CAPTION: Record<NothingShape, string> = {
   two: "Two pictures made one family: the squares hold the lock, the river holds the album.",
-  river:
-    "One picture at two depths, the album's own river turned down behind the lock.",
+  river: "One picture: the album's own river, at the depth Will ruled for it.",
   words: "No picture: the words carry it on the page's own paper.",
 };
 
