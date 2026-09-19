@@ -52,20 +52,28 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * change and nothing here names a picture.
  */
 
-/** The stand-in album: the home hero's twelve at their real dimensions, plus
- *  six repeated, so the masonry lays them out exactly as it lays out a guest's. */
-const ITEMS: GridMedia[] = [...STREAM_FRAMES, ...STREAM_FRAMES.slice(0, 6)].map(
-  (id, i) => {
-    const img = marketingImage(id);
-    return {
-      id: `alb-${id}-${i}`,
-      type: "photo",
-      url: img.src,
-      width: img.width,
-      height: img.height,
-    } satisfies GridMedia;
-  },
-);
+/**
+ * The stand-in album: the twelve manifest photographs at their real dimensions,
+ * so the masonry lays them out exactly as it lays out a guest's.
+ *
+ * ★ TWELVE, AND NONE TWICE. Three columns over the album's visible 600 px is
+ * about nine tiles, so twelve fills it with room to spare and no photograph
+ * appears in the frame twice, which a repeat inside one screen reads as at
+ * once. It is also what a `MediaTile` costs: it serves the source file
+ * straight (a real guest tile is a server-sized preview, and a marketing still
+ * has no derivative), so every extra tile is the whole still decoded for a
+ * 287 px box. The generated set fixes the other half of that (ASSETS row 22).
+ */
+const ITEMS: GridMedia[] = STREAM_FRAMES.map((id, i) => {
+  const img = marketingImage(id);
+  return {
+    id: `alb-${id}-${i}`,
+    type: "photo",
+    url: img.src,
+    width: img.width,
+    height: img.height,
+  } satisfies GridMedia;
+});
 
 /** The demo event the whole site already uses. */
 const EVENT = {

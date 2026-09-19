@@ -4,7 +4,11 @@ import { type CSSProperties, useState } from "react";
 import { Check, Play, X } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
-import { CornerPlayBadge } from "@/components/shared/masonry";
+import {
+  CornerPlayBadge,
+  GALLERY_COLUMNS,
+  GALLERY_UNIFORM_COLUMNS,
+} from "@/components/shared/masonry";
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 
 // The shared selectable masonry — one natural-ratio grid that BOTH the Review triage and the Gallery
@@ -51,11 +55,7 @@ export function SelectableMediaGrid({
   return (
     <>
       <div
-        className={
-          uniform
-            ? "grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-4"
-            : "columns-2 gap-[var(--gap-gallery)] sm:columns-3"
-        }
+        className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
       >
         {items.map((it) => {
           const isSelected = selected.has(it.id);

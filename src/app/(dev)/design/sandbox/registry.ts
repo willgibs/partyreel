@@ -3,7 +3,6 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { ADMIN } from "./admin/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 import { BODY_TYPE } from "./body-type/spec";
-import { GALLERY_WIDTH } from "./gallery-width/spec";
 import { GLASS } from "./glass/spec";
 import { IMAGE_TRAIL } from "./image-trail/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -39,7 +38,6 @@ export const BOARDS: readonly BoardSpec[] = [
   VOICE,
   PRIVACY_HERO,
   RIVER_CARD,
-  GALLERY_WIDTH,
   RIVER_VISUAL,
 ];
 

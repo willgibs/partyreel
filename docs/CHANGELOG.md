@@ -82,16 +82,12 @@ never a cap and a test.
   merge in git.
 
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
-  admin components fed one Tuesday of fixtures at 1440 by 900 (two backend runs down, one account over cap, three
-  reports, nine messages): the operator's home (a ranked list of what is waiting recommended), the nav for twelve
-  surfaces (a rail plus a command palette), density (a table for data and a reading pane for prose), how far a
-  state's colour travels (the chip), one grammar for three destructive acts (a sheet sized to the damage), where
-  health is said (a band under the bar on every page) and how much of the product's bar the portal keeps (a 44 px
-  tool bar). Four screens from Mobbin shaped decisions and were designed from the ground up. Four questions carried
-  on their recommendations and closed by the Orchestrator: the chart ramp stays `loose-ends`'s for the product and
-  the admin gets its own in the wiring round; `touchpoints.ts` gained the `admin` surface at the merge; nothing at
-  375 and no light-against-dark in round one; the palette ships closed behind a key if it wins. Three defects it
-  found in the shipped portal are on the ROADMAP's admin bucket.
+  admin components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list recommended),
+  the nav (a rail plus a command palette), density (a table with a reading pane), state colour (the chip),
+  destructive acts (a sheet sized to the damage), health (a band under the bar), the bar (a 44 px tool bar). Four
+  questions closed by the Orchestrator (the product's chart ramp stays `loose-ends`'s; the `admin` surface joined
+  `touchpoints.ts`; nothing at 375 in round one; the palette ships closed behind a key). Three defects it found in
+  the shipped portal are on the ROADMAP.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
   tree. One pure module, `src/lib/surface`, answers which surface a build serves; the proxy, the `requireAdmin` seam
   and the purge cron decide from it (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving
@@ -100,30 +96,12 @@ never a cap and a test.
   preview proof: the project created by Will, a team token minted (the old one was project-scoped), settings
   mirrored, env copied and verified value by value after a first copy of ciphertext, the Sentry upload trio dropped,
   the preview callback added in Supabase, the preview host's allow-list probed and Will's sign-in there.
-- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
-  gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
-  24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
-  joined it. The backup Worker reads the Cloudflare queue and dead-letter depths on every run (any dead letter is a
-  failure, alerting where the number arrives, since a freshness rule can only page on silence); the purge cron's four
-  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27 closed); `sendOnce` and
-  both rate limiters stopped failing invisibly (QA #19). The lane's cross-lane patch (six files outside its owns)
-  landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
-  advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
-
-- `cursor-backdrop` integrated (`592955ab`; cut `9e2a573b`): demo six as a board, six decisions on the shipped
-  home sections imported and drawn in place: which UI-forward section takes the first switching photograph
-  backdrop (`full-quality` recommended), how the copy survives eight photographs (a glass pane; the muted tier
-  leaves the copy over media, measured against every photograph's worst block), what switches it (the cursor's
-  position across the section), how it arrives (a slide from the way you moved), where it sits in the
-  dark/light run (on a strip of all fifteen sections), and the phone (the scroll). A pure engine with a
-  scripted pointer; 61.7 frames a second under a 4x throttle; the pool's decode cost and the stand-ins' size
-  became the "room frames" asset ask (row 20).
-- `image-trail` integrated (`dd44692e`; cut `9e2a573b`): our own image trail as one pure engine (a photograph born on travel, sliding to
-  the source and decaying behind it; no dependency; the keeper holds the newest while the hand rests, the shy
-  fade yields to the words it crosses) and two boards on it: `image-trail` round one (density, the decay, the
-  entrance, the size, the home on real pages, the phone) and `privacy-hero` round two, the same trail fed by
-  a path where the cursor would be, replacing round one's spirals and wake after Will's none (`rush`, two
-  notches over the home hero, recommended). Round one's verdict was transcribed from chat into the ledger.
+- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`,
+  `derived`) through the one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter
+  depths on every run (any dead letter a failure, alerting where the number arrives); the purge's four
+  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27); `sendOnce` and both
+  rate limiters report their failures (QA #19). The lane's cross-lane patch landed in the merge; the additive
+  migration is applied with the advisor set unchanged; the Worker deployed the same night (`d7b16bcc`).
 - `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
   retired. `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
   foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone and a still under reduced
@@ -134,6 +112,14 @@ never a cap and a test.
   the switch compositor work; a zero-area IntersectionObserver that would have shipped the phone rule dead was
   caught. Row 20's ask is amended to 1200 px delivered, since `next/image` never upscales and the delivered width
   is the cap on what a full-bleed layer decodes.
+- `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one
+  rule in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at
+  2 / 5 / 6 / 8 columns of 166 to 245 px at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at
+  632 on the logo's line, the host event page asking the shell for the same shape (`data-app-wide`, answered in
+  `:has()`); every other host page kept its column and gained only the grid. The select grid was patched onto the
+  same constants at the merge so Select never reflows the album. Two calls for Will on the alias: the column-major
+  flow reads newest-down-the-left at eight columns, and the 632-wide action block beside the full-bleed album is
+  his `words=edge` as ruled (the `guest-shape` board's material). `gallery-width` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart

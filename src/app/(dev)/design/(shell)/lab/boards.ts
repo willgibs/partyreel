@@ -3,7 +3,6 @@ import type { ComponentType } from "react";
 import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
-import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { ImageTrailBoard } from "@/app/(dev)/design/sandbox/image-trail/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
@@ -39,6 +38,5 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
   "river-card": { Component: RiverCardBoard },
-  "gallery-width": { Component: GalleryWidthBoard },
   "river-visual": { Component: RiverVisualBoard },
 };

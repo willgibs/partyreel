@@ -9,6 +9,11 @@
  * Guest-only - the host / personal grids keep MediaGrid's square grid until
  * Phase 5.
  *
+ * - The COLUMNS are the shared rule (GALLERY_COLUMNS in shared/masonry.tsx):
+ *   two at a phone, then as many ~240px tiles as the window holds. It is read
+ *   from there and never re-typed here, because the guest album and the host's
+ *   grids answering the same ruling with two copies of one class string is how
+ *   they drift (Will's `host=same`, 2026-09-19).
  * - aspect-ratio is set from the plumbed width/height (1:1 fallback for
  *   pre-measure-era rows), so the layout reserves space BEFORE images load
  *   (no CLS) and the columns balance deterministically.
@@ -27,6 +32,7 @@ import { Check, Download, Play, RefreshCw } from "lucide-react";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { tileAspect } from "@/lib/media/tile-aspect";
 import { LikeButton } from "@/components/likes/like-button";
+import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
@@ -83,7 +89,7 @@ export function GuestMasonry({
   return (
     <>
       <div
-        className="columns-2 gap-[var(--gap-gallery)]"
+        className={GALLERY_COLUMNS}
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
