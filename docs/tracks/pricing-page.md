@@ -115,7 +115,8 @@ pickers, storage sliders, one-time versus subscription framings.
 
 ## Handoff (replaces the chat report)
 
-- Head `6542afe4`, pushed; synced with `origin/launch-prep` twice (`074a39ab`, then `03f47443` after the
+- Head: the tip of `origin/lp/pricing-page` (this manifest commit); the code and both merges are at
+  `6542afe4`, which is the SHA the gate below was run on. Pushed; synced with `origin/launch-prep` twice (`074a39ab`, then `03f47443` after the
   Orchestrator's note); the `reads` line for the deleted `docs/tracks/app-pricing.md` kept origin's version.
 - Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok, the specimen collector ok,
   `pnpm typecheck` ok, `pnpm lint` ok (0 errors, the 8 known warnings, none in this lane), `pnpm test` ok
