@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   clearProfileSlug,
@@ -104,9 +103,7 @@ export async function checkProfileSlugAction(
   const parsed = profileSlugSchema.safeParse(rawSlug);
   if (!parsed.success) return { available: false };
 
-  // The same pre-regen typing seam as lib/db/queries/social.ts (types.ts has no
-  // slug column until the orchestrator regenerates it post-apply).
-  const admin = createAdminClient() as unknown as SupabaseClient;
+  const admin = createAdminClient();
   const { data, error } = await admin
     .from("profiles")
     .select("id")

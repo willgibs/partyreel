@@ -18,7 +18,6 @@
  */
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { TablesUpdate } from "@/lib/db/types";
 
@@ -421,11 +420,8 @@ export async function clearProfileSlug(): Promise<
  * caller has already parsed with bioSchema, which is what turns an empty box
  * into null, collapses the line and refuses links.
  *
- * ★ THE PRE-REGEN TYPING SEAM. profiles.bio does not exist in the generated
- * types until the Orchestrator applies 20260919120000 and regenerates
- * src/lib/db/types.ts (never hand-edited), so the update goes through the
- * untyped client — the same seam checkProfileSlugAction and the admin takedown
- * paths use. Delete the cast once the types carry the column.
+ * profiles.bio arrived with migration 20260919120000 (applied 2026-09-19; the
+ * generated types carry it), written only through the service role.
  */
 export async function setProfileBio(
   bio: string | null,
@@ -436,7 +432,7 @@ export async function setProfileBio(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { error } = await (createAdminClient() as unknown as SupabaseClient)
+  const { error } = await createAdminClient()
     .from("profiles")
     .update({ bio })
     .eq("id", user.id);
@@ -474,7 +470,7 @@ export async function setProfileBio(
  * you is exactly who you may need to report), and reporting is never coupled to
  * blocking: the menu offers both, each on its own.
  *
- * ★ Pre-regen typing seam again: reports.profile_id lands with 20260919130000.
+ * reports.profile_id arrived with migration 20260919130000 (applied 2026-09-19).
  */
 export async function createProfileReport(input: {
   profileId: string;
@@ -493,7 +489,7 @@ export async function createProfileReport(input: {
     };
   }
 
-  const { error } = await (createAdminClient() as unknown as SupabaseClient)
+  const { error } = await createAdminClient()
     .from("reports")
     .insert({
       profile_id: input.profileId,

@@ -827,6 +827,7 @@ export type Database = {
         Row: {
           announcements_seen_at: string | null
           avatar_updated_at: string | null
+          bio: string | null
           created_at: string
           deletion_requested_at: string | null
           display_name: string | null
@@ -851,6 +852,7 @@ export type Database = {
         Insert: {
           announcements_seen_at?: string | null
           avatar_updated_at?: string | null
+          bio?: string | null
           created_at?: string
           deletion_requested_at?: string | null
           display_name?: string | null
@@ -875,6 +877,7 @@ export type Database = {
         Update: {
           announcements_seen_at?: string | null
           avatar_updated_at?: string | null
+          bio?: string | null
           created_at?: string
           deletion_requested_at?: string | null
           display_name?: string | null
@@ -973,9 +976,10 @@ export type Database = {
       reports: {
         Row: {
           created_at: string
-          event_id: string
+          event_id: string | null
           id: string
           media_id: string | null
+          profile_id: string | null
           reason: string | null
           resolution_note: string | null
           resolved_at: string | null
@@ -985,9 +989,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          event_id: string
+          event_id?: string | null
           id?: string
           media_id?: string | null
+          profile_id?: string | null
           reason?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
@@ -997,9 +1002,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          event_id?: string
+          event_id?: string | null
           id?: string
           media_id?: string | null
+          profile_id?: string | null
           reason?: string | null
           resolution_note?: string | null
           resolved_at?: string | null
@@ -1020,6 +1026,13 @@ export type Database = {
             columns: ["media_id"]
             isOneToOne: false
             referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
