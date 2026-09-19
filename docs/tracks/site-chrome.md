@@ -1,6 +1,6 @@
 ---
 track: site-chrome
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ee45b8f3"          # the launch-prep SHA the branch was cut from
 board: site-chrome      # round one: the marketing header, the mega panel, the mobile menu and the footer
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -109,26 +109,89 @@ required: marketing navs, mega menus, mobile menus, footers as sitemaps and as c
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **Does the mega panel survive at all?** `shape`'s recommendation (`flat`) retires the whole 2026-08-28 nav
+  round: `MegaPanel`, `useNavIndicator` and its measured pill, the hover-intent clock read off CSS, the
+  transform-origin maths and the viewport's swap morph. **Recommended and carried:** retire it. The panel's
+  seventeen rows are the footer's four columns again, and each hub page sells its children better than a
+  one-line description; a flat bar is faster to skim and costs a click almost nobody was taking. Every other
+  decision on the board stands whichever way this one goes.
+- **May a marketing page read whether anyone is signed in?** `returning`'s recommendation (`dashboard`) needs a
+  small client island on about fifty statically prerendered routes. **Recommended and carried:** yes, but
+  PRESENCE ONLY: the island reads that a session cookie exists and swaps one label, never a name, an id or a
+  profile, and `/app` still authorizes with `getUser()`. A label is a hint; it is never a permission.
+- **What happens to the header-to-footer mirror pin if Resources leaves the bar?** `holds`'s recommendation
+  (`three`) breaks `marketing-nav.test.ts`'s two-way pin by construction. **Recommended and carried:** when the
+  ruling lands, rewrite the pin to guard the FOOTER's Resources column against the help, blog, press and
+  contact routes, rather than delete it. The pin exists to stop a column going stale, not to keep two copies.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (a lab-only round: nothing shipped, so no owned fact changed)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing site: the footer's Product column hard-codes FAQ to `/#faq`, an anchor that exists only on the home
+  page, so the row leaves whatever page the reader is on (including `/pricing`, which has an `#faq` of its own).
+- Marketing site: the Resources panel's card says the loop is "four steps" and `/help/how-partyreel-works` has
+  five; the count is `how-it-works`'s to settle, the card's copy is the chrome's.
+- Marketing site: the nav labels sit at `text-muted-foreground` under a transparent bar on a cinema hero, and
+  over a bright photograph (the balloons frame at 1440) they are hard to read before the glass arrives.
+- Design system: `logo.tsx`'s `markOnly` branch is a placeholder Aperture tile with no production caller; it
+  goes the day Will's v1 icon lands (ASSETS row 19).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board site-chrome` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `1ad0ae11` plus the merge and this manifest, pushed; synced with `launch-prep` at `a5662a6c` (it had
+  moved: `admin-triage` and `media-viewer` registered at the same three heads; both sides' lines kept, and the
+  RULINGS hunk spliced back across its row boundary with `],` `},` `},` `{`, which typecheck confirmed).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok (123 components, 733 contracts,
+  18 policies), `pnpm typecheck` ok, `pnpm lint` ok (the 8 known warnings, 0 errors), `pnpm test` ok (2,545),
+  `pnpm build` ok (254 static pages); `pnpm lab:smoke --base http://localhost:3135` ok (432 checks, 0 failing;
+  site-chrome reads 657 words of 1,200); `pnpm lab:demo --board site-chrome` ok (8 steps, 0 failing, every step
+  draws its options; tallest 3.6 screens, wordiest 215 words).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/site-chrome/`
+  (8 files) plus the four registration exceptions (`sandbox/registry.ts`, `(shell)/lab/boards.ts`,
+  `touchpoints.ts` for both unions and one RULINGS row after `river-visual`'s, and the generated
+  `docs/design/library.md`) and this file. No production byte.
+- The decisions, one line each:
+  - `shape`: what the header's middle holds; three hover panels as today, flat links to the hubs, or the
+    wordmark and one door. **Recommended: flat links.**
+  - `holds` (after `shape`): which sections the bar names; four as today, three with Resources folded into the
+    footer, or two (How it works and Pricing). **Recommended: three.**
+  - `returning`: what a signed-in host sees; Log in and Start free as today, Dashboard in the CTA's place, or
+    the host's avatar and name. **Recommended: Dashboard, from a presence-only hint.**
+  - `phone`: what a phone gets instead of the bar; the accordion sheet as today, a sheet of flat rows, or a
+    standing bar at the thumb. **Recommended: a sheet of flat rows.**
+  - `on-scroll`: what the bar does once the page moves; 64 px always as today, a 48 px rail, or hides going
+    down and returns coming up. **Recommended: 64 px always.**
+  - `foot-job`: what the footer is for; a sign-off, a sitemap and a close as today, the sitemap alone, or a
+    closing invitation with the index beneath. **Recommended: the closing invitation.**
+  - `foot-door` (after `foot-job`): what the foot offers with no demo event set; both vanish as today, Start
+    free always, or the demo alone with the CTA in the header. **Recommended: Start free always.**
+  - `two-doors`: which of two pages telling one loop the chrome names; two doors as today, one door (the
+    page), or two doors named apart. **Recommended: one door.**
+- Mobbin citations: none (the reference set was the shipped chrome and the footer's own ink slab).
+- The captures, every option at 1440 and 375, read against its own words:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/site-chrome/shots`
+  (48 files, `<step>.<option>.<n>-<width>.png`), taken by `../capture.mjs` on its own Chrome profile and a
+  pid-derived port. Three real defects were caught that way and fixed: the phone's menu was `absolute` and
+  its Log in and Start free foot sat below the 812 window; the `bar` option still drew a hamburger beside a
+  standing bottom bar; and the fixture hero did not pull itself up under the bar, so the one thing this board
+  exists to judge, a transparent bar over photographs, was being drawn over plain background.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `shape`, because every other decision is drawn inside its answer, then `foot-job`, whose three
+  options are the only step on the board where the stage changes by 100 percent. The demo gate's one remaining
+  warning is on `shape` (flat and door read as the same picture to a pixel differ: they differ by three words
+  in a small bar, which the captures show plainly).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of `site-chrome` returned eight decisions on the
+chrome every marketing page wears, drawn on the shipped pieces over a fixture page in a true `Frame` at 1440
+and 375: the `Container` row on `--mkt-header-h`, the real `NavigationMenu` opened by a controlled value
+because a still capture has no cursor, the real panel rows and `DemoTicket`, and `FooterDemo`, `FooterQr` and
+`FooterGlow` on the `.surface-ink` slab. The nav was forked prop-driven (a portalled frame's `usePathname`
+reads the lab's path) and the phone's sheet replicated locally (radix portals to the lab's body, not the
+frame's). `holds` waits on the shape and `foot-door` on the foot's job; the other six are independent. Four
+findings went to the ROADMAP and three open calls were carried on their recommendations.

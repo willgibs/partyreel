@@ -1,6 +1,8 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { SITE_CHROME } from "./site-chrome/spec";
+import { ADMIN_TRIAGE } from "./admin-triage/spec";
+import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
@@ -43,6 +45,8 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   SITE_CHROME,
+  ADMIN_TRIAGE,
+  MEDIA_VIEWER,
   EMAILS,
   REEL_STUDIO,
   HELP_CENTER,
