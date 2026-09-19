@@ -57,12 +57,12 @@ album hero's round three went "too boring" that way).
 | `how-it-works` | the page that tells the loop beside the article that tells it too: the pair, who, the steps, the pictures, the shape, the proof, the phone | cut at `449d9b52` (2026-09-19, the overnight round), on the seat help-center freed |
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, empty, the object, the cap, the teaser's chips, the phone; on the real dialog with fixture states | cut at `5649285b` (2026-09-19, the overnight round), on the seat reel-studio freed |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | cut at `ee45b8f3` (2026-09-19, the overnight round), on the seat emails freed |
+| `event-type-pages` | the event-type landing pages, the hub and the four types: one page or four, the hero's picture, one hero, who is greeted, the proof, how many, the directory, the phone | cut at `1cf54457` (2026-09-19, the overnight round), on the seat media-viewer freed |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
-His stepped sitting turned picks into working versions the same day (Graphite, the streaming hero, ladder B, the Aurora,
-the shadows and the bright edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `defineExploration`
-and `lab:demo`. Its record is in git (`git show 449d9b52:docs/CHANGELOG.md`, "The wind-down").
+Picks became working versions the same day (Graphite, the streaming hero, ladder B, the Aurora, the shadows and the bright
+edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `defineExploration` and `lab:demo`. Its record is in git (`git show 449d9b52:docs/CHANGELOG.md`, "The wind-down").
 
 ## Live state
 

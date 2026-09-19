@@ -131,6 +131,7 @@ retired `type-phone`; both agents were told so by message.
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 | `media-viewer` | integrated at `596ca8dd` (handed off `0cb453a5`, eighteen stale; the registration conflicts resolved by the Orchestrator); three calls carried; one asset asked | done | Opus, :3131 | nothing; `event-type-pages` takes the seat |
+| `event-type-pages` | cut at `1cf54457` (the overnight round, the seat media-viewer freed): the event-type landing pages, the hub and the four types | open | Sonnet, :3131 | the handoff |
 | `reel-studio` | integrated at `d10149bd` (handed off `e4a157d4`; the registration conflicts resolved by the Orchestrator); four calls carried; five Now lines | done | Opus, :3132 | nothing; `export-flow` takes the seat |
 | `export-flow` | cut at `5649285b` (the overnight round, the seat reel-studio freed): getting everything out, for a host and for a guest | open | Opus, :3132 | the handoff |
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
