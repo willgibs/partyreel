@@ -670,6 +670,10 @@ export const RULINGS: Ruling[] = [
         "In a hand",
         "The empty event",
         "The first photograph",
+      ],
+    },
+  },
+  {
     id: "app-pricing",
     title: "Pricing in the app",
     surface: "host",
