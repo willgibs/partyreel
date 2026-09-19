@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "error-pages"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -101,6 +102,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "error-pages"
   | "admin-triage"
   | "media-viewer"
   | "emails"
@@ -660,6 +662,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "error-pages",
+    title: "Every failure page as one grammar",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: every surface is unprotected, to be reconceived from the ground up)",
+    shipped: null,
+    why: "Twelve failure pages, one round: a shared grammar or not, the ways out, the photo strip, the digest, the surround, the private lock, the admin 404, the last crash.",
+    lives: [
+      "docs/systems/lifecycle-recovery.md",
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/shared/route-error.tsx",
+      "src/components/marketing/marketing-not-found.tsx",
+      "src/components/marketing/marketing-route-error.tsx",
+      "src/app/global-error.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real failure components with fabricated error and reset props, inside each surface's own chrome, at 1440 with 375 on a shared knob: one grammar or eight, how many ways out, where the photo strip appears, whether a crash shows its code, what surrounds a failure, the private lock, the admin host's 404, and the last-resort crash",
+      variants: [
+        "One grammar",
+        "The ways out",
+        "The surround",
+        "The private event",
+        "The global crash",
+      ],
+    },
   },
   {
     id: "admin-triage",
