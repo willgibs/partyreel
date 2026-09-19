@@ -133,7 +133,14 @@ function Measure({
     if (!el || !win) return;
     const read = () => {
       const room = el.querySelector<HTMLElement>("[data-as-room]");
-      const tiles = el.querySelectorAll<HTMLElement>("[data-media-tile]");
+      // ★ THE COLUMNS ARE THE ALBUM'S, NOT EVERY TILE'S. `data-media-tile` is on
+      // every thumbnail on the page, so counting all of them reported "15
+      // columns of 96 px" on a home whose strips are not a gallery at all
+      // (found by reading the first captures against their captions). Only the
+      // masonry inside `.as-grid` is a gallery, so only it is measured.
+      const tiles = el.querySelectorAll<HTMLElement>(
+        ".as-grid [data-media-tile]",
+      );
       const lefts = new Set<number>();
       tiles.forEach((t) =>
         lefts.add(Math.round(t.getBoundingClientRect().left)),
@@ -211,7 +218,7 @@ export function Screen({
   const measured = !m
     ? "measuring"
     : m.cols > 0
-      ? `${m.room} px of working room, ${m.cols} columns of ${m.tile} px`
+      ? `${m.room} px of working room, the album at ${m.cols} columns of ${m.tile} px`
       : `${m.room} px of working room`;
   return (
     <Fit w={w}>
@@ -300,7 +307,7 @@ export const ROOMS = [
 function RoomRow({ place }: { place: Place }) {
   const pending = place.event?.pending ?? 0;
   return (
-    <div className="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="-mx-1 flex [scrollbar-width:none] gap-1 overflow-x-auto px-1 [&::-webkit-scrollbar]:hidden">
       {ROOMS.map(({ id, label, Icon }) => {
         const on = place.room?.toLowerCase() === id;
         return (
@@ -713,7 +720,11 @@ export function AppChrome({
 }) {
   if (size === "phone") {
     return (
-      <PhoneChrome shape={phone ?? phoneForNav(nav)} place={place} bleed={bleed}>
+      <PhoneChrome
+        shape={phone ?? phoneForNav(nav)}
+        place={place}
+        bleed={bleed}
+      >
         {children}
       </PhoneChrome>
     );

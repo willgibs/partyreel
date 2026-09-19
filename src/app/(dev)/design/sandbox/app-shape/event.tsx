@@ -98,7 +98,10 @@ function LinkRow({ className }: { className?: string }) {
     >
       <Globe className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       <span className="truncate">{JOIN_URL}</span>
-      <Copy className="ml-auto size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+      <Copy
+        className="ml-auto size-3.5 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
     </span>
   );
 }
@@ -146,7 +149,12 @@ function ReviewBanner() {
  *  queue is drawn here as the same uniform 4-up grid over the pending fixture. */
 function ReviewGrid({ phone }: { phone: boolean }) {
   return (
-    <div className={cn("grid gap-[var(--gap-gallery)]", phone ? "grid-cols-3" : "grid-cols-6")}>
+    <div
+      className={cn(
+        "grid gap-[var(--gap-gallery)]",
+        phone ? "grid-cols-3" : "grid-cols-6",
+      )}
+    >
       {QUEUE.map((m) => (
         <span
           key={m.id}
@@ -427,7 +435,15 @@ function SettingsRooms() {
  * urgency order with the floating bar over them. 404 px of page before the
  * first photograph at 1440, which the frame will show.
  */
-function FeedPage({ phone, share }: { phone: boolean; share: Share }) {
+function FeedPage({
+  phone,
+  share,
+  openModal,
+}: {
+  phone: boolean;
+  share: Share;
+  openModal: boolean;
+}) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -471,7 +487,12 @@ function FeedPage({ phone, share }: { phone: boolean; share: Share }) {
         <EventFilterPills
           pills={[
             { value: "all", label: "All" },
-            { value: "review", label: "Review", count: LIVE.pending, amber: true },
+            {
+              value: "review",
+              label: "Review",
+              count: LIVE.pending,
+              amber: true,
+            },
             { value: "gallery", label: "Gallery", count: LIVE.items },
             { value: "reel", label: "Reel", count: REEL.length },
             { value: "guests", label: "Guests", count: LIVE.guests },
@@ -511,7 +532,7 @@ function FeedPage({ phone, share }: { phone: boolean; share: Share }) {
           <GuestList />
         </section>
       </div>
-      {share === "modal" && <ShareModal />}
+      {openModal && <ShareModal />}
     </div>
   );
 }
@@ -523,9 +544,20 @@ const DOORS: {
   value: string;
   amber?: boolean;
 }[] = [
-  { id: "review", label: "Review", Icon: ListChecks, value: `${LIVE.pending} waiting`, amber: true },
+  {
+    id: "review",
+    label: "Review",
+    Icon: ListChecks,
+    value: `${LIVE.pending} waiting`,
+    amber: true,
+  },
   { id: "album", label: "Album", Icon: Images, value: `${LIVE.items} photos` },
-  { id: "reel", label: "Reel", Icon: Clapperboard, value: "8 clips, 42 seconds" },
+  {
+    id: "reel",
+    label: "Reel",
+    Icon: Clapperboard,
+    value: "8 clips, 42 seconds",
+  },
   {
     id: "guests",
     label: "Guests",
@@ -535,7 +567,15 @@ const DOORS: {
 ];
 
 /** A HUB: the event's own front page, with a door into each room. */
-function HubPage({ phone, share }: { phone: boolean; share: Share }) {
+function HubPage({
+  phone,
+  share,
+  openModal,
+}: {
+  phone: boolean;
+  share: Share;
+  openModal: boolean;
+}) {
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-2xl">
@@ -566,7 +606,10 @@ function HubPage({ phone, share }: { phone: boolean; share: Share }) {
             )}
           >
             <Icon
-              className={cn("size-4", amber ? "text-warning" : "text-muted-foreground")}
+              className={cn(
+                "size-4",
+                amber ? "text-warning" : "text-muted-foreground",
+              )}
               aria-hidden
             />
             <p className="font-heading text-card-title">{label}</p>
@@ -584,7 +627,9 @@ function HubPage({ phone, share }: { phone: boolean; share: Share }) {
 
       <section className="space-y-2.5">
         <FeedSectionHeader label="Just arrived" count={12} />
-        <div className={cn("grid gap-1.5", phone ? "grid-cols-4" : "grid-cols-8")}>
+        <div
+          className={cn("grid gap-1.5", phone ? "grid-cols-4" : "grid-cols-8")}
+        >
           {ALBUM.slice(0, phone ? 8 : 16).map((m) => (
             <span
               key={m.id}
@@ -598,7 +643,7 @@ function HubPage({ phone, share }: { phone: boolean; share: Share }) {
           ))}
         </div>
       </section>
-      {share === "modal" && <ShareModal />}
+      {openModal && <ShareModal />}
     </div>
   );
 }
@@ -609,7 +654,15 @@ function HubPage({ phone, share }: { phone: boolean; share: Share }) {
  * Guests, Share and Settings are rooms the chrome carries, so this page has one
  * subject and it is the reason the host opened it.
  */
-function AlbumPage({ phone, share }: { phone: boolean; share: Share }) {
+function AlbumPage({
+  phone,
+  share,
+  openModal,
+}: {
+  phone: boolean;
+  share: Share;
+  openModal: boolean;
+}) {
   return (
     <div className="space-y-5">
       <div
@@ -645,7 +698,7 @@ function AlbumPage({ phone, share }: { phone: boolean; share: Share }) {
       </div>
       <ReviewBanner />
       <Album />
-      {share === "modal" && <ShareModal />}
+      {openModal && <ShareModal />}
     </div>
   );
 }
@@ -656,15 +709,25 @@ export function EventPage({
   event,
   share,
   size,
+  openModal = false,
 }: {
   event: Event;
   share: Share;
   size: "laptop" | "phone";
+  /**
+   * ★ ONLY THE SHARE STEP OPENS THE DIALOG. `share: "modal"` is today's answer
+   * everywhere else, and today's answer is a Share BUTTON with nothing over the
+   * page: drawing the open dialog on every other step put a scrim over the
+   * event page the reader was there to judge (found by reading the first
+   * captures against their words).
+   */
+  openModal?: boolean;
 }) {
   const phone = size === "phone";
-  if (event === "feed") return <FeedPage phone={phone} share={share} />;
-  if (event === "hub") return <HubPage phone={phone} share={share} />;
-  return <AlbumPage phone={phone} share={share} />;
+  const props = { phone, share, openModal };
+  if (event === "feed") return <FeedPage {...props} />;
+  if (event === "hub") return <HubPage {...props} />;
+  return <AlbumPage {...props} />;
 }
 
 /** The share ROOM is a page of its own, so it replaces the event page rather
@@ -707,4 +770,3 @@ export function SettingsScreen({
     </div>
   );
 }
-

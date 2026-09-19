@@ -136,7 +136,7 @@ const DRAFT = defineExploration({
       label: "The event as a place",
       question: "What is an event's page?",
       context:
-        "Today: a back link, the name, five stat glyphs, two chips, a Share / Add / Settings strip, five pills, then Review, Gallery, Reel and Guests stacked, a bar floating over them. The first photograph is below the fold.",
+        "Today: a back link, the name, five glyphs, two chips, a Share / Add / Settings strip, five pills, then Review, Gallery, Reel and Guests stacked. Each option is drawn in the chrome it needs, which the next question asks about.",
       options: [
         {
           id: "feed",
@@ -349,6 +349,31 @@ const DRAFT = defineExploration({
 });
 
 /**
+ * ★ EVERY OTHER AXIS STARTS AT TODAY, NOT AT THE RECOMMENDATION.
+ *
+ * `defineExploration` defaults each control to the decision's recommendation,
+ * which is right for the decision being asked and wrong for the seven around
+ * it: reading the first captures against their own words caught "one
+ * urgency-ordered scroll, AS TODAY" drawn with the candidate share block in it,
+ * and "the inbox of everything, as today" drawn in rows. An option that says
+ * "as today" has to BE today, so every control here starts on today's answer
+ * and the step still opens on the recommendation for its own question
+ * (`step.tsx` picks `step.recommended`, never the control's default). The
+ * result: until he answers anything, every picture is today with exactly one
+ * thing changed; afterwards it is HIS app with one thing changed.
+ */
+const TODAY: Record<string, string> = {
+  home: "inbox",
+  density: "cover",
+  event: "feed",
+  nav: "header",
+  share: "modal",
+  settings: "column",
+  you: "today",
+  phone: "narrow",
+};
+
+/**
  * ★ ONE WINDOW KNOB, NOT SEVEN. `defineExploration` flattens every decision's
  * `configs` into the board's controls, so a knob the decisions share arrives
  * once per decision: the dock would draw it seven times and React would warn
@@ -358,7 +383,7 @@ const DRAFT = defineExploration({
  */
 export const APP_SHAPE: typeof DRAFT = {
   ...DRAFT,
-  controls: DRAFT.controls?.filter(
-    (c, i, all) => all.findIndex((d) => d.id === c.id) === i,
-  ),
+  controls: DRAFT.controls
+    ?.filter((c, i, all) => all.findIndex((d) => d.id === c.id) === i)
+    .map((c) => (TODAY[c.id] ? { ...c, default: TODAY[c.id] } : c)),
 };

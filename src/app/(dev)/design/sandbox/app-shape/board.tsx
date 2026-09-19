@@ -106,12 +106,7 @@ function App({
 }) {
   const size = usePhoneShape ? "phone" : w.size;
   return (
-    <Screen
-      id={id}
-      size={size}
-      title={TITLES[id] ?? id}
-      caption={caption}
-    >
+    <Screen id={id} size={size} title={TITLES[id] ?? id} caption={caption}>
       <AppChrome
         nav={w.nav}
         size={size}
@@ -212,6 +207,18 @@ function eventScreen(id: string, w: World, caption: string) {
   );
 }
 
+/**
+ * ★ THE EVENT STEP DRAWS EACH PAGE IN THE CHROME IT NEEDS, and that coupling is
+ * the album option's real cost rather than a detail. Today's bar carries no
+ * navigation, which is fine for the two options that put everything on the
+ * page; the album cannot be the page unless something else holds Review, Reel,
+ * Guests and Settings, so it is drawn with a row of rooms and the very next
+ * question asks what that row should be. Every other step reads the nav axis
+ * off the board's state, which starts at today's bar.
+ */
+const navForEvent = (event: Event): Nav =>
+  event === "album" ? "crumbs" : "header";
+
 const NAV_CAPTION: Record<Nav, string> = {
   header:
     "Nothing in the bar says which of the seven routes this is, or what the other six are.",
@@ -289,31 +296,56 @@ const PREVIEWS: PreviewsFor<typeof APP_SHAPE> = {
   "event.feed": (s) =>
     eventScreen(
       "event-feed",
-      worldOf(s, { event: "feed" }),
+      worldOf(s, { event: "feed", nav: navForEvent("feed") }),
       EVENT_CAPTION.feed,
     ),
   "event.hub": (s) =>
-    eventScreen("event-hub", worldOf(s, { event: "hub" }), EVENT_CAPTION.hub),
+    eventScreen(
+      "event-hub",
+      worldOf(s, { event: "hub", nav: navForEvent("hub") }),
+      EVENT_CAPTION.hub,
+    ),
   "event.album": (s) =>
     eventScreen(
       "event-album",
-      worldOf(s, { event: "album" }),
+      worldOf(s, { event: "album", nav: navForEvent("album") }),
       EVENT_CAPTION.album,
     ),
 
   "nav.header": (s) =>
-    eventScreen("nav-header", worldOf(s, { nav: "header" }), NAV_CAPTION.header),
+    eventScreen(
+      "nav-header",
+      worldOf(s, { nav: "header" }),
+      NAV_CAPTION.header,
+    ),
   "nav.crumbs": (s) =>
-    eventScreen("nav-crumbs", worldOf(s, { nav: "crumbs" }), NAV_CAPTION.crumbs),
+    eventScreen(
+      "nav-crumbs",
+      worldOf(s, { nav: "crumbs" }),
+      NAV_CAPTION.crumbs,
+    ),
   "nav.rail": (s) =>
     eventScreen("nav-rail", worldOf(s, { nav: "rail" }), NAV_CAPTION.rail),
 
-  "share.modal": (s) =>
-    eventScreen(
-      "share-modal",
-      worldOf(s, { share: "modal" }),
-      SHARE_CAPTION.modal,
-    ),
+  "share.modal": (s) => {
+    const w = worldOf(s, { share: "modal" });
+    return (
+      <App
+        id="share-modal"
+        w={w}
+        caption={SHARE_CAPTION.modal}
+        place={eventPlace()}
+        bleed={w.event === "album"}
+      >
+        <EventPage
+          event={w.event}
+          share="modal"
+          size={w.size === "phone" ? "phone" : "laptop"}
+          openModal
+        />
+      </App>
+    );
+  },
   "share.front": (s) =>
     eventScreen(
       "share-front",
