@@ -13,7 +13,21 @@ import { cn } from "@/lib/utils";
 // those files must NOT add chrome, or it double-stacks). Each caller wraps this with the
 // centering right for its context. NotFoundScreen is SHARED with the guest/host boundaries:
 // style AROUND it (icon choice, footnote content), never its internals.
-export function MarketingNotFound() {
+export function MarketingNotFound({
+  /**
+   * ★ THE STRIP YIELDS WHERE THE TRAIL RUNS (the trail-wiring lane, 2026-09-19).
+   * The root 404 now stands on the image trail Will ruled onto it
+   * (`home=notfound`, 2026-09-19), and the strip says the same sentence in a
+   * quieter voice: photographs, one of them missing. Two devices making one
+   * point is noise, and the weaker of the two here is a row of grey placeholder
+   * tiles sitting among real photographs, which reads as something still
+   * loading. So the root 404 turns it off and the trail carries the idea. The
+   * GROUP 404s keep it (a notFound() thrown inside a marketing route, dark or
+   * paper, in a 60vh box that is nobody's whole screen and carries no trail),
+   * and so do the 500 screen and the help palette that borrow it.
+   */
+  strip = true,
+}: { strip?: boolean } = {}) {
   return (
     <NotFoundScreen
       // The marketing half, so the title takes the `prose` step and not the
@@ -43,7 +57,7 @@ export function MarketingNotFound() {
             <FootnoteLink href="/pricing">pricing</FootnoteLink>, or{" "}
             <FootnoteLink href="/contact">contact us</FootnoteLink>.
           </span>
-          <MissingFrameStrip />
+          {strip && <MissingFrameStrip />}
         </div>
       }
     />

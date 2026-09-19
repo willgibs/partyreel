@@ -83,7 +83,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "image-trail"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -91,7 +90,6 @@ export type SandboxId =
   | "voice"
   | "privacy-hero"
   | "album-page"
-  | "gallery-width"
   | "album-hero";
 
 export type Ruling = {
@@ -650,30 +648,27 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#photo-section",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered all six steps
+  // (d140, the long decay at his own three seconds, the flick, 180 px, the 404
+  // as its home, and a phone that walks rather than waits for a finger) and left
+  // one open note the wiring answered: the walk must not trace the same figure
+  // every visit. The engine left sandbox/ for src/components/shared/trail/ with
+  // the board; docs/design/rulings.md keeps his words.
   {
     id: "image-trail",
     title: "The image trail",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: our own cursor-tracking image trail, for the marketing site somewhere, else banked)",
-    shipped: null,
-    why: "A photograph born every time the cursor has travelled far enough, sliding to it and decaying behind it, drawn on the real pages it could live on.",
+    ruled: "2026-09-19",
+    shipped:
+      "The trail on the root 404: 140 px between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, walking its own figure until a hand arrives",
+    why: "A page nobody plans to see is the classic home for a rare delight, and the trail is the site's own photographs arriving where the one that was asked for is missing.",
     lives: [
-      "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
-      "src/components/marketing/sections/home/cinema-close.tsx",
-      "src/components/marketing/system/page-hero.tsx",
+      "src/components/shared/trail/trail-engine.ts",
+      "src/components/shared/trail/trail.tsx",
+      "src/components/shared/trail/trail-frames.ts",
+      "src/app/not-found.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#trail",
     ],
-    board: {
-      note: "Six decisions, each on a whole screen of the real site at 1440 and 375: how close the photographs come, how long they live and how they go, how they arrive, how big they are, which page they live on (the privacy hero, the home page's last screen, the 404 on paper, or banked) and what a phone does; the pointer scripted for the still and live on the desk",
-      variants: [
-        "The density",
-        "The decay",
-        "The entrance",
-        "The size",
-        "The home",
-        "At a phone",
-      ],
-    },
   },
   {
     id: "privacy-hero",
@@ -742,24 +737,17 @@ export const RULINGS: Ruling[] = [
     id: "gallery-width",
     title: "Gallery width",
     surface: "shared",
-    ruled:
-      "open (Will, 2026-09-18: galleries use the width of a laptop or a desktop, with small tiles and more columns, never a wide two)",
-    shipped: null,
-    why: "The guest album is capped at 632 px and two columns on every screen, the host's at 1280 and three; four decisions set the tile, the width, the words and the host's.",
+    ruled: "2026-09-19",
+    shipped: "240px columns, the full window, words at the edge",
+    why: "A gallery declares a column WIDTH, never a count: ~240px tiles, 5 / 6 / 8 columns at 1280 / 1512 / 1920, the album 20px from each edge, one left line.",
     lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/host-app.md",
+      "src/components/shared/masonry.tsx",
       "src/components/guest/guest-masonry.tsx",
       "src/components/guest/event-experience.tsx",
-      "src/components/shared/masonry.tsx",
+      "src/components/shared/app-shell.tsx",
     ],
-    board: {
-      note: "Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame",
-      variants: [
-        "The tile size",
-        "The gallery's width",
-        "Where the words sit",
-        "The host's galleries",
-      ],
-    },
   },
   {
     id: "loose-ends",

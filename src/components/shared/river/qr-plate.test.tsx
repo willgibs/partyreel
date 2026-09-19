@@ -64,22 +64,30 @@ const LONG = "https://partyreel.com/e/abcdefgh-1234-5678-9abc-def012345678";
 /**
  * What a module is actually rendered at, in px, at a door this wide: the
  * plate is border-box and its padding is a share of the DOOR, so the code's
- * own edge is the plate's width less the two paddings, over the span.
+ * own edge is the plate's width less the two paddings, over the span. Both
+ * numbers are a property of the VALUE, so they are encoded once per value and
+ * not once per width (the sweep below is a thousand widths, and the QR encoder
+ * is not free).
  */
-function moduleAt(width: number, value: string) {
-  const plate = Math.max(qrPlateFloorPx(value), QR_PLATE_SHARE * width);
-  return (plate - 2 * QR_PLATE_PAD_SHARE * width) / qrSpanOf(value);
-}
+const CODE = [SHORT, LONG].map((value) => ({
+  value,
+  floor: qrPlateFloorPx(value),
+  span: qrSpanOf(value),
+}));
+
+const moduleAt = (width: number, c: (typeof CODE)[number]) =>
+  (Math.max(c.floor, QR_PLATE_SHARE * width) - 2 * QR_PLATE_PAD_SHARE * width) /
+  c.span;
 
 describe("the code stays scannable at every width, with nothing measured", () => {
   it("never renders a module under the screen-scanning floor", () => {
     // 240 is narrower than any door the site draws (a phone's column is 343,
     // the hub's 331); 1200 is wider than the hub's full-width lead.
     for (let w = 240; w <= 1200; w += 1) {
-      for (const value of [SHORT, LONG]) {
+      for (const c of CODE) {
         expect(
-          moduleAt(w, value),
-          `${value} at a ${w}px door`,
+          moduleAt(w, c),
+          `${c.value} at a ${w}px door`,
         ).toBeGreaterThanOrEqual(QR_MODULE_FLOOR_PX);
       }
     }

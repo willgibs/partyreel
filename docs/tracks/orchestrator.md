@@ -113,8 +113,12 @@ retired `type-phone`; both agents were told so by message.
 | `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias |
 | `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
 | `river-wiring` | cut the same night: the river in the QR door at `tenth`, `behind`, `/demo` at 99 px, tall closing rows, every card's own copy gradient; river-card and river-visual retire | building | Opus, :3132 | everything |
-| `gallery-wiring` | cut the same night: galleries at 240 to the window's edges, words at the edge, the host the same; gallery-width retires | building | Opus, :3133 | everything |
-| `trail-wiring` | cut the same night: the trail on the 404 at his numbers, the phone walking a new path, banked in the Library; image-trail retires | building | Opus, :3134 | everything |
+| `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
+| `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |
+| `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
+| `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
+| `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
+| `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -149,6 +153,43 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 5. **`lab-scrub`** once no old-surface board stands (about 4,200 lines of the old authoring surface); its
    Handoff carries the never-owned doc edits word for word. Ask Will first: removing `item:` retires his
    keep/refine/kill verdicts (2026-09-16).
+
+## The app round's map (2026-09-19): the seams two explorations found, and the queue
+
+Will's steer (verbatim in `docs/design/rulings.md`): the host app and the guest pages are unprotected, to be
+reconceived from the foundation. Two read-only explorations and the Orchestrator's own walk of the alias produced
+these seams; the boards below are cut from them, one per freed seat, in this order: `app-shape`, `guest-shape`,
+`privacy-concept`, `app-vocabulary` (drafts in the Orchestrator's scratchpad until each is cut; the `event-header`
+and `gallery-controls` boards Will asked for are folded into `guest-shape`'s album chrome and `app-vocabulary`'s
+gallery controls).
+
+**The host app** (seven routes behind one header with a logo and a user menu and no navigation): 1. five different
+"nothing here yet" components for one interaction (`shared/empty-state.tsx`, `dashboard/empty-section-teaser.tsx`,
+`dashboard/events-empty-teaser.tsx`, `event-feed/feed-section-empty.tsx`, an inline paragraph in
+`trash-section.tsx`). 2. "Deleted" names two unrelated bins (the dashboard's deleted events, restore only; the
+settings page's deleted media, restore and purge now). 3. the host's floating Add pill re-typed inline in
+`event-feed-action-bar.tsx` beside the shared `floating-add-button.tsx` the guest uses. 4. the confirm-dialog
+`setTimeout` workaround hand-rolled twice in `event-settings/uploads-section.tsx`; three switch behaviours with no
+visual cue. 5. three back-navigation idioms (a text link, a dirty-checked text link, the studio's X) and none on
+`/account`. 6. two bulk toolbars for the same actions (`review-actions.tsx` labelled, `gallery-actions.tsx`
+icon-only). 7. two tile-action models (hover-reveal on the host grid, an always-on bar on the bin). 8. the personal
+feeds (uploads, likes) a third, chrome-less gallery contract with their own state strategies. 9. social scattered
+over four places with an unlinked "Account settings" mention. 10. billing has no home (a popover on the storage
+strip). 11. four query-parameter names for "which tab" with two legacy tables. 12. `host-app.md` one feature
+behind (fixed 2026-09-19). 13. no `@contract-for` under `src/components/app`. 14. skeletons for two of seven
+routes.
+
+**The guest pages** (one landing that resolves access on the server): 1. two languages for "photos are coming"
+(the ghost grid when locked, the river when empty). 2. one phone-native drawer (the entry shell) and four desktop
+dialogs dropped onto a phone (Invite, Save, Report, Download all). 3. no way for a guest to take a photo back (the
+lightbox's delete never reaches the guest surface). 4. `guest/file-dropzone.tsx` written for guests, rendered only
+by the host's manual add. 5. no Live indicator is rendered; the doorbell's `live` only steers the poll. 6. two tones
+for one "create an account" moment (the warm gate, the Save dialog's form). 7. `/u/[slug]`'s 404 falls through to
+the marketing chrome (no guest not-found boundary). 8. two footers, no rule. 9. reading copy at 15 to 16 px on the
+happy path, `text-xs`/`text-sm` on the hold-for-approval banner and the gates' error rows. 10. `EmailSignIn`'s CTA
+without a Button size beside a `cta` one state away. 11. the profile page hand-rolls a thinner header than
+`guest-header.tsx`. The behaviour pins (`entry-modal`, `guest-upload`, `password-gate` tests) guard function, never
+look; the one guest `@contract-for` is the empty state's.
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
@@ -194,6 +235,12 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   Orchestrator sets `NEXT_PUBLIC_SURFACE=app` on `partyreel` PRODUCTION and redeploys `main` (the scratch script
   `apex-flag.mjs`; never before the move, or the portal is dark), then the runbook's checks a to g. Rollback at any
   step: unset the variable on either project; move the domain back the same way.
+- **Seats.** Six agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
+  challenged yet today... Seems the concurrent local dev builds may be where it gets dicey", then "let's go +1 agent slot
+  again... If we ever start going too fast for your preference, that's your call, and let me know"): the machine has 36 GB,
+  a dev server holds 3 to 9 GB, and a `pnpm build` is the spike, so the Orchestrator runs its own gate builds only
+  between lane builds where it can and watches `memory_pressure` before a fifth spawn; back to four if a build
+  starves. Ports 3131 to 3136.
 - **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
   about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
@@ -209,7 +256,10 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
   queue had held it 80 minutes before that). ★ `aliasAssigned: true` on a deployment is NOT proof either: `109cfac9`
   reported it while `GET /v4/aliases/<alias>` still named the previous build, and the prune then deleted that
   build, so the desk answered DEPLOYMENT_NOT_FOUND for a few minutes. After every build read the alias RECORD
-  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). ★ A `[preview]` push can
+  also produce NO deployment at all (`fc9eed26`, 2026-09-19: nothing appeared in five minutes while every earlier push
+  had); `POST /v13/deployments` with `gitSource` (`alias-watch2.mjs`'s sibling script in the scratchpad, or by hand)
+  creates it, and the watch then finds it by sha. After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`

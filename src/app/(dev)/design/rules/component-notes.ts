@@ -25,6 +25,23 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // ★ AT THE HEAD, not in the shared/ block below, because three wiring lanes
+  // add their own `for` lines this round and each one's landing at the top is
+  // what keeps the three merges apart. The collector does not index
+  // subdirectories of shared/ on its own, so these are here because they carry
+  // contracts, and their Library entries read these lines like every other
+  // component's (the backdrop and the river said the same thing first).
+  "src/components/shared/trail/trail.tsx": {
+    for: "photographs laid down behind a cursor, or behind a figure walked on its own; decorative, and the words it is given stand inside it rather than over it",
+  },
+  "src/components/shared/trail/trail-engine.ts": {
+    for: "the trail's arithmetic alone (no React, no DOM, nothing measured): one sample of a moving source goes in, the next ring of photographs comes out",
+    unspecimened: "pure functions; the trail above is what they draw",
+  },
+  "src/components/shared/trail/trail-frames.ts": {
+    for: "the photographs a trail lays down: the slot ASSETS row 21 fills, so a generated set lands as a data change and no component ever names a picture",
+    unspecimened: "a list of image ids; the trail above is where they are seen",
+  },
   /* shared / river (river-wiring, 2026-09-19) */
   "src/components/shared/river/qr-plate.tsx": {
     for: "the real scannable code a river is born from inside a feature door; server-rendered, no link and no label, and sized off its own value so a module never drops under the scan floor",

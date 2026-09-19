@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
-import { TrailLayer } from "../image-trail/trail-layer";
+import { TrailLayer } from "@/components/shared/trail/trail";
 import { type HeroSpec, pathsOf, specOf, stillAt } from "./paths";
 
 /**

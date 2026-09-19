@@ -21,7 +21,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/components/guest/gallery-empty-state.test.tsx
   - src/lib/demo.ts
   - src/lib/constants/feature-pages.ts
-  - src/app/(dev)/design/sandbox/gallery-width/spec.ts
 ---
 
 # lp/river-wiring
