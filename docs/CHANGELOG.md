@@ -85,13 +85,9 @@ never a cap and a test.
   `touchpoints.ts`; nothing at 375 in round one; the palette ships closed behind a key). Three defects it found in
   the shipped portal are on the ROADMAP.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
-  tree. One pure module, `src/lib/surface`, answers which surface a build serves; the proxy, the `requireAdmin` seam
-  and the purge cron decide from it (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving
-  both, which is the rollback). The lane's four calls stand (the probe and `robots.txt` reachable on the admin host,
-  the domain after the milestone, a `[preview]` push building twice). The cutover ran the same night up to the
-  preview proof: the project created by Will, a team token minted (the old one was project-scoped), settings
-  mirrored, env copied and verified value by value after a first copy of ciphertext, the Sentry upload trio dropped,
-  the preview callback added in Supabase, the preview host's allow-list probed and Will's sign-in there.
+  tree: one pure module, `src/lib/surface`, decides which surface a build serves for the proxy, the `requireAdmin`
+  seam and the purge cron (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving both,
+  which is the rollback). The cutover ran the same night through the preview proof and closed with milestone-26.
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`,
   `derived`) through the one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter
   depths on every run (any dead letter a failure, alerting where the number arrives); the purge's four
@@ -141,6 +137,10 @@ never a cap and a test.
   pixel (the three cards a hair under AA rose to 10.89, 13.11 and 15.05); `/demo` ships as the 307 the code
   encodes; the closing rows took the tall door. Two questions carried on their recommendations (the QR door's title
   when a bright photograph passes under it; the closing row's line). `river-card` and `river-visual` retired.
+- `privacy-concept` integrated (`6c99e128`): privacy-hero round three replaced the spirals with three concepts on
+  the page's own theme, still or nearly still: a breathing aperture, a grid where tiles take turns clearing
+  (recommended), sealed photo cards that lift one at a time; every number in the copy checked against the
+  constants, every static element clear of the real lockup's measured ink at both breakpoints.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
@@ -157,13 +157,11 @@ photographs) with the ruling that full-image sections are chapter transitions, u
 and for this instance closing chapter one with the live demo folded into the next; `backdrop-wiring` cut from it.
 `image-trail` r1 begun: `d140`, `decay=long` with three seconds suggested.
 
-**The second batch (build `9720798`, 2026-09-19).** Four boards whole: `image-trail` (`d140`, `long` at his three
-seconds, `flick` "keeping the image trail behind the cursor also allows better cursor visibility", `s180`, the 404
-as its home, `walks` on a new path), `album-page` (`live`, `stream` with two or three variations wanted, `halo`
-"gorgeous", `floor` with a full-image section beneath so the aurora glows from it), `river-card` (`tenth`,
-`behind`, `short`, `tall`, and every card's own bottom-left copy gradient), `gallery-width` (`240`, `full` "all you
-have to do is adjust your browser window", `edge`, `same`); `privacy-hero` round two closed by a `?` and replaced
-by a new concept. Four wiring lanes cut at once; two app boards and the privacy hero's round three follow.
+**The second batch (build `9720798`, 2026-09-19).** Four boards whole (`image-trail`: `d140`, `long` at three
+seconds, `flick`, `s180`, the 404, `walks`; `album-page`: `live`, `stream` with variations wanted, `halo`, `floor`
+with a full-image section beneath; `river-card`: `tenth`, `behind`, `short`, `tall` and every card's own copy
+gradient; `gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` round two closed by a `?`. Four wiring
+lanes cut at once; the app round's boards followed on freed seats.
 
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
