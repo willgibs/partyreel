@@ -110,11 +110,11 @@ retired `type-phone`; both agents were told so by message.
 | `admin-split` | integrated at `7f3738ba` (handed off `a4104a50`) | done | Opus, :3133 | the cutover, below |
 | `image-trail` | integrated at `dd44692e` (handed off `60983fea`; privacy-hero's round-one verdict transcribed first at `e140d3ad`) | done | Opus, :3135 | nothing |
 | `cursor-backdrop` | integrated at `592955ab` (handed off `859d88dc`) | done | Opus, :3136 | nothing |
-| `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias done signed out 2026-09-19 (clean); the signed-in half is Will's |
-| `album-wiring` | integrated at `2ca47448` (handed off `552b19fe` after four syncs); both boards retired, `album-motion` open | done | Opus, :3131 | the red-team on the alias done signed out 2026-09-19 (clean); the signed-in half is Will's |
-| `river-wiring` | integrated at `5297cb07` (handed off `3d74ad68`; the touchpoints conflict resolved by the Orchestrator); both boards retired | done | Opus, :3132 | the red-team on the alias done signed out 2026-09-19 (clean); the signed-in half is Will's |
-| `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias done signed out 2026-09-19 (clean); the signed-in half is Will's |
-| `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias done signed out 2026-09-19 (clean); the signed-in half is Will's |
+| `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias done 2026-09-19, signed out and in (clean) |
+| `album-wiring` | integrated at `2ca47448` (handed off `552b19fe` after four syncs); both boards retired, `album-motion` open | done | Opus, :3131 | the red-team on the alias done 2026-09-19, signed out and in (clean) |
+| `river-wiring` | integrated at `5297cb07` (handed off `3d74ad68`; the touchpoints conflict resolved by the Orchestrator); both boards retired | done | Opus, :3132 | the red-team on the alias done 2026-09-19, signed out and in (clean) |
+| `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias done 2026-09-19, signed out and in (clean) |
+| `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias done 2026-09-19, signed out and in (clean) |
 | `app-shape` | integrated at `aa338766` (handed off `18c9afda`; the registration conflicts resolved by the Orchestrator, retired boards kept gone) | done | Opus, :3135 | nothing |
 | `guest-shape` | integrated at `beee6325` (handed off `83f46ed4`, zero stale, no conflicts; three questions relayed) | done | Opus, :3136 | nothing |
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
@@ -387,6 +387,11 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
+
+- **Will granted full sign-in privileges for testing** (2026-09-19: "you have full login privileges on Partyreel across Google
+  Sign In and Password Sign In for our own testing... doesn't make sense to gate that step"). The Orchestrator uses a session
+  he has opened (his Chrome, through the Claude in Chrome tools) or the Google account chooser; it still never types a
+  password or an OTP itself, so a password sign-in remains his click, and the built-in browser pane has no session of its own.
 
 - **A fresh lane's branch tip is an ancestor of `launch-prep` until its first commit** (2026-09-19, the overnight round):
   "the tip is an ancestor of HEAD" therefore never means integrated. Integrated means the manifest is gone from HEAD AND
