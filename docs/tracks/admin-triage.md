@@ -1,6 +1,6 @@
 ---
 track: admin-triage
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "d909cb13"          # the launch-prep SHA the branch was cut from
 board: admin-triage     # round one: the operator's act on a report, inside the admin board's shape
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -100,26 +100,112 @@ encouraged, never required: moderation queues, report triage, admin inboxes, aud
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **Who is told an outcome?** (`notice`, drawn as a decision, and a policy call before it is a design.)
+  Recommendation, carried on: **silence, as today and by doctrine**. A notice that fires on an ordinary
+  takedown and stays quiet on a held one is itself a way to learn a hold exists, which is what the
+  `media_guard_privileged_transitions` trigger and the vague `invalid_media` copy exist to prevent; and a
+  reporter is anonymous by construction (`create_report` stores no identity), so telling them anything
+  means asking for an address the dialog deliberately does not ask for. Drawn all three ways so the cost
+  of each is visible; the board recommends keeping silence until Will rules.
+- **Does a required verdict note apply to a dismissal too?** (`verdict`.) Recommendation, carried on and
+  drawn: **yes, both verbs**. The marketing site, the Terms and the privacy policy all promise "every
+  report is reviewed before anything comes down", and a dismissal is the half of that promise with no
+  evidence at all today. If it reads as a tax on obvious griefing, the optional note is one option down.
+- **Is a day the right undo window?** (`closed`.) Recommendation, carried on: **24 hours**, which is well
+  inside the 7-day grace the removal already sits in, and a held item has no Undo at all by law.
+- **Can an operator remove from a phone without writing the record?** (`phone`.) Recommendation, carried
+  on and drawn: **yes, and the report stays open until the record is written at a desk.** It is the one
+  place the board lets an act and its record come apart, because the harm cannot wait and a courtroom
+  sentence should not be typed with a thumb.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. Nothing outside the board's own directory and the three registration lists was touched.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Admin portal:** the `reviewed` value of the `report_status` enum is written by no code path, while the
+  Terms, the privacy policy, `features.ts` and `events.ts` all promise "every report is reviewed": either
+  a verdict writes it or it leaves the enum.
+- **Admin portal:** `reports.resolution_note` has existed since the founding migration
+  (`20260529102500_phase3_moderation_lifecycle_safety.sql`) and is never read or written; the `verdict`
+  decision is what would finally fill it.
+- **Admin portal:** `ReportReviewList` and `ModerationGrid` import live server actions at module scope, so
+  neither can be mounted anywhere but its own page; `TriageStatusControl` takes its action as a prop and
+  is the shape the other two should take.
+- **Admin portal:** `/admin/reports` shows no count anywhere (the Open/All tabs are bare), no bulk act and
+  no phone layout; the rail's own count comes from a separate `countOpenReports()`.
+- **Design system:** a responsive Tailwind variant does not reach a lab board's frame (`sm:w-[200px]` and
+  `hidden lg:inline` both rendered unapplied inside a 1440 frame while plain arbitrary values were fine).
+  A board that needs a breakpoint writes a media query in its own sheet; worth a root cause before the
+  wiring round promotes anything from a board that used one.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board admin-triage` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `e83aed43`, pushed. Code commits: `0240235f` (the board) and `84948bea` (the row's sheet fix).
+  Synced with `launch-prep` twice: at `ba30b46c` and again at `0bd12595`, both merges keeping both sides'
+  registration lines, the second splicing `],` `},` `},` `{` back between the two RULINGS rows added at
+  the same anchor.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok · the specimen collector ok
+  (123 components, 18 policies) · `pnpm typecheck` ok · `pnpm lint` ok (the 8 known warnings) ·
+  `pnpm test` ok (2,541) · `pnpm build` ok (254 static pages, 125 routes) ·
+  `pnpm lab:smoke --base http://localhost:3134` ok (412 checks, 0 failing; the board reads 640 words of
+  1,200) · `pnpm lab:demo --board admin-triage` ok (8 steps, 0 failing; every step draws its options).
+- Lane check, pasted: `git diff --name-only origin/launch-prep...HEAD` =
+  `docs/design/library.md` (generated by `pnpm design:rules`, committed as written) ·
+  `src/app/(dev)/design/(shell)/lab/boards.ts` · `src/app/(dev)/design/sandbox/registry.ts` ·
+  `src/app/(dev)/design/touchpoints.ts` (the three registration exceptions, one line each plus the
+  RULINGS row after `river-visual`'s) · the nine files of
+  `src/app/(dev)/design/sandbox/admin-triage/`. No other path.
+- The decisions, one line each:
+  - `look`: what a report looks like when the queue is opened; the event's name and a badge as today, the
+    picture full width, or the picture beside the reason a row each. **The row** (the frame goes from a
+    measured 160 px to 200 px and one report from 341 px to 272 px).
+  - `reason` (after `look`): what a report with no reason at all does; "No reason provided" as today,
+    nothing drawn, or ranked under every report with words. **Nothing drawn.**
+  - `verdict`: what pressing a verdict costs and records; two buttons as today, a verdict with an optional
+    note, or a verdict whose note IS the record. **The required line**, written into the column that has
+    been empty since the founding migration.
+  - `closed` (after `verdict`): what a closed report leaves; the same full card forever as today, one line
+    each, or a line with a day's way back. **The line with the Undo** (three answered reports fall from a
+    measured 844 px to 158 px, and the held one has no Undo).
+  - `escalate` (after `look`): how a legal hold is reached; the ids live elsewhere as today, the ids on the
+    card copyable, or a Hold for forensics door pre-filled. **The door**, listing what the hold touches.
+  - `phone` (after `look`): what a phone is trusted with; nothing as today (the rail takes 62 percent of a
+    375 screen and the reports 13), see it and stop it, or the whole act. **See it and stop it.**
+  - `idiom`: whether four inboxes speak one language; three vocabularies as today (measured: 3 filter bars
+    and 2 shapes of control), one control taking each surface's words, or one inbox filtered by kind.
+    **One control, each surface's own words.**
+  - `notice`: whether anyone outside the portal is told; silence as today and by doctrine, one line to the
+    host, or a line to the host and the reporter. **Silence**, until Will rules (see Questions).
+- Mobbin citations (inspiration, none required): Reddit's mod queue (a row per item with the report reason
+  as a chip and a horizontal verb bar) informed `look`'s row; X's moderation log (each hidden post with the
+  rule it broke and an Unhide) informed `closed`'s Undo; Aboard's anonymous report detail (a message field
+  to an anonymous reporter, plus team notes) informed `notice` and `verdict`; Circle's moderation tabs
+  (Inbox / Approved / Rejected with counts) informed `idiom`.
+- Captures: all 24 options at 1440 by 900 and again at 375 by 812, with the capture script, at
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/admin-triage/`
+  (`shots/`, `capture.mjs`, `cap-1440.log`, `cap-375.log`). Reading each picture against its own words
+  caught six defects that the gate could not see: a FROZEN `closed` step whose three options were the same
+  screen (the All view now opens where the history is), an accent edge that silently replaced the Card's
+  ring on every card, an id strip showing the first report's UUID on every row, a rail highlighting
+  Forensics on a page headed Reports, a status chip landing on top of the first word at 375, and a phone
+  option that said "3 open" over two reports.
+- Assets requested from Will: none. Every picture is a `MARKETING_IMAGES` still, and a reported frame is
+  a stand-in whose SIZE and PLACE are what is being judged, never its content.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `escalate`, because it is the one decision with a legal duty on the other end of it and
+  the only one where today's answer is "retype 36 characters on a third surface at midnight"; then
+  `notice`, which is the ruling rather than the design.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of `admin-triage` put the operator's act on
+a report on the desk as eight decisions, drawn on presentational forks of the real admin pieces with one
+Saturday night's fixtures, inside the shape the `admin` board is asking about. Two roots stage it: what a
+report IS on screen unlocks the wordless one, the legal-hold door and the phone; what a verdict COSTS
+unlocks what a closed one leaves. Every option is a real 1440 by 900 viewport with 375 on a knob, captioned
+off the laid-out document, and reading each picture against its own words caught six defects the gate could
+not see. Nothing reached a server action, the admin shell or a page behind `requireAdmin()`. The dead
+`reviewed` status, the never-written `resolution_note` and a Tailwind variant that does not reach a frame
+went to Deferred.
