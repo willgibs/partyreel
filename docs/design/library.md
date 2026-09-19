@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 30 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 31 standing boards.**
 
 ## What binds you
 
@@ -376,6 +376,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `event-identity` | marketing | Seven decisions as concepts on the real /events pieces and the shared engines, on weddings and on conferences (the type the manifest has no honest still for), at 1440 and 375: the hero's theme, the section under it, the arc, the cards, the proof, the ladder, the phone |
 | `error-pages` | shared | Eight decisions on the real failure components with fabricated error and reset props, inside each surface's own chrome, at 1440 with 375 on a shared knob: one grammar or eight, how many ways out, where the photo strip appears, whether a crash shows its code, what surrounds a failure, the private lock, the admin host's 404, and the last-resort crash |
 | `event-type-pages` | marketing | Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone |
 | `how-it-works` | marketing | Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close |
