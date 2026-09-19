@@ -124,6 +124,7 @@ retired `type-phone`; both agents were told so by message.
 | `contact-page` | cut 2026-09-19: how someone reaches a person at Partyreel, on the real page pieces | building | Sonnet, :3133 | everything |
 | `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
 | `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
+| `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -241,9 +242,27 @@ toggle exists only on marketing; in the app it surfaces through the portal after
 the webhook and every price label is a hand-written string. `/pricing` is static and tier-blind (it cannot tell a
 signed-in Pro they already subscribe); a held Pro at Checkout is refused with 409 and routed to the portal.
 
+**The upload act** (2026-09-19, from the map cut for `guest-upload`, queued): 1. the sentences a guest most needs (the
+moderation banner, "Tap to retry") are 12 px, the smallest on the page. 2. `FileDropzone` is built and never rendered
+for a guest. 3. two progress idioms (the uploader's in-tile strip; the masonry's fade for everyone else's arrivals) and
+nothing replaced the banked shimmer for the guest's own tile. 4. hold-for-approval is one toast and no tile. 5. the
+"just landed" check has no exit transition. 6. the banner reads the same whether or not the guest's own item is held.
+7. refusals are precise on the per-event cap and vague everywhere else. 8. the lightbox has no post-upload state. 9. no
+`capture`: camera or library is the OS chooser's call, nothing says "take a photo now". The strikes and cooldown live
+in `password-gate.tsx` and are pinned only through their copy.
+
+**The first event** (2026-09-19, from the map cut for `first-event`, queued): 1. three CTA labels for one act. 2. a Free
+host at the limit gets the row inserted, THEN a toast and a bounce that discards the style they chose. 3. no print
+sheet, table card, sign or poster exists (marketing's `/features/qr` mocks them; the ROADMAP's share studio is the
+generator). 4. two share idioms (the host dialog with files and no native share; the guest sheet with native share).
+5. no live signal host-side for the first photograph (the doorbell is guest-only). 6. the zero-photo state is labelled
+"Rare state" in source though it is every first event's first view. 7. nothing for a host at the venue with only a
+phone. 8. no test touches the wizard's UI, the limit refusal or the event page's first render; the product's QR plates
+are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
-- **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full
+- **The admin cutover, CLOSED 2026-09-19 05:02 UTC (every runbook check done; the block stays as the record).** The lane's full
   runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on
   `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only; the project `partyreel-admin`
   (`prj_gJhEa7ul4ehpQljDI1EIm6d9jd9D`, created by Will in the dashboard; the original token and the connector were
@@ -276,7 +295,8 @@ signed-in Pro they already subscribe); a held Pro at Checkout is refused with 40
   then served the admin project (`/pricing` 404, `/admin` → login). The apex flag and redeploy followed (production `dpl_5eV2X9KiAuQVAmh2GB7BN1UTdW25`, READY; partyreel.com 404s
   `/admin`, the marketing routes 200, `/dashboard` gates, the lab 404 keyless; the admin host `/admin` → login,
   `/pricing` 404). Checks (a) to (e) and (g) DONE (Will signed in on the new host, the three pages render; the live red-team is in
-  the CHANGELOG); (f), one purge run in `job_runs` after 04:00 UTC on 2026-09-19, is the last. Historic
+  the CHANGELOG); (f) DONE: `job_runs` shows exactly one scheduled `purge_cron` on 2026-09-19 (04:48 UTC, status ok,
+  its four sub-sweeps as their own rows beneath it) and nothing from the admin project, whose guard answers `skipped`. Historic
   detail of the click, for the record: the domain move was WILL'S CLICK
   (the classifier refuses the Orchestrator's `DELETE /v9/projects/partyreel/domains/admin.partyreel.com` +
   `POST /v10/projects/partyreel-admin/domains` as a DNS-class change): in the dashboard, project `partyreel` →
