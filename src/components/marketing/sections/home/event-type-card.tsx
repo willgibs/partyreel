@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { CARD_COPY_SCRIM } from "@/components/marketing/sections/features/shared/feature-door";
 import { cn } from "@/lib/utils";
 
 /**
@@ -79,25 +80,22 @@ export function EventTypeCard({
           className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-70 motion-reduce:transition-none"
         />
 
-        {/* THE COPY SCRIM -- measured, not assumed. On the deployed preview the
-            main scrim alone left the Conferences title at a median 3.65:1
-            against the white tablecloth under it (worst 2.1:1), and Parties at
-            a borderline 4.5:1, read per-pixel off the rendered image with the
-            gradient's alpha applied. Same answer the hero reached for its
-            mobile copy (cinema-hero.tsx): one extra short ramp that puts ink
-            behind the copy block ONLY, so the photograph above stays bright
-            and the main scrim keeps lifting on hover. This one does not lift.
-            Re-measured after the first cut (75%, 55%): Conferences' title
-            median rose to 5.06:1 but its 5th percentile sat at 3.85:1, so the
-            ramp is a step darker and a little taller: re-measured at 85%/60%,
-            median 5.6:1 and the brightest 5% of pixels at 4.27:1 -- still a
-            hair under AA on that card, and left there on purpose, because a
-            third darkening buries every card to serve one image. The conference still is
-            a borrowed placeholder (see events-teaser.tsx); the scrim is sized
-            for the real photograph that replaces it, not tuned to this one. */}
+        {/* THE CARD'S OWN COPY GRADIENT -- measured, not assumed, and no longer
+            spelled here: it is one ruled treatment worn by every media-forward
+            card on the site (CARD_COPY_SCRIM in feature-door.tsx has the
+            ruling, the two layers and the measurement note). It replaced the
+            straight 85% / 60% bottom-up ramp this card carried, which was
+            itself re-cut twice against per-pixel readings; the weight moved
+            into the bottom-left corner the copy starts from, so the bottom
+            right keeps more of its photograph. Like the ramp it replaces, this
+            one does not lift on hover while the main scrim does. The
+            conference still is a borrowed placeholder (see events-teaser.tsx);
+            the gradient is sized for the real photograph that replaces it, not
+            tuned to this one. */}
         <span
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-[60%] bg-linear-to-t from-black/85 to-transparent"
+          className="absolute inset-0"
+          style={CARD_COPY_SCRIM}
         />
 
         <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-5">

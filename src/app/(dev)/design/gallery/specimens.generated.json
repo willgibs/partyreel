@@ -6,6 +6,11 @@
       "<div\n  className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\"\n  style={{ width: 375 }}\n>\n  <Trail\n    source=\"path\"\n    className=\"flex min-h-[32rem] flex-col items-center justify-center px-5 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",
       "<div className=\"overflow-hidden rounded-lg border\">\n  <Trail source=\"pointer\" className=\"min-h-[22rem]\" />\n</div>"
     ],
+    "qr-plate": [
+      "<QrDoorPicture width={331} />",
+      "<QrDoorPicture width={343} />",
+      "<div\n  className=\"relative aspect-4/5 overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]\"\n  style={{ width: 331 }}\n>\n  <QrRiverPlate ratio={5 / 4} value=\"https://partyreel.com/demo\" />\n</div>"
+    ],
     "button": [
       "<Row>\n  <Button>\n    <ImageUp /> Add photos\n  </Button>\n  <Button variant=\"outline\">\n    <Share2 /> Share\n  </Button>\n</Row>",
       "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"

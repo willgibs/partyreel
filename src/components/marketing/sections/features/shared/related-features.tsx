@@ -19,6 +19,12 @@ import { type DoorSlug, FeatureDoor } from "./feature-door";
  *
  * Labels and lines read from the FEATURE_PAGES registry through doorFor so
  * copy can never drift from the nav.
+ *
+ * ★ THE ROW IS TALL (Will's `short=tall`, 2026-09-19: "Every row takes the tall
+ * 4:5 door"). It was 3:2 here and 4:5 on the hub, which made one component read
+ * as two cards; the question that settled it was the QR door, whose code and
+ * the album falling out of it need the height a 3:2 crop cannot give. One
+ * shape, so a reader meets the same door wherever they meet it.
  */
 export function RelatedFeatures({
   slugs,
@@ -50,7 +56,7 @@ export function RelatedFeatures({
           <FeatureDoor
             key={slug}
             slug={slug}
-            aspect="landscape"
+            aspect="portrait"
             {...entrance}
             style={{ "--i": i + 1 } as CSSProperties}
           />
