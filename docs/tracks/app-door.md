@@ -141,7 +141,7 @@ and code screens, "welcome back" states.
 
 ## Handoff (replaces the chat report)
 
-- **Head SHA:** `<HEAD>` (the gate below ran at `e6a216ad`, the merge commit and the last code commit; this
+- **Head SHA:** `491b7065` (the gate below ran at `e6a216ad`, the merge commit and the last code commit; this
   manifest fill is the one commit on top, prose only, nothing the gate touches).
 - **Synced:** `origin/launch-prep` had moved 24 commits (`app-pricing`, `contact-page`, `press-page` and
   `demo-event` merged). `git merge origin/launch-prep` (never rebase) at `e486afc8`, resolved by keeping BOTH
