@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "admin-triage"
   | "media-viewer"
   | "emails"
   | "reel-studio"
@@ -100,6 +101,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "admin-triage"
   | "media-viewer"
   | "emails"
   | "reel-studio"
@@ -658,6 +660,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "admin-triage",
+    title: "Acting on a report",
+    surface: "admin",
+    ruled:
+      "open (Will, 2026-09-18: the admin portal is rethought from the ground up as an on-brand devtool)",
+    shipped: null,
+    why: "Round one asks the operator's act from the ground up: what a report is on screen, what a verdict records, how a legal hold is reached, and who is told.",
+    lives: [
+      "docs/systems/admin-observability.md",
+      "docs/systems/trust-safety-forensics.md",
+      "src/app/admin/reports/page.tsx",
+      "src/components/app/report-review.tsx",
+      "src/components/admin/triage-status-control.tsx",
+      "src/lib/moderation/operator-actions.ts",
+    ],
+    board: {
+      note: "Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told",
+      variants: [
+        "The first look",
+        "The verdict",
+        "The legal hold",
+        "Once it is closed",
+        "Who is told",
+      ],
+    },
   },
   {
     id: "media-viewer",
