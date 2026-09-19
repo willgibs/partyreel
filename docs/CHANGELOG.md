@@ -44,29 +44,25 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   chart's cast, one FAQ look, the hero at a 900 px tablet, the album's ambient pieces); four `--color-chart-*` aliases never emitted, fixed at `0681652c`.
 - **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word, 1,138 commits: Graphite, the ladders, the Aurora, the wordmark, the river; the lab gated.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real admin
-  components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list), the nav (a rail plus a
-  command palette), density (a table with a reading pane), state colour (the chip), destructive acts (a sheet sized to
-  the damage), health (a band under the bar), the bar (44 px). Four questions closed at the merge; three defects on the ROADMAP.
+  components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list), the nav (a rail plus a command
+  palette), density, state colour (the chip), destructive acts, health (a band under the bar), the bar (44 px). Four questions closed; three defects on the ROADMAP.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the tree: one
   pure module, `src/lib/surface`, decides which surface a build serves (admin an allow-list, app 404ing `/admin`, unset both); the cutover closed with milestone-26.
-- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`, `derived`)
-  through one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter depths on every run;
-  the purge's four sweeps became jobs with switches and per-row isolation (QA #27); `sendOnce` and both limiters report
-  their failures (QA #19). The cross-lane patch landed in the merge; the migration applied; the Worker deployed (`d7b16bcc`).
+- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds through one pure `jobHealth`, nine
+  jobs joined; the backup Worker reads the queue and dead-letter depths; the purge's four sweeps became jobs with switches
+  and per-row isolation (QA #27); `sendOnce` and both limiters report failures (QA #19); the migration applied; the Worker deployed (`d7b16bcc`).
 - `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board retired:
   `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its foot rail, the
   slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced motion; the engine and
   `PhotoSection` beside the river. His fold as one line (chapter one closes on the photograph; his to overrule). 5.12:1; row 20 at 1200 px.
-- `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one rule
-  in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at 2 / 5 / 6 / 8
-  columns at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at 632 on the logo's line, the host event
-  page asking the shell for the same shape (`data-app-wide`); the select grid patched at the merge. Two calls for Will
-  on the alias: the column-major flow at eight columns; the 632-wide action block beside the album. `gallery-width` retired.
+- `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one rule in
+  `shared/masonry.tsx` read by every grid, measured at 2 / 5 / 6 / 8 columns at 375, 1280, 1512 and 1920, the album 20 px
+  from each edge, the words at 632 on the logo's line, the host event page asking the shell for the same shape; the select
+  grid patched at the merge. Two calls for Will: the column-major flow at eight columns; the 632-wide action block. `gallery-width` retired.
 - `trail-wiring` integrated (`73451c79`; cut `97207988`): the image trail left the lab for `src/components/shared/trail/`
-  at his numbers (d140, three seconds with the slower shrink, the flick behind the cursor, 180 px and 100 at a phone; the
-  keeper and the shy fade named) and the root 404 stands on it, a phone walking its own path. Measuring the real page
-  moved three things: the shy fade became a feathered window (1.49:1 to 4.90:1), the resting composition is one of five,
-  the phone's walk reaches its edges. The root 404 only (the group 404s keep their strip, his to widen). `image-trail` retired.
+  at his numbers (d140, three seconds, the flick behind the cursor, 180 px and 100 at a phone) and the root 404 stands on it,
+  a phone walking its own path; measuring the real page made the shy fade a feathered window (1.49:1 to 4.90:1) and the
+  resting composition one of five. The root 404 only (the group 404s keep their strip, his to widen). `image-trail` retired.
 - `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one host's
   Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter` and the grids at 1440 and
   375: what the home opens on (what needs you), how an event draws on it, what an event's page is (a front page with a
@@ -94,14 +90,12 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   page), the sheet (eight plates; the placeholder marks are ASSETS row 19), the words (a paragraph and a line), the
   facts (rows plus a link to the machine-readable copy), a human (a role address), the close (the contact door with
   Press pre-picked, staged behind the human), the arc (today's order). One question his: "Live now" pre-launch.
-- `demo-event` integrated (`e3a2c1b6`; cut `391c40e9`): the demo as the product's first impression, seven decisions
-  on the shipped guest page in demo mode and the real marketing doors, LAPTOP first at 1440 with 375 on a knob
-  (everyone who opens the demo followed a link): the arrival (a screen that hands them a role), the framing (a mark
-  in a header that stays), the upload as the demo's moment (the simulated upload, then the turn), the way out (the
-  blanked Save slot becomes "Start your own"), what a door promises (the party named), the phone scanned off the
-  laptop (the two screens as one session), how many parties (one). Three questions carried on their recommendations
-  (the entry-modal pin narrows to the owner at the wiring; the pairing's transport is the wiring's; the demo's
-  server side is UI-only, a Security line). Reading the captures caught seven defects, fixed.
+- `demo-event` integrated (`e3a2c1b6`; cut `391c40e9`): the demo as the product's first impression, seven decisions on
+  the shipped guest page in demo mode and the real marketing doors, LAPTOP first at 1440 with 375 on a knob: the arrival (a
+  screen that hands them a role), the framing (a mark in a header that stays), the upload as the demo's moment (then the
+  turn), the way out (the blanked Save slot becomes "Start your own"), what a door promises (the party named), the phone
+  scanned off the laptop (the two screens as one session), how many parties (one). Three questions carried (the entry-modal
+  pin narrows to the owner; the pairing's transport is the wiring's; the demo's server side is UI-only). Seven defects fixed.
 - `app-pricing` integrated (`0379c529`; cut `e442fc55`): pricing inside the app as eight decisions on the shipped chrome
   with four hosts (Free at a locked password, Free out of room, a Pro subscriber, a pass holder) at 1440 and 375,
   every number read from `tiers.ts` and no preview able to reach Stripe: what a click opens (a sheet in a hand, a
@@ -135,28 +129,33 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   host lands (a beat of its own), what a host holds out at the door (the code alone, full screen at 375), the empty
   event (a launch list), the first photograph (it lands while she looks). Six questions carried; two product misses
   found: the style swatches render at 2.3 px a module, under the floor, and preview a link that 404s. Seven defects fixed.
-- `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album
-  pours out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the
-  lab's card engine folded into the shared river as one `origin` argument, the code and the settled flow in the
-  server's own HTML (3.007 px a module at 1440, 3.118 at 375); `CARD_COPY_SCRIM`, his one bottom-left gradient on
-  every media-forward card, measured per pixel; `/demo` ships as the 307 the code encodes; the closing rows took the
-  tall door. Two questions carried (the QR door's title over a bright photograph; the closing row's line). Both boards retired.
+- `guest-upload` integrated (`1649506c`; cut `a8afce0c`): the moment a guest adds a photograph as eight decisions, phone first
+  at 375 by 812 with 1440 on a knob, every option the shipped guest components over one wedding, nothing uploading: the tap
+  (two inputs, one carrying `capture`, so "take a photo" is its own act), sending (no chrome until a file has been going two
+  seconds), held (the guest's own photograph waits in place under a clock), failed (the tile keeps its reason and a Retry),
+  the batch (one stacked tile: nine of a guest's own tiles hold 43 percent of a phone screen, one holds 11), the landing
+  (the banked shimmer spent on one tile, once), the warning (the terms at the act and a named stand-in for a file the
+  browser cannot draw), the words (12 px to 15 px). Four questions carried (the camera input drops multi-select; a guest
+  seeing their own held item is a new visibility rule; a tile before its bytes; body-type's caption floor). Four defects fixed.
+- `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album pours
+  out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the lab's card
+  engine folded into the shared river as one `origin` argument, the code in the server's own HTML (3.007 px a module at
+  1440); `CARD_COPY_SCRIM`, his one bottom-left gradient on every media-forward card, measured per pixel; `/demo` ships as
+  the 307 the code encodes; the closing rows took the tall door. Two questions carried. Both boards retired.
 - `privacy-concept` integrated (`6c99e128`): privacy-hero round three replaced the spirals with three concepts on the
   page's own theme, still or nearly still: a breathing aperture, a grid where tiles take turns clearing (recommended),
   sealed photo cards that lift; every number checked against the constants, clear of the lockup's measured ink.
-- `album-wiring` integrated (`2ca47448`; cut `97207988`, synced four times): the album page's hero from two ruled
-  boards: the live guest album under the host's header at 896, its foot dissolving, lit from behind by the Glow halo,
-  photographs falling out of the room around the words into the album's top edge at the home hero's pace; the stream
-  a pure engine in `src/components/shared/album-stream/`; the quality section lit at its floor with a photograph
-  section stood before the paper chapter; `album-motion` open with three variations of the fall on the wired hero.
-  Three calls his to overrule: the compositions swap at 1280, the cut to paper as built, the album's columns derived
-  from the product's rule. `album-hero` and `album-page` retired.
+- `album-wiring` integrated (`2ca47448`; cut `97207988`, synced four times): the album page's hero from two ruled boards:
+  the live guest album under the host's header at 896, its foot dissolving, lit from behind by the Glow halo, photographs
+  falling out of the room into the album's top edge at the home hero's pace; the stream a pure engine in
+  `src/components/shared/album-stream/`; the quality section lit at its floor with a photograph section before the paper
+  chapter; `album-motion` open with three variations of the fall. Three calls his to overrule (the compositions swap at
+  1280, the cut to paper, the album's columns derived). `album-hero` and `album-page` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48 commits) after
   Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console with the Worker's depth
-  reading, the sub-sweeps and the reporting limiters, the static chart aliases. The cutover closed the same night: Will
-  moved the domain in the dashboard (the one step the guardrails refuse), a fresh `_vercel` TXT at GoDaddy verified it,
-  the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy, the live red-team matched the runbook's table, and his three
-  env-proving pages rendered on the new host; the one purge run on the app surface closed the runbook on 2026-09-19.
+  reading, the sub-sweeps and the reporting limiters, the static chart aliases. The cutover closed the same night (the
+  domain moved by Will's click, a fresh `_vercel` TXT verified it, the apex took `NEXT_PUBLIC_SURFACE=app`, the live
+  red-team matched the runbook, his three env-proving pages rendered) and the one purge run on the app surface closed the runbook on 2026-09-19.
 
 **The round's second sitting, first batch (build `93d00ff`).** `cursor-backdrop` r1 whole (`full-quality`, `plate`, `band`
 "I absolutely love the rail of the foot", `slide`, `insert` soft, `scroll` at four or five) with the ruling that full-image

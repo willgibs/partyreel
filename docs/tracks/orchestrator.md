@@ -122,7 +122,7 @@ retired `type-phone`; both agents were told so by message.
 | `demo-event` | integrated at `e3a2c1b6` (handed off `02ecd169`, ten stale; the RULINGS-row conflict resolved by the Orchestrator); three questions relayed | done | Opus, :3131 | nothing; the seat is free |
 | `app-door` | integrated at `2960db15` (handed off `04dad397`, seven stale; the registration conflicts resolved by the Orchestrator); four questions relayed | done | Opus, :3132 | nothing; the seat is free |
 | `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
-| `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
+| `guest-upload` | integrated at `1649506c` (handed off `6f8c289b`, zero stale, no conflicts); four questions relayed | done | Opus, :3133 | nothing; every seat is free |
 | `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
 | `first-event` | integrated at `728513ee` (handed off `02bc13e2`, six stale; the registration conflicts resolved by the Orchestrator); six questions relayed | done | Opus, :3135 | nothing; the seat is free |
 | `app-pricing` | integrated at `0379c529` (handed off `36994195`, four stale; the RULINGS-row conflict against demo-event resolved by the Orchestrator); three questions relayed | done | Opus, :3136 | nothing; the seat is free |
