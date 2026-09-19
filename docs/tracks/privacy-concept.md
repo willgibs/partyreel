@@ -62,7 +62,7 @@ join is expected. Mobbin (the MCP) is encouraged, never required: privacy and tr
 
 ## Handoff (replaces the chat report)
 
-- Head `b4c420aefede04d6e224a8038dcb909ea80ae063`, pushed; synced with `origin/launch-prep` at
+- Head `f1d04be18ba2b18c9a989df65d95f1914ce065df`, pushed; synced with `origin/launch-prep` at
   `89548cbb` (the trail-wiring and app-vocabulary merge): two content conflicts (`board.tsx`, `hero.tsx`,
   both-modified: kept round three's `concepts-layer` imports, dropped the incoming one-line repoint of the
   now-deleted `../image-trail/trail-layer` import) and one modify/delete (`paths.ts`: kept the deletion).
