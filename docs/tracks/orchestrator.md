@@ -124,7 +124,7 @@ retired `type-phone`; both agents were told so by message.
 | `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
 | `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
 | `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
-| `first-event` | cut 2026-09-19 on the seat press-page freed: a host's first event from "Create" to a code on the table | building | Opus, :3135 | everything |
+| `first-event` | integrated at `728513ee` (handed off `02bc13e2`, six stale; the registration conflicts resolved by the Orchestrator); six questions relayed | done | Opus, :3135 | nothing; the seat is free |
 | `app-pricing` | integrated at `0379c529` (handed off `36994195`, four stale; the RULINGS-row conflict against demo-event resolved by the Orchestrator); three questions relayed | done | Opus, :3136 | nothing; the seat is free |
 | `pricing-page` | integrated at `f79a8037` (handed off `bc3b9674`, one stale, no conflicts); three questions relayed | done | Opus, :3134 | nothing; the seat is free |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
@@ -264,6 +264,10 @@ are fixed pixels (200, 96, 232) with no module-size guard while the marketing pl
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **Two RULINGS rows added at the same anchor conflict across a row boundary** (2026-09-19, from `first-event` and
+  `app-pricing` at their syncs): the two rows share their four closing lines, so "keep both sides' added lines" drops
+  them and the array never closes. The fix is `],` `},` `},` `{` spliced between the two sides (the Orchestrator's merge
+  scripts do it; the spawn brief now tells a lane to do the same at its own sync).
 - **Concurrent lanes share the scratchpad directory** (2026-09-19, from `app-door`): one lane's `capture.mjs` at the
   scratchpad's root overwrote another's mid-session, and a fixed CDP port put one lane's driver on another lane's Chrome
   (two stray directories landed in a worktree). The spawn brief now sends a lane's scratch files to `<scratchpad>/<track>/`

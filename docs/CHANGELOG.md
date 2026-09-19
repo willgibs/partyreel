@@ -19,13 +19,11 @@ the Terms got their generated-media sentence. The ninth (`d62dac22`) closed albu
 calm instruction messed us up - now it feels too boring") and river-visual r2, and answered `proportion` with the lab
 itself. The calm lesson is PROGRAM.md's: a relative note is answered against a reference, never a cap and a test.
 
-- `ladders-wiring` (`5a5c6eb4`, `d2db2629`; bible 5 and 8 ruled): the type ladder's law became the ORDER (`prose` 24
-  at a phone, a tenth step `subhead`, 126 off-ladder headings onto their step or named in `type-ladder-policy.test.ts`,
-  the trim tracking its leading) and the corners family C in quarters (8 / 12 / 4 with the gallery gap pinned, a `cta`
-  Button on 46 sites, `--shadow-float` and `--radius-action-lg` retired). Its finding: `cn()` did not know the radius tokens.
-- The lab's step, rebuilt (`d37be90e`): the preview is the page (every option mounted once at true size, flipped
-  or side by side, a sticky head naming it) and the answer is a dock (1-9, x, g, n, ?, Enter); a transcribed `?`
-  leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK and a stage below 0.6 of a screen.
+- `ladders-wiring` (`5a5c6eb4`, `d2db2629`; bible 5 and 8 ruled): the type ladder's law became the ORDER (`prose` 24 at a
+  phone, a tenth step `subhead`, 126 off-ladder headings onto their step, the trim tracking its leading) and the corners
+  family C in quarters (8 / 12 / 4, the gap pinned, a `cta` Button on 46 sites, two tokens retired); `cn()` learned the radius tokens.
+- The lab's step, rebuilt (`d37be90e`): the preview is the page (every option once at true size, flipped or side by side,
+  a sticky head naming it) and the answer is a dock; a transcribed `?` leaves the walk; `lab:demo` fails CLIPPED, UNLABELLED, NO DOCK.
 - The glow boards retired with nothing open, and with them the `[data-lit]` leak into production's bright edge; `lab:smoke` passes whole.
 - Four boards cut on three lanes (`33f1de95`): `privacy-hero` and `album-page` (`heroes`), `river-card`, `gallery-width`.
 - `gallery-width` round one integrated: four decisions, each option the real guest or host event page in a `Frame` at
@@ -36,28 +34,21 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   three the same day: Fable orchestrating, boards on Sonnet, wiring on Opus, PROGRAM.md "Model delegation").
 - `heroes` integrated (`6b5ea1bf`): `privacy-hero` (none, then round two, then three) and `album-page` (answered whole, wired below).
 - `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state; the river's production home `src/components/shared/river/`, two contracts, a Library entry.
-- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and unlinked:
-  where it sits, where the photographs end, what it opens (the short `/demo` link fixes the scan floor), the short door; 3.0 px a module.
-- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines in the
-  places they are read with three or four close candidates each, bible 20's question first; every option a real surface.
-- `body-type` integrated (`130236c2`; cut `707d99a2`): the body and label ladder as seven decisions, every number
-  measured in the frame: a guest's reading copy (16), the app's body (14), marketing copy fluid 16 to 18, the caption
-  floor (12), the label pair (12 on 0.14em), buttons on the ladder, line height 2 x size minus 8. Two questions his.
-- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of Glass on the app's chrome over photographs: four
-  recipes in numbers (Frost recommended), one grade or two, the lightbox's backdrop, the chips over tiles at a phone,
-  the reel's controls, the host's row, the light ground; every cost read off the compositor under a 4x throttle.
-- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines as seven decisions on their real surfaces
-  (the admin chart's cast, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces). Found and
-  fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted; they are `@theme static` now.
-- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word, 1,138
-  commits: Graphite, the ladders, the Aurora, the home hero's band and the v1 wordmark, the river on the empty album; the lab gated.
+- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and unlinked: where it sits, where the photographs end, what it opens (`/demo`), the short door; 3.0 px a module.
+- `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines in their places with three or four close candidates each, bible 20's question first.
+- `body-type` integrated (`130236c2`; cut `707d99a2`): the body and label ladder as seven decisions, every number measured
+  in the frame: a guest's reading copy (16), the app's body (14), marketing copy fluid 16 to 18, the caption floor (12), the label pair, buttons, line height. Two questions his.
+- `glass` integrated (`30aaf705`; cut `5e03ffe2`): round one of Glass on the app's chrome over photographs: four recipes in
+  numbers (Frost recommended), one grade or two, the lightbox, the chips at a phone, the reel's controls, the host's row, the light ground; every cost measured.
+- `loose-ends` integrated (`b83b7c3d`; cut `5e03ffe2`): six ROADMAP lines as seven decisions on their real surfaces (the admin
+  chart's cast, one FAQ look, the hero at a 900 px tablet, the album's ambient pieces); four `--color-chart-*` aliases never emitted, fixed at `0681652c`.
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word, 1,138 commits: Graphite, the ladders, the Aurora, the wordmark, the river; the lab gated.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real admin
   components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list), the nav (a rail plus a
   command palette), density (a table with a reading pane), state colour (the chip), destructive acts (a sheet sized to
   the damage), health (a band under the bar), the bar (44 px). Four questions closed at the merge; three defects on the ROADMAP.
-- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the tree:
-  one pure module, `src/lib/surface`, decides which surface a build serves for the proxy, `requireAdmin` and the purge
-  cron (admin an allow-list, app 404ing `/admin`, unset both); the cutover ran the same night and closed with milestone-26.
+- `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the tree: one
+  pure module, `src/lib/surface`, decides which surface a build serves (admin an allow-list, app 404ing `/admin`, unset both); the cutover closed with milestone-26.
 - `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`, `derived`)
   through one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter depths on every run;
   the purge's four sweeps became jobs with switches and per-row isolation (QA #27); `sendOnce` and both limiters report
@@ -136,6 +127,14 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   it and say so), how the door fails (the ways out as buttons under the vague line), a host the browser knows (welcome
   back, one field left). Four questions carried (passkeys and One Tap drawn as a future; the Terms line everywhere; the
   remembered door device-local only; a welcome-made event counts against the cap). Five defects caught in 54 captures.
+- `first-event` integrated (`728513ee`; cut `060dfdf4`): a host's first event from "Create" to a code on the table, as
+  eight decisions in three beats on the real create card, the shipped preset picker and real `StyledQr` plates at 1440
+  and 375, every caption reporting the code's pixels and its module edge against the 3 px scan floor: what creating
+  asks (one field, the name), where the style is chosen (after, on the real code), a Free host at the limit (the form
+  says so, both exits in it), how the code reaches the venue (stock the app prints: cards, a sign, a poster), where the
+  host lands (a beat of its own), what a host holds out at the door (the code alone, full screen at 375), the empty
+  event (a launch list), the first photograph (it lands while she looks). Six questions carried; two product misses
+  found: the style swatches render at 2.3 px a module, under the floor, and preview a link that 404s. Seven defects fixed.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album
   pours out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the
   lab's card engine folded into the shared river as one `origin` argument, the code and the settled flow in the
