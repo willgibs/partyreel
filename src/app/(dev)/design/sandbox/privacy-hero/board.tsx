@@ -1,126 +1,82 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
-
-import { ExplorationBoard, Frame } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
+import { CANVAS, ExplorationBoard, Frame } from "@/components/lab";
+import type { Mode } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { TrailPause } from "@/components/shared/trail/trail";
+import { ACCESS, APERTURE, type ConceptId, SEAL, sealStepMs } from "./concepts";
 import { PrivacyHero } from "./hero";
-import {
-  type Arms,
-  CANVAS,
-  facts,
-  type Gap,
-  type HeroSpec,
-  type Mode,
-  type Pace,
-  type PathId,
-  type Trail,
-} from "./paths";
 import { PRIVACY_HERO } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: each option is the privacy page's first screen
- * at 1440 and again at 375, in real viewports.
+ * THE PREVIEWS, AND NOTHING ELSE: each concept is the privacy page's first
+ * screen at 1440 and again at 375, in real viewports (round three,
+ * 2026-09-19).
  *
- * ★ A FRAME, BECAUSE THE HEADLINE IS A `vw` CLAMP. `text-title` reads the
- * BROWSER's width, so a 375 div on a wide page would draw the 1440 headline and
- * every keep-out the paths are solved around would be wrong. `Frame` portals the
- * composition into a same-origin iframe, the only real viewport the lab has, so
- * the lockup wraps exactly as it will on a phone.
+ * ★ STILL A FRAME, FOR THE SAME REASON ROUND TWO NEEDED ONE. `text-title`
+ * reads the BROWSER's width, so a 375 div on a wide page draws the 1440
+ * headline. `Frame` portals the composition into a same-origin iframe, the
+ * only real viewport the lab has.
  *
- * ★ A STAGED DECISION WEARS WHAT IT WAITS ON. Every preview is a function of the
- * board's state: the figure is drawn at the pace he picked, the gap at both, the
- * trail at all three (`Preview`, exploration.ts).
+ * ★ NO PAUSE CONTEXT THIS ROUND, AND THAT IS A DELIBERATE DEPARTURE FROM
+ * ROUND TWO'S `TrailPause`. That plumbing existed to hold a many-node rAF
+ * loop's CLOCK still while a preview sat off-screen. Nothing here runs a
+ * loop: every concept is a `@keyframes` animation, which the compositor
+ * already throttles on a hidden tab, and reduced motion is a media query
+ * rather than a read of one. Cheaper by construction, not by an omission.
  *
- * ★ THE PAUSE CROSSES THE FRAME BY CONTEXT. The step hides the options it is not
- * showing with `data-paused`, which lives in THIS document; the trail runs inside
- * the frame's, so the host reads its own ancestors and hands the answer down
- * (`TrailPause`).
+ * ★ ONE ASK, THREE OPTIONS, NO STAGED FOLLOW-UP. Round three is a concept
+ * pick, not a refinement of one mechanism's dimensions, so nothing here
+ * reads a prior answer the way round two's `look()` did.
  */
 
-const look = (s: BoardState, mode: Mode): HeroSpec => ({
-  mode,
-  pace: (s.pace ?? "over") as Pace,
-  path: (s.path ?? "spiral") as PathId,
-  gap: (s.gap ?? "tight") as Gap,
-  trail: (s.trail ?? "linger") as Trail,
-  arms: (s.phone ?? "strips") as Arms,
-});
-
-/** The numbers under each screen, measured off the engine it draws, with the
- *  shipped home hero's beside them. */
-function captionFor(spec: HeroSpec) {
-  const f = facts(spec);
-  return `${f.lit} lit at the busiest instant and ${f.quiet} at the quietest (the home hero: ${f.home.lit}) · a photograph every ${f.armBeat} ms on each arm (home: a pair every ${f.home.beat}) · ${f.gap} px apart · the point at ${f.speed} px a second · ${(f.life / 1000).toFixed(1)} s each · ${f.nodes} nodes`;
+/** The numbers under each screen, measured off the same constants the
+ *  picture is built from (`concepts.ts`), never retyped. */
+function captionFor(concept: ConceptId, mode: Mode): string {
+  if (concept === "aperture") {
+    const [lo, hi] = APERTURE.opacity;
+    const [ringLo, ringHi] = APERTURE.ring[mode];
+    return `1 photograph, blurred ${APERTURE.blurPx[mode]}px, ${Math.round(lo * 100)} to ${Math.round(hi * 100)}% opacity · a ${ringLo} to ${ringHi}px ring · one breath every ${APERTURE.cycleMs / 1000}s`;
+  }
+  if (concept === "access") {
+    const n = ACCESS.tiles[mode];
+    return `${n} tiles at ${ACCESS.sizePx[mode]}px, frosted at ${Math.round(ACCESS.frosted.opacity * 100)}% · ${ACCESS.holdMs}ms clear, ${ACCESS.fadeMs}ms to fade · a turn every ${ACCESS.stepMs}ms, a full circuit in ${ACCESS.cycleMs / 1000}s`;
+  }
+  const n = SEAL.cards[mode];
+  const { w, h } = SEAL.size[mode];
+  const step = sealStepMs(mode);
+  return `${n} cards at ${w}x${h}px · sealed to ${SEAL.sealedPct}%, opens to ${SEAL.openPct}% · ${SEAL.openMs}ms open, ${SEAL.closeMs}ms to reseal · one in turn every ${step / 1000}s`;
 }
 
-function Screens({
-  s,
-  phoneOnly = false,
-}: {
-  s: BoardState;
-  phoneOnly?: boolean;
-}) {
-  const host = useRef<HTMLDivElement | null>(null);
-  const isPaused = useCallback(
-    () =>
-      document.hidden || Boolean(host.current?.closest('[data-paused="true"]')),
-    [],
-  );
-  const desk = useMemo(() => look(s, "desktop"), [s]);
-  const phone = useMemo(() => look(s, "phone"), [s]);
-  const id = `${desk.pace}-${desk.path}-${desk.gap}-${desk.trail}-${desk.arms}`;
-
+function Screens({ concept }: { concept: ConceptId }) {
   return (
-    <TrailPause.Provider value={isPaused}>
-      <div ref={host} className="flex min-w-0 flex-col gap-6">
-        {!phoneOnly && (
-          <Frame
-            id={`pvh-desk-${id}`}
-            w={CANVAS.desktop.w}
-            h={CANVAS.desktop.h}
-            title="1440"
-            caption={captionFor(desk)}
-          >
-            <PrivacyHero spec={desk} />
-          </Frame>
-        )}
-        <Frame
-          id={`pvh-phone-${id}`}
-          w={CANVAS.phone.w}
-          h={CANVAS.phone.h}
-          title="375"
-          caption={captionFor(phone)}
-        >
-          <PrivacyHero spec={phone} />
-        </Frame>
-      </div>
-    </TrailPause.Provider>
+    <div className="flex min-w-0 flex-col gap-6">
+      <Frame
+        id={`pvh-desk-${concept}`}
+        w={CANVAS.desktop.w}
+        h={CANVAS.desktop.h}
+        title="1440"
+        caption={captionFor(concept, "desktop")}
+      >
+        <PrivacyHero spec={{ mode: "desktop", concept }} />
+      </Frame>
+      <Frame
+        id={`pvh-phone-${concept}`}
+        w={CANVAS.phone.w}
+        h={CANVAS.phone.h}
+        title="375"
+        caption={captionFor(concept, "phone")}
+      >
+        <PrivacyHero spec={{ mode: "phone", concept }} />
+      </Frame>
+    </div>
   );
 }
-
-/** One option's picture: the board's state with this option worn. `BoardState`
- *  is a record of required strings, so the patch is spelled as one too. */
-const at = (s: BoardState, over: Record<string, string>) => (
-  <Screens s={{ ...s, ...over }} />
-);
 
 const PREVIEWS: PreviewsFor<typeof PRIVACY_HERO> = {
-  "pace.over": (s) => at(s, { pace: "over" }),
-  "pace.rush": (s) => at(s, { pace: "rush" }),
-  "path.spiral": (s) => at(s, { path: "spiral" }),
-  "path.wander": (s) => at(s, { path: "wander" }),
-  "gap.overlap": (s) => at(s, { gap: "overlap" }),
-  "gap.tight": (s) => at(s, { gap: "tight" }),
-  "gap.stack": (s) => at(s, { gap: "stack" }),
-  "trail.quick": (s) => at(s, { trail: "quick" }),
-  "trail.linger": (s) => at(s, { trail: "linger" }),
-  "trail.long": (s) => at(s, { trail: "long" }),
-  "phone.same": (s) => <Screens s={{ ...s, phone: "same" }} phoneOnly />,
-  "phone.strips": (s) => <Screens s={{ ...s, phone: "strips" }} phoneOnly />,
+  "concept.aperture": <Screens concept="aperture" />,
+  "concept.access": <Screens concept="access" />,
+  "concept.seal": <Screens concept="seal" />,
 };
 
 export function PrivacyHeroBoard() {

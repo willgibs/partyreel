@@ -1,9 +1,8 @@
 import type { ComponentType } from "react";
 
 import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
+import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { AppShapeBoard } from "@/app/(dev)/design/sandbox/app-shape/board";
-import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
-import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { GuestShapeBoard } from "@/app/(dev)/design/sandbox/guest-shape/board";
@@ -30,6 +29,7 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "guest-shape": { Component: GuestShapeBoard },
+  "album-motion": { Component: AlbumMotionBoard },
   "app-shape": { Component: AppShapeBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
@@ -37,6 +37,4 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "body-type": { Component: BodyTypeBoard },
   voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
-  "album-page": { Component: AlbumPageBoard },
-  "album-hero": { Component: AlbumHeroBoard },
 };

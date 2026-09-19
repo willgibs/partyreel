@@ -31,6 +31,14 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   // subdirectories of shared/ on its own, so these are here because they carry
   // contracts, and their Library entries read these lines like every other
   // component's (the backdrop and the river said the same thing first).
+  "src/components/shared/album-stream/album-stream.tsx": {
+    for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
+  },
+  "src/components/shared/album-stream/stream-engine.ts": {
+    for: "that stream's arithmetic alone (no React, no DOM, nothing measured): a horizontal is affine in the hero's half-width and a vertical is px from the album's own top edge, so one table is right at every window",
+    unspecimened: "pure functions; the stream above is what they draw",
+  },
+
   "src/components/shared/trail/trail.tsx": {
     for: "photographs laid down behind a cursor, or behind a figure walked on its own; decorative, and the words it is given stand inside it rather than over it",
   },

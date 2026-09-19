@@ -1,9 +1,8 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ADMIN } from "./admin/spec";
+import { ALBUM_MOTION } from "./album-motion/spec";
 import { APP_SHAPE } from "./app-shape/spec";
-import { ALBUM_HERO } from "./album-hero/spec";
-import { ALBUM_PAGE } from "./album-page/spec";
 import { BODY_TYPE } from "./body-type/spec";
 import { GLASS } from "./glass/spec";
 import { GUEST_SHAPE } from "./guest-shape/spec";
@@ -30,6 +29,7 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   GUEST_SHAPE,
+  ALBUM_MOTION,
   APP_SHAPE,
   ADMIN,
   LOOSE_ENDS,
@@ -37,8 +37,6 @@ export const BOARDS: readonly BoardSpec[] = [
   BODY_TYPE,
   VOICE,
   PRIVACY_HERO,
-  ALBUM_PAGE,
-  ALBUM_HERO,
 ];
 
 export function boardSpec(id: string): BoardSpec | undefined {

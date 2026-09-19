@@ -111,13 +111,13 @@ retired `type-phone`; both agents were told so by message.
 | `image-trail` | integrated at `dd44692e` (handed off `60983fea`; privacy-hero's round-one verdict transcribed first at `e140d3ad`) | done | Opus, :3135 | nothing |
 | `cursor-backdrop` | integrated at `592955ab` (handed off `859d88dc`) | done | Opus, :3136 | nothing |
 | `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias |
-| `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
+| `album-wiring` | integrated at `2ca47448` (handed off `552b19fe` after four syncs); both boards retired, `album-motion` open | done | Opus, :3131 | the red-team on the alias when the cap frees |
 | `river-wiring` | integrated at `5297cb07` (handed off `3d74ad68`; the touchpoints conflict resolved by the Orchestrator); both boards retired | done | Opus, :3132 | the red-team on the alias when the cap frees |
 | `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
 | `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |
 | `app-shape` | integrated at `aa338766` (handed off `18c9afda`; the registration conflicts resolved by the Orchestrator, retired boards kept gone) | done | Opus, :3135 | nothing |
 | `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
-| `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
+| `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
