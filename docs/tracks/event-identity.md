@@ -1,6 +1,6 @@
 ---
 track: event-identity
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "22438704"          # the launch-prep SHA the branch was cut from
 board: event-identity   # round one: the event pages' visual identity, from the ground up
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -111,26 +111,100 @@ pages, use-case directories, themed heroes on one system.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The hub's own identity.** The goal listed THE HUB as optional and the seven decisions spent the
+  round, so the hub is drawn only through THE CARDS. **Recommended, and carried:** the hub wears the
+  winning hero theme over a cross-event ground, keeps its all-dark ruling, and puts the winning card
+  under it; if Will wants it asked rather than assumed, it is one decision in round two and costs
+  nothing to add. Nothing in the wiring is blocked either way.
+- **Two of the four types still have no photograph, and three of the seven decisions bend around it.**
+  `room` has no conference or trip room, `frame` puts a plate in a grid of pictures, and `flanked`
+  flanks a wedding reel with a DJ and a festival crowd because those are genuinely the render's
+  clips. **Recommended:** answer the seven on what is drawn, and treat the two slot asks in the
+  Handoff as the thing that makes the winner whole rather than as a condition on it.
+- **`the-ladder` deliberately stops short of the body ladder.** `body-type` owns the body and label
+  steps and is still on the desk with two of its own questions. **Recommended:** rule `the-ladder`
+  here on the two reading slots only, and let `body-type`'s answer land the rest; the third option is
+  drawn so the maximal reading is visible, not so it is taken by default.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (a lab-only round; nothing outside the board and its three registration lines changed)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: a per-type highlight render, so a type page's reel and the frames beside it are that type's
+  (the `flanked` proof flanks a wedding with the shared render's DJ, crowd and confetti clips).
+- Now: `AlbumStream` takes one fixed photograph set, so the falling hero cannot be themed per event
+  type without a frames prop (the cost `hero-theme=arrival` is drawn carrying).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board event-identity` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Head `7e80db4a`, pushed; synced with `launch-prep` at `b45f94fb` (a fast-forward of two record docs,
+  no conflict; the gate below is the synced tree)
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok (123 components, 733
+  contracts, 18 policies; `docs/design/library.md` regenerated and committed as written) · the
+  specimen collector ok (inside `design:rules`) · `pnpm typecheck` ok · `pnpm lint` ok (the 8 known
+  warnings, 0 errors) · `pnpm test` ok (2,554 in 241 files) · `pnpm build` ok (254 static pages) ·
+  `pnpm lab:smoke --base http://localhost:3133` ok (464 checks, 0 failing; the board reads 448 words
+  of 1,200) · `pnpm lab:demo --board event-identity --base http://localhost:3133` ok (7 steps, 0
+  failing; every step draws its options, the stage moves up to 100 percent, tallest 5.8 screens)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the twelve files under
+  `src/app/(dev)/design/sandbox/event-identity/`, the three registration files (one line each at the
+  head of `BOARDS`, `BOARD_COMPONENTS`, `SandboxId` and `boards.ts`, plus one RULINGS row after
+  `river-visual`'s and one `RulingId` entry), `docs/design/library.md` as the generator wrote it, and
+  this manifest. No exceptions.
+- The decisions, one line each:
+  - `hero-theme`: what makes a hero its own now the lockup is fixed; the room behind the words, the
+    photographs arriving, one bespoke lit object, today. **Recommended `object`** (the only theme
+    that is the type's own on all four pages and needs no new photography).
+  - `second-section` (after `hero-theme`): what replaces the paragraph and its tag list; today, one
+    claim and one picture, three beats with a picture each, the party itself still dark.
+    **Recommended `statement`.**
+  - `the-arc` (after `second-section`): how many beats and where the page turns to paper; six beats,
+    a full width photograph as the turn, one dark page like the hub. **Recommended `chapter`.**
+  - `the-cards`: the 2x2 kept, the card redesigned; today, the photograph is the card, a pile of that
+    event, an editorial plate. **Recommended `frame`.**
+  - `the-proof`: the beat he called a total redesign; the reel band, the reel with the six frames it
+    was cut from, the landscape render, the demo as the section. **Recommended `door`.**
+  - `the-ladder`: whether the reading copy grows with the page as its headings do; today, the two
+    reading slots, every size on a step. **Recommended `reading`.**
+  - `the-phone` (after `hero-theme`, phone tile): what a reader meets before scrolling at 375; words
+    first, the media takes the screen, half and half. **Recommended `split`.**
+- Mobbin citations: none (the Mobbin MCP was not needed; every concept is built from the site's own
+  ruled engines and the home and album pages are the reference the goal named).
+- Captures: 47 PNGs, every option at 1440 and 375 (the phone step at 375 only), plus `captions.txt`
+  with each scene's measured line, at
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/event-identity/cap/`
+  (the capture driver beside them, `capture.mjs`). Read against their own words; three real defects
+  came out of that pass and are fixed in the commit: the `frame` card buried both artifact types
+  under the photo scrim, the `flanked` proof's flanking frames are cross event and now say so in the
+  option's own words, and the ladder printed "chips 16px" beside 12 px chips because it measured the
+  flex wrapper instead of the chip.
+- Assets requested from Will, by slot:
+  - A conference room, 5 landscape stills · 1600 px long edge, one grade, JPG or webp, each surviving
+    a full-bleed crop at 1440x660 and at 375x812 with the centre 60 percent clear enough for a glass
+    plate of type · replaces the `BadgeWall` stand-in in `hero-theme=room` and the `AttendeeBadge`
+    plate in `the-cards=frame`
+  - A trip room, 5 landscape stills · the same spec · replaces the `SharedRoll` stand-in in the same
+    two places
+  - A conference and a trip card still, 1 portrait each · 4:5, 1200 px long edge, one grade, legible
+    at 430x537 with the bottom third dark enough for white type · replaces `AttendeeBadge` and
+    `SharedRoll` as the directory card's picture under `the-cards=frame`
+  - Only if `the-proof=flanked` wins: one highlight render per type · portrait 1080x1920, 10 to 15 s,
+    silent, with a poster and its own clip list · replaces `hero-candidate-01` and the six
+    cross-event stills flanking it
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: `hero-theme` at 1440. Every other decision hangs off which of those four a page is,
+  and the two types are drawn one under the other so "themed for its own page" can be judged rather
+  than asserted. Then `the-proof=door`, which is the largest redesign on the board.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of the event pages' visual identity went
+up as seven decisions rather than a page: the hero's theme with the lockup held identical across all
+four options, the section under it staged behind that answer and drawn against the hero's own last
+band, the whole page's arc zoomed down so its rhythm could be seen at once, the 2x2 card redesigned
+four ways, the proof rebuilt around the demo, the reading copy measured against the ladder live in
+the frame, and the phone against a real 812 px fold. Every option was drawn on weddings and on
+conferences, the type the photo manifest has nothing honest for, which is what turned three of the
+seven into questions about the picture set as much as the design; two slot asks went to Will with it.
