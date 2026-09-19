@@ -1,11 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
+import { CtaBand } from "@/components/marketing/system/cta-band";
 import { Container } from "@/components/shared/container";
 import { Button } from "@/components/ui/button";
+import { ABOUT_CAREERS } from "@/lib/constants/about";
+import { IS_HIRING } from "@/lib/constants/careers";
 import { marketingImage } from "@/lib/constants/marketing-media";
-import { cn } from "@/lib/utils";
+import { planById } from "@/lib/constants/tiers";
+import { cn, formatBytes } from "@/lib/utils";
 
 import { FIXTURE_PAGE, HERO_WALL } from "./fixtures";
 
@@ -141,6 +146,68 @@ export function ReadingGround({ phone }: { phone: boolean }) {
             );
           })}
         </div>
+      </Container>
+    </section>
+  );
+}
+
+/**
+ * ROUND TWO'S TWO GROUNDS (2026-09-19): `foot-after` and `foot-alone` ask what
+ * the footer should be in each of the two contexts every marketing route
+ * actually ends in. Both import the real closing composition rather than
+ * redrawing it, the same rule `foot.tsx` follows for the demo pile.
+ */
+
+/**
+ * THE REBUILT `/how-it-works` CLOSE, VERBATIM: the same heading, the same
+ * tier-derived subhead, the same secondary and `demoLink`
+ * (`src/app/(marketing)/(cinema)/how-it-works/page.tsx`). Most marketing pages
+ * now end this way, which is the whole premise of `foot-after`.
+ *
+ * `ink`: the "merged" option's own ground, forced onto the footer's exact
+ * slab tone so the two compositions share one background with no seam. Every
+ * other option leaves the band on its ordinary (cinema) ground, where a real
+ * `chrome-wiring` build would still show the usual seam glow underneath it.
+ */
+export function CtaCloseGround({ ink = false }: { ink?: boolean }) {
+  const free = planById("free");
+  return (
+    <div
+      className={ink ? "surface-ink bg-background text-foreground" : undefined}
+    >
+      <CtaBand
+        heading="Start your first event free."
+        subhead={`${formatBytes(free.storageBytes)} covers a whole first event, and plans are sized by storage, not guest counts. Create the event, share one QR code, and the whole thing lands in one album.`}
+        secondary={{ label: "See full pricing", href: "/pricing" }}
+        demoLink
+      />
+    </div>
+  );
+}
+
+/**
+ * THE REAL `/about` CLOSE, VERBATIM: its own final section, the one real route
+ * where a paper page runs straight into the footer with no `CtaBand` anywhere
+ * above it (`src/app/(marketing)/(cinema)/about/page.tsx`). `foot-alone` is
+ * the question of what the footer owes a page that ends this quietly.
+ */
+export function AboutCloseGround() {
+  return (
+    <section className="surface-paper border-t bg-background text-foreground">
+      <Container className="flex flex-col items-center gap-5 py-20 text-center sm:py-24">
+        <h2 className="max-w-2xl font-heading text-prose text-balance">
+          {ABOUT_CAREERS.heading}
+        </h2>
+        <p className="max-w-xl text-pretty text-muted-foreground">
+          {IS_HIRING ? ABOUT_CAREERS.hiring : ABOUT_CAREERS.notHiring}
+        </p>
+        <Button asChild size="cta" variant="outline" className="mt-1">
+          <Link href={ABOUT_CAREERS.href}>
+            {IS_HIRING
+              ? ABOUT_CAREERS.linkLabelHiring
+              : ABOUT_CAREERS.linkLabelNotHiring}
+          </Link>
+        </Button>
       </Container>
     </section>
   );

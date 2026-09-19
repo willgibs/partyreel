@@ -789,19 +789,20 @@ export const RULINGS: Ruling[] = [
     title: "The marketing site's chrome",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-19: the overnight round, the header, the panel, the phone's menu and the footer, unprotected like the rest)",
+      "2026-09-19: seven of eight decisions ruled and landed on the real chrome by chrome-wiring (the bar hides going down and returns coming up, a Dashboard hint for a signed-in host, Start free always with the demo beside it when one is set, both nav doors to /how-it-works; the shape, the holds and the phone's menu kept as they were). The eighth, the foot's job, stays open for round two: the footer alone, against a real closing CTA, his ask by name",
     shipped: null,
-    why: "Eight decisions on the real chrome: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, and two doors to one loop.",
+    why: "Round two re-asks the footer's register after a real closing CTA, and whether a page with none deserves the same; the other seven are ruled and shipped by chrome-wiring.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/chrome/marketing-header.tsx",
+      "src/components/marketing/chrome/header-shell.tsx",
       "src/components/marketing/chrome/mega-panel.tsx",
       "src/components/marketing/chrome/mobile-menu.tsx",
       "src/components/marketing/chrome/marketing-footer.tsx",
       "src/lib/constants/marketing-nav.ts",
     ],
     board: {
-      note: "Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names",
+      note: "Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
       variants: [
         "The shape",
         "What it holds",
