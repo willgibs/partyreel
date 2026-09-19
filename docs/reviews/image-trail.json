@@ -1,0 +1,27 @@
+{
+  "board": "image-trail",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "density",
+          "choice": "d140",
+          "note": "This makes it feel a lot less overwhelming while still providing the overlap that keeps the trail continuous with no gaps.",
+          "by": "Will",
+          "at": "2026-09-19T00:21:26Z"
+        },
+        {
+          "ask": "decay",
+          "choice": "long",
+          "note": "I'd maybe even suggest 3 seconds to calm it down just a bit.",
+          "by": "Will",
+          "at": "2026-09-19T00:21:26Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

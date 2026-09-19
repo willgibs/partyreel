@@ -8,6 +8,39 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-18 · full-image sections are chapter transitions; cursor-backdrop round one ruled, image-trail begun
+
+**Became:** `cursor-backdrop` round one answered on every step (`section=full-quality`, `legibility=plate`,
+`trigger=band`, `entrance=slide`, `rhythm=insert` as a soft ruling, `phone=scroll` clarified to four or five
+photographs at scroll steps) and its wiring lane `backdrop-wiring` cut the same night; `image-trail` round one
+begun (`density=d140`, `decay=long`, with three seconds suggested). The architectural ruling below binds every
+page with chapters: a full-image section is a way to cross from dark to light, used sometimes, never at every cut.
+
+Verbatim, the ruling: "I think full image backgrounds sections should commonly serve as chapter transitions, so we
+go straight from dark to light or vice versa less often. It makes the transition much less harsh. However, it
+isn't required at every transition, else every page with chapters would have full images above & below the
+paper chapter, which would feel repetitive every time. They can close a chapter, open a chapter, or exist
+individually to separate two chapters. For this specific instance, we could use this to end the first chapter
+and combine the live demo visual currently below into the start of the chapter after."
+
+Verbatim, on the rhythm: "This is not a hard ruling. Rather, a soft ruling on top of my previous 'full image
+background as a chapter transition' note to indicate that its' your architectural decision to either include
+full image sections within dark/paper sections/chapters or insert as their own section between chapters. Though
+this question seems to be asking for an exact placement of this instance, I'm responding with a more open-ended
+answer. The 'new band at the chapter cut' may be modified by you accordingly."
+
+Verbatim, the phone: "To clarify my answer, I'd like it to pass through 4-5 images at steps as it scrolls
+vertically, not requiring taps as a cursor on mobile. That way, it triggers for everyone when passed by, but
+aren't the full eight photographs that may feel too overwhelming cycling through so many on a shorter mobile
+section. Smart call on the different handling for mobile here. The slow cycle feels too jumpy when trying to
+read, so it's nice visitors can stop scrolling to read without any motion clash with our scroll version. Reduce
+motion can have a still photo if that's best."
+
+Verbatim, the rest: `section` "This looks so much better."; `trigger` "I absolutely love the rail of the foot, and
+tracking the Cursor's position justifies this delight."; `entrance` "This feels much more natural and fluid.";
+image-trail `density` "This makes it feel a lot less overwhelming while still providing the overlap that keeps
+the trail continuous with no gaps."; `decay` "I'd maybe even suggest 3 seconds to calm it down just a bit."
+
 ## 2026-09-18 · the privacy hero: none; the image trail is the reference; crisp media motion is the foundation of the visual identity
 
 **Became:** `privacy-hero` round one answered none, and two lanes were cut the same night: `image-trail` (our

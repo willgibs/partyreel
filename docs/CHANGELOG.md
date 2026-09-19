@@ -13,15 +13,12 @@
 
 ## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
 
-**What Will did.** The eighth batch (`00e82dba`) answered both ladders: `type-phone` r1 with "fix the mobile
-type scale ladder so the upper heading is larger" and the rule for every type question after it ("Everything
-should be addressed in our design system type ladder"); `rounding` r7 with family C, `ladder=quarters`,
-`dead-rungs=drop`, `gap=pinned`. Generated media got its one sentence in the Terms (1.2). The ninth batch
-(`d62dac22`) closed album-hero r3 (`composition=none`: "my calm instruction messed us up - now it feels too
-boring"; `w880`, `headline=lg`, `no-script=settled`, `copy=page`) and river-visual r2 (`placement=card`,
-`code=in`, `guest-photos=ghost`), and answered `proportion` with the lab itself ("The top preview UI of our lab
-is covered by the answer UI"). The calm lesson is PROGRAM.md's: a relative note is answered against a
-reference, never a cap and a test.
+**What Will did.** The eighth batch (`00e82dba`) answered both ladders (`type-phone` r1: "Everything should be
+addressed in our design system type ladder"; `rounding` r7: family C, `ladder=quarters`, `dead-rungs=drop`,
+`gap=pinned`); the Terms got their generated-media sentence. The ninth (`d62dac22`) closed album-hero r3
+(`composition=none`: "my calm instruction messed us up - now it feels too boring") and river-visual r2, and answered
+`proportion` with the lab itself. The calm lesson is PROGRAM.md's: a relative note is answered against a reference,
+never a cap and a test.
 
 - `ladders-wiring` (`5a5c6eb4`, `d2db2629`; bible 5 and 8 ruled): the type ladder's law became the ORDER
   (`prose` 24 at a phone, a tenth step `subhead`, 126 off-ladder heading elements onto their step or named in
@@ -160,6 +157,12 @@ reference, never a cap and a test.
   with a redeploy, and the live red-team matched the runbook's table (every app route, the lab and the webhook 404
   on the admin host under GET and POST; the cron there 401 without the secret, `skipped: not_this_surface` with
   it); Will signed in on the new host and the three env-proving pages rendered.
+
+**The round's second sitting, first batch (build `93d00ff`).** `cursor-backdrop` r1 whole (`full-quality`, `plate`,
+`band` "I absolutely love the rail of the foot", `slide`, `insert` as a soft ruling, `scroll` at four or five
+photographs) with the ruling that full-image sections are chapter transitions, used sometimes, never at every cut,
+and for this instance closing chapter one with the live demo folded into the next; `backdrop-wiring` cut from it.
+`image-trail` r1 begun: `d140`, `decay=long` with three seconds suggested.
 
 **Next.** His sitting on the boards on the desk (`privacy-hero` already answered none, its round two in
 `image-trail`), and the ghost on a disposable event on the alias; `image-trail` and `cursor-backdrop` integrate as
