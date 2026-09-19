@@ -1,204 +1,79 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE PRIVACY PAGE'S HERO, ROUND TWO (the image-trail lane, 2026-09-18).
+ * THE PRIVACY PAGE'S HERO, ROUND THREE: A NEW CONCEPT (2026-09-19).
  *
- * Round one answered NONE. Verbatim: "I just started my review with the new
- * privacy and trust hero. None feel right. I think the density needs to increase
- * as well as the speed. Also, when I said 'decaying trail,' I meant of the
- * trailing images, not an actual separate trail effect." And the ask: "Let's
- * rework these explorations to be tighter with images effectively overlapping, a
- * bit faster pace and a polished image trail behind, like the attached
- * screenshots."
+ * Round one (a turning nozzle of photographs) answered none. Round two (two
+ * spiralling arms with a decaying trail) got a `?` on its own arrival: "I
+ * don't really like this arrival animation as part of the spiral/orbit."
+ * Asked what next, Will: "Let's go with a totally different concept... I
+ * think we can say the image trail was a takeaway win from this. The actual
+ * privacy hero can take a different path, maybe more fitting for its theme"
+ * (docs/design/rulings.md, 2026-09-19).
  *
- * ★ THE MECHANISM IS REPLACED, NOT RETUNED. Round one threw frames out of a
- * turning nozzle and drew a wake beside them; a decaying trail OF THE TRAILING
- * IMAGES is not a thing you add behind that, it is what a trail is. So the hero
- * is now the image trail engine with a PATH where the cursor would be: two
- * points sweep out of the lockup's rim and every photograph either one drops
- * fades and shrinks where it lies. `wake`, `echoes` and `none` left with the
- * mechanism, which is the instruction (remove what round one made obsolete
- * rather than stacking options); `pace`, `gap`, `trail` and `phone` keep their
- * ids because their questions survive, so the ledger joins.
+ * ★ "MORE FITTING FOR ITS THEME" IS THE BRIEF, SO THE MECHANISM CHANGES, NOT
+ * JUST THE FIGURE. Both earlier rounds flew photographs through a shape;
+ * both are the "images fly around" language the home hero, the album hero
+ * and the river already speak. This round's three concepts share nothing
+ * with either: no card is ever born, travels or dies. Each sits still, or
+ * nearly still, and the thing that moves is its own VISIBILITY, because
+ * privacy is who can see a thing right now, not how fast a picture moves.
+ * `paths.ts` (the spiral figure) and `paths.test.ts` left with round two;
+ * `field.ts`, `field-layer.tsx` and `field.css` stay only because
+ * `album-page` still imports them for its own margins and motion.
  *
- * ★ FIVE DECISIONS, SHAPED PROGRESSIVELY: the tempo, the figure the two points
- * draw, how close the photographs sit, how long they take to go, and the phone.
- * Both paces are OVER the home hero, because round one recommended its own tempo
- * and came back none.
- *
- * ★ THE NUMBERS IN THE WORDS ARE THE ENGINE'S. `paths.test.ts` holds each
- * option's figures to what the engine measures walking the real paths inside the
- * real canvas, so a retune turns a test red rather than leaving a tile that says
- * one thing and draws another.
- *
- * Pure data (registry.test.ts): the board route is a server page and reads this
- * for its header.
+ * ★ ONE ASK, BECAUSE THIS IS A CONCEPT PICK, NOT A REFINEMENT. Round two's
+ * five decisions tuned one mechanism's dimensions; this round has no
+ * mechanism yet, so the question is which of three, not how fast or how
+ * close. `concepts.ts` holds every number this ask states, and
+ * `concepts.test.ts` holds this file's prose to it.
  */
 export const PRIVACY_HERO = defineExploration({
   id: "privacy-hero",
   title: "The privacy page's hero",
   round: {
-    n: 2,
-    date: "2026-09-18",
+    n: 3,
+    date: "2026-09-19",
     changed:
-      "None felt right: the density and the speed both needed to increase, and a decaying trail meant the trailing images rather than a separate effect. So the field is now the image trail with a path where the cursor would be, faster and tighter, each photograph fading and shrinking where it lies.",
+      "Round two's spiral field is gone: \"I don't really like this arrival animation as part of the spiral/orbit.\" Asked what next: \"Let's go with a totally different concept... more fitting for its theme.\" Three concepts, none of them flying photographs, built on what privacy means instead.",
   },
   bible: [1, 13, 14, 22],
   context:
-    "Two points sweep out of the lockup's rim, each dropping a photograph every time it has travelled far enough, and each photograph fades and shrinks where it lies. Everything here is measured against the shipped home hero, which launches a pair every 1,250 ms and holds 12 photographs at once.",
+    "Round one (a turning nozzle) answered none; round two (two spiralling arms with a trail) answered a question mark on its arrival. The page ships PageHero with no backdrop on purpose, the site's quietest: a concept has to earn its place against that, so all three here sit still, or nearly still, and the thing that moves is each one's own visibility rather than its position.",
   asks: [
     {
-      id: "pace",
-      label: "The pace",
-      question: "How often should a photograph arrive?",
+      id: "concept",
+      label: "The concept",
+      question: "Which concept should carry the privacy page's hero?",
       context:
-        "Both options are over the home hero's own tempo, which round one ran at and you answered none. The counts are measured inside the 1440 frame, so a photograph past the edge is not counted as lit.",
+        "Behind the same words, the same PageHero, the same actions: three mechanisms, none of them a photograph in flight. Each is a small, still composition where visibility itself is what moves. Drawn at 1440 and 375.",
+      options: [
+        {
+          id: "aperture",
+          label: "The aperture",
+          means:
+            "A blurred photograph breathes behind the words with a hairline ring: 360 to 430px, 12 to 20% opacity, one breath every 10 seconds. The calmest of the three.",
+        },
+        {
+          id: "access",
+          label: "The access grid",
+          means:
+            "8 small tiles flank the words, frosted at rest. One clears to full colour for 0.64s and fades back over 0.77s, in turn, a circuit every 6.4s. The most literal.",
+        },
+        {
+          id: "seal",
+          label: "The sealed cards",
+          means:
+            "3 photographs rest under a drawn cover at the page's foot. One lifts from 55% to 8% covered for 0.36s, in turn, every 2.4 seconds. The most tactile.",
+        },
+      ],
+      recommended: "access",
+      because:
+        "It says the theme in one glance rather than in a caption: most of the grid stays frosted and one tile takes its turn to clear, which is curation itself, who can open the album right now. It stays alive without a single photograph ever leaving its place.",
+      overrule:
+        "If eight tiles reads as more machinery than the quiet page wants, the three sealed cards say the same thing in fewer moving parts.",
       lands:
-        "The tempo of the privacy hero: how often a photograph lands and how many are on screen.",
-      options: [
-        {
-          id: "over",
-          label: "A notch over: one every 500 ms",
-          means:
-            "Per arm, so a pair every 500 ms against the home hero's 1,250. 10 on screen at the busiest instant, where the home hero holds 12.",
-        },
-        {
-          id: "rush",
-          label: "Two notches over: one every 364 ms",
-          means:
-            "Half again as fast. 14 on screen, more than the home hero holds, and the busiest this hero gets before the words start to fight it.",
-        },
-      ],
-      recommended: "rush",
-      because:
-        "Your note was that the density and the speed both need to increase, and this is the option where both do: more photographs on screen than the home hero holds, arriving three times as often as round one did.",
-      overrule:
-        "If it reads as busy behind the words on the page about restraint, a notch over.",
-    },
-    {
-      id: "path",
-      label: "The figure",
-      question: "What shape should the two points draw?",
-      after: { ask: "pace" },
-      context:
-        "The photographs land wherever the point has been, so the figure it walks is the composition. Both draw two of them on opposite sides of the words. Drawn at your pace.",
-      lands: "The shape the privacy hero's field reads as, at both screens.",
-      options: [
-        {
-          id: "spiral",
-          label: "Two arms, winding outward",
-          means:
-            "Each point leaves the rim of the words and winds out to the edge as it turns, then starts again at the rim. 10 on screen. The figure you liked on round three.",
-        },
-        {
-          id: "wander",
-          label: "Two drifts around the words",
-          means:
-            "Each point drifts near the words on a slow walk that never repeats. 13 on screen, and no figure to read: photographs simply keep arriving nearby.",
-        },
-      ],
-      recommended: "spiral",
-      because:
-        "It is the picture you asked for by name: images popping in spiralling opposite two sides. The wander is the calmer object and it is here to be seen beside it, but it gives up the one thing you said you loved.",
-      overrule:
-        "If the arms read as a mechanism rather than as photographs, the wander hides the machine.",
-    },
-    {
-      id: "gap",
-      label: "The gap",
-      question: "How close should the photographs sit along each arm?",
-      after: { ask: "path" },
-      context:
-        "Centre to centre in photograph widths, at a 200 px frame. It starts at round one's tightest and goes tighter. The pace is held, so a tighter gap means a slower point rather than a faster hero. Drawn at your pace and figure.",
-      lands: "How much of each photograph the next one covers.",
-      options: [
-        {
-          id: "overlap",
-          label: "Three quarters of a width apart",
-          means:
-            "150 px between them, so each covers a quarter of the last. Round one's tightest option, which is where this scale now starts.",
-        },
-        {
-          id: "tight",
-          label: "Half a width apart",
-          means:
-            "110 px, so each covers nearly half of the last and the arm reads as one ribbon of photographs rather than a row of them.",
-        },
-        {
-          id: "stack",
-          label: "Two fifths of a width apart",
-          means:
-            "80 px, so only a strip of each one is ever visible. The point crawls at 171 px a second to keep your pace.",
-        },
-      ],
-      recommended: "tight",
-      because:
-        "Your screenshots of the reference are about this tight: enough of each photograph showing to be a photograph, and enough covered that the arm is one object. At two fifths a face is a sliver.",
-      overrule:
-        "If a single photograph can never be read, three quarters of a width.",
-    },
-    {
-      id: "trail",
-      label: "The trail",
-      question: "How long should the photographs behind the leader take to go?",
-      after: { ask: "gap" },
-      context:
-        "Each one fades and shrinks where it lies, the shrink ahead of the fade so the tail reads as photographs going away rather than as a dimmer. This is the decaying trail, and the only thing behind the leader.",
-      lands:
-        "The length of each arm's tail, and how full the screen is at rest.",
-      options: [
-        {
-          id: "quick",
-          label: "1.2 seconds",
-          means:
-            "A short arc at the head of each arm and nothing behind it. 7 on screen at the busiest instant.",
-        },
-        {
-          id: "linger",
-          label: "2 seconds",
-          means:
-            "The arm reads its whole length, bright at the head and nearly gone at the tail. 10 on screen.",
-        },
-        {
-          id: "long",
-          label: "3 seconds, keeping a third of its size",
-          means:
-            "The tail is still legible where it started, so the two arms almost meet. 14 on screen, the busiest option here.",
-        },
-      ],
-      recommended: "linger",
-      because:
-        "It is the one where the arm is a comet: unmistakably brightest where the photographs land and unmistakably going behind that. Quick leaves no trail to decay; long leaves the screen full of half photographs.",
-      overrule: "If the hero should be quieter behind the words, 1.2 seconds.",
-    },
-    {
-      id: "phone",
-      label: "At a phone",
-      question: "At a phone, where should the photographs land?",
-      after: { ask: "trail" },
-      tile: "phone",
-      context:
-        "At 375 the words fill the column, so a photograph is only ever seen in the strips above and below them. Drawn at your pace, figure, gap and trail.",
-      lands: "The privacy hero's field below 640 px.",
-      options: [
-        {
-          id: "same",
-          label: "The same figure, sized to the column",
-          means:
-            "One object on both screens. 10 at the busiest, but an arm pointing into the words empties both strips, and at the calmer pace the column goes bare.",
-        },
-        {
-          id: "strips",
-          label: "Two sweeps, one above and one below",
-          means:
-            "Each point crosses the column inside the band it can be seen in, so both strips always hold photographs. 13 on screen and never a dark one.",
-        },
-      ],
-      recommended: "strips",
-      because:
-        "Round one measured the reason and it still holds: at 375 a turning arm points into the words' own width for half of every sweep, and the strips go dark while it does.",
-      overrule:
-        "If the phone should read as the same object as the desktop, the same figure.",
+        "The privacy page's first screen: what sits behind the words, on a laptop and a phone.",
     },
   ],
 });

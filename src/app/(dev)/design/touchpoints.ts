@@ -682,9 +682,9 @@ export const RULINGS: Ruling[] = [
     title: "The privacy page's hero",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-18: the album hero's round-three field becomes the Privacy & trust hero, two spirals, faster, closer, with a decaying trail)",
+      "open (Will, 2026-09-19: the spiral/orbit arrival didn't land, \"totally different concept... more fitting for its theme\"; round three draws three new, still concepts instead)",
     shipped: null,
-    why: "The field recut as two spirals behind the privacy page's words, graded against the home hero's pace: four decisions, each drawn at 1440 and 375.",
+    why: "Three still concepts (a breathing aperture, a turn-taking grid, sealed cards) built on what privacy means, not a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
       "src/components/marketing/system/page-hero.tsx",
