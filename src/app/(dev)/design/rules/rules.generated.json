@@ -374,7 +374,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 142
+          "line": 140
         },
         {
           "title": "survives a missing clipboard API entirely",
@@ -382,7 +382,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 157
+          "line": 155
         },
         {
           "title": "draws the visual in the icon's place, never both",
@@ -390,7 +390,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 167
+          "line": 165
         },
         {
           "title": "gives the help line its own stagger slot, below the actions",
@@ -398,7 +398,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 181
+          "line": 179
         },
         {
           "title": "renders the admin's line without a link, since no runbook exists yet",
@@ -406,7 +406,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 195
+          "line": 193
         },
         {
           "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
@@ -414,7 +414,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 203
+          "line": 201
         },
         {
           "title": "keeps Sentry out of the digest leaf and both failure chromes",
@@ -422,7 +422,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 209
+          "line": 207
         },
         {
           "title": "reports from every crash boundary",
@@ -430,7 +430,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 220
+          "line": 218
         },
         {
           "title": "passes a help line, or is one of the three named exceptions",
@@ -438,7 +438,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 233
+          "line": 230
         },
         {
           "title": "finds the failure files at all",
@@ -446,7 +446,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 242
+          "line": 239
         },
         {
           "title": "asks no database and mounts no server action",
@@ -454,7 +454,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 249
+          "line": 246
         },
         {
           "title": "keeps the real guest header off both guest failure screens",
@@ -462,7 +462,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 260
+          "line": 257
         }
       ]
     },
@@ -583,7 +583,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 142
+          "line": 140
         },
         {
           "title": "survives a missing clipboard API entirely",
@@ -591,7 +591,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 157
+          "line": 155
         },
         {
           "title": "draws the visual in the icon's place, never both",
@@ -599,7 +599,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 167
+          "line": 165
         },
         {
           "title": "gives the help line its own stagger slot, below the actions",
@@ -607,7 +607,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 181
+          "line": 179
         },
         {
           "title": "renders the admin's line without a link, since no runbook exists yet",
@@ -615,7 +615,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 195
+          "line": 193
         },
         {
           "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
@@ -623,7 +623,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 203
+          "line": 201
         },
         {
           "title": "keeps Sentry out of the digest leaf and both failure chromes",
@@ -631,7 +631,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 209
+          "line": 207
         },
         {
           "title": "reports from every crash boundary",
@@ -639,7 +639,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 220
+          "line": 218
         },
         {
           "title": "passes a help line, or is one of the three named exceptions",
@@ -647,7 +647,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 233
+          "line": 230
         },
         {
           "title": "finds the failure files at all",
@@ -655,7 +655,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 242
+          "line": 239
         },
         {
           "title": "asks no database and mounts no server action",
@@ -663,7 +663,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 249
+          "line": 246
         },
         {
           "title": "keeps the real guest header off both guest failure screens",
@@ -671,7 +671,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 260
+          "line": 257
         }
       ]
     },
@@ -5060,7 +5060,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 142
+          "line": 140
         },
         {
           "title": "survives a missing clipboard API entirely",
@@ -5068,7 +5068,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 157
+          "line": 155
         },
         {
           "title": "draws the visual in the icon's place, never both",
@@ -5076,7 +5076,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 167
+          "line": 165
         },
         {
           "title": "gives the help line its own stagger slot, below the actions",
@@ -5084,7 +5084,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 181
+          "line": 179
         },
         {
           "title": "renders the admin's line without a link, since no runbook exists yet",
@@ -5092,7 +5092,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 195
+          "line": 193
         },
         {
           "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
@@ -5100,7 +5100,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 203
+          "line": 201
         },
         {
           "title": "keeps Sentry out of the digest leaf and both failure chromes",
@@ -5108,7 +5108,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 209
+          "line": 207
         },
         {
           "title": "reports from every crash boundary",
@@ -5116,7 +5116,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 220
+          "line": 218
         },
         {
           "title": "passes a help line, or is one of the three named exceptions",
@@ -5124,7 +5124,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 233
+          "line": 230
         },
         {
           "title": "finds the failure files at all",
@@ -5132,7 +5132,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 242
+          "line": 239
         },
         {
           "title": "asks no database and mounts no server action",
@@ -5140,7 +5140,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 249
+          "line": 246
         },
         {
           "title": "keeps the real guest header off both guest failure screens",
@@ -5148,7 +5148,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 260
+          "line": 257
         }
       ]
     },
@@ -5880,7 +5880,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 142
+          "line": 140
         },
         {
           "title": "survives a missing clipboard API entirely",
@@ -5888,7 +5888,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 157
+          "line": 155
         },
         {
           "title": "draws the visual in the icon's place, never both",
@@ -5896,7 +5896,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 167
+          "line": 165
         },
         {
           "title": "gives the help line its own stagger slot, below the actions",
@@ -5904,7 +5904,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 181
+          "line": 179
         },
         {
           "title": "renders the admin's line without a link, since no runbook exists yet",
@@ -5912,7 +5912,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 195
+          "line": 193
         },
         {
           "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
@@ -5920,7 +5920,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 203
+          "line": 201
         },
         {
           "title": "keeps Sentry out of the digest leaf and both failure chromes",
@@ -5928,7 +5928,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 209
+          "line": 207
         },
         {
           "title": "reports from every crash boundary",
@@ -5936,7 +5936,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 220
+          "line": 218
         },
         {
           "title": "passes a help line, or is one of the three named exceptions",
@@ -5944,7 +5944,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 233
+          "line": 230
         },
         {
           "title": "finds the failure files at all",
@@ -5952,7 +5952,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 242
+          "line": 239
         },
         {
           "title": "asks no database and mounts no server action",
@@ -5960,7 +5960,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 249
+          "line": 246
         },
         {
           "title": "keeps the real guest header off both guest failure screens",
@@ -5968,7 +5968,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 260
+          "line": 257
         }
       ]
     },
@@ -6495,7 +6495,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 142
+          "line": 140
         },
         {
           "title": "survives a missing clipboard API entirely",
@@ -6503,7 +6503,7 @@
             "the digest: a crash carries a code, a 404 cannot"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 157
+          "line": 155
         },
         {
           "title": "draws the visual in the icon's place, never both",
@@ -6511,7 +6511,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 167
+          "line": 165
         },
         {
           "title": "gives the help line its own stagger slot, below the actions",
@@ -6519,7 +6519,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 181
+          "line": 179
         },
         {
           "title": "renders the admin's line without a link, since no runbook exists yet",
@@ -6527,7 +6527,7 @@
             "the screen: one picture, and one way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 195
+          "line": 193
         },
         {
           "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
@@ -6535,7 +6535,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 203
+          "line": 201
         },
         {
           "title": "keeps Sentry out of the digest leaf and both failure chromes",
@@ -6543,7 +6543,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 209
+          "line": 207
         },
         {
           "title": "reports from every crash boundary",
@@ -6551,7 +6551,7 @@
             "what reports, and what must never"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 220
+          "line": 218
         },
         {
           "title": "passes a help line, or is one of the three named exceptions",
@@ -6559,7 +6559,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 233
+          "line": 230
         },
         {
           "title": "finds the failure files at all",
@@ -6567,7 +6567,7 @@
             "every failure page offers a way to a person"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 242
+          "line": 239
         },
         {
           "title": "asks no database and mounts no server action",
@@ -6575,7 +6575,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 249
+          "line": 246
         },
         {
           "title": "keeps the real guest header off both guest failure screens",
@@ -6583,7 +6583,7 @@
             "the two session-less chromes stay session-less"
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
-          "line": 260
+          "line": 257
         }
       ]
     },
