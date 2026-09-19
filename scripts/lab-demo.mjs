@@ -52,6 +52,11 @@
  *  - UNLABELLED: the stage head does not name the option it is showing, which
  *    is "labels on which height is which";
  *  - NO DOCK: the dock is off screen at the top of the page or at its foot.
+ * And a step whose every capture is ONE FLAT COLOUR is UNPAINTED rather than
+ * frozen: headless Chrome does not always rasterise a composited layer (a
+ * scene built out of backdrop-filter over photographs), and accusing a board
+ * of drawing the same picture four times when the tool drew none of them is
+ * worse than saying nothing.
  * Every step also prints its height and its word count, and the run ends with
  * the tallest, the wordiest, and how much of the sitting asks with nothing to
  * press: a reviewer's unit of work is the STEP, and nothing else measures one
@@ -219,6 +224,33 @@ function decodePng(buf) {
     }
   }
   return { w, h, channels, data: out };
+}
+
+/**
+ * ★ A STAGE THIS BROWSER NEVER PAINTED (lab-tides, 2026-09-19). Four `glass`
+ * steps read FROZEN at 0.00 percent with their frames' DOM plainly different
+ * (blur 4, 8, 13 and 21 px, read through the frame's own `getComputedStyle`):
+ * headless Chrome rasterised the whole scene as one flat colour, because a
+ * scene built out of `backdrop-filter` over photographs is a composited layer
+ * and this renderer does not always paint one into a capture. A tool that
+ * cannot see a stage must say so rather than accuse the board of showing the
+ * same picture four times, so a capture with no variance at all is reported as
+ * UNPAINTED and judged by eye instead.
+ */
+function flatPicture(img) {
+  let min = 255;
+  let max = 0;
+  // Every 97th pixel: a prime stride, so a regular pattern cannot alias into
+  // looking flat, and a 1440x900 frame is still a thousand samples.
+  for (let i = 0; i < img.w * img.h; i += 97) {
+    const at = i * img.channels;
+    for (let c = 0; c < 3; c++) {
+      const v = img.data[at + c];
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+  }
+  return max - min < 8;
 }
 
 /** The share of pixels that differ by more than a rounding error, in percent. */
@@ -491,7 +523,11 @@ async function stageShot(ws, id) {
           clearTimeout(timer);
           timer = setTimeout(done, ${quiet});
         };
-        const cap = setTimeout(done, Math.max(${quiet}, until - Date.now()));
+        // Bounded by the FLOOR, not the ceiling: stillness may only use time
+        // this capture was going to spend anyway. A stage that mutates for
+        // ever (a scene driving itself from JS) would otherwise spend the
+        // whole ceiling on every option, and a desk-wide run grew by half.
+        const cap = setTimeout(done, Math.max(${quiet}, floor - Date.now()));
         for (const d of docsOf()) {
           try {
             const o = new (d.defaultView || window).MutationObserver(rest);
@@ -507,19 +543,47 @@ async function stageShot(ws, id) {
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       // The evidence is the frame when there is one: a label over it names
       // the option and would move on a frozen stage too.
-      const frames = [...s.querySelectorAll('iframe')]
-        .map((f) => f.getBoundingClientRect())
-        .filter((r) => r.width > 8 && r.height > 8)
-        .sort((a, b) => b.width * b.height - a.width * a.height);
-      const r = frames[0] ?? s.getBoundingClientRect();
-      return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: Math.min(r.height, 2000) };
+      const box = () => {
+        const frames = [...s.querySelectorAll('iframe')]
+          .map((f) => f.getBoundingClientRect())
+          .filter((r) => r.width > 8 && r.height > 8)
+          .sort((a, b) => b.width * b.height - a.width * a.height);
+        return frames[0] ?? s.getBoundingClientRect();
+      };
+      // ★ THE BOX IS SCROLLED INTO THE WINDOW AND CLIPPED THERE (lab-tides,
+      //   2026-09-19, on the finding glass filed 2026-09-18). Capturing
+      //   BEYOND the viewport makes Chrome resize its render surface and
+      //   recomposite: a frame came back black (two identical grids read 84
+      //   percent apart) and a backdrop-filter came back missing entirely, so
+      //   four glass steps whose options differ only in the blur behind them
+      //   read 0.00 percent and FROZEN with the DOM plainly different (blur
+      //   4, 8, 13 and 21 px, measured). The window is taller than any stage
+      //   this clips, so scrolling the box to the top and clipping inside the
+      //   window captures what a reader sees, composited.
+      const first = box();
+      window.scrollTo(0, Math.max(0, first.top + scrollY - 4));
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await nap(120);
+      const r = box();
+      const top = Math.max(0, r.top);
+      return {
+        x: Math.max(0, r.left),
+        y: top,
+        width: r.width,
+        height: Math.min(r.height, innerHeight - top),
+        beyond: r.height > innerHeight - top,
+      };
     })()`,
   );
   if (!rect || rect.width < 8 || rect.height < 8) return null;
+  const { beyond, ...clip } = rect;
   const shot = await send(ws, "Page.captureScreenshot", {
     format: "png",
-    captureBeyondViewport: true,
-    clip: { ...rect, scale: 1 },
+    // Only for a stage taller than the window, which no board draws today:
+    // the flag is what miscomposites, so it is paid for only where it is the
+    // difference between a partial picture and none.
+    captureBeyondViewport: beyond,
+    clip: { ...clip, scale: 1 },
   });
   return Buffer.from(shot.data, "base64");
 }
@@ -689,6 +753,8 @@ try {
         continue;
       }
       const decoded = shots.map((s) => decodePng(s.png));
+      // Nothing to compare when nothing was painted: see `flatPicture`.
+      const unpainted = decoded.every(flatPicture);
       let max = 0;
       const same = [];
       for (let a = 0; a < shots.length; a++)
@@ -704,7 +770,7 @@ try {
         }
       let ok = max >= threshold;
       let how = `the stage moves by up to ${max.toFixed(2)}%`;
-      if (!ok) {
+      if (!ok && !unpainted) {
         // Still pictures that match may be a question about motion: read what
         // each option declares, with motion allowed.
         await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_MOVING });
@@ -726,18 +792,24 @@ try {
         if (verbose) motions.forEach((m, i) => console.log(`  ${step}: motion ${i}: ${m}`));
       }
       const broken = layout.length > 0;
-      if (!ok || broken) failed++;
+      // UNPAINTED is not a failure: the board may be perfect and this renderer
+      // blind to it. It is printed loudly all the same, because a step nobody
+      // can capture is a step nobody should trust this tool about.
+      if ((!ok && !unpainted) || broken) failed++;
       const first = layout[0]?.split(":")[0];
       rows.push({
         step,
         geo,
         layout,
-        verdict: broken ? first : ok ? "ok" : "FROZEN",
-        note: `${shots.length} options, ${how}${
-          ok && same.length && max >= threshold
-            ? `; same picture: ${same.join(", ")}`
-            : ""
-        }`,
+        unpainted,
+        verdict: broken ? first : unpainted ? "UNPAINTED" : ok ? "ok" : "FROZEN",
+        note: unpainted
+          ? `${shots.length} options, every capture one flat colour: this browser did not paint the stage (a composited layer), so judge it by eye`
+          : `${shots.length} options, ${how}${
+              ok && same.length && max >= threshold
+                ? `; same picture: ${same.join(", ")}`
+                : ""
+            }`,
       });
   
     } catch (error) {
@@ -794,6 +866,7 @@ for (const r of rows) {
  * plan has nothing to draw, and `registry.test.ts` makes such an ask carry the
  * `look` line that says what to compare instead.
  */
+const blind = rows.filter((r) => r.unpainted).length;
 const wordsOnly = rows.filter((r) => r.words).length;
 const share = rows.length ? Math.round((wordsOnly / rows.length) * 100) : 0;
 const sized = rows.filter((r) => r.geo?.height);
@@ -803,7 +876,11 @@ const tallest = sized.length
 const wordiest = sized.length
   ? sized.reduce((a, b) => (a.geo.words > b.geo.words ? a : b))
   : null;
-console.log(`\n${rows.length} steps, ${failed} failing.`);
+console.log(
+  `\n${rows.length} steps, ${failed} failing${
+    blind ? `, ${blind} this browser could not paint` : ""
+  }.`,
+);
 if (tallest)
   console.log(
     `tallest: ${tallest.step} at ${screens(tallest.geo.height)} screens · ` +
