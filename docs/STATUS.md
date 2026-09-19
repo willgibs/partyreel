@@ -53,13 +53,13 @@ album hero's round three went "too boring" that way).
 | `admin-triage` | the operator's act on a report inside the admin board's shape: first look, no reason, the verdict, escalate, one idiom for four inboxes, resolved, the phone, the notice | cut at `d909cb13`, on the seat |
 | `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's | cut at `d909cb13`, on the seat |
 | `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search | cut at `d909cb13`, on the seat |
+| `profile-page` | what a person is on Partyreel beyond one album: exists, the head, not found, the named, the claim, what a person is, block, the list; phone first | cut at `c74a509d` (2026-09-19, the overnight round), on the seat host-curation freed |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
-His stepped sitting turned picks into working versions the same day: Graphite, the hero streaming out of the code, ladder B,
-the Aurora, both shadows and the bright edge, the publish bloom, floating surfaces on Card and the v1 wordmark; the brand
-voice exploration was killed unruled and restarts from won lines; the media kit was killed for one Higgsfield month. The
-lab gained `defineExploration` and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
+His stepped sitting turned picks into working versions the same day (Graphite, the streaming hero, ladder B, the Aurora,
+the shadows and the bright edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `defineExploration`
+and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 ## Live state
 

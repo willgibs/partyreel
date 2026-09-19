@@ -133,6 +133,7 @@ retired `type-phone`; both agents were told so by message.
 | `media-viewer` | cut at `d909cb13` (the overnight round): what a photograph opens as, for a guest and a host, phone first | open | Opus, :3131 | the handoff; then `profile-page` on the seat |
 | `reel-studio` | cut at `d909cb13` (the overnight round): the highlight reel from the studio to a guest's hands, on local replicas | open | Opus, :3132 | the handoff; then `export-flow` on the seat |
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
+| `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
 | `emails` | cut at `d909cb13` (the overnight round): every email Partyreel sends, the real templates in an inbox mock | open | Sonnet, :3135 | the handoff; then `how-it-works` on the seat |
 | `help-center` | cut at `d909cb13` (the overnight round): where a host or a guest with a problem lands | open | Sonnet, :3136 | the handoff; then `error-pages` on the seat |
