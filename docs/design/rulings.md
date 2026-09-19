@@ -8,6 +8,18 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · seeded default avatars: a deterministic gradient orb for every account until a photo replaces it
+
+**Became:** `seed-avatar` (Opus, :3131), a round-one board on the real avatar surfaces (the guest list and the faces
+row, the dashboard's user menu, the guest account menu, the account page, the profile's identity row) with the
+`profile-page` cast: the lane learns hashvatar's gradient mode from its source and writes our own zero-dependency,
+canvas-free generator, credited to hashvatar (MIT), then asks the look (gradient, never dither, his steer), the initial,
+the seed (the account id recommended, never anything private), the palette's range, motion, what happens after an
+upload, and the crowd as the proof at 375 and 1440. It enters the desk after `app-vocabulary` (it colours the parts both
+shapes decide; it changes no other board's question).
+
+Verbatim: "Great work. I'm about to begin reviewing the next batch, but I'd like you to start 1+ exploration around the following idea. A while back, Vercel introduced seed-generated dither avatars, which made new accounts feel way cooler than something generic. I'd like you to explore https://www.hashvatar.com/ (also https://github.com/medhychabour/hashvatar , or https://www.npmjs.com/package/hashvatar ) so that we can bake our own version into the app for new accounts until a new avatar is uploaded to replace. I noticed that with both our guest lists and default dashboard, without avatars/color it feels very bland. This would immediately bring life to all avatar components, without a generic one being repeated for every new account. Guest lists would feel rich and diverse, even without any custom avatars uploaded. I like the gradient over dither for our purposes."
+
 ## 2026-09-19 · the desk is ordered by leverage across boards: the earlier influence first
 
 **Became:** a standing rule the Orchestrator keeps, not a round. The desk lists boards in the order of `DESK_ORDER` in
