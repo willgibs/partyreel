@@ -264,7 +264,7 @@ const DRAFT = defineExploration({
       label: "How the door fails",
       question: "How should the door fail?",
       context:
-        "One line answers a wrong password, a Google-only account and an unknown email alike, because telling them apart would let anyone test whether an address has an account here. Drawn on the password door, which every lead keeps somewhere; every option keeps the line vague.",
+        "One line answers a wrong password, a Google-only account and an unknown email alike: telling them apart would let anyone test whether an address has an account here. Drawn on the password door, which every lead keeps somewhere.",
       options: [
         {
           id: "one",

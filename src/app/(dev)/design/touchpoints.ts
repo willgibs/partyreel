@@ -28,6 +28,8 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "press-page"
+  | "contact-page"
   | "entry"
   | "upload"
   | "gallery"
@@ -52,7 +54,9 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "app-door"
+  | "app-pricing"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "app-shape"
@@ -89,7 +93,11 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "app-door"
+  | "app-pricing"
+  | "press-page"
+  | "contact-page"
   | "app-vocabulary"
+  | "demo-event"
   | "guest-shape"
   | "album-motion"
   | "admin"
@@ -660,6 +668,111 @@ export const RULINGS: Ruling[] = [
         "The first screen",
         "The page",
         "The returning host",
+      ],
+    },
+  },
+  {
+    id: "app-pricing",
+    title: "Pricing in the app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+    shipped: null,
+    why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
+    lives: [
+      "docs/PRICING.md",
+      "docs/systems/billing-caps.md",
+      "src/lib/constants/tiers.ts",
+      "src/components/app/dashboard/storage-meter.tsx",
+      "src/components/app/event-password-control.tsx",
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to",
+      variants: [
+        "The object",
+        "The first view",
+        "How much it carries",
+        "The second layer",
+      ],
+    },
+  },
+  {
+    id: "demo-event",
+    title: "The live demo",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    lives: [
+      "src/lib/demo.ts",
+      "src/app/demo/route.ts",
+      "src/components/guest/event-experience.tsx",
+      "src/components/marketing/chrome/footer-demo.tsx",
+      "src/components/marketing/system/demo-cta-link.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
+      variants: [
+        "The first seconds",
+        "Adding a photo",
+        "What a door promises",
+        "Scanned off a laptop",
+      ],
+    },
+  },
+  {
+    id: "press-page",
+    title: "What Partyreel hands the world",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": /press is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "Seven decisions on the real page pieces: who it is for, the sheet, the words, the facts, whether anyone is named, the close, and the reading order.",
+    lives: [
+      "src/app/(marketing)/(cinema)/press/page.tsx",
+      "src/components/marketing/press/press-section.tsx",
+      "src/components/marketing/press/press-sheet.tsx",
+      "src/lib/constants/press.ts",
+    ],
+    board: {
+      note: "Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom",
+      variants: [
+        "Who the page is for",
+        "What the sheet shows",
+        "How the words hand over",
+        "How checkable the facts are",
+        "Whether anyone is named",
+        "How the page closes",
+        "How the page reads",
+      ],
+    },
+  },
+  {
+    id: "contact-page",
+    title: "Reaching a person",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: stack the lab while deployments are capped, /contact cut from his read-only map)",
+    shipped: null,
+    why: "Six decisions on the real desk: the way in, the receipt, an urgent path, the topic picker, the page's rhythm, and what stands beside it.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(paper)/contact/page.tsx",
+      "src/app/(marketing)/(paper)/contact/contact-form.tsx",
+      "src/app/(marketing)/(paper)/contact/actions.ts",
+      "src/lib/constants/contact.ts",
+    ],
+    board: {
+      note: "Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form",
+      variants: [
+        "The way in",
+        "The receipt",
+        "Something urgent",
+        "The topic picker",
+        "The page's identity",
+        "Beside the form",
       ],
     },
   },
