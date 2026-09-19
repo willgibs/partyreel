@@ -25,8 +25,28 @@ without a centred portrait video, one folded close, the footer's demo heading a 
 `loop-wiring` (built now, design-led, by his answer in plan mode) and `event-identity` (a ground-up round first, by his
 answer). Two notes for the record only: kids are never a target user; a partners page for planners before launch.
 
-**Next.** The two wiring lanes judged on the alias, the identity round on the desk; his sitting on the other twenty-seven
-boards.
+- **`loop-wiring` merged at `ef948322`** (2026-09-19, Opus; cut `22438704`): `/how-it-works` rebuilt on the round-one
+  picks, design-led. One scroll of six steps with a Host/Guest segmented toggle above them, a step set per side out of
+  one new single source (`lib/constants/how-it-works.ts`, read by the page, a new shared overview stepper in
+  `sections/shared/how-it-works-stepper.tsx` with its `@contract-for` test, and the app's welcome tutorial, whose three
+  now derive from the host's first three); twelve bespoke pictures in the six FrameCard quotes' place, the host's as
+  objects on a desk, the guest's as one phone with a companion beside each screen. The numbers stay put when the toggle
+  flips (one Reveal per index; the swap its own 200ms `@starting-style` rise). The payoff is the demo as a finished
+  album, a real code encoding `/demo` and no video; the close is one band with the free-storage line in its subhead;
+  the pair is renamed across the spine's foot and the mega panel's card ("Read the full how-to") and the help hub ("See
+  the loop, start to finish"); the footer's demo heading dropped a rung to sit level with a closing H2 (52px against
+  52px at 1440). On the home the stepper took the three scene cards' place under the film strip, which stays with its
+  lamp. The board retired, and `ReelPayoff`, `PricingPointer`, `SideChip` and `step-frames.tsx` with it; `phone=?`
+  dissolved (its three options never left the host's side; the guest half is a phone now). Gate 31 green on the merged tree (lint 0 with the 8 known warnings, 2,553 tests, build 254 pages, `lab:smoke` 453 checks whole with the board gone from its table, `lab:demo` 8 steps on `site-chrome`). Five calls his to
+  overrule on the alias: the stepper in the scene cards' place with the strip kept; the guest set's six moments (scan,
+  the door, add, the room filling, save, the reel arriving); the demo proof without a video, the demo three times at
+  the foot of the page as a decreasing ladder; the demo's promise naming what it is ("A real Partyreel album, curated
+  by the host who ran it, open with no sign-up") rather than counting what is in it; "See full pricing" as the close's
+  second button. Three ROADMAP lines (the `film-strip` section id's misnomer, the article's five steps against the
+  page's six, no Library specimen for the stepper).
+
+**Next.** `errors-wiring` judged on the alias next, the identity round on the desk; his sitting on the other twenty-seven
+boards, with `/how-it-works` and the home's stepper on the alias for his eye.
 
 
 ## 2026-09-19 — The overnight round: twelve boards cut from read-only maps and integrated while Will slept (`d1923907` onward)

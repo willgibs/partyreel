@@ -106,6 +106,16 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
+- **`/how-it-works`** — THE LOOP AS SIX STEPS in one scroll with a Host/Guest toggle above them
+  (`loop-wiring`, 2026-09-19). [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) is the ONE
+  source of both step sets, read by the page, the shared overview stepper
+  ([`how-it-works-stepper.tsx`](../../src/components/marketing/sections/shared/how-it-works-stepper.tsx),
+  mounted on the home under the film strip) and the app's welcome tutorial (its three derive from the
+  host's first three). Twelve bespoke pictures (`sections/how-it-works/host-pictures.tsx`,
+  `guest-pictures.tsx`), the host's on a desk and the guest's in a phone; the demo as a finished album
+  with a real code encoding `/demo` rather than a reel; one folded close. The pair is named apart: the
+  spine's foot and the mega panel's Resources card link the article as "Read the full how-to", the help
+  hub links this page as "See the loop, start to finish".
 - **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0; formal but readable, on a two-register
   contract: every section carries an "In
   short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)

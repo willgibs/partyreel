@@ -139,7 +139,7 @@ retired `type-phone`; both agents were told so by message.
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
 | `error-pages` | integrated at `3d30582f` (handed off `489466f2`, zero stale, no conflicts); three calls carried; the round's last | done | Sonnet, :3134 | nothing; every seat is free |
 | `errors-wiring` | cut at `22438704` (batch three): `error-pages` wired whole, the board retired; the strip as the marketing icon and three more calls his to overrule | open | Opus, :3131 | the handoff; the red-team on the alias incl. Sentry's event list |
-| `loop-wiring` | cut at `22438704` (batch three): `/how-it-works` rebuilt design-led on his picks with a Host/Guest toggle, the stepper overview on the home, the footer heading a step down; the board retired | open | Opus, :3132 | the handoff; the red-team on the alias |
+| `loop-wiring` | cut at `22438704` (batch three): `/how-it-works` rebuilt design-led on his picks with a Host/Guest toggle, the stepper overview on the home, the footer heading a step down; the board retired | done: merged `ef948322` (2026-09-19), gate 31 green, the record `[preview]`; the red-team on the alias pending | Opus, :3132 | Will's eye on the alias; five calls his to overrule (CHANGELOG) |
 | `event-identity` | cut at `22438704` (batch three): round one of the event pages' visual identity, ground up, before the direct picks wire | open | Opus, :3133 | the handoff; on the desk |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |
 | `site-chrome` | integrated at `6a7e6f2f` (handed off `b6b23f33`, ten stale; the registration conflicts resolved by the Orchestrator); three calls carried; four ROADMAP lines | done | Opus, :3135 | nothing; the seat is free |
@@ -163,7 +163,8 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
    step on a board still on the desk), the record in the CHANGELOG's morning-sitting entry, `[preview]`, the alias moved
    onto the record, the prune, the red-team listed in the manifest (Sentry: one event per crash, none per 404). The
    event pages' direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire only
-   after `event-identity` is ruled.
+   after `event-identity` is ruled. `loop-wiring` landed first (`ef948322`, gate 31 green, its record `[preview]`);
+   `errors-wiring` and `event-identity` are still on their seats.
 1. **Done 2026-09-18:** `heroes`, `river-card` and `ghost-wiring` integrated. Will's next sitting is the four
    new boards (`privacy-hero`, `album-page`, `river-card`, `gallery-width`) in the rebuilt step, plus the
    ghost on a disposable event on the alias (left standing until he has judged it, then deleted).
@@ -762,6 +763,6 @@ question); the album visual at the scale's 896 rather than his 880.
   two lab sheets, the first standing board) now checks the fixed files, and `touchpoints.test.ts`
   derives its standing list from the registry, so a lane never edits that test to add or retire a board.
   `lab:smoke` passes whole. The round's record: a new CHANGELOG entry (the stepped review's dropped, git
-  keeps it at `d2db2629`) and STATUS replaced.
+  keeps it at `d2db2629`) and STATUS replaced. `ef948322` loop-wiring integrated (`/how-it-works` rebuilt on the picks, the overview stepper on the home, the how-it-works board retired).
 
 Older windows are in the CHANGELOG (two rounds deep) and in git.
