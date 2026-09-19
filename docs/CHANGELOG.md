@@ -133,6 +133,14 @@ never a cap and a test.
   column). Four questions carried on their recommendations: a host rarely runs more than three events and the
   shape survives it; the bell is reserved, not built; the personal feeds survive under You; the home's heading is
   placeholder copy for the voice board. The `admin` board's cousin, one seam deeper.
+- `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door stopped being the one made object and
+  became the one that moves: the album pours out of a real scannable code a tenth down a tall 4:5 door and the whole
+  card streams behind the copy; the lab's card engine folded into the shared river as one `origin` argument (the
+  guest album's contract never moved), the code and the settled flow in the server's own HTML (3.007 px a module
+  at 1440, 3.118 at 375); `CARD_COPY_SCRIM`, his one bottom-left gradient on every media-forward card, measured per
+  pixel (the three cards a hair under AA rose to 10.89, 13.11 and 15.05); `/demo` ships as the 307 the code
+  encodes; the closing rows took the tall door. Two questions carried on their recommendations (the QR door's title
+  when a bright photograph passes under it; the closing row's line). `river-card` and `river-visual` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
