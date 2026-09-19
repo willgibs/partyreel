@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "pricing-page"
   | "press-page"
   | "contact-page"
   | "entry"
@@ -91,6 +92,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "pricing-page"
   | "app-pricing"
   | "press-page"
   | "contact-page"
@@ -640,6 +642,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "pricing-page",
+    title: "The pricing page",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19: the marketing pricing page, "a more granular exploration than simply comparing new page versions themselves at such a high level")',
+    shipped: null,
+    why: "The page asked part by part rather than version by version: the opening, the plan row, the size, the pass, the fit, the sheet, the close and the phone, one question each.",
+    lives: [
+      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+      "src/components/marketing/sections/pricing/",
+      "docs/systems/marketing-content.md",
+    ],
+    board: {
+      note: "Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands",
+      variants: [
+        "What the page opens on",
+        "How Free and Pro stand",
+        "Choosing a size",
+        "Where the pass stands",
+        "Find your size",
+        "The grid, the table, the band",
+        "The questions and the close",
+        "The page in a hand",
+      ],
+    },
   },
   {
     id: "app-pricing",
