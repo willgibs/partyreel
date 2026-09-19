@@ -21,6 +21,17 @@ type MenuData = {
 // CTA (the host paid for this — it's their event, not a loud Partyreel page); a LOGGED-IN visitor
 // sees their account menu instead, so they feel signed in and can jump back into the app.
 //
+// ★ IT RUNS WITHOUT AN EVENT TOO, and /u/[slug] is why (Will, `head=guest`,
+// 2026-09-19: "Is this the best complete solution? Seems like it'd be very easy to get far away
+// from the original event you scanned if you start clicking guests... I think this is the best
+// option across these three, but maybe not the best overall solution for our nav in general
+// here"). A public profile is a guest-side page with no event behind it, and it used to wear a
+// hand-rolled header of its own that dropped a signed-in visitor's account menu the moment they
+// tapped a name. With both props omitted this is the same header minus the two things that need
+// an event: the ownership check (/api/me/menu already treats the param as optional) and the
+// stored-session clear on sign-out (there is no guest capability on this page to clear). His
+// worry about the way BACK to the scanned event is round two's, on the profile-reach board.
+//
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately
 // avoids a server auth round-trip on the common path (see its upload-path getUser()). We
@@ -34,8 +45,10 @@ export function GuestHeader({
   qrToken,
   eventId,
 }: {
-  qrToken: string;
-  eventId: string;
+  /** The event's canonical token, omitted on an event-less page (/u/[slug]). */
+  qrToken?: string;
+  /** The event being viewed, omitted on an event-less page (/u/[slug]). */
+  eventId?: string;
 }) {
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
@@ -60,7 +73,9 @@ export function GuestHeader({
       // Phase 2: enrich with display name + presigned avatar + ownership (logged-in only).
       try {
         const res = await fetch(
-          `/api/me/menu?event=${encodeURIComponent(eventId)}`,
+          eventId
+            ? `/api/me/menu?event=${encodeURIComponent(eventId)}`
+            : "/api/me/menu",
         );
         if (!active) return;
         if (!res.ok) {
@@ -97,7 +112,9 @@ export function GuestHeader({
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
   // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
   const handleSignOut = useCallback(async () => {
-    setStoredSession(qrToken, null);
+    // No token on an event-less page: there is no guest upload capability to
+    // clear, so the sign-out is the account's alone.
+    if (qrToken) setStoredSession(qrToken, null);
     setMenu(null);
     await createClient().auth.signOut();
     router.refresh();
@@ -116,8 +133,11 @@ export function GuestHeader({
             email={menu.email}
             displayName={menu.displayName}
             avatarUrl={menu.avatarUrl}
+            // Both false and "" on an event-less page, and the menu reads the
+            // id only behind the ownership flag, so the "Manage event" row is
+            // absent rather than pointed at nothing.
             ownsThisEvent={menu.ownsThisEvent}
-            eventId={eventId}
+            eventId={eventId ?? ""}
             onSignOut={handleSignOut}
           />
         ) : (

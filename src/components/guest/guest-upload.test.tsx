@@ -20,6 +20,17 @@ vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
 vi.mock("@/components/guest/save-account-prompt", () => ({
   SaveAccountPrompt: () => <div data-testid="save-account-prompt" />,
 }));
+// The claim prompt OWNS the post-upload slot since the profile wiring
+// (2026-09-19): it resolves the viewer and decides which single card stands,
+// which is its own contract (claim-handle-prompt.test.tsx) and its own supabase
+// call. Stubbed to render the card it was handed, so what stays pinned HERE is
+// the thing this file is about: the slot mounts on doneCount > 0 and never in
+// the demo.
+vi.mock("@/components/guest/claim-handle-prompt", () => ({
+  ClaimHandlePrompt: ({ savePrompt }: { savePrompt: React.ReactNode }) => (
+    <>{savePrompt}</>
+  ),
+}));
 
 const mockUploadFile = vi.mocked(uploadFile);
 

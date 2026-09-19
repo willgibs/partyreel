@@ -182,11 +182,6 @@ const EXCEPTIONS: Record<string, Exception> = {
     count: 1,
     why: "the dashboard's 11px uppercase section label, on its empty teaser",
   },
-  "src/app/(guest)/u/[slug]/page.tsx": {
-    kind: "label",
-    count: 2,
-    why: "the profile page's two 11px uppercase section labels",
-  },
   // ── unstyled ──
   "src/app/global-error.tsx": {
     kind: "unstyled",
@@ -194,9 +189,12 @@ const EXCEPTIONS: Record<string, Exception> = {
     why: "the root error boundary replaces the whole document, stylesheet included, so its h1 is sized inline",
   },
 };
-// (The feed's own section header and the guest album's "Guests" h2 are the
-// other two Inter labels design-system.md allows; they size a child span, not
-// the heading tag, so this scan never sees them and they need no entry.)
+// (The feed's own section header, the guest album's "Guests" h2, the public
+// profile's one section label and the report queue's two are the other Inter
+// labels design-system.md allows; they size a child span, not the heading tag,
+// so this scan never sees them and they need no entry. The profile page's
+// entry went when its two sections became one and both labels took that form,
+// 2026-09-19.)
 
 function filesUnder(dir: string): string[] {
   return readdirSync(join(ROOT, dir), { recursive: true })

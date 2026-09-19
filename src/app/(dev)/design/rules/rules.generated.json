@@ -467,6 +467,49 @@
       ]
     },
     {
+      "id": "claim-handle-prompt",
+      "file": "src/components/guest/claim-handle-prompt.tsx",
+      "names": [
+        "ClaimHandlePrompt"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "signed out: the save-account prompt stands, and no handle is mentioned",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "signed in without a handle: the claim offer, with a door to the account",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "signed in with a handle: nothing at all",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "counts the photographs that landed",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 82
+        }
+      ]
+    },
+    {
       "id": "gallery-empty-state",
       "file": "src/components/guest/gallery-empty-state.tsx",
       "names": [
@@ -7750,6 +7793,101 @@
       "specimens": [],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "guest-list",
+      "file": "src/components/social/guest-list.tsx",
+      "names": [
+        "GUEST_LIST_FACES_THRESHOLD",
+        "GuestList"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names everyone, in chips, at or under the threshold",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 31
+        },
+        {
+          "title": "condenses to ONE button past the threshold, and the button carries the count",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 39
+        },
+        {
+          "title": "opens IN PLACE, one page at a time, never the whole list at once",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "links a guest WITH a handle and leaves one without unlinked",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "says so when the host's key is on and nobody has added a photo yet",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "id": "profile-actions-menu",
+      "file": "src/components/social/profile-actions-menu.tsx",
+      "names": [
+        "ProfileActionsMenu"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers reporting the person AND blocking them",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 44
+        },
+        {
+          "title": "keeps both rows when I already block them (report stays, block becomes unblock)",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 50
+        },
+        {
+          "title": "explains the block before doing it (the confirm is its own step)",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "takes a reason for a report, and reporting is not blocking",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 62
+        }
+      ]
     },
     {
       "id": "avatar",

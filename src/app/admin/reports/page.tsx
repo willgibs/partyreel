@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PersonReportList } from "@/app/admin/reports/person-report-list";
 import { ReportReviewList } from "@/components/app/report-review";
 import {
   Card,
@@ -9,7 +10,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import { listReports, type ReportFilter } from "@/lib/db/queries/reports";
+import {
+  listProfileReports,
+  listReports,
+  type ReportFilter,
+} from "@/lib/db/queries/reports";
 import { cn } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -34,7 +39,11 @@ export default async function AdminReportsPage({
 
   const { status } = await searchParams;
   const filter: ReportFilter = status === "all" ? "all" : "open";
-  const reports = await listReports(filter);
+  // Two arms of one queue (20260919130000): albums and items, and people.
+  const [reports, personReports] = await Promise.all([
+    listReports(filter),
+    listProfileReports(filter),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -44,7 +53,9 @@ export default async function AdminReportsPage({
         </PageHeading>
         <p className="text-sm text-muted-foreground">
           Guest-submitted reports. Actioning an item removes it; the purge cron
-          reclaims its storage afterward. Resolved reports are read-only.
+          reclaims its storage afterward. A reported person is actioned out of
+          band, so marking one handled only closes the report. Resolved reports
+          are read-only.
         </p>
       </div>
 
@@ -65,21 +76,45 @@ export default async function AdminReportsPage({
         ))}
       </nav>
 
+      {/* People first when there are any: a report about a person is about
+          somebody's conduct across the product, which outranks one photograph. */}
+      {personReports.length > 0 && (
+        <section aria-label="Reported people" className="space-y-3">
+          <h2>
+            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              People
+            </span>
+          </h2>
+          <PersonReportList reports={personReports} />
+        </section>
+      )}
+
       {reports.length > 0 ? (
-        <ReportReviewList reports={reports} />
+        <section aria-label="Reported albums and items" className="space-y-3">
+          {personReports.length > 0 && (
+            <h2>
+              <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                Albums and items
+              </span>
+            </h2>
+          )}
+          <ReportReviewList reports={reports} />
+        </section>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {filter === "open" ? "All clear" : "No reports"}
-            </CardTitle>
-            <CardDescription>
-              {filter === "open"
-                ? "No open reports right now."
-                : "No reports on record."}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        personReports.length === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {filter === "open" ? "All clear" : "No reports"}
+              </CardTitle>
+              <CardDescription>
+                {filter === "open"
+                  ? "No open reports right now."
+                  : "No reports on record."}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )
       )}
     </div>
   );

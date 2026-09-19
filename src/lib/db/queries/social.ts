@@ -288,13 +288,17 @@ export type PublicProfileAttendedEvent = {
   name: string;
   event_date: string | null;
   // Deliberately NO qr_token: attendance is not a capability grant (the RPC
-  // never hands out an album link the host didn't publish).
+  // never hands out an album link the host didn't publish). The id IS returned
+  // and is safe to hold: it opens nothing on its own, and the cover presign
+  // below re-proves every gate before it turns one into a picture.
 };
 
 export type PublicProfile = {
   id: string;
   slug: string;
   display_name: string | null;
+  /** The one line a person writes about themselves (migration 20260919120000). */
+  bio: string | null;
   avatar_updated_at: string | null;
   created_at: string;
   hosted_events: PublicProfileHostedEvent[];
@@ -348,6 +352,64 @@ export async function getPublicProfileCoverUrls(
     .filter((e) => e.visibility === "open")
     .map((e) => e.id);
   return adminCoverUrls(openIds);
+}
+
+/**
+ * Cover URLs for the events this person ATTENDED — the other half of the /u/
+ * grid since Will's `made-of=covers` (2026-09-19): "rather than a separate
+ * 'also at' section, maybe we could just have host/guest UI on each event card
+ * to denote within a single group".
+ *
+ * ★ IT RE-PROVES ALL THREE GATES BEFORE IT PRESIGNS, and that is the whole
+ * function. get_public_profile already applied them (the host's show_guest_list
+ * key, visibility = 'open', the guest's own profile_hidden_events) and a caller
+ * that passed its payload straight through would be correct today — but this
+ * turns an event id into a PHOTOGRAPH from someone else's album, so it proves
+ * the scope itself rather than inheriting it from whoever called. One extra
+ * round trip on a page that already does several; a presign is the wrong place
+ * to be clever.
+ *
+ * Cheap by construction: both reads are id-scoped `.in()` lookups on the set
+ * the RPC already narrowed, and an empty set short-circuits before either.
+ * Admin client because the viewer may be anonymous (events RLS is host-only).
+ */
+export async function getPublicProfileAttendedCoverUrls(
+  profileId: string,
+  events: PublicProfileAttendedEvent[],
+): Promise<Map<string, string>> {
+  const ids = events.map((e) => e.id);
+  if (ids.length === 0) return new Map();
+
+  const admin = createAdminClient();
+  try {
+    // Gates 1 and 2: the host's key is still on and the album is still open.
+    const { data: open, error } = await admin
+      .from("events")
+      .select("id")
+      .in("id", ids)
+      .eq("show_guest_list", true)
+      .eq("visibility", "open")
+      .is("deleted_at", null);
+    if (error) throw error;
+    const allowed = new Set((open ?? []).map((e) => e.id));
+    if (allowed.size === 0) return new Map();
+
+    // Gate 3: the guest's own hide. Scoped to THIS profile's rows, never the
+    // viewer's (the viewer may be anonymous; the hide belongs to the page's
+    // owner). Admin read: profile_hidden_events RLS is owner-only.
+    const { data: hidden, error: hiddenError } = await admin
+      .from("profile_hidden_events")
+      .select("event_id")
+      .eq("user_id", profileId)
+      .in("event_id", [...allowed]);
+    if (hiddenError) throw hiddenError;
+    for (const row of hidden ?? []) allowed.delete(row.event_id);
+
+    return adminCoverUrls([...allowed]);
+  } catch (error) {
+    if (isSocialSchemaMissing(error)) return new Map();
+    throw error;
+  }
 }
 
 async function adminCoverUrls(

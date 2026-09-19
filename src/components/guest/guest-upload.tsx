@@ -4,6 +4,7 @@ import { useEffect, useImperativeHandle, useRef } from "react";
 import type { Ref } from "react";
 import { toast } from "sonner";
 
+import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
@@ -119,15 +120,23 @@ export function GuestUpload({
         </p>
       )}
 
-      {/* Post-upload growth card: save this event by creating a free account (Phase 3).
-          The unified successor to the newsletter capture — account-first, with the
-          newsletter opt-in folded into the save dialog. Shown once a guest has
-          contributed; self-hides after dismiss or if already signed in + saved. */}
+      {/* The post-upload slot, one card at a time (Will, `claim=after`,
+          2026-09-19). ClaimHandlePrompt resolves the viewer and decides: signed
+          out gets the save-account card exactly as before (account first, the
+          newsletter opt-in folded into its dialog), signed in without a handle
+          gets the claim line, and somebody who already has a page gets neither.
+          Shown once a guest has contributed, never in the demo. */}
       {doneCount > 0 && !isDemo && (
-        <SaveAccountPrompt
-          eventId={event.id}
+        <ClaimHandlePrompt
+          doneCount={doneCount}
           qrToken={qrToken}
-          sessionToken={sessionToken ?? ""}
+          savePrompt={
+            <SaveAccountPrompt
+              eventId={event.id}
+              qrToken={qrToken}
+              sessionToken={sessionToken ?? ""}
+            />
+          }
         />
       )}
     </div>

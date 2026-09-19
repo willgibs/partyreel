@@ -1,12 +1,19 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  BIO_MAX_LENGTH,
+  bioSchema,
   DISPLAY_NAME_MAX_LENGTH,
   displayNameSchema,
   PROFILE_SLUG_MAX_LENGTH,
   PROFILE_SLUG_MIN_LENGTH,
   profileSlugSchema,
 } from "@/lib/validation/profile";
+
+const MIGRATION = "supabase/migrations/20260919120000_profile_bio.sql";
 
 describe("displayNameSchema", () => {
   it("trims surrounding whitespace", () => {
@@ -95,5 +102,113 @@ describe("profileSlugSchema", () => {
   it("allows a handle that merely contains a reserved token", () => {
     expect(profileSlugSchema.parse("adminah")).toBe("adminah");
     expect(profileSlugSchema.parse("api-fans")).toBe("api-fans");
+  });
+});
+
+describe("bioSchema", () => {
+  it("collapses a bio to ONE line (no walls, no ASCII art)", () => {
+    expect(bioSchema.parse("Weddings,\n\nmostly.   Always late.")).toBe(
+      "Weddings, mostly. Always late.",
+    );
+  });
+
+  it("treats empty and whitespace-only as no bio at all (clearing is emptying)", () => {
+    expect(bioSchema.parse("")).toBeNull();
+    expect(bioSchema.parse("   \n  ")).toBeNull();
+  });
+
+  it("accepts a bio at the cap and refuses one past it", () => {
+    const at = "a".repeat(BIO_MAX_LENGTH);
+    expect(bioSchema.parse(at)).toBe(at);
+    expect(bioSchema.safeParse("a".repeat(BIO_MAX_LENGTH + 1)).success).toBe(
+      false,
+    );
+  });
+
+  it("refuses links, bare domains and email addresses (a free page is a free backlink)", () => {
+    for (const bio of [
+      "https://example.com",
+      "follow me at www.example.com",
+      "maya.com",
+      "t.me/maya",
+      "maya@example.com",
+    ]) {
+      expect(bioSchema.safeParse(bio).success, `expected "${bio}" refused`).toBe(
+        false,
+      );
+    }
+  });
+
+  it("leaves ordinary prose alone (a full stop is not a domain)", () => {
+    for (const bio of [
+      "Weddings, mostly. Always the one with the camera.",
+      "Mrs. Smith to my students, Ana to everyone else.",
+      "Photographer (e.g. weddings, birthdays, the odd dog).",
+    ]) {
+      expect(bioSchema.safeParse(bio).success, `expected "${bio}" allowed`).toBe(
+        true,
+      );
+    }
+  });
+});
+
+/**
+ * THE BIO'S OTHER HALF IS SQL, and this guards it as text, exactly as
+ * public-profile-visibility.test.ts guards the original migration.
+ *
+ * ★ WHY HERE. Migration 20260919120000 REPLACES get_public_profile to carry the
+ * bio, so the function body that ships now lives in that file while the older
+ * guard still parses 20260708120000's superseded text. Until the two guards are
+ * merged (a finding, not a silent edit of another lane's test), the consent
+ * scope is re-asserted against the body that actually runs: every gate on the
+ * attended arm, no album capability in it, and the hosted arm still deliberately
+ * ungated on visibility.
+ */
+describe("get_public_profile, as migration 20260919120000 replaces it", () => {
+  const sql = readFileSync(
+    join(__dirname, "..", "..", "..", MIGRATION),
+    "utf8",
+  );
+  const body = (() => {
+    const start = sql.indexOf("create or replace function public.get_public_profile");
+    expect(start).toBeGreaterThan(-1);
+    const end = sql.indexOf("$$;", start);
+    expect(end).toBeGreaterThan(start);
+    return sql.slice(start, end);
+  })();
+  const arm = (name: "hosted_events" | "attended_events") => {
+    const start = body.indexOf(`'${name}'`);
+    const end = body.indexOf("'[]'::jsonb", start);
+    return body.slice(start, end);
+  };
+
+  it("returns the bio", () => {
+    expect(body).toContain("'bio', p.bio");
+  });
+
+  it("keeps every gate on the attended arm", () => {
+    const attended = arm("attended_events");
+    expect(attended).toContain("e.show_guest_list");
+    expect(attended).toContain("e.visibility = 'open'");
+    expect(attended).toContain("e.deleted_at is null");
+    expect(attended).toContain("profile_hidden_events");
+    expect(attended).toContain("m.status = 'approved'");
+  });
+
+  it("never hands out the album capability through attendance", () => {
+    const attended = arm("attended_events");
+    expect(attended).not.toContain("qr_token");
+    expect(attended).not.toContain("custom_slug");
+  });
+
+  it("leaves the hosted arm ungated on visibility (the host published it)", () => {
+    const hosted = arm("hosted_events");
+    expect(hosted).toContain("e.display_in_profile");
+    expect(hosted).not.toContain("e.visibility = 'open'");
+  });
+
+  it("caps the bio in the database too, not only in zod", () => {
+    expect(sql).toContain("profiles_bio_len");
+    expect(sql).toContain(String(BIO_MAX_LENGTH));
   });
 });
