@@ -25,7 +25,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/lib/dashboard/filters.ts
   - src/lib/event/sections.ts
   - src/app/(dev)/design/sandbox/admin/spec.ts
-  - src/app/(dev)/design/sandbox/gallery-width/spec.ts
 ---
 
 # lp/app-shape

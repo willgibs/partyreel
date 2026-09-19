@@ -14,7 +14,14 @@
  * the new promise — no resync effects. Uploads completing before this mounts
  * are buffered by the shell and flushed through the callback ref.
  */
-import { use, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import {
+  use,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import type { Ref } from "react";
 
 import { Download } from "lucide-react";
@@ -333,9 +340,22 @@ export function LiveGallery({
         // The photographic-promise empty state (full/teaser with nothing yet).
         // The CTA only appears when uploads are possible (onAddFirst present);
         // a teaser viewer's CTA below owns the account path instead.
-        <GalleryEmptyState
-          onAddFirst={access === "full" ? onAddFirst : undefined}
-        />
+        //
+        // ★ IT KEEPS THE READING COLUMN while the album around it runs to the
+        // window (Will's `width=full`, 2026-09-19). The promise is a SQUARE
+        // river that takes its width from its box, so at 1512 the box it must
+        // not have is the album's: a 1472 px square of ghosted photographs is a
+        // page of nothing, four screens tall. An album with no photographs in
+        // it has nothing to spread, so the promise stays the width of the words
+        // it sits under and the window opens up only once there is something to
+        // put in it. Pulled out by the album's gutter and padded back in (the
+        // board's own trick), so this is the page's reading column to the pixel
+        // rather than 40 px wider than the words it sits under.
+        <div className="-mx-5 max-w-2xl px-5">
+          <GalleryEmptyState
+            onAddFirst={access === "full" ? onAddFirst : undefined}
+          />
+        </div>
       )}
       {access === "teaser" && (
         // The teaser boundary CTA: re-opens the entry modal to the account step

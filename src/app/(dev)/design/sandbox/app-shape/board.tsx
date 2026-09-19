@@ -1,7 +1,5 @@
 "use client";
 
-import "./app-shape.css";
-
 import type { ReactNode } from "react";
 
 import { ExplorationBoard } from "@/components/lab";

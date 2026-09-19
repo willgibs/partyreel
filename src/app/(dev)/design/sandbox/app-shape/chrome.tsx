@@ -339,10 +339,21 @@ function RoomRow({ place }: { place: Place }) {
   );
 }
 
-/** The one box every page's content sits in, and the one the caption measures. */
-function Room({ children }: { children: ReactNode }) {
+/** The one box every page's content sits in, and the one the caption measures.
+ *  `wide` is the shipped `data-app-wide` flag `AppShell` reads through `:has()`. */
+function Room({
+  children,
+  wide = false,
+}: {
+  children: ReactNode;
+  wide?: boolean;
+}) {
   return (
-    <div data-as-room className="w-full min-w-0">
+    <div
+      data-as-room
+      data-app-wide={wide ? "" : undefined}
+      className="w-full min-w-0"
+    >
       {children}
     </div>
   );
@@ -373,19 +384,14 @@ function TodayChrome({
         </>
       }
     >
-      {/* ★ THE BLEED ESCAPE, because `AppShell` puts every page inside the
-          app's 1280 `Container` and this board may not edit it. Will ruled on
-          2026-09-19 that galleries run to the WINDOW, so an album drawn inside
-          the container here would answer the navigation question with a width
-          that is on its way out. `w-screen` in a frame is the frame's own
-          viewport, so this is the page escaping its column, at 1:1. */}
-      {bleed ? (
-        <div className="relative left-1/2 w-screen -translate-x-1/2 px-5">
-          <Room>{children}</Room>
-        </div>
-      ) : (
-        <Room>{children}</Room>
-      )}
+      {/* ★ THE WIDE PAGE ASKS FOR ITSELF, in the shell's own words. `AppShell`
+          reads `data-app-wide` on the page root through `:has()` and drops its
+          1280 cap on both containers (gallery-wiring, 2026-09-19), so a
+          full-bleed option here is the shipped mechanism rather than a
+          `w-screen` trick of the board's own. This file wrote that trick before
+          the wiring landed; the merge replaced it, which is the whole reason a
+          lane syncs before it hands off. */}
+      <Room wide={bleed}>{children}</Room>
     </AppShell>
   );
 }

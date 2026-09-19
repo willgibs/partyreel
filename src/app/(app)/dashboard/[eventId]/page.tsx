@@ -183,8 +183,17 @@ export default async function EventDetailPage({
   const visibilityLabel = VISIBILITY_LABELS[event.visibility];
 
   return (
-    <div data-route-fade className="space-y-8">
-      <div className="space-y-4">
+    // ★ THE ONE WIDE PAGE IN THE HOST APP (Will's `host=same`, 2026-09-19: "The
+    // host's album runs to the window's edges and the page lines up the way the
+    // guest's does, so a host sees as many photographs at once as a guest").
+    // `data-app-wide` is how a page asks the shell to drop its 1280 cap
+    // (app-shell.tsx); the shell's gutter still applies, so the logo above and
+    // the feed below start on the SAME left line, which is the whole of
+    // `words=edge`. The words keep the app's 1280 measure, pinned left rather
+    // than centred: a line of reading copy does not get better at 1920, and the
+    // room to the right of it stays open.
+    <div data-route-fade data-app-wide className="space-y-8">
+      <div className="max-w-7xl space-y-4">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -252,13 +261,19 @@ export default async function EventDetailPage({
           RSC-resolved props — presigned, hydration-safe); the Review queue crosses as DATA because
           its inline triage is interactive (driven by the feed + the floating bar). */}
       <HostAddProvider>
-        <HostCommandStrip
-          eventId={event.id}
-          eventName={event.name}
-          joinUrl={eventLink}
-          qrStyle={event.qr_style}
-          videosAllowed={videosAllowedForTier(tier)}
-        />
+        {/* The command strip (and the add-photos panel it hosts) is words and
+            controls, so it holds the page's measure. Left unbounded, its
+            Share button — `sm:flex-1` — would stretch a single action across
+            a 1920 window. The FEED below it takes the full width instead. */}
+        <div className="max-w-7xl">
+          <HostCommandStrip
+            eventId={event.id}
+            eventName={event.name}
+            joinUrl={eventLink}
+            qrStyle={event.qr_style}
+            videosAllowed={videosAllowedForTier(tier)}
+          />
+        </div>
         <ReelProvider eventId={event.id} initialReelIds={reelIds}>
           {/* HostSelectionProvider shares the Gallery album bulk-select state so the floating bar's bulk
               cluster and the gallery grid's tiles + long-press drive one selection; it sits inside

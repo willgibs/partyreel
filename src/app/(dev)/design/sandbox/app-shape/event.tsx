@@ -19,7 +19,10 @@ import {
 import { EventFilterPills } from "@/components/app/event-feed/event-filter-pills";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { MediaTile } from "@/components/app/media-grid";
-import { MasonryColumns } from "@/components/shared/masonry";
+import {
+  GALLERY_UNIFORM_COLUMNS,
+  MasonryColumns,
+} from "@/components/shared/masonry";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +68,18 @@ export const settingOf = (v: string | undefined): Setting =>
 
 const STAT = "flex items-center gap-1.5";
 
-/** The album, at the ruled column width. `as-grid` carries the candidate. */
+/**
+ * The album: the shipped `MasonryColumns`, at the shipped column width.
+ *
+ * ★ `as-grid` IS A MARKER, NOT A STYLE, and it has no stylesheet behind it.
+ * This board was first drawn with a candidate sheet that gave the galleries a
+ * 220 px column in place of their hard-coded count, so no shape would be judged
+ * against a width Will had already ruled out; `gallery-wiring` landed exactly
+ * that in the component itself (`GALLERY_COLUMNS`) while this was being drawn,
+ * so the sheet went and the class stayed. It says which grid on a page is the
+ * ALBUM, so the frame's caption counts the album's columns rather than every
+ * thumbnail in a row or an arrivals strip (chrome.tsx, `Measure`).
+ */
 function Album({ items = ALBUM }: { items?: typeof ALBUM }) {
   return (
     <div className="as-grid">
@@ -145,16 +159,13 @@ function ReviewBanner() {
   );
 }
 
-/** The shipped selectable review grid draws a provider-backed selection, so the
- *  queue is drawn here as the same uniform 4-up grid over the pending fixture. */
+/** The shipped selectable review grid needs a provider-backed selection, so the
+ *  queue is drawn here over the pending fixture wearing the shipped column rule
+ *  itself (`GALLERY_UNIFORM_COLUMNS`), which is what keeps a page whose album
+ *  runs six across from putting its queue on four. */
 function ReviewGrid({ phone }: { phone: boolean }) {
   return (
-    <div
-      className={cn(
-        "grid gap-[var(--gap-gallery)]",
-        phone ? "grid-cols-3" : "grid-cols-6",
-      )}
-    >
+    <div className={cn(GALLERY_UNIFORM_COLUMNS, phone && "grid-cols-3")}>
       {QUEUE.map((m) => (
         <span
           key={m.id}
