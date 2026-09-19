@@ -142,7 +142,8 @@ encouraged, never required: moderation queues, report triage, admin inboxes, aud
 
 ## Handoff (replaces the chat report)
 
-- Head `e83aed43`, pushed. Code commits: `0240235f` (the board) and `84948bea` (the row's sheet fix).
+- The board is `0240235f` (round one) and `84948bea` (the row's sheet fix), merged at `e83aed43`;
+  this manifest is the branch tip on top of it, pushed.
   Synced with `launch-prep` twice: at `ba30b46c` and again at `0bd12595`, both merges keeping both sides'
   registration lines, the second splicing `],` `},` `},` `{` back between the two RULINGS rows added at
   the same anchor.
@@ -205,7 +206,6 @@ a report on the desk as eight decisions, drawn on presentational forks of the re
 Saturday night's fixtures, inside the shape the `admin` board is asking about. Two roots stage it: what a
 report IS on screen unlocks the wordless one, the legal-hold door and the phone; what a verdict COSTS
 unlocks what a closed one leaves. Every option is a real 1440 by 900 viewport with 375 on a knob, captioned
-off the laid-out document, and reading each picture against its own words caught six defects the gate could
-not see. Nothing reached a server action, the admin shell or a page behind `requireAdmin()`. The dead
-`reviewed` status, the never-written `resolution_note` and a Tailwind variant that does not reach a frame
-went to Deferred.
+off the laid-out document, and reading each picture against its words caught six defects the gate could not
+see. Nothing reached a server action or a page behind `requireAdmin()`; the dead `reviewed` status, the
+never-written `resolution_note` and a Tailwind variant that cannot reach a frame went to Deferred.
