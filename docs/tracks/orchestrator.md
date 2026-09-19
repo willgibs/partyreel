@@ -191,6 +191,18 @@ without a Button size beside a `cta` one state away. 11. the profile page hand-r
 `guest-header.tsx`. The behaviour pins (`entry-modal`, `guest-upload`, `password-gate` tests) guard function, never
 look; the one guest `@contract-for` is the empty state's.
 
+**The demo event** (2026-09-19, from the map cut for `demo-event`; four doors, one `/e/<token>` page): 1. `DemoTicket`'s
+comment says the hero renders it, the hero's says it was replaced by `DemoQr`; its `row` variant is dead code. 2. Save is
+blanked to an empty span while Invite stays live and shares the demo link itself. 3. per-tile Save and Share and the bulk
+export APIs skip only `getUser()` for the demo (no `isDemo` enforcement server-side; the hiding is UI-only). 4. the
+upload banner reads the row's real `moderation_mode` while `simulateUpload()` always answers "approved". 5. no door says
+"demo" before arrival; the grey banner is the only framing. 6. the welcome pitch ("no app, no account", the byline) is
+the one thing the demo's audience never sees (`isOwner || isDemo` skips the modal). 7. no conversion path inside beyond
+the header's "Start for free". 8. `demo.ts` has no direct test; every pin is downstream on a boolean prop. 9. the
+marketing "Live demo" mock and the real demo share only the word (ruled decoupled). 10. the ROADMAP's curated-media swap
+is unshipped; today's demo content is placeholder. The `isDemo` password bypass on the row is by design (only `private`
+locks); the token is `NEXT_PUBLIC_DEMO_QR_TOKEN`, excluded from the admin project's env.
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full

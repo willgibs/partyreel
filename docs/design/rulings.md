@@ -8,6 +8,27 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · stack the lab while deployments are capped: the demo, the door, /contact, /press, and pricing inside the app
+
+**Became:** five question-first boards cut on the free seats the same hour, each from a read-only map of its
+surface: `demo-event` (the demo as the product's first impression), `app-door` (login and signup, the door into
+the host app), `contact-page`, `press-page`, and `app-pricing` (a minimal in-app pricing surface with the
+marketing page one click away as the fuller layer). Nothing on these surfaces is protected; a board that comes
+back with nothing kept is deleted at no cost.
+
+Verbatim: "Since we're unable to review everything on the alias right now and have agent slots open with plenty
+of tokens to spare, let's continue stacking lab explorations for when deployments return. A huge advantage of the
+lab is that explorations are, at worst, net neutral and deleted, but always offer an opportunity for improvement.
+Unless already addressed, here's some easier hanging fruit areas you could explore and find ideas for any amount
+of explorations: demo event, login/signup, /contact, /press. Again, we're treating all as unprotected, since lab
+explorations can simply be thrown away, so absolutely everything is up for relitigation or reconcepting from the
+ground up."
+
+Verbatim, the pricing board: "If we have an agent slot free, or whatever one opens, I'd also like to add an
+exploration for an in-app pricing modal so we don't take users out of the app to the marketing site by default
+every pricing click, would prefer to keep them within the app. The marketing site can be a more comprehensive
+'Learn More' second-layer resource that's a click away from the more minimal in-app pricing if needed."
+
 ## 2026-09-19 · the app and the guest pages are unprotected: relitigate from the foundation
 
 **Became:** the Orchestrator maps the host app and the guest experience (two explorations and its own walk of the
