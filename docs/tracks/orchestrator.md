@@ -121,7 +121,8 @@ retired `type-phone`; both agents were told so by message.
 | `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
 | `demo-event` | cut 2026-09-19 from Will's stacking steer: the demo as the product's first impression, on the real guest components with a demo fixture | building | Opus, :3131 | everything |
 | `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
-| `contact-page` | cut 2026-09-19: how someone reaches a person at Partyreel, on the real page pieces | building | Sonnet, :3133 | everything |
+| `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
+| `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
 | `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
 | `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
 | `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
