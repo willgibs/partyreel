@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "code": {
     "album-stream": [
       "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
@@ -318,5 +318,6 @@
     "bulk-select-mock": [
       "<div className=\"space-y-4\">\n  <div className=\"grid max-w-sm grid-cols-4 gap-1\">\n    {LIBRARY_SELECT_TILES.map((tile) => (\n      <SelectTile\n        key={tile.id}\n        id={tile.id}\n        selected={tile.selected}\n        sizes=\"96px\"\n      />\n    ))}\n  </div>\n  <BulkBarMock count={3} />\n</div>"
     ]
-  }
+  },
+  "unread": []
 }

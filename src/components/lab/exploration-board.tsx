@@ -28,16 +28,25 @@ import type { Preview } from "./exploration";
 export function ExplorationBoard<S extends readonly Section[]>({
   spec,
   previews,
+  dock,
   className,
 }: {
   spec: BoardSpec<S>;
   /** One preview per `"<decision>.<option>"`. Typed exhaustively by `PreviewKey`. */
   previews: Readonly<Record<string, Preview>>;
+  /**
+   * The board's own dock cluster (a Reload frames, a Replay). It rides the
+   * board's dock on the whole page and the STEP's stage head in a review, so
+   * an exploration can offer one without it going missing where it is needed
+   * most (lab-tides, 2026-09-19).
+   */
+  dock?: React.ComponentProps<typeof BoardPage>["dock"];
   className?: string;
 }) {
   return (
     <BoardPage
       spec={spec}
+      dock={dock}
       className={className}
       evidence={(sectionId, at) => {
         const option = at[sectionId];

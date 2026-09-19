@@ -4,11 +4,17 @@
  * has to SHOW its options. For each step it presses every option that carries a
  * picture and fails when the stage under the tiles does not visibly change.
  *
- *   pnpm lab:demo [--key <key>]                  # every open step, against pnpm dev
- *   pnpm lab:demo --board floating-surfaces      # one board
- *   pnpm lab:demo --only floating-surfaces.radius
- *   pnpm lab:demo --base https://<alias> --key "$DESIGN_PREVIEW_KEY"
- *   pnpm lab:demo --reach-limit 0.5              # a stricter travel budget
+ *   pnpm lab:demo --base http://localhost:3131   # every open step, against YOUR dev server
+ *   pnpm lab:demo --base ... --board floating-surfaces      # one board
+ *   pnpm lab:demo --base ... --only floating-surfaces.radius
+ *   pnpm lab:demo --base https://<alias>         # the key rides DESIGN_PREVIEW_KEY
+ *   pnpm lab:demo --base ... --reach-limit 0.5   # a stricter travel budget
+ *
+ * `--base` is required (or `LAB_BASE` in the environment): there is no default,
+ * because the only sane-looking default is the Orchestrator's own :3000 and a
+ * lane that measures that is measuring somebody else's tree. A board that
+ * stalls is failed on its own budget (`--board-timeout`, `--call-timeout`) and
+ * the walk goes on.
  *
  * WHY IT EXISTS. A board stopped Will's sitting for the third time on
  * 2026-09-17: "Clicking the configs didn't seem to change anything." The presses
@@ -74,14 +80,56 @@ import { inflateSync } from "node:zlib";
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
   argv.includes(name) ? (argv[argv.indexOf(name) + 1] ?? fallback) : fallback;
-const base = opt("--base", "http://localhost:3000").replace(/\/+$/, "");
+/**
+ * ★ THERE IS NO DEFAULT BASE, AND THAT IS THE FIX (lab-tides, 2026-09-19).
+ *
+ * It used to default to `http://localhost:3000`, which is the ORCHESTRATOR's
+ * port: a lane that forgot the flag measured a tree that was not its own and
+ * was told "lab:demo found no open step to press", which reads as "your board
+ * has no open steps". Two lanes misread their own desk that way in one day.
+ * A wrong answer delivered confidently is worse than no answer, so the script
+ * refuses to guess: pass `--base`, or set `LAB_BASE` once in the shell.
+ */
+const rawBase = opt("--base", process.env.LAB_BASE ?? "");
+if (!rawBase) {
+  console.error(
+    "lab:demo needs the server to press: --base http://localhost:<your port>\n" +
+      "  (or export LAB_BASE). There is no default on purpose: :3000 is the\n" +
+      "  Orchestrator's tree, and a lane that measures it is measuring somebody\n" +
+      "  else's board.",
+  );
+  process.exit(2);
+}
+const base = rawBase.replace(/\/+$/, "");
 // The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
 // so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
 const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");
 const onlyBoard = opt("--board", "");
 const onlyStep = opt("--only", "");
 const threshold = Number(opt("--threshold", 0.1));
+/**
+ * THE SETTLE IS A CEILING NOW, NOT A WAIT (lab-tides, 2026-09-19). It used to
+ * be a flat 1,600 ms sleep before every capture, which is both too long for a
+ * stage that is already drawn and too short for one whose frames are still
+ * fetching photographs: `guest-shape` reported three different "same picture"
+ * pairs across four runs on a board whose frames load photographs and a
+ * dynamically imported QR. The capture now waits for the frames' own images,
+ * their fonts, and then for the view to stop mutating, and `--settle` is the
+ * longest it may spend doing so.
+ */
 const settle = Number(opt("--settle", 1600));
+/** How long a view must be still (no DOM mutations) before it is captured. */
+const quiet = Number(opt("--quiet", 250));
+/**
+ * ★ A STALL IS A RESULT, NOT A HANG (lab-tides, 2026-09-19). A desk-wide run
+ * sat on one board's first step for nine minutes at zero CPU with the
+ * Orchestrator's alarm as the only way out: a DevTools reply that never
+ * arrives leaves the whole run waiting on one promise. Every call now has a
+ * ceiling, and a board that burns its budget is failed and walked past, so the
+ * other thirty boards are still measured.
+ */
+const callTimeout = Number(opt("--call-timeout", 60_000));
+const boardTimeout = Number(opt("--board-timeout", 300_000));
 const verbose = argv.includes("--verbose");
 
 const CHROME =
@@ -203,10 +251,32 @@ const chrome = spawn(
 let seq = 0;
 const pending = new Map();
 let loaded = false;
+/** The error a blown ceiling throws, so a caller can tell it from a real one. */
+class Stalled extends Error {}
+/**
+ * Every DevTools call under a ceiling. Without one, a wedged renderer leaves
+ * this promise pending for ever and the run has no way to notice: the reply
+ * simply never comes, the process sits at zero CPU, and the only cure is a
+ * person with a clock (see `--call-timeout`).
+ */
 function send(ws, method, params = {}) {
   return new Promise((resolve, reject) => {
     const id = ++seq;
-    pending.set(id, { resolve, reject });
+    const timer = setTimeout(() => {
+      if (!pending.has(id)) return;
+      pending.delete(id);
+      reject(new Stalled(`${method} did not answer in ${callTimeout}ms`));
+    }, callTimeout);
+    pending.set(id, {
+      resolve: (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      reject: (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    });
     ws.send(JSON.stringify({ id, method, params }));
   });
 }
@@ -355,17 +425,71 @@ async function stageShot(ws, id) {
         document.head.appendChild(hide);
       }
       s.scrollIntoView({ block: 'start' });
-      // Let a lazily mounted frame arrive, then let every frame in the view load.
-      for (let i = 0; i < 40; i++) {
+      const until = Date.now() + ${settle};
+      const nap = (ms) => new Promise((r) => setTimeout(r, ms));
+      const docsOf = () => {
+        const out = [document];
+        for (const f of s.querySelectorAll('iframe')) {
+          try { if (f.contentDocument) out.push(f.contentDocument); } catch {}
+        }
+        return out;
+      };
+      // 1. Let a lazily mounted frame arrive, then let every frame in the view load.
+      while (Date.now() < until) {
         const frames = [...s.querySelectorAll('iframe')];
         const ready = frames.every((f) => {
           try { return f.contentDocument && f.contentDocument.readyState === 'complete'; }
           catch { return true; }
         });
         if (ready) break;
-        await new Promise((r) => setTimeout(r, 150));
+        await nap(100);
       }
-      await new Promise((r) => setTimeout(r, ${settle}));
+      // 2. ★ THE PICTURES THEMSELVES, which is what the flat 1,600 ms was
+      //    really waiting for and often missed: a frame's photographs decode
+      //    after its document is complete, and a board whose stage is four
+      //    frames of a wedding reported three different "same picture" pairs
+      //    across four runs. Every <img> in the view AND in each frame, the
+      //    fonts with them, then the layout settled by two frames.
+      while (Date.now() < until) {
+        let waiting = 0;
+        for (const d of docsOf())
+          for (const img of d.querySelectorAll('img'))
+            if (!img.complete || img.naturalWidth === 0) waiting++;
+        if (!waiting) break;
+        await nap(100);
+      }
+      await Promise.race([
+        Promise.all(docsOf().map((d) => d.fonts && d.fonts.ready).filter(Boolean)),
+        nap(Math.max(0, until - Date.now())),
+      ]).catch(() => {});
+      // 3. ★ AND THEN STILLNESS, which is the honest end of a settle: a
+      //    dynamically imported QR mounts long after load and nothing about a
+      //    document says it is coming. The view is captured once it has stopped
+      //    MUTATING for the quiet window, or when the ceiling is reached.
+      await new Promise((resolve) => {
+        let timer = 0;
+        const observers = [];
+        const done = () => {
+          clearTimeout(timer);
+          for (const o of observers) o.disconnect();
+          resolve();
+        };
+        const rest = () => {
+          clearTimeout(timer);
+          timer = setTimeout(done, ${quiet});
+        };
+        const cap = setTimeout(done, Math.max(${quiet}, until - Date.now()));
+        for (const d of docsOf()) {
+          try {
+            const o = new (d.defaultView || window).MutationObserver(rest);
+            o.observe(d.documentElement || d, { subtree: true, childList: true, attributes: true, characterData: true });
+            observers.push(o);
+          } catch {}
+        }
+        observers.push({ disconnect: () => clearTimeout(cap) });
+        rest();
+      });
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       // The evidence is the frame when there is one: a label over it names
       // the option and would move on a frozen stage too.
       const frames = [...s.querySelectorAll('iframe')]
@@ -396,6 +520,10 @@ const MEDIA_MOVING = [
 
 const rows = [];
 let failed = 0;
+/** The board being walked, when its clock started, and why it was abandoned. */
+let walking = null;
+let boardStarted = 0;
+let boardBlown = null;
 try {
   const ws = await connect();
   await send(ws, "Page.enable");
@@ -426,158 +554,197 @@ try {
   }
 
   for (const step of wanted) {
-    const board = step.slice(0, step.indexOf("."));
-    const url = withKey(
-      `/design/lab/${board}?session=${encodeURIComponent(step)}`,
-    );
+    // ── THE BOARD'S BUDGET ──────────────────────────────────────────────
+    // A run walks every board on the desk, so one wedged board must not take
+    // the other thirty with it. Each board gets its own clock; a board that
+    // blows it (or stalls a DevTools call) is failed, its remaining steps are
+    // printed as its own line, and the walk goes on.
+    const boardId = step.slice(0, step.indexOf("."));
+    if (boardId !== walking) {
+      walking = boardId;
+      boardStarted = Date.now();
+      boardBlown = null;
+    }
+    const spent = Date.now() - boardStarted;
+    if (!boardBlown && spent > boardTimeout)
+      boardBlown = `the board's budget of ${boardTimeout}ms ran out after ${Math.round(spent / 1000)}s`;
+    if (boardBlown) {
+      failed++;
+      rows.push({ step, verdict: "TIMED OUT", note: boardBlown });
+      continue;
+    }
+    try {
+      const url = withKey(
+        `/design/lab/${boardId}?session=${encodeURIComponent(step)}`,
+      );
 
-    // ── THE LAYOUT, at a reviewer's screen: 1440x900 ─────────────────────
-    await send(ws, "Emulation.setDeviceMetricsOverride", {
-      width: W,
-      height: SCREEN,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await go(ws, url);
-    await evaluate(ws, PAGE_LIB);
-    const geo = await evaluate(ws, "window.__labDemo.geo()");
-    const count = await evaluate(ws, "window.__labDemo.options().length");
-    if (count < 2 || geo.top === null) {
-      rows.push({
-        step,
-        geo,
-        verdict: "skip",
-        words: geo.top === null && geo.kind === "words",
-        note:
-          geo.top === null
-            ? geo.kind === "words"
-              ? "no stage: its options are words"
-              : "a catalog's winner, pressed on its own cards"
-            : "fewer than two pictured options",
+      // ── THE LAYOUT, at a reviewer's screen: 1440x900 ─────────────────────
+      await send(ws, "Emulation.setDeviceMetricsOverride", {
+        width: W,
+        height: SCREEN,
+        deviceScaleFactor: 1,
+        mobile: false,
       });
+      await go(ws, url);
+      await evaluate(ws, PAGE_LIB);
+      const geo = await evaluate(ws, "window.__labDemo.geo()");
+      const count = await evaluate(ws, "window.__labDemo.options().length");
+      if (count < 2 || geo.top === null) {
+        rows.push({
+          step,
+          geo,
+          verdict: "skip",
+          words: geo.top === null && geo.kind === "words",
+          note:
+            geo.top === null
+              ? geo.kind === "words"
+                ? "no stage: its options are words"
+                : "a catalog's winner, pressed on its own cards"
+              : "fewer than two pictured options",
+        });
+        await send(ws, "Emulation.setDeviceMetricsOverride", {
+          width: W,
+          height: H,
+          deviceScaleFactor: 1,
+          mobile: false,
+        });
+        continue;
+      }
+      const layout = [];
+      const outOfReach = geo.top > SCREEN * REACH_LIMIT;
+      if (outOfReach)
+        layout.push(
+          `OUT OF REACH: the stage starts ${(geo.top / SCREEN).toFixed(2)} of a screen down`,
+        );
+      await evaluate(ws, "window.scrollTo(0, 0)");
+      await sleep(150);
+      const dockTop = await evaluate(ws, "window.__labDemo.dock()");
+      await evaluate(ws, "window.scrollTo(0, document.documentElement.scrollHeight)");
+      await sleep(250);
+      const dockFoot = await evaluate(ws, "window.__labDemo.dock()");
+      if (!dockTop || !dockFoot)
+        layout.push(
+          `NO DOCK: off screen at the ${!dockTop ? "top" : "foot"} of the page`,
+        );
+      await evaluate(ws, "window.scrollTo(0, 0)");
+      for (let i = 0; i < count; i++) {
+        const id = await evaluate(ws, `window.__labDemo.show(${i})`);
+        await sleep(250);
+        const want = await evaluate(
+          ws,
+          `window.__labDemo.options()[${i}].getAttribute('data-label') || ''`,
+        );
+        const said = await evaluate(ws, "window.__labDemo.label()");
+        if (!said || !said.includes(want))
+          layout.push(`UNLABELLED: showing "${want}", the head says "${said}"`);
+        const cut = await evaluate(ws, `window.__labDemo.clipped(${JSON.stringify(id)})`);
+        if (cut) layout.push(`CLIPPED: "${want}": ${cut}`);
+      }
+
+      // ── THE PICTURES, in a window tall enough to hold a whole option ─────
       await send(ws, "Emulation.setDeviceMetricsOverride", {
         width: W,
         height: H,
         deviceScaleFactor: 1,
         mobile: false,
       });
-      continue;
-    }
-    const layout = [];
-    const outOfReach = geo.top > SCREEN * REACH_LIMIT;
-    if (outOfReach)
-      layout.push(
-        `OUT OF REACH: the stage starts ${(geo.top / SCREEN).toFixed(2)} of a screen down`,
-      );
-    await evaluate(ws, "window.scrollTo(0, 0)");
-    await sleep(150);
-    const dockTop = await evaluate(ws, "window.__labDemo.dock()");
-    await evaluate(ws, "window.scrollTo(0, document.documentElement.scrollHeight)");
-    await sleep(250);
-    const dockFoot = await evaluate(ws, "window.__labDemo.dock()");
-    if (!dockTop || !dockFoot)
-      layout.push(
-        `NO DOCK: off screen at the ${!dockTop ? "top" : "foot"} of the page`,
-      );
-    await evaluate(ws, "window.scrollTo(0, 0)");
-    for (let i = 0; i < count; i++) {
-      const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-      await sleep(250);
-      const want = await evaluate(
-        ws,
-        `window.__labDemo.options()[${i}].getAttribute('data-label') || ''`,
-      );
-      const said = await evaluate(ws, "window.__labDemo.label()");
-      if (!said || !said.includes(want))
-        layout.push(`UNLABELLED: showing "${want}", the head says "${said}"`);
-      const cut = await evaluate(ws, `window.__labDemo.clipped(${JSON.stringify(id)})`);
-      if (cut) layout.push(`CLIPPED: "${want}": ${cut}`);
-    }
-
-    // ── THE PICTURES, in a window tall enough to hold a whole option ─────
-    await send(ws, "Emulation.setDeviceMetricsOverride", {
-      width: W,
-      height: H,
-      deviceScaleFactor: 1,
-      mobile: false,
-    });
-    await go(ws, url);
-    await evaluate(ws, PAGE_LIB);
-    // One capture before anything is measured, so the first is not of a
-    // stage that is still mounting its frame or drawing its first reading.
-    await stageShot(ws, await evaluate(ws, "window.__labDemo.show(0)"));
-    const shots = [];
-    for (let i = 0; i < count; i++) {
-      const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-      const label = await evaluate(
-        ws,
-        `(window.__labDemo.options()[${i}].getAttribute('data-label') || '').slice(0, 28)`,
-      );
-      const png = await stageShot(ws, id);
-      if (!png) break;
-      shots.push({
-        id,
-        label,
-        hash: createHash("sha1").update(png).digest("hex"),
-        png,
-      });
-    }
-    if (shots.length < 2) {
-      rows.push({ step, geo, verdict: "skip", note: "the stage could not be captured" });
-      continue;
-    }
-    const decoded = shots.map((s) => decodePng(s.png));
-    let max = 0;
-    const same = [];
-    for (let a = 0; a < shots.length; a++)
-      for (let b = a + 1; b < shots.length; b++) {
-        const d =
-          shots[a].hash === shots[b].hash ? 0 : differ(decoded[a], decoded[b]);
-        max = Math.max(max, d);
-        if (d < threshold) same.push(`${shots[a].label} = ${shots[b].label}`);
-        if (verbose)
-          console.log(
-            `  ${step}: ${shots[a].label} vs ${shots[b].label}: ${d.toFixed(3)}%`,
-          );
-      }
-    let ok = max >= threshold;
-    let how = `the stage moves by up to ${max.toFixed(2)}%`;
-    if (!ok) {
-      // Still pictures that match may be a question about motion: read what
-      // each option declares, with motion allowed.
-      await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_MOVING });
       await go(ws, url);
       await evaluate(ws, PAGE_LIB);
-      const motions = [];
+      // One capture before anything is measured, so the first is not of a
+      // stage that is still mounting its frame or drawing its first reading.
+      await stageShot(ws, await evaluate(ws, "window.__labDemo.show(0)"));
+      const shots = [];
       for (let i = 0; i < count; i++) {
         const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-        await stageShot(ws, id);
-        motions.push(
-          await evaluate(ws, `window.__labDemo.motion(${JSON.stringify(id)})`),
+        const label = await evaluate(
+          ws,
+          `(window.__labDemo.options()[${i}].getAttribute('data-label') || '').slice(0, 28)`,
         );
+        const png = await stageShot(ws, id);
+        if (!png) break;
+        shots.push({
+          id,
+          label,
+          hash: createHash("sha1").update(png).digest("hex"),
+          png,
+        });
       }
-      await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
-      if (new Set(motions).size > 1) {
-        ok = true;
-        how = "the options differ in motion only (the animations the stage declares)";
+      if (shots.length < 2) {
+        rows.push({ step, geo, verdict: "skip", note: "the stage could not be captured" });
+        continue;
       }
-      if (verbose) motions.forEach((m, i) => console.log(`  ${step}: motion ${i}: ${m}`));
+      const decoded = shots.map((s) => decodePng(s.png));
+      let max = 0;
+      const same = [];
+      for (let a = 0; a < shots.length; a++)
+        for (let b = a + 1; b < shots.length; b++) {
+          const d =
+            shots[a].hash === shots[b].hash ? 0 : differ(decoded[a], decoded[b]);
+          max = Math.max(max, d);
+          if (d < threshold) same.push(`${shots[a].label} = ${shots[b].label}`);
+          if (verbose)
+            console.log(
+              `  ${step}: ${shots[a].label} vs ${shots[b].label}: ${d.toFixed(3)}%`,
+            );
+        }
+      let ok = max >= threshold;
+      let how = `the stage moves by up to ${max.toFixed(2)}%`;
+      if (!ok) {
+        // Still pictures that match may be a question about motion: read what
+        // each option declares, with motion allowed.
+        await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_MOVING });
+        await go(ws, url);
+        await evaluate(ws, PAGE_LIB);
+        const motions = [];
+        for (let i = 0; i < count; i++) {
+          const id = await evaluate(ws, `window.__labDemo.show(${i})`);
+          await stageShot(ws, id);
+          motions.push(
+            await evaluate(ws, `window.__labDemo.motion(${JSON.stringify(id)})`),
+          );
+        }
+        await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
+        if (new Set(motions).size > 1) {
+          ok = true;
+          how = "the options differ in motion only (the animations the stage declares)";
+        }
+        if (verbose) motions.forEach((m, i) => console.log(`  ${step}: motion ${i}: ${m}`));
+      }
+      const broken = layout.length > 0;
+      if (!ok || broken) failed++;
+      const first = layout[0]?.split(":")[0];
+      rows.push({
+        step,
+        geo,
+        layout,
+        verdict: broken ? first : ok ? "ok" : "FROZEN",
+        note: `${shots.length} options, ${how}${
+          ok && same.length && max >= threshold
+            ? `; same picture: ${same.join(", ")}`
+            : ""
+        }`,
+      });
+  
+    } catch (error) {
+      // A stalled call or a dead page: record it, drop the rest of this
+      // board, put the tab somewhere harmless, and walk on.
+      failed++;
+      boardBlown =
+        error instanceof Stalled
+          ? `${error.message}; the rest of ${boardId} was not pressed`
+          : `${error.message ?? error}; the rest of ${boardId} was not pressed`;
+      rows.push({
+        step,
+        verdict: error instanceof Stalled ? "TIMED OUT" : "ERROR",
+        note: boardBlown,
+      });
+      try {
+        await send(ws, "Page.navigate", { url: "about:blank" });
+      } catch {
+        // The page is gone; the next board's navigate will say so.
+      }
     }
-    const broken = layout.length > 0;
-    if (!ok || broken) failed++;
-    const first = layout[0]?.split(":")[0];
-    rows.push({
-      step,
-      geo,
-      layout,
-      verdict: broken ? first : ok ? "ok" : "FROZEN",
-      note: `${shots.length} options, ${how}${
-        ok && same.length && max >= threshold
-          ? `; same picture: ${same.join(", ")}`
-          : ""
-      }`,
-    });
-  }
+}
   ws.close();
 } finally {
   chrome.kill("SIGKILL");

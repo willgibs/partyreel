@@ -8,6 +8,7 @@ import { Answer, BoardMeta, BoardSection } from "./answer";
 import { BoardPageProvider, useBoardPage } from "./board-page-context";
 import type { BoardSpec, BoardState } from "./board-spec";
 import { ControlKnobs, useBoardState } from "./board-state";
+import { CarriedCalls } from "./carried-calls";
 import { BoardDock } from "./dock";
 import { Notes } from "./notes";
 import { Step } from "./step";
@@ -20,7 +21,7 @@ import { Walk } from "./walk";
  * the evidence, a function of the declared state. This renders the first and
  * calls the second, in ONE fixed order, for every board:
  *
- *   the dock · the Answer · the sections · the meta · the context
+ *   the dock · the Answer · the calls it carried · the sections · the meta · the context
  *
  * ★ AND IN SESSION MODE IT RENDERS THE STEP AND NOTHING ELSE (the stepped
  * review, 2026-09-16). A review is a form now: one context and its question
@@ -99,6 +100,10 @@ export function BoardPage({
           board={{
             controls,
             state,
+            // The board's own dock cluster rides the step's stage head, so a
+            // Reload frames or a Replay is reachable without leaving the
+            // question (step.tsx, `StepBoard.tools`).
+            tools: dock?.(state, api),
             // The step draws a section in a state of its OWN (an option's
             // tile), which is not the board's: `evidence` takes the state it
             // is handed rather than closing over the live one.
@@ -143,6 +148,11 @@ export function BoardPage({
         </BoardDock>
 
         <Answer spec={spec} />
+
+        {/* The calls the lane took without him, between the answer and the
+            evidence: the last quiet moment before the sections begin, and the
+            only place on a board he is already reading (carried-calls.tsx). */}
+        <CarriedCalls calls={spec.carried} />
 
         {spec.sections.map((section, i) => (
           <BoardSection

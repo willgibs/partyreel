@@ -1435,6 +1435,8 @@
         "CANVAS",
         "CARD_PARAM",
         "Candidate",
+        "CarriedCall",
+        "CarriedCalls",
         "Catalog",
         "CatalogRenderArgs",
         "CatalogSpec",

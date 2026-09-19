@@ -5,6 +5,7 @@ import {
   type AskAfter,
   type BoardSpec,
   type BoardState,
+  type CarriedCall,
   type Control,
   defineBoard,
   type Section,
@@ -81,6 +82,27 @@ export type Decision = {
   readonly options: readonly [DecisionOption, DecisionOption, ...DecisionOption[]];
   /** The id of one of `options`. */
   readonly recommended: string;
+  /**
+   * THE OPTION THAT IS THE SURFACE AS BUILT, when one of them is (lab-tides,
+   * 2026-09-19).
+   *
+   * ★ EVERY OTHER AXIS STARTS AT TODAY, NOT AT THIS DECISION'S RECOMMENDATION.
+   * The derived control's default is the state the board is READ in, so a board
+   * that defaults every control to its own recommendation draws the seven
+   * decisions around the one being asked already wearing candidates: app-shape
+   * caught "one urgency-ordered scroll, AS TODAY" drawn with the candidate
+   * share block in it, and "the inbox of everything, as today" drawn in rows.
+   * An option that says "as today" has to BE today. Four boards then carried a
+   * `TODAY` map and re-mapped the controls after the constructor had run; this
+   * is that workaround lifted into the constructor, where it belongs.
+   *
+   * The step still OPENS on the recommendation for its own question
+   * (`step.tsx` reads `step.recommended`, never the control's default), so
+   * declaring this changes what the other decisions wear and nothing else.
+   * Left out, the default stays the recommendation, which is why every standing
+   * board is untouched by this.
+   */
+  readonly today?: string;
   /** Why, in one or two sentences. */
   readonly because?: string;
   /** The one thing that would change the recommendation. */
@@ -113,6 +135,12 @@ export type ExplorationInput = {
   /** How the exploration got here, if it needs saying at all. */
   readonly context?: string;
   readonly asks: readonly [Decision, ...Decision[]];
+  /**
+   * The calls this lane's goal left open and it took on its own recommendation
+   * (its manifest's Questions), drawn above the board's sections so they reach
+   * him where he is reading rather than in the round's record.
+   */
+  readonly carried?: readonly CarriedCall[];
   /** The bible rules in play, by number. */
   readonly bible?: readonly number[];
 };
@@ -191,8 +219,24 @@ const controlFor = (d: Decision): Control => ({
   id: d.id,
   label: nameOf(d),
   options: d.options.map((o) => ({ id: o.id, label: o.label })),
-  default: d.recommended,
+  // Today where the decision names it, the recommendation where it does not
+  // (see `Decision.today`): the axis being asked opens on the recommendation
+  // from the step, and every other axis has to be the surface as built.
+  default: d.today ?? d.recommended,
 });
+
+/**
+ * ★ ONE KNOB PER ID, WHOEVER ASKED FOR IT (lab-tides, 2026-09-19). A screen
+ * knob eight decisions share arrives eight times through `configs`, and the
+ * dock then draws it eight times with React warning on the duplicate key.
+ * Seven boards hit it and every one of them filed the same finding: the
+ * constructor could dedupe by id itself. It does now, first declaration wins,
+ * so a derived control is never displaced by a config of the same id, and the
+ * hand-rolled filter those boards still carry stays correct (deduping twice is
+ * deduping once).
+ */
+const byId = (controls: readonly Control[]): Control[] =>
+  controls.filter((c, i, all) => all.findIndex((d) => d.id === c.id) === i);
 
 const askFor = (d: Decision): Ask => ({
   id: d.id,
@@ -248,10 +292,11 @@ export function defineExploration<const E extends ExplorationInput>(
     departures: [],
     assets: [],
     sections: input.asks.map(sectionFor),
-    controls: [
+    carried: input.carried,
+    controls: byId([
       ...input.asks.map(controlFor),
       ...input.asks.flatMap((d) => d.configs ?? []),
-    ],
+    ]),
     links: { bible: input.bible ?? [] },
   });
 }

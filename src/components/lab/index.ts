@@ -32,6 +32,7 @@ export {
   type BoardState,
   type BuilderVerdict,
   type Candidate,
+  type CarriedCall,
   type CatalogSpec,
   type Control,
   type Departure,
@@ -63,6 +64,7 @@ export { ExplorationBoard } from "./exploration-board";
 /* The template and its furniture */
 export { Answer, BoardMeta, BoardSection } from "./answer";
 export { type BoardApi, BoardPage } from "./board-page";
+export { CarriedCalls } from "./carried-calls";
 export {
   type BoardPageContextValue,
   BoardPageProvider,

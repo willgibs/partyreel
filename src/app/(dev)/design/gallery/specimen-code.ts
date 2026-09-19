@@ -8,7 +8,12 @@ import artifact from "./specimens.generated.json";
  * the Preview beside it. Nothing here touches the filesystem: the artifact is
  * an import, so it ships with the bundle the way rules.generated.json does.
  */
-type SpecimenArtifact = { version: number; code: Record<string, string[]> };
+type SpecimenArtifact = {
+  version: number;
+  code: Record<string, string[]>;
+  /** What the collector met and could not read; specimens.test.ts holds it at empty. */
+  unread: string[];
+};
 
 const SPECIMENS = artifact as SpecimenArtifact;
 

@@ -11,11 +11,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/[board]/
   - src/app/(dev)/design/(shell)/lab/_desk/
   - src/app/(dev)/design/design.css
+  - scripts/lab-review.mjs   # moved from `reads` by the Orchestrator's note (item 10)
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/design/rulings.md
   - docs/PROGRAM.md
   - docs/reviews/README.md
-  - scripts/lab-review.mjs
   - src/app/(dev)/design/sandbox/registry.ts
   - src/app/(dev)/design/sandbox/registry.test.ts
   - src/app/(dev)/design/(shell)/lab/boards.ts
@@ -75,6 +75,23 @@ keep every standing board's behaviour (the desk is the proof: `pnpm lab:smoke` a
    note"`, stored on the round beside `items`) in the Handoff VERBATIM, since `docs/reviews/README.md` and
    `scripts/lab-review.mjs` are the Orchestrator's to land at the merge. The two round-two boards are other lanes' files:
    demonstrate on a fixture in the kit's own tests, not on a board.
+9. **NEW (the Orchestrator, this evening, on Will's question): the sent marker.** His answers stay in the review
+   store after he pastes a batch, so the next paste carries them again until the alias rebuilds, and he asked how to
+   keep stacking pastes harmless. When "Copy so far" composes a message, every answer, item verdict and board note it
+   included is marked `sent` in the store with the `# build` sha and the time. A sent entry stays VISIBLE in its dock
+   and on the desk, greyed with "sent on <build>", so he keeps his context on a stale alias; it is EXCLUDED from the
+   next "Copy so far" unless he changes it afterwards, and a change clears the mark for that one ask so it rides again
+   as a replacement. One quiet fallback, "Copy everything", for the rare case. The storage key bumps
+   (`partyreel.lab.review.v1` to v2) with a migration that treats every existing entry as unsent. Never a "Clear" that
+   deletes his picks: keeping them visible is the better answer and a wrong click would cost him a sitting.
+10. **NEW (the same note): the idempotent re-send.** Today a whole paste is refused when one line names a round the
+   board has left ("site-chrome is in round 2, not r1"), which is exactly what a stale re-send does once a round-two
+   lane lands. Keeping all-or-nothing for real conflicts: an answer IDENTICAL to what the ledger already holds for that
+   board and round (same ask, same choice, same note) is a no-op, printed as `unchanged` rather than `replaced`, and it
+   is accepted even when the board has moved to a later round or retired (the ledger file outlives the board); a line
+   for an earlier round is refused only when it carries an answer the ledger does NOT hold, named in the refusal; an
+   ask id that no longer exists on the spec is judged the same way. `scripts/lab-review.mjs` moves into `owns` for
+   this; `docs/reviews/README.md` stays a verbatim proposal in the Handoff, because `docs/reviews/` is never owned.
 
 **Binds.** The bible; the kit's discipline (`kit-discipline.test.ts`, `boundary.test.ts`, `step.test.ts`, `catalog.test.tsx`,
 `lab-chrome.test.tsx`: extend, never loosen); `registry.test.ts` (read only; if a rule there must change, propose the

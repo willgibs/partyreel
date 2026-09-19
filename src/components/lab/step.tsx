@@ -105,6 +105,16 @@ import { useDesignKey } from "./walk";
 export type StepBoard = {
   /** The board's declared controls, for an ask's config strip. */
   controls?: readonly Control[];
+  /**
+   * THE BOARD'S OWN DOCK CLUSTER, REACHABLE FROM A STEP (lab-tides,
+   * 2026-09-19). A step's dock is the ANSWER's: the options, Pick, the note,
+   * Back and Next, and nothing a board could add. That left a board's own
+   * tools (a Reload frames, a Replay, an Apply) reachable only by leaving the
+   * question and opening the whole board, which is the trip the stepped review
+   * exists to end. They ride the stage head instead, beside the scale, where
+   * they stay on screen while a tall stage scrolls.
+   */
+  tools?: React.ReactNode;
   /** The live board state (`useBoardState`), which the stage reads. */
   state: BoardState;
   setState: (patch: Record<string, string>) => void;
@@ -438,6 +448,14 @@ export function Step({
   // The walk's own numbering: a staged step is not a step the reviewer has.
   const walk = steps.filter((s) => stepBlocked(s, store) === null);
   const n = walk.indexOf(step) + 1;
+  // ★ A STEP REACHED BY URL MAY NOT BE IN THE WALK AT ALL (lab-tides,
+  // 2026-09-19). Back and Next skip a staged step, but a pasted link, a
+  // reload after answering its prerequisite the other way, or the desk's own
+  // deep link can land on one. It used to draw itself as "step 8 of 7": a
+  // number that is not a position, on a page that is not in the walk. The
+  // spine says what it is instead, and the step stays readable, because a
+  // reader who followed a link to a question is owed the question.
+  const blocked = stepBlocked(step, store);
   // The options the dock carries: the ones drawn on the stage. A catalog's
   // winner is pressed on its cards, and an option in words on its own card.
   const pictured =
@@ -456,6 +474,7 @@ export function Step({
         step={step}
         n={n > 0 ? n : walk.length + 1}
         of={Math.max(walk.length, 1)}
+        blocked={blocked}
         transcribed={transcribed}
         build={build}
       />
@@ -544,12 +563,15 @@ function Spine({
   step,
   n,
   of,
+  blocked,
   transcribed,
   build,
 }: {
   step: SessionStep;
   n: number;
   of: number;
+  /** Null when the step is in the walk; otherwise why it is not. */
+  blocked?: "staged" | "moot" | null;
   transcribed?: Transcribed;
   build?: string | null;
 }) {
@@ -558,9 +580,24 @@ function Spine({
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="text-[11px] font-medium">{step.boardTitle}</span>
-        <span className="text-[11px] text-muted-foreground tabular-nums">
-          step {n} of {of}
-        </span>
+        {blocked ? (
+          <span
+            className="text-[11px] text-muted-foreground"
+            title={
+              blocked === "staged"
+                ? "Answer the question it waits on and it joins the walk."
+                : "The question it waited on went the other way."
+            }
+          >
+            {blocked === "staged"
+              ? "not in the walk yet: it waits on an earlier answer"
+              : "not in the walk: moot this round"}
+          </span>
+        ) : (
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            step {n} of {of}
+          </span>
+        )}
         {/* The build being served, beside the round it is serving. A page
             cannot know a newer build exists, but the reviewer and the
             Orchestrator can compare this one line (Will, 2026-09-17: a batch
@@ -588,9 +625,15 @@ function Spine({
         className="block h-px w-full bg-border"
         role="presentation"
       >
+        {/* A step outside the walk has no position in it, so it draws no
+            progress rather than a length it did not reach. */}
         <span
           className="block h-px bg-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none"
-          style={{ width: `${Math.round((n / Math.max(of, 1)) * 100)}%` }}
+          style={{
+            width: blocked
+              ? 0
+              : `${Math.round((n / Math.max(of, 1)) * 100)}%`,
+          }}
         />
       </span>
     </div>
@@ -703,6 +746,7 @@ function AskBody({
   // A question whose options cannot be drawn: the evidence as the question is
   // asked, then the options in words, each its own card.
   const strip = board && step.strip && step.strip.length > 0;
+  const tools = board?.tools;
   return (
     <>
       {board && section && (
@@ -710,7 +754,18 @@ function AskBody({
           {board.evidence(section, { ...board.state, ...stateFor(step) })}
         </div>
       )}
-      {strip && <ConfigStrip step={step} board={board} />}
+      {(strip || tools) && (
+        // No stage head on a words step, so the strip and the board's own
+        // tools share a row of their own rather than being unreachable.
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {strip && <ConfigStrip step={step} board={board} />}
+          {tools && (
+            <span data-lab-board-tools="" className="flex flex-wrap items-center gap-1.5">
+              {tools}
+            </span>
+          )}
+        </div>
+      )}
       <ul className="lab-word-options">
         {step.options.map((option, i) => (
           <li key={option.id} className="min-w-0 list-none">
@@ -1005,6 +1060,13 @@ function StageHead({
       </div>
       {strip && <ConfigStrip step={step} board={board} />}
       <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+        {/* The board's own cluster, on the one bar that stays on screen while
+            the stage scrolls. A board that declares none adds nothing. */}
+        {board.tools && (
+          <span data-lab-board-tools="" className="flex flex-wrap items-center gap-1.5">
+            {board.tools}
+          </span>
+        )}
         {canSide && step.options.length > 1 && (
           <button
             type="button"
