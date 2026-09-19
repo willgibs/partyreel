@@ -150,6 +150,43 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
    Handoff carries the never-owned doc edits word for word. Ask Will first: removing `item:` retires his
    keep/refine/kill verdicts (2026-09-16).
 
+## The app round's map (2026-09-19): the seams two explorations found, and the queue
+
+Will's steer (verbatim in `docs/design/rulings.md`): the host app and the guest pages are unprotected, to be
+reconceived from the foundation. Two read-only explorations and the Orchestrator's own walk of the alias produced
+these seams; the boards below are cut from them, one per freed seat, in this order: `app-shape`, `guest-shape`,
+`privacy-concept`, `app-vocabulary` (drafts in the Orchestrator's scratchpad until each is cut; the `event-header`
+and `gallery-controls` boards Will asked for are folded into `guest-shape`'s album chrome and `app-vocabulary`'s
+gallery controls).
+
+**The host app** (seven routes behind one header with a logo and a user menu and no navigation): 1. five different
+"nothing here yet" components for one interaction (`shared/empty-state.tsx`, `dashboard/empty-section-teaser.tsx`,
+`dashboard/events-empty-teaser.tsx`, `event-feed/feed-section-empty.tsx`, an inline paragraph in
+`trash-section.tsx`). 2. "Deleted" names two unrelated bins (the dashboard's deleted events, restore only; the
+settings page's deleted media, restore and purge now). 3. the host's floating Add pill re-typed inline in
+`event-feed-action-bar.tsx` beside the shared `floating-add-button.tsx` the guest uses. 4. the confirm-dialog
+`setTimeout` workaround hand-rolled twice in `event-settings/uploads-section.tsx`; three switch behaviours with no
+visual cue. 5. three back-navigation idioms (a text link, a dirty-checked text link, the studio's X) and none on
+`/account`. 6. two bulk toolbars for the same actions (`review-actions.tsx` labelled, `gallery-actions.tsx`
+icon-only). 7. two tile-action models (hover-reveal on the host grid, an always-on bar on the bin). 8. the personal
+feeds (uploads, likes) a third, chrome-less gallery contract with their own state strategies. 9. social scattered
+over four places with an unlinked "Account settings" mention. 10. billing has no home (a popover on the storage
+strip). 11. four query-parameter names for "which tab" with two legacy tables. 12. `host-app.md` one feature
+behind (fixed 2026-09-19). 13. no `@contract-for` under `src/components/app`. 14. skeletons for two of seven
+routes.
+
+**The guest pages** (one landing that resolves access on the server): 1. two languages for "photos are coming"
+(the ghost grid when locked, the river when empty). 2. one phone-native drawer (the entry shell) and four desktop
+dialogs dropped onto a phone (Invite, Save, Report, Download all). 3. no way for a guest to take a photo back (the
+lightbox's delete never reaches the guest surface). 4. `guest/file-dropzone.tsx` written for guests, rendered only
+by the host's manual add. 5. no Live indicator is rendered; the doorbell's `live` only steers the poll. 6. two tones
+for one "create an account" moment (the warm gate, the Save dialog's form). 7. `/u/[slug]`'s 404 falls through to
+the marketing chrome (no guest not-found boundary). 8. two footers, no rule. 9. reading copy at 15 to 16 px on the
+happy path, `text-xs`/`text-sm` on the hold-for-approval banner and the gates' error rows. 10. `EmailSignIn`'s CTA
+without a Button size beside a `cta` one state away. 11. the profile page hand-rolls a thinner header than
+`guest-header.tsx`. The behaviour pins (`entry-modal`, `guest-upload`, `password-gate` tests) guard function, never
+look; the one guest `@contract-for` is the empty state's.
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **The admin cutover, where it stands (2026-09-18, after the `admin-split` merge `7f3738ba`).** The lane's full
