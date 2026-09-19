@@ -1,0 +1,127 @@
+/* THE BOARD'S OWN SHEET: the portal's proposed state palette and the two bits
+   of chrome geometry Tailwind would need an arbitrary value for.
+
+   ★ THESE FOUR HUES ARE THE `admin` BOARD'S, COPIED, NOT INVENTED. That board
+   is asking Will whether the portal gets state colour at all (its `colour`
+   decision, `badges` recommended), and this one wears the recommendation as
+   settled so it can ask about reports instead of asking the same question
+   twice. The values are identical to `sandbox/admin/admin.css` on purpose: two
+   boards answering to one ruling must not drift a hue apart before the ruling
+   even lands. They are COPIED rather than imported because a board leaves
+   sandbox/ with its directory when its ruling lands, and a stylesheet shared
+   across two boards would take this one with it.
+
+   ★ AND THE SCOPE IS THIS BOARD'S OWN CLASS. `.ops-scope` belongs to the admin
+   board; `.tri-scope` is this one's, so the two can never fight over a token if
+   they are ever open in the same document. Nothing in production can reach
+   either. If the semantic set wins, the wiring round promotes ONE copy into the
+   theme under the admin's own scope and both files leave with their boards. */
+
+.tri-scope {
+  --tri-ok: oklch(0.52 0.13 150);
+  --tri-warn: oklch(0.56 0.12 68);
+  --tri-fail: oklch(0.55 0.21 27);
+  --tri-info: oklch(0.52 0.15 255);
+}
+
+.dark .tri-scope,
+.tri-scope.dark {
+  --tri-ok: oklch(0.75 0.15 150);
+  --tri-warn: oklch(0.8 0.13 78);
+  --tri-fail: oklch(0.7 0.19 22);
+  --tri-info: oklch(0.72 0.14 255);
+}
+
+/* A chip carries one state: the hue as its ink, a wash of the same hue as its
+   ground, and a hairline of it so the pill still has an edge on a dark card.
+   `--tri` is set per chip at the call site, which keeps one rule for four
+   states rather than four near-identical classes. */
+.tri-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--tri) 24%, transparent);
+  background: color-mix(in oklab, var(--tri) 10%, transparent);
+  color: var(--tri);
+  padding: 0.0625rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+/* The same signal at a tenth the size, for a rail row or a dense cell. */
+.tri-dot {
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 9999px;
+  background: var(--tri);
+  flex: none;
+}
+
+/* The rail's own width and the devtool bar's height, both the admin board's
+   recommended answers, named once so the header's left edge lines up with the
+   content's and never drifts from it by a pixel. */
+.tri-rail {
+  width: 232px;
+  flex: none;
+}
+
+.tri-bar {
+  height: 44px;
+}
+
+/* ★ NO LEADING EDGE ON AN OPEN REPORT, and the capture pass is why. A
+   `box-shadow` here REPLACES the card's own `ring-1`, so every card on the
+   board lost its border to buy a red stripe, and the stripe then sat in every
+   comparison as a second variable. The status chip already says Open. Left as
+   a note rather than a rule, because the next board to reach for an accent
+   edge on a shadcn Card will hit the same thing. */
+
+/* ★ THE ROW SHAPE'S TWO SIZES, AS A MEDIA QUERY RATHER THAN A `sm:` UTILITY.
+   Responsive variants do not reach a board's frame: `sm:w-[200px]` and
+   `lg:inline` both came back unapplied in the capture pass (the split row
+   measured 1112 px wide at 1440 instead of 200, and a column that said
+   `hidden lg:inline` never appeared), while plain arbitrary values like
+   `w-[560px]` render fine. A board's own sheet is adopted into the frame's
+   realm, so a media query written here behaves exactly as it will in
+   production. Left as a note for the next board that needs one. */
+.tri-row-shot {
+  aspect-ratio: 3 / 2;
+  width: 100%;
+}
+
+.tri-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* The album a closed report belongs to: a column of its own once there is room
+   for one, and gone when there is not. */
+.tri-log-album {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .tri-row-shot {
+    aspect-ratio: 1 / 1;
+    width: 200px;
+    flex: none;
+  }
+  .tri-row {
+    flex-direction: row;
+    gap: 1.25rem;
+  }
+  .tri-log-album {
+    display: inline;
+  }
+}
+
+/* The one measured number this board draws over a picture: the frame's real
+   edge in CSS pixels, read off the laid-out document (board.tsx). */
+.tri-measure {
+  font-variant-numeric: tabular-nums;
+}
