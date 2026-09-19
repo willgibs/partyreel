@@ -1,6 +1,6 @@
 ---
 track: contact-page
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e442fc55"         # the launch-prep SHA the branch was cut from
 board: contact-page     # round one: how someone reaches a person at Partyreel
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -103,18 +103,26 @@ contact and support pages, help centres, "message sent" states.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the desk's naming trap: `contact-sheet.tsx` and `press-sheet.tsx` are photography proof sheets, not contact surfaces; a cheap rename whenever either is next touched.
+- Now: the 2026-08-28 composite ruling on the desk (`contact-identity`, touchpoints.ts) predates `docs/design/rulings.md` and has no entry there; worth backfilling verbatim next time a ruling is appended.
+- Now: the honeypot field is named `website` (collides with a real field name elsewhere in the app) and `actions.ts` has no end-to-end test, only the schema and topic-value pins; both cheap fixes whenever the form is next touched.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board contact-page` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Head `bf9e3b12`, pushed; synced with launch-prep at `bf9e3b12` (merged `f2cfa26f`, docs-only: two `[skip ci]` track/record commits, no owned-path overlap)
+- Gates on the synced tree: typecheck ok, lint ok (8 known warnings), test ok (2517), build ok (254 pages); `pnpm lab:smoke` ok (296 checks, 0 failing; contact-page reads at 346/1200 words); `pnpm lab:demo --board contact-page` ok (6 steps, 0 failing, every option draws and moves the stage)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths (`src/app/(dev)/design/sandbox/contact-page/`) + the registration exceptions (`registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts`, `docs/design/library.md` regenerated) + this file; no exceptions
+- The decisions, one line each:
+  - `reach`: does reaching a person have to go through a form; the form leads as today / the address alone, no form / both at equal weight; recommend the form leads (the topic picker is what a raw address cannot do, and the honeypot plus the fail-closed limiter cost more against a bare public address than a gated insert)
+  - `page`: should /contact leave paper for the site's cinema rhythm; the desk as today / the plain cinema rhythm / the desk inside a cinema frame; recommend the desk inside a cinema frame (the ROADMAP's own fix, and it costs the page nothing it has: the desk moves into a PaperChapter exactly like /press's sheet)
+  - `topic`: should picking a topic stay required; required as today / gone, sorted centrally / optional, skippable; recommend required (one tap, and it is what routes a note today; the admin support chip reads it)
+  - `urgency`: should something going wrong right now get its own path; one queue as today / a separate door / a promise per topic; recommend a promise per topic (one line per topic, already-real content, no promise the team cannot keep)
+  - `receipt`: what should the sender hold after they send a note; the on-page card only / a receipt email / a reference line; recommend the on-page card only (a second email is a send to an address nobody verified, a real abuse surface that needs its own limit and a bounce story)
+  - `beside`: what should stand beside the form; the address and reply time / the directory promoted / one warmer line first; recommend the directory promoted (a visitor with a faster path meets it today only after scrolling past the whole form)
+- Assets requested from Will: none
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: `reach` (the foundational fork everything else assumes), then `page` (the tallest, most transformative: the real dark hero and the desk inside a PaperChapter)
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round one of `contact-page` asked how someone reaches a person at Partyreel from the ground up, six decisions on the real desk (PageHero, ContactForm, ContactFacts, MarketingHeader, PaperChapter, or a small labelled copy of one piece the real component took no prop for): whether reaching a person needs a form at all, what the sender holds afterward, whether something urgent earns its own path, whether the topic picker stays required, the page's identity against the site's cinema rhythm, and what stands beside the form. Drawn on a host mid-event with something broken, a planner weighing a plan, and a reporter on background, at 1440 and 375. No production byte shipped; the email path, the rate limiter and the honeypot stayed as they are. Three small findings deferred to the ROADMAP's Now bucket (a naming trap, a ruling with no ledger entry, a shared honeypot field name).
