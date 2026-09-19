@@ -1,6 +1,6 @@
 ---
 track: how-it-works
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "449d9b52"          # the launch-prep SHA the branch was cut from
 board: how-it-works     # round one: the page that tells the loop, beside the article that tells it too
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -97,26 +97,84 @@ with real UI.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- The manifest marked THE CLOSE optional ("if it fits the budget"): asked anyway, since the board reads at 615 of
+  1,200 words with all eight in. Recommended: keep it as the eighth decision (done).
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: a lab-only round ships no production byte, so no `docs/systems/` fact about a shipped surface changed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the step-count trap — six here, five in `content/help/how-partyreel-works.mdx`, four in the mega panel's
+  Resources card, three on the home's film strip — persists in production until the WINNING count from THE STEPS
+  is wired everywhere the loop is told, not only on this page.
+- Now: the label collision — `spine.tsx`'s GoDeeper link and `mega-panel.tsx`'s Resources card both say "How
+  Partyreel works" pointing at the help article, and the help hub links back to this page with the same three
+  words — stays live until THE PAIR's answer is wired.
+- Now: `src/lib/constants/how-it-works.ts` calls itself the single source for the loop's three-step story, but
+  only the welcome flow reads it; `spine.tsx` hand-rolls its own six steps with no shared source. Worth folding
+  into one source once THE STEPS' count is wired.
+- Now: `docs/systems/marketing-content.md`'s page catalogue has no entry for `/how-it-works`; add one once this
+  round wires (or add now regardless, since the gap is a docs fact rather than a code one).
+- Now: `pnpm lab:demo`'s discovery step (scraping `/design/lab`'s own rendered anchors for `session=` links) finds
+  zero open steps for EVERY board right now, not only `how-it-works`: reproduced identically with `--board
+  contact-page` (an already-integrated, presumably-healthy board) and with no `--board` filter at all across the
+  whole desk. `pnpm lab:smoke` independently discovers and 200s every one of this board's eight `?session=`
+  URLs directly, so the board itself is sound; the discovery mechanism (or the boards' `round: null`
+  never-reviewed ledger state it may depend on) looks like the actual fault. Worth its own investigation,
+  unrelated to this lane, since it may be silently blocking the demo-gate for every currently open board.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board how-it-works` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `ae7d3a11`, pushed; synced with launch-prep at `5da28d35` (it had moved: export-flow, admin-triage,
+  media-viewer, emails and reel-studio landed after this branch's cut; merged, resolved the registration
+  conflicts per PROGRAM.md's splice, regenerated `docs/design/library.md`, re-ran the full gate on the synced
+  tree).
+- Gates on the synced tree: `pnpm design:rules` ok; `pnpm typecheck` ok; `pnpm lint` ok (8 known warnings, 0
+  errors); `pnpm test` ok (2,545 passed, 241 files); `pnpm build` ok (~150 routes); `pnpm lab:smoke --base
+  http://localhost:3136` ok (441 checks, 0 failing; this board reads 615 of 1,200 words); `pnpm lab:demo --board
+  how-it-works` reports "0 steps, 0 failing" (see Deferred: a pre-existing, board-agnostic discovery issue,
+  confirmed against `contact-page` and against the whole desk with no `--board` filter; this board's own eight
+  session URLs each independently 200 under `lab:smoke`).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md` (generated),
+  `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/touchpoints.ts` (the three registration exceptions) + every file under
+  `src/app/(dev)/design/sandbox/how-it-works/` (owned) + this manifest. No exceptions.
+- The decisions, one line each:
+  - `pair`: should the page and the help article stay two names for one loop, or merge?; two pages same name
+    (today) / one page folded in / both kept, each its own name; recommended both kept, each its own name.
+  - `who`: who should the page greet first?; the undecided host (today) / a guest who just scanned / a planner
+    sizing it for a client; recommended the undecided host, as today.
+  - `steps`: how many steps, and should step one stop overstating itself?; six two-sided (today, corrected) /
+    five matching the article / three matching the home; recommended six, two-sided, as today.
+  - `pictures`: bespoke vocabulary or the site's real frames?; bespoke quotes (today) / the site's own frames /
+    the product actually moving; recommended the site's own frames.
+  - `shape`: one scroll, a stepper, or two columns?; one scroll (today) / a numbered stepper / two columns, host
+    and guest; recommended two columns, host and guest (a ledger).
+  - `proof`: what should the payoff prove?; the reel alone (today) / a band of real facts / a door to the live
+    demo; recommended a door to the live demo.
+  - `phone` (staged after `pictures`): what changes in a guest's hand?; the payoff's phone stays a div (today) /
+    the real PhoneFrame / one step, one screen; recommended the real PhoneFrame.
+  - `close`: how should the page end?; pointer then band (today) / one closing section / the close offers the
+    demo; recommended one closing section.
+- Assets requested from Will: none (every picture reuses the site's existing 12-image manifest, its two reel
+  renders and its real QR/frame components).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `shape` (the ledger is the biggest structural swing: a real two-column host/guest read, with a
+  found-and-fixed mobile stacking fix already applied) and `pictures` (site frames vs. the product actually
+  moving: the cost/reward tradeoff of the bolder option).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round one of `how-it-works` returned eight decisions with
+`defineExploration` on the real page pieces (`PageHero`, `PaperChapter`, the spine's own layout, `ReelPayoff`,
+`PricingPointer`, `CtaBand`): the pair against the help article, who the page greets, the step count with step
+one's truth corrected, the frame vocabulary, the spine's shape (a host/guest ledger among the options), the
+payoff's proof, the phone, and the close. `THE STEPS` and `THE PICTURES` read each other's live pick with no
+`after` between them; `THE PHONE` is staged behind `THE PICTURES`. Every option measured in the frame at 1440
+and 375 (height in 900 px windows, the first product picture's depth); reading a 375 capture against its own
+words caught the ledger's three-column squeeze and fixed it with a stacked-below-`sm` layout before handoff.
+Four pre-existing cross-surface facts (the step-count disagreement, the label collision, an unread single
+source, a docs catalogue gap) carry to ROADMAP regardless of which option wins, since this round ships no
+production byte.
