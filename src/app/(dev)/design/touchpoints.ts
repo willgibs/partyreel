@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "host-curation"
   | "guest-upload"
   | "first-event"
   | "pricing-page"
@@ -95,6 +96,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "host-curation"
   | "guest-upload"
   | "first-event"
   | "app-door"
@@ -648,6 +650,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "host-curation",
+    title: "Reviewing what guests send",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: the app is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "Round one asks the act where a host judges another person's photograph: 4:5 crops, one word for two acts, a look with no verdict on it, and three counts that disagree.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/app/event-feed/review-section.tsx",
+      "src/components/app/event-feed/review-actions.tsx",
+      "src/components/app/event-feed/use-review-triage.ts",
+      "src/components/app/event-feed/selectable-media-grid.tsx",
+      "src/components/app/host-media-grid.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out",
+      variants: [
+        "The queue",
+        "The verb",
+        "The peek",
+        "The keyboard",
+        "After a bulk act",
+      ],
+    },
   },
   {
     id: "guest-upload",
