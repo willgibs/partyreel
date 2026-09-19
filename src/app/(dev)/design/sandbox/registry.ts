@@ -1,6 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { MEDIA_VIEWER } from "./media-viewer/spec";
+import { HOST_CURATION } from "./host-curation/spec";
 import { GUEST_UPLOAD } from "./guest-upload/spec";
 import { FIRST_EVENT } from "./first-event/spec";
 import { APP_DOOR } from "./app-door/spec";
@@ -39,6 +40,7 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   MEDIA_VIEWER,
+  HOST_CURATION,
   GUEST_UPLOAD,
   FIRST_EVENT,
   APP_DOOR,

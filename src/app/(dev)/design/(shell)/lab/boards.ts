@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
+import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
 import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board";
 import { FirstEventBoard } from "@/app/(dev)/design/sandbox/first-event/board";
 import { AppDoorBoard } from "@/app/(dev)/design/sandbox/app-door/board";
@@ -39,6 +40,7 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "media-viewer": { Component: MediaViewerBoard },
+  "host-curation": { Component: HostCurationBoard },
   "guest-upload": { Component: GuestUploadBoard },
   "first-event": { Component: FirstEventBoard },
   "app-door": { Component: AppDoorBoard },

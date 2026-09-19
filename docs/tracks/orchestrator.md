@@ -132,12 +132,13 @@ retired `type-phone`; both agents were told so by message.
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 | `media-viewer` | cut at `d909cb13` (the overnight round): what a photograph opens as, for a guest and a host, phone first | open | Opus, :3131 | the handoff; then `profile-page` on the seat |
 | `reel-studio` | cut at `d909cb13` (the overnight round): the highlight reel from the studio to a guest's hands, on local replicas | open | Opus, :3132 | the handoff; then `export-flow` on the seat |
-| `host-curation` | cut at `d909cb13` (the overnight round): the host's act of reviewing what guests send | open | Opus, :3133 | the handoff; then `site-chrome` on the seat |
+| `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
+| `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
 | `emails` | cut at `d909cb13` (the overnight round): every email Partyreel sends, the real templates in an inbox mock | open | Sonnet, :3135 | the handoff; then `how-it-works` on the seat |
 | `help-center` | cut at `d909cb13` (the overnight round): where a host or a guest with a problem lands | open | Sonnet, :3136 | the handoff; then `error-pages` on the seat |
 
-**The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Queued for the freed seats in this order: `profile-page` (Opus), `how-it-works` (Sonnet), `export-flow` (Opus), `site-chrome` (Opus), `event-type-pages` (Sonnet), `error-pages` (Sonnet); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. Every lane is integrated and recorded overnight, `[preview]` on each record; nothing is asked of Will until morning.
+**The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Queued for the freed seats in this order: `how-it-works` (Sonnet), `export-flow` (Opus), `site-chrome` (Opus), `event-type-pages` (Sonnet), `error-pages` (Sonnet) (`profile-page` took the first freed seat, :3133); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. Every lane is integrated and recorded overnight, `[preview]` on each record; nothing is asked of Will until morning.
 
 Three admin lanes opened the same evening (below). Before them, no lane was open: every board of the round is integrated and on the desk, eight in all
 (privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
@@ -337,7 +338,46 @@ Reports does not use it. 6. a report carries no reporter identity, by design. 7.
 photograph unrestorable in Recently deleted behind the vague line. 8. three status vocabularies for one nav group.
 
 
+**The event-type pages** (from the map cut for `event-type-pages`): 1. `marketing-content.md` describes `EVENT_PRESENTATION`,
+`events-layout.ts` and an `eventFrame()` resolver, all deleted; the architecture is `EventHeroMedia` plus one shared
+`BuiltFor` / `HelpPane` grammar. 2. the family-reunion post links `/events/parties` while "family reunions" is a trips theme,
+and the blog's audience tags have no "trips". 3. three posts carry an audience tag and no link into a type page. 4. the mega
+panel and the footer hand-write a third description per type. 5. `events.ts` sits outside the content policy's claim scan.
+6. the home's teaser still calls the conference and trip stills a "KNOWN MANIFEST GAP" the artifacts already solved. 7. the
+hub uses `PageHero`; every type page hand-rolls an equivalent hero with its own cut marker. 8. `/events` has no OpenGraph
+image. Four types, one template; weddings and parties lead with photographs, conferences and trips with artifacts.
+
+**Getting everything out** (from the map cut for `export-flow`): 1. the mint has no timeout or cancel (a hung mint leaves the
+toast and a disabled button forever). 2. a missing R2 object is skipped silently, so a raced-deleted album downloads as a
+valid, empty zip; no failed-export state exists. 3. nothing says whether the top-level form-POST attachment saves on iOS
+Safari. 4. the marketing mock says the cap is "deliberately unmentioned" while the album copy states "Up to 2,000 items"
+and the dialog never says a number proactively. 5. a teaser guest sees a Videos chip that can only answer "Nothing selected".
+6. `/admin/exports` is a log and a kill switch, not a heartbeat. The Worker is synchronous (no job table, no persisted zip,
+STORE only, originals byte for byte); `ExportDialog` calls the live hook with no seam (a preview must replace it).
+
+**The site's chrome** (from the map cut for `site-chrome`): 1. the mega panel's Resources card says "four steps"; the
+article has five. 2. the same panel offers two undifferentiated "how it works" doors (`/how-it-works` and the article). 3.
+the footer's FAQ link is hard-coded `/#faq`, which exists only on the home and `/pricing`. 4. "Log in" and "Start free" share
+one href and the chrome has no signed-in awareness (the only aware branch is `/login`'s server redirect). 5. the footer's
+only conversion action and its demo register vanish together when `DEMO_EVENT_URL` is unset. 6. `logo.tsx`'s `markOnly`
+branch has no production caller. The header is 64 px, sticky, never shrinking; the material is `glass` round two's.
+
+**The failure pages** (from the map cut for `error-pages`): 1. `marketing-route-error.tsx` captures a digest and never shows
+it. 2. `global-error.tsx` offers Try again only, no way home. 3. the admin and the guest-token 404s offer one action, every
+other 404 two. 4. there is no root `error.tsx`: a crash in a group's own layout skips its boundary and lands on the bare
+global page. 5. on the admin host a refused path is rewritten to the root 404 whose own links 404 again there. 6. the
+ROADMAP's "may have ended" line about the guest 404 is stale. 7. the group 404s render in a fixed 60 vh box. Eight
+templates for one act; a soft-deleted event 404s like a missing one (by design) while a private event reveals itself;
+`RouteError`, `MarketingRouteError` and `GlobalError` call `captureError` on mount (a board never mounts them as shipped).
+
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
+
+- **A fresh lane's branch tip is an ancestor of `launch-prep` until its first commit** (2026-09-19, the overnight round):
+  "the tip is an ancestor of HEAD" therefore never means integrated. Integrated means the manifest is gone from HEAD AND
+  the tip is an ancestor; a cleanup on the weaker test deleted six live lanes' remote branches minutes after they were
+  pushed (restored from the shared local refs with `git push origin lp/<track>`; a lane's `git push` recreates its branch
+  anyway, and the worktrees never noticed). `scratchpad/merge-lane.sh` refuses a local `lp/<track>` that differs from origin.
 
 - **Two RULINGS rows added at the same anchor conflict across a row boundary** (2026-09-19, from `first-event` and
   `app-pricing` at their syncs): the two rows share their four closing lines, so "keep both sides' added lines" drops
