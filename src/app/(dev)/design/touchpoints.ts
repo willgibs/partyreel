@@ -51,6 +51,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-vocabulary"
   | "cursor-backdrop"
   | "image-trail"
   | "admin"
@@ -83,6 +84,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "app-vocabulary"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -624,6 +626,38 @@ export const RULINGS: Ruling[] = [
         "400, the card",
         "240, the thumbnail",
         "The placements",
+      ],
+    },
+  },
+  {
+    id: "app-vocabulary",
+    title: "The app's shared vocabulary",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-19: the host app and the guest pages are unprotected, "a better system from its foundation")',
+    shipped: null,
+    why: "The parts under both shapes, drawn once: five empty states, loading on two routes, four tile grammars, two bulk toolbars, a tile-size control, and the confirm switch.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/guest-flow.md",
+      "src/components/shared/empty-state.tsx",
+      "src/components/app/host-media-grid.tsx",
+      "src/components/app/recently-deleted-grid.tsx",
+      "src/components/app/event-feed/review-actions.tsx",
+      "src/components/app/event-feed/gallery-actions.tsx",
+      "src/components/shared/masonry.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+    ],
+    board: {
+      note: "Seven decisions, no page: how many treatments answer nothing-here-yet, whether a route's loading skeleton is a shared primitive or none, one tile grammar for the host grid, the bin, the review queue and the personal feeds, words or icons on the bulk toolbar, where the gallery's tile-size control lives and how it persists, and the visual cue on a switch that asks before it flips; every option on the real components at 1440 and 375",
+      variants: [
+        "Nothing here yet",
+        "Loading",
+        "One tile, one grammar",
+        "The bulk toolbar",
+        "The gallery's controls",
+        "How the choice persists",
+        "The confirm switch",
       ],
     },
   },

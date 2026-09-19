@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { APP_VOCABULARY } from "./app-vocabulary/spec";
 import { ADMIN } from "./admin/spec";
 import { ALBUM_HERO } from "./album-hero/spec";
 import { ALBUM_PAGE } from "./album-page/spec";
@@ -29,6 +30,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  APP_VOCABULARY,
   ADMIN,
   LOOSE_ENDS,
   GLASS,
