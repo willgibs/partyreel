@@ -47,6 +47,14 @@ and relayed here for his morning. The records follow in the order the lanes hand
   replaced by the bench rather than reopening his route ruling; the guest's third option kept to the container; the
   1280 px poster card around a 360 px reel, his to overrule). Six ROADMAP lines.
 
+- `emails` integrated (`2135ce6e`; cut `d909cb13`): every email Partyreel sends as eight decisions on the ten real templates
+  called with fixture options inside a built inbox mock at 375 and 1440, nothing sent: one shell (one wrapper, two feet),
+  the brand (the wordmark at the head, no new asset), the sender (operator subjects tagged), the foot (an unsubscribe and
+  an address on the commercial-leaning four), the sign-in mail as a labelled mock (digits with a button beneath), the
+  moments (retire the four dormant switches), the guest's (the album link, once), the dark inbox (the shell declares
+  light: today's declares a text colour and no background, near-illegible in a dark client). No questions; three ROADMAP
+  lines (no plain-text twin; `sendOnce` untested; a stale `PRICING.md` line about the resend cooldown).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
