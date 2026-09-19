@@ -4,7 +4,6 @@ import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
-import { ImageTrailBoard } from "@/app/(dev)/design/sandbox/image-trail/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
 import { RiverCardBoard } from "@/app/(dev)/design/sandbox/river-card/board";
@@ -30,7 +29,6 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "album-motion": { Component: AlbumMotionBoard },
-  "image-trail": { Component: ImageTrailBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
   glass: { Component: GlassBoard },

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 355 contracts on 50 components · 10 standing boards.**
+**22 laws · 18 policies · 429 contracts on 53 components · 9 standing boards.**
 
 ## What binds you
 
@@ -362,6 +362,9 @@ Contracted but outside the library's directories:
 - `src/components/shared/backdrop/room-frames.ts` (30 guards)
 - `src/components/shared/river/river-engine.ts` (19 guards)
 - `src/components/shared/river/river.tsx` (8 guards)
+- `src/components/shared/trail/trail-engine.ts` (57 guards)
+- `src/components/shared/trail/trail-frames.ts` (57 guards)
+- `src/components/shared/trail/trail.tsx` (17 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 
@@ -373,7 +376,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
-| `image-trail` | marketing | Six decisions, each on a whole screen of the real site at 1440 and 375: how close the photographs come, how long they live and how they go, how they arrive, how big they are, which page they live on (the privacy hero, the home page's last screen, the 404 on paper, or banked) and what a phone does; the pointer scripted for the still and live on the desk |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `river-card` | marketing | Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |

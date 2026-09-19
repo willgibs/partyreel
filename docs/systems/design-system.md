@@ -982,7 +982,16 @@ an error message is doing its job, not breaking a contract.
 tagged `render:app|guest|marketing|admin|auth` in Sentry; `global-error.tsx` is dependency-free
 (own html/body, inline styles) for root-layout death. The gated `/design/lab/tools/boom` probe throws on
 purpose to verify the chain against the real prod build (dev shows the overlay instead).
-`notFound()` is never caught by these.
+`notFound()` is never caught by these. **The ROOT 404 (`app/not-found.tsx`, every unmatched URL)
+stands on the image trail** (Will, `home=notfound`, 2026-09-19): the marketing block on its forced
+paper ground with photographs laid down behind the words, a `<Trail>` from
+[`shared/trail`](../../src/components/shared/trail/trail.tsx) that walks its own figure until a
+cursor takes over and walks alone below 640px. Nothing is laid over a photograph (bible 1): the
+words punch a feathered WINDOW in the trail, so the worst backdrop any line meets is the ruled floor
+and the muted description keeps 4.9:1. The strip of tiles yields there and stays on the two group
+404s, the 500 screen and the help palette. The trail needs the browser's layout to solve a
+composition, so a reader with scripting off gets the block, the actions and the links on clean paper
+and no photographs.
 
 ## The craft guidance stack
 
