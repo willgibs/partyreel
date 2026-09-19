@@ -264,6 +264,12 @@ are fixed pixels (200, 96, 232) with no module-size guard while the marketing pl
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **A manifest never lists another lane's manifest under `reads`** (2026-09-19): `pricing-page.md` read
+  `docs/tracks/app-pricing.md` so the two pricing boards could see each other's goal; the app-pricing merge deleted
+  that file and `track-manifests.test.ts` ("read ... does not exist") turned the merged tree's gate red, with the desk's
+  tracks page failing one smoke check on the dead link. Point a sibling read at the board's `spec.ts` instead (it
+  survives the merge), and fix a stale read in the merge's record commit (the lane keeps origin's line at its sync).
+
 - **The admin cutover, CLOSED 2026-09-19 05:02 UTC (every runbook check done; the block stays as the record).** The lane's full
   runbook is in git: `git show 7f3738ba^2:docs/tracks/admin-split.md` (the Handoff). DONE (2026-09-18, late): the code on
   `launch-prep`; `NEXT_PUBLIC_SURFACE=app` on `partyreel` for PREVIEW only; the project `partyreel-admin`
