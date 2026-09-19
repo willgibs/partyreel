@@ -337,6 +337,39 @@ Reports does not use it. 6. a report carries no reporter identity, by design. 7.
 photograph unrestorable in Recently deleted behind the vague line. 8. three status vocabularies for one nav group.
 
 
+**The event-type pages** (from the map cut for `event-type-pages`): 1. `marketing-content.md` describes `EVENT_PRESENTATION`,
+`events-layout.ts` and an `eventFrame()` resolver, all deleted; the architecture is `EventHeroMedia` plus one shared
+`BuiltFor` / `HelpPane` grammar. 2. the family-reunion post links `/events/parties` while "family reunions" is a trips theme,
+and the blog's audience tags have no "trips". 3. three posts carry an audience tag and no link into a type page. 4. the mega
+panel and the footer hand-write a third description per type. 5. `events.ts` sits outside the content policy's claim scan.
+6. the home's teaser still calls the conference and trip stills a "KNOWN MANIFEST GAP" the artifacts already solved. 7. the
+hub uses `PageHero`; every type page hand-rolls an equivalent hero with its own cut marker. 8. `/events` has no OpenGraph
+image. Four types, one template; weddings and parties lead with photographs, conferences and trips with artifacts.
+
+**Getting everything out** (from the map cut for `export-flow`): 1. the mint has no timeout or cancel (a hung mint leaves the
+toast and a disabled button forever). 2. a missing R2 object is skipped silently, so a raced-deleted album downloads as a
+valid, empty zip; no failed-export state exists. 3. nothing says whether the top-level form-POST attachment saves on iOS
+Safari. 4. the marketing mock says the cap is "deliberately unmentioned" while the album copy states "Up to 2,000 items"
+and the dialog never says a number proactively. 5. a teaser guest sees a Videos chip that can only answer "Nothing selected".
+6. `/admin/exports` is a log and a kill switch, not a heartbeat. The Worker is synchronous (no job table, no persisted zip,
+STORE only, originals byte for byte); `ExportDialog` calls the live hook with no seam (a preview must replace it).
+
+**The site's chrome** (from the map cut for `site-chrome`): 1. the mega panel's Resources card says "four steps"; the
+article has five. 2. the same panel offers two undifferentiated "how it works" doors (`/how-it-works` and the article). 3.
+the footer's FAQ link is hard-coded `/#faq`, which exists only on the home and `/pricing`. 4. "Log in" and "Start free" share
+one href and the chrome has no signed-in awareness (the only aware branch is `/login`'s server redirect). 5. the footer's
+only conversion action and its demo register vanish together when `DEMO_EVENT_URL` is unset. 6. `logo.tsx`'s `markOnly`
+branch has no production caller. The header is 64 px, sticky, never shrinking; the material is `glass` round two's.
+
+**The failure pages** (from the map cut for `error-pages`): 1. `marketing-route-error.tsx` captures a digest and never shows
+it. 2. `global-error.tsx` offers Try again only, no way home. 3. the admin and the guest-token 404s offer one action, every
+other 404 two. 4. there is no root `error.tsx`: a crash in a group's own layout skips its boundary and lands on the bare
+global page. 5. on the admin host a refused path is rewritten to the root 404 whose own links 404 again there. 6. the
+ROADMAP's "may have ended" line about the guest 404 is stale. 7. the group 404s render in a fixed 60 vh box. Eight
+templates for one act; a soft-deleted event 404s like a missing one (by design) while a private event reveals itself;
+`RouteError`, `MarketingRouteError` and `GlobalError` call `captureError` on mount (a board never mounts them as shipped).
+
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **Two RULINGS rows added at the same anchor conflict across a row boundary** (2026-09-19, from `first-event` and
