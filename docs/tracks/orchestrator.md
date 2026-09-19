@@ -111,7 +111,7 @@ retired `type-phone`; both agents were told so by message.
 | `image-trail` | integrated at `dd44692e` (handed off `60983fea`; privacy-hero's round-one verdict transcribed first at `e140d3ad`) | done | Opus, :3135 | nothing |
 | `cursor-backdrop` | integrated at `592955ab` (handed off `859d88dc`) | done | Opus, :3136 | nothing |
 | `backdrop-wiring` | integrated at `9795e370` (handed off `e58b9c36`); the board retired | done | Opus, :3131 | the red-team on the alias |
-| `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
+| `album-wiring` | integrated at `2ca47448` (handed off `552b19fe` after four syncs); both boards retired, `album-motion` open | done | Opus, :3131 | the red-team on the alias when the cap frees |
 | `river-wiring` | integrated at `5297cb07` (handed off `3d74ad68`; the touchpoints conflict resolved by the Orchestrator); both boards retired | done | Opus, :3132 | the red-team on the alias when the cap frees |
 | `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
 | `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |

@@ -42,19 +42,10 @@ never a cap and a test.
 - The Orchestrator changed seats mid-round: the previous one was cut by a weekly limit with three lanes
   mid-work, and a new one on a second account resumed all three the same day (Fable orchestrating; the
   board lanes on Sonnet, the wiring lane on Opus, by Will's ruling in PROGRAM.md "Model delegation").
-- `heroes` integrated (`6b5ea1bf`): `privacy-hero` recuts "the field" as two opposite spirals behind the
-  Privacy page's lockup, graded against the home hero's pace (the pace, the gap, the trail, a phone answer),
-  and `album-page` answers the album hero's round four (the live album at 896 with its foot faded or today's
-  filling demo, three kinds of subtle motion around the words, the album's light, a second light). Every
-  option a real `Frame` at 1440 and 375, every tile measured against its words.
-- `ghost-wiring` integrated (`31c94253`): the guest album's empty state trades its faint 3 by 3 grid for the
-  river, so Will can judge `guest-photos=ghost` in the full app. The engine's production home is
-  `src/components/shared/river/`, rewritten in fractions of its box (it takes its width from the column, and
-  the fall is solved from the cut rather than typed, which had cut two of nine cards in a square box);
-  ghosted by a filter on the placement's wrapper at the board's values (grayscale 0.85 at 40 percent, his
-  to move), nothing at the top of the flow (bible 4), the title and CTA kept. Measured: no frame work off
-  screen, on a hidden tab or under reduced motion; the flow stands with JavaScript off; 44 KB of WebPs; zero
-  long tasks with four rivers running. Two contracts and a Library entry.
+- `heroes` integrated (`6b5ea1bf`): `privacy-hero` (answered none, then round two, then round three) and
+  `album-page` (answered whole, wired below), every option a real Frame at 1440 and 375.
+- `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state, the river's
+  production home `src/components/shared/river/` with two contracts and a Library entry; the ghost's numbers his.
 - `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled
   and unlinked: where it sits, where the photographs end (a fourth question the drawing surfaced), what it
   opens (the short `/demo` link fixes the scan floor; the event's full link leaves 0 px of clearance in the
@@ -141,6 +132,15 @@ never a cap and a test.
   the page's own theme, still or nearly still: a breathing aperture, a grid where tiles take turns clearing
   (recommended), sealed photo cards that lift one at a time; every number in the copy checked against the
   constants, every static element clear of the real lockup's measured ink at both breakpoints.
+- `album-wiring` integrated (`2ca47448`; cut `97207988`, synced four times): the album page's hero from two ruled
+  boards: the live guest album under the host's header at 896, its foot dissolving, lit from behind by the Glow
+  halo (the rim and chrome up 45 and 21 percent, the photographs 1.6), photographs falling out of the room around
+  the words into the album's top edge at the home hero's pace; the stream a pure engine in
+  `src/components/shared/album-stream/` (one table right at every window, nothing measured at runtime); the
+  quality section lit at its floor with a photograph section stood before the paper chapter; `album-motion` open
+  with three variations of the fall drawn on the wired hero. Three calls his to overrule: the compositions swap at
+  1280 (laptops get the phone's), the cut to paper as built (the photograph carries the crossing), the album's
+  columns derived from the product's rule. `album-hero` and `album-page` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart
