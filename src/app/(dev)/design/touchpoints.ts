@@ -54,6 +54,7 @@ export type RulingId =
   | "home-hero"
   | "album-hero"
   | "river-visual"
+  | "app-door"
   | "app-pricing"
   | "app-vocabulary"
   | "demo-event"
@@ -92,6 +93,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "app-door"
   | "pricing-page"
   | "app-pricing"
   | "press-page"
@@ -642,6 +644,34 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "app-door",
+    title: "The door into the host app",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": login and signup is one of the surfaces he named, and everything is open to relitigate from the ground up)',
+    shipped: null,
+    why: "The door asked from the foundation: what it asks for, how many account surfaces there are, what /login is, and what stands between a new account and the app.",
+    lives: [
+      "docs/systems/auth-accounts.md",
+      "src/app/(auth)/login/page.tsx",
+      "src/components/auth/login-form.tsx",
+      "src/components/auth/password-sign-in.tsx",
+      "src/components/auth/email-sign-in.tsx",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/app/welcome-flow.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real auth components with fixtures at 1440 and 375: what the door asks for first, how many account surfaces the product has, what stands between a new account and the app, what /login is as a page, what happens when a new account's email already has one, how the door fails, and what a host the browser already knows meets",
+      variants: [
+        "What the door asks for",
+        "How many doors",
+        "The first screen",
+        "The page",
+        "The returning host",
+      ],
+    },
   },
   {
     id: "pricing-page",
