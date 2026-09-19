@@ -104,8 +104,14 @@ export function EventDoor({
         >
           {DEMO_EVENT_URL && (
             <div data-mkt-cut style={seat(2)} className="lg:col-span-7">
+              {/* ★ THE DOOR IS CAPPED BELOW `lg`, where the grid collapses and
+                  it would take the container's whole width. Its ratio is wider
+                  than tall by a number the ENGINE reads, so a 760px door is
+                  975px of photographs in flight: taller than the viewport it
+                  is meant to be one beat of. Capped, a tablet and a phone both
+                  meet a door they can see the whole of. */}
               <div
-                className="relative overflow-hidden rounded-2xl bg-[oklch(0.13_0_0)] ring-1 ring-white/10"
+                className="relative mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-[oklch(0.13_0_0)] ring-1 ring-white/10 lg:max-w-none"
                 style={{ aspectRatio: `1 / ${DOOR_RATIO}` }}
               >
                 <River

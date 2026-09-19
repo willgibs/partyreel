@@ -55,6 +55,11 @@ const seat = (i: number) => ({ "--i": i }) as CSSProperties;
  * The pair of prints. The back one is rotated the other way and sits proud of
  * the front's top-right corner: two prints squared up are a grid, two prints
  * leaning apart are a pile somebody put down.
+ *
+ * ★ THE PAPER IS WHITE, never `bg-card`. This section stands on the cinema
+ * ground where the card token is near-black, so a border in it is a gap and the
+ * print stops being a print (the same note is on `event-object.tsx`'s `Print`,
+ * which this deliberately matches: one paper vocabulary down the whole page).
  */
 function StatementPrints({ stills }: { stills: readonly string[] }) {
   const [front, back] = stills;
@@ -63,7 +68,7 @@ function StatementPrints({ stills }: { stills: readonly string[] }) {
       aria-hidden
       className="relative mx-auto w-full max-w-[380px] pt-8 pr-8"
     >
-      <span className="absolute top-0 right-0 block w-[58%] rotate-[7deg] overflow-hidden rounded-xl bg-card p-2 shadow-lift ring-1 ring-foreground/10">
+      <span className="absolute top-0 right-0 block w-[58%] rotate-[7deg] overflow-hidden rounded-xl bg-white p-2 shadow-lift ring-1 ring-black/10">
         <span className="relative block aspect-4/5 overflow-hidden rounded-md">
           <Image
             src={marketingImage(back).src}
@@ -74,7 +79,7 @@ function StatementPrints({ stills }: { stills: readonly string[] }) {
           />
         </span>
       </span>
-      <span className="relative block -rotate-[3deg] overflow-hidden rounded-xl bg-card p-2.5 shadow-lift ring-1 ring-foreground/10">
+      <span className="relative block -rotate-[3deg] overflow-hidden rounded-xl bg-white p-2.5 shadow-lift ring-1 ring-black/10">
         <span className="relative block aspect-4/5 overflow-hidden rounded-lg">
           <Image
             src={marketingImage(front).src}

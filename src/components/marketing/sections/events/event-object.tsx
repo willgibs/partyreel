@@ -110,9 +110,16 @@ function ScanLine({
 /* ── the shared physical vocabulary ──────────────────────────────────────── */
 
 /**
- * A PRINT: paper, not a rounded photograph. The white border and the ring are
- * what make these objects rather than tiles, and they are the one thing every
- * object here shares, so four bespoke still lifes still read as one family.
+ * A PRINT: paper, not a rounded photograph.
+ *
+ * ★ THE PAPER IS LITERAL WHITE, NOT `bg-card`, and that is the whole reason
+ * these read as objects. Every one of these still lifes stands on the cinema
+ * ground, where `bg-card` is near-black: a "border" in it is a GAP, so six
+ * prints in a row read as a thumbnail strip and the pile reads as a toolbar.
+ * Paper is white in a dark room, the photograph is the colour (bible 1), and
+ * the border is what says somebody held this. Same family as the white QR
+ * plate beside it, which is white for the scanner's sake and lands as the other
+ * piece of paper in the composition.
  */
 function Print({
   id,
@@ -129,7 +136,7 @@ function Print({
   return (
     <span
       className={cn(
-        "block overflow-hidden rounded-lg bg-card p-1.5 shadow-lift ring-1 ring-foreground/10",
+        "block overflow-hidden rounded-lg bg-white p-1.5 shadow-lift ring-1 ring-black/10",
         className,
       )}
     >
@@ -154,11 +161,11 @@ function PrintBack({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "block rounded-lg bg-card p-1.5 shadow-lift ring-1 ring-foreground/10",
+        "block rounded-lg bg-white p-1.5 shadow-lift ring-1 ring-black/10",
         className,
       )}
     >
-      <span className="block aspect-4/5 rounded-[5px] bg-muted/60" />
+      <span className="block aspect-4/5 rounded-[5px] bg-black/[0.06]" />
     </span>
   );
 }
@@ -180,29 +187,41 @@ function PrintBack({ className }: { className?: string }) {
 function AlbumObject({ stills }: { stills: readonly string[] }) {
   const leaves = [stills.slice(0, 3), stills.slice(3, 6)];
   return (
-    <div className="relative mx-auto w-full max-w-4xl">
-      <div className="relative grid grid-cols-1 gap-6 rounded-2xl border bg-card p-4 shadow-lift ring-1 ring-foreground/5 sm:grid-cols-2 sm:gap-10 sm:p-6">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-6 left-1/2 hidden w-px -translate-x-1/2 bg-foreground/10 sm:block"
-        />
+    <div className="relative mx-auto w-full max-w-3xl">
+      {/* The cover: dark board, the one piece of this object that is not paper. */}
+      <div className="relative grid grid-cols-1 gap-2 rounded-2xl bg-card p-2.5 shadow-lift ring-1 ring-foreground/12 sm:grid-cols-2 sm:gap-2.5 sm:p-3">
         {leaves.map((leaf, i) => (
           <div
             key={i}
             aria-hidden
             className={cn(
-              "grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3",
+              // THE LEAF IS AN IVORY PAGE, and the dark channel between two of
+              // them IS the spine. A hairline in `foreground/10` over a dark
+              // cover was invisible, which left six prints reading as one
+              // six-up grid: the contact sheet this object exists to replace.
+              "grid grid-cols-2 gap-2 rounded-lg bg-white p-2.5 sm:grid-cols-3 sm:gap-2.5 sm:p-3",
               i === 1 && "hidden sm:grid",
             )}
           >
             {leaf.map((id, k) => (
-              <Print
+              <span
                 key={id}
-                id={id}
-                className={cn("p-1", k === 2 && "hidden sm:block")}
-                sizes="(min-width: 640px) 190px, 45vw"
-                priority={i === 0 && k === 0}
-              />
+                className={cn(
+                  // On the page the prints need no paper of their own: a white
+                  // border on white is a margin, and the page already is one.
+                  "relative block aspect-4/5 overflow-hidden rounded-[5px] ring-1 ring-black/10",
+                  k === 2 && "hidden sm:block",
+                )}
+              >
+                <Image
+                  src={marketingImage(id).src}
+                  alt=""
+                  fill
+                  sizes="(min-width: 640px) 160px, 45vw"
+                  priority={i === 0 && k === 0}
+                  className="object-cover"
+                />
+              </span>
             ))}
           </div>
         ))}
@@ -235,28 +254,34 @@ function PrintsObject({ stills }: { stills: readonly string[] }) {
   /** Tilt, drop and depth per print, so the pile scatters instead of lining up. */
   const lie = [
     "-rotate-[7deg] sm:translate-y-2",
-    "rotate-[4deg] translate-y-6 z-10",
+    "rotate-[4deg] translate-y-5",
     "hidden sm:block -rotate-[3deg] -translate-y-2",
   ];
   return (
-    <div className="relative mx-auto flex w-full max-w-3xl items-center justify-center gap-3 sm:gap-6">
-      {stills.map((id, i) => (
-        <Print
-          key={id}
-          id={id}
-          sizes="(min-width: 640px) 220px, 42vw"
-          priority={i === 0}
-          className={cn("w-[42%] max-w-[220px] sm:w-1/3", lie[i])}
-        />
-      ))}
+    <div className="relative mx-auto w-full max-w-3xl">
+      <div className="flex items-center justify-center gap-3 sm:gap-6">
+        {stills.map((id, i) => (
+          <Print
+            key={id}
+            id={id}
+            sizes="(min-width: 640px) 230px, 42vw"
+            priority={i === 0}
+            className={cn("w-[44%] max-w-[230px] sm:w-1/3", lie[i])}
+          />
+        ))}
+      </div>
 
-      {/* The tent card, standing ON the pile rather than beside it: it overlaps
-          the middle print's lower edge, which is what makes this a table and
-          not three photographs and a QR in a row. */}
+      {/* ★ THE CARD IS IN FLOW, PULLED UP, never absolutely placed over the
+          pile. Absolute, it sat across the middle print and hid the photograph
+          it was meant to be standing in front of; pulled up by less than its
+          own height it OVERLAPS the pile's lower edge and the rest of it stands
+          on the table, which is the read: a card somebody put down among the
+          prints. It also keeps the object's own box honest, so the hero's
+          padding is the hero's and nothing overhangs into the next section. */}
       {DEMO_EVENT_URL && (
-        <div className="absolute bottom-0 left-1/2 z-20 -translate-x-1/2 translate-y-6 sm:translate-y-8">
-          <div className="flex w-[136px] rotate-[2deg] flex-col items-center gap-2 rounded-xl border bg-card p-3 shadow-lift ring-1 ring-foreground/5 sm:w-[152px] sm:gap-2.5 sm:p-3.5">
-            <DemoCode size={84} />
+        <div className="relative z-10 -mt-12 flex justify-center sm:-mt-14">
+          <div className="flex w-[140px] rotate-[2deg] flex-col items-center gap-2 rounded-xl border bg-card p-3 shadow-lift ring-1 ring-foreground/10 sm:w-[156px] sm:gap-2.5 sm:p-3.5">
+            <DemoCode size={88} />
             <ScanLine className="text-[11px]">Scan to add yours</ScanLine>
           </div>
         </div>
@@ -314,7 +339,10 @@ function BadgesObject() {
               seed={i * 3}
               pulse={front}
               code={front ? <DemoCode size={104} /> : undefined}
-              className={front ? "shadow-lift" : "scale-[0.9] opacity-80"}
+              // The four behind carry drawn cells, so five white plates would
+              // compete with the one that actually scans. They step back far
+              // enough to read as a desk full of badges and no further.
+              className={front ? "shadow-lift" : "scale-[0.88] opacity-55"}
             />
           </span>
         );
@@ -347,28 +375,38 @@ function SleeveObject({
   stills: readonly string[];
   albumName: string;
 }) {
+  /**
+   * ★ THE SPREAD IS WHOLE PRINT WIDTHS, NOT PERCENTAGES OF ONE. The first cut
+   * fanned at -58 / -50 / -42 percent, which is plus or minus 8 percent of a
+   * single print: three photographs stacked almost exactly on top of each
+   * other, one of them visible. A fan has to move by most of a print, and the
+   * lift is what makes them read as pulled out at different depths.
+   */
   const fan = [
-    "-rotate-[11deg] -translate-x-[58%] translate-y-3",
+    "-rotate-[12deg] -translate-x-[118%] translate-y-5",
     "rotate-[1deg] -translate-x-1/2",
-    "rotate-[12deg] -translate-x-[42%] translate-y-4",
+    "rotate-[13deg] translate-x-[18%] translate-y-7",
   ];
   return (
-    <div className="relative mx-auto w-full max-w-md pt-2">
-      {/* The prints, standing IN the sleeve: each is anchored to the sleeve's
-          top edge and only its upper two thirds shows, so the wallet holds them
-          rather than sitting under a row of photographs. */}
-      <div aria-hidden className="relative h-[168px] sm:h-[196px]">
+    <div className="relative mx-auto w-full max-w-lg">
+      {/* The prints coming OUT of the wallet: each stands on the pocket's top
+          edge and the wallet is drawn over their feet, so they read as pulled
+          out rather than laid behind. */}
+      <div aria-hidden className="relative h-[196px] sm:h-[224px]">
         {[stills[0], stills[1], null].map((id, i) => (
           <span
             key={i}
             className={cn(
-              "absolute bottom-0 left-1/2 w-[128px] sm:w-[150px]",
+              "absolute bottom-0 left-1/2 w-[132px] sm:w-[158px]",
               fan[i],
+              // A phone keeps two: three at this spread run off both edges at
+              // 375, which reads as a clipping bug rather than a fan (A21).
+              i === 2 && "hidden sm:block",
             )}
             style={{ zIndex: i === 1 ? 2 : 1 }}
           >
             {id ? (
-              <Print id={id} sizes="150px" priority={i === 1} />
+              <Print id={id} sizes="158px" priority={i === 1} />
             ) : (
               <PrintBack />
             )}
@@ -376,10 +414,10 @@ function SleeveObject({
         ))}
       </div>
 
-      {/* The wallet itself, drawn OVER the prints' feet so they come out of it.
-          `-mt-8` is the overlap; the ring and the inner hairline are the paper's
-          own fold. */}
-      <div className="relative z-10 -mt-8 flex items-center gap-4 rounded-xl border bg-card p-4 shadow-lift ring-1 ring-foreground/5">
+      {/* The wallet itself, the pocket the prints stand in. `-mt-14` is the
+          overlap: deep enough that their feet are genuinely inside it, which is
+          the difference between a wallet and a shelf. */}
+      <div className="relative z-10 -mt-14 flex items-center gap-4 rounded-xl border bg-card p-4 shadow-lift ring-1 ring-foreground/10">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-4 top-3 h-px bg-foreground/10"
@@ -415,19 +453,24 @@ function HubObject({ stills }: { stills: readonly string[] }) {
     "rotate-[11deg] translate-y-5",
   ];
   return (
-    <div className="relative mx-auto flex w-full max-w-3xl items-center justify-center">
+    <div className="relative mx-auto w-full max-w-3xl">
+      {/* ★ `w-full` ON THE ROW, not just on the wrapper. A percentage width
+          inside a SHRINK-TO-FIT flex container resolves against a width the
+          container is deriving from its children, so the four prints collapsed
+          to nothing and the card floated up over the buttons: a hero with no
+          object in it and no error anywhere. */}
       <div
         aria-hidden
-        className="flex items-center justify-center -space-x-6 sm:-space-x-8"
+        className="flex w-full items-center justify-center -space-x-6 sm:-space-x-8"
       >
         {stills.map((id, i) => (
           <Print
             key={id}
             id={id}
-            sizes="(min-width: 640px) 190px, 38vw"
+            sizes="(min-width: 640px) 190px, 40vw"
             priority={i === 1}
             className={cn(
-              "w-[38%] max-w-[190px] sm:w-[23%]",
+              "w-[40%] max-w-[190px] sm:w-[24%]",
               lie[i],
               // Two prints at a phone, four above it: the outer pair would be
               // 60px wide in a four-up at 375 (A21).
@@ -437,9 +480,11 @@ function HubObject({ stills }: { stills: readonly string[] }) {
         ))}
       </div>
 
+      {/* In flow and pulled up, like the type pages' cards: absolutely placed
+          it depends on the pile having a height, which is exactly what failed. */}
       {DEMO_EVENT_URL && (
-        <div className="absolute bottom-0 left-1/2 z-20 -translate-x-1/2 translate-y-8 sm:translate-y-10">
-          <div className="flex w-[146px] -rotate-[3deg] flex-col items-center gap-2.5 rounded-xl border bg-card p-3.5 shadow-lift ring-1 ring-foreground/5 sm:w-[164px]">
+        <div className="relative z-10 -mt-12 flex justify-center sm:-mt-14">
+          <div className="flex w-[146px] -rotate-[3deg] flex-col items-center gap-2.5 rounded-xl border bg-card p-3.5 shadow-lift ring-1 ring-foreground/10 sm:w-[164px]">
             <DemoCode size={92} />
             <ScanLine className="text-[11px]">
               Scan to open a real album

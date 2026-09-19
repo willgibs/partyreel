@@ -2511,7 +2511,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 40
+          "line": 42
         },
         {
           "title": "encodes /demo rather than the event link",
@@ -2519,7 +2519,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 50
+          "line": 52
         },
         {
           "title": "shows no code and no dead link when no demo is configured",
@@ -2527,7 +2527,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 59
+          "line": 61
         },
         {
           "title": "gives the code an accessible name, and never hides it from a reader",
@@ -2535,7 +2535,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 73
+          "line": 77
         },
         {
           "title": "knows an object for every type, and takes its stills from events.ts",
@@ -2543,7 +2543,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 82
+          "line": 86
         },
         {
           "title": "stands under the page's ONE h1, through PageHero",
@@ -2551,7 +2551,7 @@
             "the event object hero"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 96
+          "line": 100
         },
         {
           "title": "names only manifest photographs, in every slot",
@@ -2559,7 +2559,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 111
+          "line": 115
         },
         {
           "title": "gives the album object enough leaves to be an album",
@@ -2567,7 +2567,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 131
+          "line": 135
         },
         {
           "title": "gives the sleeve object its two faces",
@@ -2575,7 +2575,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 141
+          "line": 145
         },
         {
           "title": "draws the badges rather than photographing them",
@@ -2583,7 +2583,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 149
+          "line": 153
         },
         {
           "title": "gives a type with no statement prints a product pane to stand beside",
@@ -2591,7 +2591,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 158
+          "line": 162
         },
         {
           "title": "keeps every object kind reachable from the data",
@@ -2599,7 +2599,7 @@
             "the per-type media slots"
           ],
           "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
-          "line": 172
+          "line": 176
         }
       ]
     },
@@ -2618,7 +2618,7 @@
             "the event card"
           ],
           "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
-          "line": 37
+          "line": 35
         },
         {
           "title": "puts a photograph under every card, and no artifact inside one",
@@ -2626,7 +2626,7 @@
             "the event card"
           ],
           "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
-          "line": 52
+          "line": 50
         },
         {
           "title": "is a link to its own type page",
@@ -2634,7 +2634,7 @@
             "the event card"
           ],
           "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
-          "line": 71
+          "line": 69
         },
         {
           "title": "names no still of its own",
@@ -2642,7 +2642,7 @@
             "the event card"
           ],
           "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
-          "line": 76
+          "line": 74
         },
         {
           "title": "wears the ruled copy scrim rather than a fresh ramp",
