@@ -36,9 +36,8 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   three the same day: Fable orchestrating, boards on Sonnet, wiring on Opus, PROGRAM.md "Model delegation").
 - `heroes` integrated (`6b5ea1bf`): `privacy-hero` (none, then round two, then three) and `album-page` (answered whole, wired below).
 - `ghost-wiring` integrated (`31c94253`): river-visual's `ghost` on the guest album's empty state; the river's production home `src/components/shared/river/`, two contracts, a Library entry.
-- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and
-  unlinked: where it sits, where the photographs end, what it opens (the short `/demo` link fixes the scan floor)
-  and what the short door does; every drawn code exactly 3.0 px a module.
+- `river-card` integrated (`3ed62f0c`): the river in the real QR door at 4:5 and 3:2, the code unlabelled and unlinked:
+  where it sits, where the photographs end, what it opens (the short `/demo` link fixes the scan floor), the short door; 3.0 px a module.
 - `voice` integrated (`e0b92af6`; cut `13dd8ffd`): round one of the voice derived from won lines, eight real lines in the
   places they are read with three or four close candidates each, bible 20's question first; every option a real surface.
 - `body-type` integrated (`130236c2`; cut `707d99a2`): the body and label ladder as seven decisions, every number
@@ -63,11 +62,10 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   through one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter depths on every run;
   the purge's four sweeps became jobs with switches and per-row isolation (QA #27); `sendOnce` and both limiters report
   their failures (QA #19). The cross-lane patch landed in the merge; the migration applied; the Worker deployed (`d7b16bcc`).
-- `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
-  retired: `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
-  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced
-  motion; the engine and `PhotoSection` beside the river. His fold landed as one line (chapter one closes on the
-  photograph, the paper chapter opens on the demo's stage; his to overrule). The copy at 5.12:1; row 20 amended to 1200 px.
+- `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board retired:
+  `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its foot rail, the
+  slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced motion; the engine and
+  `PhotoSection` beside the river. His fold as one line (chapter one closes on the photograph; his to overrule). 5.12:1; row 20 at 1200 px.
 - `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one rule
   in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at 2 / 5 / 6 / 8
   columns at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at 632 on the logo's line, the host event
@@ -78,18 +76,16 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   keeper and the shy fade named) and the root 404 stands on it, a phone walking its own path. Measuring the real page
   moved three things: the shy fade became a feathered window (1.49:1 to 4.90:1), the resting composition is one of five,
   the phone's walk reaches its edges. The root 404 only (the group 404s keep their strip, his to widen). `image-trail` retired.
-- `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one
-  host's Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter` and the grids at
-  1440 and 375: what the home opens on (what needs you), how an event draws on it, what an event's page is (a front
-  page with a door into each room), how seven routes are reached, where sharing and settings live, where the plan
-  and a host's own photographs live (one place, You), the shape in a hand (a bar at the thumb). Four questions
-  carried: three events at most; the bell reserved; the personal feeds under You; the home's heading placeholder copy.
-- `guest-shape` integrated (`beee6325`; cut `236cc03f`): round one of the guest experience's shape as seven decisions
-  on one wedding in its four access states, phone first at 375 with 1440 on a knob, the shipped guest components
-  wrapped and the portal-bound shells quoted: the door after the scan (one screen), how an empty album speaks (the
-  river), the chrome over an album that runs to the window (docked at the foot), whether the album admits it is
-  filling, one sheet for the four dialogs, a window to take a photograph back, one voice for the account. Three
-  questions carried: a "where Partyreel appears" board once the shape settles; a guest remove is a server capability.
+- `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one host's
+  Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter` and the grids at 1440 and
+  375: what the home opens on (what needs you), how an event draws on it, what an event's page is (a front page with a
+  door into each room), how seven routes are reached, where sharing and settings live, where the plan and a host's own
+  photographs live (You), the shape in a hand (a bar at the thumb). Four questions carried on their recommendations.
+- `guest-shape` integrated (`beee6325`; cut `236cc03f`): round one of the guest experience's shape as seven decisions on
+  one wedding in its four access states, phone first, the shipped guest components wrapped and the portal-bound shells
+  quoted: the door after the scan (one screen), an empty album (the river), the chrome over a wide album (docked at the
+  foot), whether the album admits it is filling, one sheet for the four dialogs, a window to take a photograph back, one
+  voice for the account. Three questions carried: a "where Partyreel appears" board; a guest remove is a server capability.
 - `app-vocabulary` integrated (`e442fc55`; cut `73451c79`): round one of the shared vocabulary under both shapes
   as seven decisions on the real components at 1440 and 375, never edited: three empty-state tiers over five
   treatments, one loading primitive wired only where a route has a real wait (the Reel Studio has none and freezes
@@ -131,6 +127,15 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   one place the page shows), the sheet (the table alone: 2,676 px to 2,053), the close (four questions open, the rest
   to help), the phone (a swipe row, 1,250 px against 1,850). Three questions carried (the pair's recut third option;
   both fork sides kept in the DOM; the FAQ graph shrinking to four). Three defects caught in the captures, fixed.
+- `app-door` integrated (`2960db15`; cut `e442fc55`): login and signup, the door into the host app, as seven decisions on
+  the shipped auth components (`LoginForm`, `EmailSignIn`, `EnterEventPrompt`, the name step, `AppShell`) at 1440 and 375,
+  no preview touching the network: what the door asks first (the code; three of four surfaces already lead with it), how
+  many account surfaces (one object worn four ways; measured, 0 of the 2 guest surfaces carry the Terms line today), what
+  stands between a new account and the app (the name, then their first event ending on a live QR), what `/login` is (the
+  door with the product beside it: 13 percent of a laptop today, 50 beside), an email that already has an account (open
+  it and say so), how the door fails (the ways out as buttons under the vague line), a host the browser knows (welcome
+  back, one field left). Four questions carried (passkeys and One Tap drawn as a future; the Terms line everywhere; the
+  remembered door device-local only; a welcome-made event counts against the cap). Five defects caught in 54 captures.
 - `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door became the one that moves: the album
   pours out of a real scannable code a tenth down a tall 4:5 door and the whole card streams behind the copy; the
   lab's card engine folded into the shared river as one `origin` argument, the code and the settled flow in the
@@ -154,15 +159,13 @@ itself. The calm lesson is PROGRAM.md's: a relative note is answered against a r
   the apex took `NEXT_PUBLIC_SURFACE=app` with a redeploy, the live red-team matched the runbook's table, and his three
   env-proving pages rendered on the new host; the one purge run on the app surface closed the runbook on 2026-09-19.
 
-**The round's second sitting, first batch (build `93d00ff`).** `cursor-backdrop` r1 whole (`full-quality`, `plate`,
-`band` "I absolutely love the rail of the foot", `slide`, `insert` as a soft ruling, `scroll` at four or five
-photographs) with the ruling that full-image sections are chapter transitions, used sometimes, never at every cut,
-this one closing chapter one; `backdrop-wiring` cut from it. `image-trail` r1 begun: `d140`, `long` at three seconds.
+**The round's second sitting, first batch (build `93d00ff`).** `cursor-backdrop` r1 whole (`full-quality`, `plate`, `band`
+"I absolutely love the rail of the foot", `slide`, `insert` soft, `scroll` at four or five) with the ruling that full-image
+sections are chapter transitions, never at every cut; `backdrop-wiring` cut from it. `image-trail` r1 begun: `d140`, `long`.
 
-**The second batch (build `9720798`, 2026-09-19).** Four boards whole (`image-trail`: `d140`, `long` at three
-seconds, `flick`, `s180`, the 404, `walks`; `album-page`: `live`, `stream` with variations wanted, `halo`, `floor`
-with a full-image section beneath; `river-card`: `tenth`, `behind`, `short`, `tall`, every card's own copy gradient;
-`gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` round two closed by a `?`; four wiring lanes cut at once.
+**The second batch (build `9720798`, 2026-09-19).** Four boards whole (`image-trail`: `d140`, `long`, `flick`, `s180`, the
+404, `walks`; `album-page`: `live`, `stream` with variations, `halo`, `floor` with a photograph beneath; `river-card`: `tenth`,
+`behind`, `short`, `tall`, every card's gradient; `gallery-width`: `240`, `full`, `edge`, `same`); `privacy-hero` r2 a `?`; four wiring lanes cut.
 
 **Next.** His sitting on the desk (`voice`, `glass`, `loose-ends`, `body-type`, `admin`, `app-shape`, `guest-shape`,
 `app-vocabulary`, privacy-hero round three, `album-motion`); five boards from his stacking steer; then the wiring lanes.

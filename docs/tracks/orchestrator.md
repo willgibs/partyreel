@@ -120,7 +120,7 @@ retired `type-phone`; both agents were told so by message.
 | `privacy-concept` | integrated at `6c99e128` (handed off `784fd74e`); the field files stay until album-page retires | done | Sonnet, :3133 | nothing |
 | `app-vocabulary` | integrated at `e442fc55` (handed off `7a1d52f6`, ten stale; the registration conflicts against guest-shape resolved by the Orchestrator, both rows kept whole) | done | Sonnet, :3134 | nothing |
 | `demo-event` | integrated at `e3a2c1b6` (handed off `02ecd169`, ten stale; the RULINGS-row conflict resolved by the Orchestrator); three questions relayed | done | Opus, :3131 | nothing; the seat is free |
-| `app-door` | cut 2026-09-19: login and signup, the door into the host app, on the real auth components with fixtures | building | Opus, :3132 | everything |
+| `app-door` | integrated at `2960db15` (handed off `04dad397`, seven stale; the registration conflicts resolved by the Orchestrator); four questions relayed | done | Opus, :3132 | nothing; the seat is free |
 | `contact-page` | integrated (handed off `184fb4b8`, zero stale, no conflicts; three findings deferred) | done | Sonnet, :3133 | nothing |
 | `guest-upload` | cut 2026-09-19 on the seat contact-page freed: the moment a guest adds a photograph, phone first | building | Opus, :3133 | everything |
 | `press-page` | integrated (handed off `d23a7df5`, five stale; the registration conflicts against contact-page resolved by the Orchestrator); one question relayed | done | Sonnet, :3135 | nothing |
@@ -264,6 +264,10 @@ are fixed pixels (200, 96, 232) with no module-size guard while the marketing pl
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **Concurrent lanes share the scratchpad directory** (2026-09-19, from `app-door`): one lane's `capture.mjs` at the
+  scratchpad's root overwrote another's mid-session, and a fixed CDP port put one lane's driver on another lane's Chrome
+  (two stray directories landed in a worktree). The spawn brief now sends a lane's scratch files to `<scratchpad>/<track>/`
+  and makes it check any debugging port it opens; the built-in browser pane is shared too (own tabs only).
 - **A manifest never lists another lane's manifest under `reads`** (2026-09-19): `pricing-page.md` read
   `docs/tracks/app-pricing.md` so the two pricing boards could see each other's goal; the app-pricing merge deleted
   that file and `track-manifests.test.ts` ("read ... does not exist") turned the merged tree's gate red, with the desk's
