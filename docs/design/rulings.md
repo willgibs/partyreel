@@ -8,6 +8,20 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the app and the guest pages are unprotected: relitigate from the foundation
+
+**Became:** the Orchestrator maps the host app and the guest experience (two explorations and its own walk of the
+alias), and lines up question-first boards that reconceive them from the ground up, the way the admin round did,
+launched as seats free while the wiring lanes run. The marketing site's stretch goal of 2026-09-14 ("nothing is
+protected") now names the app and the guest pages explicitly.
+
+Verbatim: "While you're waiting for me to review and your agents to complete their work, please begin exploring our
+app yourself and lining up new agent explorations to launch as slots become free. Let's treat the full app
+experience as well as guest pages as unprotected. Anything and everything is open to relitigate or reconcept from
+the ground up to begin establishing a better system from its foundation. The existing version is closer to a
+Frankenstein's monster as we were trying to integrate new features ideas 1 by 1, rather than having a complete idea
+of the full app from the beginning."
+
 ## 2026-09-19 · the second batch: the trail's home is the 404, the album's halo, the card's own gradient, galleries run to the window
 
 **Became:** four boards answered whole and wired the same night (`image-trail`, `album-page` with album-hero

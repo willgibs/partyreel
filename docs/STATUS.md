@@ -15,7 +15,9 @@ zero real users, Stripe in TEST mode, and the launch switches deliberately unspe
 only active thread: work rides `launch-prep` in rounds, each a catalog in the lab, Will's verdicts on the
 desk, then the wiring; partyreel.com changes only at tagged milestone merges. The goal for this stretch
 (Will, 2026-09-14): every page reaches a cohesive informational flow and every point of the design system,
-the marketing site and the app is elevated platform-wide; nothing is protected.
+the marketing site and the app is elevated platform-wide; nothing is protected, and since 2026-09-19 the host app and
+the guest pages are explicitly open to be reconceived from the ground up ("closer to a Frankenstein's monster";
+his words in `design/rulings.md`).
 
 ## The current round: the ladders and the dock (opened 2026-09-18 at `00e82dba`)
 
@@ -100,7 +102,7 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Four wiring lanes are building; three lab boards follow on freed seats. The desk derives the steps (`/design/lab?key=`): all eight boards of the round are integrated and his sitting is open
+His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Four wiring lanes are building; boards follow on freed seats in this order: `app-shape` (the host app from the foundation), `guest-shape` (the guest experience from the scan), `privacy-concept` (round three, a new concept), `app-vocabulary` (empty, loading, the tile, the toolbar, the gallery's controls); the seams they are cut from are in `tracks/orchestrator.md`, "The app round's map". The desk derives the steps (`/design/lab?key=`): all eight boards of the round are integrated and his sitting is open
 in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
 marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). Two calls from `backdrop-wiring` are his to overrule on the alias's home page: the live demo moved whole into the paper chapter as its opener (rather than its visual merged into the album section), and the album's heading kept at `lg` beneath it (`text-section` is the first thing to try if the two read as one section). His to
 overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather

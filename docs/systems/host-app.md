@@ -4,10 +4,10 @@
 > BELONGS HERE: the `events` model + create wizard, QR designer, custom slug, first-time welcome, event settings, host curation/moderation, the host-upload UI entry. · NOT HERE: the upload pipeline + R2 (→ [uploads-and-r2.md](uploads-and-r2.md)), the guest experience (→ [guest-flow.md](guest-flow.md)), caps/billing (→ [billing-caps.md](billing-caps.md)), operator-side moderation/reports (→ [admin-observability.md](admin-observability.md)).
 > GROWS BY: integrate-in-place.
 
-## Dashboard landing (Events · Uploads · Likes · Trash)
+## Dashboard landing (All · Events · Following · Uploads · Likes · Deleted)
 
 [`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, four tabs
-deep-linkable via `?tab=` ([`dashboard-tabs.tsx`](../../src/components/app/dashboard-tabs.tsx)
+deep-linkable via `?filter=` (the legacy `?tab=` still translated; [`filter-chips.tsx`](../../src/components/app/dashboard/filter-chips.tsx)
 syncs the URL with `history.replaceState` so switching stays instant, no server round-trip):
 - **Events** — hosted + saved events MERGED into one list, interleaved by recency (hosted by `created_at`,
   saved by `saved_at`, so a just-created OR just-saved event lands top) + icon-differentiated (a calendar
@@ -144,7 +144,7 @@ resolves every section + presigns server-side and hands the **Gallery + Reel** s
 queue crosses as DATA (its inline triage is interactive). `EventFeed` owns the active filter (URL-synced via
 `replaceState` on `?section=`; legacy `?eventTab=` still resolves) and the urgency order, and decides what
 shows. **"All" stacks** the three sections; the [`EventFilterPills`](../../src/components/app/event-feed/event-filter-pills.tsx)
-(`All · Review · Gallery · Reel`, aria-pressed buttons in a group, NOT radix Tabs) narrow to one. The
+(`All · Review · Gallery · Reel · Guests`, aria-pressed buttons in a group, NOT radix Tabs) narrow to one. The
 section model is pure + node-safe in [`lib/event/sections.ts`](../../src/lib/event/sections.ts)
 (`resolveInitialEventSection`, `orderedSections`; mirrors `lib/dashboard/filters.ts`), unit-tested.
 **Urgency order:** Review leads the stack (and the pills) ONLY while moderation is on
