@@ -166,6 +166,24 @@ string, or set from a data table) is never seen, so it resolves to nothing: four
 until 2026-09-18. Tokens read by name outside a class live in `theme.css`'s `@theme static` block (the chart
 aliases, beside the type ladder), which is emitted whole; the raw `--chart-N` values still flip with the mode.
 
+### The media-forward card
+
+The one anatomy for a tile whose picture IS the card (Will, the event cards' round two: "the image
+being the full background, the copy keeping its position bottom left, and using a dark gradient
+overlay to ensure the text is distinct"): the home's event types, the feature doors and every
+page's closing row, the blog library, the events teaser. TWO overlays, never one, and they have
+different owners. The **visual's own fade** is the picture's (bottom-weighted, and it lifts on
+hover); the **copy gradient is the CARD's** — one ruled treatment, `CARD_COPY_SCRIM` in
+[feature-door.tsx](../../src/components/marketing/sections/features/shared/feature-door.tsx): a
+band under the copy row plus a bloom in the bottom-left corner the copy starts from, stacked over
+whatever visual the slot holds, and it never lifts. Will ruled the split on `river-card`
+(2026-09-19): "the card would have its own from its text, being treated separately so the card's
+applies to all features & visual pairings", and "not exclusive to the QR code card, nor part of the
+river visual design itself, which keeps its own overlay fade as well". So a visual that wants to be
+quiet fades ITSELF (the river's dissolve, the ghost's filter) and a card that wants its words read
+wears this. ★ The alphas are a per-pixel reading off the real photographs, not a taste: re-measure
+on every door when one moves.
+
 ## Chapters: the attention arc
 
 Marketing pages alternate **cinema** (dark) and **paper** chapters to group sections and break

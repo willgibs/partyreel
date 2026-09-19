@@ -7,8 +7,6 @@ import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
-import { RiverCardBoard } from "@/app/(dev)/design/sandbox/river-card/board";
-import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { VoiceBoard } from "@/app/(dev)/design/sandbox/voice/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
@@ -37,6 +35,4 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "body-type": { Component: BodyTypeBoard },
   voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
-  "river-card": { Component: RiverCardBoard },
-  "river-visual": { Component: RiverVisualBoard },
 };

@@ -50,6 +50,14 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the photographs a trail lays down: the slot ASSETS row 21 fills, so a generated set lands as a data change and no component ever names a picture",
     unspecimened: "a list of image ids; the trail above is where they are seen",
   },
+  /* shared / river (river-wiring, 2026-09-19) */
+  "src/components/shared/river/qr-plate.tsx": {
+    for: "the real scannable code a river is born from inside a feature door; server-rendered, no link and no label, and sized off its own value so a module never drops under the scan floor",
+  },
+  "src/components/shared/river/qr-door-frames.ts": {
+    for: "the twelve photographs the QR door pours, in launch order with their crops: the slot a generated set lands in, never the pictures",
+  },
+
   /* marketing / chrome */
   "src/components/marketing/chrome/marketing-footer.tsx": {
     for: "the ink slab closing every marketing page: the demo invite, the index, the legal bar",
