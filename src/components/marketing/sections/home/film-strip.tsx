@@ -1,39 +1,39 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
 
+import { HowItWorksStepper } from "@/components/marketing/sections/shared/how-it-works-stepper";
 import { Conveyor } from "@/components/marketing/system/conveyor";
 import { FilmStripLamp } from "@/components/marketing/sections/home/film-strip-glow";
-import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 /**
- * MEDIUM (the loud/quiet map): the ratified Direction-B film-strip conveyor
- * (sprockets + a linear marquee; ambient motion stays linear) with the three
- * scene cards landing as HARD FILM CUTS ([data-mkt-cut], deliberately not a
- * fade). The scene beats mirror the ruled header's verbs: Scan / Upload /
- * Done. Anchored as /#how-it-works (footer + nav link target).
+ * THE HOME'S HOW-IT-WORKS PASSAGE (anchored /#how-it-works: the footer and the
+ * nav both link here, and section-ids.ts still calls the slot `film-strip`).
+ *
+ * MEDIUM on the loud/quiet map: the ratified Direction-B conveyor (sprockets
+ * and a linear marquee; ambient motion stays linear) with its sampled
+ * underlight, and beneath it the WHOLE loop as a numbered stepper.
+ *
+ * ★ THE THREE SCENE CARDS ARE GONE (Will, 2026-09-19, ruling the walkthrough's
+ * shape): "I made a previous question note about using a simpler three steps
+ * for 'How It Works' sections, such as on the homepage, to point into the more
+ * comprehensive How It Works page. However, I think a numbered stepper would
+ * work better, where we can present the full flow within a regular height
+ * section without feeling crowded or long." Scene 01/02/03 told three steps of
+ * a six-step loop and then linked to a page that told six, so the teaser was
+ * shallower than its own door; the stepper tells all six in the same room.
+ *
+ * ★ THE STRIP AND ITS LAMP STAY. His ruling was about the three cards, and the
+ * conveyor is this section's identity: the site's own photographs running edge
+ * to edge (bible 18) over one of the four shipped lamps (design-system.md, "the
+ * shipped light"), whose whole design is a strip of frames above and an object
+ * below positioned to CATCH the light. The stepper is that object now.
+ *
+ * ★ AND THE POINTER MOVED INSIDE IT. The section used to end on its own
+ * LearnMoreLink to /how-it-works; the stepper carries that door at its foot, so
+ * keeping both would have put two identical links a hundred pixels apart.
  */
-
-const SCENES = [
-  {
-    scene: "Scene 01",
-    title: "Scan",
-    body: "Guests point their camera at one QR code and they're in. No app, no account.",
-  },
-  {
-    scene: "Scene 02",
-    title: "Upload",
-    body: "Photos and videos land in your album live, from every phone in the room.",
-  },
-  {
-    scene: "Scene 03",
-    title: "Done",
-    body: "The whole event in one place, ready to curate and share.",
-  },
-];
 
 export function FilmStrip() {
   return (
@@ -45,7 +45,8 @@ export function FilmStrip() {
       /* TEMPO (R4/A32): a section that ends on a POINTER link is a bridge, not
          a full stop, so it gives back part of its bottom padding. The reviewer
          clocked ~190px of dead black under this link before the next eyebrow;
-         the pointer now sits ~50px closer to what it points at. */
+         the pointer now sits ~50px closer to what it points at. The stepper's
+         own door is that pointer since the scenes retired. */
       className="pb-10 sm:pb-12"
     >
       {/* Negative margins bleed the strip through the Container gutter so the
@@ -56,36 +57,7 @@ export function FilmStrip() {
         </Conveyor>
       </FilmStripLamp>
 
-      <Reveal className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-3">
-        {SCENES.map((s, i) => (
-          <div
-            key={s.scene}
-            data-mkt-cut
-            className="rounded-xl border bg-card/60 p-6"
-            style={{ "--i": i } as CSSProperties}
-          >
-            <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-              {s.scene}
-            </p>
-            <h3 className="mt-2 font-heading text-subhead">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {s.body}
-            </p>
-          </div>
-        ))}
-      </Reveal>
-      {/* The ladder pointer (expansion round): the teaser routes into the full
-          two-sided walkthrough page. The Reveal used to wrap a link that
-          carried no [data-mkt-reveal], so it observed nothing and the pointer
-          popped in flat under three cut-in cards (R4 choreography pass). --i 0
-          because a lone trailing element has nothing to queue behind. */}
-      <Reveal className="mt-8 flex justify-center">
-        <div data-mkt-reveal style={{ "--i": 0 } as CSSProperties}>
-          <LearnMoreLink href="/how-it-works">
-            The full walkthrough, both sides
-          </LearnMoreLink>
-        </div>
-      </Reveal>
+      <HowItWorksStepper className="mt-14 sm:mt-16" />
     </SectionShell>
   );
 }

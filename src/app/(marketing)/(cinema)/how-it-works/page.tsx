@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BreadcrumbJsonLd } from "@/components/marketing/jsonld";
-import { PricingPointer } from "@/components/marketing/sections/how-it-works/pricing-pointer";
-import { ReelPayoff } from "@/components/marketing/sections/how-it-works/reel-payoff";
+import { DemoDoor } from "@/components/marketing/sections/how-it-works/demo-door";
 import { Spine } from "@/components/marketing/sections/how-it-works/spine";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Button } from "@/components/ui/button";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
+import { planById } from "@/lib/constants/tiers";
+import { formatBytes } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -19,13 +20,27 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE WALKTHROUGH (Phase B, T3): the planning guide for a host who wants to
- * understand everything before going all-in. Short dark hero, then the
- * two-sided spine on paper (host and guest steps interleaved as one numbered
- * timeline, the page's signature), then the lights come down for the reel
- * payoff, a quiet pricing pointer, and the close.
+ * THE WALKTHROUGH, rebuilt on Will's round-one picks (2026-09-19,
+ * docs/design/rulings.md, "the third batch").
+ *
+ * Four beats, down from six, and each one does a different job:
+ *
+ *   1. THE HERO stays as it was. `who=host` ("Guests and planners are smart
+ *      enough to read this from a perspective of a host and understand"), and
+ *      the page's copy already greeted one, so there was nothing to change.
+ *   2. THE PAPER SPINE, the page's signature: six steps in one scroll
+ *      (`shape=scroll`) with a Host/Guest toggle above them and a step set per
+ *      side, twelve bespoke pictures between them (`pictures=bespoke`).
+ *      A plan is read at a desk, so the chapter cuts to paper for it.
+ *   3. THE PROOF, lights back down: the demo as a finished album rather than a
+ *      second reel (`proof=demo`, and his note against ending every page the
+ *      same way).
+ *   4. THE CLOSE, one section instead of two (`close=folded`): the free-plan
+ *      line is inside the band's own subhead, so the page ends on one seam.
+ *      PricingPointer and ReelPayoff retired with this rebuild; git keeps them.
  */
 export default function HowItWorksPage() {
+  const free = planById("free");
   return (
     <>
       <BreadcrumbJsonLd
@@ -38,8 +53,8 @@ export default function HowItWorksPage() {
       {/* The short dark hero on the shared lockup (the PageHero sweep, the
           feature-pages round), on the cinema cut. The two-sided legend USED to
           sit here, and two inert chips directly above the buttons read as a
-          pair of dead controls in the primary-action slot. It now lives in the
-          walkthrough, next to the chips it explains; the hero keeps only real
+          pair of dead controls in the primary-action slot. Both sides now live
+          on a REAL control, the walkthrough's own toggle; the hero keeps only
           CTAs. */}
       <PageHero
         entrance="cut"
@@ -64,14 +79,20 @@ export default function HowItWorksPage() {
         <Spine />
       </PaperChapter>
 
-      {/* Lights back down for the payoff, then the quiet pricing strip; its
-          own border-y hairlines carry the cuts, so the CtaBand adds none. */}
-      <ReelPayoff />
-      <PricingPointer />
+      <DemoDoor />
 
+      {/* ONE closing section. The pricing pointer used to be its own border-y
+          strip directly above this band, two hairlines making the same closing
+          argument twice (what it costs, then what to do); its one fact now
+          rides the band's own subhead and derives from tiers.ts exactly as it
+          did before, so the number still cannot drift, and its pointer becomes
+          the band's second button rather than a whole section transition. The
+          hero's second button is Browse the features, so the close does not
+          spend its own on the same door. */}
       <CtaBand
         heading="Start your first event free."
-        subhead="Create the event, share one QR code, and the whole thing lands in one album."
+        subhead={`${formatBytes(free.storageBytes)} covers a whole first event, and plans are sized by storage, not guest counts. Create the event, share one QR code, and the whole thing lands in one album.`}
+        secondary={{ label: "See full pricing", href: "/pricing" }}
         demoLink
       />
     </>

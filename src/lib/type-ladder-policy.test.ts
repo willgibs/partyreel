@@ -126,11 +126,6 @@ const EXCEPTIONS: Record<string, Exception> = {
     count: 3,
     why: "the guest entry sheet and the album, drawn inside a phone at reduced scale",
   },
-  "src/components/marketing/sections/how-it-works/step-frames.tsx": {
-    kind: "depicted",
-    count: 1,
-    why: "the entry sheet drawn inside a frame card that pictures the app",
-  },
   "src/components/marketing/sections/features/album/visibility-frames.tsx": {
     kind: "depicted",
     count: 2,

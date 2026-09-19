@@ -1,6 +1,6 @@
 ---
 track: loop-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "22438704"          # the launch-prep SHA the branch was cut from
 board: none             # a wiring round, design-led: /how-it-works rebuilt on his picks; the how-it-works board retires with it
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -113,26 +113,136 @@ demo-door proof with or without a video; the landscape reel if one is kept.
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The home's film strip: does the conveyor retire with the three scene cards?** The manifest says
+  "the film strip and its glow retire"; Will's ruling was only about the teaser's THREE STEPS ("a numbered
+  stepper would work better, where we can present the full flow within a regular height section").
+  **Recommended, and carried:** the three scene cards and the section's own pointer go and the stepper
+  takes their place; the conveyor and its sampled underlight STAY. They are the section's identity (the
+  site's own photographs edge to edge, bible 18) and one of the four shipped lamps, whose whole design is
+  a strip of frames above and an object below positioned to catch the light; the stepper is that object
+  now, and it reads on screen. Retiring them would also have meant editing three rows of
+  `docs/systems/design-system.md` and a comment in `reel-screen-lamp.tsx`, neither of which this lane owns.
+  `film-strip-glow.tsx` is therefore untouched and the section id stays `film-strip`.
+- **The demo's promise: the "named" wording without its numbers.** `demo-event`'s recommended wording is
+  "A real wedding album. N photos from M guests." The counts are a DB row that can be re-seeded, and the
+  party type is one too, so a hardcoded pair would be an unbacked claim the day the demo changes.
+  **Recommended, and carried:** name what it IS rather than what it contains, in the section's subhead:
+  "A real Partyreel album, curated by the host who ran it, open with no sign-up." If Will wants the counts,
+  they need a source (a build-time read of the demo event, or a constant he owns).
+- **The close's second button.** The manifest folds the pricing pointer's FACT into the band's subhead but
+  leaves its POINTER homeless. **Recommended, and carried:** the band's secondary button becomes
+  "See full pricing" (the hero already spends "Browse the features"), so the retired section loses a seam
+  and keeps its job.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet (`marketing-content.md`'s page catalogue gains a `/how-it-works` entry if the lane owns a fact there: propose it in the Handoff)
+- none. `marketing-content.md` has no `/how-it-works` entry today and this lane did not add one: its page
+  catalogue is written per page family, and a one-page entry is better written when `event-identity` lands
+  and the marketing catalogue is revised as a whole. Proposed line, if the Orchestrator wants it now:
+  *"**`/how-it-works`**: the loop as six steps in one scroll with a Host/Guest toggle above them
+  (`lib/constants/how-it-works.ts` is the ONE source, read by the page, the shared overview stepper and the
+  app's welcome tutorial); twelve bespoke pictures, the host's on a desk and the guest's in a phone; the
+  demo as a finished album rather than a reel; one folded close."*
+- `design-system.md` is deliberately untouched: the film strip and its lamp stay (see Questions).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** the home section id `film-strip` now renders the how-it-works stepper under the strip; rename
+  the id to `how-it-works` in a lane that owns `sections/home/section-ids.ts`, `index.ts` and
+  `home-sections.test.ts` (this lane owns none of the three, so the misnomer stands).
+- **Now:** `content/help/how-partyreel-works.mdx` still tells FIVE steps where the page now walks six;
+  the mega panel's blurb stopped counting rather than claim a number that is wrong on one of them. The
+  help lane should bring the article's `<Steps>` onto the same six.
+- **Later:** `HowItWorksStepper` has no Library specimen (it is a full-width section, so it carries an
+  `unspecimened` reason); a `gallery-demos` entry would let the Library show it.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The picks landed, one line each, what the `phone` step meant, and the calls his to overrule
-- Assets requested from Will: none, or one per line
+- Head `<sha>`, pushed; synced with `launch-prep` at `b45f94fb` (it moved by one record commit,
+  `docs/STATUS.md` + `docs/tracks/orchestrator.md`; merged, no conflict with any owned path)
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok · the specimen collector ok
+  (131 specimens on 94 entries) · `pnpm typecheck` ok · `pnpm lint` ok (the 8 known warnings, none in this
+  lane) · `pnpm test` ok (2,555 in 242 files) · `pnpm build` ok (254 static pages) ·
+  `pnpm lab:smoke --base http://localhost:3132` ok (454 checks, 0 failing, and `how-it-works` gone from the
+  reading table)
+- Lane check (`git diff --name-only origin/launch-prep...HEAD`), exceptions and why:
+  - inside `owns`: the page, `sections/how-it-works/*` (five new files, four retired), the stepper and its
+    contract, `sections/home/film-strip.tsx`, the footer, the mega panel, the help hub,
+    `lib/constants/how-it-works.ts`, the retired board directory
+  - the retirement's registration lines: `sandbox/registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts`
+    (the `SandboxId` member removed and the RULINGS row rewritten as shipped), plus the generated
+    `docs/design/library.md`, `rules.generated.json` and `specimens.generated.json`
+  - `rules/component-notes.ts`: one `for:` line for the new stepper (the named exception)
+  - **two one-line test edits outside `owns`, both facts about files this lane owns**, named because the
+    manifest's Binds anticipated one of them: `mock-parity.test.ts`'s guest-door entry follows the drawing
+    from `step-frames.tsx` to `guest-pictures.tsx` (the literal it pins is unchanged), and
+    `type-ladder-policy.test.ts` loses its `step-frames.tsx` exception because the file is gone AND the
+    twelve pictures that replace it need none: no drawn type wears the heading face, so the allow-list got
+    shorter rather than moving
+  - `src/lib/welcome.test.ts` was NOT edited: `HOW_IT_WORKS` keeps its `{icon, title, body}` shape, so the
+    welcome flow, the `app-door` board and the existing assertions all hold unchanged. It now DERIVES from
+    the host's first three steps instead of being written a second time.
+- **The picks landed, one line each**
+  - `pair=renamed`: the spine's foot and the mega panel's Resources card both read "Read the full how-to"
+    into the article; the help hub's link into this page reads "See the loop, start to finish". The panel's
+    blurb stopped counting steps (it said four; the article writes five and the page walks six).
+  - `who=host`: `PageHero` is byte-identical. The guest side is a perspective inside the page, not a
+    second greeting.
+  - `steps=six`, headings "more clean": twelve verb-first titles, three or four words each, parallel across
+    both sets and ending on the same object from opposite ends (the host CUTS the reel, the guest GETS it).
+    Step one's body is true now: finishing the Design step is what writes the row.
+  - `pictures=bespoke`: twelve pictures designed one at a time, no shared box. The host's six are objects
+    on a desk (the wizard at its commit moment, a printed table card on a photograph, the album in a
+    browser, the review queue, the download dialog over the album it takes, the reel control with its cut);
+    the guest's six are one phone, six screens, each with a companion beside it so a portrait object never
+    sits alone in a wide column. Every string is the app's own.
+  - `shape=scroll` + the toggle: one scroll, and a segmented pill above the steps on the pricing cadence
+    toggle's cadence. The numbers 01 to 06 do not move when it flips, and neither does the entrance: one
+    `<Reveal>` per INDEX is reused across both sets, so a toggle never replays six 700ms rises on steps the
+    reader is looking at. The swap has its own 200ms rise out of a 3px blur, `@starting-style` rather than a
+    keyframe, `motion-safe` gated.
+  - the overview stepper: promoted to `sections/shared/how-it-works-stepper.tsx` with a `@contract-for`
+    test (one step on screen, `aria-pressed` buttons, the single source, reduced motion), mounted on the
+    home in the three scene cards' place and exported for the feature pages without being mounted there.
+  - `proof=demo`: the reel is gone from this page and the demo is the payoff. A full-width wall of
+    photographs, then the real scannable code centred beneath it, encoding `/demo` (25 modules, his
+    river-card ruling) rather than the event link. No video at all, so there is no portrait column with
+    blank wings.
+  - `close=folded`: one section. The free-storage line is inside the band's subhead and still derives from
+    `tiers.ts`; `PricingPointer` and `ReelPayoff` retired with the page (git keeps them).
+  - the footer: "Explore a demo event." moved `text-chapter` to `text-section`, measured at 52px against
+    the closing H2's 52px at 1440.
+- **What the `phone` step meant.** It asked what should change about the page in a guest's hand and Will
+  could not read the question ("I'm not sure what's being asked here. How is this 'in a guest's hand?'").
+  Fairly: its three options never left the host's side of the page. Two of them rewrapped the payoff's
+  video in a bezel and the third paginated the spine below 375; none of them was about a guest. The rebuild
+  dissolves it by construction: the guest half of the walkthrough IS a phone, six screens of one, and the
+  payoff has no video left to wrap.
+- **The calls that stay his, to overrule on the alias**
+  1. The stepper on the home in the film strip's place, and the film strip itself staying (Questions, one).
+  2. The guest set's six moments: scan, the door, add, the room filling, save, the reel arriving.
+  3. The demo-door proof WITHOUT a video, and the demo appearing three times at the foot of the page (the
+     code here, the line under the close, the footer's plate) as a decreasing ladder.
+  4. The demo's promise naming what it is rather than counting what is in it (Questions, two).
+  5. The close's second button reading "See full pricing" (Questions, three).
+- Assets requested from Will: none. The twelve pictures are drawn from shipped components and the existing
+  manifest; a generated media set lands as a swap by id, as everywhere else.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Captures:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/loop-wiring/captures.md`
+  (what was read at 1440 and 375, against which pick, and the four bugs the reading caught)
+- Look at first: the toggle, pressed twice, at 1440 and then at 375. Then the foot's "Now read it as a
+  guest", which is the lane's one piece of delight: it flips the perspective AND returns you to step one.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). `/how-it-works` was rebuilt on Will's round-one picks,
+design-led: one scroll of six steps with a Host/Guest segmented toggle above them, a step set per side out
+of one new single source (`lib/constants/how-it-works.ts`, which the page, a new shared overview stepper and
+the app's welcome tutorial all read), and twelve bespoke pictures replacing the six FrameCard quotes, the
+host's as objects on a desk and the guest's as one phone with a companion beside each screen. The numbers
+stay put when the toggle flips, because the spine reuses one Reveal per index and the swap runs its own
+`@starting-style` rise instead. The payoff became the demo as a finished album with a real code encoding
+`/demo`, the close folded into one band, the pair renamed across three surfaces, and the footer's demo
+heading dropped a rung to sit level with a closing H2. The board retired; `ReelPayoff`, `PricingPointer`,
+`SideChip` and `step-frames.tsx` retired with it.

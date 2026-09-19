@@ -109,7 +109,6 @@ export type RulingId =
 export type SandboxId =
   | "error-pages"
   | "event-type-pages"
-  | "how-it-works"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -705,7 +704,7 @@ export const RULINGS: Ruling[] = [
     title: "The event-type landing pages",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-19: the overnight round, every surface unprotected, \"at worst, net neutral and fully deleted\")",
+      'open (Will, 2026-09-19: the overnight round, every surface unprotected, "at worst, net neutral and fully deleted")',
     shipped: null,
     why: "One template renders all four types today. Round one asks whether that holds, what each hero shows, one hero component or two, who is greeted, and the mid-page proof.",
     lives: [
@@ -726,36 +725,34 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered seven of the
+  // eight steps and dissolved the eighth: `phone` asked what should change
+  // about the page in a guest's hand and he could not read the question ("I'm
+  // not sure what's being asked here. How is this 'in a guest's hand?'"). Its
+  // three options only rewrapped host-facing pieces, and the rebuild answers it
+  // by construction instead: the guest half of the walkthrough IS a phone, six
+  // screens of one, so there is no bezel left to add to a video. His toggle ask
+  // arrived with `shape` and became the page's spine. The board left sandbox/
+  // with the wiring; docs/design/rulings.md keeps his words.
   {
     id: "how-it-works",
     title: "The page that tells the loop",
     surface: "marketing",
-    ruled:
-      'open (Will, 2026-09-19, "the overnight round": every surface is unprotected, "at worst, net neutral and fully deleted")',
-    shipped: null,
-    why: "Round one: the page beside its article, who it greets, the step count, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close.",
+    ruled: "2026-09-19",
+    shipped:
+      "One scroll of six steps with a Host/Guest toggle above them and a step set per side, twelve bespoke pictures (the host's on a desk, the guest's in a phone), the demo as a finished album rather than a second reel, one folded close, and the same six steps as a numbered stepper on the home",
+    why: "The page a first-time host reads to understand the whole loop, and the one surface where both sides of it can be shown from one set of six moments.",
     lives: [
       "docs/systems/marketing-content.md",
+      "src/lib/constants/how-it-works.ts",
       "src/app/(marketing)/(cinema)/how-it-works/page.tsx",
       "src/components/marketing/sections/how-it-works/spine.tsx",
-      "src/components/marketing/sections/how-it-works/step-frames.tsx",
-      "src/components/marketing/sections/how-it-works/reel-payoff.tsx",
-      "src/components/marketing/sections/how-it-works/pricing-pointer.tsx",
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+      "src/components/marketing/sections/how-it-works/guest-pictures.tsx",
+      "src/components/marketing/sections/how-it-works/demo-door.tsx",
+      "src/components/marketing/sections/shared/how-it-works-stepper.tsx",
       "content/help/how-partyreel-works.mdx",
     ],
-    board: {
-      note: "Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close",
-      variants: [
-        "The pair",
-        "Who first",
-        "The steps",
-        "The pictures",
-        "The shape",
-        "The proof",
-        "The page in a hand",
-        "The close",
-      ],
-    },
   },
   {
     id: "site-chrome",

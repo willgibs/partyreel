@@ -130,9 +130,17 @@ const FEATURED: Record<string, ReactNode> = {
   ),
   Resources: (
     <FeaturedCard
+      /* THE PAIR RENAMED (Will, 2026-09-19, `pair=renamed`): "Two pages, same
+         name is too confusing." This card and /how-it-works both told a reader
+         "How Partyreel works" and went to different places. The card now names
+         the ARTICLE, exactly as the walkthrough's own foot link does, and the
+         help hub's link to the page reads "See the loop, start to finish".
+         The blurb no longer counts steps: it said four, the article writes
+         five and the page walks six, and a count in a nav blurb is one more
+         number to keep in step for nothing. */
       href="/help/how-partyreel-works"
-      title="How Partyreel works"
-      blurb="The whole loop in four steps, from the help center."
+      title="Read the full how-to"
+      blurb="The whole loop written out, with the details, in the help center."
       imageId="reception-table"
     />
   ),
