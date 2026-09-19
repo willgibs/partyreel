@@ -219,8 +219,21 @@
   --text-prose: clamp(1.5rem, 1.28rem + 0.94vw, 2.125rem);
   --text-prose--line-height: clamp(1.89rem, 1.688rem + 0.86vw, 2.465rem);
   --text-prose--letter-spacing: -0.024em;
-  --text-subhead: clamp(1.25rem, 1.162rem + 0.38vw, 1.5rem);
-  --text-subhead--line-height: clamp(1.65rem, 1.566rem + 0.36vw, 1.89rem);
+  /* ★ THE SUBHEAD'S CEILING IS WILL'S NUMBER, NOT A ROUND ONE (2026-09-19,
+     `the-ladder=reading`): "However, this is too large font size for the hero
+     sub and opening. On desktop, hero sub maybe 20-22 and opening stays 18. On
+     mobile, hero sub at 20 and opening at 18. These are my best guesses at the
+     sizes that'll look right, not a strict hard ruling - should likely check
+     again with preview." So the step runs 20 -> 22 rather than 20 -> 24, and
+     PageHero's subhead slot moved ONTO it (it was a flat `text-lg`, which is
+     the gap he was looking at: the h1 is 1.9 times the sub at a phone and was
+     4.4 times at 1440, so the lockup's proportion came apart as the window
+     grew). The middle term is rebuilt through (375, 20px) and (1440, 22px);
+     the leading keeps each end's own ratio. Every other `text-subhead` reader
+     on the site comes down about 2px at 1440, and that is the design. The
+     openings stay at `text-lg`, which is the 18 he asked for. */
+  --text-subhead: clamp(1.25rem, 1.206rem + 0.188vw, 1.375rem);
+  --text-subhead--line-height: clamp(1.65rem, 1.621rem + 0.124vw, 1.733rem);
   --text-subhead--letter-spacing: -0.018em;
   --text-page: clamp(1.5rem, 1.412rem + 0.38vw, 1.75rem);
   --text-page--line-height: clamp(1.89rem, 1.804rem + 0.37vw, 2.135rem);

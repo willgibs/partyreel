@@ -108,8 +108,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "event-identity"
-  | "event-type-pages"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -673,39 +671,34 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
   },
-  // RULED AND RETIRED (round one, 2026-09-19). Will answered all eight steps
-  // and left two notes the wiring answered: the photo strip belongs where the
-  // icon was rather than beneath the words, and a private event should offer a
-  // way to Partyreel rather than nothing at all. NotFoundScreen became the one
-  // primitive every failure page draws from, RouteError folded into it, and the
-  // board left sandbox/ with the round; docs/design/rulings.md keeps his words.
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered all seven steps
+  // and left a note on nearly every one: the drawings "are not nearly good
+  // enough for an event page this is the proposed final page design", the
+  // statement's "UI could be improved a lot", the cards "could use a ton of
+  // design polish", the door's right half "could use a redesign", the ladder's
+  // sizes were his own numbers, and the phone wanted the visual crossing the
+  // fold. The wiring answered each on the real pages; the board left sandbox/
+  // with it, and docs/design/rulings.md keeps his words.
   {
     id: "event-identity",
     title: "The event pages' visual identity",
     surface: "marketing",
-    ruled:
-      'open (Will, 2026-09-19: the pages were a fast V1 and "could use a total visual identity redesign now that other areas like the homepage are progressing beyond them under Rising Tides")',
-    shipped: null,
-    why: "The hub and four type pages from the ground up: the hero's theme in one shared lockup, the section under it, the arc, the cards, the proof, the ladder, the phone.",
+    ruled: "2026-09-19",
+    shipped:
+      "One lit object per type carrying the demo's real scannable code, a statement section in place of the paragraph and its tag list, a photograph the page turns to paper across, the photograph as the card for all four types at both of its sizes, a door with the river pouring through it and the reel beside it, the hero subhead on a 20 to 22 clamp site-wide with the openings at 18, and a phone whose object crosses the fold",
+    why: "The hub and four type pages from the ground up: what makes an event page its own, once every one of them wears the same lockup.",
     lives: [
       "docs/systems/marketing-content.md",
+      "src/lib/constants/events.ts",
       "src/app/(marketing)/(cinema)/events/page.tsx",
       "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
-      "src/components/marketing/sections/events/event-hero-media.tsx",
-      "src/components/marketing/sections/events/type-directory.tsx",
-      "src/components/marketing/sections/events/reel-angle-band.tsx",
+      "src/components/marketing/sections/events/event-object.tsx",
+      "src/components/marketing/sections/events/event-statement.tsx",
+      "src/components/marketing/sections/events/event-turn.tsx",
+      "src/components/marketing/sections/events/event-type-card.tsx",
+      "src/components/marketing/sections/events/event-door.tsx",
+      "src/components/marketing/system/page-hero.tsx",
     ],
-    board: {
-      note: "Seven decisions as concepts on the real /events pieces and the shared engines, on weddings and on conferences (the type the manifest has no honest still for), at 1440 and 375: the hero's theme, the section under it, the arc, the cards, the proof, the ladder, the phone",
-      variants: [
-        "The hero's theme",
-        "The second section",
-        "The arc",
-        "The cards",
-        "The proof",
-      ],
-      tracks: ["event-identity"],
-    },
   },
   {
     id: "error-pages",
@@ -729,31 +722,29 @@ export const RULINGS: Ruling[] = [
       "src/app/global-error.tsx",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered seven of the eight
+  // steps as direct picks and turned the eighth into a fresh round: the pages
+  // "were thrown up in a very fast V1... they could use a total visual identity
+  // redesign", which became `event-identity` above and wired with it. Two notes
+  // kept for the record and never marketing copy: kids are never a target user,
+  // and planners get a partners page rather than a line in this hero. The board
+  // left sandbox/ with the wiring; docs/design/rulings.md keeps his words.
   {
     id: "event-type-pages",
     title: "The event-type landing pages",
     surface: "marketing",
-    ruled:
-      'open (Will, 2026-09-19: the overnight round, every surface unprotected, "at worst, net neutral and fully deleted")',
-    shipped: null,
-    why: "One template renders all four types today. Round one asks whether that holds, what each hero shows, one hero component or two, who is greeted, and the mid-page proof.",
+    ruled: "2026-09-19",
+    shipped:
+      "One template for four types, the host alone greeted, every page on the shared PageHero lockup, the hub's 2x2 directory kept with its tilt, the FAQ-to-close gap halved at a phone, and the demo door in place of the reel band as the proof on all five pages",
+    why: "Four umbrella landing pages carry the site's search equity, and a reader who arrives on one from search has to meet the same product the home page sells.",
     lives: [
       "docs/systems/marketing-content.md",
+      "src/lib/constants/events.ts",
       "src/app/(marketing)/(cinema)/events/page.tsx",
       "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
-      "src/lib/constants/events.ts",
-      "src/components/marketing/sections/events/event-hero-media.tsx",
       "src/components/marketing/sections/events/type-directory.tsx",
+      "src/components/marketing/sections/home/events-teaser.tsx",
     ],
-    board: {
-      note: "Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone",
-      variants: [
-        "One page or four",
-        "The hero's picture",
-        "The proof",
-        "How many",
-      ],
-    },
   },
   // RULED AND RETIRED (round one, 2026-09-19). Will answered seven of the
   // eight steps and dissolved the eighth: `phone` asked what should change
@@ -1449,7 +1440,7 @@ export const RULINGS: Ruling[] = [
       "docs/systems/design-system.md#the-media-forward-card",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/features/shared/related-features.tsx",
-      "src/components/marketing/sections/home/event-type-card.tsx",
+      "src/components/marketing/sections/events/event-type-card.tsx",
       "src/components/shared/river/qr-plate.tsx",
       "src/app/demo/route.ts",
     ],

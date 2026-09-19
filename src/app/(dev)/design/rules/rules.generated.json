@@ -2662,6 +2662,240 @@
       ]
     },
     {
+      "id": "event-door",
+      "file": "src/components/marketing/sections/events/event-door.tsx",
+      "names": [
+        "EventDoor"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "promises the album without counting it",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 36
+        },
+        {
+          "title": "opens /demo, and only when a demo exists",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 47
+        },
+        {
+          "title": "keeps the door the wider column",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 57
+        },
+        {
+          "title": "leaves the river silent and unfocusable",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 64
+        },
+        {
+          "title": "gives the door column exactly one control",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 85
+        },
+        {
+          "title": "shows the reel as a poster rather than a bordered card",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 95
+        },
+        {
+          "title": "never brings the retired reel band back",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 104
+        }
+      ]
+    },
+    {
+      "id": "event-object",
+      "file": "src/components/marketing/sections/events/event-object.tsx",
+      "names": [
+        "EventObject",
+        "EventsHubObject"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders a REAL code, server-side, not a drawn one",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 42
+        },
+        {
+          "title": "encodes /demo rather than the event link",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 52
+        },
+        {
+          "title": "shows no code and no dead link when no demo is configured",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 61
+        },
+        {
+          "title": "gives the code an accessible name, and never hides it from a reader",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 77
+        },
+        {
+          "title": "knows an object for every type, and takes its stills from events.ts",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 86
+        },
+        {
+          "title": "stands under the page's ONE h1, through PageHero",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 100
+        },
+        {
+          "title": "names only manifest photographs, in every slot",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 115
+        },
+        {
+          "title": "gives the album object enough leaves to be an album",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 135
+        },
+        {
+          "title": "gives the sleeve object its two faces",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 145
+        },
+        {
+          "title": "draws the badges rather than photographing them",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 153
+        },
+        {
+          "title": "gives a type with no statement prints a product pane to stand beside",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 162
+        },
+        {
+          "title": "keeps every object kind reachable from the data",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-type-card",
+      "file": "src/components/marketing/sections/events/event-type-card.tsx",
+      "names": [
+        "EventCard"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is the same component at both sizes",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 35
+        },
+        {
+          "title": "puts a photograph under every card, and no artifact inside one",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 50
+        },
+        {
+          "title": "is a link to its own type page",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 69
+        },
+        {
+          "title": "names no still of its own",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 74
+        },
+        {
+          "title": "wears the ruled copy scrim rather than a fresh ramp",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 84
+        },
+        {
+          "title": "keeps the tilt on the hub and off the home row",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 91
+        }
+      ]
+    },
+    {
       "id": "feature-door",
       "file": "src/components/marketing/sections/features/shared/feature-door.tsx",
       "names": [
@@ -3379,7 +3613,7 @@
           "line": 77
         },
         {
-          "title": "keeps every scale in the table rather than inline",
+          "title": "puts the subhead on the ladder's own step, never a stock size",
           "suite": [
             "the page hero lockup"
           ],
@@ -3387,12 +3621,20 @@
           "line": 97
         },
         {
+          "title": "keeps every scale in the table rather than inline",
+          "suite": [
+            "the page hero lockup"
+          ],
+          "file": "src/components/marketing/system/page-hero-contract.test.ts",
+          "line": 114
+        },
+        {
           "title": "keeps the side bearing out of the heading class, gated on align",
           "suite": [
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 101
+          "line": 118
         },
         {
           "title": "offers three named entrances, and the blur-rise never touches the h1",
@@ -3400,7 +3642,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 115
+          "line": 132
         },
         {
           "title": "renders the stage AFTER the lockup, inside the same Container",
@@ -3408,7 +3650,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 131
+          "line": 148
         },
         {
           "title": "keeps the tracking squeeze on the display step itself",
@@ -3416,7 +3658,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 143
+          "line": 160
         }
       ]
     },
