@@ -1,6 +1,6 @@
 ---
 track: guest-upload
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a8afce0c"          # the launch-prep SHA the branch was cut from
 board: guest-upload     # round one: the moment a guest adds a photograph, phone first
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -98,26 +98,93 @@ library pickers, upload progress on phones, shared-album contribution flows, "pe
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **Does "take a photo" get to be one photograph at a time?** `tap=split` needs a second input carrying
+  `capture`, and on iOS `capture` opens the camera directly AND drops multi-select. **Recommended: yes.** A
+  photograph taken at the party is one photograph; the library door keeps `multiple`. Carried on with it.
+- **May a guest see their own unapproved photograph?** `held=tile` and `held=line` both need the guest's own
+  pending rows returned to the device that sent them, which is a new visibility rule (the capability is their
+  own session token; nobody else's page changes). **Recommended: the sender sees their own held item and
+  nobody else does.** Carried on with it; `held=toast` needs none of it.
+- **May a tile appear before its bytes land?** `batch=line` reverses today's rule that only an APPROVED
+  completion prepends an optimistic tile, so a later refusal has to take a photograph back out of a place the
+  guest already saw it. **Recommended: keep today's rule, which is why the board recommends `one`.** If `line`
+  wins, its wiring owes the take-back.
+- **Does `body-type`'s caption floor already answer `words`?** That board is on the desk with the caption and
+  label sizes open. If its floor lands above 12px, `words=read` is implied and this step is a confirmation
+  rather than a decision. **Recommended: let `body-type` rule the floor; read `words` as the upload act's own
+  case, which is the one place the smallest type carries the most load.**
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (lab-only round; the nine upload seams are already recorded in `tracks/orchestrator.md`, "The upload act")
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the hold-for-approval toast and the floating Add pill both sit at the foot of a phone and the toast
+  covers the pill; whichever `held` answer wins, the wiring owes the two surfaces one stacking rule.
+- Now: `guest/file-dropzone.tsx` is written for guests (drag and drop, its own copy) and rendered only by the
+  host's manual add; no decision on this board wanted it, so the wiring either gives it a home or deletes it.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board guest-upload` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The decisions, one line each: `<id>: the question; the options; the recommendation`
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: the code is `d3a5eb20`, the sync merge `4bd6a353`, and this manifest commit is the tip; pushed to
+  `origin/lp/guest-upload`. Synced with `launch-prep` at `e8250e40` (it had moved 36 commits; five boards
+  landed, so the registration conflicts were resolved by keeping BOTH sides' added lines).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok (123 components, 733 contracts,
+  18 policies); `pnpm typecheck` ok; `pnpm lint` ok (0 errors, the 8 known warnings); `pnpm test` ok (2,521 in
+  241 files); `pnpm build` ok (254 static pages); `pnpm lab:smoke --base http://localhost:3133` ok (358 checks,
+  0 failing; the board reads 668 words against the 1,200 budget); `pnpm lab:demo --board guest-upload` ok
+  (8 steps, 0 failing, every step draws its options).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`:
+  `docs/design/library.md` (generated), `src/app/(dev)/design/(shell)/lab/boards.ts`,
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/touchpoints.ts` (the three registration
+  exceptions, one line each plus the RULINGS row after `river-visual`'s), the eight files of
+  `src/app/(dev)/design/sandbox/guest-upload/`, and this manifest. No other path.
+- The decisions, one line each (four roots, then four staged behind them):
+  - `tap`: what happens the instant a guest taps Add; the phone's own chooser as today / our own sheet naming
+    both acts / two buttons and no sheet at all. **Recommended `split`.**
+  - `sending`: what a guest sees while their own photograph is flying; the silent strip as today / the strip
+    and one word / nothing until a file has been going two seconds. **Recommended `late`.** Knob: the file is a
+    photograph or a 212 MB clip.
+  - `held`: what a guest sees when the host approves uploads first; a toast and then nothing as today / a tile
+    that waits under a clock / a line that keeps their own count. **Recommended `tile`.** Knob: whether
+    anything of theirs is waiting, which is the seam where today's banner says the same sentence either way.
+  - `failed`: what a guest sees when one file will not go; dimmed with Tap to retry as today / the tile keeps
+    the reason and a Retry / one sheet at the end of the batch. **Recommended `reason`.** Knob: the three
+    refusals, which is where the precise one and the vague ones sit side by side.
+  - `batch` (after `sending`): what a dozen at once does to the top of the album; one tile per file as today /
+    one stacked tile counting down / all twelve at rest under one counting line. **Recommended `one`**, and the
+    measured line is the argument: nine of a guest's own tiles hold 43 percent of a phone's screen, one holds 11.
+  - `landing` (after `sending`): how a guest's own photograph says it arrived; today's green check / the banked
+    shimmer spent on one tile once / no mark of its own. **Recommended `sweep`.**
+  - `warning` (after `tap`): what a guest is told before their files fly; nothing until the server refuses as
+    today / the terms under the button / the terms plus a named stand-in for a file the browser cannot draw.
+    **Recommended `both`.**
+  - `words` (after `failed`): how big the two sentences a guest most needs should be; 12px as they are / 15px
+    where they are / 15px and the standing banner goes. **Recommended `read`.**
+- Mobbin citations: none (it was not needed; the decisions are all drawn on our own shipped surfaces).
+- The captures: every option at 375 and at 1440, read against its own words, at
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/shots/`
+  (48 PNGs plus `captions.txt`, which is each frame's measured caption). They caught four real defects, all
+  fixed: a caption claiming twelve where nine were drawn, a count line scrolled off the top of its own frame,
+  a full-tile cover painting over the progress strip under it, and `warning=both` silently dropping the
+  progress chrome along with the blank tile it was meant to replace.
+- Assets requested from Will: none new. The board's photographs are the twelve marketing stills re-declared at
+  the shapes a phone shoots; the guest album's real frames are already asked as ASSETS rows 12 and 22.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Lab-only round, no production byte.
+- Look at first: `batch` at 375. It is the one step where the measured numbers make the argument by
+  themselves, and it is the board's answer to the banked shimmer's stated reason. Then `landing`, where
+  `lab:demo` reports today's green check and no mark at all as the SAME picture: an 18px badge is 1 percent of
+  a tile, which is the case for spending the shimmer there.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Round one of the upload act asked the product's core act
+from the foundation as eight decisions, phone first at 375 by 812 with 1440 on a knob, every option drawn on
+the shipped guest components over one wedding with fixtures and no byte uploaded: what the tap opens, how one
+photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a
+held upload draws, what a refused file says, what a guest is told first, and how big the two smallest
+sentences are. Four decisions are roots and four are staged behind them. Every caption is read off the
+laid-out DOM inside the frame, which is how the round caught a caption claiming twelve where nine were drawn.
+The banked shimmer is offered a home on the one tile it can never stack on, and today's landed check measures
+1 percent of a tile.
