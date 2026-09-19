@@ -100,6 +100,14 @@ command line.
   where it becomes the 320x263px popover instead of the full-width sheet. Confirmed by eye in the browser at
   both screens (a marked chip anchoring the popover beside it, the sheet's own drag handle and pinned header at
   375).
+- No saved capture files this round: a one-off script adapting `lab-demo.mjs`'s own Chrome-over-CDP scaffolding
+  to save a PNG per option surfaced two real bugs on the first two tries (an unscoped `view()` reading whichever
+  frame a stable sort favoured rather than the pressed option's own; a settle race on the heavier full-profile
+  option) and a third, non-deterministic one still open on the 1440 popover specifically. Rather than hand over a
+  picture I could not fully trust, every option across both decisions and both screens was walked and read by eye
+  in the browser instead (view-all's four at 24 and at 240, quick-look's three including the popover anchored
+  beside a marked chip at 1440, way-back's three with `arrived` toggled both ways); the `lab:smoke`/`lab:demo`
+  numbers above are the automated half of the same verification.
 - Assets requested from Will: none.
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 - Look at first: `view-all` at 240. It answers his own fear directly (a party four times round one's ordinary
