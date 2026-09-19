@@ -124,6 +124,7 @@ retired `type-phone`; both agents were told so by message.
 | `contact-page` | cut 2026-09-19: how someone reaches a person at Partyreel, on the real page pieces | building | Sonnet, :3133 | everything |
 | `press-page` | cut 2026-09-19: what Partyreel hands the world about itself, on the real page pieces | building | Sonnet, :3135 | everything |
 | `app-pricing` | cut 2026-09-19 from Will's ask: pricing inside the app, the marketing page a "learn more" second layer | building | Opus, :3136 | everything |
+| `pricing-page` | cut 2026-09-19 from Will's ask: the marketing pricing page, every part its own decision | building | Opus, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |

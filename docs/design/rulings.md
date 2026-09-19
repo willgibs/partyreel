@@ -8,6 +8,20 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the pricing page beyond the in-app surface, granular; two more areas at the Orchestrator's discretion
+
+**Became:** `pricing-page` on the seat app-vocabulary freed (Opus, :3134): every part of the marketing pricing page
+its own decision (the opening, the plan pair, choosing a size, the pass, the calculator, the table, the questions
+and the close, the phone), never whole-page versions; and two boards queued from the Orchestrator's read of the weak
+points, cut as seats free: `guest-upload` (the moment a guest adds a photograph, the product's core act, phone first)
+and `first-event` (a host's first event from "Create" to a code on the table, the activation moment).
+
+Verbatim: "If or when an agent slot is free, I'd also like to start up an agent running explorations for the pricing
+page beyond the in-app pricing. This would be a more granular exploration than simply comparing new page versions
+themselves at such a high level. Again, everything is unprotected and may be reconceived from scratch or relitigate
+absolutely anything. I'd also like for you to find one to two more open areas across the marketing site or app that
+we can queue explorations for. Your discretion on what feels high leverage or like weak points right now."
+
 ## 2026-09-19 · stack the lab while deployments are capped: the demo, the door, /contact, /press, and pricing inside the app
 
 **Became:** five question-first boards cut on the free seats the same hour, each from a read-only map of its
