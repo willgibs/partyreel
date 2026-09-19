@@ -242,6 +242,24 @@ toggle exists only on marketing; in the app it surfaces through the portal after
 the webhook and every price label is a hand-written string. `/pricing` is static and tier-blind (it cannot tell a
 signed-in Pro they already subscribe); a held Pro at Checkout is refused with 409 and routed to the portal.
 
+**The upload act** (2026-09-19, from the map cut for `guest-upload`, queued): 1. the sentences a guest most needs (the
+moderation banner, "Tap to retry") are 12 px, the smallest on the page. 2. `FileDropzone` is built and never rendered
+for a guest. 3. two progress idioms (the uploader's in-tile strip; the masonry's fade for everyone else's arrivals) and
+nothing replaced the banked shimmer for the guest's own tile. 4. hold-for-approval is one toast and no tile. 5. the
+"just landed" check has no exit transition. 6. the banner reads the same whether or not the guest's own item is held.
+7. refusals are precise on the per-event cap and vague everywhere else. 8. the lightbox has no post-upload state. 9. no
+`capture`: camera or library is the OS chooser's call, nothing says "take a photo now". The strikes and cooldown live
+in `password-gate.tsx` and are pinned only through their copy.
+
+**The first event** (2026-09-19, from the map cut for `first-event`, queued): 1. three CTA labels for one act. 2. a Free
+host at the limit gets the row inserted, THEN a toast and a bounce that discards the style they chose. 3. no print
+sheet, table card, sign or poster exists (marketing's `/features/qr` mocks them; the ROADMAP's share studio is the
+generator). 4. two share idioms (the host dialog with files and no native share; the guest sheet with native share).
+5. no live signal host-side for the first photograph (the doorbell is guest-only). 6. the zero-photo state is labelled
+"Rare state" in source though it is every first event's first view. 7. nothing for a host at the venue with only a
+phone. 8. no test touches the wizard's UI, the limit refusal or the event page's first render; the product's QR plates
+are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
+
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **The admin cutover, CLOSED 2026-09-19 05:02 UTC (every runbook check done; the block stays as the record).** The lane's full
