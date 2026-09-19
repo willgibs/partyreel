@@ -134,7 +134,7 @@ the copy is open (bible 21). Mobbin is encouraged, never required: help centres,
 
 ## Handoff (replaces the chat report)
 
-- Head `dae53ff9`, pushed; synced with launch-prep at `9f976f7c` (fast-forward, `docs/tracks/orchestrator.md` only,
+- Head `6d297151`, pushed; synced with launch-prep at `9f976f7c` (fast-forward, `docs/tracks/orchestrator.md` only,
   no conflict)
 - Gates on the synced tree: typecheck ok, lint ok (the 8 known warnings, 0 new), test ok (2533), build ok (254
   pages); `pnpm design:rules` regenerated `docs/design/library.md`; `pnpm lab:smoke --base http://localhost:3136` ok
