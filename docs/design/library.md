@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 20 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 21 standing boards.**
 
 ## What binds you
 
@@ -376,6 +376,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `how-it-works` | marketing | Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close |
 | `help-center` | marketing | Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches |
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |

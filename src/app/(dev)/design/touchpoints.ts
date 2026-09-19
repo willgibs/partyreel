@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "how-it-works"
   | "help-center"
   | "host-curation"
   | "guest-upload"
@@ -97,6 +98,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "how-it-works"
   | "help-center"
   | "host-curation"
   | "guest-upload"
@@ -652,6 +654,37 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "how-it-works",
+    title: "The page that tells the loop",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": every surface is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one: the page beside its article, who it greets, the step count, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(cinema)/how-it-works/page.tsx",
+      "src/components/marketing/sections/how-it-works/spine.tsx",
+      "src/components/marketing/sections/how-it-works/step-frames.tsx",
+      "src/components/marketing/sections/how-it-works/reel-payoff.tsx",
+      "src/components/marketing/sections/how-it-works/pricing-pointer.tsx",
+      "content/help/how-partyreel-works.mdx",
+    ],
+    board: {
+      note: "Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close",
+      variants: [
+        "The pair",
+        "Who first",
+        "The steps",
+        "The pictures",
+        "The shape",
+        "The proof",
+        "The page in a hand",
+        "The close",
+      ],
+    },
   },
   {
     id: "help-center",
