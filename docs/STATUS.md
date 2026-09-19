@@ -58,6 +58,7 @@ album hero's round three went "too boring" that way).
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, empty, the object, the cap, the teaser's chips, the phone; on the real dialog with fixture states | cut at `5649285b` (2026-09-19, the overnight round), on the seat reel-studio freed |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | cut at `ee45b8f3` (2026-09-19, the overnight round), on the seat emails freed |
 | `event-type-pages` | the event-type landing pages, the hub and the four types: one page or four, the hero's picture, one hero, who is greeted, the proof, how many, the directory, the phone | cut at `1cf54457` (2026-09-19, the overnight round), on the seat media-viewer freed |
+| `error-pages` | every failure page as one grammar: one grammar, the ways out, the picture, the code, the surround, the private event, the admin's 404, the global crash | cut at `1feccb00` (2026-09-19, the overnight round, the last of the twelve), on the seat admin-triage freed |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
@@ -67,16 +68,13 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
 ## Live state
 
 - **Prod (partyreel.com)** = `main` @ tag `milestone-26` (`df173c2e`, merged 2026-09-18 late from the `launch-prep` tip
-  `353ad884`: the admin split's code, the jobs console on three kinds, the chart aliases static, four boards behind
-  the key); `launch-prep` is level with it. **The admin cutover is complete** (2026-09-18, late):
+  `353ad884`); `launch-prep` is ahead by the overnight round's records. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
-  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Every runbook check is done:
-  `job_runs` showed exactly one scheduled purge run on 2026-09-19 (04:48 UTC) and Will's sign-in at the admin host
-  rendered `/admin/metrics`, `/admin/albums` and `/admin/forensics`. **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock; Will reviews on it as well as
-  his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is 100 deployment creations per
-  trailing day on every path (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a day, so lane
-  branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration.
+  `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
+  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock;
+  Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
+  100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
+  day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 2,530 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI runs on `main` and
   `launch-prep` code pushes only; an `lp/*` push only on `[ci]`); `lab:smoke` passes whole, so a board over its reading budget is a failure.

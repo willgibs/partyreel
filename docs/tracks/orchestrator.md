@@ -137,6 +137,7 @@ retired `type-phone`; both agents were told so by message.
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
 | `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
+| `error-pages` | cut at `1feccb00` (the overnight round, the seat admin-triage freed; the last of the twelve): every failure page as one grammar | open | Sonnet, :3134 | the handoff |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |
 | `site-chrome` | cut at `ee45b8f3` (the overnight round, the seat emails freed): the marketing header, the mega panel, the phone's menu and the footer | open | Opus, :3135 | the handoff |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
