@@ -5420,6 +5420,984 @@
       "contracts": []
     },
     {
+      "id": "trail-engine",
+      "file": "src/components/shared/trail/trail-engine.ts",
+      "names": [
+        "ASPECTS",
+        "KEEP_AFTER",
+        "PHONE_BELOW",
+        "POOL_CEILING",
+        "REPLAY_STEP",
+        "ROLLS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "births on TRAVEL, not on the clock",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 92
+        },
+        {
+          "title": "births nothing from the first sample, however far from the origin",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 102
+        },
+        {
+          "title": "caps a teleport instead of drawing a wall of cards across it",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 111
+        },
+        {
+          "title": "spaces several births in one frame along the segment",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 121
+        },
+        {
+          "title": "is a closed form of its age: the same card at the same age draws the same frame",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 129
+        },
+        {
+          "title": "slides from where it was born to where the source was",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 137
+        },
+        {
+          "title": "is born BEHIND the source and chases it, which is half the ruling",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 144
+        },
+        {
+          "title": "turns the way it was thrown, and not at all on a vertical stroke",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 155
+        },
+        {
+          "title": "holds whole, then fades and shrinks, then is gone",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 179
+        },
+        {
+          "title": "paints newest over oldest with no sorting anywhere",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 192
+        },
+        {
+          "title": "never grows past the pool, however long the source runs",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 207
+        },
+        {
+          "title": "is sized so a card is never overwritten while it is still lit",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 213
+        },
+        {
+          "title": "stops at the ceiling rather than letting arithmetic size a wall",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 225
+        },
+        {
+          "title": "holds the newest photograph whole while the source rests",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 235
+        },
+        {
+          "title": "holds ONLY the newest: the rest of the trail decays away behind it",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 243
+        },
+        {
+          "title": "does not take hold during a pause in the middle of a stroke",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 250
+        },
+        {
+          "title": "releases it the moment the source moves again",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 255
+        },
+        {
+          "title": "is off by default, so a path source is untouched by it",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is reached once the hand has stopped and the trail behind it has gone",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 274
+        },
+        {
+          "title": "is never reached with the keeper off, because something is always going",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 281
+        },
+        {
+          "title": "writes nothing new once reached: the held card's frame stops changing",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 286
+        },
+        {
+          "title": "costs a photograph nothing where it is clear of the words",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 304
+        },
+        {
+          "title": "is measured on the OVERLAP, so a card grazing a corner barely dims",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 308
+        },
+        {
+          "title": "never reaches zero, so the trail reads as passing BEHIND rather than as switched off",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 319
+        },
+        {
+          "title": "is absent when no words were handed in",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 329
+        },
+        {
+          "title": "dims the frame the loop draws, not only the arithmetic",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 333
+        },
+        {
+          "title": "travels at the pace it was asked for, whatever the box's shape",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 351
+        },
+        {
+          "title": "never traces the same figure twice inside a visit",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 374
+        },
+        {
+          "title": "is the same curve every time it is computed, which the still depends on",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 383
+        },
+        {
+          "title": "opens somewhere else on the figure when a visit asks it to",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 387
+        },
+        {
+          "title": "wanders the whole box rather than staying in the middle of it",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 391
+        },
+        {
+          "title": "is deterministic, which is what makes the still and the loop one picture",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 419
+        },
+        {
+          "title": "reaches a real composition rather than a trail still filling up",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 425
+        },
+        {
+          "title": "runs several paths through one paint order, so two figures read as one object",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 431
+        },
+        {
+          "title": "counts the busiest instant, the quietest and the beat off the path it will be drawn with",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 446
+        },
+        {
+          "title": "never leaves the screen bare: the quietest instant still has photographs on it",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 453
+        },
+        {
+          "title": "answers more photographs lit for a denser spec, which is what density MEANS",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 461
+        },
+        {
+          "title": "answers more lit for a longer decay at the same density",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 468
+        },
+        {
+          "title": "is portrait first, and the size is its width",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 484
+        },
+        {
+          "title": "walks a short declared cycle rather than dealing a shape",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 490
+        },
+        {
+          "title": "holds a slot's shape still while the ring recycles through it",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 496
+        },
+        {
+          "title": "scales the density with the card, so one ruling covers both screens",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 510
+        },
+        {
+          "title": "keeps the same clocks at both, which is why one answer covered both",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 518
+        },
+        {
+          "title": "derives the ring from the life and the density rather than typing it",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 527
+        },
+        {
+          "title": "takes its phone numbers below the site's own phone breakpoint",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 533
+        },
+        {
+          "title": "carries the words it was handed, and none when it was handed none",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 542
+        },
+        {
+          "title": "keeps the keeper on, so a hand that stops is never left an empty screen",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 548
+        },
+        {
+          "title": "walks at its screen's own pace, and a phone's is slower than a laptop's",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 552
+        },
+        {
+          "title": "names only ids the media manifest knows, never a path",
+          "suite": [
+            "the photographs"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 565
+        },
+        {
+          "title": "holds enough distinct frames that a ring never shows one twice in a row",
+          "suite": [
+            "the photographs"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 572
+        }
+      ]
+    },
+    {
+      "id": "trail-frames",
+      "file": "src/components/shared/trail/trail-frames.ts",
+      "names": [
+        "TRAIL_FRAMES"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "births on TRAVEL, not on the clock",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 92
+        },
+        {
+          "title": "births nothing from the first sample, however far from the origin",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 102
+        },
+        {
+          "title": "caps a teleport instead of drawing a wall of cards across it",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 111
+        },
+        {
+          "title": "spaces several births in one frame along the segment",
+          "suite": [
+            "the birth rule"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 121
+        },
+        {
+          "title": "is a closed form of its age: the same card at the same age draws the same frame",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 129
+        },
+        {
+          "title": "slides from where it was born to where the source was",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 137
+        },
+        {
+          "title": "is born BEHIND the source and chases it, which is half the ruling",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 144
+        },
+        {
+          "title": "turns the way it was thrown, and not at all on a vertical stroke",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 155
+        },
+        {
+          "title": "holds whole, then fades and shrinks, then is gone",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 179
+        },
+        {
+          "title": "paints newest over oldest with no sorting anywhere",
+          "suite": [
+            "a card's life"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 192
+        },
+        {
+          "title": "never grows past the pool, however long the source runs",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 207
+        },
+        {
+          "title": "is sized so a card is never overwritten while it is still lit",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 213
+        },
+        {
+          "title": "stops at the ceiling rather than letting arithmetic size a wall",
+          "suite": [
+            "the ring"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 225
+        },
+        {
+          "title": "holds the newest photograph whole while the source rests",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 235
+        },
+        {
+          "title": "holds ONLY the newest: the rest of the trail decays away behind it",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 243
+        },
+        {
+          "title": "does not take hold during a pause in the middle of a stroke",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 250
+        },
+        {
+          "title": "releases it the moment the source moves again",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 255
+        },
+        {
+          "title": "is off by default, so a path source is untouched by it",
+          "suite": [
+            "the keeper"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 265
+        },
+        {
+          "title": "is reached once the hand has stopped and the trail behind it has gone",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 274
+        },
+        {
+          "title": "is never reached with the keeper off, because something is always going",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 281
+        },
+        {
+          "title": "writes nothing new once reached: the held card's frame stops changing",
+          "suite": [
+            "the rest state, which is what lets the loop stop"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 286
+        },
+        {
+          "title": "costs a photograph nothing where it is clear of the words",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 304
+        },
+        {
+          "title": "is measured on the OVERLAP, so a card grazing a corner barely dims",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 308
+        },
+        {
+          "title": "never reaches zero, so the trail reads as passing BEHIND rather than as switched off",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 319
+        },
+        {
+          "title": "is absent when no words were handed in",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 329
+        },
+        {
+          "title": "dims the frame the loop draws, not only the arithmetic",
+          "suite": [
+            "the shy fade: the words stay the loudest thing on the screen"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 333
+        },
+        {
+          "title": "travels at the pace it was asked for, whatever the box's shape",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 351
+        },
+        {
+          "title": "never traces the same figure twice inside a visit",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 374
+        },
+        {
+          "title": "is the same curve every time it is computed, which the still depends on",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 383
+        },
+        {
+          "title": "opens somewhere else on the figure when a visit asks it to",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 387
+        },
+        {
+          "title": "wanders the whole box rather than staying in the middle of it",
+          "suite": [
+            "the walk, which is the source that is not a cursor"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 391
+        },
+        {
+          "title": "is deterministic, which is what makes the still and the loop one picture",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 419
+        },
+        {
+          "title": "reaches a real composition rather than a trail still filling up",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 425
+        },
+        {
+          "title": "runs several paths through one paint order, so two figures read as one object",
+          "suite": [
+            "a replay"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 431
+        },
+        {
+          "title": "counts the busiest instant, the quietest and the beat off the path it will be drawn with",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 446
+        },
+        {
+          "title": "never leaves the screen bare: the quietest instant still has photographs on it",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 453
+        },
+        {
+          "title": "answers more photographs lit for a denser spec, which is what density MEANS",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 461
+        },
+        {
+          "title": "answers more lit for a longer decay at the same density",
+          "suite": [
+            "the measured facts"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 468
+        },
+        {
+          "title": "is portrait first, and the size is its width",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 484
+        },
+        {
+          "title": "walks a short declared cycle rather than dealing a shape",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 490
+        },
+        {
+          "title": "holds a slot's shape still while the ring recycles through it",
+          "suite": [
+            "the card's box"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 496
+        },
+        {
+          "title": "scales the density with the card, so one ruling covers both screens",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 510
+        },
+        {
+          "title": "keeps the same clocks at both, which is why one answer covered both",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 518
+        },
+        {
+          "title": "derives the ring from the life and the density rather than typing it",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 527
+        },
+        {
+          "title": "takes its phone numbers below the site's own phone breakpoint",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 533
+        },
+        {
+          "title": "carries the words it was handed, and none when it was handed none",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 542
+        },
+        {
+          "title": "keeps the keeper on, so a hand that stops is never left an empty screen",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 548
+        },
+        {
+          "title": "walks at its screen's own pace, and a phone's is slower than a laptop's",
+          "suite": [
+            "the ruled spec, derived rather than typed"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 552
+        },
+        {
+          "title": "names only ids the media manifest knows, never a path",
+          "suite": [
+            "the photographs"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 565
+        },
+        {
+          "title": "holds enough distinct frames that a ring never shows one twice in a row",
+          "suite": [
+            "the photographs"
+          ],
+          "file": "src/components/shared/trail/trail-engine.test.ts",
+          "line": 572
+        }
+      ]
+    },
+    {
+      "id": "trail",
+      "file": "src/components/shared/trail/trail.tsx",
+      "names": [
+        "Trail",
+        "TrailLayer",
+        "TrailPause"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "hides every photograph from assistive tech and leaves nothing to focus",
+          "suite": [
+            "it is weather, not content"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "keeps the words in the tree and in front of the photographs",
+          "suite": [
+            "it is weather, not content"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 155
+        },
+        {
+          "title": "asks for each photograph at the size it draws it, never at a vw",
+          "suite": [
+            "it is weather, not content"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 169
+        },
+        {
+          "title": "draws exactly the ring the measured box asks for, and no more",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "draws nothing at all until a box has been measured",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 186
+        },
+        {
+          "title": "recycles rather than growing: the node count never moves once running",
+          "suite": [
+            "the pool"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "asks for no frame at all from a reader who asked for less motion",
+          "suite": [
+            "what it costs when nobody is looking"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "stops asking for frames when it is scrolled off screen, and starts again",
+          "suite": [
+            "what it costs when nobody is looking"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 221
+        },
+        {
+          "title": "stops asking for frames on a hidden tab, and starts again",
+          "suite": [
+            "what it costs when nobody is looking"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 232
+        },
+        {
+          "title": "STOPS when the hand stops, and wakes when it moves again",
+          "suite": [
+            "what it costs when nobody is looking"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 252
+        },
+        {
+          "title": "never stops under a walk, because a path never rests",
+          "suite": [
+            "what it costs when nobody is looking"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 272
+        },
+        {
+          "title": "reads none of it inside the loop",
+          "suite": [
+            "the layout it reads"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 282
+        },
+        {
+          "title": "reads none of it inside the pointer handler either, once it has the box",
+          "suite": [
+            "the layout it reads"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 290
+        },
+        {
+          "title": "reads it again after a scroll, so a moved stage is not drawn on stale px",
+          "suite": [
+            "the layout it reads"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 304
+        },
+        {
+          "title": "walks on its own before any hand arrives",
+          "suite": [
+            "the two sources"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 318
+        },
+        {
+          "title": "hands over to a real hand the moment one enters",
+          "suite": [
+            "the two sources"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 330
+        },
+        {
+          "title": "below a phone's width, never waits for a finger and never follows one",
+          "suite": [
+            "the two sources"
+          ],
+          "file": "src/components/shared/trail/trail.test.tsx",
+          "line": 340
+        }
+      ]
+    },
+    {
       "id": "upload-thumbnail",
       "file": "src/components/shared/upload-thumbnail.tsx",
       "names": [

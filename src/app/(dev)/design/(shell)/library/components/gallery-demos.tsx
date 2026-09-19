@@ -1,5 +1,6 @@
 import {
   Calendar,
+  Compass,
   Heart,
   ImageUp,
   Plus,
@@ -14,6 +15,7 @@ import {
 } from "@/components/guest/gallery-empty-state";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import { River } from "@/components/shared/river/river";
+import { Trail } from "@/components/shared/trail/trail";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -143,7 +145,95 @@ const badgeVariantNames = [
   "link",
 ];
 
+/**
+ * THE TRAIL'S WORDS (the trail-wiring lane, 2026-09-19). The shape of the 404's
+ * own block rather than the block itself: the real one carries an <h1> and two
+ * <Link>s, and a specimen may not put a heading in the library page's outline or
+ * a way out of the page under a reader's cursor. What the specimen is for is the
+ * SHY FADE, so what it needs is type of the 404's sizes in the 404's places.
+ */
+function TrailWords() {
+  return (
+    <div className="flex max-w-md flex-col items-center gap-5 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Compass className="size-6" aria-hidden />
+      </div>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-brand">404</p>
+        <p className="font-heading text-prose text-balance">
+          We lost this page
+        </p>
+        <p className="text-pretty text-muted-foreground">
+          The link may be broken or the page may have moved. Let us point you
+          back to Partyreel.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button size="cta">Back home</Button>
+        <Button size="cta" variant="outline">
+          Visit the help center
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * THE IMAGE TRAIL'S LIBRARY ENTRY. It sits at the head of the entries because
+ * three wiring lanes add one this round; the Orchestrator keeps all of them.
+ */
+const TRAIL_ENTRY: GalleryEntry = {
+  id: "trail",
+  badge: "new",
+  family: "components",
+  section: "Surfaces",
+  lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
+  specimens: [
+    {
+      label: "On paper, under a cursor",
+      hint: "draw across it. A photograph is born every time the hand has travelled far enough, arrives BEHIND the cursor and turns the way it was thrown. Stop moving and the newest one simply stays with you (the keeper) while the trail behind it goes, and the loop stops asking for frames entirely while it stands.",
+      node: (
+        <div className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground">
+          <Trail
+            source="pointer"
+            className="flex min-h-[26rem] flex-col items-center justify-center px-6 py-12"
+          >
+            <TrailWords />
+          </Trail>
+        </div>
+      ),
+    },
+    {
+      label: "and walking its own figure at a phone",
+      hint: "375 px, where there is no cursor and a drag is a scroll: the trail walks a wander of its own at the same pace, alive the moment the page opens and asking nothing of a finger. The figure never repeats inside a visit and opens somewhere else on the next one.",
+      node: (
+        <div
+          className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground"
+          style={{ width: 375 }}
+        >
+          <Trail
+            source="path"
+            className="flex min-h-[32rem] flex-col items-center justify-center px-5 py-12"
+          >
+            <TrailWords />
+          </Trail>
+        </div>
+      ),
+    },
+    {
+      label: "With nothing to stay off",
+      hint: "no children, so no words are measured and no photograph yields anywhere: the trail whole, which is what a placement that puts its own copy beside it would get. This is also the one to watch the decay in, three seconds from laid down to gone.",
+      node: (
+        <div className="overflow-hidden rounded-lg border">
+          <Trail source="pointer" className="min-h-[22rem]" />
+        </div>
+      ),
+    },
+  ],
+};
+
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  TRAIL_ENTRY,
   {
     id: "button",
     badge: "updated",

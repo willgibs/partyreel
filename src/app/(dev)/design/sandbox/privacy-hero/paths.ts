@@ -9,7 +9,7 @@ import {
   spiralPath,
   type TrailSpec,
   wanderPath,
-} from "../image-trail/trail-engine";
+} from "@/components/shared/trail/trail-engine";
 import { HOME } from "./field";
 
 /**
@@ -24,7 +24,7 @@ import { HOME } from "./field";
  * ★ SO THE MECHANISM IS REPLACED, NOT RETUNED, and the correction is what
  * replaced it. A decaying trail OF THE TRAILING IMAGES is not something you add
  * behind a field of flying frames; it is what a trail IS. Round two is the image
- * trail engine (`../image-trail/trail-engine.ts`) with a PATH where the cursor
+ * trail engine (`@/components/shared/trail/trail-engine`) with a PATH where the cursor
  * would be: two points sweep out from the lockup's rim, each drops a photograph
  * every time it has travelled far enough, and every photograph it leaves behind
  * fades and shrinks where it lies. The two arms still read as spiralling out of
