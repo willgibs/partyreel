@@ -29,7 +29,26 @@ label you pointed at; `NAV_INDICATOR` swaps pill↔underline in one word. **Ever
 `var(…, fallback)` clocks**: the root `app/not-found.tsx` renders this header WITHOUT marketing.css, so a
 bare `--mkt-*` reference there is silently unset. The header's glass is an inert `-z-10` layer whose
 opacity animates ([`header-shell.tsx`](../../src/components/marketing/chrome/header-shell.tsx)); the bar
-itself must never carry `backdrop-filter`, or every panel repaint happens inside a blurred region. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
+itself must never carry `backdrop-filter`, or every panel repaint happens inside a blurred region.
+★ **THE BAR LEAVES GOING DOWN AND RETURNS COMING UP** (`on-scroll=hide`, Will 2026-09-19), on BOTH postures
+and by TRANSFORM ALONE: `--mkt-header-h` stays `4rem` and the sticky `z-40` box never moves, because ~14
+consumers derive from that one knob. It goes once the reader commits 8px past a one-header-height reveal
+zone and comes back on ANY upward movement, at the top, and on `:focus-within`; it never leaves with a nav
+panel or the phone sheet open. The hide and its three escapes are ONE compound selector, so no utility
+ordering decides them, and `-translate-y-full` writes the standalone `translate` property, so the clock is
+`transition-[translate]` and never `transition-transform`. Direction is the one thing no
+IntersectionObserver can report, so the site's single passive, rAF-coalesced scroll listener lives in
+[`use-scroll-direction.ts`](../../src/lib/shared/use-scroll-direction.ts) (attached only while something
+reads it); the glass's own signal must stay on its observer.
+★ **THE RIGHT CLUSTER IS THE ONE PERSONAL THING IN THE CHROME** (`returning=dashboard`): a client island
+([`session-hint.tsx`](../../src/components/marketing/chrome/session-hint.tsx)) on `useSyncExternalStore`
+with the SERVER SNAPSHOT `false`, so ~50 prerendered routes ship the stranger's Log in + Start free pair
+and a signed-in host's single `Dashboard` correction lands before paint; the phone sheet's foot swaps with
+it. The signal is the `sb-<project-ref>-auth-token` cookie prefix read from `document.cookie`
+(`@supabase/ssr` defaults `httpOnly: false` and `createBrowserClient` uses `document.cookie` AS its
+session storage, so no presence cookie is needed in `updateSession`). ★ A HINT, NEVER AUTHORIZATION: the
+`(app)` layout's `getUser()` is the boundary and RLS is the boundary under it, and both wrong answers land
+the visitor on `/login`. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
 `--brand` aliases ink and there is no brand hue, [design-system.md](design-system.md)
 is authoritative), media is the color; marketing runs louder via type/layout/motion only (motion follows the
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
@@ -501,13 +520,21 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     [`blog-redirects.ts`](../../src/lib/content/blog-redirects.ts) → `redirects()` in
     `next.config.ts` (test-held against the live slugs).
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
-  (a two-way Vitest mirror: change one side and you must change the other).
+  (a two-way Vitest mirror: change one side and you must change the other). **ONE IDEA, ONE PAGE, TWO DOORS
+  TO IT** (`two-doors=one`, Will 2026-09-19): the Resources panel's featured card is the PRIMARY door to
+  `/how-it-works` and the Features panel's footnote is the quieter second one. The help article
+  `how-partyreel-works` is linked from NOWHERE in the chrome; it keeps its row under Help center, the
+  walkthrough's own foot link and the help hub's.
 
 **THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a
 nested `.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides).
 Three registers: the demo invitation (a server-rendered scannable QR on a fanning pile of event
-photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, plus a
-secondary `Start free`), the index, and a legal bar. A turbulence-warped seam glow on the ratified
+photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen), the index, and a
+legal bar. ★ **THE ACTION IS NOT PART OF THE INVITATION** (`foot-door=always`, Will 2026-09-19): the
+secondary `Start free` sits ABOVE the `if (!DEMO_EVENT_URL)` early return and at every width, one rule in
+both states, because `/about`, `/press`, `/careers`, the legal pages and the 404 carry no `CtaBand` and
+used to end with nothing to do at all whenever the demo token happened to be unset. The invitation still
+stands down with the demo; the action never does. A turbulence-warped seam glow on the ratified
 confetti palette turns the top edge into spilled light instead of a hard cut.
 
 IA is four columns beside the brand block: **Features** · **Events** · **Product** (How it works ·
