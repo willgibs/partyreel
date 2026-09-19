@@ -200,8 +200,9 @@ cross-event ground; the phone's trim; `SectionShell`'s subhead step.
 
 ## Handoff (replaces the chat report)
 
-- Head `181b26bd`, pushed; synced with `launch-prep` at `304a813b` (it moved once, during the round; the merge was clean,
-  no conflicts in any owned file).
+- Head: the tip of `lp/events-wiring`, pushed. The last CODE commit is `dc8113b1`; every commit after it only fills
+  this manifest (a line cannot name its own SHA). Synced with `launch-prep` at `304a813b`: it moved once during the
+  round and the merge was clean, with no conflict in any owned file.
 - **Gates on the synced tree, each its own exit code:** `design:rules` ok (130 components, 839 contracts, 18 policies) ·
   specimens ok (131 on 94 entries) · `typecheck` ok · `lint` ok (0 errors, the 8 known warnings) · `test` ok (2,606 on
   246 files, +42) · `build` ok (255 pages) · `lab:smoke --base http://localhost:3131` ok (443 checks, 0 failing; neither
