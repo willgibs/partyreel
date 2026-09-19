@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import { ADMIN } from "./admin/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
+import { APP_SHAPE } from "./app-shape/spec";
 import { BODY_TYPE } from "./body-type/spec";
 import { GLASS } from "./glass/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -29,6 +30,7 @@ import { VOICE } from "./voice/spec";
  */
 export const BOARDS: readonly BoardSpec[] = [
   ALBUM_MOTION,
+  APP_SHAPE,
   ADMIN,
   LOOSE_ENDS,
   GLASS,

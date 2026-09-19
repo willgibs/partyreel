@@ -52,6 +52,7 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "album-motion"
+  | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
   | "admin"
@@ -92,7 +93,8 @@ export type SandboxId =
   | "voice"
   | "privacy-hero"
   | "river-card"
-  | "river-visual";
+  | "river-visual"
+  | "app-shape";
 
 export type Ruling = {
   id: RulingId;
@@ -645,6 +647,30 @@ export const RULINGS: Ruling[] = [
     board: {
       note: "One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's",
       variants: ["Glide", "Gather", "Cascade"],
+    },
+  },
+  {
+    id: "app-shape",
+    title: "The host app's shape",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/shared/app-shell.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
+      variants: [
+        "The host's home",
+        "The event as a place",
+        "Moving around",
+        "In a hand",
+      ],
     },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
