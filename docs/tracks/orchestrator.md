@@ -137,6 +137,7 @@ retired `type-phone`; both agents were told so by message.
 | `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
 | `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |
+| `site-chrome` | cut at `ee45b8f3` (the overnight round, the seat emails freed): the marketing header, the mega panel, the phone's menu and the footer | open | Opus, :3135 | the handoff |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
 | `how-it-works` | cut at `449d9b52` (the overnight round, the seat help-center freed): the page that tells the loop beside the article that tells it too | open | Sonnet, :3136 | the handoff |
 
