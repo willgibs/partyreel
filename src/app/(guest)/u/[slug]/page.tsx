@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sparkles } from "lucide-react";
@@ -10,6 +10,7 @@ import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   getPublicProfile,
   getPublicProfileAttendedCoverUrls,
@@ -17,6 +18,7 @@ import {
   hasBlocked,
   isBlockedEitherWay,
   isFollowing,
+  type PublicProfile,
 } from "@/lib/db/queries/social";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
@@ -66,6 +68,95 @@ function Marker({ role }: { role: "host" | "guest" }) {
         {role === "host" ? ": hosted this event" : ": added photos here"}
       </span>
     </span>
+  );
+}
+
+/** The card grid, and the two presign rounds behind it, BELOW A SUSPENSE
+ *  BOUNDARY.
+ *
+ *  ★ AND THAT BOUNDARY IS IN THE PAGE RATHER THAN IN A loading.tsx, WHICH IS A
+ *  LANDMINE WORTH THE PARAGRAPH. A loading file wraps the WHOLE route, so Next
+ *  flushes the shell the moment the fallback renders and the response's status
+ *  is already out of the door when the page calls notFound(): measured on this
+ *  route, a dead handle answered 200 (in dev and against `next start` alike)
+ *  while /e/<bad token> next door answered 404, and a public, indexable page
+ *  that soft-404s is a growth surface teaching search engines that a dead
+ *  handle is a real page. Throwing from generateMetadata does not help; it
+ *  resolves after the flush too. So the route decides 404 at the top, where the
+ *  RPC is, and only the slow half (a presign per cover, both arms) streams in
+ *  behind the skeleton, which is what the wait was ever about. */
+async function PartyGrid({ profile }: { profile: PublicProfile }) {
+  const [hostedCovers, attendedCovers] = await Promise.all([
+    getPublicProfileCoverUrls(profile.hosted_events),
+    getPublicProfileAttendedCoverUrls(profile.id, profile.attended_events),
+  ]);
+
+  // One group, newest first across both kinds: the order each arm already
+  // arrives in, merged, so a person's year reads as one year rather than as two
+  // lists that happen to share a page.
+  const parties = [
+    ...profile.hosted_events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      eventDate: event.event_date,
+      role: "host" as const,
+      // The album link the host PUBLISHED (display_in_profile);
+      // password/private events still gate at the /e/ page.
+      href: `/e/${event.custom_slug ?? event.qr_token}`,
+      coverUrl: hostedCovers.get(event.id) ?? null,
+      statusLabel:
+        event.visibility === "password"
+          ? "Password"
+          : event.visibility === "private"
+            ? "Private"
+            : null,
+    })),
+    ...profile.attended_events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      eventDate: event.event_date,
+      role: "guest" as const,
+      // No link, by the doctrine. EventCard draws an unopenable card for
+      // href: null, which is exactly what this is.
+      href: null,
+      coverUrl: attendedCovers.get(event.id) ?? null,
+      statusLabel: null,
+    })),
+  ].sort((a, b) => {
+    if (a.eventDate === b.eventDate) return 0;
+    if (!a.eventDate) return 1;
+    if (!b.eventDate) return -1;
+    return a.eventDate < b.eventDate ? 1 : -1;
+  });
+
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2">
+      {parties.map((party) => (
+        <li key={party.id}>
+          <EventCard
+            href={party.href}
+            name={party.name}
+            coverUrl={party.coverUrl}
+            dateLabel={
+              party.eventDate ? formatEventDate(party.eventDate) : "No date set"
+            }
+            statusLabel={party.statusLabel}
+            action={<Marker role={party.role} />}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The grid's own wait: the cards' shape, at the cards' size. */
+function GridSkeleton({ count }: { count: number }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2" aria-busy>
+      {Array.from({ length: Math.min(count, 4) }, (_, i) => (
+        <Skeleton key={i} className="aspect-[16/10] w-full rounded-xl" />
+      ))}
+    </div>
   );
 }
 
@@ -130,55 +221,17 @@ export default async function PublicProfilePage({ params }: PageProps) {
     following = followingNow;
   }
 
-  const [avatarUrl, hostedCovers, attendedCovers] = await Promise.all([
-    getAvatarUrl(profile.id, profile.avatar_updated_at),
-    getPublicProfileCoverUrls(profile.hosted_events),
-    getPublicProfileAttendedCoverUrls(profile.id, profile.attended_events),
-  ]);
+  const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
 
   const name = profile.display_name ?? `@${profile.slug}`;
   const joined = new Date(profile.created_at).toLocaleDateString(undefined, {
     month: "long",
     year: "numeric",
   });
-
-  // One group, newest first across both kinds: the order each arm already
-  // arrives in, merged, so a person's year reads as one year rather than as two
-  // lists that happen to share a page.
-  const parties = [
-    ...profile.hosted_events.map((event) => ({
-      id: event.id,
-      name: event.name,
-      eventDate: event.event_date,
-      role: "host" as const,
-      // The album link the host PUBLISHED (display_in_profile);
-      // password/private events still gate at the /e/ page.
-      href: `/e/${event.custom_slug ?? event.qr_token}`,
-      coverUrl: hostedCovers.get(event.id) ?? null,
-      statusLabel:
-        event.visibility === "password"
-          ? "Password"
-          : event.visibility === "private"
-            ? "Private"
-            : null,
-    })),
-    ...profile.attended_events.map((event) => ({
-      id: event.id,
-      name: event.name,
-      eventDate: event.event_date,
-      role: "guest" as const,
-      // No link, by the doctrine. EventCard draws an unopenable card for
-      // href: null, which is exactly what this is.
-      href: null,
-      coverUrl: attendedCovers.get(event.id) ?? null,
-      statusLabel: null,
-    })),
-  ].sort((a, b) => {
-    if (a.eventDate === b.eventDate) return 0;
-    if (!a.eventDate) return 1;
-    if (!b.eventDate) return -1;
-    return a.eventDate < b.eventDate ? 1 : -1;
-  });
+  // Known from the RPC's payload, so the empty page never waits on a presign
+  // round it has nothing to presign for.
+  const partyCount =
+    profile.hosted_events.length + profile.attended_events.length;
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
@@ -268,7 +321,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
           </p>
         )}
 
-        {parties.length === 0 ? (
+        {partyCount === 0 ? (
           <div
             data-arrive
             style={{ "--arrive-i": 2 } as CSSProperties}
@@ -296,24 +349,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
                 Events
               </span>
             </h2>
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {parties.map((party) => (
-                <li key={party.id}>
-                  <EventCard
-                    href={party.href}
-                    name={party.name}
-                    coverUrl={party.coverUrl}
-                    dateLabel={
-                      party.eventDate
-                        ? formatEventDate(party.eventDate)
-                        : "No date set"
-                    }
-                    statusLabel={party.statusLabel}
-                    action={<Marker role={party.role} />}
-                  />
-                </li>
-              ))}
-            </ul>
+            <Suspense fallback={<GridSkeleton count={partyCount} />}>
+              <PartyGrid profile={profile} />
+            </Suspense>
           </section>
         )}
       </main>
