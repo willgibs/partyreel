@@ -29,6 +29,11 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "how-it-works"
+  | "export-flow"
+  | "admin-triage"
+  | "media-viewer"
+  | "emails"
+  | "reel-studio"
   | "help-center"
   | "host-curation"
   | "guest-upload"
@@ -99,6 +104,11 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "how-it-works"
+  | "export-flow"
+  | "admin-triage"
+  | "media-viewer"
+  | "emails"
+  | "reel-studio"
   | "help-center"
   | "host-curation"
   | "guest-upload"
@@ -687,6 +697,140 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "export-flow",
+    title: "Getting everything out",
+    surface: "shared",
+    ruled:
+      'open (Will, 2026-09-19, "the overnight round": the download act is unprotected, "at worst, net neutral and fully deleted")',
+    shipped: null,
+    why: "Round one asks the take-it-home act from the foundation: what a guest takes, the wait, a tap with no answer, a hollow zip, the limit, and where the file lands.",
+    lives: [
+      "docs/systems/uploads-and-r2.md",
+      "src/components/app/export/export-dialog.tsx",
+      "src/components/app/export/use-export-download.ts",
+      "src/lib/export/export-service.ts",
+      "src/app/api/export/host/route.ts",
+      "workers/export/src/index.ts",
+    ],
+    board: {
+      note: "Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone",
+      variants: [
+        "What a guest takes",
+        "The wait",
+        "A tap with no answer",
+        "The limit",
+        "Where the file lands",
+      ],
+    },
+  },
+  {
+    id: "admin-triage",
+    title: "Acting on a report",
+    surface: "admin",
+    ruled:
+      "open (Will, 2026-09-18: the admin portal is rethought from the ground up as an on-brand devtool)",
+    shipped: null,
+    why: "Round one asks the operator's act from the ground up: what a report is on screen, what a verdict records, how a legal hold is reached, and who is told.",
+    lives: [
+      "docs/systems/admin-observability.md",
+      "docs/systems/trust-safety-forensics.md",
+      "src/app/admin/reports/page.tsx",
+      "src/components/app/report-review.tsx",
+      "src/components/admin/triage-status-control.tsx",
+      "src/lib/moderation/operator-actions.ts",
+    ],
+    board: {
+      note: "Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told",
+      variants: [
+        "The first look",
+        "The verdict",
+        "The legal hold",
+        "Once it is closed",
+        "Who is told",
+      ],
+    },
+  },
+  {
+    id: "media-viewer",
+    title: "What a photograph opens as",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "One viewer serves all six galleries and every album click ends on it. Round one asks what a tap builds, what stands beside the photograph, and how close a guest may get.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "src/components/shared/media-lightbox.tsx",
+      "src/components/shared/masonry.tsx",
+      "src/components/guest/guest-masonry.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address",
+      variants: [
+        "The opening",
+        "What it holds",
+        "The next one",
+        "Close up",
+        "The way out",
+      ],
+    },
+  },
+  {
+    id: "emails",
+    title: "Every email Partyreel sends",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: the overnight round, every mail cut from a read-only map, unprotected like the rest)",
+    shipped: null,
+    why: "Eight decisions on the real templates.ts functions in an inbox mock: one wrapper, the brand, the sender, the foot, the code, the moments, the guest's, and the dark inbox.",
+    lives: [
+      "docs/systems/lifecycle-recovery.md",
+      "docs/systems/notifications-analytics-growth.md",
+      "src/lib/email/templates.ts",
+      "src/lib/email/send.ts",
+      "src/components/app/notification-prefs-form.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox",
+      variants: [
+        "One shell",
+        "The brand",
+        "The sender",
+        "The foot",
+        "The code",
+        "The moments",
+      ],
+    },
+  },
+  {
+    id: "reel-studio",
+    title: "The highlight reel",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "Round one asks the product's North Star from the foundation: the door into the studio, the room at a laptop, and what a guest finally meets.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/guest-flow.md",
+      "src/components/reel/reel-studio.tsx",
+      "src/components/reel/style-rail.tsx",
+      "src/components/reel/studio-moments-picker.tsx",
+      "src/components/guest/guest-reel-card.tsx",
+    ],
+    board: {
+      note: "Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel",
+      variants: [
+        "The door",
+        "The room",
+        "The looks",
+        "The moments",
+        "How a guest watches",
+      ],
+    },
+  },
+  {
     id: "help-center",
     title: "Where a problem lands",
     surface: "marketing",
@@ -858,7 +1002,7 @@ export const RULINGS: Ruling[] = [
     title: "Pricing in the app",
     surface: "host",
     ruled:
-      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+      "open (Will, 2026-09-19: \"an in-app pricing modal so we don't take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive 'Learn More' second-layer resource\")",
     shipped: null,
     why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
     lives: [

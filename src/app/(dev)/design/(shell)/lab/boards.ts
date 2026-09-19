@@ -1,6 +1,11 @@
 import type { ComponentType } from "react";
 
 import { HowItWorksBoard } from "@/app/(dev)/design/sandbox/how-it-works/board";
+import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
+import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
+import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
+import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
+import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
 import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board";
@@ -41,6 +46,11 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "how-it-works": { Component: HowItWorksBoard },
+  "export-flow": { Component: ExportFlowBoard },
+  "admin-triage": { Component: AdminTriageBoard },
+  "media-viewer": { Component: MediaViewerBoard },
+  emails: { Component: EmailsBoard },
+  "reel-studio": { Component: ReelStudioBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },
   "guest-upload": { Component: GuestUploadBoard },
