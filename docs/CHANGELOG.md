@@ -120,6 +120,15 @@ never a cap and a test.
   same constants at the merge so Select never reflows the album. Two calls for Will on the alias: the column-major
   flow reads newest-down-the-left at eight columns, and the 632-wide action block beside the full-bleed album is
   his `words=edge` as ruled (the `guest-shape` board's material). `gallery-width` retired.
+- `trail-wiring` integrated (`73451c79`; cut `97207988`): the image trail left the lab for
+  `src/components/shared/trail/` at his numbers (d140, three seconds with the slower shrink, the flick behind the
+  cursor, 180 px and 100 at a phone; the keeper and the shy fade named) and the root 404 stands on it, a phone
+  walking its own path. Measuring the real page moved three things the board could not see: the shy fade became a
+  feathered window on the layer after the per-card dimmer left the description line at 1.49:1 (4.90:1 now at both
+  widths), the resting composition is one of five openings, and the phone's walk reaches its edges. The trail rides
+  the root 404 only (the two group 404s keep their strip; his to widen), `MissingFrameStrip` yielded there and
+  stayed elsewhere, scripting off shows clean paper. `image-trail` retired; the privacy-hero board's imports were
+  repointed at the production engine until its round three lands.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart

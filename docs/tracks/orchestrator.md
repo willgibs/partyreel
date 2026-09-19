@@ -114,10 +114,11 @@ retired `type-phone`; both agents were told so by message.
 | `album-wiring` | cut 2026-09-19 from the second batch: the album page's hero (live album, the stream, the halo, the floor with a photograph section beneath) and the `album-motion` board on the wired hero; album-hero and album-page retire | building | Opus, :3131 | everything |
 | `river-wiring` | cut the same night: the river in the QR door at `tenth`, `behind`, `/demo` at 99 px, tall closing rows, every card's own copy gradient; river-card and river-visual retire | building | Opus, :3132 | everything |
 | `gallery-wiring` | integrated at `666ee8bc` (handed off `139cefc7`; the select grid patched at the merge); the board retired | done | Opus, :3133 | the red-team on the alias |
-| `trail-wiring` | cut the same night: the trail on the 404 at his numbers, the phone walking a new path, banked in the Library; image-trail retires | building | Opus, :3134 | everything |
+| `trail-wiring` | integrated at `73451c79` (handed off `e87134df`); the board retired; three privacy-hero files repointed at the production engine (privacy-concept warned) | done | Opus, :3134 | the red-team on the alias |
 | `app-shape` | cut 2026-09-19 on the fifth seat: the host app's shape from the foundation, on the real components with fixtures | building | Opus, :3135 | everything |
 | `guest-shape` | cut 2026-09-19 on the sixth seat: the guest experience's shape from the scan, phone first, on the real components with fixtures | building | Opus, :3136 | everything |
 | `privacy-concept` | cut 2026-09-19 on the seat gallery-wiring freed: privacy-hero round three, a new concept fitting the page's theme; round two's trail-on-spirals deleted | building | Sonnet, :3133 | everything |
+| `app-vocabulary` | cut 2026-09-19 on the seat trail-wiring freed: empty, loading, one tile grammar, the bulk toolbar, the gallery's controls, the confirm switch | building | Sonnet, :3134 | everything |
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
@@ -255,7 +256,10 @@ look; the one guest `@contract-for` is the empty state's.
   queue had held it 80 minutes before that). ★ `aliasAssigned: true` on a deployment is NOT proof either: `109cfac9`
   reported it while `GET /v4/aliases/<alias>` still named the previous build, and the prune then deleted that
   build, so the desk answered DEPLOYMENT_NOT_FOUND for a few minutes. After every build read the alias RECORD
-  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
+  (`deploymentId`) and the page's `sentry-release`, and the prune keeps every alias target (guard 0). ★ A `[preview]` push can
+  also produce NO deployment at all (`fc9eed26`, 2026-09-19: nothing appeared in five minutes while every earlier push
+  had); `POST /v13/deployments` with `gitSource` (`alias-watch2.mjs`'s sibling script in the scratchpad, or by hand)
+  creates it, and the watch then finds it by sha. After every integration: `node scripts/prune-vercel-deployments.mjs --apply`.
 - **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local` (read it there, never echo it; ★ pnpm prints the script line WITH its arguments into any log it is redirected to, so a log of `pnpm lab:demo --key` carries the key: grep such a log for its EXIT lines only, never tail or cat it, a lesson from 2026-09-18); `pnpm lab:demo
   --key <key>` and `?key=` on `/design/lab` take it. ★ A desk-wide `pnpm lab:demo` can STALL in headless Chrome after walking many boards (2026-09-18: nine boards in, it sat on the admin board's first step for nine minutes at zero CPU; the same board alone walked its seven steps in under a minute): run it under an alarm (`perl -e 'alarm 300; exec @ARGV' pnpm lab:demo ...`) and fall back to `--board <id>` per changed board.
 - **The review.** Will pastes a batch in chat; transcribe it with `pnpm lab:review` on STDIN (`--dry`
