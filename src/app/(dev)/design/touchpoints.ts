@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "press-page"
   | "contact-page"
   | "entry"
   | "upload"
@@ -88,6 +89,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "press-page"
   | "contact-page"
   | "app-vocabulary"
   | "guest-shape"
@@ -634,6 +636,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "press-page",
+    title: "What Partyreel hands the world",
+    surface: "marketing",
+    ruled:
+      'open (Will, 2026-09-19, "stack the lab": /press is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "Seven decisions on the real page pieces: who it is for, the sheet, the words, the facts, whether anyone is named, the close, and the reading order.",
+    lives: [
+      "src/app/(marketing)/(cinema)/press/page.tsx",
+      "src/components/marketing/press/press-section.tsx",
+      "src/components/marketing/press/press-sheet.tsx",
+      "src/lib/constants/press.ts",
+    ],
+    board: {
+      note: "Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom",
+      variants: [
+        "Who the page is for",
+        "What the sheet shows",
+        "How the words hand over",
+        "How checkable the facts are",
+        "Whether anyone is named",
+        "How the page closes",
+        "How the page reads",
+      ],
+    },
   },
   {
     id: "contact-page",
