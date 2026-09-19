@@ -57,7 +57,7 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
 4. **Integration**, and one alias build per round close (`[preview]` on that push alone).
 5. **Will reviews on the desk** (`/design/lab?key=`), which is ordered BY LEVERAGE across boards (Will,
    2026-09-19: "if a question/group compounds into a later question/group, the more atomic question is
-   handled first"; the Orchestrator keeps that order in `sandbox/registry.ts`, a board whose answer changes
+   handled first"; the Orchestrator keeps that order in `DESK_ORDER` (`touchpoints.ts`), a board whose answer changes
    another's question above it, independent boards at the foot in any order): Start the review walks one step per question,
    each answered from its dock with a note where the pick is not enough (keep / refine / kill per
    card on the old catalogs), and one paste at the end. The Orchestrator transcribes it

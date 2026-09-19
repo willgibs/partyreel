@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 528 contracts on 70 components · 27 standing boards.**
+**22 laws · 18 policies · 530 contracts on 70 components · 27 standing boards.**
 
 ## What binds you
 
@@ -334,15 +334,15 @@ Contracted but outside the library's directories:
 
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (14 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
-- `src/app/(dev)/design/sandbox/registry.ts` (14 guards)
+- `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
-- `src/components/lab/board-page.tsx` (14 guards)
-- `src/components/lab/board-spec.ts` (14 guards)
+- `src/components/lab/board-page.tsx` (16 guards)
+- `src/components/lab/board-spec.ts` (16 guards)
 - `src/components/lab/board-state.tsx` (5 guards)
 - `src/components/lab/catalog.tsx` (12 guards)
 - `src/components/lab/compare-two.tsx` (8 guards)

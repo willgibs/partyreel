@@ -25,6 +25,7 @@ import { RESERVED_PARAMS } from "@/components/lab/board-state";
 import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import { BOARDS, boardSpec } from "./registry";
+import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 /**
  * THE BOARD REGISTRY'S CONTRACT.
@@ -599,4 +600,20 @@ describe("the asks, in plain words", () => {
       }
     });
   }
+});
+
+/**
+ * THE DESK'S ORDER NAMES EVERY STANDING BOARD ONCE AND NOTHING ELSE (Will,
+ * 2026-09-19: the earlier influence first). `DESK_ORDER` in touchpoints.ts is
+ * the order's one home; a board registered without a place there would sort to
+ * the foot in silence, and a retired board left in the list would name nothing.
+ */
+describe("the desk's order", () => {
+  it("names every standing board exactly once", () => {
+    expect([...DESK_ORDER].sort()).toEqual(BOARDS.map((b) => b.id).sort());
+    expect(new Set(DESK_ORDER).size).toBe(DESK_ORDER.length);
+  });
+  it("is the order BOARDS exports", () => {
+    expect(BOARDS.map((b) => b.id)).toEqual([...DESK_ORDER]);
+  });
 });

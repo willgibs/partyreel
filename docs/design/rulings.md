@@ -10,8 +10,8 @@
 
 ## 2026-09-19 · the desk is ordered by leverage across boards: the earlier influence first
 
-**Became:** a standing rule the Orchestrator keeps, not a round. The desk lists boards in the order of `BOARDS` in
-`sandbox/registry.ts`, and that order is by leverage: a board whose answer changes another board's question sits above
+**Became:** a standing rule the Orchestrator keeps, not a round. The desk lists boards in the order of `DESK_ORDER` in
+`touchpoints.ts` (the one home; `BOARDS` in `sandbox/registry.ts`, the board paging and the desk all sort by it), and that order is by leverage: a board whose answer changes another board's question sits above
 it, and boards that touch nothing else sit at the foot in any order (`voice` first, since bible 20 and 21 bind every
 line on every board; then the body ladder, Glass, the host app's shape and the guest experience's shape, the parts under
 them, the admin's shape, the doors, the demo's promise, and only then the boards that ride on those). A lane still

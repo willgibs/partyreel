@@ -1,4 +1,5 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
+import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -47,24 +48,14 @@ import { VOICE } from "./voice/spec";
  * into its leverage place by the Orchestrator at the next record (below).
  */
 /**
- * ★ THE DESK'S ORDER IS THIS ARRAY'S ORDER, AND IT IS ORDERED BY LEVERAGE (Will,
- * 2026-09-19, verbatim in docs/design/rulings.md): "our board groups should be
- * ordered by leverage, such that if a question/group compounds into a later
- * question/group, the more atomic question is handled first... for any
- * potential snowball effects, the earlier influence is addressed first." He
- * reviews what is presented, top to bottom, so a board whose answer changes
- * another board's question sits ABOVE it; boards that touch nothing else sit
- * at the foot in any order. The chain as it stands: the voice binds every line
- * on every board (bible 20 and 21); the body ladder sizes every reading slot;
- * Glass is the material the two shapes' chrome wears; the host app's shape and
- * the guest experience's shape decide the parts (app-vocabulary), the doors
- * (app-door, app-pricing), the first event, the upload, the viewer, curation,
- * the reel and the export; the admin's shape decides triage; the demo's promise
- * decides every demo door, the footer's included. A lane still adds a NEW board
- * at the head of this list (the registration exception keeps merges
- * line-disjoint); the Orchestrator moves it into its place at the next record.
+ * ★ ORDERED BY LEVERAGE AT EXPORT. The one home of the desk's order is
+ * `DESK_ORDER` in touchpoints.ts (Will, 2026-09-19: the earlier influence
+ * first); the literal below is the REGISTRATION list, where a lane adds a new
+ * board at the head so merges stay line-disjoint, and `BOARDS` is that list
+ * sorted by `DESK_ORDER` so the desk, the paging and every walk agree. A board
+ * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
-export const BOARDS: readonly BoardSpec[] = [
+const REGISTERED: readonly BoardSpec[] = [
   VOICE,
   BODY_TYPE,
   GLASS,
@@ -93,6 +84,15 @@ export const BOARDS: readonly BoardSpec[] = [
   CONTACT_PAGE,
   PRESS_PAGE,
 ];
+
+const deskIndex = (id: string): number => {
+  const i = (DESK_ORDER as readonly string[]).indexOf(id);
+  return i < 0 ? DESK_ORDER.length : i;
+};
+
+export const BOARDS: readonly BoardSpec[] = [...REGISTERED].sort(
+  (a, b) => deskIndex(a.id) - deskIndex(b.id),
+);
 
 export function boardSpec(id: string): BoardSpec | undefined {
   return BOARDS.find((b) => b.id === id);

@@ -1591,7 +1591,65 @@ export const RULINGS: Ruling[] = [
 ];
 
 /** The standing boards, in registry order: the sidebar's Sandbox zone. */
-export const SANDBOX: Ruling[] = RULINGS.filter((r) => r.board !== undefined);
+/**
+ * ★ THE DESK'S ORDER IS BY LEVERAGE, AND THIS LIST IS ITS ONE HOME (Will,
+ * 2026-09-19, verbatim in docs/design/rulings.md): "our board groups should be
+ * ordered by leverage, such that if a question/group compounds into a later
+ * question/group, the more atomic question is handled first... for any
+ * potential snowball effects, the earlier influence is addressed first." He
+ * reviews what is presented top to bottom, so a board whose answer changes
+ * another board's question sits ABOVE it, and boards that touch nothing else
+ * sit at the foot in any order. The desk, the board-to-board paging and
+ * `BOARDS` in sandbox/registry.ts all sort by this list. The chain as it
+ * stands: the voice binds every line on every board (bible 20 and 21); the body
+ * ladder sizes every reading slot; Glass is the material the two shapes' chrome
+ * wears; the host app's shape and the guest experience's shape decide the parts
+ * (app-vocabulary), the doors (app-door, app-pricing), the first event, the
+ * upload, the viewer, curation, the reel and the export; the admin's shape
+ * decides triage; the demo's promise decides every demo door, the footer's
+ * included. A lane registering a NEW board adds its id at the HEAD of this list
+ * (as it does in `BOARDS`; merges stay line-disjoint) and the Orchestrator moves
+ * it into its place at the next record; a retiring lane removes its id.
+ * registry.test.ts holds this list and `BOARDS` to the same members.
+ */
+export const DESK_ORDER: readonly SandboxId[] = [
+  "voice",
+  "body-type",
+  "glass",
+  "app-shape",
+  "guest-shape",
+  "app-vocabulary",
+  "admin",
+  "app-door",
+  "demo-event",
+  "pricing-page",
+  "app-pricing",
+  "first-event",
+  "guest-upload",
+  "media-viewer",
+  "host-curation",
+  "reel-studio",
+  "export-flow",
+  "admin-triage",
+  "help-center",
+  "emails",
+  "site-chrome",
+  "profile-page",
+  "privacy-hero",
+  "album-motion",
+  "loose-ends",
+  "contact-page",
+  "press-page",
+];
+
+const deskIndex = (id: string): number => {
+  const i = (DESK_ORDER as readonly string[]).indexOf(id);
+  return i < 0 ? DESK_ORDER.length : i;
+};
+
+export const SANDBOX: Ruling[] = RULINGS.filter(
+  (r) => r.board !== undefined,
+).sort((a, b) => deskIndex(a.id) - deskIndex(b.id));
 
 export function getRuling(id: string): Ruling | undefined {
   return RULINGS.find((r) => r.id === id);
