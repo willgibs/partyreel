@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "media-viewer"
   | "emails"
   | "reel-studio"
   | "help-center"
@@ -99,6 +100,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "media-viewer"
   | "emails"
   | "reel-studio"
   | "help-center"
@@ -658,6 +660,32 @@ export const RULINGS: Ruling[] = [
     ],
   },
   {
+    id: "media-viewer",
+    title: "What a photograph opens as",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "One viewer serves all six galleries and every album click ends on it. Round one asks what a tap builds, what stands beside the photograph, and how close a guest may get.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "src/components/shared/media-lightbox.tsx",
+      "src/components/shared/masonry.tsx",
+      "src/components/guest/guest-masonry.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address",
+      variants: [
+        "The opening",
+        "What it holds",
+        "The next one",
+        "Close up",
+        "The way out",
+      ],
+    },
+  },
+  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -883,7 +911,7 @@ export const RULINGS: Ruling[] = [
     title: "Pricing in the app",
     surface: "host",
     ruled:
-      'open (Will, 2026-09-19: "an in-app pricing modal so we don\'t take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive \'Learn More\' second-layer resource")',
+      "open (Will, 2026-09-19: \"an in-app pricing modal so we don't take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive 'Learn More' second-layer resource\")",
     shipped: null,
     why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
     lives: [
