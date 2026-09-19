@@ -1,6 +1,6 @@
 ---
 track: profile-reach
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "b30445d9"          # the launch-prep SHA the branch was cut from
 board: profile-page     # round two of the board, on the three pieces Will left open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -68,14 +68,51 @@ command line.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board profile-page` ok (N steps)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the registration lines (exceptions and why)
-- The decisions, one line each: `<id>: the question; the recommendation and why`
-- Assets requested from Will: none, or one per line
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head is the tip of `origin/lp/profile-reach` (this commit); the board work landed at `defa8dbe`, merged with
+  `launch-prep` at `1d77b7c0` (it had moved one commit, docs-only: `docs/PROGRAM.md`, `docs/design/rulings.md`,
+  a new `docs/tracks/lab-tides.md`, `docs/tracks/orchestrator.md`; no conflicts, never rebased).
+- Gates on the synced tree, each on its own exit code: `design:rules` 0 (`docs/design/library.md` regenerated,
+  confirmed byte-stable on a second run) · specimens 0 (131 specimens, 94 entries, unchanged) · `typecheck` 0 ·
+  `lint` 0 (8 known warnings, 0 errors) · `test` 0 (243 files, 2580 tests) · `build` 0 (125 routes) · `lab:smoke`
+  0 (447 checks, 0 failing; the board reads 257 words of its 1,200-word budget) · `lab:demo --board profile-page`
+  0 (3 steps, 0 failing, every step draws its options).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `docs/design/library.md` ·
+  `src/app/(dev)/design/sandbox/profile-page/{album.tsx,board.tsx,fixtures.ts,profile.tsx,reach.tsx,scene.tsx,spec.ts}`
+  · `src/app/(dev)/design/touchpoints.ts` · this file. Owned paths, the one registration exception (the
+  `profile-page` RULINGS row) and one generated file; nothing else, and `registry.ts`/`boards.ts` needed no edit
+  (the board's id and file paths never changed).
+- **The three decisions**, each the question and the recommendation:
+  1. `view-all`: how should the full guest list open from the faces row? Four options, drawn at 24 names and at
+     240 (a quarter of his imagined thousand): expand in place in groups of 24 (`profile-wiring`'s interim,
+     paginated as he asked), a sheet over the album, the centred modal round one drew, or its own page.
+     **Recommends the sheet**: the only option that keeps the album's own height untouched at either scale with
+     no pagination clicks, and it reads as how a phone already shows a list of people rather than a document.
+  2. `quick-look`: what should a name in the guest list open first? A bottom sheet on both screens, the same
+     card as a popover at 1440 with the sheet kept at 375, or straight to the page with no mini. **Recommends
+     the popover-at-a-desk split**: a phone wants the sheet's thumb reach, but a full-width sheet at 1440 hides
+     the whole list behind one small card; the popover measured 320x263px, six percent of the screen, a real peek.
+  3. `way-back`: how should a profile keep the scanned event reachable? A "Back to <event>" pill under the
+     header, one more row in the account menu, or nothing beyond the browser's back. **Recommends the pill**:
+     the only option that reaches a signed-out guest too, which most people at a party are, and it costs one
+     line under a header that bible 4 already asks to name the host's event.
+- One `lab:demo` note, not a defect: `quick-look`'s "sheet" and "adaptive" options draw the same picture at the
+  board's default state (screen=375), because that is the whole point of "adaptive": it diverges only at 1440,
+  where it becomes the 320x263px popover instead of the full-width sheet. Confirmed by eye in the browser at
+  both screens (a marked chip anchoring the popover beside it, the sheet's own drag handle and pinned header at
+  375).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `view-all` at 240. It answers his own fear directly (a party four times round one's ordinary
+  size), carries the widest measured spread between options (58 to 84 percent of the stage), and its
+  recommendation adds a surface over what `profile-wiring` already ships rather than confirming the interim.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round two of the `profile-page` board answered the three pieces
+Will's round-one notes left open, on the same board (`round.n: 2`), replacing round one's eight ruled asks
+rather than accreting them: how the full guest list opens from the faces row (`view-all`), what a name opens
+first (`quick-look`), and how a profile keeps the scanned event reachable (`way-back`). A 240-name fixture sat
+beside round one's 24 so a group's cost was measured at both scales, a quarter of Will's own imagined thousand.
+Recommended a sheet over the album, a popover at a desk with the sheet kept at a phone, and a "Back to <event>"
+pill under the header, the only one of the three that reaches a signed-out guest. No production byte moved; the
+registration exception rewrote the `profile-page` RULINGS row for round two.
