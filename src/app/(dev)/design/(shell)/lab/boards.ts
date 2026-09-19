@@ -4,7 +4,6 @@ import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
-import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { ImageTrailBoard } from "@/app/(dev)/design/sandbox/image-trail/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
@@ -40,7 +39,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "privacy-hero": { Component: PrivacyHeroBoard },
   "album-page": { Component: AlbumPageBoard },
   "river-card": { Component: RiverCardBoard },
-  "gallery-width": { Component: GalleryWidthBoard },
   "album-hero": { Component: AlbumHeroBoard },
   "river-visual": { Component: RiverVisualBoard },
 };

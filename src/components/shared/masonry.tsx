@@ -44,6 +44,49 @@ import {
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { useLongPress } from "@/lib/shared/use-long-press";
 
+/**
+ * THE ALBUM'S COLUMN RULE — the one place a gallery's columns are decided
+ * (Will, 2026-09-19, `tile=240` + `width=full`: "About 240 px: 5, 6 and 8
+ * columns... The size a phone's tile looks in the hand, seen from a laptop's
+ * distance", and "This feels natural at every window size, so all you have to
+ * do is adjust your browser window to adjust the gallery size, rather than us
+ * constrain it at any point").
+ *
+ * ★ A WIDTH, NEVER A COUNT. Both galleries used to hard-code a column COUNT
+ * (`columns-2` on the guest's, `columns-2 sm:columns-3` here), and a count is
+ * exactly what makes a wider window mean BIGGER photographs. `column-width`
+ * with `column-count: auto` (what Tailwind's `columns-<length>` compiles to)
+ * asks the browser for as many columns of at least that width as the box holds,
+ * so a tile keeps one size and the COLUMNS follow the window.
+ *
+ * ★ 220, FOR A TILE THAT MEASURES ABOUT 240. The declared width is a floor: the
+ * columns share out whatever is left over, so a tile always lands above it. 220
+ * was chosen on the board so the count comes out the same whether the gap is
+ * 3px or family C's 4px and whether or not the window shows a classic 15px
+ * scrollbar — 5 columns at 1280, 6 at 1512, 8 at 1920, each tile ~230-245px.
+ *
+ * ★ FROM `sm` UP ONLY. The phone keeps its two columns (settled on the board;
+ * 220 at 375 would collapse the album to one). At 640 the count rule and the
+ * width rule agree, so nothing jumps at the breakpoint — where today the host
+ * grid jumps from 2 columns to 3.
+ *
+ * `--album-column` is the knob, not the number: Will's note on the same ruling
+ * asked for an adjustable tile size "within/around our filter/sort/controls",
+ * which is its own board (`gallery-controls`). When it lands, that control sets
+ * this one property on an ancestor and every grid under it follows.
+ */
+export const GALLERY_COLUMNS =
+  "columns-2 gap-[var(--gap-gallery)] sm:columns-[var(--album-column,220px)]";
+
+/**
+ * The same rule for the UNIFORM layout (the Reel and the Review queue, where a
+ * fixed aspect makes drag order and selection legible). `auto-fill` is CSS
+ * grid's spelling of the same idea, on the same floor, so a page whose Gallery
+ * runs six across never puts its Review queue on four.
+ */
+export const GALLERY_UNIFORM_COLUMNS =
+  "grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-[repeat(auto-fill,minmax(var(--album-column,220px),1fr))]";
+
 /** The subtle corner play marker for video tiles (shared with the guest masonry). */
 export function CornerPlayBadge() {
   return (
@@ -108,11 +151,7 @@ export function MasonryColumns<T extends GridMedia>({
   return (
     <>
       <div
-        className={
-          uniform
-            ? "grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-4"
-            : "columns-2 gap-[var(--gap-gallery)] sm:columns-3"
-        }
+        className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
@@ -143,7 +182,7 @@ export function MasonryColumns<T extends GridMedia>({
             className={
               uniform
                 ? "group relative w-full overflow-hidden bg-black/10"
-                : "group relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10 break-inside-avoid"
+                : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
             }
           >
             <button
@@ -156,8 +195,8 @@ export function MasonryColumns<T extends GridMedia>({
                 setOpenIndex(i);
               }}
               aria-label={item.type === "photo" ? "View photo" : "Play video"}
-              className={`size-full cursor-pointer outline-none transition-[transform,opacity] duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
-                dimItem?.(item) ? " opacity-30" : ""
+              className={`size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
+                dimItem?.(item) ? "opacity-30" : ""
               }`}
             >
               <MediaTile item={item} playBadge="none" />

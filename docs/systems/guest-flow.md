@@ -36,13 +36,24 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
   +1 if the host uploaded). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes
   live via `LiveGallery`'s `onCountChange`; M is static per load. Threaded from the page RSC, NOT the poll
   route (ETag semantics untouched).
-- **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): CSS `columns-2`
+- **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED column
+  rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and never
+  re-typed — a column WIDTH, never a count, so a wider window means MORE photographs and not bigger ones: two
+  columns at a phone, then `--album-column` (220px, a tile of about 240) from 640 up, measured at 5 / 6 / 8
+  columns at 1280 / 1512 / 1920 (Will's `tile=240`, 2026-09-19)
   + the ONE gallery gap and the photograph's corner (`--gap-gallery` pinned to `--radius-tile`, 4px under the
   corner ladder's family C; the vertical gap is each tile's bottom margin on the same token), tiles at their NATURAL aspect ratio (the plumbed `width`/`height`; 1:1 fallback for
   pre-measure rows — dims ride OUTSIDE the gallery ETag hash, write-once per id). A 45ms entrance stagger
   applies to the SEED render only (`--tile-i`; doorbell/poll arrivals get 0). Videos wear a small CORNER
   play badge (the shared centered `PlayBadge` stays on other surfaces; `MediaTile` gained `playBadge="none"`).
-  Guest-only; host/personal grids keep `MediaGrid`'s square grid.
+  ★ **The page root is no longer a column** (`width=full` + `words=edge`, same ruling):
+  [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) carries two boxes, `COLUMN`
+  (632px of reading measure pinned LEFT, on the header logo's own 20px line) and `BLEED` (the 20px gutter
+  alone), and the ALBUM ALONE takes the second — the reel card, the action block, the upload panel, the guest
+  list, the locked ghost grid and the empty state all keep the column, the last because its river is square
+  and would otherwise draw a window-wide box of nothing. The streaming skeleton
+  ([`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx)) reads the same rule and carries
+  12 more tiles from 640 up, so a wide album never loads as one thin row.
 - **Upload lives IN the gallery**: the queue machine is [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)
   (one-at-a-time, JIT silent join, demo sim, retry — moved verbatim, the pins encode it). `GuestUpload` is a
   thin engine (hidden input + `{openPicker, retry}` handle + `onQueueChange`); in-flight items render as

@@ -19,7 +19,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/lib/shared/use-prefers-reduced-motion.ts
   - src/lib/constants/marketing-media.ts
   - src/app/(dev)/design/sandbox/privacy-hero/paths.ts
-  - src/app/(dev)/design/sandbox/gallery-width/spec.ts
 ---
 
 # lp/trail-wiring

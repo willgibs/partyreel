@@ -27,7 +27,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/components/guest/guest-masonry.tsx
   - src/lib/shared/sampled-palette.ts
   - src/app/(dev)/design/sandbox/privacy-hero/field.ts
-  - src/app/(dev)/design/sandbox/gallery-width/spec.ts
 ---
 
 # lp/album-wiring
