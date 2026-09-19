@@ -456,14 +456,14 @@ export function EventExperience({
           {/* The gallery streams in (the presign-heavy payload): the skeleton holds
               its layout slot. key={access} makes an access flip (teaser -> full
               after sign-in via router.refresh(), a transition - old UI holds) a
-              clean remount that re-seeds from the fresh promise. The FALLBACK
-              keeps the reading column: six shimmer blocks stretched across a
-              1920 window would promise an album before anyone knows there is
-              one, so the placeholder holds the words' measure and the real
-              photographs are what expand into the window. */}
+              clean remount that re-seeds from the fresh promise. The fallback
+              wears the SAME box as the gallery, and the skeleton the same column
+              rule, so the swap is layout-stable at every window: a two-column
+              placeholder under a six-column album would flash the old layout on
+              every load. */}
           <Suspense
             fallback={
-              <div className={COLUMN}>
+              <div className={BLEED}>
                 <GallerySkeleton />
               </div>
             }

@@ -7,6 +7,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/guest/guest-masonry.tsx
   - src/components/guest/event-experience.tsx
   - src/components/guest/live-gallery.tsx
+  - src/components/guest/gallery-skeleton.tsx  # added mid-round by the Orchestrator: it hard-coded columns-2
   - src/components/shared/masonry.tsx
   - src/components/shared/container.tsx
   - src/components/shared/app-shell.tsx
