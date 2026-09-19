@@ -9,6 +9,11 @@ import { describe, expect, it } from "vitest";
  * house pattern). Everything guarded here fails SILENTLY and INVISIBLY: no
  * exception, no type error, and nothing wrong on the pages you develop on. A
  * behavioral test cannot reach any of it, so the source is the contract.
+ *
+ * The footer's BEHAVIOURAL half is footer-door-contract.test.tsx beside this
+ * file: what the slab offers with a demo event set and with the token unset
+ * (`foot-door=always`, 2026-09-19). It renders, so it lives in the jsdom
+ * project; this file is the node one and has no DOM to render into.
  */
 
 const ROOT = process.cwd();

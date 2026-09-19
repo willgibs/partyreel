@@ -25,6 +25,24 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* the marketing chrome's two moving parts (chrome-wiring, 2026-09-19): at
+     the head for the same reason as the block below, so three lanes adding
+     `for` lines in one round do not land on each other. */
+  "src/components/marketing/chrome/header-shell.tsx": {
+    for: "the posture every marketing bar sits in: transparent over a hero until the page moves, and out of the way entirely while the reader is scrolling away, by transform alone so the one height knob never moves",
+    unspecimened:
+      "a sticky wrapper with no content of its own; the header inside it is the specimen",
+  },
+  "src/components/marketing/chrome/session-hint.tsx": {
+    for: "the bar's right cluster, and the only personal thing on ~50 prerendered marketing routes: a returning host is offered their dashboard instead of two doors to a login they do not need. A HINT, never authorization",
+    unspecimened:
+      "two buttons whose whole subject is a cookie the library build does not carry",
+  },
+  "src/lib/shared/use-scroll-direction.ts": {
+    for: "which way the page is moving, as one shared store: the site's only scroll listener, passive and rAF-coalesced, because direction is the one thing no IntersectionObserver can answer",
+    unspecimened: "a store; the header it moves is what you can see",
+  },
+
   // ★ AT THE HEAD, not in the shared/ block below, because three wiring lanes
   // add their own `for` lines this round and each one's landing at the top is
   // what keeps the three merges apart. The collector does not index

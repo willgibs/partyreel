@@ -22,9 +22,11 @@ import { cn } from "@/lib/utils";
  *
  * The FEATURED registry is COMPONENT-SIDE on purpose: marketing-nav.ts stays
  * pure serializable data (its byte-pins toEqual-compare items, and the footer/
- * sitemap consumers must never drag client/env deps). Resources' article card
- * is plain literals for the same reason: lib/content/help.ts reads node:fs and
- * must never be imported client-side (a node-world test pins the slug exists).
+ * sitemap consumers must never drag client/env deps). Every card here is plain
+ * literals for a second reason: nothing in the chrome may import a registry
+ * that reads node:fs (lib/content/help.ts does, which is why the Resources
+ * card pointed at a hard-coded help slug while it pointed at the help center
+ * at all).
  *
  * Every interactive element is a NavigationMenuLink (close-on-select + the
  * roving focus contract) EXCEPT the DemoTicket, whose root is already a Link
@@ -76,6 +78,12 @@ export function MegaPanel({ group }: { group: NavGroup }) {
             </li>
           ))}
         </ul>
+        {/* The QUIETER of the two doors to the same page (`two-doors=one`, see
+            the Resources card below): a footnote under a hairline, in muted
+            ink at 12px, where the card is a picture with a title. Will kept it
+            deliberately ("more subtle, like a secondary option"), because the
+            reader who needs it most is mid-way through a list of features and
+            has just realised they do not know the shape of the thing yet. */}
         {group.label === "Features" && (
           <NavigationMenuLink
             asChild
@@ -130,17 +138,31 @@ const FEATURED: Record<string, ReactNode> = {
   ),
   Resources: (
     <FeaturedCard
-      /* THE PAIR RENAMED (Will, 2026-09-19, `pair=renamed`): "Two pages, same
-         name is too confusing." This card and /how-it-works both told a reader
-         "How Partyreel works" and went to different places. The card now names
-         the ARTICLE, exactly as the walkthrough's own foot link does, and the
-         help hub's link to the page reads "See the loop, start to finish".
-         The blurb no longer counts steps: it said four, the article writes
-         five and the page walks six, and a count in a nav blurb is one more
-         number to keep in step for nothing. */
-      href="/help/how-partyreel-works"
-      title="Read the full how-to"
-      blurb="The whole loop written out, with the details, in the help center."
+      /* ★ ONE IDEA, ONE PAGE, TWO DOORS TO IT (Will, 2026-09-19,
+         `two-doors=one` and his plan-mode answer "Yes, both doors open the
+         page"): "We can continue to point to the 'How it Works' page from the
+         resources dropdown card. The pointer in the 'Features' dropdown menu
+         is more subtle (like a secondary option), so the How It Works page
+         primary nav link can be that Resources dropdown card."
+
+         So this card is the chrome's PRIMARY door to /how-it-works and the
+         Features panel's footnote is the quieter second one. Both open the
+         page; the help ARTICLE is now linked from nowhere in the chrome at
+         all, which is the point of the ruling. It is not lost: it keeps its
+         row under Help center, where a reader with a problem is already
+         looking, plus the walkthrough's own foot link and the help hub's.
+         (`pair=renamed`, an hour earlier, had told this card to name the
+         article instead; that answer solved "two pages, same name" by sending
+         the nav to the wrong one of the two.)
+
+         The title is the PAGE'S OWN NAME, deliberately flat: a primary door
+         must not be clever about where it goes. The blurb still refuses to
+         count steps, which is the standing rule here: the card once said four,
+         the article writes five and the page walks six, and a count in a nav
+         blurb is one more number to keep in step for nothing. */
+      href="/how-it-works"
+      title="How it works"
+      blurb="The whole loop on one page, the host's side and the guest's."
       imageId="reception-table"
     />
   ),

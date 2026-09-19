@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 473 contracts on 64 components · 29 standing boards.**
+**22 laws · 18 policies · 502 contracts on 67 components · 29 standing boards.**
 
 ## What binds you
 
@@ -353,7 +353,9 @@ Contracted but outside the library's directories:
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
 - `src/components/lab/step.tsx` (30 guards)
-- `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
+- `src/components/marketing/chrome/header-shell.tsx` (11 guards)
+- `src/components/marketing/chrome/marketing-footer.tsx` (9 guards)
+- `src/components/marketing/chrome/session-hint.tsx` (6 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
@@ -376,6 +378,7 @@ Contracted but outside the library's directories:
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
+- `src/lib/shared/use-scroll-direction.ts` (8 guards)
 
 ## The standing boards
 
