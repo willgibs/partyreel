@@ -58,6 +58,19 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the twelve photographs the QR door pours, in launch order with their crops: the slot a generated set lands in, never the pictures",
   },
 
+  /* the two session-less failure chromes (errors-wiring, 2026-09-19): outside
+     the library's directories, here because the failure contract names them. */
+  "src/components/guest/guest-bar.tsx": {
+    for: "the wordmark row a guest's 404 and crash wear: session-less on purpose, because neither screen holds the token the real guest header needs",
+    unspecimened:
+      "a bar with one link in it; the dead-end screen beneath it is the specimen",
+  },
+  "src/components/admin/admin-not-found-screen.tsx": {
+    for: "what the admin host answers a path it does not serve: the portal's own chrome minus every session read, pointing nowhere this host cannot go",
+    unspecimened:
+      "renders only under NEXT_PUBLIC_SURFACE=admin, which the library build is not",
+  },
+
   /* marketing / chrome */
   "src/components/marketing/chrome/marketing-footer.tsx": {
     for: "the ink slab closing every marketing page: the demo invite, the index, the legal bar",
@@ -276,8 +289,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the lazy wrapper around the lightbox",
     unspecimened: "the lightbox's loader; see media-lightbox.tsx",
   },
+  "src/components/shared/error-digest.tsx": {
+    for: "a crash's correlation code, with the one sentence saying what it is for and a Copy control; only a render crash passes one, because a 404 throws nothing to correlate",
+    unspecimened:
+      "a leaf of the dead-end screen; /design/library/patterns renders the screen it sits inside",
+  },
   "src/components/shared/not-found-screen.tsx": {
-    for: "the shared dead end for the not-found pages; content only, it wraps itself in nothing",
+    for: "the shared dead end for EVERY failure page, 404 and crash alike; content only, it wraps itself in nothing, and it carries no reporting",
   },
   "src/components/shared/page-heading.tsx": {
     for: "the app's one h1 source: the page tier of the heading scale, above CardTitle",
@@ -312,7 +330,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "a flow of photographs falling through a box, sized by its container; decorative, and a placement that wants it quiet filters its own wrapper",
   },
   "src/components/shared/route-error.tsx": {
-    for: "the route error boundary",
+    for: "the route error boundary: the reporting effect, the digest and the per-surface help line around the shared dead-end screen",
     unspecimened:
       "fires Sentry on mount; /design/library/patterns renders a static mock of its screen",
   },

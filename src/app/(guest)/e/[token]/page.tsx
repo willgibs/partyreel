@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
+import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import { GuestList } from "@/components/social/guest-list";
+import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import {
@@ -117,23 +120,37 @@ export default async function GuestEventPage({
   }
 
   // Private: master lock — reveal nothing (no name, gallery, or upload).
+  //
+  // ★ IT IS THE NOT-FOUND FAMILY NOW, WEARING A LOCK (Will, `private-event=
+  // family`, 2026-09-19). This was a hand-rolled stack that MIRRORED
+  // NotFoundScreen by eye and shared none of its code — the same icon circle,
+  // the same title step, the same centered column, free to drift. Folding it in
+  // changes nothing a guest sees except the one thing he asked for: "A simple
+  // link to Partyreel homepage here would be nice to capture from an otherwise
+  // dead-end page." So the one action is that link, worded the way the bad-link
+  // 404 next door words it, and outline rather than solid because this screen
+  // is telling a guest to come back later, not to leave.
+  //
+  // It keeps the REAL GuestHeader (not the failure bar): this render holds a
+  // live qr_token and event id, so the header can resolve a session and a
+  // returning host meets their own menu. The two surfaces that wear GuestBar
+  // are the ones that have neither.
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
         <GuestHeader qrToken={event.qr_token} eventId={event.id} />
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-3 px-5 py-20 text-center">
-          <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Lock className="size-5" />
-          </div>
-          {/* The dead-end stack NotFoundScreen mirrors, so its title takes the
-              same step the app's dead link does (`page`), in the heading face
-              every other h1 wears. */}
-          <h1 className="font-heading text-page">This event is private</h1>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            The host has this event set to private. Check back later, or ask
-            them to make it public.
-          </p>
-        </div>
+        <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
+          <NotFoundScreen
+            icon={Lock}
+            title="This event is private"
+            description="The host has this event set to private. Check back later, or ask them to make it public."
+            actions={
+              <Button asChild size="cta" variant="outline">
+                <Link href="/">What is Partyreel?</Link>
+              </Button>
+            }
+          />
+        </main>
       </div>
     );
   }

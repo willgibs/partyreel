@@ -336,6 +336,137 @@
       ]
     },
     {
+      "id": "admin-not-found-screen",
+      "file": "src/components/admin/admin-not-found-screen.tsx",
+      "names": [
+        "AdminNotFoundScreen"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders no code and no Copy without a digest",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 99
+        },
+        {
+          "title": "renders the code, the Copy control and the sentence with one",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "copies the digest and confirms it in a live region",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "survives a clipboard that rejects, and still shows the code",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "survives a missing clipboard API entirely",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "draws the visual in the icon's place, never both",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "gives the help line its own stagger slot, below the actions",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "renders the admin's line without a link, since no runbook exists yet",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "keeps Sentry out of the digest leaf and both failure chromes",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "reports from every crash boundary",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "passes a help line, or is one of the three named exceptions",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "finds the failure files at all",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "asks no database and mounts no server action",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "keeps the real guest header off both guest failure screens",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 260
+        }
+      ]
+    },
+    {
       "id": "gallery-empty-state",
       "file": "src/components/guest/gallery-empty-state.tsx",
       "names": [
@@ -410,6 +541,137 @@
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
           "line": 159
+        }
+      ]
+    },
+    {
+      "id": "guest-bar",
+      "file": "src/components/guest/guest-bar.tsx",
+      "names": [
+        "GuestBar"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders no code and no Copy without a digest",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 99
+        },
+        {
+          "title": "renders the code, the Copy control and the sentence with one",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "copies the digest and confirms it in a live region",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "survives a clipboard that rejects, and still shows the code",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "survives a missing clipboard API entirely",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "draws the visual in the icon's place, never both",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "gives the help line its own stagger slot, below the actions",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "renders the admin's line without a link, since no runbook exists yet",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "keeps Sentry out of the digest leaf and both failure chromes",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "reports from every crash boundary",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "passes a help line, or is one of the three named exceptions",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "finds the failure files at all",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "asks no database and mounts no server action",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "keeps the real guest header off both guest failure screens",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 260
         }
       ]
     },
@@ -4760,6 +5022,137 @@
       "contracts": []
     },
     {
+      "id": "error-digest",
+      "file": "src/components/shared/error-digest.tsx",
+      "names": [
+        "ErrorDigest"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders no code and no Copy without a digest",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 99
+        },
+        {
+          "title": "renders the code, the Copy control and the sentence with one",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "copies the digest and confirms it in a live region",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "survives a clipboard that rejects, and still shows the code",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "survives a missing clipboard API entirely",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "draws the visual in the icon's place, never both",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "gives the help line its own stagger slot, below the actions",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "renders the admin's line without a link, since no runbook exists yet",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "keeps Sentry out of the digest leaf and both failure chromes",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "reports from every crash boundary",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "passes a help line, or is one of the three named exceptions",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "finds the failure files at all",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "asks no database and mounts no server action",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "keeps the real guest header off both guest failure screens",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 260
+        }
+      ]
+    },
+    {
       "id": "floating-add-button",
       "file": "src/components/shared/floating-add-button.tsx",
       "names": [
@@ -5449,13 +5842,135 @@
       "id": "not-found-screen",
       "file": "src/components/shared/not-found-screen.tsx",
       "names": [
+        "HelpLine",
         "NotFoundScreen"
       ],
       "specimens": [
         "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "renders no code and no Copy without a digest",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 99
+        },
+        {
+          "title": "renders the code, the Copy control and the sentence with one",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "copies the digest and confirms it in a live region",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "survives a clipboard that rejects, and still shows the code",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "survives a missing clipboard API entirely",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "draws the visual in the icon's place, never both",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "gives the help line its own stagger slot, below the actions",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "renders the admin's line without a link, since no runbook exists yet",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "keeps Sentry out of the digest leaf and both failure chromes",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "reports from every crash boundary",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "passes a help line, or is one of the three named exceptions",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "finds the failure files at all",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "asks no database and mounts no server action",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "keeps the real guest header off both guest failure screens",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 260
+        }
+      ]
     },
     {
       "id": "page-heading",
@@ -5949,7 +6464,128 @@
       ],
       "specimens": [],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "renders no code and no Copy without a digest",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 99
+        },
+        {
+          "title": "renders the code, the Copy control and the sentence with one",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "copies the digest and confirms it in a live region",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "survives a clipboard that rejects, and still shows the code",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "survives a missing clipboard API entirely",
+          "suite": [
+            "the digest: a crash carries a code, a 404 cannot"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "draws the visual in the icon's place, never both",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "gives the help line its own stagger slot, below the actions",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "renders the admin's line without a link, since no runbook exists yet",
+          "suite": [
+            "the screen: one picture, and one way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "keeps Sentry out of the shared primitive, so a 404 files nothing",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "keeps Sentry out of the digest leaf and both failure chromes",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "reports from every crash boundary",
+          "suite": [
+            "what reports, and what must never"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "passes a help line, or is one of the three named exceptions",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "finds the failure files at all",
+          "suite": [
+            "every failure page offers a way to a person"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "asks no database and mounts no server action",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 249
+        },
+        {
+          "title": "keeps the real guest header off both guest failure screens",
+          "suite": [
+            "the two session-less chromes stay session-less"
+          ],
+          "file": "src/components/shared/failure-grammar.test.tsx",
+          "line": 260
+        }
+      ]
     },
     {
       "id": "set-name-step",
