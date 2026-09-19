@@ -145,7 +145,8 @@ moves, never reveal-gated); the glow contract and placement tests; `section-ligh
 
 ## Handoff (replaces the chat report)
 
-**Head:** `<HEAD>` on `lp/album-wiring`. **Synced:** `origin/launch-prep` had moved 15 commits, merged at
+**Head:** `e6f13ccb` on `lp/album-wiring` carries every line of the work; the branch tip is the one commit
+after it that writes this SHA down. **Synced:** `origin/launch-prep` had moved 15 commits, merged at
 `01c5ae23` (never rebased); three registration conflicts, all resolved by keeping NEITHER side, because both
 sides were REMOVING a different retiring board (`gallery-width` upstream, `album-hero` here) rather than
 adding one: `boards.ts`, `touchpoints.ts`'s `SandboxId`, and `docs/design/library.md` (regenerated). The
