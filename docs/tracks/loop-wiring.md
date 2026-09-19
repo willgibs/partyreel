@@ -158,8 +158,10 @@ demo-door proof with or without a video; the landscape reel if one is kept.
 
 ## Handoff (replaces the chat report)
 
-- Head `<sha>`, pushed; synced with `launch-prep` at `b45f94fb` (it moved by one record commit,
-  `docs/STATUS.md` + `docs/tracks/orchestrator.md`; merged, no conflict with any owned path)
+- The work is `b88ae082`, the sync merge `f73819b9`, and this manifest commit rides on top; all pushed.
+  Synced with `launch-prep` at `b45f94fb` (it moved once mid-round, by a record commit touching
+  `docs/STATUS.md` and `docs/tracks/orchestrator.md`; merged clean, no conflict with any owned path, and
+  the whole gate re-run on the synced tree)
 - Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok · the specimen collector ok
   (131 specimens on 94 entries) · `pnpm typecheck` ok · `pnpm lint` ok (the 8 known warnings, none in this
   lane) · `pnpm test` ok (2,555 in 242 files) · `pnpm build` ok (254 static pages) ·
