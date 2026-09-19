@@ -58,7 +58,7 @@ album hero's round three went "too boring" that way).
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, hollow, the cap, the object, the teaser's chips, the phone; on the real dialog's shell and body over fixture summaries | integrated at `afde9ca3`; on the desk; five calls carried on their recommendations (in the CHANGELOG); seven ROADMAP lines |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | integrated at `6a7e6f2f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); four ROADMAP lines |
 | `event-type-pages` | the event-type landing pages, the hub and the four types: one page or four, the hero's picture, one hero, who is greeted, the proof, how many, the directory, the phone | integrated at `cee7768c`; on the desk; two calls flagged for his eye (in the CHANGELOG); seven ROADMAP lines |
-| `error-pages` | every failure page as one grammar: one grammar, the ways out, the picture, the code, the surround, the private event, the admin's 404, the global crash | cut at `1feccb00` (2026-09-19, the overnight round, the last of the twelve), on the seat admin-triage freed |
+| `error-pages` | every failure page as one grammar: one grammar, the ways out, the picture, the code, the surround, the private event, the admin's 404, the global crash | integrated at `3d30582f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); three ROADMAP lines |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
@@ -107,9 +107,9 @@ whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent
 lane since is integrated and on the desk: the four wiring lanes, the app round's four boards (`app-shape`, `privacy-concept`,
 `guest-shape`, `app-vocabulary`), the stacking round's eight (`contact-page`, `press-page`, `demo-event`, `app-pricing`,
 `pricing-page`, `app-door`, `first-event`, `guest-upload`), and the overnight round's twelve cut at the Orchestrator's discretion
-while he slept (2026-09-19, "occupy 8 more slots, paced as usual", then twelve: `media-viewer`, `reel-studio`, `host-curation`,
-`admin-triage`, `emails`, `help-center` on the seats; `profile-page`, `how-it-works`, `export-flow`, `site-chrome`,
-`event-type-pages`, `error-pages` queued; the state of each in the table). The desk derives the
+while he slept (2026-09-19, "occupy 8 more slots, paced as usual", then twelve), all integrated by 10:40 UTC with every seat
+free: `media-viewer`, `reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`,
+`how-it-works`, `export-flow`, `site-chrome`, `event-type-pages`, `error-pages` (the state of each in the table). The desk derives the
 steps (`/design/lab?key=`): 1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ? marks a
 question unclear; plus the ghost on a disposable event on the alias (its link in chat). Calls his to overrule: from
 `backdrop-wiring` on the home page, the live demo moved whole into the paper chapter as its opener, and the album's heading

@@ -125,9 +125,19 @@ and relayed here for his morning. The records follow in the order the lanes hand
   ROADMAP lines (a stale blog tag, three unlinked posts, triplicated nav copy, a policy scan gap, a stale comment, the
   hub's missing OpenGraph image, a stale doc line).
 
-**Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
-queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
-red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
+- `error-pages` integrated (`3d30582f`; cut `1feccb00`, the round's last): every failure page as one grammar, eight
+  decisions on the real not-found pieces and recreations of the three error boundaries with the Sentry effect removed
+  (no lab press reported an event), at 1440 and 375: one grammar (one primitive with per-surface words: `RouteError`
+  folds into `NotFoundScreen` for one added prop at zero visual cost), the ways out (a quiet help or contact line
+  everywhere), the picture (marketing only, as today), the code (always, with Copy), the surround (the surface's own
+  chrome always: a guest crash has no header today), the private event (the not-found family wearing a lock), the
+  admin's 404 (a portal screen with no marketing links), the global crash (Try again and a way home). Three calls
+  carried. A lab gotcha fixed in the board (stacked chromes with `vh` minimums compound against the frame). Three
+  ROADMAP lines (no root `error.tsx`; the group 404s' fixed 60 vh box; the stale "may have ended" line deleted).
+
+**Next.** The round is closed: twelve boards on the desk for his sitting, every seat free, zero questions asked of him
+mid-lane (every call carried on its lane's recommendation and listed above). Then the alias rebuilt when Vercel's window
+frees, the prune, the red-team of the wiring lanes' surfaces on the alias, and his batches.
 
 ## 2026-09-18 — The ladders and the dock: both ladders wired, the lab's step rebuilt, four question-first boards cut (`00e82dba` onward)
 
