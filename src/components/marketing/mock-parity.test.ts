@@ -226,11 +226,14 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-qr.tsx",
     literal: "PNG (best for screens)",
   },
-  // How-it-works guest-entry frame <-> the real email OTP sign-in form.
+  // How-it-works guest door <-> the real email OTP sign-in form. The drawing
+  // moved from step-frames.tsx to the guest's own picture set when the
+  // walkthrough split into two perspectives (2026-09-19); the literal is what
+  // this entry is for, and it follows wherever the door is drawn.
   {
     label: "guest entry email-code request button",
     marketingFile:
-      "src/components/marketing/sections/how-it-works/step-frames.tsx",
+      "src/components/marketing/sections/how-it-works/guest-pictures.tsx",
     appFile: "src/components/auth/email-sign-in.tsx",
     literal: "Email me a code",
   },

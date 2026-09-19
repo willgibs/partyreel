@@ -369,7 +369,7 @@ export default function HelpIndexPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t pt-6 text-sm">
             <span className="text-muted-foreground">Keep exploring:</span>
             <LearnMoreLink href="/how-it-works" className="text-foreground">
-              How Partyreel works
+              See the loop, start to finish
             </LearnMoreLink>
             <LearnMoreLink href="/pricing" className="text-foreground">
               Pricing

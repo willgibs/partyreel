@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 30 standing boards.**
+**22 laws · 18 policies · 445 contracts on 56 components · 29 standing boards.**
 
 ## What binds you
 
@@ -259,6 +259,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/sections/features/shared/text-swap.tsx` | swaps one line of text for another: the old blurs up and out, the new rises in | none |
 | `src/components/marketing/sections/shared/bulk-select-mock.tsx` | the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls | none |
 | `src/components/marketing/sections/shared/confetti-burst.tsx` | the celebratory beat: confetti with real physics, one shot per fire, never an ambient loop | none |
+| `src/components/marketing/sections/shared/how-it-works-stepper.tsx` | the whole six-step loop inside one ordinary section, one step on screen at a time: reads the same single source /how-it-works walks, so a teaser can never be shallower than the page it points at | shows exactly one step, with the count beside it; gives every step a pressed-state button, and pressing one swaps the step; tells the guest's story when asked for it, from the same single source; carries the door into the full walkthrough; gates its entrance on the motion preference, and writes no story of its own |
 | `src/components/marketing/sections/shared/inline-reel-player.tsx` | the poster-first reel surface: no video bytes until someone asks to play | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/sections/shared/learn-chevron.tsx` | the bare learn-more chevron, for a row that is already a link and cannot nest another | none |
 | `src/components/marketing/sections/shared/learn-more-link.tsx` | the recurring see-more link: the chevron's arms spread on hover, pure CSS | none |
@@ -378,7 +379,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `error-pages` | shared | Eight decisions on the real failure components with fabricated error and reset props, inside each surface's own chrome, at 1440 with 375 on a shared knob: one grammar or eight, how many ways out, where the photo strip appears, whether a crash shows its code, what surrounds a failure, the private lock, the admin host's 404, and the last-resort crash |
 | `event-type-pages` | marketing | Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone |
-| `how-it-works` | marketing | Eight decisions on the real page pieces (PageHero, PaperChapter, the spine, ReelPayoff, PricingPointer, CtaBand) at 1440 and 375, every height and first picture measured in the frame: the pair against the help article, who the page greets, the step count and step one's truth, the frame vocabulary, the spine's shape, the payoff's proof, the phone, and the close |
 | `site-chrome` | marketing | Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names |
 | `profile-page` | guest | Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |

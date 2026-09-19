@@ -151,10 +151,16 @@ function SignOff() {
           <FooterDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
         </div>
         <div className="flex flex-col items-start gap-4">
-          {/* The `chapter` step, with the sign-off above it: the footer is the
-              page's CLOSER, not one more body section, and the ladder is where
-              that rank is said out loud (2026-09-17). */}
-          <h2 className="font-heading text-chapter">Explore a demo event.</h2>
+          {/* The `section` step, one rung DOWN from `chapter` (Will,
+              2026-09-19, ruling the walkthrough's close: "as a separate
+              exploration, the footer 'Explore a demo event.' should be a
+              heading size down from these closing section H2s to create
+              hierarchy, it's far too big right now"). It used to sit a rung
+              ABOVE them on the argument that the footer is the page's closer;
+              read against a real closing H2 a hundred pixels up, the footer
+              out-shouting the page's own last word was the louder mistake.
+              Level with a closing H2 is the hierarchy he asked for. */}
+          <h2 className="font-heading text-section">Explore a demo event.</h2>
           <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the

@@ -132,6 +132,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/marketing/sections/shared/confetti-burst.tsx": {
     for: "the celebratory beat: confetti with real physics, one shot per fire, never an ambient loop",
   },
+  /* sections/shared (loop-wiring, 2026-09-19) */
+  "src/components/marketing/sections/shared/how-it-works-stepper.tsx": {
+    for: "the whole six-step loop inside one ordinary section, one step on screen at a time: reads the same single source /how-it-works walks, so a teaser can never be shallower than the page it points at",
+    unspecimened:
+      "a full-width section rather than a component; the home's how-it-works passage is where it is seen, and its contract is beside it",
+  },
   "src/components/marketing/sections/shared/inline-reel-player.tsx": {
     for: "the poster-first reel surface: no video bytes until someone asks to play",
   },

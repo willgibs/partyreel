@@ -2541,6 +2541,57 @@
       "contracts": []
     },
     {
+      "id": "how-it-works-stepper",
+      "file": "src/components/marketing/sections/shared/how-it-works-stepper.tsx",
+      "names": [
+        "HowItWorksStepper"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "shows exactly one step, with the count beside it",
+          "suite": [
+            "the how-it-works overview stepper"
+          ],
+          "file": "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+          "line": 62
+        },
+        {
+          "title": "gives every step a pressed-state button, and pressing one swaps the step",
+          "suite": [
+            "the how-it-works overview stepper"
+          ],
+          "file": "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "tells the guest's story when asked for it, from the same single source",
+          "suite": [
+            "the how-it-works overview stepper"
+          ],
+          "file": "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "carries the door into the full walkthrough",
+          "suite": [
+            "the how-it-works overview stepper"
+          ],
+          "file": "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "gates its entrance on the motion preference, and writes no story of its own",
+          "suite": [
+            "the how-it-works overview stepper"
+          ],
+          "file": "src/components/marketing/sections/shared/how-it-works-stepper.test.tsx",
+          "line": 113
+        }
+      ]
+    },
+    {
       "id": "inline-reel-player",
       "file": "src/components/marketing/sections/shared/inline-reel-player.tsx",
       "names": [
