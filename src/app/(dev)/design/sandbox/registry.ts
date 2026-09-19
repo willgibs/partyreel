@@ -1,7 +1,5 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
-import { EVENT_IDENTITY } from "./event-identity/spec";
-import { EVENT_TYPE_PAGES } from "./event-type-pages/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
@@ -48,8 +46,6 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
-  EVENT_IDENTITY,
-  EVENT_TYPE_PAGES,
   SITE_CHROME,
   PROFILE_PAGE,
   EXPORT_FLOW,

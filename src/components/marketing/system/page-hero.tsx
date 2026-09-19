@@ -261,12 +261,24 @@ export function PageHero({
               2026-09-02): a long first line over a short second reads as a
               broken block, and balanced rows are the cheapest visual win a
               lockup has. Left-aligned copy keeps pretty, where a ragged right
-              edge is the natural shape. */}
+              edge is the natural shape.
+
+              ★ THE SUBHEAD IS ON THE LADDER (Will, 2026-09-19,
+              `the-ladder=reading`). It was a flat `text-lg`: 18px at 375 and
+              18px at 1440, under an h1 that clamps from 34 to 80, so the
+              lockup's own proportion came apart as the window grew (the h1 is
+              1.9 times the sub at a phone and was 4.4 times at 1440). `subhead`
+              is the step the ladder already had for this exact slot, retuned in
+              the same change to his numbers (20 at 375, 22 at 1440; theme.css
+              carries the quote). It is the ONE reading slot that moved: a
+              page's OPENING paragraph stays at `text-lg`, which is what
+              "opening stays 18" means, and the labels and card copy stay where
+              `body-type` will find them. */}
           {subhead && (
             <p
               {...mark()}
               className={cn(
-                "text-lg text-muted-foreground",
+                "text-subhead text-muted-foreground",
                 lineClass,
                 align === "center"
                   ? "max-w-xl text-balance"

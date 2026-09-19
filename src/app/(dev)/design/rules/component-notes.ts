@@ -128,6 +128,23 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "swaps one line of text for another: the old blurs up and out, the new rises in",
   },
 
+  /* marketing / sections / events (events-wiring, 2026-09-19) */
+  "src/components/marketing/sections/events/event-type-card.tsx": {
+    for: "an event type as a photograph you can walk through, at the two sizes the site shows one; the picture IS the card and the artifact inside it is what the ruling removed",
+    unspecimened:
+      "it takes a whole EventType and links its own page; the hub's directory and the home row are where it is seen",
+  },
+  "src/components/marketing/sections/events/event-door.tsx": {
+    for: "the events proof: a door with the river pouring through it and the reel standing beside it, never under it; with no demo set the door goes rather than dying",
+    unspecimened:
+      "a whole page section with a live engine in it; /events and its four type pages are the specimens",
+  },
+  "src/components/marketing/sections/events/event-object.tsx": {
+    for: "one lit still life per event type, each carrying the demo's REAL scannable code, so a hero is a door rather than a picture of one",
+    unspecimened:
+      "server-rendered around a code that only exists when a demo is configured; the five events pages are where it stands",
+  },
+
   /* marketing / sections / home */
   "src/components/marketing/sections/home/hero-stream.ts": {
     for: "the home hero's band: where every photograph leaving the QR is at any instant, and the measured line the headline hangs from",
