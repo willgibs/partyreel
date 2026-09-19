@@ -15,7 +15,9 @@ zero real users, Stripe in TEST mode, and the launch switches deliberately unspe
 only active thread: work rides `launch-prep` in rounds, each a catalog in the lab, Will's verdicts on the
 desk, then the wiring; partyreel.com changes only at tagged milestone merges. The goal for this stretch
 (Will, 2026-09-14): every page reaches a cohesive informational flow and every point of the design system,
-the marketing site and the app is elevated platform-wide; nothing is protected.
+the marketing site and the app is elevated platform-wide; nothing is protected, and since 2026-09-19 the host app and
+the guest pages are explicitly open to be reconceived from the ground up ("closer to a Frankenstein's monster";
+his words in `design/rulings.md`).
 
 ## The current round: the ladders and the dock (opened 2026-09-18 at `00e82dba`)
 
