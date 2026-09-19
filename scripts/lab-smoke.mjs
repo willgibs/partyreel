@@ -47,7 +47,7 @@ const SCENES = [];
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's
 // Suspense boundary sits, so both pass; only the gate's 404 or no answer fails.
 const EXPECT = { "/design/lab/tools/boom": [200, 500] };
-const MAX_PAGES = 400;
+const MAX_PAGES = 800; // 400 ran out on 2026-09-19 with 24 boards on the desk (every step of every board is a page)
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>

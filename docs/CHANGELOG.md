@@ -47,6 +47,34 @@ and relayed here for his morning. The records follow in the order the lanes hand
   replaced by the bench rather than reopening his route ruling; the guest's third option kept to the container; the
   1280 px poster card around a 360 px reel, his to overrule). Six ROADMAP lines.
 
+- `emails` integrated (`2135ce6e`; cut `d909cb13`): every email Partyreel sends as eight decisions on the ten real templates
+  called with fixture options inside a built inbox mock at 375 and 1440, nothing sent: one shell (one wrapper, two feet),
+  the brand (the wordmark at the head, no new asset), the sender (operator subjects tagged), the foot (an unsubscribe and
+  an address on the commercial-leaning four), the sign-in mail as a labelled mock (digits with a button beneath), the
+  moments (retire the four dormant switches), the guest's (the album link, once), the dark inbox (the shell declares
+  light: today's declares a text colour and no background, near-illegible in a dark client). No questions; three ROADMAP
+  lines (no plain-text twin; `sendOnce` untested; a stale `PRICING.md` line about the resend cooldown).
+
+- `media-viewer` integrated (`596ca8dd`; cut `d909cb13`): what a photograph opens as, eight decisions on the real viewer's
+  pieces over one open wedding, 375 first with 1440 on a knob, four roots and four staged, every caption measured in the
+  frame: the opening (the photograph grows out of its tile), what stands beside it (one strip at the foot), who took it (the
+  name and the time on the chrome's own line), the next one (the neighbours peek at the edges), how close (pinch inside the
+  viewer; a face in a group photograph is 36 px across on a phone today), a video (a play badge), the way out (swipe it
+  back down into the album), an address (the album's link with the photograph on it). Three calls carried (a guest's
+  photograph never leaves as a file; one shape binds the host's viewer; a zoomed photograph owns both axes until it
+  settles). One asset asked (a real vertical clip, row 23). Three ROADMAP lines (the viewer has no arrival; `MediaTile`'s
+  lazy loading resolves against the top window inside an iframe; six surfaces disagree about what a viewer holds).
+
+- `admin-triage` integrated (`30db05e5`; cut `d909cb13`): the operator's act on a report as eight decisions on presentational
+  forks of the admin pieces with one Saturday night's fixtures, inside the `admin` board's shape worn as settled: what a
+  report looks like (the picture beside the reason, a row each: 341 px to 272), a wordless one (nothing drawn), what a
+  verdict costs (a required line that IS the record, into the column empty since the founding migration), what a closed
+  one leaves (one line with a day's Undo: three answered reports from 844 px to 158), the legal-hold door (pre-filled from
+  the report), the phone (see it and stop it; the rail takes 62 percent of a 375 screen today), four inboxes (one control
+  taking each surface's words), who is told (silence, by doctrine, until he rules). Four calls carried. Six captures
+  caught defects the gate could not. Five ROADMAP lines, one on the lab itself (a responsive Tailwind variant never
+  reaches a board's frame). The smoke crawler's 400-page cap ran out at 24 boards (every step is a page); raised to 800.
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
