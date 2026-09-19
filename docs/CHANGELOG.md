@@ -106,6 +106,15 @@ and relayed here for his morning. The records follow in the order the lanes hand
   captures caught defects invisible in review. Four ROADMAP lines (the `/#faq` row; "four steps"; nav labels under a
   transparent bar over a bright photograph; the dead `markOnly` branch).
 
+- `how-it-works` integrated (`e623e65e`; cut `449d9b52`): the page that tells the loop beside the article that tells it too,
+  eight decisions on the real page pieces at 1440 and 375, every option measured in windows and by the first product
+  picture's depth: the pair (both kept, each its own name), who (the undecided host, as today), the steps (six two-sided,
+  step one's sentence made true), the pictures (the site's own frames), the shape (a two-column ledger, host and guest,
+  stacked below `sm`), the proof (a door to the live demo), the phone (the real `PhoneFrame`), the close (one closing
+  section). One call carried (the optional close asked). The lane ran its demo without `--base` and read "0 steps" as a
+  desk-wide fault; the Orchestrator's gate on its own port found the eight steps (the ROADMAP's `lab:demo` default line
+  stands). Four ROADMAP lines (the step-count trap, the label collision, the unread single source, the catalogue gap).
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
