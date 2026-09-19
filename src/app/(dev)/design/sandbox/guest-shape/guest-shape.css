@@ -4,18 +4,6 @@
    author rule outranks every layered one, so these win over a shipped
    component's own class without !important and without a specificity war. */
 
-/* THE ALBUM'S WIDTH RULE (gallery-wiring, 2026-09-19): galleries run to the
-   window at about a 240px tile, with the words on the gallery's left line.
-   `GuestMasonry` still ships `columns-2`, which is right at a phone and wrong
-   at a laptop, and this lane may not edit it, so the wide frames wear the
-   landed rule here and the phone frames keep the component's own. 220px is the
-   column FLOOR the browser may not go under; the tiles land a little above it
-   as the columns share out the leftover, which is why the rule is named for
-   the tile it measures. */
-[data-gs-album="wide"] > div:first-of-type {
-  columns: 220px;
-}
-
 /* A page drawn behind an open door: the real backdrop, so what is judged is
    the door against the page it covers rather than against nothing.
    entry-shell.tsx's overlay, quoted (bg-black/10 + the blur). */

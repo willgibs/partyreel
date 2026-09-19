@@ -1,17 +1,14 @@
 import type { ComponentType } from "react";
 
 import { AdminBoard } from "@/app/(dev)/design/sandbox/admin/board";
+import { AppShapeBoard } from "@/app/(dev)/design/sandbox/app-shape/board";
 import { AlbumHeroBoard } from "@/app/(dev)/design/sandbox/album-hero/board";
 import { AlbumPageBoard } from "@/app/(dev)/design/sandbox/album-page/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
-import { GalleryWidthBoard } from "@/app/(dev)/design/sandbox/gallery-width/board";
 import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { GuestShapeBoard } from "@/app/(dev)/design/sandbox/guest-shape/board";
-import { ImageTrailBoard } from "@/app/(dev)/design/sandbox/image-trail/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
-import { RiverCardBoard } from "@/app/(dev)/design/sandbox/river-card/board";
-import { RiverVisualBoard } from "@/app/(dev)/design/sandbox/river-visual/board";
 import { VoiceBoard } from "@/app/(dev)/design/sandbox/voice/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
@@ -33,7 +30,7 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "guest-shape": { Component: GuestShapeBoard },
-  "image-trail": { Component: ImageTrailBoard },
+  "app-shape": { Component: AppShapeBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
   glass: { Component: GlassBoard },
@@ -41,8 +38,5 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
   "album-page": { Component: AlbumPageBoard },
-  "river-card": { Component: RiverCardBoard },
-  "gallery-width": { Component: GalleryWidthBoard },
   "album-hero": { Component: AlbumHeroBoard },
-  "river-visual": { Component: RiverVisualBoard },
 };

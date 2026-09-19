@@ -74,24 +74,16 @@ never a cap and a test.
   (the admin chart's cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces).
   Found on the way and fixed at `0681652c`: four of the five `--color-chart-*` aliases were never emitted by
   `@theme inline`, so a series read by name painted black; the aliases are `@theme static` now.
-- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's
-  word ("we could begin getting main current to launch prep"), 1,138 commits: partyreel.com now serves Graphite,
-  the type and corner ladders, the Aurora with shadows by role, the home hero's band and the v1 wordmark, Card's
-  floating layer, the three voice picks and the river on the empty album; the lab gated (404 without a key).
-  Stripe stays TEST; no launch switch flipped. The verification pass on partyreel.com is recorded below the
-  merge in git.
-
+- **milestone-25** (`bf9cbd74`, 2026-09-18): `main` merged from the `launch-prep` tip `707d99a2` on Will's word,
+  1,138 commits: Graphite, the type and corner ladders, the Aurora with shadows by role, the home hero's band and
+  the v1 wordmark, Card's floating layer, the three voice picks and the river on the empty album; the lab gated.
 - `admin` integrated (`d6305818`; cut `0681652c`): round one of the portal's shape as seven decisions on the real
-  admin components fed one Tuesday of fixtures at 1440 by 900 (two backend runs down, one account over cap, three
-  reports, nine messages): the operator's home (a ranked list of what is waiting recommended), the nav for twelve
-  surfaces (a rail plus a command palette), density (a table for data and a reading pane for prose), how far a
-  state's colour travels (the chip), one grammar for three destructive acts (a sheet sized to the damage), where
-  health is said (a band under the bar on every page) and how much of the product's bar the portal keeps (a 44 px
-  tool bar). Four screens from Mobbin shaped decisions and were designed from the ground up. Four questions carried
-  on their recommendations and closed by the Orchestrator: the chart ramp stays `loose-ends`'s for the product and
-  the admin gets its own in the wiring round; `touchpoints.ts` gained the `admin` surface at the merge; nothing at
-  375 and no light-against-dark in round one; the palette ships closed behind a key if it wins. Three defects it
-  found in the shipped portal are on the ROADMAP's admin bucket.
+  admin components fed one Tuesday of fixtures at 1440 by 900: the operator's home (a ranked list recommended),
+  the nav (a rail plus a command palette), density (a table with a reading pane), state colour (the chip),
+  destructive acts (a sheet sized to the damage), health (a band under the bar), the bar (a 44 px tool bar). Four
+  questions closed by the Orchestrator (the product's chart ramp stays `loose-ends`'s; the `admin` surface joined
+  `touchpoints.ts`; nothing at 375 in round one; the palette ships closed behind a key). Three defects it found in
+  the shipped portal are on the ROADMAP.
 - `admin-split` integrated (`7f3738ba`; cut `0681652c`): the admin became its own deployment without leaving the
   tree. One pure module, `src/lib/surface`, answers which surface a build serves; the proxy, the `requireAdmin` seam
   and the purge cron decide from it (the admin surface an allow-list, the app surface 404ing `/admin`, unset serving
@@ -100,40 +92,55 @@ never a cap and a test.
   preview proof: the project created by Will, a team token minted (the old one was project-scoped), settings
   mirrored, env copied and verified value by value after a first copy of ciphertext, the Sentry upload trio dropped,
   the preview callback added in Supabase, the preview host's allow-list probed and Will's sign-in there.
-- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console stopped meaning four crons. The catalog
-  gained three kinds (a `scheduled` job with its own rows, a `signal` whose only question is what failed in the last
-  24 hours, a `derived` reading riding another job's counts), all through the one pure `jobHealth`, and nine jobs
-  joined it. The backup Worker reads the Cloudflare queue and dead-letter depths on every run (any dead letter is a
-  failure, alerting where the number arrives, since a freshness rule can only page on silence); the purge cron's four
-  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27 closed); `sendOnce` and
-  both rate limiters stopped failing invisibly (QA #19). The lane's cross-lane patch (six files outside its owns)
-  landed in the merge; the additive migration (four `ops_flags` rows, one `sent_emails` index) is applied with the
-  advisor set unchanged; the Worker deployed the same night (version `d7b16bcc`, both queue producers bound), so the depth reading lands with the next 05:00 UTC run.
-
-- `cursor-backdrop` integrated (`592955ab`; cut `9e2a573b`): demo six as a board, six decisions on the shipped
-  home sections imported and drawn in place: which UI-forward section takes the first switching photograph
-  backdrop (`full-quality` recommended), how the copy survives eight photographs (a glass pane; the muted tier
-  leaves the copy over media, measured against every photograph's worst block), what switches it (the cursor's
-  position across the section), how it arrives (a slide from the way you moved), where it sits in the
-  dark/light run (on a strip of all fifteen sections), and the phone (the scroll). A pure engine with a
-  scripted pointer; 61.7 frames a second under a 4x throttle; the pool's decode cost and the stand-ins' size
-  became the "room frames" asset ask (row 20).
-- `image-trail` integrated (`dd44692e`; cut `9e2a573b`): our own image trail as one pure engine (a photograph born on travel, sliding to
-  the source and decaying behind it; no dependency; the keeper holds the newest while the hand rests, the shy
-  fade yields to the words it crosses) and two boards on it: `image-trail` round one (density, the decay, the
-  entrance, the size, the home on real pages, the phone) and `privacy-hero` round two, the same trail fed by
-  a path where the cursor would be, replacing round one's spirals and wake after Will's none (`rush`, two
-  notches over the home hero, recommended). Round one's verdict was transcribed from chat into the ledger.
+- `admin-jobs` integrated (`3ad58b1c`; cut `0681652c`): the jobs console on three kinds (`scheduled`, `signal`,
+  `derived`) through the one pure `jobHealth`, nine jobs joined; the backup Worker reads the queue and dead-letter
+  depths on every run (any dead letter a failure, alerting where the number arrives); the purge's four
+  account-looping sweeps became jobs with their own switches and per-row isolation (QA #27); `sendOnce` and both
+  rate limiters report their failures (QA #19). The lane's cross-lane patch landed in the merge; the additive
+  migration is applied with the advisor set unchanged; the Worker deployed the same night (`d7b16bcc`).
 - `backdrop-wiring` integrated (`9795e370`; cut `a0a84e04`): Will's ruling wired the same night and the board
-  retired. `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
-  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone and a still under reduced
-  motion; the engine and `PhotoSection` are production modules beside the river (two contracts, 48 tests, a Library
-  entry). His fold landed as one line: `live-demo` changed register, so chapter one closes on the photograph and the
-  paper chapter opens on the demo's stage, the order untouched (the merge into the album section was the other
-  reading; his to overrule). Measured: the copy at 5.12:1 over the worst photograph, zero animation frames at rest,
-  the switch compositor work; a zero-area IntersectionObserver that would have shipped the phone rule dead was
-  caught. Row 20's ask is amended to 1200 px delivered, since `next/image` never upscales and the delivered width
-  is the cap on what a full-bleed layer decodes.
+  retired: `full-quality` wears a switching full-bleed pool behind the glass plate with the band trigger and its
+  foot rail, the slide entrance, five of six photographs on scroll trip wires at a phone, a still under reduced
+  motion; the engine and `PhotoSection` production modules beside the river. His fold landed as one line
+  (`live-demo` changed register, so chapter one closes on the photograph and the paper chapter opens on the demo's
+  stage; his to overrule). The copy at 5.12:1 over the worst photograph, zero frames at rest; row 20's ask
+  amended to 1200 px delivered, since the delivered width is the cap on what a full-bleed layer decodes.
+- `gallery-wiring` integrated (`666ee8bc`; cut `97207988`): galleries declare a column WIDTH, never a count: one
+  rule in `shared/masonry.tsx` read by the guest masonry, the host's grids and the streaming skeleton, measured at
+  2 / 5 / 6 / 8 columns of 166 to 245 px at 375, 1280, 1512 and 1920, the album 20 px from each edge, the words at
+  632 on the logo's line, the host event page asking the shell for the same shape (`data-app-wide`, answered in
+  `:has()`); every other host page kept its column and gained only the grid. The select grid was patched onto the
+  same constants at the merge so Select never reflows the album. Two calls for Will on the alias: the column-major
+  flow reads newest-down-the-left at eight columns, and the 632-wide action block beside the full-bleed album is
+  his `words=edge` as ruled (the `guest-shape` board's material). `gallery-width` retired.
+- `trail-wiring` integrated (`73451c79`; cut `97207988`): the image trail left the lab for
+  `src/components/shared/trail/` at his numbers (d140, three seconds with the slower shrink, the flick behind the
+  cursor, 180 px and 100 at a phone; the keeper and the shy fade named) and the root 404 stands on it, a phone
+  walking its own path. Measuring the real page moved three things the board could not see: the shy fade became a
+  feathered window on the layer after the per-card dimmer left the description line at 1.49:1 (4.90:1 now at both
+  widths), the resting composition is one of five openings, and the phone's walk reaches its edges. The trail rides
+  the root 404 only (the two group 404s keep their strip; his to widen), `MissingFrameStrip` yielded there and
+  stayed elsewhere, scripting off shows clean paper. `image-trail` retired; the privacy-hero board's imports were
+  repointed at the production engine until its round three lands.
+- `app-shape` integrated (`aa338766`; cut `6acf34e8`): round one of the host app's shape as eight decisions on one
+  host's Saturday night, drawn on the shipped `AppShell`, `EventCard`, `FilterChips`, `StorageMeter`,
+  `EventFilterPills`, `FeedSectionHeader` and `MasonryColumns` at 1440 and 375 through one window knob: what the
+  home opens on (what needs you, recommended), how an event draws on it (a row with the cover behind), what an
+  event's page is (a front page with a door into each room), how seven routes are reached and the way back, where
+  sharing and settings live (on the event; a sheet beside it), where the plan and a host's own photographs live
+  (one place, You), the shape in a hand (a bar at the thumb). Every caption measured inside its frame (the
+  album-as-page gives the photographs 1400 px and six columns against today's 1216 and five; a rail costs a
+  column). Four questions carried on their recommendations: a host rarely runs more than three events and the
+  shape survives it; the bell is reserved, not built; the personal feeds survive under You; the home's heading is
+  placeholder copy for the voice board. The `admin` board's cousin, one seam deeper.
+- `river-wiring` integrated (`5297cb07`; cut `97207988`): the QR feature door stopped being the one made object and
+  became the one that moves: the album pours out of a real scannable code a tenth down a tall 4:5 door and the whole
+  card streams behind the copy; the lab's card engine folded into the shared river as one `origin` argument (the
+  guest album's contract never moved), the code and the settled flow in the server's own HTML (3.007 px a module
+  at 1440, 3.118 at 375); `CARD_COPY_SCRIM`, his one bottom-left gradient on every media-forward card, measured per
+  pixel (the three cards a hair under AA rose to 10.89, 13.11 and 15.05); `/demo` ships as the 307 the code
+  encodes; the closing rows took the tall door. Two questions carried on their recommendations (the QR door's title
+  when a bright photograph passes under it; the closing row's line). `river-card` and `river-visual` retired.
 - **milestone-26** (`df173c2e`, 2026-09-18, late): `main` merged from the `launch-prep` tip `353ad884` (48
   commits) after Will's sign-in on the admin preview: partyreel.com runs the surface module, the jobs console on
   three kinds with the Worker's depth reading, the sub-sweeps and the limiters that report, and the static chart

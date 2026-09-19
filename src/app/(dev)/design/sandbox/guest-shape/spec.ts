@@ -22,7 +22,9 @@ import { defineExploration } from "@/components/lab/exploration";
  * controls are `app-vocabulary`'s round, so no option here touches what a tile
  * carries. How wide an album runs was answered on 2026-09-18 (`gallery-width`:
  * 240px tiles to the window, the words on the gallery's left line) and is drawn
- * here as settled law rather than re-asked. The anti-abuse core is not a design
+ * here as settled law rather than re-asked: the album's own `GALLERY_COLUMNS` and
+ * the page's COLUMN and BLEED constants are the shipped ones, and a frame is a
+ * real viewport, so they resolve at the screen being judged. The anti-abuse core is not a design
  * variable and no option moves it: the capability token, the presigned URLs,
  * the limiters and the signed unlock cookie are out of frame. And the behaviour
  * pins (`entry-modal.test.tsx`, `guest-upload.test.tsx`,
@@ -107,7 +109,7 @@ const DRAFT = defineExploration({
       "The first round: the door, what an album with nothing in it says, the chrome over a wide album, whether the album admits it is filling, the other four guest surfaces, what a guest can do about their own photograph, and how many voices ask for an account. Phone first, on the real components.",
   },
   context:
-    "One landing resolves access on the server and wraps whatever it earns in a sheet. Round one draws every option over one wedding in the four states a scanned code can reach: open with 34 photographs, the same behind a password, the same needing an account, and the same with nothing in it yet. The album already runs to the window at a 240px tile with the words on its left line (gallery-width, ruled 2026-09-18), so every option is drawn on that.",
+    "One landing resolves access on the server and wraps whatever it earns in a sheet. Round one draws every option over one wedding in the four states a scanned code can reach: open with 34 photographs, the same behind a password, the same needing an account, and the same with nothing in it yet. The album already runs to the window at a 240px tile with the words on their own left-pinned column (ruled 2026-09-18, wired 2026-09-19), so every option is drawn on the shipped page.",
   bible: [1, 4, 15, 21],
   asks: [
     {

@@ -5,6 +5,7 @@
 // collide with a keyframe anywhere else.
 import "./river.css";
 
+import Image from "next/image";
 import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
@@ -21,17 +22,21 @@ import {
   REVEAL_MS,
   revealEase,
   RIVER_FADES,
+  type RiverOrigin,
   riverClock,
   riverGeo,
 } from "./river-engine";
 
 /**
- * THE RIVER: a flow of photographs falling through a box, arriving from above
- * the frame, straightening as they land and dissolving out through the bottom.
- * Its first production home is the guest album's empty state (Will's
- * `guest-photos=ghost`, 2026-09-18), where the placement fades it; the visual
- * itself is always at full luminance and never carries a layer over a
- * photograph (bible 1). The arithmetic lives in `river-engine.ts`.
+ * THE RIVER: a flow of photographs falling through a box, straightening as they
+ * land and dissolving out through the bottom. It arrives from above the frame,
+ * or, given an `origin`, pours out of an object standing in the box. Its two
+ * production homes are the guest album's empty state (Will's
+ * `guest-photos=ghost`, 2026-09-18), where the placement fades it, and the QR
+ * feature door, where it falls out of the real scannable code (`place=tenth`,
+ * `fall=behind`, 2026-09-19); the visual itself is always at full luminance and
+ * never carries a layer over a photograph (bible 1). The arithmetic lives in
+ * `river-engine.ts`.
  *
  * ★ DECORATIVE, ENTIRELY. aria-hidden, every image `alt=""`, nothing in it
  * focusable, no link and no code, and it takes no pointer: the words a
@@ -78,6 +83,8 @@ const FADES = {
 export function River({
   frames,
   ratio = 1,
+  origin,
+  sizes,
   className,
 }: {
   /** The photographs, in launch order: one card each, so none is ever doubled
@@ -86,10 +93,22 @@ export function River({
   frames: readonly RiverFrame[];
   /** The box's height over its width. */
   ratio?: number;
+  /** Where the flow is born, in WIDTHS from the top edge (river-engine.ts).
+   *  Omitted, it arrives from above the frame out of nothing. */
+  origin?: RiverOrigin;
+  /**
+   * Present: every frame goes through the image optimizer at this `sizes`,
+   * because the pack is the marketing manifest's full-size stills and a door
+   * draws them at about 140 px (twelve 900 px JPEGs is ~1.1 MB of decoration).
+   * Absent: the frame is served exactly as given, which is right for a pack
+   * authored at its display size (the guest ghost's nine WebPs are ~44 KB for
+   * all of them, and the optimizer would buy nothing).
+   */
+  sizes?: string;
   className?: string;
 }) {
   const count = frames.length;
-  const geo = useMemo(() => riverGeo(ratio), [ratio]);
+  const geo = useMemo(() => riverGeo(ratio, origin), [ratio, origin]);
   const cards = useMemo(() => buildCards(count), [count]);
   const clock = useMemo(() => riverClock(count), [count]);
 
@@ -198,26 +217,45 @@ export function River({
                   } as CSSProperties
                 }
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- a small local still, served as is: the optimizer would buy nothing for a decorative frame */}
-                <img
-                  src={frame.src}
-                  alt=""
-                  // Every frame is on screen within the pour, so it loads now
-                  // rather than lazily: a lazy image inside a card that is born
-                  // clipped above the box would arrive mid-flight, as a blank
-                  // frame that fills in. Low priority, so it never races the
-                  // page for the network, and decoded off the main thread.
-                  loading="eager"
-                  fetchPriority="low"
-                  decoding="async"
-                  draggable={false}
-                  className="rvr-img"
-                  style={
-                    frame.position
-                      ? { objectPosition: frame.position }
-                      : undefined
-                  }
-                />
+                {/* Every frame is on screen within the pour, so it loads now
+                    rather than lazily: a lazy image inside a card that is born
+                    clipped outside the box would arrive mid-flight, as a blank
+                    frame that fills in. Low priority, so it never races the
+                    page for the network, and decoded off the main thread. */}
+                {sizes ? (
+                  <Image
+                    src={frame.src}
+                    alt=""
+                    fill
+                    sizes={sizes}
+                    loading="eager"
+                    fetchPriority="low"
+                    decoding="async"
+                    draggable={false}
+                    className="rvr-img"
+                    style={
+                      frame.position
+                        ? { objectPosition: frame.position }
+                        : undefined
+                    }
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- a still authored at its display size, served as is: the optimizer would buy nothing for it
+                  <img
+                    src={frame.src}
+                    alt=""
+                    loading="eager"
+                    fetchPriority="low"
+                    decoding="async"
+                    draggable={false}
+                    className="rvr-img"
+                    style={
+                      frame.position
+                        ? { objectPosition: frame.position }
+                        : undefined
+                    }
+                  />
+                )}
               </div>
             );
           })}

@@ -52,6 +52,7 @@ export type RulingId =
   | "album-hero"
   | "river-visual"
   | "guest-shape"
+  | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
   | "admin"
@@ -85,7 +86,6 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "guest-shape"
-  | "image-trail"
   | "admin"
   | "loose-ends"
   | "glass"
@@ -93,10 +93,8 @@ export type SandboxId =
   | "voice"
   | "privacy-hero"
   | "album-page"
-  | "river-card"
-  | "gallery-width"
   | "album-hero"
-  | "river-visual";
+  | "app-shape";
 
 export type Ruling = {
   id: RulingId;
@@ -609,25 +607,48 @@ export const RULINGS: Ruling[] = [
       variants: ["The orbit", "The field, calmed", "The shelf", "The arrival"],
     },
   },
+  // RULED AND RETIRED (round two, 2026-09-18, wired 2026-09-19). Its home is a
+  // CARD, not a section: the flow pours out of the real scannable code in the
+  // QR feature door, and the ghost of it stands on the guest album's empty
+  // state. The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-visual",
     title: "The river, a feature visual",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-15: the river, killed as a hero, streamlined to one flow and kept in the bank)",
-    shipped: null,
-    why: "The river as a section-scale feature visual: one stream dropping out of the code, at three sizes on cinema and paper, banked with its placements, props and cost.",
+    ruled: "2026-09-18 (round two)",
+    shipped:
+      "The river in a card's picture slot, born from the real scannable code, and ghosted on the guest album's empty state",
+    why: "The river's home is a card, not a section: one flow out of the object it is born from, at full luminance everywhere but the empty album, where the PLACEMENT fades it.",
     lives: [
-      "src/components/marketing/system/section-shell.tsx",
-      "src/lib/constants/feature-pages.ts",
+      "src/components/shared/river/river.tsx",
+      "src/components/shared/river/river-engine.ts",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/marketing/sections/features/shared/feature-door.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
+    ],
+  },
+  {
+    id: "app-shape",
+    title: "The host app's shape",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+    shipped: null,
+    why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/shared/app-shell.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
     ],
     board: {
-      note: "The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost",
+      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
       variants: [
-        "560, the column",
-        "400, the card",
-        "240, the thumbnail",
-        "The placements",
+        "The host's home",
+        "The event as a place",
+        "Moving around",
+        "In a hand",
       ],
     },
   },
@@ -680,30 +701,27 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#photo-section",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered all six steps
+  // (d140, the long decay at his own three seconds, the flick, 180 px, the 404
+  // as its home, and a phone that walks rather than waits for a finger) and left
+  // one open note the wiring answered: the walk must not trace the same figure
+  // every visit. The engine left sandbox/ for src/components/shared/trail/ with
+  // the board; docs/design/rulings.md keeps his words.
   {
     id: "image-trail",
     title: "The image trail",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: our own cursor-tracking image trail, for the marketing site somewhere, else banked)",
-    shipped: null,
-    why: "A photograph born every time the cursor has travelled far enough, sliding to it and decaying behind it, drawn on the real pages it could live on.",
+    ruled: "2026-09-19",
+    shipped:
+      "The trail on the root 404: 140 px between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, walking its own figure until a hand arrives",
+    why: "A page nobody plans to see is the classic home for a rare delight, and the trail is the site's own photographs arriving where the one that was asked for is missing.",
     lives: [
-      "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
-      "src/components/marketing/sections/home/cinema-close.tsx",
-      "src/components/marketing/system/page-hero.tsx",
+      "src/components/shared/trail/trail-engine.ts",
+      "src/components/shared/trail/trail.tsx",
+      "src/components/shared/trail/trail-frames.ts",
+      "src/app/not-found.tsx",
+      "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#trail",
     ],
-    board: {
-      note: "Six decisions, each on a whole screen of the real site at 1440 and 375: how close the photographs come, how long they live and how they go, how they arrive, how big they are, which page they live on (the privacy hero, the home page's last screen, the 404 on paper, or banked) and what a phone does; the pointer scripted for the still and live on the desk",
-      variants: [
-        "The density",
-        "The decay",
-        "The entrance",
-        "The size",
-        "The home",
-        "At a phone",
-      ],
-    },
   },
   {
     id: "privacy-hero",
@@ -746,50 +764,43 @@ export const RULINGS: Ruling[] = [
       tracks: ["heroes"],
     },
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered every step and
+  // added the ruling that outranks this instance: the card's copy gradient is
+  // the CARD's, "not exclusive to the QR code card, nor part of the river
+  // visual design itself", so it went to every media-forward card on the site.
+  // The board left sandbox/ with the wiring; rulings.md keeps his words.
   {
     id: "river-card",
     title: "The river in the QR door",
     surface: "marketing",
-    ruled:
-      "open (Will, 2026-09-18: the river goes into the card, the code in it with no label, as an Easter egg, run through its own exploration)",
-    shipped: null,
-    why: "The river in the real QR feature door, in both of its shapes: where the code sits, where the photographs end, what the code opens and what the short door does.",
+    ruled: "2026-09-19",
+    shipped:
+      "The code at a tenth of the tall door with the whole card streaming behind the copy, the card's own bottom-left gradient on every door, and /demo as what the code opens",
+    why: "The QR door's picture is the album pouring out of a real scannable code, and the copy over it reads on a gradient that belongs to the card rather than to any one visual.",
     lives: [
+      "docs/systems/design-system.md#the-media-forward-card",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/features/shared/related-features.tsx",
+      "src/components/marketing/sections/home/event-type-card.tsx",
+      "src/components/shared/river/qr-plate.tsx",
+      "src/app/demo/route.ts",
     ],
-    board: {
-      note: "Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door",
-      variants: [
-        "Where the code sits",
-        "Where the photographs end",
-        "What the code opens",
-        "The short door",
-      ],
-    },
   },
   {
     id: "gallery-width",
     title: "Gallery width",
     surface: "shared",
-    ruled:
-      "open (Will, 2026-09-18: galleries use the width of a laptop or a desktop, with small tiles and more columns, never a wide two)",
-    shipped: null,
-    why: "The guest album is capped at 632 px and two columns on every screen, the host's at 1280 and three; four decisions set the tile, the width, the words and the host's.",
+    ruled: "2026-09-19",
+    shipped: "240px columns, the full window, words at the edge",
+    why: "A gallery declares a column WIDTH, never a count: ~240px tiles, 5 / 6 / 8 columns at 1280 / 1512 / 1920, the album 20px from each edge, one left line.",
     lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/host-app.md",
+      "src/components/shared/masonry.tsx",
       "src/components/guest/guest-masonry.tsx",
       "src/components/guest/event-experience.tsx",
-      "src/components/shared/masonry.tsx",
+      "src/components/shared/app-shell.tsx",
     ],
-    board: {
-      note: "Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame",
-      variants: [
-        "The tile size",
-        "The gallery's width",
-        "Where the words sit",
-        "The host's galleries",
-      ],
-    },
   },
   {
     id: "loose-ends",

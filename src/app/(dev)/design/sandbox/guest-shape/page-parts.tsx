@@ -58,17 +58,19 @@ export type ScreenId = keyof typeof SCREENS;
 export const screenOf = (v: string | undefined): ScreenId =>
   v === "1440" ? "1440" : "375";
 
-/** The page's gutter, the shipped one (`px-5` on the guest page). */
+/** The gutter both blocks keep, the shipped one (BLEED). */
 const GUTTER = "px-5";
 
 /**
- * ★ THE WORDS KEEP A READABLE COLUMN, THE PHOTOGRAPHS DO NOT. Half of the rule
- * `gallery-width` landed on 2026-09-18: the album runs to the window's edges,
- * and the name, the byline and the actions stay in today's 632px column on the
- * album's left line. Without this a full-width Add is 1,400px of button at a
- * laptop, which is an artefact of the board rather than the landed shape.
+ * ★ THE WORDS KEEP THE COLUMN, THE PHOTOGRAPHS DO NOT. `gallery-wiring` landed
+ * the rule on 2026-09-19 as two constants in `event-experience.tsx`: COLUMN is
+ * `w-full max-w-2xl px-5`, 632px of measure pinned LEFT so its first letter
+ * lands on the same 20px line as the logo above it and the album's first
+ * column below it; BLEED is the gutter alone, and the window decides the rest.
+ * These are those two, quoted, so no option here is secretly re-deciding a
+ * width that was answered on 2026-09-18.
  */
-const READABLE = "max-w-[632px]";
+const READABLE = "max-w-2xl";
 
 /* ── the top bar ─────────────────────────────────────────────────────────── */
 
@@ -258,9 +260,11 @@ export const nothingOf = (v: string | undefined): NothingShape =>
   v === "two" ? "two" : v === "words" ? "words" : "river";
 
 /**
- * The album at whatever the fixture holds, wearing the landed width rule: two
- * columns at a phone (the component's own), a ~240px tile to the window's edge
- * from there up (gallery-wiring, 2026-09-19).
+ * The album at whatever the fixture holds. The width rule is the SHIPPED
+ * component's own since `gallery-wiring` landed (`GALLERY_COLUMNS`: two
+ * columns at a phone, a 220px column floor from 640 up), and a frame is a real
+ * viewport, so the breakpoint resolves at the screen being judged. The board
+ * carried an override for one day and no longer needs one.
  *
  * ★ `land` IS ONE MORE PHOTOGRAPH, not a filter over the same ones. The
  * question is what a guest sees when somebody else's phone reaches this page
@@ -271,20 +275,15 @@ export const nothingOf = (v: string | undefined): NothingShape =>
  */
 export function Album({
   fixture,
-  screen,
   live = "none",
 }: {
   fixture: FixtureId;
-  screen: ScreenId;
   live?: LiveShape;
 }) {
   const f = FIXTURES[fixture];
   const items = live === "land" ? [ARRIVAL, ...f.items] : f.items;
   return (
-    <div
-      data-gs-album={screen === "1440" ? "wide" : "phone"}
-      data-gs-landing={live === "land" ? "" : undefined}
-    >
+    <div data-gs-landing={live === "land" ? "" : undefined}>
       <GuestMasonry items={items} />
     </div>
   );
@@ -470,7 +469,7 @@ export function GuestPage({
                   <Nothing where="empty" shape={nothing} count={0} />
                 ) : (
                   <>
-                    <Album fixture={fixture} screen={screen} live={live} />
+                    <Album fixture={fixture} live={live} />
                     {f.access === "teaser" && <TeaserFoot count={f.count} />}
                   </>
                 )}

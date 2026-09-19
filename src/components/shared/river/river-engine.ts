@@ -109,11 +109,16 @@ export const RIVER_FADES = {
   side: 0.08,
 } as const;
 
+/** Where the flow is born, in WIDTHS from the box's top edge. Negative is
+ *  above the frame (the default: the flow arrives already falling); a positive
+ *  y is a point inside the box, which is how a flow pours out of an object
+ *  standing in it (the QR door's code, `qr-plate.tsx`). */
+export type RiverOrigin = number;
+
 export type RiverGeo = {
   /** The box's height over its width: every length below is in widths. */
   h: number;
-  /** Where every card is born, above the frame, so the flow arrives already
-   *  falling. Negative: above the top edge. */
+  /** Where every card is born. Negative: above the top edge. */
   originY: number;
   /** A card's largest size: its DOM box, so its scale never exceeds 1. */
   card: number;
@@ -136,9 +141,16 @@ export type RiverGeo = {
  * alternatives (a card at 0.4 of the width is a braid, a third is a scatter
  * with holes and a half is a wall), and they are linear in the box, so they
  * hold at any width.
+ *
+ * ★ `origin` IS THE WHOLE DIFFERENCE between the two placements the river has
+ * (river-wiring, 2026-09-19). The empty album pours from nothing above the
+ * frame; the QR door pours out of the code standing a tenth of the way down
+ * it. Everything else — gravity, the fan, the lanes, the tumble, the recycle,
+ * the rest state — is one arithmetic, so the lab's separate card engine was
+ * folded in here rather than promoted beside this one.
  */
-export function riverGeo(ratio: number): RiverGeo {
-  const originY = -0.1 * ratio;
+export function riverGeo(ratio: number, origin?: RiverOrigin): RiverGeo {
+  const originY = origin ?? -0.1 * ratio;
   const card = 0.4;
   const deadY = ratio * RIVER_FADES.bottom1;
   // The largest half height a landed card can have: full size, full jitter,

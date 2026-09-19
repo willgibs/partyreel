@@ -1,5 +1,6 @@
 import {
   Calendar,
+  Compass,
   Heart,
   ImageUp,
   Plus,
@@ -13,7 +14,16 @@ import {
   GUEST_GHOST_FRAMES,
 } from "@/components/guest/gallery-empty-state";
 import { PhotoSection } from "@/components/shared/backdrop/photo-section";
+import {
+  QR_DOOR_FRAMES,
+  QR_DOOR_SIZES,
+} from "@/components/shared/river/qr-door-frames";
+import {
+  qrRiverOrigin,
+  QrRiverPlate,
+} from "@/components/shared/river/qr-plate";
 import { River } from "@/components/shared/river/river";
+import { Trail } from "@/components/shared/trail/trail";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -122,6 +132,35 @@ import {
  * model of the component.
  */
 
+/**
+ * THE QR DOOR'S PICTURE SLOT, drawn exactly as `feature-door.tsx` composes it:
+ * the ink ground, the flow born at the code's centre between the door's two
+ * scrims, and the plate over everything. The door's own scrims and copy are on
+ * its entry (/design/library/marketing); what this shows is the picture, at the
+ * two widths a door is really drawn at. `rvr-ink` is the placement's ground,
+ * not the theme's: `--shadow-lift` is per theme, and on a light page it is a
+ * dark shadow that vanishes against ink.
+ */
+const DOOR_RATIO = 5 / 4;
+
+function QrDoorPicture({ width }: { width: number }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]"
+      style={{ width, aspectRatio: `1 / ${DOOR_RATIO}` }}
+    >
+      <River
+        className="rvr-ink"
+        frames={QR_DOOR_FRAMES}
+        ratio={DOOR_RATIO}
+        origin={qrRiverOrigin(DOOR_RATIO)}
+        sizes={QR_DOOR_SIZES}
+      />
+      <QrRiverPlate ratio={DOOR_RATIO} value="https://partyreel.com/demo" />
+    </div>
+  );
+}
+
 const buttonSizes = [
   "xs",
   "sm",
@@ -143,7 +182,134 @@ const badgeVariantNames = [
   "link",
 ];
 
+/**
+ * THE TRAIL'S WORDS (the trail-wiring lane, 2026-09-19). The shape of the 404's
+ * own block rather than the block itself: the real one carries an <h1> and two
+ * <Link>s, and a specimen may not put a heading in the library page's outline or
+ * a way out of the page under a reader's cursor. What the specimen is for is the
+ * SHY FADE, so what it needs is type of the 404's sizes in the 404's places.
+ */
+function TrailWords() {
+  return (
+    <div className="flex max-w-md flex-col items-center gap-5 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Compass className="size-6" aria-hidden />
+      </div>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-brand">404</p>
+        <p className="font-heading text-prose text-balance">
+          We lost this page
+        </p>
+        <p className="text-pretty text-muted-foreground">
+          The link may be broken or the page may have moved. Let us point you
+          back to Partyreel.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button size="cta">Back home</Button>
+        <Button size="cta" variant="outline">
+          Visit the help center
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  // ★ THE IMAGE TRAIL, at the head of the entries because three wiring lanes add
+  // one this round and each landing at the top is what keeps the three merges
+  // apart; the Orchestrator keeps all of them. Declared INLINE rather than as a
+  // named const: collect-specimens.mjs lifts each specimen's `node` expression
+  // out of this array's own source, and an entry hoisted into a variable would
+  // render perfectly and ship with no code panel.
+  {
+    id: "trail",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
+    specimens: [
+      {
+        label: "On paper, under a cursor",
+        hint: "draw across it. A photograph is born every time the hand has travelled far enough, arrives BEHIND the cursor and turns the way it was thrown. Stop moving and the newest one simply stays with you (the keeper) while the trail behind it goes, and the loop stops asking for frames entirely while it stands.",
+        node: (
+          <div className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground">
+            <Trail
+              source="pointer"
+              className="flex min-h-[26rem] flex-col items-center justify-center px-6 py-12"
+            >
+              <TrailWords />
+            </Trail>
+          </div>
+        ),
+      },
+      {
+        label: "and walking its own figure at a phone",
+        hint: "375 px, where there is no cursor and a drag is a scroll: the trail walks a wander of its own at the same pace, alive the moment the page opens and asking nothing of a finger. The figure never repeats inside a visit and opens somewhere else on the next one.",
+        node: (
+          <div
+            className="surface-paper overflow-hidden rounded-lg border bg-background text-foreground"
+            style={{ width: 375 }}
+          >
+            <Trail
+              source="path"
+              className="flex min-h-[32rem] flex-col items-center justify-center px-5 py-12"
+            >
+              <TrailWords />
+            </Trail>
+          </div>
+        ),
+      },
+      {
+        label: "With nothing to stay off",
+        hint: "no children, so no words are measured and no photograph yields anywhere: the trail whole, which is what a placement that puts its own copy beside it would get. This is also the one to watch the decay in, three seconds from laid down to gone.",
+        node: (
+          <div className="overflow-hidden rounded-lg border">
+            <Trail source="pointer" className="min-h-[22rem]" />
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "qr-plate",
+    badge: "new",
+    family: "components",
+    section: "Surfaces",
+    title: "The QR door's picture",
+    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door. Will ruled the pair on river-card (2026-09-19): the code a tenth of the way down the tall door, the whole card streaming behind the copy, no label at all, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
+    specimens: [
+      // The two widths the door is really drawn at: (1024 - 32) / 3 in the
+      // /features grid at 1440, and 375 minus the site's gutters on a phone.
+      // Fixed on purpose: the WIDTH is what the scan floor is measured
+      // against, and a library frame is as wide as the window.
+      {
+        label: "The tall door's picture at 1440",
+        hint: "331px: the code lands on 30% of the door, which is its 99px scan floor at exactly this width, and the flow is born inside the plate",
+        node: <QrDoorPicture width={331} />,
+      },
+      {
+        label: "and on a phone",
+        hint: "343px: one geometry, no second tuning; the code grows with the door and can never fall under 3px a module",
+        node: <QrDoorPicture width={343} />,
+      },
+      {
+        // ★ WHY THE PLATE IS ITS OWN LAYER: it rises over both of the door's
+        // scrims, because a scrim across white greys the code into exactly the
+        // square a short value exists to avoid. The flow runs between them.
+        label: "The code alone, on the door's ink",
+        hint: "server-rendered, zero client JS, no link and no label: the door is already one link, and the code is an Easter egg for a camera",
+        node: (
+          <div
+            className="relative aspect-4/5 overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]"
+            style={{ width: 331 }}
+          >
+            <QrRiverPlate ratio={5 / 4} value="https://partyreel.com/demo" />
+          </div>
+        ),
+      },
+    ],
+  },
   {
     id: "button",
     badge: "updated",

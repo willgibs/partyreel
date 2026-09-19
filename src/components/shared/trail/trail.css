@@ -1,0 +1,103 @@
+/* THE IMAGE TRAIL'S OWN SHEET (promoted with the engine, 2026-09-19).
+
+   Classes under `trl-` only, and NO keyframe: the trail is one
+   requestAnimationFrame loop writing inline transforms, so nothing in here can
+   shadow a keyframe anywhere else (src/app/keyframe-uniqueness.test.ts). */
+
+/* The area a trail is drawn in. It is a REAL box rather than an overlay: the
+   words stand inside it, the photographs run behind them, and the whole thing
+   is the surface a reader draws on. `isolate` keeps the cards' own z-index
+   ladder from ever having to out-number anything on the page. */
+.trl-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.trl-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  isolation: isolate;
+  /* ★ THE TRAIL ARRIVES, IT DOES NOT BLINK ON. The composition is solved from
+     the box the browser measures, so nothing can be drawn until the page has
+     laid itself out; the fade turns that one unavoidable frame into the beat it
+     should have been anyway. A 404 is a rare moment and may carry real delight
+     (bible 22), and the words land first either way: the [data-not-found]
+     stagger is already running when this starts. */
+  opacity: 0;
+}
+
+.trl-layer[data-trail-in] {
+  opacity: 1;
+}
+
+/* ★ THE SHY FADE: the window the words stand in (trail-engine.ts, `shyWindow`).
+   Two gradients, one per axis, whose opaque regions UNION: a pixel is whole
+   unless it is inside both bands, which is exactly the block's rectangle, and
+   the ramps are the soft edge a photograph dissolves over as it crosses. The
+   trail is at `--trl-shy-a` on each gradient there, whose union is the ruled
+   floor, and the layer isolates, so the floor holds however many photographs
+   overlap inside it. Nothing is ever laid OVER a photograph (bible 1): the
+   photograph yields, which is what reads as passing behind the words. */
+.trl-layer[data-trail-shy] {
+  --trl-shy: rgb(0 0 0 / var(--trl-shy-a));
+  mask-image:
+    linear-gradient(
+      to right,
+      #000 var(--trl-x0),
+      var(--trl-shy) var(--trl-x1),
+      var(--trl-shy) var(--trl-x2),
+      #000 var(--trl-x3)
+    ),
+    linear-gradient(
+      to bottom,
+      #000 var(--trl-y0),
+      var(--trl-shy) var(--trl-y1),
+      var(--trl-shy) var(--trl-y2),
+      #000 var(--trl-y3)
+    );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .trl-layer {
+    transition: opacity 520ms var(--ease-emphasis);
+  }
+}
+
+.trl-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: var(--trl-rest);
+  opacity: var(--trl-rest-o);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* ★ NO FILTER ON A CARD. A card only ever scales DOWN from the box it was
+     sized to, so nothing is ever re-rasterised above its own raster, which is
+     what made an earlier field read as jittery. */
+}
+
+.trl-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: oklch(1 0 0 / 0.05);
+  /* The hairline every media tile on a dark ground wears, inside the frame. */
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+}
+
+/* On paper the hairline has to go the other way, or a photograph over light
+   ground wears a white edge nobody can see and floats with no boundary. The 404
+   is the ruled home (Will, `home=notfound`), so this is the branch that ships:
+   dark hairlines on the paper ground. */
+[data-mkt-skin="paper"] .trl-photo,
+.surface-paper .trl-photo {
+  background: oklch(0 0 0 / 0.04);
+  box-shadow:
+    inset 0 0 0 1px oklch(0 0 0 / 0.08),
+    0 1px 2px oklch(0 0 0 / 0.06);
+}
