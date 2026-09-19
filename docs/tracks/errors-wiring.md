@@ -1,6 +1,6 @@
 ---
 track: errors-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "22438704"          # the launch-prep SHA the branch was cut from
 board: none             # a wiring round: every failure page one grammar; the error-pages board retires with it
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -122,25 +122,112 @@ never `--no-verify`. Calls that stay Will's, stated in the Handoff: the strip as
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The marketing 404 is the one screen that gained NO help line.** The manifest's copy line gave it
+  "Visit the help center." to `/help`, but that screen already carries the help center as its SECOND
+  ACTION and `contact us` in its footnote, so the quiet line would have named `/help` twice, three
+  lines apart. `ways-out=guided` reads "one quiet line to the help center or contact, worded for its
+  surface", and the board drew it on the GUEST and ADMIN 404s only, because the marketing pages are
+  what it was generalizing FROM ("today only the marketing pages point further"). **Recommended, and
+  carried:** the marketing 404 keeps its pair and its footnote and gains no fourth pointer. It is one
+  prop to reverse, and `failure-grammar.test.tsx` names the exception with its reason rather than
+  omitting the file.
+- **The root boundary took `render:global`, because no `render:root` exists.** `src/app/error.tsx` and
+  `global-error.tsx` now both tag `render:global`: the `SentryArea` union is single-sourced in
+  `src/lib/observability/sentry.ts`, which is in this lane's `reads` and not its `owns`. They are told
+  apart by the stack, and the two are genuinely adjacent (both mean "the crash escaped every group").
+  **Recommended:** add `render:root` in a lane that owns that file (a ROADMAP line below).
+- **The boundary probe's contract changed, and its comment is now wrong.** `src/app/(dev)/design/(shell)/lab/tools/boom/page.tsx`
+  says "the crash escalates past the root layout into global-error.tsx", which was true only while no
+  root `error.tsx` existed. It now lands on the root boundary (verified locally). The probe still earns
+  its keep, and the thing it verifies is arguably the more valuable of the two, since a real host can
+  reach it. The file is outside this lane's paths, so nothing was edited. **Recommended:** the
+  Orchestrator refreshes that comment in one line, and a probe for global-error follows on the ROADMAP.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (no `docs/systems/` line in this lane's paths stated a fact this round changed; `lifecycle-recovery.md`
+  mentions the failure screens only through the deleted-event 404 it already describes correctly)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now** · A `render:root` Sentry area, so the root `error.tsx` and `global-error.tsx` stop sharing
+  `render:global` (one line in `src/lib/observability/sentry.ts`, one in `route-error.tsx`).
+- **Now** · A second boundary probe for `global-error`: the existing `/design/lab/tools/boom` now lands
+  on the root boundary, so the last-resort screen has no production probe left (its comment needs the
+  same edit). A `?boundary=global` that crashes the ROOT layout is the shape.
+- **Now** · `/design/library/patterns`'s `RouteErrorMock` still draws the OLD digest chip ("Error code:",
+  uncopyable) and no help line, so the Library's static mirror of the crash screen is a round behind.
+- **Next** · One copy-with-a-receipt primitive: `marketing/press/copy-button.tsx` and
+  `shared/error-digest.tsx` now solve the same three problems (the optional call plus the catch, the
+  no-reflow label swap, the unconditional live region) in two places.
+- **Next** · The group 404s' fixed `min-h-[60vh]` box (carried over from the manifest's "not in this round").
+- **Next** · A runbook page for the operator, which is what turns `Check the runbook.` from an unlinked
+  line into a link (`admin/not-found.tsx` and `HELP_BY_AREA`'s `render:admin` row, one href each).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: typecheck ok, lint ok, test ok (N), build ok (M pages); `pnpm lab:smoke` ok
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The verdicts landed, one line each, and the calls his to overrule
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `8bc78dd8`, pushed; synced with `launch-prep` at `b45f94fb` (it had moved by one record commit;
+  merged, never rebased, and the whole gate re-run on the merged tree).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok, the specimen collector ok,
+  `pnpm typecheck` ok, `pnpm lint` ok (the 8 known warnings, 0 errors), `pnpm test` ok (2,566 in 242 files),
+  `pnpm build` ok (254 pages), `pnpm lab:smoke --base http://localhost:3131` ok (456 checks, 0 failing,
+  and `error-pages` gone from its reading table). ★ `rm -rf .next` before the typecheck: the deleted probe
+  routes lived on in `.next/dev/types/validator.ts` and failed it on four phantom modules.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: the 17 owned paths, the board's five
+  deleted files, and four registration exceptions the goal names (`sandbox/registry.ts`,
+  `(shell)/lab/boards.ts`, `touchpoints.ts`, `rules/component-notes.ts`), plus the two generated artifacts
+  (`rules.generated.json`, `docs/design/library.md`) and this manifest. Nothing else.
+- **The verdicts, one line each.**
+  - `grammar=shared`: `NotFoundScreen` is the one primitive; `RouteError` folded into it and kept its
+    `captureError` effect and its name, with a module-local `HELP_BY_AREA` so the five `error.tsx` files
+    stay one line each. A source scan refuses `@sentry` or `captureError` inside the primitive, because a
+    capture there files an issue for every real 404.
+  - `ways-out=guided`: `help` is its own stagger slot (3) below the actions on the host 404, the guest 404,
+    the admin portal 404 and all five crash screens; `HelpLine` is single-sourced beside the primitive.
+  - `picture=today` + his note: `visual` replaces the icon circle, typed as a UNION with `icon` so a screen
+    cannot draw both. The strip stands where the icon was on the group 404s and on the 500 screen; the root
+    404 keeps `Compass`, because the trail behind it is already its one visual.
+  - `code=always`: a new client leaf `error-digest.tsx` (the sentence, the code, a Copy control with a
+    receipt), rendered only when a `digest` prop arrives, so a 404 cannot carry one. `global-error.tsx`
+    rebuilds the same two ideas in inline styles.
+  - `surround=shell`: the guest crash gained `GuestBar`, the session-less wordmark row lifted out of the
+    bad-link 404 (the real `GuestHeader` resolves a session and fetches `/api/me/menu`, which a crash
+    boundary must never do). Every other surface already wore its own chrome.
+  - `private-event=family` + his note: the hand-rolled lock is a `NotFoundScreen` wearing `Lock`, under the
+    REAL `GuestHeader` (it has a token there), with his homepage link as its one action.
+  - `admin-404=portal`: `src/app/not-found.tsx` branches on `surface() === "admin"`, so the admin build
+    ships `AdminNotFoundScreen` (the Ops chrome minus nav, sign-out and every session read) and the app
+    build ships today's tree. NO new route and NO proxy change, so `SURFACE_404_PATH` stays unmatched.
+  - `global-crash=home`: a plain inline-styled `<a href="/">` beside Try again (never `next/link`: the
+    router is part of what crashed), with the digest and its Copy beneath.
+- **The calls that stay his to overrule**, all stated in the goal plus one this round added:
+  the strip as the icon on both marketing screens; `Compass` kept on the root 404; the admin's line
+  unlinked; `/contact` on the auth crash; **and the marketing 404 gaining no help line** (the Question above).
+- **Sentry, proved locally** (the DSN in `.env.local` reports to the real project). A production build with
+  three temporary throwing pages, one per reachable group, never committed and deleted before the gate:
+  nine crash RENDERS in a browser produced exactly nine `area:render:*` events, split
+  `render:guest` 3 / `render:marketing` 2 / `render:auth` 1 / `render:global` 3, matching the visits
+  one for one. Across the same window roughly twenty 404 loads (`/nope`, `/help/nope`, `/e/zzzzzzzz`, the
+  forced paper 404, both admin-surface 404s) produced ZERO `render:*` events. The digest printed on screen
+  matched the server log's (`1935716122`), which is the correlation the Copy control now makes usable.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Captures**, 1440 and 375 each, at
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/errors-wiring/captures/`:
+  the root 404, the cinema group 404, the guest bad-link 404, the private lock, the three group crashes,
+  the root boundary catching a GROUP-LAYOUT crash, `global-error` with its anchor and its code, the two
+  admin-surface 404s from a real `NEXT_PUBLIC_SURFACE=admin` build, and the host/portal 404 pair drawn from
+  a probe with their shipped props (both sit behind auth, so the signed-in half is the alias's to confirm).
+- **Look at first:** the strip standing where the icon was, at 1440 and at 375, on paper and on cinema, and
+  whether the marketing 404 wants the help line after all.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-19). Will's eight verdicts on `error-pages` landed as
+production and the board retired. `NotFoundScreen` became the one primitive every failure page draws
+from, gaining a `visual` slot typed as a union with `icon` so no screen says the same thing twice, a
+`help` slot and a `digest` slot; `RouteError` folded into it and kept the reporting effect that must
+never move down. A new root `src/app/error.tsx` closed a gap nothing had caught, where a crash inside a
+route group's OWN layout skipped every branded boundary and landed on the unstyled last-resort screen.
+The strip took the icon's place on both marketing screens, the guest crash gained a session-less bar,
+the private lock joined the family with a way home, the admin host answered as the portal through one
+build-inlined `surface()` branch, and the last-resort screen gained a plain anchor and a copyable code.
