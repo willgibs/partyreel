@@ -14,7 +14,7 @@ owns:
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
   - src/app/globals.css
-  # src/app/theme.css is RELEASED to events-wiring for the fourth batch (the subhead clamp only); back here at its merge
+  - src/app/theme.css
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here
   # (the registration and retirement exceptions, announced 2026-09-18).
@@ -146,11 +146,11 @@ retired `type-phone`; both agents were told so by message.
 | `site-chrome` | integrated at `6a7e6f2f` (handed off `b6b23f33`, ten stale; the registration conflicts resolved by the Orchestrator); three calls carried; four ROADMAP lines | done | Opus, :3135 | nothing; the seat is free |
 | `help-center` | integrated at `5118c141` (handed off `7feeb2a1`, four stale; the registration conflicts against host-curation resolved by the Orchestrator); four calls carried | done | Sonnet, :3136 | nothing; `how-it-works` takes the seat |
 | `how-it-works` | integrated at `e623e65e` (handed off `0f9c28a7`, nine stale; the registration conflicts resolved by the Orchestrator); one call carried; the lane's "0 steps" was the `lab:demo` default port, the gate found eight | done | Sonnet, :3136 | nothing; the seat is free |
-| `events-wiring` | cut at `b30445d9` (batch four): the hub and the four type pages to production on `event-identity`'s seven directions and `event-type-pages`' direct picks; both boards retire | open | Opus, :3131 | the handoff; the red-team on the alias |
-| `chrome-wiring` | cut at `b30445d9` (batch four): the bar hides on scroll, a Dashboard hint, Start free always, both nav doors to the page; the board stays for round two | open | Opus, :3132 | the handoff; the red-team on the alias |
-| `profile-wiring` | cut at `b30445d9` (batch four): `profile-page`'s eight picks to production, the handle free, two migrations proposed; the board stays for round two | open | Opus, :3133 | the handoff; the migrations applied; the red-team on the alias |
-| `footer-close` | cut at `b30445d9` (batch four): `site-chrome` round two, the footer against the closing CTA (his ask by name) | open | Sonnet, :3134 | the handoff; on the desk |
-| `profile-reach` | cut at `b30445d9` (batch four): `profile-page` round two on View all, the quick-look and the way back | open | Sonnet, :3135 | the handoff; on the desk |
+| `events-wiring` | cut at `b30445d9` (batch four): the hub and the four type pages to production; both boards retired | done: merged `6abab6a1` (2026-09-19, handed off `1ecfac7d`, zero conflicts), gate 34 green on the final tree | Opus, :3131 | Will's eye on the alias; nine calls his to overrule (CHANGELOG) |
+| `chrome-wiring` | cut at `b30445d9` (batch four): the bar hides on scroll, a Dashboard hint, Start free always, both nav doors to the page | done: merged `6c76a08c` (2026-09-19, handed off `3b97be7a`), gate 34 green on the final tree | Opus, :3132 | Will's eye on the alias; seven calls his to overrule (CHANGELOG) |
+| `profile-wiring` | cut at `b30445d9` (batch four): `profile-page`'s eight picks to production, the handle free | done: merged `062498c3` (2026-09-19, handed off `d006b95e`); its two migrations applied plus a corrective third (`d29ce470`), gate 34 green on the final tree | Opus, :3133 | Will's eye on the alias; nine calls his to overrule (CHANGELOG) |
+| `footer-close` | cut at `b30445d9` (batch four): `site-chrome` round two, the footer against the closing CTA | done: merged `2aa1dc5e` (2026-09-19, handed off `6b32e7e6`); on the desk | Sonnet, :3134 | Will's sitting (three decisions) |
+| `profile-reach` | cut at `b30445d9` (batch four): `profile-page` round two on View all, the quick-look and the way back | done: merged `73cde345` (2026-09-19, handed off `bb82a760`); on the desk | Sonnet, :3135 | Will's sitting (three decisions) |
 | `lab-tides` | cut at `11f03ef9` (Will's standing ask, 2026-09-19: rising tides on the lab workflow): the accrued lab notes landed (the `lab:demo` port trap and stall, the constructor's defaults and dedupe, the frame's quirks mode, a responsive variant in a frame, the collector's blind spot, the settle, the dock from a step) and the carried calls rendered on the desk | open | Opus, :3136 | the handoff; the grammar change landed at the merge if proposed |
 
 **The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Every board is cut (`profile-page` took the first freed seat, :3133; `how-it-works` the second, :3136; `export-flow` the third, :3132; `site-chrome` the fourth, :3135; `event-type-pages` the fifth, :3131; `error-pages` the sixth, :3134); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. CLOSED 2026-09-19 10:40 UTC: every lane integrated and recorded with `[preview]` on each record, twelve boards on the desk, every seat free, nothing asked of Will; the alias rebuilt onto the closing record `5910d489` at 10:58 UTC, seven deployments pruned, the wired surfaces red-teamed signed out (clean).
@@ -169,6 +169,7 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
    wiring handoff: the merge (a retirement removes registration lines; a round-two lane rewrites its own RULINGS row), the gate
    (its demo step on a board still on the desk), the record in the CHANGELOG's evening-sitting entry, `[preview]`, the alias moved
    onto the record, the prune, the red-team listed in the manifest; `profile-wiring`'s migrations applied before its gate.
+   Landed the same night on one tree: `profile-wiring` `062498c3` (its migrations applied, a corrective third), `chrome-wiring` `6c76a08c`, `events-wiring` `6abab6a1`, `footer-close` `2aa1dc5e`, `profile-reach` `73cde345`; gate 35; one record `[preview]`.
    `lab-tides` (Opus, :3136) took the sixth seat the same evening on his standing ask (rulings.md: "continue to take notes and
    Rising Tides our lab workflow"); the lab notes accrue under the ROADMAP's "The lab and the kit" and are cut as lab lanes
    whenever a seat is free, never asked first.
@@ -405,6 +406,9 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
+- **A function replaced by a lane starts from its NEWEST definition (2026-09-19, `profile-wiring`):** the bio migration rebuilt `get_public_profile` from the June file and dropped the July anonymous-viewer gate (`20260729180000`, QA #36); the doc's expected-set paragraph is what caught it at the apply, and `20260919140000` restored it. Before applying any `create or replace function`, diff the file's body against `pg_get_functiondef()` on the live project; the visibility guard now reads the newest file and asserts the clause.
+- **An alias rebuild needs `[preview]` IN THE COMMIT (2026-09-19):** a deployment created by API for a commit whose message lacks it is CANCELED by `vercel-ignore-build.mjs` like any push (one creation wasted on `304a813b`). So a batch's record commit carries `[preview]` from now on (the push already creates the deployment, so the rebuild costs nothing extra), and `alias-force.mjs` is only for a commit that already says it.
+- **Two lane incidents (2026-09-19, `profile-wiring`, self-reported):** one force-push to its own branch to amend a manifest SHA (nothing lost; the rule stands: a wrong SHA is fixed by a new commit, now in the spawn brief), and the preview key echoed once into the lane's own terminal (its transcript on this machine; never committed). Will decides whether the key rotates.
 - **Phone widths in Will's Chrome do not take (2026-09-19):** the extension's `resize_window` reports success at 375 but the
   tab's inner width stays 1440, so a 375 pass of a public surface runs in the built-in pane (`resize_window` preset `mobile`,
   a real 375x812 viewport) and Will's Chrome is kept for the signed-in surfaces at 1440. The admin host has its own
