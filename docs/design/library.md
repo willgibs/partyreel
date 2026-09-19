@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 440 contracts on 55 components · 16 standing boards.**
+**22 laws · 18 policies · 440 contracts on 55 components · 17 standing boards.**
 
 ## What binds you
 
@@ -376,6 +376,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `app-door` | host | Seven decisions on the real auth components with fixtures at 1440 and 375: what the door asks for first, how many account surfaces the product has, what stands between a new account and the app, what /login is as a page, what happens when a new account's email already has one, how the door fails, and what a host the browser already knows meets |
 | `pricing-page` | marketing | Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands |
 | `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |

@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "first-event"
   | "pricing-page"
   | "press-page"
   | "contact-page"
@@ -93,6 +94,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "first-event"
   | "app-door"
   | "pricing-page"
   | "app-pricing"
@@ -644,6 +646,36 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "first-event",
+    title: "A host's first event",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-19: the host app is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+    shipped: null,
+    why: "The moment a host gets once: a style picked against a link that 404s, a refusal that inserts the row first, no paper anywhere in the product, and no live signal.",
+    lives: [
+      "src/components/app/create-event-wizard.tsx",
+      "src/components/app/event-qr.tsx",
+      "src/components/app/qr-preset-picker.tsx",
+      "src/components/app/event-share-dialog.tsx",
+      "src/components/app/event-uploads.tsx",
+      "src/app/(app)/dashboard/new/page.tsx",
+    ],
+    board: {
+      note: "Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes",
+      variants: [
+        "What creating asks",
+        "The code's style",
+        "The Free host's second",
+        "Out of the screen",
+        "Where she lands",
+        "In a hand",
+        "The empty event",
+        "The first photograph",
+      ],
+    },
   },
   {
     id: "app-door",

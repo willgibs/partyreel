@@ -1,5 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 
+import { FIRST_EVENT } from "./first-event/spec";
 import { APP_DOOR } from "./app-door/spec";
 import { PRICING_PAGE } from "./pricing-page/spec";
 import { APP_PRICING } from "./app-pricing/spec";
@@ -35,6 +36,7 @@ import { VOICE } from "./voice/spec";
  * docs/tracks/orchestrator.md): a new board at the head of the list.
  */
 export const BOARDS: readonly BoardSpec[] = [
+  FIRST_EVENT,
   APP_DOOR,
   PRICING_PAGE,
   APP_PRICING,
