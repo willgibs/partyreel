@@ -135,7 +135,7 @@ retired `type-phone`; both agents were told so by message.
 | `reel-studio` | integrated at `d10149bd` (handed off `e4a157d4`; the registration conflicts resolved by the Orchestrator); four calls carried; five Now lines | done | Opus, :3132 | nothing; `export-flow` takes the seat |
 | `export-flow` | integrated at `afde9ca3` (handed off `5b587f70`, zero stale, no conflicts); five calls carried; seven ROADMAP lines | done | Opus, :3132 | nothing; the seat is free (nothing queued) |
 | `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
-| `profile-page` | cut at `c74a509d` (the overnight round, the seat host-curation freed): what a person is on Partyreel beyond one album | open | Opus, :3133 | the handoff |
+| `profile-page` | integrated at `b75cd30a` (handed off `196b086c`, five stale; the registration conflicts resolved by the Orchestrator); eight calls carried; six ROADMAP lines | done | Opus, :3133 | nothing; the seat is free |
 | `admin-triage` | integrated at `30db05e5` (handed off `0a84f3bd`, six stale; the registration conflicts resolved by the Orchestrator); four calls carried; five ROADMAP lines | done | Opus, :3134 | nothing; `error-pages` takes the seat |
 | `error-pages` | cut at `1feccb00` (the overnight round, the seat admin-triage freed; the last of the twelve): every failure page as one grammar | open | Sonnet, :3134 | the handoff |
 | `emails` | integrated at `2135ce6e` (handed off `2a4de176`, seventeen stale; the registration conflicts resolved by the Orchestrator); no questions; three Now lines | done | Sonnet, :3135 | nothing; `site-chrome` takes the seat |

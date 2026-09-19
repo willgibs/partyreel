@@ -85,6 +85,17 @@ and relayed here for his morning. The records follow in the order the lanes hand
   nonce and a written count; parts split by items; SELECTED left to `app-vocabulary`'s bar; the dialog reproduced, not
   opened). Seven ROADMAP lines: the app goes blind at the tap (no timeout, a silent skip, no iOS answer).
 
+- `profile-page` integrated (`b75cd30a`; cut `c74a509d`): what a person is on Partyreel beyond one album as eight decisions
+  over one cast at one wedding, phone first, two roots with four and two staged behind them, the social controls forked so
+  no press reaches a row: whether a person has a page at all (the page), what stands above it (the album's own header),
+  what it is made of (every party as a card: an attendee's first screen goes from 2 percent picture to 48), what the top
+  says (one line of their own, capped and moderated), how a person blocks (inside a Report menu, drawn as a future), who an
+  album names (everyone signed in, and the marketing sentence that denies it corrected), when a handle is offered (right
+  after their photographs land, free to claim), how the guest list draws (a row of faces: 450 px in twelve rows becomes 24
+  in one). Eight calls carried on their recommendations (two loosenings of the ruled privacy scope, the handle's Pro gate,
+  the sentence over the list, the bio's moderation, the person-report inbox, the 404 and the phone step cut). A shipped
+  defect: `/u/[slug]`'s identity row squeezes the name column to about 90 px at 375. Six ROADMAP lines.
+
 **Next.** The remaining lanes of the round (on the seats: `media-viewer`, `admin-triage`, `emails`, `profile-page`, `how-it-works`;
 queued: `export-flow`, `site-chrome`, `event-type-pages`, `error-pages`), then the alias rebuilt when Vercel's window frees and the
 red-team of the wiring lanes' surfaces; his sitting on the desk in the morning.
