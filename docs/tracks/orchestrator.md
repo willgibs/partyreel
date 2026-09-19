@@ -132,12 +132,12 @@ retired `type-phone`; both agents were told so by message.
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
 | `media-viewer` | cut at `d909cb13` (the overnight round): what a photograph opens as, for a guest and a host, phone first | open | Opus, :3131 | the handoff; then `profile-page` on the seat |
 | `reel-studio` | cut at `d909cb13` (the overnight round): the highlight reel from the studio to a guest's hands, on local replicas | open | Opus, :3132 | the handoff; then `export-flow` on the seat |
-| `host-curation` | cut at `d909cb13` (the overnight round): the host's act of reviewing what guests send | open | Opus, :3133 | the handoff; then `site-chrome` on the seat |
+| `host-curation` | integrated at `ff09a50f` (handed off `4a643f0c`, zero stale, no conflicts); five calls carried; a shipped bug found (the hidden dim) | done | Opus, :3133 | nothing; `profile-page` takes the seat |
 | `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
 | `emails` | cut at `d909cb13` (the overnight round): every email Partyreel sends, the real templates in an inbox mock | open | Sonnet, :3135 | the handoff; then `how-it-works` on the seat |
 | `help-center` | cut at `d909cb13` (the overnight round): where a host or a guest with a problem lands | open | Sonnet, :3136 | the handoff; then `error-pages` on the seat |
 
-**The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Queued for the freed seats in this order: `profile-page` (Opus), `how-it-works` (Sonnet), `export-flow` (Opus), `site-chrome` (Opus), `event-type-pages` (Sonnet), `error-pages` (Sonnet); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. Every lane is integrated and recorded overnight, `[preview]` on each record; nothing is asked of Will until morning.
+**The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Queued for the freed seats in this order: `how-it-works` (Sonnet), `export-flow` (Opus), `site-chrome` (Opus), `event-type-pages` (Sonnet), `error-pages` (Sonnet) (`profile-page` took the first freed seat, :3133); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. Every lane is integrated and recorded overnight, `[preview]` on each record; nothing is asked of Will until morning.
 
 Three admin lanes opened the same evening (below). Before them, no lane was open: every board of the round is integrated and on the desk, eight in all
 (privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
@@ -371,6 +371,12 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
+
+- **A fresh lane's branch tip is an ancestor of `launch-prep` until its first commit** (2026-09-19, the overnight round):
+  "the tip is an ancestor of HEAD" therefore never means integrated. Integrated means the manifest is gone from HEAD AND
+  the tip is an ancestor; a cleanup on the weaker test deleted six live lanes' remote branches minutes after they were
+  pushed (restored from the shared local refs with `git push origin lp/<track>`; a lane's `git push` recreates its branch
+  anyway, and the worktrees never noticed). `scratchpad/merge-lane.sh` refuses a local `lp/<track>` that differs from origin.
 
 - **Two RULINGS rows added at the same anchor conflict across a row boundary** (2026-09-19, from `first-event` and
   `app-pricing` at their syncs): the two rows share their four closing lines, so "keep both sides' added lines" drops
