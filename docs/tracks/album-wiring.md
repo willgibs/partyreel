@@ -145,25 +145,40 @@ moves, never reveal-gated); the glow contract and placement tests; `section-ligh
 
 ## Handoff (replaces the chat report)
 
-**Head:** `e6f13ccb` on `lp/album-wiring` carries every line of the work; the branch tip is the one commit
-after it that writes this SHA down. **Synced:** `origin/launch-prep` had moved 15 commits, merged at
-`01c5ae23` (never rebased); three registration conflicts, all resolved by keeping NEITHER side, because both
-sides were REMOVING a different retiring board (`gallery-width` upstream, `album-hero` here) rather than
-adding one: `boards.ts`, `touchpoints.ts`'s `SandboxId`, and `docs/design/library.md` (regenerated). The
-whole gate was re-run on the synced tree.
+**Head:** `af5dc983` on `lp/album-wiring` carries every line of the work; the branch tip is the one commit
+after it that writes this SHA down. **Synced TWICE, never rebased.** The first sync took 15 commits at
+`01c5ae23`; `origin/launch-prep` then moved 7 more while this lane was finishing (`gallery-wiring`,
+`trail-wiring`) and the second took those at `af5dc983`, on top of `89548cbb`. Six registration files
+conflicted across the two syncs and every one was resolved so BOTH intents survive:
+
+| file | resolution |
+| --- | --- |
+| `sandbox/registry.ts` | `ALBUM_MOTION` stays at the head; `GALLERY_WIDTH`, `IMAGE_TRAIL`, `ALBUM_HERO` and `ALBUM_PAGE` all stay removed |
+| `(shell)/lab/boards.ts` | the same, on the component map and its imports |
+| `touchpoints.ts` | `SandboxId` keeps `album-motion` and loses all four retired ids; the three RULINGS rows are additive |
+| `library/components/gallery-demos.tsx` | both lanes' entries at the head, `album-stream` then `trail` (git cut my entry's closing braces at the conflict boundary; they were put back by hand) |
+| `rules/component-notes.ts` | both lanes' `for` lines at the head under the trail lane's comment, which explains the convention for all three |
+| `docs/design/library.md`, `gallery/specimens.generated.json` | generated, so regenerated rather than hand-merged |
+
+The trail lane's repoints of three `sandbox/privacy-hero/` files at `src/components/shared/trail/` came
+through untouched, and the whole gate was re-run on the synced tree.
 
 **The gate, each on its own exit code, on the synced tree**
 
 | step | exit | note |
 | --- | --- | --- |
-| `pnpm design:rules` | 0 | 569 contracts on 50 components |
-| `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` | 0 | 125 specimens on 92 entries |
+| `pnpm design:rules` | 0 | 700 contracts on 53 components |
+| `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` | 0 | 128 specimens on 93 entries |
 | `pnpm typecheck` | 0 | |
 | `pnpm lint` | 0 | the 8 known warnings, none new |
-| `pnpm test` | 0 | 2,479 passing |
+| `pnpm test` | 0 | 2,509 passing |
 | `pnpm build` | 0 | dev server killed by port first |
-| `pnpm lab:smoke --base http://localhost:3131` | 0 | 264 checks, 0 failing; `album-motion` 237 words of 1200 |
-| `pnpm lab:demo --board album-motion` | 0 | 1 step, 3 options, the stage moves by up to 6.66%, 3.6 screens |
+| `pnpm lab:smoke --base http://localhost:3131` | 0 | 265 checks, 0 failing; `album-motion` 237 words of 1200 |
+| `pnpm lab:demo --board album-motion` | 0 | 1 step, 3 options, the stage moves by up to 7.49%, 3.6 screens |
+
+After the second sync the page re-measured unchanged: the hero's foot to the album's top edge is still
+750 px at 1440, the masonry still draws three columns of 287, both stream layers still put 24 frames in the
+DOM, and the h1 still sits at 184 and does not move.
 
 **The lane check** (`git diff --name-only origin/launch-prep...HEAD`), every line inside `owns`, the
 manifest, the one listed system doc, or the registration exception:
@@ -172,15 +187,15 @@ manifest, the one listed system doc, or the registration exception:
 docs/design/library.md                                          generated artifact (design:rules)
 docs/systems/design-system.md                                   the one listed system-doc edit
 docs/tracks/album-wiring.md                                     this manifest
-src/app/(dev)/design/(shell)/lab/boards.ts                      registration: album-motion in, two out
-src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx  registration: my entry at the head
+src/app/(dev)/design/(shell)/lab/boards.ts                      registration: album-motion in, four out
+src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx  registration: my entry beside the trail lane's
 src/app/(dev)/design/gallery/specimens.generated.json           generated artifact (collect-specimens)
-src/app/(dev)/design/rules/component-notes.ts                   registration: my two `for` lines at the head
+src/app/(dev)/design/rules/component-notes.ts                   registration: my two `for` lines beside the trail lane's
 src/app/(dev)/design/rules/rules.generated.json                 generated artifact (design:rules)
 src/app/(dev)/design/sandbox/album-hero/**        (9 deleted)   owns
 src/app/(dev)/design/sandbox/album-page/**        (8 deleted)   owns
 src/app/(dev)/design/sandbox/album-motion/**      (3 added)     owns
-src/app/(dev)/design/sandbox/registry.ts                        registration: album-motion in, two out
+src/app/(dev)/design/sandbox/registry.ts                        registration: album-motion in, four out
 src/app/(dev)/design/touchpoints.ts                             registration: the unions and three RULINGS rows
 src/app/(marketing)/(cinema)/features/album/page.tsx            owns
 src/components/marketing/sections/features/album/**  (5)        owns
