@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { FirstEventBoard } from "@/app/(dev)/design/sandbox/first-event/board";
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
 import { AppVocabularyBoard } from "@/app/(dev)/design/sandbox/app-vocabulary/board";
@@ -31,6 +32,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "first-event": { Component: FirstEventBoard },
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
   "app-vocabulary": { Component: AppVocabularyBoard },
