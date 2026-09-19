@@ -31,16 +31,11 @@ album hero's round three went "too boring" that way).
 | track | returns | state |
 | --- | --- | --- |
 | `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | `album-page` wired and retired at `2ca47448` (`album-wiring`: the live album under the host's header, the halo, the floor with a photograph section beneath); `album-motion` on the desk with three variations of the fall on the wired hero; `privacy-hero` round three on the desk at `6c99e128` (a breathing aperture, a grid where tiles take turns clearing, sealed cards that lift) |
-| `gallery-width` | how wide galleries run on laptops and desktops: small tiles, more columns, never a wide two-column masonry | wired and retired at `666ee8bc` (`gallery-wiring`): a column width, never a count; 2 / 5 / 6 / 8 columns at 375 / 1280 / 1512 / 1920; a disposable 30-photograph album for his eye is on the alias at `/e/c7809249347d41e0aaf2c9ad27cd3c75` ("Gallery width (disposable)"); his two app asks live in `app-vocabulary` and `guest-shape` |
 | `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
 | `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
 | `admin` | the admin portal's shape, round one: the operator's home, the navigation, density, colour for state, destructive actions, the health strip, on the real components with fixtures; an on-brand devtool per Will's ruling | integrated at `d6305818`; on the desk (seven steps at 1440 by 900; the questions closed by the Orchestrator, in the CHANGELOG) |
-| `admin-split` | the admin as its own Vercel project on this one repo, serving only the admin; the main project stops serving it; the cutover runbook for the Orchestrator | integrated at `7f3738ba`; the preview host proven (the allow-list probed, Will's sign-in and MFA step-up done); on `main` at milestone-26; the domain moved and verified (a fresh `_vercel` TXT at GoDaddy), the apex flagged and redeployed: DONE |
-| `admin-jobs` | the four backend jobs with no heartbeat (the backup queue and dead letters, the purge's sub-sweeps, email, the limiters) onto the console with health, kill switches and alerts | integrated at `3ad58b1c` (the cross-lane patch applied in the merge); the migration applied, the advisor set unchanged; the Worker deployed (`d7b16bcc`) |
 | `loose-ends` | six ROADMAP lines as seven decisions on their real surfaces: the admin chart cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces | integrated at `b83b7c3d`; on the desk; one question his (the reading of the two ambient pieces that had nothing to vary); a real chart-token bug found, on the ROADMAP's Now list |
 | `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
-| `image-trail` | our own cursor-tracking image trail (the Codrops "Image Trail Effects" demo one as the reference, written from scratch: a photograph born on every stretch of cursor travel, sliding to the cursor and decaying behind it) with real homes on the marketing site, and `privacy-hero` round two on the same engine (tighter, faster, the trailing photographs decaying) | wired and retired at `73451c79` (`trail-wiring`): the trail on the root 404 at his numbers, banked in the Library (`/design/library`); the shy fade is a feathered window now (4.90:1 on the real page); the group 404s keep their strip, his to widen |
-| `cursor-backdrop` | full-bleed photograph sections that switch with the cursor (demo six of the same resource) for the marketing site's UI-forward chapters in place of the aurora, breaking the strict dark/light alternation: where it sits, how it switches, how the copy stays legible, the phone | wired and retired at `9795e370` (`backdrop-wiring`): `full-quality` on the switching photograph closes chapter one, the live demo opens the paper chapter (the lane's reading of his fold, his to overrule), the engine and the section beside the river with contracts and a Library entry; the room-frames ask amended to 1200 px delivered (row 20) |
 | `app-shape` | round one of the host app's shape: the home, the event's draw, the event's page, the navigation and the way back, sharing, settings, You, the phone; eight decisions on the shipped components | integrated at `aa338766`; on the desk; four questions carried on their recommendations (in the CHANGELOG) |
 | `guest-shape` | round one of the guest experience's shape: the door after the scan, how an empty album speaks, what sits above an album that runs to the window, the Live signal, the guest dialogs, a guest's own photograph, the account's voices; seven decisions on the shipped guest components over one wedding in four access states, phone first | integrated at `beee6325`; on the desk; three questions carried on their recommendations (in the CHANGELOG) |
 | `app-vocabulary` | the parts under both shapes: nothing-here-yet, loading, one tile grammar, the bulk toolbar, the gallery's tile-size control and how it persists, the confirm switch; seven decisions on the real components at 1440 and 375 | integrated at `e442fc55`; on the desk; one question carried on its recommendation (the controls ask split in two, staged) |
@@ -52,16 +47,19 @@ album hero's round three went "too boring" that way).
 | `first-event` | a host's first event from "Create" to a code on the table: what creating asks, where the style is chosen, the Free limit, how the code reaches the venue, where the host lands, what a host holds out at the door, the empty event, the first photograph; eight decisions on the real create card and real QR plates, every code's module edge measured | integrated at `728513ee`; on the desk; six questions his (in the CHANGELOG); two product misses on the ROADMAP (the swatches under the scan floor; the style step's 404 link) |
 | `guest-upload` | the moment a guest adds a photograph: the tap, sending, held, failed, the batch, the landing, the warning, the words; eight decisions on the shipped guest components over one wedding, phone first | integrated at `1649506c`; on the desk; four questions his (in the CHANGELOG); the batch step's measured numbers are its own argument |
 | `demo-event` | the demo as the product's first impression: the arrival, the framing, the upload as the moment, the way out, what a door promises, the phone scanned off the laptop, how many parties; seven decisions on the shipped demo page, laptop first | integrated at `e3a2c1b6`; on the desk; three questions carried on their recommendations (in the CHANGELOG); one conditional asset (two more curated albums only if the demo becomes three parties) |
+| `media-viewer` | what a photograph opens as when a guest or a host taps a tile: the opening, what it holds, who, next, close up, video, the way out, a link; phone first | cut at `d909cb13` (2026-09-19, the overnight round), on the seat |
+| `reel-studio` | the highlight reel from the studio to a guest's hands: the door, the room, the styles, the moments, a blocked tile, sharing, the wait, how a guest watches; on local replicas, never the portal | cut at `d909cb13`, on the seat |
+| `host-curation` | the host's act of reviewing what guests send: the verb, the peek, keys, undo, new arrivals, the count, whether a rejected guest is told | cut at `d909cb13`, on the seat |
+| `admin-triage` | the operator's act on a report inside the admin board's shape: first look, no reason, the verdict, escalate, one idiom for four inboxes, resolved, the phone, the notice | cut at `d909cb13`, on the seat |
+| `emails` | every email Partyreel sends, the real templates in an inbox mock: one shell, the brand, the sender, the foot, the code, the moments, the guest's | cut at `d909cb13`, on the seat |
+| `help-center` | where a host or a guest with a problem lands: who first, the hub, the article, from the product, feedback, the dead end, search | cut at `d909cb13`, on the seat |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
 
-His stepped sitting turned picks into working versions the same day: Graphite (`palette-wiring`), the hero
-streaming out of the code (`hero-wiring`), ladder B (`type-wiring`), the Aurora (`aurora-wiring`), both
-shadows and the bright edge (`light-wiring`), the publish bloom, floating surfaces on Card
-(`floating-wiring`) and the v1 wordmark. The brand voice exploration was killed unruled and restarts as a
-board built from won lines; the media kit was killed for generated frames (one Higgsfield month before
-launch, and no agent tracks an image's rights). The lab gained `defineExploration`, the question-first
-authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
+His stepped sitting turned picks into working versions the same day: Graphite, the hero streaming out of the code, ladder B,
+the Aurora, both shadows and the bright edge, the publish bloom, floating surfaces on Card and the v1 wordmark; the brand
+voice exploration was killed unruled and restarts from won lines; the media kit was killed for one Higgsfield month. The
+lab gained `defineExploration` and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
 
 ## Live state
 
@@ -72,13 +70,10 @@ authoring shape, and `lab:demo`. The CHANGELOG's "The wind-down" is the record.
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only. Every runbook check is done:
   `job_runs` showed exactly one scheduled purge run on 2026-09-19 (04:48 UTC) and Will's sign-in at the admin host
   rendered `/admin/metrics`, `/admin/albums` and `/admin/forensics`. **The `launch-prep` alias**
-  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock. Will reviews
-  on the alias as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. On 2026-09-19 the
-  deployment cap (100 creations a day, canceled ones included) hit while six lanes pushed, so the alias sat on
-  `89548cbb` with `app-shape` and the river door only in the tree until the window freed; lane branches no longer
-  create deployments (`vercel.json`).
-  Vercel's cap is 100 deployments per trailing day on every path, so `[preview]` stays the Orchestrator's,
-  and the prune runs after every integration.
+  (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the ladders and the dock; Will reviews on it as well as
+  his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is 100 deployment creations per
+  trailing day on every path (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a day, so lane
+  branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration.
 - **Data:** disposable test data only (3 profiles / 3 events / about 16 media rows); the accounts and
   fixtures are in [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 2,190 green (`pnpm test`); the gate is typecheck + lint + test + build, run locally (CI
@@ -109,12 +104,17 @@ prune crons and the shared `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop` whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. The four wiring lanes and the app round's four boards (`app-shape`, `privacy-concept`, `guest-shape`, `app-vocabulary`; the seams in `tracks/orchestrator.md`, "The app round's map") are integrated and on the desk; from his stacking steer (2026-09-19, while deployments are capped) from his stacking steer (2026-09-19, while deployments are capped) `contact-page`, `press-page`, `demo-event`, `app-pricing` (his ask: pricing inside the app, the marketing page a "learn more" second layer) and `pricing-page` (his ask: the marketing pricing page, every part its own decision) `app-door`, `first-event` and `guest-upload` (the Orchestrator's two: the activation moment, the core act) are on the desk; every lane of the stacking round is integrated and the seats are free. The desk derives the steps (`/design/lab?key=`): every board of the round is integrated and his sitting is open
-in the rebuilt step (1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ?
-marks a question unclear), plus the ghost on a disposable event on the alias (its link in chat). Two calls from `backdrop-wiring` are his to overrule on the alias's home page: the live demo moved whole into the paper chapter as its opener (rather than its visual merged into the album section), and the album's heading kept at `lg` beneath it (`text-section` is the first thing to try if the two read as one section). His to
-overrule from the wiring lane: the ghost's fade (grayscale 0.85 at 40 percent, the board's values, rather
-than the old grid's 25 percent at full grayscale). Two calls were made for him to overrule: type drawn inside a picture
-counts as depicted (the help emblem, the press kit's plate, /features/qr's sign), and the album sits at 896,
-the scale's step, rather than 880. The assets still open: the grain tile and the worst-case overlap pair
-(rows 15 and 16) and the v1 icon (row 19). The bible-20 question becomes the new `voice` board's first ask.
-The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).
+His sitting opened on `privacy-hero` with none (2026-09-18, night); the first batch (build `93d00ff`) ruled `cursor-backdrop`
+whole; the second (build `9720798`, 2026-09-19) ruled four boards whole and sent privacy-hero round two back with a `?`. Every
+lane since is integrated and on the desk: the four wiring lanes, the app round's four boards (`app-shape`, `privacy-concept`,
+`guest-shape`, `app-vocabulary`), the stacking round's eight (`contact-page`, `press-page`, `demo-event`, `app-pricing`,
+`pricing-page`, `app-door`, `first-event`, `guest-upload`), and the overnight round's twelve cut at the Orchestrator's discretion
+while he slept (2026-09-19, "occupy 8 more slots, paced as usual", then twelve: `media-viewer`, `reel-studio`, `host-curation`,
+`admin-triage`, `emails`, `help-center` on the seats; `profile-page`, `how-it-works`, `export-flow`, `site-chrome`,
+`event-type-pages`, `error-pages` queued; the state of each in the table). The desk derives the
+steps (`/design/lab?key=`): 1-9 show and pick, x flips A and B, g lays them side by side, n goes to the note, ? marks a
+question unclear; plus the ghost on a disposable event on the alias (its link in chat). Calls his to overrule: from
+`backdrop-wiring` on the home page, the live demo moved whole into the paper chapter as its opener, and the album's heading
+kept at `lg` beneath it; the ghost's fade (grayscale 0.85 at 40 percent); type drawn inside a picture counts as depicted
+(the help emblem, the press kit's plate, /features/qr's sign); the album at 896 rather than 880. The assets still open: the
+grain tile and the worst-case overlap pair (rows 15 and 16) and the v1 icon (row 19). The launch-gated tasks are the ROADMAP's Launch checkpoint (`[human]` / `[eng]` / `[content]`).

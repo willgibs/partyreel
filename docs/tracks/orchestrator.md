@@ -130,6 +130,14 @@ retired `type-phone`; both agents were told so by message.
 | `admin-jobs` | integrated at `3ad58b1c` (handed off `a007afa3`; its cross-lane patch applied in the merge; the migration applied) | done | Opus, :3134 | nothing (the Worker deployed at `d7b16bcc`) |
 | `loose-ends` | integrated at `b83b7c3d` (handed off `a34eaf27`; seven steps, 258 smoke checks) | done | Sonnet, :3133 | nothing; the wiring waits on his answers |
 | `body-type` | integrated at `130236c2` (handed off `998aa906`; seven steps, 242 smoke checks) | done | Opus, :3134 | nothing; the wiring waits on his answers |
+| `media-viewer` | cut at `d909cb13` (the overnight round): what a photograph opens as, for a guest and a host, phone first | open | Opus, :3131 | the handoff; then `profile-page` on the seat |
+| `reel-studio` | cut at `d909cb13` (the overnight round): the highlight reel from the studio to a guest's hands, on local replicas | open | Opus, :3132 | the handoff; then `export-flow` on the seat |
+| `host-curation` | cut at `d909cb13` (the overnight round): the host's act of reviewing what guests send | open | Opus, :3133 | the handoff; then `site-chrome` on the seat |
+| `admin-triage` | cut at `d909cb13` (the overnight round): the operator's act on a report, inside the admin board's shape | open | Opus, :3134 | the handoff; then `event-type-pages` on the seat |
+| `emails` | cut at `d909cb13` (the overnight round): every email Partyreel sends, the real templates in an inbox mock | open | Sonnet, :3135 | the handoff; then `how-it-works` on the seat |
+| `help-center` | cut at `d909cb13` (the overnight round): where a host or a guest with a problem lands | open | Sonnet, :3136 | the handoff; then `error-pages` on the seat |
+
+**The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Queued for the freed seats in this order: `profile-page` (Opus), `how-it-works` (Sonnet), `export-flow` (Opus), `site-chrome` (Opus), `event-type-pages` (Sonnet), `error-pages` (Sonnet); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. Every lane is integrated and recorded overnight, `[preview]` on each record; nothing is asked of Will until morning.
 
 Three admin lanes opened the same evening (below). Before them, no lane was open: every board of the round is integrated and on the desk, eight in all
 (privacy-hero, album-page, river-card, gallery-width, voice, body-type, glass, loose-ends), plus the ghost on
@@ -261,6 +269,73 @@ generator). 4. two share idioms (the host dialog with files and no native share;
 "Rare state" in source though it is every first event's first view. 7. nothing for a host at the venue with only a
 phone. 8. no test touches the wizard's UI, the limit refusal or the event page's first render; the product's QR plates
 are fixed pixels (200, 96, 232) with no module-size guard while the marketing plate computes one.
+
+## The overnight round's maps (2026-09-19): the seams twelve read-only maps found
+
+**The media viewer** (from the map cut for `media-viewer`): 1. one shared viewer (about 700 lines, a raw radix Dialog over
+`bg-black/90`) serves the guest, the host, Uploads, Likes, the bin (Save hidden) and the admin (Save only); personal feeds get
+Like and no Share. 2. no zoom of its own; pinch and vertical are ceded to the browser by comment. 3. the viewer's own image and
+video have no loading state (the tile has a skeleton). 4. nothing about an open item reaches the URL. 5. the Review peek is a
+THIRD full-bleed viewer (a fixed div) whose comment promises an Escape no handler honours. 6. `/api/reports` accepts a `media_id`
+the report dialog never sends and the operator's reader renders the reported tile with no click. 7. `guest-flow.md` says Share is
+guest-only while the host gallery ships it (`host-app.md` agrees with the code). 8. three files disagree on whether `MediaGrid`
+retired. 9. no committed playable video fixture exists anywhere in the lab.
+
+**The reel** (from the map cut for `reel-studio`): 1. `host-app.md` names a dormant render poll (`GET /api/reel/render`) the code
+says was pruned 2026-07-08. 2. two engine comments teach a torn-out Remotion sibling. 3. `StyleRail`, a whole latched rail, exports
+with zero callers. 4. the 360 / 640 frame cap is a literal copied in four files. 5. the cover strip hand-sets `h-16 w-9` while every
+other tile reads `UNIFORM_TILE_ASPECT`. 6. a blocked tile explains itself only through a native `title`, dead on touch. 7. Unshare
+is a silent toggle with no confirm and no undo while guests may be watching. 8. the studio's door from the event page is an 11 px
+text link `host-app.md` calls the sole load-bearing door. Rendering is entirely on the device (canvas at 24 fps; WebCodecs on
+Download only).
+
+**Curation** (from the map cut for `host-curation`): 1. `ApproveAllPendingButton` has no caller. 2. the lightbox's pending Approve
+branch can never render. 3. `host-app.md` says the Review grid is fixed `grid-cols-3 sm:grid-cols-4`; the shipped rule is the
+width-driven auto-fill. 4. the settings' Deleted card renders only when non-empty, so nothing says the bin exists. 5. no single
+"reject": Hide (pending to hidden, dimmed 30 percent, a one-tap Show) and Remove (the 30-day bin) are two separately discovered
+acts. 6. no toast carries an Undo. 7. three "N to review" counts (the bell, the card's chip, the page's pill) never agree and none
+is live; a mid-visit arrival never joins the queue. 8. total guest silence on rejection, per the FAQ's "Never". 9. no keyboard
+triage anywhere.
+
+**The public profile** (from the map cut for `profile-page`): 1. "Someone followed you" is a live, saveable switch for a signal no
+code path sends. 2. marketing says "skip it and nothing about you is public at all" while a signed-in uploader with no handle is
+named and pictured, unlinked, on an open album's guest list. 3. "Claim your profile handle in Account settings" is plain text with
+no link. 4. the guest list's empty state is asymmetric (the host sees the line at zero; the guest album hides the section). 5.
+three hand-rolled toggles for follow, block and connection. 6. no `loading.tsx` under `(guest)` while `/u/[slug]` awaits an RPC
+and two presign rounds. 7. a stranger can read cross-event attendance off any profile, by design. No test touches the page or
+any social component.
+
+**The emails** (from the map cut for `emails`): 1. the notification card shows four switches for mails that do not exist ("SHAPED
+for R5: nothing sends yet"). 2. the button is `#e11d48` while the brand is ink (`BRAND_HEX` `#101010`; theme.css: brand never
+takes colour). 3. the wordmark is an inline SVG on `currentColor` with no raster twin, so no mail carries a mark. 4. four operator
+templates duplicate one wrapper instead of `layout()`. 5. the renewal nudge's "Renew Event Pass" links `/dashboard`, not Checkout.
+6. no `text` twin anywhere. 7. no unsubscribe and no postal address on any of the ten. 8. no guest ever receives a mail (the
+album-link receipt is deferred by name). 9. no welcome, reel-ready or moderation-outcome mail. 10. `sendOnce` has no direct test.
+The auth mails live only in the Supabase dashboard.
+
+**The help center** (from the map cut for `help-center`): 1. no guest surface links to `/help` (zero hits in the report dialog, the
+guest header, the album, the entry modal, the gate); the only product link is the host's user menu. 2. the palette mounts on
+`/help` and `/contact` only, its trigger a bare button with no href. 3. `ArticleFeedback` calls no endpoint, so nothing records
+which of 59 articles fail. 4. no article emits FAQ structured data. 5. troubleshooting's eight get no "bigger picture" link. 6.
+`defaultAudience()` guesses host for two categories where most articles override to both. 7. one article runs 585 words against
+the authoring rule's 500. 8. `touchpoints.ts` has no row for help.
+
+**/how-it-works** (from the map cut for `how-it-works`): 1. the loop is told four ways with three counts (six steps on the page, five
+in the article, "four steps" in the mega panel's card, three on the home strip). 2. `src/lib/constants/how-it-works.ts` calls
+itself the single source and only the welcome flow reads it. 3. "How Partyreel works" links the ARTICLE from the spine and the
+mega panel and the PAGE from the help hub. 4. step one says the event "is live the moment you create it"; the wizard creates it
+once, at the end of the design step. 5. `marketing-content.md`'s page catalogue has no entry for the page. 6. five of six step
+frames are bespoke quotes outside the frames vocabulary; the reel's phone is a div. 7. only "Email me a code" is parity-pinned.
+No HowTo structured data.
+
+**Triage** (from the map cut for `admin-triage`): 1. `report_status` has "reviewed" and no code path writes it while marketing
+promises "every report is reviewed". 2. `reports.resolution_note` exists since the founding migration and is never read or
+written. 3. no id renders on a report card; a legal hold means retyping a media id into forensics' free-text field. 4. no undo in
+Reports once resolved (restore lives in Albums, a second vocabulary). 5. `ReportReviewList` and `ModerationGrid` import live
+server actions at module scope; the one component built for reuse, `TriageStatusControl`, takes its action as a prop and
+Reports does not use it. 6. a report carries no reporter identity, by design. 7. nobody is told an outcome; the host finds the
+photograph unrestorable in Recently deleted behind the vague line. 8. three status vocabularies for one nav group.
+
 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 

@@ -8,6 +8,36 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · the overnight round: twelve explorations across the marketing site, the app and the admin, at the Orchestrator's discretion
+
+**Became:** twelve question-first boards (eight asked at first, raised to twelve an hour later on the quality of the maps),
+each cut from a read-only map of a surface no board on the desk touches, six seats at a time, the rest queued as seats
+free, paced as usual: `media-viewer` (what a photograph opens as, for a guest and a host), `reel-studio` (the highlight
+reel, from the album to a guest's hands), `host-curation` (the host's act of reviewing what guests send), `admin-triage`
+(the operator's act on a report), `emails` (every email Partyreel sends), `help-center` (where a host or a guest with a
+problem lands), `profile-page` (what a person is on Partyreel beyond one album), `how-it-works` (the page that tells the
+loop), `export-flow` (getting everything out, for a host and a guest), `site-chrome` (the marketing header, the mega panel,
+the mobile menu and the footer), `event-type-pages` (the event-type landing pages) and `error-pages` (every not-found and
+error surface as one grammar). Every lane is integrated, gated and recorded overnight with `[preview]` on its record;
+every open call is carried on the lane's recommendation and nothing is asked of Will until morning.
+
+Verbatim: "Incredible work closing out all of those agent explorations. It's late tonight, so I'm going to bed to sleep. I
+can't wait to start reviewing in the morning. However, in about 30 hours, our weekly token limit fully resets. We've only
+used 35% of this week, so we may as well run more exploratory agents overnight to burn those tokens since all lab work
+creates opportunities and is at worst, net neutral and fully deleted. Any unused tokens simply expire. I'm not sure what all
+is waiting in the review board for me, so rather than directly request any additional agent tasks specifically here and
+risking duplicate or redundant work, I'd like you to explore across all of our marketing site/app/admin surfaces and find
+enough opportunities to set off explorations to occupy 8 more slots, paced as usual. I'll see you in the morning. Good
+night, good luck, and thank you. Work fully autonomously from here until you complete. Since I'm going to sleep, I will not
+be able to respond to any questions, which if asked will pause you until I return in the morning. Simply avoid anything
+that requires clarification until morning."
+
+Second message, an hour later, verbatim: "After seeing the quality of the maps you're running, please fill 12 more agent
+slots throughout the night instead of just 8. Continue pacing by a fixed amount of parallel explorations to ensure
+hardware doesn't crash overnight. Run autonomously until all 12 are complete. My laptop will not sleep until you're done.
+This is my official sign-off, so again, no questions or breaks that require my response to continue moving again.
+Goodnight!"
+
 ## 2026-09-19 · the pricing page beyond the in-app surface, granular; two more areas at the Orchestrator's discretion
 
 **Became:** `pricing-page` on the seat app-vocabulary freed (Opus, :3134): every part of the marketing pricing page
