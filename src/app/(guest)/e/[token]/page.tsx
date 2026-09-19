@@ -8,7 +8,10 @@ import { Lock } from "lucide-react";
 import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { NotFoundScreen } from "@/components/shared/not-found-screen";
-import { GuestList } from "@/components/social/guest-list";
+import {
+  GuestList,
+  GUEST_LIST_FACES_THRESHOLD,
+} from "@/components/social/guest-list";
 import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
@@ -249,15 +252,21 @@ export default async function GuestEventPage({
     const guestList = await getEventGuestList(event.id);
     if (guestList && guestList.length > 0) {
       const items = await withAvatarUrls(guestList);
+      // Above the threshold the list condenses to a row of faces that says
+      // "N guests added photos" itself, so the heading drops its pill: the
+      // number renders once (Will, `list=faces`, 2026-09-19).
+      const listSaysCount = items.length > GUEST_LIST_FACES_THRESHOLD;
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
           <h2 className="flex items-center gap-1.5">
             <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
               Guests
             </span>
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
-              {items.length}
-            </span>
+            {!listSaysCount && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
+                {items.length}
+              </span>
+            )}
           </h2>
           <GuestList items={items} />
         </section>

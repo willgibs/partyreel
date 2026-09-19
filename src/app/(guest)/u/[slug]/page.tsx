@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
+import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
   getPublicProfile,
+  getPublicProfileAttendedCoverUrls,
   getPublicProfileCoverUrls,
   hasBlocked,
   isBlockedEitherWay,
@@ -34,7 +35,10 @@ export async function generateMetadata({
   const profile = await getPublicProfile(slug);
   if (!profile) return { title: "Profile" };
   const name = profile.display_name ?? `@${profile.slug}`;
-  const description = `Events and albums by ${name} on Partyreel.`;
+  // Their own line when they wrote one: it is the truest description of the
+  // page, and the one a share card should carry.
+  const description =
+    profile.bio ?? `Events and albums by ${name} on Partyreel.`;
   return {
     title: name,
     description,
@@ -47,6 +51,24 @@ export async function generateMetadata({
   };
 }
 
+/** The marker on every card (Will, `made-of=covers`, 2026-09-19: "rather than a
+ *  separate 'also at' section, maybe we could just have host/guest UI on each
+ *  event card to denote within a single group"). It rides EventCard's top-right
+ *  slot in the card's own chrome language (the same pill as the date and the
+ *  lock below), so the group reads as one grid with a mark on it rather than
+ *  two grids sharing a heading. No new prop on EventCard: that card is shared
+ *  with the dashboard, and the marker is this page's idea. */
+function Marker({ role }: { role: "host" | "guest" }) {
+  return (
+    <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 text-[10px] font-medium text-white backdrop-blur-sm">
+      {role === "host" ? "Host" : "Guest"}
+      <span className="sr-only">
+        {role === "host" ? ": hosted this event" : ": added photos here"}
+      </span>
+    </span>
+  );
+}
+
 /**
  * The PUBLIC profile page (profiles-social.md: profiles are public by existence; the slug
  * is the address, and claiming it was the consent act). Logged-out visible via
@@ -55,6 +77,19 @@ export async function generateMetadata({
  * album link) + attended events surfaced by their hosts' guest lists, minus the
  * owner's own hides. Never any counts (follower counts are owner-private) and
  * never an email.
+ *
+ * ★ ONE GRID, TWO KINDS OF CARD (Will, `made-of=covers`, 2026-09-19): "This
+ * makes profile pages feel much more full and incentivizes guests to upload to
+ * get that beautiful event card on their profile... rather than a separate
+ * 'also at' section, maybe we could just have host/guest UI on each event card
+ * to denote within a single group. Don't think we need the photographs gallery
+ * on the profile page, keeps it more event focused". So the grey "Also at" list
+ * is gone, a party someone attended is a card with a cover, and the only
+ * difference a viewer can act on is the one that matters: a hosted card opens
+ * the album the host published, and an ATTENDED CARD CARRIES NO LINK, because
+ * being on a guest list is not a capability grant. The covers behind the
+ * attended half are presigned only through the same three gates the RPC
+ * applied, re-proved inside the query rather than inherited from its payload.
  *
  * This is a growth surface (the /e/ page's "who made this?" answer), so the
  * chrome stays quiet: the person and their events are the page.
@@ -74,7 +109,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   // The follow affordance renders ONLY signed-in, non-self, and NOT blocked in
   // either direction (a button that can only silently no-op would advertise the
-  // block). The overflow (block/unblock) renders for EVERY signed-in non-self
+  // block). The menu (report / block) renders for EVERY signed-in non-self
   // viewer: if I blocked them it's my Unblock path, and if they blocked me a
   // redundant Block is harmless while keeping the page from changing shape (the
   // less the layout differs under a block, the less the block leaks).
@@ -95,9 +130,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
     following = followingNow;
   }
 
-  const [avatarUrl, coverUrls] = await Promise.all([
+  const [avatarUrl, hostedCovers, attendedCovers] = await Promise.all([
     getAvatarUrl(profile.id, profile.avatar_updated_at),
     getPublicProfileCoverUrls(profile.hosted_events),
+    getPublicProfileAttendedCoverUrls(profile.id, profile.attended_events),
   ]);
 
   const name = profile.display_name ?? `@${profile.slug}`;
@@ -105,30 +141,68 @@ export default async function PublicProfilePage({ params }: PageProps) {
     month: "long",
     year: "numeric",
   });
-  const hasEvents =
-    profile.hosted_events.length > 0 || profile.attended_events.length > 0;
+
+  // One group, newest first across both kinds: the order each arm already
+  // arrives in, merged, so a person's year reads as one year rather than as two
+  // lists that happen to share a page.
+  const parties = [
+    ...profile.hosted_events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      eventDate: event.event_date,
+      role: "host" as const,
+      // The album link the host PUBLISHED (display_in_profile);
+      // password/private events still gate at the /e/ page.
+      href: `/e/${event.custom_slug ?? event.qr_token}`,
+      coverUrl: hostedCovers.get(event.id) ?? null,
+      statusLabel:
+        event.visibility === "password"
+          ? "Password"
+          : event.visibility === "private"
+            ? "Private"
+            : null,
+    })),
+    ...profile.attended_events.map((event) => ({
+      id: event.id,
+      name: event.name,
+      eventDate: event.event_date,
+      role: "guest" as const,
+      // No link, by the doctrine. EventCard draws an unopenable card for
+      // href: null, which is exactly what this is.
+      href: null,
+      coverUrl: attendedCovers.get(event.id) ?? null,
+      statusLabel: null,
+    })),
+  ].sort((a, b) => {
+    if (a.eventDate === b.eventDate) return 0;
+    if (!a.eventDate) return 1;
+    if (!b.eventDate) return -1;
+    return a.eventDate < b.eventDate ? 1 : -1;
+  });
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      {/* Quiet auth-aware header (the GuestHeader stance: this page belongs to
-          the person, not to a loud Partyreel shell). Server-resolved: the page
-          already ran getUser() for the follow gate. */}
-      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
-        <Link href="/" aria-label="Partyreel home">
-          <Logo />
-        </Link>
-        <div className="flex h-8 items-center">
-          <Button asChild variant="ghost" size="sm">
-            <Link href={user ? "/dashboard" : "/"}>
-              {user ? "Dashboard" : "Start for free"}
-            </Link>
-          </Button>
-        </div>
-      </header>
+      {/* The album's own header, with no album behind it (Will, `head=guest`):
+          one header for every guest-side page, so a signed-in visitor keeps
+          their account menu the moment they tap somebody's name. */}
+      <GuestHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         {/* Identity block: avatar, name, handle, restraint (joined month only —
-            no counts by design: the graph is private, profiles-social.md point 4). */}
+            no counts by design: the graph is private, profiles-social.md point 4).
+
+            ★ THE AVATAR IS CENTRED ON THE NAME ROW AND THE BIO SITS OUTSIDE IT
+            (Will, `identity=line`): "Profile picture (avatar) should be center
+            aligned to the name/meta group, so if a bio 1) doesn't exist it
+            looks correct, or 2) does exist and runs at any length, the avatar
+            is still aligned to the top name/meta, not centered lower due to a
+            long bio". A bio inside this flex row would drag the avatar down by
+            half of whatever the person wrote.
+
+            ★ AND THE PHONE FIX IS `max-sm:` ONLY (the board's): the name column
+            takes the rest of the row and the actions wrap under it at 375,
+            where the shipped row squeezed all three into about 90px. Every
+            wider screen stays byte-identical to what shipped. */}
         <section
           data-arrive
           style={{ "--arrive-i": 0 } as CSSProperties}
@@ -146,10 +220,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
               {name.slice(0, 1).toUpperCase()}
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <h1 className="font-heading text-page text-balance">
-              {name}
-            </h1>
+          <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
+            <h1 className="font-heading text-page text-balance">{name}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
               <span>@{profile.slug}</span>
               <span aria-hidden className="text-faint">
@@ -159,7 +231,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </p>
           </div>
           {(showFollow || showMenu) && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 max-sm:w-full">
               {showFollow && (
                 <FollowButton
                   profileId={profile.id}
@@ -178,16 +250,28 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           )}
           {isSelf && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/account">Edit profile</Link>
-            </Button>
+            <div className="flex items-center max-sm:w-full">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/account">Edit profile</Link>
+              </Button>
+            </div>
           )}
         </section>
 
-        {!hasEvents ? (
-          <div
+        {profile.bio && (
+          <p
             data-arrive
             style={{ "--arrive-i": 1 } as CSSProperties}
+            className="mt-4 max-w-prose text-sm text-pretty text-foreground"
+          >
+            {profile.bio}
+          </p>
+        )}
+
+        {parties.length === 0 ? (
+          <div
+            data-arrive
+            style={{ "--arrive-i": 2 } as CSSProperties}
             className="mt-10"
           >
             <EmptyState
@@ -198,79 +282,39 @@ export default async function PublicProfilePage({ params }: PageProps) {
             />
           </div>
         ) : (
-          <>
-            {profile.hosted_events.length > 0 && (
-              <section
-                data-arrive
-                style={{ "--arrive-i": 1 } as CSSProperties}
-                aria-label="Events"
-                className="mt-10 space-y-3"
-              >
-                <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  Events
-                </h2>
-                <ul className="grid gap-4 sm:grid-cols-2">
-                  {profile.hosted_events.map((event) => (
-                    <li key={event.id}>
-                      {/* The album link the host PUBLISHED (display_in_profile);
-                          password/private events still gate at the /e/ page.
-                          Covers are open-events-only (the masking rule). */}
-                      <EventCard
-                        href={`/e/${event.custom_slug ?? event.qr_token}`}
-                        name={event.name}
-                        coverUrl={coverUrls.get(event.id) ?? null}
-                        dateLabel={
-                          event.event_date
-                            ? formatEventDate(event.event_date)
-                            : "No date set"
-                        }
-                        statusLabel={
-                          event.visibility === "password"
-                            ? "Password"
-                            : event.visibility === "private"
-                              ? "Private"
-                              : null
-                        }
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {profile.attended_events.length > 0 && (
-              <section
-                data-arrive
-                style={{ "--arrive-i": 2 } as CSSProperties}
-                aria-label="Also at"
-                className="mt-10 space-y-3"
-              >
-                <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  Also at
-                </h2>
-                {/* Attendance rows carry NO link on purpose: being on a guest
-                    list is not a capability grant (the RPC returns no token). */}
-                <ul className="divide-y divide-border/60">
-                  {profile.attended_events.map((event) => (
-                    <li
-                      key={event.id}
-                      className="flex items-center justify-between gap-4 py-2.5"
-                    >
-                      <span className="min-w-0 truncate text-sm text-foreground">
-                        {event.name}
-                      </span>
-                      {event.event_date && (
-                        <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-                          <CalendarDays className="size-3" aria-hidden />
-                          {formatEventDate(event.event_date)}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </>
+          <section
+            data-arrive
+            style={{ "--arrive-i": 2 } as CSSProperties}
+            aria-label="Events"
+            className="mt-10 space-y-3"
+          >
+            {/* The label sizes a child span, not the heading tag: the form
+                design-system.md allows for an Inter label inside an h2, and the
+                same one the guest album's own Guests heading uses. */}
+            <h2>
+              <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+                Events
+              </span>
+            </h2>
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {parties.map((party) => (
+                <li key={party.id}>
+                  <EventCard
+                    href={party.href}
+                    name={party.name}
+                    coverUrl={party.coverUrl}
+                    dateLabel={
+                      party.eventDate
+                        ? formatEventDate(party.eventDate)
+                        : "No date set"
+                    }
+                    statusLabel={party.statusLabel}
+                    action={<Marker role={party.role} />}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </main>
 

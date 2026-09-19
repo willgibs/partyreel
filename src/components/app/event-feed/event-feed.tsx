@@ -55,6 +55,7 @@ export function EventFeed({
   gallerySection,
   reelSection,
   guestsSection,
+  guestsCountInList,
   galleryCount,
   reelCount,
   guestsCount,
@@ -72,6 +73,10 @@ export function EventFeed({
   reelCount: number;
   /** Named signed-in uploaders; 0 also while show_guest_list is off (no pill badge on a teaser). */
   guestsCount: number;
+  /** The guest list draws its own count above the threshold (the faces row), so
+   *  the section header drops its pill and the number renders once. The filter
+   *  pill above keeps it: that row counts every section, not this one. */
+  guestsCountInList?: boolean;
 }) {
   const [filter, setFilter] = useState<EventFilter>(initialSection);
   const [enabling, setEnabling] = useState(false);
@@ -211,7 +216,7 @@ export function EventFeed({
       <section aria-label="Guests" className="space-y-2.5">
         <FeedSectionHeader
           label={SECTION_LABEL.guests}
-          count={guestsCount || undefined}
+          count={guestsCountInList ? undefined : guestsCount || undefined}
         />
         {guestsSection}
       </section>

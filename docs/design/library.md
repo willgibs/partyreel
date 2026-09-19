@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 460 contracts on 61 components · 29 standing boards.**
+**22 laws · 18 policies · 473 contracts on 64 components · 29 standing boards.**
 
 ## What binds you
 
@@ -336,6 +336,7 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (14 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
 - `src/components/lab/apply.tsx` (3 guards)
@@ -371,6 +372,8 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail-engine.ts` (57 guards)
 - `src/components/shared/trail/trail-frames.ts` (57 guards)
 - `src/components/shared/trail/trail.tsx` (17 guards)
+- `src/components/social/guest-list.tsx` (5 guards)
+- `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 

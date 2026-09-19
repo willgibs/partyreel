@@ -1,6 +1,7 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -106,9 +107,18 @@ export function ProfileSocialCard({
             </span>
             <span className="text-xs leading-relaxed text-muted-foreground">
               Lists this event, with its album link, on your public profile
-              page.
-              {!hostHasSlug &&
-                " Claim your profile handle in Account settings to publish the page."}
+              page.{" "}
+              {/* A door rather than directions: the sentence used to name a
+                  card on another page and leave the host to go find it, and
+                  the handle is free now, so there is nothing in the way. */}
+              {!hostHasSlug && (
+                <Link
+                  href="/account#public-profile"
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
+                  Claim your handle to publish the page
+                </Link>
+              )}
             </span>
           </Label>
           <Switch

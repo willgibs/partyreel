@@ -31,6 +31,19 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   // subdirectories of shared/ on its own, so these are here because they carry
   // contracts, and their Library entries read these lines like every other
   // component's (the backdrop and the river said the same thing first).
+  // ★ The profile wiring's three (2026-09-19): all outside the library's
+  // directories, indexed because each carries a contract test. They land at the
+  // head with the round's other lanes so three merges stay apart.
+  "src/components/social/guest-list.tsx": {
+    for: "who added photographs to an album, on both the host's page and the guest's: names in chips until a party is big, then one row of faces that opens a page of names at a time",
+  },
+  "src/components/social/profile-actions-menu.tsx": {
+    for: "the two things one person can do about another: report them to the operator, or block them; it stays visible under a block in either direction, because a menu that vanished would leak one",
+  },
+  "src/components/guest/claim-handle-prompt.tsx": {
+    for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
+  },
+
   "src/components/shared/album-stream/album-stream.tsx": {
     for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
   },

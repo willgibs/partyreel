@@ -14,7 +14,10 @@ import {
 import { EventFeed } from "@/components/app/event-feed/event-feed";
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import { EventUploads } from "@/components/app/event-uploads";
-import { GuestList } from "@/components/social/guest-list";
+import {
+  GuestList,
+  GUEST_LIST_FACES_THRESHOLD,
+} from "@/components/social/guest-list";
 import { Button } from "@/components/ui/button";
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostCommandStrip } from "@/components/app/host-command-strip";
@@ -298,6 +301,11 @@ export default async function EventDetailPage({
                 // the grid drifted apart before.
                 reelCount={reelIds.length}
                 guestsCount={guestListItems?.length ?? 0}
+                // The faces row says the number itself above the threshold, so
+                // the section header drops its pill (Will, `list=faces`).
+                guestsCountInList={
+                  (guestListItems?.length ?? 0) > GUEST_LIST_FACES_THRESHOLD
+                }
                 guestsSection={
                   guestListItems ? (
                     <GuestList items={guestListItems} />
