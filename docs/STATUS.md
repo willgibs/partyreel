@@ -57,7 +57,8 @@ album hero's round three went "too boring" that way).
 | `how-it-works` | the page that tells the loop | wired and retired at `ef948322` (`loop-wiring`, 2026-09-19: one scroll, the Host/Guest toggle over six steps a side from one source, twelve bespoke pictures, the demo as the payoff, one folded close, the pair renamed, the stepper overview on the home, the footer heading a rung down); on the alias for Will's eye; five calls his to overrule (in the CHANGELOG) |
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, hollow, the cap, the object, the teaser's chips, the phone; on the real dialog's shell and body over fixture summaries | integrated at `afde9ca3`; on the desk; five calls carried on their recommendations (in the CHANGELOG); seven ROADMAP lines |
 | `site-chrome` | the marketing header, the mega panel, the phone's menu and the footer: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, two doors to one loop | integrated at `6a7e6f2f`; on the desk; three calls carried on their recommendations (in the CHANGELOG); four ROADMAP lines |
-| `event-type-pages` | the hub and the four type pages | answered whole (batch three) with his steer that the pages need a fresh visual identity; `event-identity` (Opus, :3133, cut `22438704`) opens the ground-up round before the direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire |
+| `event-type-pages` | the hub and the four type pages | answered whole (batch three) with his steer that the pages need a fresh visual identity; the direct picks (one template, four types, the host, the 2x2 grid, `PageHero`, the phone gap) wire after `event-identity` is ruled |
+| `event-identity` | round one of the event pages' visual identity from the ground up: the hero's theme, the second section, the arc, the cards, the proof, the ladder, the phone; every option on weddings and conferences at 1440 and 375 | integrated at `d528e98a`; on the desk (look first: the hero's theme at 1440); three calls carried on their recommendations (in the CHANGELOG); two slot asks (ASSETS rows 24 to 26) |
 | `error-pages` | every failure page as one grammar | wired and retired at `98909b34` (`errors-wiring`, 2026-09-19: `NotFoundScreen` the one primitive with visual, help and digest slots, a root error boundary, the strip as the marketing icon, the guest bar, the lock in the family, the portal 404 on the admin host, a way home on the last-resort screen; Sentry one event per crash, none per 404); on the alias for Will's eye; five calls his to overrule (in the CHANGELOG) |
 
 ## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
@@ -71,8 +72,8 @@ edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `de
   `353ad884`); `launch-prep` is ahead by the overnight round's records. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
-  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the `errors-wiring`
-  record (`[preview]`, 2026-09-19 evening: every failure page one grammar, after `/how-it-works` and the home's stepper at `e2d3c79a`); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
+  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the `event-identity`
+  record (`[preview]`, 2026-09-19 evening; the wiring records before it: `/how-it-works` and the home's stepper at `e2d3c79a`, every failure page at `f516329b`); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
   100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
   day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
   red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the
@@ -100,12 +101,11 @@ crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting continues on the desk (twenty-seven boards unruled after batch three: `voice`, `glass`, `loose-ends`,
+His sitting continues on the desk (twenty-eight boards unruled after batch three: `event-identity` first, its hero's theme at 1440; `voice`, `glass`, `loose-ends`,
 `body-type`, `admin`, `app-shape`, `guest-shape`, `app-vocabulary`, privacy-hero round three, `album-motion`, `demo-event`,
 `app-door`, `contact-page`, `press-page`, `app-pricing`, `pricing-page`, `first-event`, `guest-upload`, `media-viewer`,
-`reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`, `export-flow`, `site-chrome`),
-and `event-identity` joins it when its lane lands. Both wiring lanes are on the alias for his eye (`/how-it-works` with the home's stepper; every failure page), five
+`reel-studio`, `host-curation`, `admin-triage`, `emails`, `help-center`, `profile-page`, `export-flow`, `site-chrome`). Both wiring lanes are on the alias for his eye (`/how-it-works` with the home's stepper; every failure page), five
 calls each his to overrule (in the CHANGELOG). The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
 the host at 1280 / 1512 / 1920 / 375, the dashboard) ran in his Chrome session on 2026-09-19 and was clean. Calls his to overrule from earlier lanes: the home's live
 demo as the paper chapter's opener and the album heading at `lg`; the ghost's fade; type inside a picture counts as
-depicted; the album at 896. Assets open: rows 15, 16, 19 and 23. The launch-gated tasks are the ROADMAP's Launch checkpoint.
+depicted; the album at 896. Assets open: rows 15, 16, 19 and 23 to 26. The launch-gated tasks are the ROADMAP's Launch checkpoint.

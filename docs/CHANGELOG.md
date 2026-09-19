@@ -63,8 +63,25 @@ answer). Two notes for the record only: kids are never a target user; a partners
   lands on the root boundary, the Library's crash mock a round behind, one copy-with-a-receipt primitive, the group
   404s' `min-h-[60vh]` box, a runbook page); the probe's comment refreshed in the record.
 
-**Next.** The identity round on the desk when `event-identity` lands; his sitting on the other twenty-seven boards, with
-`/how-it-works`, the home's stepper and every failure page on the alias for his eye.
+- **`event-identity` merged at `d528e98a`** (2026-09-19, Opus; cut `22438704`; lab-only): round one of the event
+  pages' visual identity, from the ground up, as seven decisions rather than a page, every option drawn on weddings and
+  on conferences at 1440 and 375 with a measured caption: the hero's theme with the lockup held identical across the
+  four options (the room behind the words, the photographs arriving, one bespoke lit object, today; recommended
+  `object`, the only theme that is the type's own on all four pages with no new photography), the second section
+  staged behind it (recommended `statement`), the arc zoomed down so its rhythm reads at once (recommended `chapter`,
+  a full-width photograph as the turn to paper), the 2x2 card four ways (recommended `frame`), the proof rebuilt around
+  the demo (recommended `door`), the reading copy measured against the ladder live in the frame (recommended
+  `reading`, the two reading slots only; `body-type` lands the rest), the phone against a real 812px fold
+  (recommended `split`). Gate 33 green on the merged tree (lint 0 with the 8 known warnings, 2565 tests, build 254 pages, `lab:smoke` 461 checks whole, `lab:demo` 7 steps on `event-identity`). Three calls carried on their recommendations: the hub wears the winning hero theme
+  over a cross-event ground and keeps its all-dark ruling (one decision in round two if he wants it asked); the seven
+  are answered on what is drawn, the two missing photo sets being what makes the winner whole rather than a condition
+  on it; `the-ladder` stops short of the body ladder. Two slot asks (ASSETS rows 24 and 25: a conference room and a
+  trip room, five landscape stills each, and one portrait card still per type) and a conditional third (row 26, a
+  highlight render per type only if `the-proof=flanked` wins). Two ROADMAP lines (a per-type highlight render;
+  `AlbumStream`'s fixed photograph set). The direct picks of `event-type-pages` wire after this round is ruled.
+
+**Next.** His sitting on the desk, `event-identity` first (the hero's theme at 1440, then `the-proof=door`), then the
+other twenty-seven boards; `/how-it-works`, the home's stepper and every failure page on the alias for his eye.
 
 
 ## 2026-09-19 — The overnight round: twelve boards cut from read-only maps and integrated while Will slept (`d1923907` onward)
