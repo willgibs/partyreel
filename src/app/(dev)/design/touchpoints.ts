@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "contact-page"
   | "entry"
   | "upload"
   | "gallery"
@@ -87,6 +88,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "contact-page"
   | "app-vocabulary"
   | "guest-shape"
   | "album-motion"
@@ -632,6 +634,33 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
+  },
+  {
+    id: "contact-page",
+    title: "Reaching a person",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-19: stack the lab while deployments are capped, /contact cut from his read-only map)",
+    shipped: null,
+    why: "Six decisions on the real desk: the way in, the receipt, an urgent path, the topic picker, the page's rhythm, and what stands beside it.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/app/(marketing)/(paper)/contact/page.tsx",
+      "src/app/(marketing)/(paper)/contact/contact-form.tsx",
+      "src/app/(marketing)/(paper)/contact/actions.ts",
+      "src/lib/constants/contact.ts",
+    ],
+    board: {
+      note: "Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form",
+      variants: [
+        "The way in",
+        "The receipt",
+        "Something urgent",
+        "The topic picker",
+        "The page's identity",
+        "Beside the form",
+      ],
+    },
   },
   {
     id: "album-motion",
