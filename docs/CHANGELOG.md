@@ -71,6 +71,19 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   option shares and the disc's ring mitigates (on the ROADMAP; his call). Round one's seven asks named as ruled. Gate
   57 on the merged tree. Look at first: the board opens on `mesh` with the measured caption.
 
+- **`demo-wiring` merged at `0521613a`** (2026-09-20, Sonnet; `demo-event` round one wired whole): the demo's own
+  arrival screen on the guest welcome's exact shell (`computeEntry` no longer special-cases the demo, the pin the
+  board's own header flagged); a Demo mark beside the wordmark with the header pinned for the whole visit; a turn
+  card above the album's first tile once an upload lands; "Start your own" beside Invite in the demo's action row
+  and a closing card below the album; the footer's photo pile confirmed as the doors rule and the nav panel's ticket
+  retired (its featured pane empty until `demo-doors` draws the door); the phone pair on one ephemeral Realtime
+  broadcast channel per pairing keyed into the demo's own Invite link (a downscaled JPEG thumbnail over REST, no new
+  table, never the shared gallery channel), proven end to end against the real project with a raw listener; the two
+  "Hosted by" bylines fold onto the seeded Avatar (avatar-wiring's deferred line closed). Gate 58 on the merged tree.
+  Calls his: the demo's two-column row against a real guest's one; the pairing's shape (per-visitor channel, a URL
+  param); `live-demo.tsx` untouched by design. Look at first: the pairing with a real phone (the lane rehearsed the
+  far end with a listener).
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
