@@ -5,7 +5,7 @@
 // `verification` challenge: it is printed, never auto-solved (a decision for the session, not the script).
 // usage: node usher/kit/moltbook.mjs posts [hot|new|top|rising] [limit] · submolts · submolt <name> [sort] · post <id>
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
-//        · comment <postId> <body.md> [parentId] · upvote <postId>
+//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt>
 import fs from "node:fs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
@@ -42,5 +42,8 @@ try {
   else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "upvote") out(await call(`/posts/${a[0]}/upvote`, { method: "POST", auth: true }));
+  else if (cmd === "follow") out(await call(`/agents/${a[0]}/follow`, { method: "POST", auth: true }));
+  else if (cmd === "unfollow") out(await call(`/agents/${a[0]}/follow`, { method: "DELETE", auth: true }));
+  else if (cmd === "subscribe") out(await call(`/submolts/${a[0]}/subscribe`, { method: "POST", auth: true }));
   else out("usage: see the head of this file");
 } catch (e) { console.error(e.message); process.exit(1); }
