@@ -1,19 +1,30 @@
 ---
-track: avatar-look
+track: type-sync
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
-board: seed-avatar     # round two on the same board id: the look
+cut: "a2025ba0"          # the launch-prep SHA the branch was cut from
+board: none            # production follow-up: the ladder's body scan closes and the step names land; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/seed-avatar/
+  - src/lib/type-ladder-policy.test.ts
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/guest/enter-event-prompt.tsx
+  - src/components/marketing/sections/home/pricing-teaser.tsx
+  - src/components/marketing/sections/features/album/how-much-fits.tsx
+  - src/components/marketing/sections/home/no-app.tsx
+  - src/components/marketing/sections/events/event-statement.tsx
+  - src/components/marketing/sections/features/qr/qr-hero.tsx
+  - src/components/marketing/sections/reel/reel-hero.tsx
+  - src/components/marketing/sections/reel/wysiwyg-section.tsx
+  - src/components/app/
+  - src/app/(app)/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/seed-avatar.json
+  - src/app/theme.css
+  - docs/systems/design-system.md
+  - docs/reviews/body-type.json
   - docs/design/rulings.md
-  - src/lib/avatar/
-  - src/components/ui/avatar.tsx
-  - src/components/social/guest-list.tsx
+  - src/lib/utils.ts
 ---
 
-# lp/avatar-look
+# lp/type-sync
 
 **Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -22,23 +33,25 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- His note on `look=diagonal` (2026-09-20): "This is my favorite of these options, but is this the best that hashvatar
-  had to offer? The preview ones on https://www.hashvatar.com/ and https://github.com/medhychabour/hashvatar felt much
-  more alive and rich." The diagonal is wired (`avatar-wiring`, merged `2a5c7018`: `Avatar` with `seed`, the
-  generator at `src/lib/avatar/gradient.ts`, `seedFor` the hash).
-- A `defineExploration` round two on the SAME board id `seed-avatar` (`round.n: 2`), ONE decision `look` with four
-  options drawn on the WIRED `Avatar` at 24, 32, 40 and 80 with the initial, on the guest list's faces row, the user
-  menu and the profile identity row, at 375 and 1440: `diagonal` as wired; `mesh` hashvatar's own multi-stop mode as
-  it renders on its site (the lane reads hashvatar's source on GitHub and its page with WebFetch, credits it as the
-  generator's header does, and reproduces the register: several hue stops, not two); `throw` two soft radial throws
-  over a deep base; `lit-seam` the diagonal with a lit seam along the ramp. Every option MEASURED against the three
-  floors the generator holds (the letter 4.5:1, the two grounds, the ring) across a thousand real UUIDs, the numbers
-  on the frame; a look that fails a floor says so rather than hiding it. The candidate looks live in the sandbox's own
-  `looks.ts` over `orbFor`'s orb (the production generator is READ, never edited; the winner lands in `lib/avatar` at
-  its wiring). Round one's seven ruled asks named as ruled, the row's `variants` set to one.
-- Owns `src/app/(dev)/design/sandbox/seed-avatar/` and the board's own lines under the registration exception. Reads
-  `src/lib/avatar/`, `ui/avatar.tsx`, `social/guest-list.tsx`, the seed-avatar ledger, rulings.md; never edits them.
-  `lab:smoke` whole; `lab:demo --board seed-avatar`; the gate.
+- The ladder landed six body steps as tokens beside the heading steps (`ladder-wiring`, merged `59345bc8`: `reading`
+  16/24, `working` 14/20, `copy` a clamp, `caption` 12/16, `micro` 10/12, `label` 12/16 on 0.08em) with the policy's
+  body scan as a COUNT-PINNED ALLOW-LIST that only shrinks (`src/lib/type-ladder-policy.test.ts`), because four lanes
+  were open and the app-shape lanes built on stock classes that EQUAL a step rather than the announced names. Those
+  lanes are on the tree. This lane finishes the ladder: (1) run the scan in its report mode and, for every entry
+  still in the allow-list (the off-step sizes and the `pending` entries the app lanes were to remove), move the
+  element onto a ladder step in the file it names (the step's own utility where the token exists, `text-working`,
+  `text-caption`, `text-label` with its tracking; the stock class equal to a step is also on the ladder); (2) swap
+  the stock classes on BODY copy in the files the app-shape lanes touched onto the step names where a name exists,
+  a mechanical swap with no visual change (a size that equals a step stays that size); (3) shrink the allow-list to
+  nothing and flip the body scan to a hard failure, the one-line follow-up the ladder's Handoff named; (4) leave
+  depicted type (the picture components the policy exempts) and `ui/button.tsx` alone (the button rung is
+  `buttons-pairs`' round; its sizes wait for his answer). Every move is a single class change; nothing is redesigned.
+- Owns `src/lib/type-ladder-policy.test.ts` and EXACTLY the files the allow-list names at the cut (the Orchestrator
+  lists them by file in the manifest from the test's own entries; never a prefix another open lane sits under). Reads
+  `src/app/theme.css` (the tokens; never edited), `docs/systems/design-system.md`'s type section, the body-type
+  ledger, rulings.md. `two-faces-policy` and the contract tests of every touched component green; the gate.
+- Handoff: the count of entries before and after (zero), the files moved, the swap's file list, and any element that
+  could not take a step without a redesign (left on the allow-list with why, if any: then the flip waits).
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

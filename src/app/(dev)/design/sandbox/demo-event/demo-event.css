@@ -4,108 +4,6 @@
    author rule outranks every layered one, so these win over a shipped
    component's own class without !important and without a specificity war. */
 
-/* A page drawn behind an open arrival: the real backdrop, so what is judged is
-   the surface against the page it covers rather than against nothing.
-   entry-shell.tsx's overlay, quoted (bg-black/10 + the blur). */
-.de-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgb(0 0 0 / 0.1);
-}
-@supports (backdrop-filter: blur(2px)) {
-  .de-scrim {
-    backdrop-filter: blur(2px);
-  }
-}
-
-/* THE ENTRY SHELL, QUOTED FROM entry-shell.tsx. A real Vaul drawer portals to
-   `document.body`, which inside a lab frame is the BOARD's body and not the
-   frame's, so the sheet would leave the picture entirely. Position and
-   material are reproduced here; every word inside is the board's own or the
-   shipped component's. Declared in arrival.tsx's second star. */
-.de-sheet {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  border-top-left-radius: var(--radius-float);
-  border-top-right-radius: var(--radius-float);
-  background: var(--popover);
-  color: var(--popover-foreground);
-  padding: 0.75rem 1.5rem 1.5rem;
-  box-shadow: var(--shadow-layer);
-  /* ring-1 ring-foreground/10 */
-  outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
-  outline-offset: -1px;
-}
-
-/* The centred dialog the shell becomes from 640 up: DialogContent's own box. */
-.de-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 50;
-  width: 100%;
-  max-width: 24rem;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border-radius: var(--radius-float);
-  background: var(--popover);
-  color: var(--popover-foreground);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-layer);
-  outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
-  outline-offset: -1px;
-}
-
-/* The one surface that cannot hold the dialog's measure: three parties side by
-   side. Its cost is declared where the option is, not hidden in a width. */
-.de-dialog-wide {
-  max-width: 40rem;
-}
-
-/* A PHOTOGRAPH ARRIVING FROM ANOTHER SCREEN. The album's own entrance is a
-   mount transition on the SEED render (--tile-i, globals.css) and a doorbell
-   arrival deliberately gets none, so a photograph that lands while somebody is
-   watching appears with no beat at all. `pair` gives the newest tile one: it
-   grows into its column under a glow that fades, which is the whole argument
-   for the answer (a host watching their laptop sees the arrival, not a number).
-   A tile is `overflow: hidden`, so the glow is the tile's OWN box-shadow rather
-   than a child. Prefixed `de-` because keyframe names are document-global and
-   the lab once shadowed nine production names for a whole session
-   (keyframe-uniqueness.test.ts holds that at zero). */
-@keyframes de-land {
-  from {
-    opacity: 0;
-    transform: scale(0.94) translateY(10px);
-    box-shadow: 0 0 0 6px color-mix(in oklab, var(--foreground) 16%, transparent);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    box-shadow: 0 0 0 0 transparent;
-  }
-}
-
-/* The album is newest-first, so this is the photograph that just arrived. */
-[data-de-landing] [data-media-tile]:first-of-type {
-  animation: de-land 520ms var(--ease-emphasis) both;
-}
-
-/* Reduced motion keeps the arrival visible without the movement: the tile is
-   simply there, one more photograph than the album had a moment ago, which is
-   also what makes this option judgeable in a still. */
-@media (prefers-reduced-motion: reduce) {
-  [data-de-landing] [data-media-tile]:first-of-type {
-    animation: none;
-  }
-}
-
 /* THE PILE'S REST POSE, AND WHY IT HAS TO BE HERE.
    `FooterDemo` is the shipped component and the board renders the real thing,
    but its geometry is split in two by design (footer-demo.tsx's fourth star):
@@ -115,9 +13,9 @@
    frame loads neither `marketing.css` nor the `data-mkt` attribute, so every
    card fell back to 0,0 and the pile drew as a bare plate with four
    photographs hidden underneath it: the `pile` option's whole claim, invisible,
-   while the caption counted four photographs that could not be seen. These two
-   declarations are that rule's rest pose, quoted, and nothing else: the fan is
-   a hover state and a still capture never has one. */
+   while the caption counted photographs that could not be seen. This
+   declaration is that rule's rest pose, quoted, and nothing else: the fan is a
+   hover state and a still capture never has one. */
 .mkt-stack .mkt-stack-card {
   translate: var(--cx) var(--cy);
   rotate: var(--rot);

@@ -51,6 +51,98 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   them retired from the overtaken map with the count corrected. Gate 55 on the merged tree. Look at first: `view-menu`
   against `row` at 375, side by side.
 
+- **`pricing-fit` merged at `3cf43bde`** (2026-09-20, Sonnet; `pricing-page` round two): `fit`, three options on the wired page at 1440
+  and 375: the wall as today, `split` (Higgsfield's configurator-left and designed-plan-card-right shape, read live
+  from its page and built fresh with Partyreel's own controls, copy and photographs; recommended), `inline` (the whole
+  block gone, drawn as a real contender). `phone`, re-asked with its demo REPAIRED and proven end to end by `lab:demo`
+  (his "I think the demo is broken, so I can't actually see it live"): `stack` as today, `swipe` (recommended; its
+  row reshapes the Pass into a compact card so three peers share one height), `tabs`. Round one's six asks named as
+  ruled. Gate 56 on the merged tree. Calls his: `split`'s execution is the lane's reading of the reference, not a
+  literal match; two Pass shapes on one board, deliberately. One lab finding on the ROADMAP: a fully ruled ask is
+  unreachable by `?session=` even by a direct link.
+
+- **`avatar-look` merged at `539dfa4e`** (2026-09-20, Sonnet; `seed-avatar` round two): one decision, the look, four options measured on
+  the wired avatar at 24, 32, 40 and 80 with the initial, on the guest list, the menu and the profile row: the
+  diagonal as wired; `mesh` (hashvatar's own register reproduced from its SOURCE, one identity hue at four tonal
+  depths diffused and layered, the brief's "several hue stops" corrected; recommended: it clears the letter floor on
+  every one of a thousand seeds, worst 4.69:1, against the wired diagonal's 76 percent, worst 4.13:1); `throw` (two
+  pools of light); `lit-seam` (a lit crease on the diagonal's seam). Every option measured with real compositing math
+  at the exact pixel, a bar stricter than the production contract has held any look to, which surfaces a gap every
+  option shares and the disc's ring mitigates (on the ROADMAP; his call). Round one's seven asks named as ruled. Gate
+  57 on the merged tree. Look at first: the board opens on `mesh` with the measured caption.
+
+- **`demo-wiring` merged at `0521613a`** (2026-09-20, Sonnet; `demo-event` round one wired whole): the demo's own
+  arrival screen on the guest welcome's exact shell (`computeEntry` no longer special-cases the demo, the pin the
+  board's own header flagged); a Demo mark beside the wordmark with the header pinned for the whole visit; a turn
+  card above the album's first tile once an upload lands; "Start your own" beside Invite in the demo's action row
+  and a closing card below the album; the footer's photo pile confirmed as the doors rule and the nav panel's ticket
+  retired (its featured pane empty until `demo-doors` draws the door); the phone pair on one ephemeral Realtime
+  broadcast channel per pairing keyed into the demo's own Invite link (a downscaled JPEG thumbnail over REST, no new
+  table, never the shared gallery channel), proven end to end against the real project with a raw listener; the two
+  "Hosted by" bylines fold onto the seeded Avatar (avatar-wiring's deferred line closed). Gate 58 on the merged tree.
+  Calls his: the demo's two-column row against a real guest's one; the pairing's shape (per-visitor channel, a URL
+  param); `live-demo.tsx` untouched by design. Look at first: the pairing with a real phone (the lane rehearsed the
+  far end with a listener).
+
+- **`guest-verify` merged at `76950230`** (2026-09-20, Opus; a new board from his `gate=ask` note, resumed after the
+  limit from a committed board): six decisions on the real guest door, the guest list, the faces row and the host's
+  review queue, phone first: `gate` (three phone screens one second after Add; `held` recommended, riding the existing
+  `pending` status with a second reason), `badge` (his idea drawn literally with its cost on the frame; host-only
+  recommended), `collision` (the flow, two lanes side by side; `session` recommended: GoTrue mints the auth row at SEND
+  time, so an email-bound claim is a real takeover), `outage` (the wall measured under Supabase's documented limits, per
+  IP on verify and project-wide on send; a time-boxed window on the settings sheet recommended), `host-lens` (`split`),
+  `expiry` (the host's own switch). Three carried calls above the first step (the mechanism, the badge's audience, the
+  numbers); one migration WRITTEN ONLY (a nullable `guests.claimed_email` that authorises nothing, left out of the
+  column-locked grant), applied by nobody; the ruled gate sentence untouched. Moved after `guest-shape` on the desk.
+  Gate 59 on the merged tree. Two lab findings on the ROADMAP (the pinned stage's head at 375 with one config row; the
+  project's configured Auth rate limits, a dashboard read). Look at first: `collision`, the two lanes side by side.
+- **`buttons-pairs` merged at `c28a2060`** (2026-09-20, Sonnet; `body-type` round two, resumed after the limit from six
+  uncommitted files): one decision, `pairs`, three options on the real Button at every size in the real rows, each
+  measured on the frame: `step-up` (the icon one notch over its text, 12/14, 14/16, 16/18; recommended, the shipped
+  icons already sit there), `text`, `today` (what he saw). The board's frozen-caption bug found and fixed in the lane
+  (a measurement effect keyed on a constant probe array never re-fired when the control swapped the option). The winner
+  wires at `button.tsx`'s cva table in a follow-up. Gate 60 on the merged tree. Look at first: the `sm Download` and
+  `xs Approve` pair his note named.
+
+- **`help-sync` merged at `84ee48cd`** (2026-09-20, Sonnet; production, resumed after the limit from a bare boot):
+  eleven help articles rewritten against the surfaces' code, each read before its article (a guest's own upload
+  comes off on the album itself, signed in or anonymous by the same device; the code-led door with Google beside it
+  and a password behind a quiet link, the existing-account notice, the three real buttons under each failure; the
+  resend cooldown and the rate-limited state; removing a photo reveals the seeded colour; the event page as the hub
+  with the live code, the cards row going sticky and the crumbs; settings as a sheet over the album and the custom
+  link in the Share sheet, three articles found stale beyond the named seven; the loop's six steps paraphrased in
+  the help voice); the two legal lines rewritten so an anonymous guest's removal reads as self-serve; the legal
+  versions bumped (privacy 1.2, terms 1.3, one changelog line each, the file's own header rule; still "pending
+  counsel review"); one article retitled with its slug kept; forty-eight read and left alone. The manifest had named
+  the legal content under `components/marketing/legal`; the real files are `lib/constants/legal-*.tsx` (the lane
+  corrected it). Gate 61 on the merged tree. Look at first: the event-page and event-settings articles, and the two
+  legal lines.
+
+- **`home-states` merged at `99550a89`** (2026-09-20, Sonnet; `app-shape` round two, resumed after the limit from two
+  touched files): the home across three host states, drawn on the wired pulse with fixtures at 1440 and 375:
+  `empty` (`wizard` recommended: the create door and the storage line, what zero events renders today; `ghosts` and
+  `guided` drawn in full), `first` (`share` recommended: the code and the link lead, the one job left; `promise`,
+  `pulse`), `busy` (`collapsed` recommended: the top three chips by tone, the rest behind one chip that expands in
+  place; `ruled`, `events-first`). "Your events" draws as a plain grid of the real EventCard, never the real
+  EventsSection, whose view toggle would rewrite the reviewer's own live preference. Round one's eight asks named as
+  ruled and their stale overtaken badge removed. The board stays open on his own note. Gate 62 on the merged tree
+  (its demo step timed out twice on a cold frame compile under three concurrent gates; the warm re-run pressed all
+  three steps clean, and the gate now retries once warm).
+  Calls his: the top three ranked by tone; the fixture QR chip on every card; the named-event heading on `promise`.
+  Look at first: `busy.collapsed`, then `empty.guided` beside `empty.wizard`.
+
+- **`demo-doors` merged at `042f82bd`** (2026-09-20, Sonnet; `demo-event` round two, resumed after the limit from a bare
+  boot): one decision, `door`, four text-free options, each the one object drawn at its four places (the home hero,
+  the footer, a feature page's line, the nav panel's pane left empty since the ticket retired) at 375 and 1440:
+  `pile` (the footer's fan, proposed at the hero and the line), `frame` (one photograph in a mat with the code in its
+  corner; recommended), `stage` (the falling engine's rest frame, sketched; nothing in the nav pane on purpose),
+  `ticket` (the retired ticket redrawn as one object). A finding on the frame: the wired `pile` rule reached only the
+  nav panel, the hero's plate and the feature line never gained it, so the winner's wiring covers all four places.
+  The board's measurement probe fixed to remount on a live option switch (the twin of the buttons-pairs bug). Gate
+  63 on the merged tree. Calls his: "text-free" read as no added words on the object (the party's name ON the object
+  would be a smaller ask on the winner); `stage` sketched as a rest frame, never the live loop. Look at first: the
+  nav pane under each option at 1440.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)

@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { TOASTS } from "./toasts/spec";
+import { GUEST_VERIFY } from "./guest-verify/spec";
 import { SEED_AVATAR } from "./seed-avatar/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -56,6 +57,7 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   TOASTS,
+  GUEST_VERIFY,
   SEED_AVATAR,
   BODY_TYPE,
   APP_SHAPE,

@@ -29,6 +29,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "toasts"
+  | "guest-verify"
   | "seed-avatar"
   | "error-pages"
   | "event-type-pages"
@@ -111,6 +112,7 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "toasts"
+  | "guest-verify"
   | "seed-avatar"
   | "site-chrome"
   | "profile-page"
@@ -810,11 +812,12 @@ export const RULINGS: Ruling[] = [
     title: "The colour a new account is",
     surface: "shared",
     ruled:
-      "open: round one on the desk (2026-09-19, Will's ask by name), seven decisions on the seeded default avatar that replaces the grey initial until a photograph lands",
+      "round one ruled whole (Will, 2026-09-20, the sixth batch); avatar-wiring lands six of the seven on the real Avatar (the clipping bug fixed, look=diagonal, full colour, the whole wheel, the initial always, the account id as seed, the colour waiting under a photograph, no motion); round two open on the one he left: is the diagonal the richest look hashvatar has to offer",
     shipped: null,
-    why: "Every account without a photograph draws the same grey disc today; a colour derived from the account itself is what makes a guest list read as people.",
+    why: "Every account without a photograph draws a seeded colour, not grey; round two asks whether the diagonal is as rich as hashvatar's own register.",
     lives: [
       "docs/systems/profiles-social.md",
+      "src/lib/avatar/gradient.ts",
       "src/components/ui/avatar.tsx",
       "src/components/social/guest-list.tsx",
       "src/components/app/user-menu.tsx",
@@ -822,16 +825,9 @@ export const RULINGS: Ruling[] = [
       "src/components/app/account-avatar-form.tsx",
     ],
     board: {
-      note: "Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob",
-      variants: [
-        "The shape",
-        "The crowd",
-        "The wheel",
-        "The initial",
-        "The seed",
-        "After a photograph",
-        "Motion",
-      ],
+      note: "Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame",
+      variants: ["The look"],
+      tracks: ["avatar-look"],
     },
   },
   {
@@ -1125,26 +1121,17 @@ export const RULINGS: Ruling[] = [
     title: "The pricing page",
     surface: "marketing",
     ruled:
-      'open (Will, 2026-09-19: the marketing pricing page, "a more granular exploration than simply comparing new page versions themselves at such a high level")',
+      "2026-09-20: six of eight decisions ruled and landed on the real page by pricing-wiring (the paper opening, Free and Pro side by side with Pro's own slider, the Event Pass a wide ticket, one dark room from the tiles to the table, six FAQ items). Two stay open for round two, his ask by name: Find your size (a couple more explorations, naming Higgsfield's configurator-and-result shape) and the phone row (its demo repaired first, proven with lab:demo)",
     shipped: null,
-    why: "The page asked part by part rather than version by version: the opening, the plan row, the size, the pass, the fit, the sheet, the close and the phone, one question each.",
+    why: "Round two re-asks Find your size and the phone row on the real shipped pair and ticket; the other six are ruled and shipped by pricing-wiring.",
     lives: [
       "src/app/(marketing)/(cinema)/pricing/page.tsx",
       "src/components/marketing/sections/pricing/",
       "docs/systems/marketing-content.md",
     ],
     board: {
-      note: "Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands",
-      variants: [
-        "What the page opens on",
-        "How Free and Pro stand",
-        "Choosing a size",
-        "Where the pass stands",
-        "Find your size",
-        "The grid, the table, the band",
-        "The questions and the close",
-        "The page in a hand",
-      ],
+      note: "Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed",
+      variants: ["Find your size", "The page in a hand"],
     },
   },
   {
@@ -1178,24 +1165,19 @@ export const RULINGS: Ruling[] = [
     title: "The live demo",
     surface: "marketing",
     ruled:
-      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+      "round one ruled whole (Will, 2026-09-20, the sixth batch); demo-wiring wires all seven on the real site (the arrival, the Demo mark, the turn card, the way out, the pile as the rule, the phone pair, one party); round two open on the one he flagged: a better door object than reusing the footer, drawn at a fourth place too, the nav panel's pane left empty since its ticket retired",
     shipped: null,
-    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    why: "Round two asks whether the object behind every demo door is the best a text-free page can show; the retired nav ticket's pane is its fourth place.",
     lives: [
       "src/lib/demo.ts",
       "src/app/demo/route.ts",
-      "src/components/guest/event-experience.tsx",
       "src/components/marketing/chrome/footer-demo.tsx",
       "src/components/marketing/system/demo-cta-link.tsx",
+      "src/components/marketing/chrome/mega-panel.tsx",
     ],
     board: {
-      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
-      variants: [
-        "The first seconds",
-        "Adding a photo",
-        "What a door promises",
-        "Scanned off a laptop",
-      ],
+      note: "One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440.",
+      variants: ["The door"],
     },
   },
   {
@@ -1311,6 +1293,36 @@ export const RULINGS: Ruling[] = [
     board: {
       note: "One decision on the real, wired Album header: where the crowded five (download, tile size, sort, filter, select) live now that the cluster is honestly crowded; four placements drawn at 1440 and 375, Add photos and Deleted untouched.",
       variants: ["Where the controls live"],
+    },
+  },
+  // A NEW BOARD (guest-verify, 2026-09-20), registered at the head of
+  // DESK_ORDER under the registration exception and moved after `guest-shape`
+  // at the merge: it changes the door every other guest board draws on.
+  {
+    id: "guest-verify",
+    title: "Verify, or badge",
+    surface: "guest",
+    ruled:
+      "open: his `gate=ask` note (Will, 2026-09-19) asked for 1+ exploratory tracks on skipping email confirmation to upload in favour of a verified/unverified badge, with the shared-network outage as the fear and the unverified-address collision as the safety hole; the ruled gate SENTENCE is wired and untouched",
+    shipped: null,
+    why: "Six decisions on whether a guest must confirm an email before uploading at all, and what the product has to grow if the answer is no.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/auth-accounts.md",
+      "docs/systems/database-security.md",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/auth/account-door.tsx",
+    ],
+    board: {
+      note: "Six decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob: when the address gets proven, what an unproven account shows and to whom, where the photographs land when two people type one address, what rescues a party when the codes stop arriving, what the host's queue says about who sent what, and what day seven does to a photograph nobody ever confirmed",
+      variants: [
+        "The gate",
+        "The badge",
+        "The collision",
+        "The outage",
+        "The host's lens",
+        "The expiry",
+      ],
     },
   },
   {
@@ -1511,25 +1523,18 @@ export const RULINGS: Ruling[] = [
     title: "Body and label type",
     surface: "shared",
     ruled:
-      'open (Will, 2026-09-18: "everything should be addressed in our design system type ladder" reaches body and label sizes, one question-first board first)',
+      'round one ruled whole (Will, 2026-09-19/20, the fifth batch): six of its seven asks wired at `59345bc8` (`ladder-wiring`): reading=16, working=14, marketing=fluid (16 to 18), caption=10 (the caption step itself stays 12; micro is the new 10 floor), label=12-08, leading=length (2 x size - 8). Round two is open on the button rung alone, his own words: "the download and select buttons felt mismatched between their icon sizes and new font size"',
     shipped: null,
-    why: "The heading ladder stops at 16 and about 920 sites below it pick their own size; seven decisions set the body, caption and label steps that replace them.",
+    why: "Round two asks how a button's icon and height follow its new text step, three pairings drawn on the real Button at every size, measured in the frame.",
     lives: [
       "src/app/theme.css",
       "src/lib/utils.ts",
       "src/lib/type-ladder-policy.test.ts",
+      "src/components/ui/button.tsx",
     ],
     board: {
-      note: "Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame",
-      variants: [
-        "A guest's reading copy",
-        "The app's working body",
-        "Marketing reading copy",
-        "The caption step, and the floor",
-        "The label step",
-        "Buttons on the ladder",
-        "The line-height rule",
-      ],
+      note: "One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box.",
+      variants: ["Icon and height pairing"],
     },
   },
   {
@@ -1607,10 +1612,15 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
+  // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
+  // stay line-disjoint, and the Orchestrator moves it into its leverage place
+  // at the merge (`guest-verify` went after `guest-shape` at its merge: it
+  // changes the guest door every guest board draws on).
   "toasts",
   "body-type",
   "app-shape",
   "guest-shape",
+  "guest-verify",
   "app-vocabulary",
   "seed-avatar",
   "app-door",

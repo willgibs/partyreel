@@ -115,12 +115,16 @@ const PRICING = {
  */
 export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   /* ── app-shape ───────────────────────────────────────────────────────── */
-  "app-shape.you": {
-    ...DOOR,
-    ruling:
-      "one account object wears every door, and the account page takes a passkey card",
-    line: "stands: the account page is already collecting the person's own rows, and One You is the only option that gives them one door.",
-  },
+  // Round one's eight asks (home, density, event, nav, share, settings, you,
+  // phone) are ruled and gone from the board (`home-states`, 2026-09-20, the
+  // `app-vocabulary`/`profile-page` precedent: a round drops its questions
+  // rather than accreting them). The one badge that named `you` is gone with
+  // the ask it pointed at (this file's own contract, below: a badge pointing
+  // at a question nobody is asking any more is worse than an answer left
+  // orphaned) — `you=?` was his own outright answer, not a still-open question
+  // for a later ruling to reach, and it is wired (`home-wiring`, `docs/design/
+  // rulings.md`). Round two's `empty`, `first` and `busy` are too new for
+  // anything to have overtaken them yet.
 
   /* ── guest-shape ─────────────────────────────────────────────────────── */
 
@@ -134,14 +138,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // pointing at a question nobody is asking any more is worse than an
   // answer left orphaned). Round two's `controls-home` is too new for
   // anything to have overtaken it yet.
-
-  /* ── seed-avatar ─────────────────────────────────────────────────────── */
-  "seed-avatar.after-upload": {
-    ...APP_SHAPE,
-    ruling:
-      "the avatar may be changed on the profile page and on the account page",
-    line: "stands: a photograph can land from two surfaces now, and waiting underneath is the one answer that covers both.",
-  },
 
   /* ── admin ───────────────────────────────────────────────────────────── */
 
