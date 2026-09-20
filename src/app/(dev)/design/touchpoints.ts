@@ -130,7 +130,6 @@ export type SandboxId =
   | "app-pricing"
   | "press-page"
   | "contact-page"
-  | "app-vocabulary"
   | "demo-event"
   | "guest-shape"
   | "album-motion"
@@ -1275,25 +1274,27 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
+  // RULED AND RETIRED (round two, 2026-09-20). Round one wired six of seven
+  // asks (`vocab-wiring`) with the tile-size cluster as the interim shape;
+  // his crowding note on that exact cluster ("we may need to rethink where
+  // all of these actions live") reopened round two, which he ruled
+  // `controls-home=view-menu` and `controls-home-wiring` wired. The board
+  // left sandbox/ with the wiring; docs/design/rulings.md keeps his words.
   {
     id: "app-vocabulary",
     title: "The app's shared vocabulary",
     surface: "shared",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch); vocab-wiring wires six of the seven, the tile-size cluster the interim shape; round two open on the one his crowding note asked back: where the host gallery's five controls live",
-    shipped: null,
-    why: "Round two, the one he asked back: where the crowded controls (download, tile size, sort, filter, select) live on the wired Album header.",
+      "2026-09-20: round one ruled whole (vocab-wiring wired six of seven, the tile-size cluster the interim shape); round two ruled the one he asked back (controls-home=view-menu) and controls-home-wiring wired it",
+    shipped:
+      "One View menu behind a single button holding Tile size, a reserved Sort and Filter (the Deleted lens folded in as its own option), Download and Select the row's only other two verbs; the tile-size cluster's interim reserved pills retired with it",
+    why: "Where the host gallery's five crowded controls (download, tile size, sort, filter, select) live, on the real wired Album header.",
     lives: [
       "docs/systems/host-app.md",
       "src/components/app/event-feed/event-gallery.tsx",
+      "src/components/shared/view-menu.tsx",
       "src/components/shared/tile-size-control.tsx",
-      "src/components/app/event-feed/event-cards-row.tsx",
-      "src/components/ui/sheet.tsx",
     ],
-    board: {
-      note: "One decision on the real, wired Album header: where the crowded five (download, tile size, sort, filter, select) live now that the cluster is honestly crowded; four placements drawn at 1440 and 375, Add photos and Deleted untouched.",
-      variants: ["Where the controls live"],
-    },
   },
   // A NEW BOARD (guest-verify, 2026-09-20), registered at the head of
   // DESK_ORDER under the registration exception and moved after `guest-shape`
@@ -1620,7 +1621,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "app-shape",
   "guest-shape",
   "guest-verify",
-  "app-vocabulary",
   "toasts",
   "seed-avatar",
   "app-door",

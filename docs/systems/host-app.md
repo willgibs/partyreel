@@ -214,20 +214,30 @@ Share are SHEETS; the album is the hub page itself.
   no animation, because the transition IS the entrance, and falls back to the standard clock under reduced
   motion. It is listed by name in `floating-layer.test.ts`, whose family scan reads `ui/` only.
 - **The album** ([`event-feed/event-gallery.tsx`](../../src/components/app/event-feed/event-gallery.tsx))
-  carries Add photos (which left the deleted command strip), Download all, the **tile-size cluster**, Select,
-  and the **Deleted filter**: the recovery bin joined the album, so "Deleted" names exactly one thing.
-  ★ The bin is fetched **on demand** through `listDeletedMediaAction` (a `getUser()`-gated Server Function),
-  never with the page — each item needs its own presign, and the hub must not pay N of them for a drawer a
-  host opens once. The bin's items are never in the album's count.
-  ★ **The tile-size cluster** ([`TileSizeControl`](../../src/components/shared/tile-size-control.tsx),
-  `app-vocabulary` r1, `gallery-controls-home=cluster`) sets `--album-column` (three steps, 180/240/300;
-  `masonry.tsx`'s own knob) on the ancestor wrapping the album grid, plus two reserved, non-interactive
-  slots naming Sort and Filter for the day they land. Persisted per device in the **`pr_tile_size` cookie**
+  carries Add photos (which left the deleted command strip), Download all, Select, and one **View menu**
+  (`app-vocabulary` r2, `controls-home=view-menu`: his crowding note on the r1 cluster — "we may need to
+  rethink where all of these actions live" — reopened round two, ruled "Tile size, Sort and Filter move
+  behind one button; Download and Select stay the row's only two verbs"). The **Deleted filter** rides
+  inside the menu now (the recovery bin joined the album as one of the View menu's Filter options, so
+  "Deleted" still names exactly one thing), always rendered so a host reaches an empty bin from an empty
+  album exactly as before. ★ The bin is fetched **on demand** through `listDeletedMediaAction` (a
+  `getUser()`-gated Server Function), never with the page — each item needs its own presign, and the hub
+  must not pay N of them for a drawer a host opens once. The bin's items are never in the album's count.
+  ★ **The View menu** ([`ViewMenu`](../../src/components/shared/view-menu.tsx), one shared primitive taking
+  arbitrary radio `groups`, on the shipped `ui/dropdown-menu.tsx`) holds three groups here: **Tile size**
+  (three steps, 180/240/300, setting `--album-column` — `masonry.tsx`'s own knob — on the ancestor wrapping
+  the album grid, persisted per device in the **`pr_tile_size` cookie**
   ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts), read + painted inline by the hub page,
-  `events-view.ts`'s own pattern) rather than localStorage, which the board itself had named: a local
-  preference would repaint the whole album's column width after hydration on every load. His crowding worry
-  over this exact row (download, tile size, sort, filter, select) is a narrow round two
-  (`gallery-controls`), not wired here. The guest album's row is held for `guest-chrome` round two.
+  `events-view.ts`'s own pattern, rather than localStorage, which the r1 board itself had named — a local
+  preference would repaint the whole album's column width after hydration on every load); **Sort**, shipped
+  `disabled` with a "Coming soon" hint rather than wired, because this component holds its album as an
+  opaque server-rendered slot (`EventUploads`, presigned in the RSC) and never the approved list itself, so
+  a "sort" here could only reorder whatever happens to be mounted, not the album; and **Filter** (All /
+  Deleted, the bin's lens). The r1 **tile-size cluster**
+  ([`TileSizeControl`](../../src/components/shared/tile-size-control.tsx)) is retired from production —
+  its own two reserved Sort/Filter pills are what this menu replaced — and stays on disk for the lab, which
+  still imports it. The guest album mounts the same `ViewMenu` (`guest-chrome` round two: tile size and a
+  Yours filter, his `theirs` note asking for exactly this "new parent dropdown").
 - **The Reel room** holds the BUILDER before the reel's birth and the Studio after it, which DELETED the old
   `redirect('?section=reel')` rather than re-pointing it at a filter that no longer exists; the card reads
   "Create reel" until then. Legacy `?section=` / `?eventTab=` deep links redirect into the rooms

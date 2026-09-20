@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
-import { ImageUp, Loader2, QrCode, Trash2 } from "lucide-react";
+import { useCallback, useMemo, useState, useTransition } from "react";
+import { ImageUp, Loader2, QrCode } from "lucide-react";
 
 import {
   listDeletedMediaAction,
@@ -18,9 +18,14 @@ import {
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
 import { useEventShare } from "@/components/app/share/event-share-provider";
 import { Button } from "@/components/ui/button";
-import { TileSizeControl } from "@/components/shared/tile-size-control";
+import { ViewMenu, type ViewMenuGroup } from "@/components/shared/view-menu";
 import { trackAttrs } from "@/lib/analytics/events";
-import { DEFAULT_TILE_SIZE, type TileSize } from "@/lib/shared/tile-size-cookie";
+import {
+  DEFAULT_TILE_SIZE,
+  TILE_SIZE_LABEL,
+  TILE_SIZES,
+  type TileSize,
+} from "@/lib/shared/tile-size-cookie";
 import { useTileSize } from "@/lib/shared/use-tile-size";
 import { cn } from "@/lib/utils";
 
@@ -36,8 +41,10 @@ type View = "album" | "deleted";
  *
  * It carries the controls that used to be spread between the retired command
  * strip and the retired section header: Add photos, Download all, Select, and
- * the DELETED filter his settings note folded in here ("The photo bin joins the
- * album as a filter"), so "Deleted" names exactly one thing in the product.
+ * one View menu (`app-vocabulary` r2, `controls-home=view-menu`) holding Tile
+ * size, Sort and Filter — the DELETED lens his settings note first folded in
+ * here ("The photo bin joins the album as a filter") now lives inside Filter,
+ * so "Deleted" still names exactly one thing in the product.
  *
  * ★ THE BIN IS FETCHED ON DEMAND, NEVER WITH THE PAGE. Each binned item needs
  * its own presign; loading them eagerly would tax every render of the hub for a
@@ -97,6 +104,57 @@ export function EventGallery({
     });
   }, [bin, eventId]);
 
+  // THE VIEW MENU'S THREE GROUPS (`app-vocabulary` r2, `controls-home=view-menu`):
+  // tile size, sort and filter move behind one button. Two honesty lines this
+  // lane drew rather than assumed (said in the Handoff):
+  //   1. SORT IS RESERVED, NOT WIRED. This component receives `children` as an
+  //      opaque, server-rendered slot (`EventUploads`, presigned in the RSC) —
+  //      never the approved media array — so there is no client-side list to
+  //      reorder. A "sort" that only reordered whatever happens to be mounted
+  //      would not sort the album; it would misreport doing so. The group still
+  //      renders (his ask was for the WORD to stop crowding the top level, not
+  //      to vanish) with every option disabled and a hint saying so.
+  //   2. FILTER HOLDS EXACTLY TODAY'S TWO STATES. The Deleted lens is the only
+  //      filter this page can honestly offer for the same reason: a photos/
+  //      videos split would need the same client-held list Sort would.
+  const viewGroups: ViewMenuGroup[] = useMemo(
+    () => [
+      {
+        id: "tile-size",
+        label: "Tile size",
+        value: String(tileSize),
+        onChange: (v) => setTileSize(Number(v) as TileSize),
+        options: TILE_SIZES.map((size) => ({
+          value: String(size),
+          label: TILE_SIZE_LABEL[size],
+        })),
+      },
+      {
+        id: "sort",
+        label: "Sort",
+        hint: "Coming soon",
+        disabled: true,
+        value: "newest",
+        onChange: () => {},
+        options: [
+          { value: "newest", label: "Newest first" },
+          { value: "oldest", label: "Oldest first" },
+        ],
+      },
+      {
+        id: "filter",
+        label: "Filter",
+        value: view === "deleted" ? "deleted" : "all",
+        onChange: (v) => (v === "deleted" ? showDeleted() : setView("album")),
+        options: [
+          { value: "all", label: "All" },
+          { value: "deleted", label: "Deleted" },
+        ],
+      },
+    ],
+    [tileSize, setTileSize, view, showDeleted],
+  );
+
   return (
     <section aria-label="Album" className="space-y-2.5">
       <FeedSectionHeader
@@ -133,26 +191,15 @@ export function EventGallery({
               {view === "album" && albumCount > 0 && (
                 <>
                   <GalleryDownloadAllButton eventId={eventId} />
-                  {/* The tile-size cluster (`app-vocabulary` r1,
-                      `gallery-controls-home=cluster`) joins Download and Select
-                      — his crowding worry over this exact row is a narrow round
-                      two (`gallery-controls`), not this lane's to pre-solve. */}
-                  <TileSizeControl value={tileSize} onChange={setTileSize} />
                   <GallerySelectButton />
                 </>
               )}
-              <Button
-                variant={view === "deleted" ? "secondary" : "ghost"}
-                size="sm"
-                aria-pressed={view === "deleted"}
-                onClick={() => (view === "deleted" ? setView("album") : showDeleted())}
-                {...trackAttrs("cta_click", {
-                  cta: "deleted-filter",
-                  location: "hub-album",
-                })}
-              >
-                <Trash2 /> Deleted
-              </Button>
+              {/* One View menu holds Tile size, Sort and Filter (`app-vocabulary`
+                  r2, `controls-home=view-menu`): Download and Select are the
+                  row's only other verbs. Always rendered, matching the Deleted
+                  toggle it replaces — the Filter group is how a host reaches an
+                  empty bin from an empty album, exactly as today. */}
+              <ViewMenu groups={viewGroups} />
             </div>
           )
         }

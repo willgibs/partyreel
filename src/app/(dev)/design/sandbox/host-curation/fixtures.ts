@@ -8,14 +8,17 @@ import {
   HOST_EVENT,
   REVIEW_ITEMS,
   UPLOADS_ITEMS,
-} from "../app-vocabulary/fixtures";
+} from "../gallery-fixtures";
 
 /**
  * THE STAND-IN CONTENT for `host-curation`. The four pools are
- * `app-vocabulary`'s, reused VERBATIM (the manifest): one wedding, one host
- * event row, the same seven pending uploads, the same eighteen-tile album and
- * the same bin, so two boards on the same desk never argue about what a queue
- * looks like. Every still is one of the fourteen bootstrap images every other
+ * `sandbox/gallery-fixtures.ts`'s, reused VERBATIM (the manifest; that module
+ * held `app-vocabulary`'s fixtures until that board retired at its wiring
+ * and `controls-home-wiring` lifted them out to a plain, board-less file so
+ * host-curation's fixtures kept working): one wedding, one host event row,
+ * the same seven pending uploads, the same eighteen-tile album and the same
+ * bin, so two boards on the same desk never argue about what a queue looks
+ * like. Every still is one of the fourteen bootstrap images every other
  * board reuses — no new asset and no rights to track (Will, 2026-09-17/18).
  *
  * What is added here is what this round's act needs and no other board has:

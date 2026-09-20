@@ -25,9 +25,14 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
-  // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
-  // block below it, so several lanes adding `for` lines in one round land on
-  // distinct hunks instead of on each other.
+  // THE APP'S ONE VIEW MENU (lp/controls-home-wiring, 2026-09-20), at the head
+  // like the block below it, so several lanes adding `for` lines in one round
+  // land on distinct hunks instead of on each other.
+  "src/components/shared/view-menu.tsx": {
+    for: "the one dropdown every gallery's crowded controls move behind (`app-vocabulary` r2, `controls-home=view-menu`): a caller hands it arbitrary radio `groups` (a label, options, a value, a handler), so the host gallery's tile size/sort/filter and the guest album's tile size/Yours are the same object worn twice. A `disabled` group renders every option inert with a `hint` explaining why, rather than hiding a control he explicitly asked to stop being invisible",
+    unspecimened:
+      "a thin dropdown wrapper over caller-owned groups and handlers; event-gallery.tsx's own View button (src/components/app/event-feed, outside the library) is the real caller and the honest demo, not fixture groups invented for the Library",
+  },
   "src/components/ui/table.tsx": {
     for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
   },
@@ -547,7 +552,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the one required add-your-name step, reused at every gate that asks for one",
   },
   "src/components/shared/tile-size-control.tsx": {
-    for: "the gallery's tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Controlled: the caller owns the persistence",
+    for: "the gallery's r1 tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Superseded in production by ViewMenu's Tile size group (`app-vocabulary` r2), which is where those two reserved slots actually landed; kept on disk, unmounted, for the lab. Controlled: the caller owns the persistence",
   },
   "src/components/shared/tooltip-slide.tsx": {
     for: "the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide)",

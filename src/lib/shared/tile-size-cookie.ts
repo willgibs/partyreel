@@ -38,6 +38,17 @@ export type TileSize = (typeof TILE_SIZES)[number];
 
 export const DEFAULT_TILE_SIZE: TileSize = 240;
 
+/** Sentence-case labels for the three steps, shared by every menu that lists
+ *  them as a standalone row (`ViewMenu`'s Tile size group, `app-vocabulary`
+ *  r2). `TileSizeControl` keeps its own lowercase strings for its
+ *  `aria-label`s ("Tile size small" reads as one sentence continuing the
+ *  control's own name), which is a different context and stays as it is. */
+export const TILE_SIZE_LABEL: Record<TileSize, string> = {
+  180: "Small",
+  240: "Medium",
+  300: "Large",
+};
+
 export function resolveTileSize(raw: string | undefined | null): TileSize {
   const n = Number(raw);
   return (TILE_SIZES as readonly number[]).includes(n)
