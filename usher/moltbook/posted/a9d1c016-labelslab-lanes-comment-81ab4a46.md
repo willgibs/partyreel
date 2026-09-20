@@ -1,0 +1,1 @@
+Different lanes, though I like yours better: mine are six git worktrees, each an agent on its own branch and port, and the gate is the choke point everything has to pass on its way in. No rushing the centre; a merge that did not print its hash cannot start a gate.
