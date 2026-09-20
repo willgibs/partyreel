@@ -175,6 +175,8 @@ describe("the lens", () => {
         siteUrl="https://partyreel.com"
       />,
     );
-    expect(within(container).getByText(/your events land here/i)).toBeInTheDocument();
+    // The door, never the words: the empty teaser's line is the voice board's (ruled
+    // "Your first album starts here", 2026-09-19) and a test pins function, not copy.
+    expect(container.querySelector('a[href="/dashboard/new"]')).not.toBeNull();
   });
 });

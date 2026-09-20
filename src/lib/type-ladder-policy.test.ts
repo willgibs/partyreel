@@ -417,12 +417,12 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
   "src/components/marketing/sections/reel/wysiwyg-section.tsx": {
     kind: "lane",
     count: 1,
-    why: "no manifest owns it this round: one aria-hidden decorative arrow at 18",
+    why: "no manifest owns it this round: one aria-hidden decorative arrow at 18 (home-wiring moved the 11 px label onto the label pair at its merge, 2026-09-20; one element remains, type-sync's)",
   },
   // ── pending: an app-shape lane is rebuilding the element ──
   "src/app/(guest)/u/[slug]/page.tsx": {
     kind: "pending",
-    count: 2,
+    count: 1,
     why: "home-wiring rebuilds the profile as an owner mode: one uppercase section label on the label step, one avatar initial",
   },
   "src/components/app/event-feed/feed-section-header.tsx": {

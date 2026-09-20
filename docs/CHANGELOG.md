@@ -108,8 +108,30 @@ rule); then his night instruction: the seats run all night on unexplored surface
   paragraph and the map's contract published. One ROADMAP line (the dock's one-row grid squeezing the note column).
   Gate 43 green on the merged tree.
 
-**Next.** The other three lanes' handoffs (`home-wiring` handed off), the waiting four, the night's explorations; his
-eye on the alias in the morning.
+- **`home-wiring` merged at `62a82a26`** (2026-09-20, Opus; cut `20cc9b5f`): `app-shape` r1's home, list and You
+  answers in production. `/dashboard` is the pulse in four bands: the first is a RULE, not a queue (`next-step.ts`,
+  his precedence: a queue waiting, uploads paused, no reel, dated tomorrow, no events at all, storage over 85
+  percent; an empty result renders a calm line and the storage line and the create door are unconditional), then
+  "just arrived" widening its window hour, today, newest until it holds twelve and captioning which (the arrivals keep
+  the tile fade, the one host surface where it tells the truth), the storage line, the events. The five-chip inbox
+  retired (`dashboard-feed.tsx` and `following-section.tsx` deleted; `filter-chips` and `trash-section` kept on disk
+  for the lab). The events list: cover cards by default, rows behind a toggle opposite the heading (a three-item sort
+  menu on the rows; the bin and saved events as lenses on one list, shown in both views), the view in a cookie set by a
+  Server Action for an honest first paint. The three personal feeds moved to `/u/[slug]`'s owner mode (the component
+  takes no parameters, so the gate can only fail safely); a Plan card on `/account` with every fact from the
+  webhook-written row; the user menu's two doors ("Your profile", the claim card when handle-less; "Account").
+  `host-app.md`, `auth-accounts.md` and `profiles-social.md` refined in place. Calls his to overrule on the alias: the
+  four bands and the next-best-step precedence; the cookie and cards-as-default; the row shape and its sort menu; the
+  bin and saved events as filters in both views; no headed table; the menu's two doors as rows, not a clickable
+  header; no inline avatar editing on the profile (the Edit profile door); `profiles.events_view` recommended against
+  (a written proposal only). The row view drops the guest and view counts the board drew (no cheap honest source).
+  Three ROADMAP lines (`trackAttrs` is inert on `(app)`: no listener; `toggle-group.tsx` ships unspecimened;
+  `getFollowedHostEventCards` has no caller). Two of its tests were re-pointed at the record: one pinned the empty
+  teaser's old title that `voice-wiring` had ruled away (now a door check), one is named below. Gate 44 on the
+  merged tree, with those two tests green after the fix.
+
+**Next.** `hub-wiring`'s merge (handed off `a2f77b4f`) and `glass-material`'s handoff, the waiting four, the night's
+explorations; his eye on the alias in the morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
 
