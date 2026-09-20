@@ -1,21 +1,23 @@
 import type { GridMedia } from "@/components/app/media-grid";
+import { describeArrivals, pickArrivalWindow } from "@/lib/dashboard/arrivals";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
+import type { PulseTile } from "@/lib/db/queries/pulse";
 
 /**
- * ONE HOST, ONE SATURDAY NIGHT: the fixtures every option on this board is
- * drawn on.
+ * THREE HOSTS, EACH AT A DIFFERENT POINT: the fixtures `home-states` (app-shape
+ * round two) draws its three asks on. Will approved the pulse (`home=pulse`,
+ * 2026-09-20) while warning it needs to hold at both ends of a host's life, not
+ * only on Maya's busiest Saturday: "it is likely worth more dashboard
+ * explorations from here to figure out what feels best across all host states
+ * (from a new empty host to a first-event-just-created host to a busy host)."
  *
- * Maya is hosting a wedding that is happening RIGHT NOW (248 in the album, 12
- * waiting on her, a reel half made, 23 guests), she hosted a rooftop party last
- * month, she is closing out her dad's birthday, she saved a friend's event, she
- * deleted one, and she is at 96 percent of her storage. That is deliberately
- * the BUSIEST honest day a Partyreel host has: a shape that holds here holds on
- * a quiet Tuesday, and the reverse is how the app got to where it is.
- *
- * ★ THE NUMBERS ARE THE ONES THE APP WOULD SHOW. `itemCount` is what the event
- * page's stat line counts (approved + hidden, never pending), `pending` is the
- * review queue, `guests` is distinct contributors. So an option that claims to
- * say "what needs you" is drawn against a day that has something to say.
+ * ★ ROUND ONE'S FIXTURE IS KEPT, NOT REPLACED. Maya Chen and her Saturday night
+ * (`EVENTS`, `HOST`, `STORAGE`, `ARRIVALS`) drew round one's eight decisions and
+ * still draw `busy` here; this file only adds the two states she never was.
+ * Round one's `QUEUE`, `REEL`, `GUESTS`, `MY_UPLOADS`, `MY_LIKES` and `SAVED`
+ * drew the personal-feed and event-room previews of `home.tsx`, `event.tsx` and
+ * `account.tsx`, all retired this round (their axes are ruled and wired); those
+ * fixtures retired with them rather than sit unread.
  */
 
 /* ── The photographs ─────────────────────────────────────────────────────── */
@@ -65,17 +67,67 @@ function roll(prefix: string, n: number, from = 0): GridMedia[] {
 /** The wedding's album: forty, because the widest frame here holds six columns. */
 export const ALBUM: GridMedia[] = roll("album", 40);
 
-/** The twelve waiting on Maya. Pending, so the review grid dims them. */
-export const QUEUE: GridMedia[] = roll("queue", 12, 7).map((m) => ({
-  ...m,
-  status: "pending" as const,
-}));
-
 /** What arrived across every event in the last hour, newest first. */
 export const ARRIVALS: GridMedia[] = roll("new", 12, 21);
 
-/** The reel's cut, as the studio's filmstrip holds it. */
-export const REEL: GridMedia[] = roll("reel", 8, 3);
+/** A `GridMedia` as the pulse's own presigned `PulseTile` (id, type, url only). */
+const tileOf = (m: GridMedia): PulseTile => ({
+  id: m.id,
+  type: m.type,
+  url: m.url,
+});
+
+/**
+ * `pickArrivalWindow` and `describeArrivals` (`lib/dashboard/arrivals.ts`) want
+ * real timestamps, not a hardcoded caption, so `busy` and `first` hand them
+ * genuine `createdAt`s and read the real window and caption back — the same
+ * function production calls, on data this file owns.
+ *
+ * ★ ONE `now`, READ ONCE. A module-level constant rather than `Date.now()`
+ * inside a preview keeps every render and every screenshot agreeing with
+ * itself for as long as the page stays open, exactly the purity `next-step.ts`
+ * and `arrivals.ts` require of their own callers.
+ */
+export const NOW = Date.now();
+export const TODAY = "2026-09-20";
+export const TOMORROW = "2026-09-21";
+
+/** `n` timestamps spread across the last `withinMinutes`, newest first. */
+function minutesAgo(n: number, withinMinutes: number): string[] {
+  return Array.from({ length: n }, (_, i) =>
+    new Date(NOW - Math.round((i / Math.max(1, n - 1)) * withinMinutes * 60_000)).toISOString(),
+  );
+}
+
+/** Busy: twelve photographs this hour, across five events. */
+export const BUSY_ARRIVALS: PulseTile[] = ARRIVALS.map(tileOf);
+export const BUSY_ARRIVAL_TIMES: string[] = minutesAgo(BUSY_ARRIVALS.length, 55);
+
+/**
+ * Local midnight for `NOW`, the same shape `DashboardPage` computes once per
+ * render and hands to `resolveNextSteps`/`getPulse`. Derived here rather than
+ * inside a component so every preview reads one frozen clock rather than each
+ * calling `new Date()` on its own render.
+ */
+export const START_OF_TODAY = new Date(
+  new Date(NOW).getFullYear(),
+  new Date(NOW).getMonth(),
+  new Date(NOW).getDate(),
+).getTime();
+
+/**
+ * The real window pick + caption for `BUSY_ARRIVAL_TIMES`, read through the
+ * SAME two functions `getPulse` calls server-side — never a hand-typed
+ * "12 in the last hour", which is exactly the kind of small lie `arrivals.ts`
+ * exists to prevent.
+ */
+const busyWindow = pickArrivalWindow(BUSY_ARRIVAL_TIMES, NOW, START_OF_TODAY);
+export const BUSY_ARRIVALS_CAPTION: string = describeArrivals(
+  busyWindow.window,
+  busyWindow.count,
+  BUSY_ARRIVAL_TIMES[0] ?? null,
+  NOW,
+);
 
 /* ── The events ──────────────────────────────────────────────────────────── */
 
@@ -90,20 +142,29 @@ export type HostEvent = {
   /** The review queue. 0 when there is nothing waiting. */
   pending: number;
   guests: number;
-  views: number;
+  accepting: boolean;
+  /** `YYYY-MM-DD`, matched against `next-step.ts`'s `tomorrowOf(TODAY)`. */
+  eventDate: string | null;
   /** null when no reel has been made yet. */
   reelClips: number | null;
-  accepting: boolean;
-  visibility: "Public" | "Password" | "Private";
-  /** Newest first, for the strip a row or a wall draws. */
+  /** Newest first, for the row a card's chrome may draw. */
   newest: GridMedia[];
-  /** What the app would say needs doing, or null when nothing does. */
-  needs: string | null;
 };
 
 const img = (i: number) => MARKETING_IMAGES[i % MARKETING_IMAGES.length].src;
 
-export const EVENTS: HostEvent[] = [
+/**
+ * ★ BUSY, STRESS-TESTED. Round one's three events already forced a queue chip,
+ * a reel-less event and a closed one; `collapsed` needs the band actually
+ * crowded to argue anything, so two more events join Maya's Saturday, each
+ * contributing ONE MORE next step through the real `resolveNextSteps`
+ * precedence (`lib/dashboard/next-step.ts`): a second review queue (Trivia
+ * Night), and an unopened event dated tomorrow with nothing in it yet, which
+ * only reaches the PRINT step because it has no items to want a reel for
+ * (Beach Bonfire). Five events, five steps, plus the storage line: six chips,
+ * the whole reason this ask exists.
+ */
+export const BUSY_EVENTS: HostEvent[] = [
   {
     id: "wedding",
     name: "Maya & Jay's Wedding",
@@ -112,12 +173,23 @@ export const EVENTS: HostEvent[] = [
     items: 248,
     pending: 12,
     guests: 23,
-    views: 184,
-    reelClips: 8,
     accepting: true,
-    visibility: "Public",
-    newest: ARRIVALS.slice(0, 6),
-    needs: "12 photos waiting for you",
+    eventDate: null,
+    reelClips: 8,
+    newest: ARRIVALS.slice(0, 4),
+  },
+  {
+    id: "trivia",
+    name: "Trivia Night",
+    dateLabel: "Thursday, 11 June",
+    cover: img(3),
+    items: 34,
+    pending: 5,
+    guests: 11,
+    accepting: true,
+    eventDate: null,
+    reelClips: null,
+    newest: ALBUM.slice(4, 8),
   },
   {
     id: "rooftop",
@@ -127,12 +199,10 @@ export const EVENTS: HostEvent[] = [
     items: 86,
     pending: 0,
     guests: 9,
-    views: 61,
-    reelClips: null,
     accepting: true,
-    visibility: "Password",
-    newest: ALBUM.slice(12, 18),
-    needs: "No reel yet",
+    eventDate: null,
+    reelClips: null,
+    newest: ALBUM.slice(12, 16),
   },
   {
     id: "sixtieth",
@@ -142,71 +212,112 @@ export const EVENTS: HostEvent[] = [
     items: 41,
     pending: 0,
     guests: 4,
-    views: 28,
-    reelClips: 4,
     accepting: false,
-    visibility: "Private",
-    newest: ALBUM.slice(24, 30),
-    needs: null,
+    eventDate: null,
+    reelClips: 4,
+    newest: ALBUM.slice(24, 28),
+  },
+  {
+    id: "bonfire",
+    name: "Beach Bonfire",
+    dateLabel: "Monday, 21 September",
+    cover: img(6),
+    items: 0,
+    pending: 0,
+    guests: 0,
+    accepting: true,
+    eventDate: TOMORROW,
+    reelClips: null,
+    newest: [],
   },
 ];
 
-/** The one she is inside for every event-page option. */
-export const LIVE = EVENTS[0];
-
-/** A friend's event she saved: the sixth chip's contents on the home. */
-export const SAVED = {
+/** A friend's event she saved: the events list's `saved` lens. */
+export const BUSY_SAVED = {
+  id: "engagement",
   name: "Priya & Sam's Engagement",
   host: "Priya",
   dateLabel: "Saturday, 3 May",
   cover: img(10),
 };
 
-/** The events bin: restore only, no purge (the dashboard's "Deleted"). */
-export const DELETED_EVENT = {
+/** The events bin: restore only, no purge (the dashboard's own "Deleted"). */
+export const BUSY_DELETED = {
+  id: "office-social",
   name: "Office Summer Social",
   dateLabel: "Friday, 11 July",
-  cover: img(6),
+  cover: img(9),
   countdown: "22 days left",
 };
 
-/* ── Everything else on the day ──────────────────────────────────────────── */
-
 export const HOST = {
   name: "Maya Chen",
-  email: "maya@chen.co",
   initial: "M",
   plan: "Pro",
-  slug: "maya",
-  followers: 41,
-  following: 18,
 } as const;
 
-/**
- * At the cap and past the amber line: 19.2 of 20 GB, 96 percent, with 1.4 GB
- * still standing by in the bins. Every option that draws the meter draws it
- * loud, because a strip that only matters at 96 percent has to be judged at 96.
- */
-export const STORAGE = {
+/** At the cap and past the amber line: 19.2 of 20 GB, 96 percent. */
+export const BUSY_STORAGE = {
   used: 19.2 * 1024 ** 3,
   cap: 20 * 1024 ** 3,
   pct: 96,
   standby: 1.4 * 1024 ** 3,
 } as const;
 
-/** Named, signed-in uploaders on the wedding (the Guests section's list). */
-export const GUESTS = [
-  { name: "Jay Ortega", initial: "J", items: 41 },
-  { name: "Nina Patel", initial: "N", items: 28 },
-  { name: "Tom Reilly", initial: "T", items: 22 },
-  { name: "Grace Liu", initial: "G", items: 19 },
-  { name: "Owen Marsh", initial: "O", items: 14 },
-  { name: "Sadie Cole", initial: "S", items: 11 },
-] as const;
+/* ── First: one event, made minutes ago ─────────────────────────────────── */
 
-/** Her own media, the two personal feeds the home mixes in today. */
-export const MY_UPLOADS: GridMedia[] = roll("mine", 9, 31);
-export const MY_LIKES: GridMedia[] = roll("liked", 9, 15);
+export const FIRST_HOST = {
+  name: "Jordan Kim",
+  initial: "J",
+  plan: "Free",
+} as const;
 
-/** The event link every share surface shows. */
-export const JOIN_URL = "partyreel.com/e/maya-and-jay";
+/**
+ * ★ FREE, DELIBERATELY. `MAX_EVENTS.free` is 1 (`constants/tiers.ts`), so the
+ * most common first event is also, immediately, an at-cap one: the create
+ * button disables itself and the plan banner appears under every option here,
+ * exactly as `DashboardPage` would actually render it. That interaction is a
+ * real finding, not a distraction added for drama, so it is left to happen
+ * rather than hidden by quietly making Jordan a Pro host.
+ */
+export const FIRST_EVENT: HostEvent = {
+  id: "housewarming",
+  name: "Jordan's Housewarming",
+  dateLabel: "Saturday, 3 October",
+  cover: img(4),
+  items: 0,
+  pending: 0,
+  guests: 0,
+  accepting: true,
+  // Ten days out: neither today nor TOMORROW, so the baseline `pulse` option
+  // reads exactly as a fresh event reads today, with no print step riding
+  // along uninvited.
+  eventDate: "2026-09-30",
+  reelClips: null,
+  newest: [],
+};
+
+export const FIRST_STORAGE = {
+  used: 0,
+  cap: 20 * 1024 ** 3,
+  pct: 0,
+  standby: 0,
+} as const;
+
+/** The event link the share-forward option puts in front of the host. */
+export const JOIN_URL = "partyreel.com/e/jordans-housewarming";
+
+/* ── Empty: nothing created yet ──────────────────────────────────────────── */
+
+export const EMPTY_HOST = {
+  name: "Alex Rivera",
+  initial: "A",
+  plan: "Free",
+} as const;
+
+export const EMPTY_STORAGE = {
+  used: 0,
+  cap: 20 * 1024 ** 3,
+  pct: 0,
+  standby: 0,
+} as const;
