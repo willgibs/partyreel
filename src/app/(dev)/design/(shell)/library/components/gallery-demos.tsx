@@ -114,6 +114,7 @@ import {
 import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
+  ConfirmSwitchDemo,
   EmptyAlbumDemo,
   FormDemo,
   OtpDemo,
@@ -556,6 +557,20 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
             <Switch aria-label="Off" />
           </Row>
         ),
+      },
+    ],
+  },
+  {
+    id: "confirm-switch",
+    badge: "new",
+    family: "components",
+    section: "Inputs",
+    lede: "The switch that asks first (`app-vocabulary` r1, `confirm-switch=primitive`): one component owns the glyph beside the label and the deferred-open confirm dance, so a consequential switch never flips silently and the setTimeout dodge for radix's dismissable layer is written once. uploads-section.tsx's two hand-rolled pairs retired into it.",
+    specimens: [
+      {
+        label: "Turn it off to see the ask",
+        hint: "confirmWhen={(next) => !next}: the ON direction is instant, same as any plain Switch",
+        node: <ConfirmSwitchDemo />,
       },
     ],
   },

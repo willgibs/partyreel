@@ -5,9 +5,11 @@ import { ImageUp, Loader2, QrCode, Trash2 } from "lucide-react";
 
 import {
   listDeletedMediaAction,
+  setTileSizeAction,
   type BinItem,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { useHostAdd } from "@/components/app/host-add-provider";
+import { useHostSelection } from "@/components/app/host-selection-provider";
 import { HostUpload } from "@/components/app/host-upload";
 import {
   RecentlyDeletedGrid,
@@ -16,11 +18,14 @@ import {
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
 import { useEventShare } from "@/components/app/share/event-share-provider";
 import { Button } from "@/components/ui/button";
+import { TileSizeControl } from "@/components/shared/tile-size-control";
 import { trackAttrs } from "@/lib/analytics/events";
+import { DEFAULT_TILE_SIZE, type TileSize } from "@/lib/shared/tile-size-cookie";
+import { useTileSize } from "@/lib/shared/use-tile-size";
 import { cn } from "@/lib/utils";
 
 import { FeedSectionHeader } from "./feed-section-header";
-import { GallerySelectButton } from "./gallery-actions";
+import { GalleryBulkBar, GallerySelectButton } from "./gallery-actions";
 
 type View = "album" | "deleted";
 
@@ -49,12 +54,18 @@ export function EventGallery({
   eventId,
   albumCount,
   videosAllowed,
+  initialTileSize,
   children,
 }: {
   eventId: string;
   /** Approved + hidden. Pending lives in the Review room; deleted lives in the bin. */
   albumCount: number;
   videosAllowed: boolean;
+  /** Server-resolved from the cookie (`app-vocabulary` r1,
+   *  `gallery-controls-persistence`, overruled to a cookie so the first paint
+   *  is already the size a returning host picked — never localStorage,
+   *  which would resize the whole album after hydration on every load). */
+  initialTileSize?: TileSize;
   /** The RSC-presigned album, handed down as an opaque pre-rendered slot. */
   children: React.ReactNode;
 }) {
@@ -63,9 +74,14 @@ export function EventGallery({
   const [binError, setBinError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
   const { openSheet } = useEventShare();
+  const { size: tileSize, setTileSize } = useTileSize(
+    initialTileSize ?? DEFAULT_TILE_SIZE,
+    setTileSizeAction,
+  );
 
   const add = useHostAdd();
   const adding = add?.adding ?? false;
+  const selection = useHostSelection();
 
   const showDeleted = useCallback(() => {
     setView("deleted");
@@ -91,40 +107,54 @@ export function EventGallery({
             : (bin?.length ?? undefined)
         }
         action={
-          <div className="flex items-center gap-1.5">
-            {/* Add photos left the retired command strip for the album's own
-                header, beside the two controls it belongs with. */}
-            <Button
-              variant="outline"
-              size="sm"
-              aria-expanded={adding}
-              onClick={add?.toggleAdd}
-              {...trackAttrs("cta_click", {
-                cta: "add-photos",
-                location: "hub-album",
-              })}
-            >
-              <ImageUp /> Add photos
-            </Button>
-            {view === "album" && albumCount > 0 && (
-              <>
-                <GalleryDownloadAllButton eventId={eventId} />
-                <GallerySelectButton />
-              </>
-            )}
-            <Button
-              variant={view === "deleted" ? "secondary" : "ghost"}
-              size="sm"
-              aria-pressed={view === "deleted"}
-              onClick={() => (view === "deleted" ? setView("album") : showDeleted())}
-              {...trackAttrs("cta_click", {
-                cta: "deleted-filter",
-                location: "hub-album",
-              })}
-            >
-              <Trash2 /> Deleted
-            </Button>
-          </div>
+          selection?.selectMode ? (
+            // GalleryBulkBar takes over the whole action slot in select mode
+            // (mirroring ReviewActions, review-section.tsx), the row's only
+            // mount point in production: nothing else rendered it before this
+            // (retired with the floating EventFeedActionBar), so entering
+            // select mode left a host with no visible Hide, Delete or Cancel.
+            <GalleryBulkBar />
+          ) : (
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              {/* Add photos left the retired command strip for the album's own
+                  header, beside the two controls it belongs with. */}
+              <Button
+                variant="outline"
+                size="sm"
+                aria-expanded={adding}
+                onClick={add?.toggleAdd}
+                {...trackAttrs("cta_click", {
+                  cta: "add-photos",
+                  location: "hub-album",
+                })}
+              >
+                <ImageUp /> Add photos
+              </Button>
+              {view === "album" && albumCount > 0 && (
+                <>
+                  <GalleryDownloadAllButton eventId={eventId} />
+                  {/* The tile-size cluster (`app-vocabulary` r1,
+                      `gallery-controls-home=cluster`) joins Download and Select
+                      — his crowding worry over this exact row is a narrow round
+                      two (`gallery-controls`), not this lane's to pre-solve. */}
+                  <TileSizeControl value={tileSize} onChange={setTileSize} />
+                  <GallerySelectButton />
+                </>
+              )}
+              <Button
+                variant={view === "deleted" ? "secondary" : "ghost"}
+                size="sm"
+                aria-pressed={view === "deleted"}
+                onClick={() => (view === "deleted" ? setView("album") : showDeleted())}
+                {...trackAttrs("cta_click", {
+                  cta: "deleted-filter",
+                  location: "hub-album",
+                })}
+              >
+                <Trash2 /> Deleted
+              </Button>
+            </div>
+          )
         }
       />
 
@@ -146,7 +176,14 @@ export function EventGallery({
         </div>
       )}
 
-      <div data-section-swap className={cn(view === "album" ? "" : "hidden")}>
+      {/* --album-column is the knob masonry.tsx's grid reads (the seam its
+          own comment describes); the tile-size cluster above sets it here, on
+          the ancestor wrapping the grid, never on the grid component itself. */}
+      <div
+        data-section-swap
+        className={cn(view === "album" ? "" : "hidden")}
+        style={{ "--album-column": `${tileSize}px` } as React.CSSProperties}
+      >
         {children}
       </div>
 
