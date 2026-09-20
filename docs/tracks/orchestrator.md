@@ -13,8 +13,8 @@ owns:
   # board under it.runIf), so a retirement never needs them released again.
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
-  # src/app/theme.css and src/app/globals.css are RELEASED to ladder-wiring (2026-09-20: the six body steps, their
-  # companions and the label @utility) and come back here at its merge, as they did after events-wiring.
+  - src/app/globals.css
+  - src/app/theme.css
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here
   # (the registration and retirement exceptions, announced 2026-09-18).
@@ -155,7 +155,7 @@ retired `type-phone`; both agents were told so by message.
 | `profile-reach` | cut at `b30445d9` (batch four): `profile-page` round two on View all, the quick-look and the way back | done: merged `73cde345` (2026-09-19, handed off `bb82a760`); on the desk | Sonnet, :3135 | Will's sitting (three decisions) |
 | `lab-tides` | cut at `11f03ef9` (Will's standing ask, 2026-09-19: rising tides on the lab workflow): the accrued lab notes landed (the `lab:demo` port trap and stall, the constructor's defaults and dedupe, the frame's quirks mode, a responsive variant in a frame, the collector's blind spot, the settle, the dock from a step) and the carried calls rendered on the desk | done: merged `75d6d2e2` (2026-09-20, handed off `0cd82116`, zero conflicts), gate 40 on the merged tree; the `call:` clause is the Orchestrator's to land | Opus, :3136 | nothing; `overtaken` takes its seat |
 | `voice-wiring` | cut at the fifth batch's record (2026-09-20): the eight ruled lines to production, bible 20 rewritten by the Orchestrator, `voice` retires; owns the copy homes and `content/` | done: merged `32861973` (2026-09-20, handed off `2122a05b`, zero conflicts), gate 41 on the merged tree; the board and its ledger gone | Opus, :3131 | the red-team on the alias at 375; the signed-in half (the dashboard's empty teaser) is Will's |
-| `ladder-wiring` | cut at the record: the six ruled body rungs as tokens beside the heading steps, the policy extended to body sizes, the sweep in its owned files; `theme.css` and `utils.ts` RELEASED to it | open | Opus, :3132 | the handoff; merged LAST of the four when two arrive together |
+| `ladder-wiring` | cut at the record: the six ruled body rungs as tokens beside the heading steps, the policy extended to body sizes, the sweep in its owned files; `theme.css` and `utils.ts` RELEASED to it | done: merged `59345bc8` (2026-09-20, handed off `e7b34c74`, zero conflicts), gate 42 on the merged tree; `theme.css` and `globals.css` back in the Orchestrator's owns | Opus, :3132 | the red-team on the alias at 375; the reel studio's chips need a host session (Will's) |
 | `home-wiring` | cut at the record: the pulse, the events list both ways behind a toggle, the personal feeds to the profile's owner mode, a Plan card, the two menu doors | open | Opus, :3133 | the handoff; the red-team on the alias signed in |
 | `hub-wiring` | cut at the record: the event as a hub with the gallery beneath, the live QR door with its mini-modal and copy link, crumbs with the cards going sticky, the settings and share sheets, one shape on a phone | open | Opus, :3134 | the handoff; the red-team on the alias signed in |
 | `glass-material` | cut at the record: glass round two, the ONE material (Frost, Crystal, White) measured on every glass surface; the wiring waits for it | open | Opus, :3135 | the handoff; on the desk |

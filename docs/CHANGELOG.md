@@ -72,7 +72,27 @@ rule); then his night instruction: the seats run all night on unexplored surface
   plan table shape kept; "No app, just your email." kept in the save and likes prompts as the register's model. Gate 41
   green on the merged tree.
 
-**Next.** The other five lanes' handoffs, the waiting four, the night's explorations; his eye on the alias in the
+- **`ladder-wiring` merged at `59345bc8`** (2026-09-20, Opus; cut `20cc9b5f`): six of `body-type` r1's seven rungs as
+  tokens beside the heading steps, the ladder now "sixteen steps, one set": `reading` 16/24 for every guest-facing
+  sentence (the 26 `text-[15px]` gone), `working` 14/20 for the app, the admin and marketing's own chrome, `copy` a
+  clamp from 16 at a phone to 18 at a desk printed by the retired board's own `fluid()` (recovered from git),
+  `caption` 12/16 and `micro` 10/12 as the floor (his note read as two rungs), `label` 12/16 on 0.08em as a STEP, not
+  an `@utility` (a custom utility would lose to a stray `text-sm`; `globals.css` untouched), every rung on 2 x size - 8
+  pinned by a test that reads it off the tokens. The type policy gained its sixth silent-failure way: a count-pinned
+  allow-list that only shrinks (101 survivors named and reasoned, five kinds; the buttons rung and its five overrides
+  under `board` for `buttons-pairs`). The sweep moved 112 sentences: the 11 px mass split by role (a label to 12,
+  metadata over a photograph to 10), the sub-floor raised to 10 outside pictures (eleven small uppercase chips grew
+  from 8 or 9 to 12), every hand-set `leading-*` beside a new step deleted, two hero subs onto `subhead`, a price
+  numeral onto `subsection`, the admin mapped where equal and its health numerals left alone. Measured in headless
+  Chrome at both widths. `design-system.md`'s type section refined in place. Calls his to overrule on the alias: the
+  six names; the trackings (0 / 0 / 0 / +0.005 / +0.08 / +0.01); `copy` never inside a `card-title` block; the chips
+  that grew; the removed leadings' new rhythm; `working` on marketing's own UI chrome. One lane incident on the
+  record: a `--force-with-lease` on its own branch to fix a manifest SHA (nothing lost; the rule stands). Five
+  ROADMAP lines (the hard-fail flip, a `type-sync` sweep of the 21 sites other lanes held, the `text-[10px]` rename,
+  `components/admin/` owned by no manifest, the stale contract line numbers in the generated artifact). Gate 42 green
+  on the merged tree.
+
+**Next.** The other four lanes' handoffs, the waiting four, the night's explorations; his eye on the alias in the
 morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
