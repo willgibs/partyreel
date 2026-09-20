@@ -365,7 +365,17 @@ export function AdminLists({
   return (
     <div className="space-y-8">
       <InboxHead count={SUPPORT_ROWS.length} />
-      {density === "cards" ? <SupportList submissions={SUBMISSIONS} /> : null}
+      {density === "cards" ? (
+        // The "as today" option kept drawing the real component, which now takes
+        // the pane's props: the board retires at this lane's merge and the
+        // fixtures move to the Library demo, so this is the last render of it.
+        <SupportList
+          submissions={SUBMISSIONS}
+          selectedId={null}
+          basePath="/admin/support"
+          nowMs={Date.parse("2026-09-20T14:22:00Z")}
+        />
+      ) : null}
       {density === "table" ? <SupportTable colour={colour} /> : null}
       {density === "hybrid" ? <SplitInbox colour={colour} /> : null}
 

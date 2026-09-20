@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 642 contracts on 90 components · 27 standing boards.**
+**22 laws · 18 policies · 705 contracts on 99 components · 27 standing boards.**
 
 ## What binds you
 
@@ -311,6 +311,7 @@ function. A contract never freezes a look.
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
 | `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
+| `src/components/ui/command-palette.tsx` | a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees | wires the field to the list it controls; activates the first row before a key is pressed, so Enter always does something; walks the list with the arrows and stops at both ends; reaches both ends with Home and End; opens the row that is highlighted, not the one that was first; moves the highlight with the pointer, so the mouse and the keys agree; hands the query to whoever is filtering, and never filters itself |
 | `src/components/ui/dialog.tsx` | the modal, plus the fullScreen takeover a whole-screen surface asks for | none |
 | `src/components/ui/drawer.tsx` | the vaul bottom sheet; in the kit, and no product surface has claimed it yet | none |
 | `src/components/ui/dropdown-menu.tsx` | the menu behind the user menu, the notification bell and the admin controls | portals the submenu, so a transformed or scrolled parent cannot clip it; refuses a third level, at render, rather than in a review note; wears a title row, labelled groups and a footer rail when a menu has them; renders a two-row overflow with none of them, because Card's cost is real |
@@ -327,6 +328,7 @@ function. A contract never freezes a look.
 | `src/components/ui/skeleton.tsx` | the loading block: a shimmer sweep that goes static under reduced motion | none |
 | `src/components/ui/sonner.tsx` | the themed Toaster | none |
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
+| `src/components/ui/table.tsx` | the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
 | `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
@@ -342,6 +344,9 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/admin/destructive-sheet.tsx` (7 guards)
+- `src/components/admin/health-band.tsx` (6 guards)
+- `src/components/admin/inbox-pane.tsx` (4 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
@@ -397,6 +402,10 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail.tsx` (17 guards)
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
+- `src/lib/admin/kpi.ts` (10 guards)
+- `src/lib/admin/palette.ts` (11 guards)
+- `src/lib/admin/queue.ts` (7 guards)
+- `src/lib/admin/tone.ts` (6 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)

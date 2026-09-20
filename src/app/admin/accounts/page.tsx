@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { accountTierLabel, searchAccounts } from "@/lib/db/queries/accounts";
 import { formatBytes } from "@/lib/utils";
@@ -54,29 +62,73 @@ export default async function AdminAccountsPage({
       </form>
 
       {accounts.length > 0 ? (
-        <div className="divide-y rounded-lg border">
-          {accounts.map((account) => (
-            <Link
-              key={account.id}
-              href={`/admin/accounts/${account.id}`}
-              className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/50"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {account.display_name?.trim() || account.email || "(no name)"}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {account.email ?? account.id}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
-                <span>{formatBytes(account.storage_used_bytes)}</span>
-                <Badge variant="secondary">
-                  {accountTierLabel(account.tier)}
-                </Badge>
-              </div>
-            </Link>
-          ))}
+        /* An account row carries five numbers, which is what `density=hybrid`
+           put in a table: the divide-y stack this replaces gave storage no
+           column at all, so the one number an operator opens this page for was
+           the one it could not line up. */
+        <div className="overflow-hidden rounded-float border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Account</TableHead>
+                <TableHead>Plan</TableHead>
+                <TableHead className="text-right">Storage</TableHead>
+                <TableHead className="text-right">Cap</TableHead>
+                <TableHead className="text-right">Last seen</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {accounts.map((account) => {
+                // A null cap is Pro's unlimited, never a cap of zero: the
+                // over-capacity purge sweep reads it the same way.
+                const cap = account.storage_cap_bytes;
+                const over = cap !== null && account.storage_used_bytes > cap;
+                return (
+                  <TableRow
+                    key={account.id}
+                    tone={over ? "warning" : undefined}
+                  >
+                    <TableCell className="max-w-0">
+                      {/* The name cell is the door, and the row is not: a `<tr>`
+                          is not a reliable containing block for an absolutely
+                          positioned overlay, so a whole-row hit area here would
+                          be a target that works in one engine and not another. */}
+                      <Link
+                        href={`/admin/accounts/${account.id}`}
+                        className="block hover:underline hover:underline-offset-4"
+                      >
+                        <span className="block truncate font-medium">
+                          {account.display_name?.trim() ||
+                            account.email ||
+                            "(no name)"}
+                        </span>
+                        <span className="block truncate text-caption text-muted-foreground">
+                          {account.email ?? account.id}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {accountTierLabel(account.tier)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatBytes(account.storage_used_bytes)}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground tabular-nums">
+                      {cap === null ? "Unlimited" : formatBytes(cap)}
+                    </TableCell>
+                    <TableCell
+                      suppressHydrationWarning
+                      className="text-right whitespace-nowrap text-muted-foreground"
+                    >
+                      {new Date(account.last_active_at).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <Card>

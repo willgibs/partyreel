@@ -446,11 +446,6 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 1,
     why: "the admin metric card's numeral, the forensics trio's twin",
   },
-  "src/components/admin/admin-shell.tsx": {
-    kind: "board",
-    count: 1,
-    why: "the operator badge in the admin bar, the `admin` board's own chrome",
-  },
   "src/components/admin/admin-not-found-screen.tsx": {
     kind: "board",
     count: 1,

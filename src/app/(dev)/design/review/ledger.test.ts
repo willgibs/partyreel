@@ -147,6 +147,12 @@ describe("a board's status", () => {
     for (const spec of BOARDS) {
       const status = boardStatus(spec.id);
       for (const row of status.answered) {
+        // "stands" is the ONE choice no ask declares, and it is not an option:
+        // it is the `overtaken` grammar's verdict that an earlier ruling
+        // already decided this question (`step.tsx` writes it, the sixth batch
+        // recorded three). Before this line `guest-shape/dialogs=stands` was a
+        // red gate for every lane in the round.
+        if (row.answer.choice === "stands") continue;
         expect(
           row.ask.options.map(optionId),
           `${spec.id}/${row.ask.id}: the ledger stores "${row.answer.choice}", which is not one of the ask's options`,

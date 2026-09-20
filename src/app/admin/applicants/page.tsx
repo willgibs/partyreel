@@ -2,18 +2,9 @@ import type { Metadata } from "next";
 
 import { ApplicantsList } from "@/components/admin/applicants-list";
 import { TriageFilter } from "@/components/admin/triage-filter";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { serverNow } from "@/lib/admin/pending";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import {
-  TRIAGE_STATUS_META,
-  triageStatusSchema,
-  type TriageStatus,
-} from "@/lib/constants/triage";
+import { triageStatusSchema, type TriageStatus } from "@/lib/constants/triage";
 import { listJobApplications } from "@/lib/db/queries/applications";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -24,12 +15,12 @@ export const metadata: Metadata = { title: "Applicants" };
 export default async function AdminApplicantsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; id?: string }>;
 }) {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const { status: statusParam } = await searchParams;
+  const { status: statusParam, id } = await searchParams;
   const parsed = triageStatusSchema.safeParse(statusParam);
   const status: TriageStatus | undefined = parsed.success
     ? parsed.data
@@ -49,22 +40,17 @@ export default async function AdminApplicantsPage({
 
       <TriageFilter basePath="/admin/applicants" active={status} />
 
-      {applications.length > 0 ? (
-        <ApplicantsList applications={applications} />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Nothing here</CardTitle>
-            <CardDescription>
-              No applications
-              {status
-                ? ` marked ${TRIAGE_STATUS_META[status].label.toLowerCase()}`
-                : ""}
-              .
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+      {/* The chosen application is a URL, not state (`?id=`); `nowMs` is the
+          server's clock, since a client component reading one at render would
+          break React Compiler's purity rule. */}
+      <ApplicantsList
+        applications={applications}
+        selectedId={id ?? null}
+        basePath={
+          status ? `/admin/applicants?status=${status}` : "/admin/applicants"
+        }
+        nowMs={serverNow()}
+      />
     </div>
   );
 }

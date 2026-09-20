@@ -4,6 +4,14 @@ import { Power } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -55,7 +63,9 @@ export default async function ExportsPage() {
         </p>
       </div>
 
-      <Card>
+      {/* The palette jumps here rather than throwing the switch itself
+          (lib/admin/palette.ts), so the id is part of that contract. */}
+      <Card id="downloads" className="scroll-mt-20">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Power className="size-5 text-foreground" />
@@ -84,60 +94,67 @@ export default async function ExportsPage() {
             the IP, so no raw addresses are stored.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No exports yet.</p>
+            <p className="px-6 text-working text-muted-foreground">No exports yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">When</th>
-                    <th className="py-2 pr-3 font-medium">Who</th>
-                    <th className="py-2 pr-3 font-medium">Event</th>
-                    <th className="py-2 pr-3 text-right font-medium">Items</th>
-                    <th className="py-2 pr-3 text-right font-medium">Size</th>
-                    <th className="py-2 font-medium">Outcome</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((r) => (
-                    <tr key={r.id} className="border-b border-border/50">
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
-                        {new Date(r.created_at).toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3 capitalize">{r.scope}</td>
-                      <td className="py-2 pr-3">
-                        {r.eventName ?? (
-                          <span className="text-muted-foreground">
-                            {r.eventId
-                              ? `${r.eventId.slice(0, 8)}…`
-                              : "unknown"}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {r.itemCount || ""}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {r.totalBytes ? formatBytes(r.totalBytes) : ""}
-                      </td>
-                      <td className="py-2">
-                        <span
-                          className={
-                            r.outcome === "minted"
-                              ? "text-foreground"
-                              : "text-muted-foreground"
-                          }
-                        >
-                          {OUTCOME_LABEL[r.outcome] ?? r.outcome}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>When</TableHead>
+                  <TableHead>Who</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead className="text-right">Items</TableHead>
+                  <TableHead className="text-right">Size</TableHead>
+                  <TableHead>Outcome</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recent.map((r) => (
+                  <TableRow
+                    key={r.id}
+                    // A refusal tints its row: the point of this log is to find
+                    // the ones that did not work by scrolling, not by reading.
+                    tone={r.outcome === "minted" ? undefined : "warning"}
+                  >
+                    {/* A locale render is the server's timezone during SSR and
+                        the browser's on hydration: React #418 without this
+                        (admin-observability.md's gotcha). */}
+                    <TableCell
+                      suppressHydrationWarning
+                      className="whitespace-nowrap text-muted-foreground"
+                    >
+                      {new Date(r.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="capitalize">{r.scope}</TableCell>
+                    <TableCell>
+                      {r.eventName ?? (
+                        <span className="text-muted-foreground">
+                          {r.eventId ? `${r.eventId.slice(0, 8)}\u2026` : "unknown"}
                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {r.itemCount || ""}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {r.totalBytes ? formatBytes(r.totalBytes) : ""}
+                    </TableCell>
+                    <TableCell>
+                      {r.outcome === "minted" ? (
+                        <Badge variant="success">
+                          {OUTCOME_LABEL[r.outcome]}
+                        </Badge>
+                      ) : (
+                        <Badge variant="warning">
+                          {OUTCOME_LABEL[r.outcome] ?? r.outcome}
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

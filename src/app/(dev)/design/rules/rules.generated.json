@@ -832,6 +832,180 @@
       ]
     },
     {
+      "id": "destructive-sheet",
+      "file": "src/components/admin/destructive-sheet.tsx",
+      "names": [
+        "DestructiveSheet",
+        "GuardedSwitch"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "lists every line it was given, and never a summary of them",
+          "suite": [
+            "it says what the act touches"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "asks for nothing on a reversible one, and is pressable at once",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "asks for nothing on a permanent act with nothing to identify",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "refuses to confirm until the identifier matches",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "runs once, and is handed what was actually typed",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "runs once on a reversible act too",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 107
+        },
+        {
+          "title": "leaves Cancel doing nothing but closing",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 114
+        }
+      ]
+    },
+    {
+      "id": "health-band",
+      "file": "src/components/admin/health-band.tsx",
+      "names": [
+        "HealthBand"
+      ],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws nothing at all",
+          "suite": [
+            "a good day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 32
+        },
+        {
+          "title": "still draws nothing when a job is paused on purpose",
+          "suite": [
+            "a good day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "names the jobs while there are few enough to name",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "counts them once naming them would be a paragraph",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "mentions a paused job beside the fault, without counting it as one",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "says what happened, and puts no number on it",
+          "suite": [
+            "an unreadable heartbeat"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 106
+        }
+      ]
+    },
+    {
+      "id": "inbox-pane",
+      "file": "src/components/admin/inbox-pane.tsx",
+      "names": [
+        "InboxPane"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "makes every row a link that carries its own id",
+          "suite": [
+            "the selection is a URL"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 38
+        },
+        {
+          "title": "marks the chosen row, and only that one",
+          "suite": [
+            "the selection is a URL"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "says the list is empty when there is nothing at all",
+          "suite": [
+            "the two empty cases are different sentences"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "draws the reading pane when a message is given, and the prompt otherwise",
+          "suite": [
+            "the two empty cases are different sentences"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 79
+        }
+      ]
+    },
+    {
       "id": "events-section",
       "file": "src/components/app/dashboard/events-section.tsx",
       "names": [
@@ -10142,6 +10316,82 @@
       "contracts": []
     },
     {
+      "id": "command-palette",
+      "file": "src/components/ui/command-palette.tsx",
+      "names": [
+        "CommandPalette",
+        "CommandPaletteContent",
+        "CommandPaletteEmpty",
+        "CommandPaletteFooter",
+        "CommandPaletteGroup",
+        "CommandPaletteInput",
+        "CommandPaletteItem",
+        "CommandPaletteList"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "wires the field to the list it controls",
+          "suite": [
+            "the palette is a combobox over a listbox"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "activates the first row before a key is pressed, so Enter always does something",
+          "suite": [
+            "the palette is a combobox over a listbox"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 67
+        },
+        {
+          "title": "walks the list with the arrows and stops at both ends",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "reaches both ends with Home and End",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 90
+        },
+        {
+          "title": "opens the row that is highlighted, not the one that was first",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "moves the highlight with the pointer, so the mouse and the keys agree",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 108
+        },
+        {
+          "title": "hands the query to whoever is filtering, and never filters itself",
+          "suite": [
+            "what the field holds"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 117
+        }
+      ]
+    },
+    {
       "id": "dialog",
       "file": "src/components/ui/dialog.tsx",
       "names": [
@@ -10435,6 +10685,66 @@
       "contracts": []
     },
     {
+      "id": "table",
+      "file": "src/components/ui/table.tsx",
+      "names": [
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "writes the tone as data, so a stylesheet and a test can both read it",
+          "suite": [
+            "a row says what state it is in"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "carries no attribute at all when it has no tone",
+          "suite": [
+            "a row says what state it is in"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "scopes every tone to its own data value, so one class string serves four",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "puts the leading edge on the row's first child, not on the row",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 80
+        },
+        {
+          "title": "offers the pressable row as an opt-in",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 87
+        }
+      ]
+    },
+    {
       "id": "tabs",
       "file": "src/components/ui/tabs.tsx",
       "names": [
@@ -10486,6 +10796,325 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "kpi",
+      "file": "src/lib/admin/kpi.ts",
+      "names": [
+        "FORTNIGHT_DAYS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "leaves the operator out of every one of them",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 46
+        },
+        {
+          "title": "counts a fortnight against the fortnight before it",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 52
+        },
+        {
+          "title": "reads 'active' as last seen, and says so",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 64
+        },
+        {
+          "title": "takes uploads whole and by fortnight from the counts it is handed",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 74
+        },
+        {
+          "title": "gives paid subscribers NO delta, because nothing remembers last fortnight",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 80
+        },
+        {
+          "title": "says something true about an empty platform rather than dividing by zero",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 95
+        },
+        {
+          "title": "draws one point per day, in order",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 103
+        },
+        {
+          "title": "puts the highest count at the top of the box and the lowest at the bottom",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 110
+        },
+        {
+          "title": "draws a flat fortnight flat instead of dividing by zero",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 117
+        },
+        {
+          "title": "draws nothing for no days at all",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 125
+        }
+      ]
+    },
+    {
+      "id": "palette",
+      "file": "src/lib/admin/palette.ts",
+      "names": [
+        "PALETTE_ACTIONS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers every surface the nav knows, and invents none",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 25
+        },
+        {
+          "title": "points every action at a real surface, with an anchor to land on",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 30
+        },
+        {
+          "title": "makes every action a DESTINATION and never a call",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 39
+        },
+        {
+          "title": "shows the whole list, unfiltered, before anything is typed",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 53
+        },
+        {
+          "title": "narrows on a second word rather than widening (AND, not OR)",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 58
+        },
+        {
+          "title": "puts a label that STARTS with the term above one that merely contains it",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 65
+        },
+        {
+          "title": "finds a word inside a label, so a term need not be its first",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 71
+        },
+        {
+          "title": "matches a keyword nobody sees, for the words an operator actually uses",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 77
+        },
+        {
+          "title": "returns nothing rather than everything when a term matches nothing",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 83
+        },
+        {
+          "title": "keeps the list stable while somebody types",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 87
+        },
+        {
+          "title": "drops the whitespace a real query is full of",
+          "suite": [
+            "tokenize"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 97
+        }
+      ]
+    },
+    {
+      "id": "queue",
+      "file": "src/lib/admin/queue.ts",
+      "names": [],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "puts an unreadable console above everything, and never gives it a number",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 38
+        },
+        {
+          "title": "orders a failure, then an overdue job, then safety, then the inboxes",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 52
+        },
+        {
+          "title": "tints a failure and leaves an inbox alone",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 78
+        },
+        {
+          "title": "is empty on a good day, rather than a list of zeroes",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 93
+        },
+        {
+          "title": "names a report by its kind and its age, and says nothing about its content",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 97
+        },
+        {
+          "title": "rounds down at every step, and steps up at the whole unit",
+          "suite": [
+            "how long it has waited"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 110
+        },
+        {
+          "title": "says nothing at all about a row nothing dates",
+          "suite": [
+            "how long it has waited"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 120
+        }
+      ]
+    },
+    {
+      "id": "tone",
+      "file": "src/lib/admin/tone.ts",
+      "names": [
+        "HEALTH_BADGE",
+        "HEALTH_ROW",
+        "RUN_BADGE",
+        "RUN_ROW"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "covers every health the catalog can return",
+          "suite": [
+            "every state has a voice"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 19
+        },
+        {
+          "title": "speaks the four the board ruled, and keeps paused out of them",
+          "suite": [
+            "every state has a voice"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 37
+        },
+        {
+          "title": "reaches the row only where finding it by scrolling is the point",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 52
+        },
+        {
+          "title": "tints a failed RUN and nothing else in the run table",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 62
+        },
+        {
+          "title": "gives a run's outcome a chip, and an unknown status a quiet one",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 69
+        },
+        {
+          "title": "never gives a row a tone its chip does not have",
+          "suite": [
+            "the chip and the row read one module"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 79
+        }
+      ]
     },
     {
       "id": "feature-pages",
