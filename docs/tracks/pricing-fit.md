@@ -1,6 +1,6 @@
 ---
 track: pricing-fit
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
 board: pricing-page    # round two on the same board id: find your plan size, and the phone row
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -210,24 +210,29 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none yet (a lab round: no production byte shipped, `docs/systems/marketing-content.md` untouched)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- "The lab and the kit": a fully-ruled ask is unreachable by `?session=<board>.<ask>` even via a direct link (`_desk/queue.ts`'s `boardWork` only walks an ask with no ledger answer yet), contradicting `lab-demo.mjs`'s own comment that a ruled step stays measurable; found while diagnosing why `phone`'s demo read blank, fixed for THIS round by reopening the ask fresh rather than patched at the source (shared desk plumbing, outside `owns`).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Board commit `9d00b51d`, pushed; synced with launch-prep at `d1fb9b92` (it had moved: batch five's queue plus admin/app-door/guest-shape work; touchpoints.ts auto-merged, `docs/design/library.md` conflicted on an adjacent row and was resolved by regenerating with `pnpm design:rules`)
+- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (3023 passed, 1 skipped), build ok (255 pages); `pnpm lab:smoke --base :3132` ok (429 checks, 0 failing); `pnpm lab:demo --board pricing-page --base :3132` ok (2 steps, 0 failing: `fit` options differ by up to 100%, `phone` by up to 37.79%)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/pricing-page/*` (owned) plus `src/app/(dev)/design/touchpoints.ts` and `docs/design/library.md` (the registration exception: the board's own row moved to round two, and its generated line)
+- The items, one line each:
+  - `fit`: recommended `split` (Higgsfield's configurator-left / designed-plan-card-right shape, read live from higgsfield.ai/pricing and built fresh with Partyreel's own controls, copy and photographs); `wall` (today, unchanged) and `inline` (cut the block, lean on Pro's own slider) drawn as real contenders
+  - `phone`: recommended `swipe` (repaired and now `lab:demo`-proven); `stack` (today) and `tabs` drawn as real contenders
+- Calls his to overrule:
+  - `split`'s exact execution (the "Expected room" progress bar, the two-pane proportions, the elevated result card) is this lane's own reading of the reference, not a literal match; his call whether it reads as the "polished" redesign he asked for
+  - `swipe`'s row reshapes the Event Pass into a compact card (Free/Pro's own silhouette) so three peers share one height; `stack` and `tabs` keep the real wide, photographed ticket. Two Pass shapes on one board is a deliberate trade, not an oversight
+  - `inline` is the boldest of the three `fit` options (the whole block gone); drawn as a real contender rather than a token third choice, per "every option earns its place"
+- The help articles this lane makes stale: none (a lab round; no production copy changed)
+- Assets requested from Will: none (every photograph is an existing `marketingImage` id already live on the shipped page)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: the `fit=split` result card (the designed plan card he asked to see) and the `phone=swipe` row (the repaired demo, proven end to end by `lab:demo` rather than taken on faith)
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `pricing-page` round two: the phone step's demo read blank because a fully-ruled round-one ask is unreachable by the desk's session link (flagged for lab-desk/lab-kit, not patched here); reopening `phone` fresh restored it, proven with `lab:demo` (2 steps, 0 failing). `plans.tsx` rebuilt to the shipped pair and ticket (`pricing-wiring`, 58f7acbd); `fit` drew wall, split (Higgsfield's shape, built fresh, no copied words) and inline; `phone` drew stack, swipe (repaired) and tabs. Round one's answered opening/sheet/close previews retired. Gate green (3023 tests, 255 pages, smoke 429, demo 2/2). touchpoints.ts's row and its library.md line moved to round two.
