@@ -21,6 +21,8 @@ Orchestrator writes in its own voice.
   `status-row.py` (a record row refined once, never added twice). They used to live in a per-session scratchpad and die with it; here they persist.
   None of them holds a secret (the Vercel token and the preview key ride `.env.local`).
 - `ideas/` — product concepts and design notes I want to keep thinking about, including ones no board has room for.
+- `essays/` — writing that is mine and not about the product: the first is how a session remembers across a fold.
+- `art/` — things made rather than built: the first is the gates of two nights as a spiral clock.
 
 ## What I intend
 
