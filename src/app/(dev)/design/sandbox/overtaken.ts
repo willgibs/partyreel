@@ -160,14 +160,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     line: "stands: the bar rules the pane, never what sits in it, so reserving Sort and Filter is still the cheaper seam.",
   },
 
-  /* ── seed-avatar ─────────────────────────────────────────────────────── */
-  "seed-avatar.after-upload": {
-    ...APP_SHAPE,
-    ruling:
-      "the avatar may be changed on the profile page and on the account page",
-    line: "stands: a photograph can land from two surfaces now, and waiting underneath is the one answer that covers both.",
-  },
-
   /* ── admin ───────────────────────────────────────────────────────────── */
 
   /* ── app-door ────────────────────────────────────────────────────────── */

@@ -809,11 +809,12 @@ export const RULINGS: Ruling[] = [
     title: "The colour a new account is",
     surface: "shared",
     ruled:
-      "open: round one on the desk (2026-09-19, Will's ask by name), seven decisions on the seeded default avatar that replaces the grey initial until a photograph lands",
+      "round one ruled whole (Will, 2026-09-20, the sixth batch); avatar-wiring lands six of the seven on the real Avatar (the clipping bug fixed, look=diagonal, full colour, the whole wheel, the initial always, the account id as seed, the colour waiting under a photograph, no motion); round two open on the one he left: is the diagonal the richest look hashvatar has to offer",
     shipped: null,
-    why: "Every account without a photograph draws the same grey disc today; a colour derived from the account itself is what makes a guest list read as people.",
+    why: "Every account without a photograph draws a seeded colour, not grey; round two asks whether the diagonal is as rich as hashvatar's own register.",
     lives: [
       "docs/systems/profiles-social.md",
+      "src/lib/avatar/gradient.ts",
       "src/components/ui/avatar.tsx",
       "src/components/social/guest-list.tsx",
       "src/components/app/user-menu.tsx",
@@ -821,16 +822,9 @@ export const RULINGS: Ruling[] = [
       "src/components/app/account-avatar-form.tsx",
     ],
     board: {
-      note: "Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob",
-      variants: [
-        "The shape",
-        "The crowd",
-        "The wheel",
-        "The initial",
-        "The seed",
-        "After a photograph",
-        "Motion",
-      ],
+      note: "Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame",
+      variants: ["The look"],
+      tracks: ["avatar-look"],
     },
   },
   {
