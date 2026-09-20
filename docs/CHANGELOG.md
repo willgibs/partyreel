@@ -31,6 +31,17 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   `dialogs` ask reconciled at the merge (both lanes had named it). Calls his: `card` over `sheet`; `both` over `dock`;
   `mark` over `chip`; the sixty-eight-photograph fixture is invented for the board.
 
+- **`welcome-tour` merged at `af7ec784`** (2026-09-20, Sonnet; `app-door` round two): one decision, the tour's design,
+  drawn four ways on the real `/welcome` at 375 and 1440 with the name step untouched and the closing CTA primary
+  and skippable in every one: `cards` (the shipped tutorial, corrected), `stage` (real product screens, the code
+  live, a guest's phone, the album filling; the wizard's first step as a dimmed peek), `film` (the twelve bespoke
+  how-it-works pictures in motion, one per step; recommended: the pictures exist and "alive" is the literal word of
+  his ask), `one` (a single screen, the tutorial's copy losing its only home in the app). Round one's seven asks
+  replaced and named as ruled; round one's three orphaned overtaken entries removed after syncing past the desk pass.
+  Gate 53 on the merged tree. Calls his: `film`'s copy on a card plate at the picture's foot rather than a scrim (six
+  of the twelve are bright app panels); `stage`'s three beats on the create, share and fill copy; `one` folding the
+  name step's reason into one promise line.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
@@ -117,8 +128,9 @@ queue are in `tracks/orchestrator.md`; nothing signed in is seen by a lane, and 
   health band under the bar only on a bad day, and a command palette on the new `ui/command-palette.tsx` primitive (a
   surface, an account, an action); `ui/table.tsx` with `tone` as a data attribute and four state colours reaching the
   row (`info` the fourth); one destructive sheet on nine controls, the permanent one typed; Exports joined to NAV. The
-  `admin` board retired, its ledger gone at this record, its fixtures kept as a Library demo of the real rail, band,
-  queue, table, palette and sheet (the only automated eye on a portal nothing can sign into). The `admin_actions` table proposed under
+  `admin` board's ledger gone at this record and its fixtures kept as a Library demo of the real rail, band, queue,
+  table, palette and sheet (the only automated eye on a portal nothing can sign into); the board itself, which the
+  lane left standing, retired at `290bbd3e` with the next record. The `admin_actions` table proposed under
   Questions and not built. Gate 49 on the merged tree. Calls his to overrule on the alias: the four figures and the arrowless
   fourth; "active" as last seen; whether a paid-subscriber delta is worth a `tier_events` table (his question, open).
   Deferred (ROADMAP): the components gallery's duplicate "Surfaces" block (a duplicate React key, pre-existing); the
