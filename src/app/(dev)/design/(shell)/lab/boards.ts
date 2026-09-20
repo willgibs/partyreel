@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { ToastsBoard } from "@/app/(dev)/design/sandbox/toasts/board";
 import { SeedAvatarBoard } from "@/app/(dev)/design/sandbox/seed-avatar/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
@@ -44,6 +45,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  toasts: { Component: ToastsBoard },
   "seed-avatar": { Component: SeedAvatarBoard },
   "site-chrome": { Component: SiteChromeBoard },
   "profile-page": { Component: ProfilePageBoard },
