@@ -37,6 +37,23 @@ an agent's line, a trash, an answer overriding); the button rung goes to a lab r
 rule); then his night instruction: the seats run all night on unexplored surfaces and the Orchestrator gets
 `PartyreelAI/`, a folder of its own.
 
+- **`lab-tides` merged at `75d6d2e2`** (2026-09-20, Opus; cut `11f03ef9`; the lab itself, Will's standing ask): ten
+  lab-workflow findings in one lane without changing the shape of a round. `lab:demo` and `lab:smoke` refuse a missing
+  `--base` (the Orchestrator's port was the silent default), every DevTools call took a ceiling and every board a budget (a
+  stall is a printed row, not a nine-minute wait), and a capture settles on the frames' own images, fonts and stillness
+  instead of a flat 1,600 ms. `defineExploration` dedupes its flattened `configs` (the knob drawn once per decision AND
+  the option presses no longer silently dead), gains an opt-in `today`, passes a `carried` list through; a staged step
+  reached by URL stops counting itself into a walk it is not in; a board's knob keeps the router's history state. A
+  portalled frame gets a doctype; the specimen collector records what it could not read; the board's dock cluster
+  reaches a step. The carried calls draw above a board's sections, counted in the reading budget, the `call:` grammar
+  proposed verbatim for the Orchestrator to land. The "a responsive variant never reaches a frame" mystery was measured
+  to its cause (the lab's utilities compile into a `utilities.lab` sub-layer that production's `utilities` beats at
+  every width) and drawn on `/design/lab/sample`. On Will's stacking question: a paste marks what it took (the review
+  store's v2 `sent` marker, a sent answer visible and greyed, excluded from the next paste) and a repeated clause is a
+  no-op, so a stale re-send is harmless. Four `glass` steps report UNPAINTED (headless Chrome rasterises
+  backdrop-filter as one flat colour) instead of a false FROZEN: they need a headed eye before his answers on them mean
+  anything. The desk-wide demo green at 187 steps. Gate 40 green on the merged tree.
+
 **Next.** The five lanes' handoffs, `lab-tides`' merge and `overtaken`, the waiting four, the night's explorations; his
 eye on the alias in the morning.
 
