@@ -62,9 +62,17 @@ export function GalleryEmptyState({
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
         {/* An empty state's title: the ladder's `subsection`, a step under the
-            album's own h1 (`page`) so the empty album never out-shouts it. */}
+            album's own h1 (`page`) so the empty album never out-shouts it.
+
+            ★ RULED (Will, 2026-09-19, voice r1 `empty=starts`): it read "This
+            is where it all lands", which is a description of a place and asks
+            nothing of the reader. "This incentivizes action (first upload)
+            rather than feeling passive and waiting for a picture to land." The
+            host's empty dashboard took the same voice from the same sitting
+            ("Your first album starts here"): the album as the noun, "starts" as
+            the verb, the reader at the start of it. */}
         <p className="font-heading text-subsection text-balance">
-          This is where it all lands
+          The album starts with you
         </p>
         {onAddFirst && (
           <Button size="lg" onClick={onAddFirst}>

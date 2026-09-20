@@ -34,7 +34,11 @@ export function PricingTeaser() {
     {
       name: "Pro",
       price: `from ${proFrom.priceLabel}`,
-      note: "Unlimited events · video · more storage",
+      // VIDEO FIRST (Will, 2026-09-19, voice r1 `pro-line=video`: "Videos and
+      // unlimited events is huge"). Its own sentence, not PRO_LINE's bytes: a
+      // teaser card's note is a chip run, not a sentence. What it shares with
+      // the plan card and the three other siblings is his ranking.
+      note: "Video · unlimited events · more storage",
       popular: true,
     },
     {

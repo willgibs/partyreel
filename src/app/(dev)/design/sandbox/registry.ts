@@ -28,7 +28,6 @@ import { GLASS } from "./glass/spec";
 import { GUEST_SHAPE } from "./guest-shape/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
-import { VOICE } from "./voice/spec";
 
 /**
  * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
@@ -58,7 +57,6 @@ import { VOICE } from "./voice/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   SEED_AVATAR,
-  VOICE,
   BODY_TYPE,
   GLASS,
   APP_SHAPE,

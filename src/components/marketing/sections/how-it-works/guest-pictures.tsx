@@ -184,7 +184,7 @@ export function DoorPicture() {
           <div className="mt-3 flex flex-col gap-2 border-t pt-3">
             <span className="flex items-start gap-2 text-[10px] leading-relaxed">
               <Camera className="mt-px size-3.5 shrink-0 text-muted-foreground" />
-              Add your photos and videos in seconds. No app, no account.
+              Add your photos and videos in seconds. No app required.
             </span>
             <span className="flex items-start gap-2 text-[10px] leading-relaxed">
               <Images className="mt-px size-3.5 shrink-0 text-muted-foreground" />

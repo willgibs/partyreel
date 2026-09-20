@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   DECOMPOSITION_FACTS,
+  SITE_DESCRIPTION_LINE,
+  SITE_SUBHEAD,
   SITE_THESIS,
 } from "@/lib/constants/marketing-voice";
 
@@ -53,6 +55,29 @@ describe("the home section order", () => {
     // short enough to hold the ladder's top step without a bespoke ramp.
     expect(SITE_THESIS).not.toMatch(/\n/);
     expect(SITE_THESIS.length).toBeLessThanOrEqual(64);
+  });
+
+  it("the subhead stays one paragraph and off the meta description", () => {
+    // Will's own sentence (2026-09-19, voice r1 `hero-sub`) is 144 characters,
+    // which is the whole reason these two are now separate constants. The hero
+    // renders SITE_SUBHEAD verbatim under the thesis, so what matters here is
+    // that it stays ONE flowing paragraph (a newline would break the lockup's
+    // balance) and does not creep toward a fourth sentence.
+    expect(SITE_SUBHEAD).not.toMatch(/\n/);
+    expect(SITE_SUBHEAD.length).toBeLessThanOrEqual(180);
+
+    // ★ THE PIN THAT CAUGHT THIS. SITE_DESCRIPTION used to be built as
+    // `${SITE_THESIS} ${SITE_SUBHEAD}`, so a longer hero line silently pushed
+    // every search result and unfurl past the ~160 characters that get read,
+    // truncating mid-clause exactly where the benefit lived. The meta line is
+    // its own constant now, and this measures the composition site.ts performs
+    // (imported from the voice module, not from site.ts, which reaches env.ts
+    // and throws in the runner without NEXT_PUBLIC_* — the same reason this
+    // file imports section-ids rather than index).
+    expect(`${SITE_THESIS} ${SITE_DESCRIPTION_LINE}`.length).toBeLessThanOrEqual(
+      160,
+    );
+    expect(SITE_DESCRIPTION_LINE).not.toContain(SITE_SUBHEAD);
   });
 
   it("the decomposition facts stay pop-in parseable", () => {

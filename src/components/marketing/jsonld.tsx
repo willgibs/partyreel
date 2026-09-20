@@ -76,7 +76,7 @@ export function SoftwareApplicationJsonLd() {
         operatingSystem: "Web",
         offers: pricing.offers,
         featureList: [
-          "Guests upload photos and videos by scanning one QR code, from the browser, with no app and no account",
+          "Guests upload photos and videos by scanning one QR code, from the browser, with no app required",
           "One live shared album per event, full resolution, never watermarked",
           "Automatic highlight reel cut from the album, rendered on-device",
           "Host moderation: approve, hide, and feature anything",

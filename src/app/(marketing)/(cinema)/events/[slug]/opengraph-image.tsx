@@ -86,7 +86,7 @@ export default async function EventTypeOgImage({
       </div>
 
       <div style={{ display: "flex", fontSize: "30px", color: "#a1a1aa" }}>
-        Guests scan a QR code and upload. No app, no account.
+        Guests scan a QR code and upload. No app required.
       </div>
     </div>,
     { ...size },

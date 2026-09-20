@@ -60,7 +60,7 @@ export default function OgImage() {
           color: "#a1a1aa",
         }}
       >
-        Guests scan one QR code and upload. No app, no account.
+        Guests scan one QR code and upload. No app required.
       </div>
     </div>,
     { ...size },
