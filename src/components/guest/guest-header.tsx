@@ -9,6 +9,7 @@ import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { setStoredSession } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 type MenuData = {
   email: string | null;
@@ -46,11 +47,17 @@ type MenuData = {
 export function GuestHeader({
   qrToken,
   eventId,
+  isDemo = false,
 }: {
   /** The event's canonical token, omitted on an event-less page (/u/[slug]). */
   qrToken?: string;
   /** The event being viewed, omitted on an event-less page (/u/[slug]). */
   eventId?: string;
+  /** The demo event (Will, `framing=tag`, the sixth batch, 2026-09-20): a
+   *  Demo mark beside the wordmark, and the header pins to the top so the
+   *  mark stays on screen through the whole visit. Never true on `/u/[slug]`
+   *  (no event there to be a demo of). */
+  isDemo?: boolean;
 }) {
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
@@ -129,9 +136,26 @@ export function GuestHeader({
   }, [qrToken, router]);
 
   return (
-    <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
-      <Link href="/" aria-label="Partyreel home">
+    <header
+      className={cn(
+        "flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3",
+        // `framing=tag`: pinned to the top so the Demo mark stays on every
+        // screen of the visit, not just the first one; a real event's header
+        // keeps its ordinary place in the flow (round two on the chrome is
+        // guest-shape's, not this lane's).
+        isDemo && "sticky top-0 z-20 bg-background",
+      )}
+    >
+      <Link href="/" aria-label="Partyreel home" className="flex items-center gap-2.5">
         <Logo />
+        {isDemo && (
+          <span
+            data-de-mark
+            className="rounded-full border border-border bg-muted px-2 py-0.5 text-label font-medium text-muted-foreground uppercase"
+          >
+            Demo
+          </span>
+        )}
       </Link>
       {/* Fixed-height slot so the CTA↔avatar swap stays height-stable (Button sm = h-7, Avatar =
           size-8); both center within h-8, and justify-between pins the right edge so nothing reflows. */}

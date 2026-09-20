@@ -15,6 +15,7 @@
  */
 import "server-only";
 
+import { seedFor } from "@/lib/avatar/seed";
 import { mustQuery } from "@/lib/db/must-query";
 import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
@@ -131,18 +132,21 @@ export async function getGalleryStats(
 }
 
 /**
- * The host's avatar URL for an event's "Hosted by" byline, or null if the host has no avatar.
- * Server-only admin read (the guest page has no JWT): resolve events.host_id, then the host's
- * profiles.avatar_updated_at, then build the URL (reuses getAvatarUrl; a null marker → null).
- * The anon get_event_by_qr_token RPC stays UNCHANGED (no contract change): host_id is never
- * returned as a separate field. It appears only inside the avatar's stable public Storage URL PATH
- * (avatars/<host_id>/avatar.webp) — a non-PII UUID embedded in a URL like any object id, and only
- * for hosts who set BOTH a name + avatar. Callers gate this on a set host name (the byline hides
- * without one), so it's a no-op for nameless hosts.
+ * The host's avatar URL + seeded colour for an event's "Hosted by" byline, or null if the event has
+ * no host. Server-only admin read (the guest page has no JWT): resolve events.host_id once, then the
+ * host's profiles.avatar_updated_at (→ getAvatarUrl; a null marker → no photo) alongside `seedFor`
+ * (→ the Avatar the byline now folds onto, `docs/design/rulings.md` the sixth batch, `seed=account`:
+ * demo-wiring, "never the raw host id on the client"). The anon get_event_by_qr_token RPC stays
+ * UNCHANGED (no contract change): host_id is never returned as a separate field, and never reaches
+ * the browser itself — it appears only inside the avatar's stable public Storage URL PATH
+ * (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and hashed,
+ * one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides without one),
+ * but the seed/avatar pair is resolved whenever a host exists, matching `the-crowd=full`: an unnamed
+ * event never shows the byline, but a NAMED one always gets its host's colour, photo or not.
  */
-export async function getHostAvatarUrl(
+export async function getHostAvatarSeed(
   eventId: string,
-): Promise<string | null> {
+): Promise<{ avatarUrl: string | null; seed: string } | null> {
   const admin = createAdminClient();
   const ev = await mustQuery(
     admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
@@ -158,13 +162,16 @@ export async function getHostAvatarUrl(
       .maybeSingle(),
     "guest page: host avatar marker",
   );
-  return getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
+  return {
+    avatarUrl: await getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null),
+    seed: seedFor(ev.host_id),
+  };
 }
 
 /**
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
- * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarUrl). Returns the
+ * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
  * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isAnonymous onto
  * the client (never email). Two batched reads: the host's name (for host uploads), then all media
  * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 817 contracts on 114 components · 25 standing boards.**
+**22 laws · 18 policies · 820 contracts on 115 components · 26 standing boards.**
 
 ## What binds you
 
@@ -270,7 +270,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/conveyor.tsx` | the marquee shell: renders its children twice, and owns the loop-pause contract | none |
 | `src/components/marketing/system/cta-band.tsx` | the closing conversion band, with the credit line that ends a page | none |
 | `src/components/marketing/system/demo-cta-link.tsx` | the recurring live-demo link, gated on a configured demo event so it is never dead | none |
-| `src/components/marketing/system/demo-ticket.tsx` | the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel | none |
+| `src/components/marketing/system/demo-ticket.tsx` | RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone | none |
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
@@ -369,6 +369,7 @@ Contracted but outside the library's directories:
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
+- `src/components/guest/guest-header.tsx` (3 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
 - `src/components/lab/board-page.tsx` (16 guards)
@@ -455,8 +456,9 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
 | `app-vocabulary` | shared | One decision on the real, wired Album header: where the crowded five (download, tile size, sort, filter, select) live now that the cluster is honestly crowded; four placements drawn at 1440 and 375, Add photos and Deleted untouched. |
+| `guest-verify` | guest | Six decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob: when the address gets proven, what an unproven account shows and to whom, where the photographs land when two people type one address, what rescues a party when the codes stop arriving, what the host's queue says about who sent what, and what day seven does to a photograph nobody ever confirmed |
 | `guest-shape` | guest | Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68 |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
-| `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
+| `body-type` | shared | One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box. |
 

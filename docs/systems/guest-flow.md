@@ -366,6 +366,31 @@ page through `event-experience.tsx`; the ~12 s poll is paused, the silent join s
 the queue skips the real upload — `simulateUpload` returns a synthetic `approved` outcome so the optimistic
 tile appears but is **never persisted**. The marketing side of the demo → [marketing-content.md](marketing-content.md).
 
+**The demo's own arrival, framing and turn** (`arrival=role` etc., `docs/design/rulings.md` the sixth batch,
+2026-09-20; `demo-wiring`). The demo is no longer the one visitor `computeEntry` (`entry-steps.ts`) skips: it
+falls through the SAME welcome-then-nothing path as a public event (one `welcome` step, no gate behind it —
+`resolveGalleryAccess` always resolves it `full`), and `entry-modal.tsx` reads its own `isDemo` prop to swap
+that step's content for `RoleStep` (a role, not an invitation: whose party this is, that the visitor stands
+exactly where a guest stands, the one thing to try). `guest-header.tsx`'s `isDemo` prop pins the header to the
+top of the screen and adds a Demo mark beside the wordmark, so the admission survives the first scroll (it used
+to be a banner in the album that scrolled away with it). A completed (simulated) upload surfaces `TurnCard`
+(`guest-upload.tsx`) directly above the album's first tile — the photograph the visitor just added, since the
+album is newest-first — and `event-experience.tsx`'s action row fills the slot a real guest's Save left behind
+with "Start your own" beside Invite; a closing card repeats the offer below the whole album, in the report
+footer's place (hidden for the demo).
+
+**`phone=pair`: one broadcast channel, no stored bytes, no new table** (`lib/demo.ts`, `event-experience.tsx`).
+A demo tab that did NOT arrive via a scanned link mints its own id (`crypto.randomUUID()`) and folds it into
+its own Invite sheet's link (`?pair=<id>`); a tab that loads WITH that param is the phone side. Both open a
+Supabase Realtime BROADCAST channel keyed by the id (`demo-pair:<id>`, never the shared `gallery:<qr_token>`
+channel every stranger on the public demo shares) — the doorbell's own MECHANISM, never its channel. The phone
+sends its upload's downscaled thumbnail (`fileToPairThumbnail`, a canvas-encoded JPEG, `httpSend` over REST so
+no subscribe/teardown dance for an occasional message) the moment its own (simulated) upload lands; the laptop,
+listening, decodes it back to a `File` (`pairThumbnailToFile`) and feeds it through the SAME optimistic-tile
+path a real upload uses (`LiveGallery`'s `notifyUploaded`). A video carries no thumbnail (no cheap client-side
+poster frame): the laptop's line says it arrived without a tile. Nothing here is persisted; the channel forgets
+everything the moment either tab closes.
+
 ## The guest reel
 
 Guests see the host's highlight reel on `/e/` **only after the host shares it** (`highlight_reels.guest_visible`,
