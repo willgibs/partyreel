@@ -522,8 +522,9 @@ reach. Urbanist is a real variable sans, so it carries no font-size-adjust, no
 synthetic text-stroke weight and no font-synthesis: a real bold weight does
 the work. Swap the brand face forever by repointing `--font-display` + retuning the two lines in the utility.
 
-**THE LADDER: ten steps, one set, both halves of the site** (Will's rulings: 2026-09-17 on the
-type-scale board's card B, 2026-09-18 on `type-phone`). Declared once as `--text-*` tokens in
+**THE LADDER: sixteen steps, one set, both halves of the site** (Will's rulings: 2026-09-17 on the
+type-scale board's card B, 2026-09-18 on `type-phone`, 2026-09-20 on `body-type`). Ten HEADING steps and
+six BODY steps under them. Declared once as `--text-*` tokens in
 [`src/app/theme.css`](../../src/app/theme.css) and drawn at true size from those live tokens at
 `/design/library/foundations#ladder`, which is where you READ it: the numbers have one home, and this
 doc deliberately does not copy them. A step carries its own font-size, line-height and letter-spacing,
@@ -537,7 +538,8 @@ the one it heads at 375. The first wiring moved every marketing step exactly fou
 that put the paper h2 (`prose`) under its own sub-head at a phone, unseen on a desktop review ("We
 should have a very clear heading hierarchy on mobile as well"). Marketing still travels further than
 the app (bible 2, "marketing may be louder, scale included"), only as far as the order allows. The
-policy reads the paper stack (title > prose > sub-head) off the tokens at both ends.
+policy reads the paper stack (title > prose > sub-head) off the tokens at both ends, and the body steps'
+own order with the FLOOR at the bottom.
 
 | Step | Class | Wears it |
 | --- | --- | --- |
@@ -552,6 +554,32 @@ policy reads the paper stack (title > prose > sub-head) off the tokens at both e
 | Subsection | `text-subsection` | the app's quiet middle (an event tile, a gate card, an empty state, a prompt tile) and marketing's tile and item titles (a feature h3, a plan's name, a footer column) |
 | Card title | `text-card-title` | `CardTitle`, every sheet, drawer and dialog title, an FAQ question, a table's column head |
 
+**THE BODY HALF: six steps for the sentences under the headings** (Will, 2026-09-20, `body-type` r1).
+Before it, everything under `card-title` was picked site by site: 372 `text-sm`, 244 `text-xs`, 98
+`text-[11px]`, 76 `text-[10px]`, 26 `text-[15px]`, 20 `text-[9px]`, plus 80 hand-set trackings on
+uppercase labels. These six name all of it, they are read in **Inter** (the ladder above is the heading
+face), and **the leading rule is `2 x size - 8`** at every rung, which is the pair the site already wore
+and lands every one on the 4px grid.
+
+| Step | Class | Wears it |
+| --- | --- | --- |
+| Copy | `text-copy` | marketing's ledes and paragraphs, and the ONLY body step that travels (16 at 375, 18 at 1440) |
+| Reading | `text-reading` | every guest-facing sentence (`reading=16`, "a safe starting size"), and a single-line label, link or field on a marketing page |
+| Working | `text-working` | the app, the admin and marketing's own UI chrome: a row, a cell, a control, a notice |
+| Caption | `text-caption` | a caption, a hint, a descriptor, a control's label (the `Caption` atom); the labels he named at 12 |
+| Label | `text-label` | every uppercase label, marketing and app (the `Eyebrow` atom): the caption step's twin at 12, tracked **0.08em** |
+| Micro | `text-micro` | THE FLOOR at 10: metadata over a photograph, a count, a pip, a keycap, a credit. Nothing on Partyreel is under 10. |
+
+Three rules the body half adds, each of them function:
+- **`copy` never goes inside a block whose title is `card-title`.** It reaches 18 at 1440 and `card-title`
+  is a flat 16, so an FAQ answer on `copy` would outrank its own question; those blocks keep `reading`.
+  It is the same order law that made 17 the wrong answer for `reading`.
+- **An uppercase label carries NO `tracking-*` of its own.** The step carries the 0.08em, and a tracking
+  utility beats a step silently through `--tw-tracking`. 38 eyebrows had spelled 0.14em by hand.
+- **`working`'s name is its origin, not a fence.** It is the 14px rung for any functional line, marketing
+  chrome included; a blog rail row and a dashboard row are the same job at the same size.
+  The admin may break away for density (his words), and its own sizes are the `admin` board's.
+
 **Roles, not sizes, decide a step** (Will, 2026-09-18: "we really shouldn't have any one-off adding
 instances. Everything should be addressed in our design system type ladder"). A heading that no step
 fits is a role nobody has decided, and a new step is added only when it is a helpful global addition
@@ -560,7 +588,7 @@ articles' h2 and h3 are sized on the prose wrappers (`prose-h2:text-prose prose-
 `help/[slug]` and `blog/[slug]`), because the MDX components are shared and carry no sizes. Index
 numerals are data, not headings: they sit on the body face with tabular figures.
 
-Five ways the ladder fails SILENTLY, all held by
+Six ways the ladder fails SILENTLY, all held by
 [`src/lib/type-ladder-policy.test.ts`](../../src/lib/type-ladder-policy.test.ts):
 - **The card step is `card-title`, never `card`.** Tailwind v4 resolves a `text-*` class as a COLOR
   before a font size, and `--color-card` (the surface) has existed far longer, so `--text-card` would
@@ -576,6 +604,17 @@ Five ways the ladder fails SILENTLY, all held by
 - **A heading off the ladder.** A stock (`text-xs` to `text-9xl`), arbitrary (`text-[22px]`) or inline
   size on a heading tag, a `*Title` / `*Heading` component or anything in the heading face. The scan
   found 126 at the second wiring; every heading among them took the step its role calls for.
+- **A SENTENCE off the ladder.** Every element the heading scan does not claim is body, its size is
+  resolved to a NUMBER (so `text-sm` and `text-[14px]` are one answer), and it passes only on 10, 12, 14
+  or 16 or on a declared step name; an uppercase label passes only with no tracking or `tracking-[0.08em]`.
+  An arbitrary size is the silent half twice over: it also carries no leading, so `text-[15px]` inherited
+  the preflight's 1.5 and computed at 22.5. The body scan found 213 and the sweep took 112 of them.
+  ★ It is an ALLOW-LIST THAT ONLY SHRINKS, not a hard fail, while other lanes are open: each survivor is
+  named, counted and reasoned (`depicted`, `relative`, `lane`, `pending`, `board`), a `pending` entry goes
+  red when its element is rebuilt (delete the entry, never widen it), and the flip to a hard fail is one
+  line once the list is empty. ★ Neither scan sees a class string that never reaches a JSX attribute: a
+  size inside a `cva` table or a const map is invisible, which is why Button's four sizes are a round
+  (`buttons-pairs`) and not a lint.
 
 **A step beats `font-heading`; a `tracking-*` or `leading-*` beats the step.** Tailwind sorts the
 utilities layer by property and emits a custom `@utility` in the font-* position, ahead of the size
@@ -684,7 +723,7 @@ link). One page uses it; if a second index wants it, THAT is when it gets extrac
 **TWO FACES, AND ONLY TWO** (Will, 2026-09-14: "kill mono entirely"). Inter for
 everything a person reads, Urbanist for what the page says loudly. There is no mono face in the
 product: no `Geist_Mono` loader and no `--font-mono` in `layout.tsx` or `theme.css`, no `MonoCaption`,
-and `Caption` (`system/caption.tsx`) is the ONE caption atom, labels and data alike.
+and `Caption` (`system/caption.tsx`) is the ONE caption atom, labels and data alike, on the caption step.
 **Never add a font loader or a `font-mono` class back without a ruling.** What carries
 the work mono used to do:
 - **Data** sits on the body face with `tabular-nums`: index rows, counters, durations, sizes, table

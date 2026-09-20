@@ -9288,8 +9288,8 @@
     {
       "file": "src/lib/type-ladder-policy.test.ts",
       "scope": "engineering",
-      "title": "One type ladder, and every heading on it",
-      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
+      "title": "One type ladder, and every heading and sentence on it",
+      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a stack out of order at either end, a bottom rung under the floor, a stock, arbitrary or inline size on a heading, and an off-step size or a hand-set label tracking on body copy outside the allow-list.",
       "line": 1
     }
   ]

@@ -302,7 +302,7 @@ export function GuestReelOverlay({
         data-act={act}
         className="absolute inset-0 z-20 flex items-center justify-center bg-[oklch(0.09_0_0)] px-8"
       >
-        <p className="text-center text-[15px] text-white/70">
+        <p className="text-center text-reading text-white/70">
           This reel isn&rsquo;t ready to watch right now. Please try again in a
           moment.
         </p>
@@ -368,7 +368,7 @@ export function GuestReelOverlay({
             data-rxp-gtitle
             className="absolute inset-x-0 top-[68%] px-6 text-center"
           >
-            <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
+            <p className="text-label font-medium text-white/70 uppercase">
               The reel
             </p>
             {/* The title card names the event, so it wears the step every
@@ -399,7 +399,7 @@ export function GuestReelOverlay({
               value={Math.round(download.progress * 100)}
               className="h-1 bg-white/15 [&_[data-slot=progress-indicator]]:bg-white"
             />
-            <p className="mt-1.5 text-center text-[11px] text-white/60">
+            <p className="mt-1.5 text-center text-caption text-white/60">
               Making your copy, {Math.round(download.progress * 100)}%
             </p>
           </div>
@@ -433,7 +433,7 @@ export function GuestReelOverlay({
         </div>
         {/* The honest expectation-setter for the ladder: sometimes the host's file, sometimes one made
             right here. Either way the guest gets a video. */}
-        <p className="mt-2 text-center text-[11px] text-white/45">
+        <p className="mt-2 text-center text-caption text-white/45">
           Download uses the host&rsquo;s video when it is ready
         </p>
       </div>

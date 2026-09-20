@@ -74,7 +74,7 @@ export function DownloadsSection() {
             >
               {DOWNLOAD_TRIGGERS.map((trigger) => (
                 <div key={trigger.label} className="flex flex-col gap-1.5">
-                  <span className="inline-flex h-7 w-fit items-center gap-1.5 rounded-lg border bg-background px-2.5 text-[0.8rem] font-medium">
+                  <span className="inline-flex h-7 w-fit items-center gap-1.5 rounded-lg border bg-background px-2.5 text-caption font-medium">
                     <Download className="size-3.5" /> {trigger.label}
                   </span>
                   <Caption>{trigger.where}</Caption>

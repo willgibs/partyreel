@@ -48,9 +48,7 @@ export default async function AdminReportsPage({
   return (
     <div className="space-y-6">
       <div>
-        <PageHeading>
-          Review reports
-        </PageHeading>
+        <PageHeading>Review reports</PageHeading>
         <p className="text-sm text-muted-foreground">
           Guest-submitted reports. Actioning an item removes it; the purge cron
           reclaims its storage afterward. A reported person is actioned out of
@@ -81,7 +79,7 @@ export default async function AdminReportsPage({
       {personReports.length > 0 && (
         <section aria-label="Reported people" className="space-y-3">
           <h2>
-            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <span className="text-label font-semibold text-muted-foreground uppercase">
               People
             </span>
           </h2>
@@ -93,7 +91,7 @@ export default async function AdminReportsPage({
         <section aria-label="Reported albums and items" className="space-y-3">
           {personReports.length > 0 && (
             <h2>
-              <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              <span className="text-label font-semibold text-muted-foreground uppercase">
                 Albums and items
               </span>
             </h2>

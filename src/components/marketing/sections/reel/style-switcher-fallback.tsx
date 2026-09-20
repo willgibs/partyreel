@@ -44,7 +44,7 @@ export function StyleSwitcherFallback() {
       <div className="flex flex-col gap-8 lg:col-span-7">
         {STYLE_FACETS.map((facet) => (
           <div key={facet.id} className="flex flex-col gap-3">
-            <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            <span className="text-label font-medium text-muted-foreground uppercase">
               {facet.label}
             </span>
             <ul className="flex flex-wrap gap-2">

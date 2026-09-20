@@ -177,7 +177,7 @@ export default async function BlogPostPage({
               {/* THE STANDFIRST. The frontmatter description is a hand-written sell for the piece
                   that until now appeared on the index card, in metadata, in the feed and in
                   llms.txt — everywhere except in front of the reader who had already committed. */}
-              <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">
+              <p className="mt-5 max-w-2xl text-subhead text-pretty text-muted-foreground">
                 {post.frontmatter.description}
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -253,7 +253,7 @@ export default async function BlogPostPage({
                     Scoped to the first child so it can never catch a second paragraph. */}
                 <article
                   id={ARTICLE_BODY_ID}
-                  className="prose max-w-none prose-help prose-headings:font-heading prose-h2:text-prose prose-h3:text-subhead prose-code:font-sans [&>p:first-child]:text-[1.0625rem] [&>p:first-child]:leading-[1.7]"
+                  className="prose max-w-none prose-help prose-headings:font-heading prose-h2:text-prose prose-h3:text-subhead prose-code:font-sans [&>p:first-child]:text-copy"
                 >
                   {content}
                 </article>
@@ -269,7 +269,7 @@ export default async function BlogPostPage({
 
                 {post.frontmatter.tags.length > 0 && (
                   <div className="mt-12 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-6">
-                    <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    <span className="text-label font-medium text-muted-foreground uppercase">
                       Filed under
                     </span>
                     {post.frontmatter.tags.map((tag) => (
@@ -319,7 +319,7 @@ export default async function BlogPostPage({
                     aria-label="On this page"
                     className="sticky top-[var(--mkt-rail-top)]"
                   >
-                    <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    <p className="text-label font-medium text-muted-foreground uppercase">
                       On this page
                     </p>
                     <ArticleToc
@@ -383,7 +383,7 @@ function NeighborLink({
         isNewer ? "items-start" : "items-start sm:items-end sm:text-right",
       )}
     >
-      <span className="flex items-center gap-1 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+      <span className="flex items-center gap-1 text-label font-medium text-muted-foreground uppercase">
         {isNewer && (
           <ArrowLeft className="size-3 transition-transform duration-150 group-hover:-translate-x-0.5 motion-reduce:transition-none" />
         )}

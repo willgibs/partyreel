@@ -214,7 +214,7 @@ export function EventExperience({
           album; the album is its own box below (see COLUMN / BLEED). */}
       <div className={COLUMN}>
         {isDemo && (
-          <div className="mb-6 rounded-lg border border-border bg-muted/40 px-3 py-2 text-center text-[13px] text-muted-foreground">
+          <div className="mb-6 rounded-lg border border-border bg-muted/40 px-3 py-2 text-center text-working text-muted-foreground">
             You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t
             saved.
           </div>
@@ -311,7 +311,7 @@ export function EventExperience({
                   style={
                     { "--reveal-i": revealBase + 2 } as React.CSSProperties
                   }
-                  className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground"
+                  className="mt-2 max-w-prose text-reading text-pretty text-muted-foreground"
                 >
                   {event.description}
                 </p>
@@ -333,7 +333,7 @@ export function EventExperience({
               className="flex items-center justify-center gap-2 text-muted-foreground"
             >
               <Lock className="size-4" aria-hidden />
-              <p className="text-[15px]">
+              <p className="text-reading">
                 {stats.approvedTotal > 0
                   ? `${stats.approvedTotal} ${stats.approvedTotal === 1 ? "photo" : "photos"} & videos inside`
                   : "This event is private"}
@@ -439,7 +439,7 @@ export function EventExperience({
                 </div>
               ) : (
                 !isDemo && (
-                  <p className="mt-7 text-center text-[15px] text-muted-foreground">
+                  <p className="mt-7 text-center text-reading text-muted-foreground">
                     The host has closed uploads. You can still browse the album.
                   </p>
                 )

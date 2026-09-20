@@ -21,7 +21,7 @@ export function ChipToc({
       aria-label="On this page"
       className={cn("flex flex-wrap items-center gap-2 lg:hidden", className)}
     >
-      <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+      <span className="text-label font-medium text-muted-foreground uppercase">
         On this page
       </span>
       {headings.map((heading) => (

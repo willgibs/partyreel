@@ -99,7 +99,7 @@ export function PasswordGate({
       <div className="flex flex-col">
         <p
           className={cn(
-            "flex items-center justify-center gap-1.5 text-xs font-medium tracking-[0.14em] uppercase",
+            "flex items-center justify-center gap-1.5 text-label font-medium uppercase",
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >

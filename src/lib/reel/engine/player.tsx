@@ -355,7 +355,7 @@ export function CanvasReelPlayer({
             aria-label="Scrub"
             className="w-full accent-foreground"
           />
-          <span className="w-16 shrink-0 text-right text-[11px] text-muted-foreground tabular-nums">
+          <span className="w-16 shrink-0 text-right text-micro text-muted-foreground tabular-nums">
             {shownFrame}/{durationInFrames - 1}
           </span>
         </div>

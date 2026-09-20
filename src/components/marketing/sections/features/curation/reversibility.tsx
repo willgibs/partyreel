@@ -56,7 +56,7 @@ function TrashMock() {
       className="rounded-2xl border bg-card p-4 ring-1 ring-foreground/5 sm:p-5"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+        <p className="text-label font-semibold text-muted-foreground uppercase">
           Trash
         </p>
         <Caption className="tabular-nums">
@@ -90,10 +90,10 @@ function TrashMock() {
           deletes the file for good. It can&rsquo;t be undone.
         </p>
         <div className="mt-3 flex flex-wrap justify-end gap-2">
-          <span className="inline-flex h-7 items-center rounded-lg border bg-background px-2.5 text-[0.8rem] font-medium">
+          <span className="inline-flex h-7 items-center rounded-lg border bg-background px-2.5 text-caption font-medium">
             Cancel
           </span>
-          <span className="inline-flex h-7 items-center rounded-lg bg-destructive px-2.5 text-[0.8rem] font-medium text-white">
+          <span className="inline-flex h-7 items-center rounded-lg bg-destructive px-2.5 text-caption font-medium text-white">
             Delete permanently
           </span>
         </div>

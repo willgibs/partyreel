@@ -71,13 +71,13 @@ function QualityBody() {
             className="mx-auto mt-10 grid w-fit grid-cols-[auto_1fr] items-baseline gap-x-5 gap-y-2"
             style={{ "--i": 3 } as CSSProperties}
           >
-            <dt className="text-[11px] font-medium tracking-[0.14em] text-faint uppercase">
+            <dt className="text-label font-medium text-faint uppercase">
               Photos
             </dt>
             <dd className="text-sm text-muted-foreground">
               {PHOTO_FORMATS.join(" · ")}
             </dd>
-            <dt className="text-[11px] font-medium tracking-[0.14em] text-faint uppercase">
+            <dt className="text-label font-medium text-faint uppercase">
               Video
             </dt>
             <dd className="text-sm text-muted-foreground">

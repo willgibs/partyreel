@@ -158,7 +158,7 @@ export default function PressPage() {
                 Download kit
                 {/* The size, not the count: "how big is this" is the question a reporter
                     on a hotel connection actually has (Will). */}
-                <span className="ml-1 text-[11px] tabular-nums opacity-60">
+                <span className="ml-1 text-micro tabular-nums opacity-60">
                   {formatKitBytes(PRESS_KIT_BYTES)}
                 </span>
               </a>
@@ -205,7 +205,7 @@ export default function PressPage() {
                 label="Copy the boilerplate"
               />
             </div>
-            <blockquote className="mt-4 border-l-2 border-foreground/20 pl-5 text-lg leading-8 text-pretty">
+            <blockquote className="mt-4 border-l-2 border-foreground/20 pl-5 text-copy text-pretty">
               {PRESS_BOILERPLATE}
             </blockquote>
 
@@ -274,7 +274,7 @@ export default function PressPage() {
                   <dd
                     className={cn(
                       "text-sm text-pretty text-muted-foreground",
-                      isTabular(value) && "text-[13px] tabular-nums",
+                      isTabular(value) && "tabular-nums",
                     )}
                   >
                     {href ? (
