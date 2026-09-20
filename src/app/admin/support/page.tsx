@@ -2,18 +2,9 @@ import type { Metadata } from "next";
 
 import { SupportList } from "@/components/admin/support-list";
 import { TriageFilter } from "@/components/admin/triage-filter";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { serverNow } from "@/lib/admin/pending";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import {
-  TRIAGE_STATUS_META,
-  triageStatusSchema,
-  type TriageStatus,
-} from "@/lib/constants/triage";
+import { triageStatusSchema, type TriageStatus } from "@/lib/constants/triage";
 import { listContactSubmissions } from "@/lib/db/queries/support";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -24,13 +15,13 @@ export const metadata: Metadata = { title: "Support" };
 export default async function AdminSupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; id?: string }>;
 }) {
   const ctx = await requireAdmin();
   // Don't read operator data until MFA is satisfied (the layout shows the gate at AAL1).
   if (ctx.aal !== "aal2") return null;
 
-  const { status: statusParam } = await searchParams;
+  const { status: statusParam, id } = await searchParams;
   const parsed = triageStatusSchema.safeParse(statusParam);
   const status: TriageStatus | undefined = parsed.success
     ? parsed.data
@@ -50,22 +41,17 @@ export default async function AdminSupportPage({
 
       <TriageFilter basePath="/admin/support" active={status} />
 
-      {submissions.length > 0 ? (
-        <SupportList submissions={submissions} />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Nothing here</CardTitle>
-            <CardDescription>
-              No submissions
-              {status
-                ? ` marked ${TRIAGE_STATUS_META[status].label.toLowerCase()}`
-                : ""}
-              .
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+      {/* The chosen message is a URL, not state (`?id=`), so it survives a
+          refresh and a triage write's revalidate with no client component at
+          all. `nowMs` is one cached clock read per request
+          (lib/admin/pending.ts), so every relative label agrees and no
+          component reads an impure value during render. */}
+      <SupportList
+        submissions={submissions}
+        selectedId={id ?? null}
+        basePath={status ? `/admin/support?status=${status}` : "/admin/support"}
+        nowMs={serverNow()}
+      />
     </div>
   );
 }

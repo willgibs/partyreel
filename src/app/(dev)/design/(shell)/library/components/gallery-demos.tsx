@@ -104,6 +104,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -114,6 +122,8 @@ import {
 import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
+  CommandPaletteDemo,
+  DestructiveSheetDemo,
   EmptyAlbumDemo,
   FormDemo,
   OtpDemo,
@@ -197,6 +207,11 @@ const badgeVariantNames = [
   "default",
   "secondary",
   "destructive",
+  // The other three states, added when the admin's `colour=rows` gave the
+  // portal four voices instead of one red (admin-wiring, 2026-09-20).
+  "success",
+  "warning",
+  "info",
   "outline",
   "ghost",
   "link",
@@ -235,7 +250,128 @@ function TrailWords() {
   );
 }
 
+/**
+ * One Tuesday's runs, the fixture the retired `admin` board drew them from:
+ * eight rows, two of which failed. It is a real table of the real primitive, so
+ * what the library shows is the tone rules doing their job rather than a
+ * description of them.
+ */
+const RUNS: {
+  started: string;
+  job: string;
+  outcome: "Succeeded" | "Failed" | "Skipped" | "Running";
+  took: string;
+}[] = [
+  { started: "04:00", job: "Purge sweep", outcome: "Failed", took: "12s" },
+  { started: "04:00", job: "Purge orphans", outcome: "Succeeded", took: "4s" },
+  { started: "05:00", job: "Backup reconcile", outcome: "Running", took: "" },
+  { started: "06:00", job: "Backup prune", outcome: "Skipped", took: "" },
+  { started: "06:30", job: "Database backup", outcome: "Succeeded", took: "31s" },
+];
+
+const RUN_TONE = {
+  Failed: "destructive",
+  Succeeded: undefined,
+  Skipped: undefined,
+  Running: undefined,
+} as const;
+
+const RUN_CHIP = {
+  Failed: "destructive",
+  Succeeded: "success",
+  Skipped: "outline",
+  Running: "info",
+} as const;
+
+function AdminRunsTable() {
+  return (
+    <div className="w-full overflow-hidden rounded-float border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Started</TableHead>
+            <TableHead>Job</TableHead>
+            <TableHead>Outcome</TableHead>
+            <TableHead className="text-right">Took</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {RUNS.map((run) => (
+            <TableRow key={run.job} tone={RUN_TONE[run.outcome]}>
+              <TableCell className="text-muted-foreground tabular-nums">
+                {run.started}
+              </TableCell>
+              <TableCell>{run.job}</TableCell>
+              <TableCell>
+                <Badge variant={RUN_CHIP[run.outcome]}>{run.outcome}</Badge>
+              </TableCell>
+              <TableCell className="text-right text-muted-foreground tabular-nums">
+                {run.took}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export const COMPONENT_ENTRIES: GalleryEntry[] = [
+  /* THE PORTAL'S THREE NEW PARTS (added by lp/admin-wiring at the HEAD of the
+     list, so several lanes in one round land on distinct hunks). The admin is
+     the one surface in the product nothing automated can sign into, so these
+     specimens are the only eye `lab:smoke` has on them. */
+  {
+    id: "table",
+    badge: "new",
+    family: "components",
+    // ★ A SECTION OF THEIR OWN, and not "Surfaces" and "Overlays". A family
+    // page groups by section in FIRST-APPEARANCE order, so an entry added at
+    // the head under a heading that already exists further down opens a second
+    // block with the same key: React drops one of them, silently. A lane adds
+    // at the head (so several lanes land on distinct hunks) and therefore
+    // brings its own heading.
+    section: "The operations portal",
+    title: "Table",
+    lede: "The portal's dense row, and the one thing it adds to shadcn's: `tone` as a data attribute, so a failed run tints its own row and takes a leading edge (`colour=rows`, Will 2026-09-20, with his note: \"Makes it a bit harder to miss\"). The same rules ride an <li> in the inbox list and the home's queue, which is why they are scoped by data value rather than split into four class strings.",
+    specimens: [
+      {
+        label: "Recent runs",
+        hint: "four states in the chip, and the tint on the two that are worth finding by scrolling",
+        node: <AdminRunsTable />,
+      },
+    ],
+  },
+  {
+    id: "command-palette",
+    badge: "new",
+    family: "components",
+    section: "The operations portal",
+    title: "CommandPalette",
+    lede: "A combobox in a dialog, and nothing else: no index, no ranking, no router and no skin. The help centre shipped one of these welded to the help library; this is the mechanism on its own, so the admin's ⌘K and any future palette are call sites. The active row is found in the DOM rather than in a registry, so the order an arrow key means is the order a reader sees.",
+    specimens: [
+      {
+        label: "Opened",
+        hint: "arrows move, Enter opens the highlighted row, Esc closes; the first row is active before a key is pressed, so Enter always does something",
+        node: <CommandPaletteDemo />,
+      },
+    ],
+  },
+  {
+    id: "destructive-sheet",
+    badge: "new",
+    family: "components",
+    section: "The operations portal",
+    title: "DestructiveSheet",
+    lede: "One panel for every destructive act in the portal, sized to the damage (`destructive=sheet`, Will 2026-09-20). It had four grammars and the severity did not line up with the friction: a typed dialog for an account, a plain one for a photograph, an arm-then-confirm for a legal hold, and a bare switch for the purge sweep. Every act now lists what it touches before it happens, and only the permanent one makes you type.",
+    specimens: [
+      {
+        label: "Reversible, and permanent",
+        hint: "the same panel twice: the pause asks for nothing, the deletion asks for the address it is about to delete; both confirmations here resolve without touching anything",
+        node: <DestructiveSheetDemo />,
+      },
+    ],
+  },
   /* THE ALBUM STREAM (added by lp/album-wiring at the HEAD of the list, so the
      three lanes of this round can each add their own without touching
      another's; the Orchestrator keeps every side at the merge). */

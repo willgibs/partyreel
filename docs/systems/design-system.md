@@ -847,11 +847,11 @@ rule is the SAME in both modes. The legend he ruled on lives at `/design/library
   in the light theme as in the dark one, and paper's ramp is the faint one. It holds on the stacked
   photographs today; if a lift over media ever reads weak in light, the fix is a ramp declared on
   the media ground, never a raw shadow back.
-- ★ **There is no translucent surface in the system** (card=declared, Will 2026-09-17: "If we ever
-  need to design that glass style over photos, we can design that custom."). The dark card was
-  `oklch(0.21 0 0 / 0.62)` and no document said so: solid over a page, glass over a photograph. It
-  is opaque everywhere now, so nothing needs backdrop-blur and nothing should reintroduce an alpha
-  on a surface token. A glass surface over media is a design task with its own ruling.
+- ★ **No SURFACE token is translucent, and the glass he banked now exists beside them** (card=declared,
+  Will 2026-09-17: "If we ever need to design that glass style over photos, we can design that
+  custom."; designed and ruled as Crystal, 2026-09-20). The dark card was `oklch(0.21 0 0 / 0.62)`
+  and no document said so: solid over a page, glass over a photograph. Surfaces are opaque
+  everywhere now and no surface token may take an alpha back. Glass is a MATERIAL of its own, below.
 
 ### The bright edge (`data-lit`): material, not elevation
 
@@ -877,6 +877,89 @@ and `src/components/shared/lit-edge-contract.test.ts` holds the function:
 - **Generated only where it can be drawn right**: `@supports` requires `color-mix` and
   `mask-composite` up front, because without the mask the gradient is a veil over the whole
   photograph and without `color-mix` the build's own fallback is the foreground at full strength.
+
+## The glass material: Crystal, and the one place it lives
+
+**Will ruled one material for every surface that sits over a photograph** (`glass` r2, 2026-09-20:
+`material=crystal`, `edge=double`), and he ruled it because he had watched the alternative start:
+"I don't want to have separate glass treatments and would prefer to find a global that works
+everywhere." So the numbers have exactly ONE home, the `--glass-*` block in
+[`globals.css`](../../src/app/globals.css); [`lib/glass.ts`](../../src/lib/glass.ts) names them and
+[`glass.test.ts`](../../src/lib/glass.test.ts) holds the two files to each other. A pane that types
+its own `bg-black/55 backdrop-blur-sm` is the drift the round existed to end.
+
+- **Crystal, in numbers**: a 42px blur, the backdrop at 0.68 brightness and 2x saturation, 4 percent
+  black painted over it, and TWO hairlines (a 28 percent lip, a 10 percent ring all round). ★
+  **BRIGHTNESS is what makes glass legible, not blur**: a blur does not change the mean luminance
+  under a pill, so a near-clear pane over a bright photograph loses its white text however wide the
+  blur. That is what lets Crystal carry a 4 percent tint at all.
+- **The edges are INSET SHADOWS, never a border.** A border changes the pane's size, so every glass
+  surface would be a different pane; an inset shadow draws on the padding box at the surface's own
+  radius, which is bible 9's concentric arc for free.
+- **Three utilities and no more**: `glass` (the pane), `glass glass-mark` (the same material with one
+  number re-pointed — a lighter blur, because a tile carries a mark on every photograph of an album
+  and a phone pays for each of them), and `glass-behind` (the lightbox's ground: the album blurred at
+  half brightness). ★ A `@utility` compiles only in the sheet Tailwind is imported from, which is why
+  the material could not live in `theme.css` or a component sheet.
+- ★ **THE GROUND IS ITS OWN ELEMENT, ALWAYS.** A backdrop filter blurs what is behind the element it
+  sits on, so a filter on an ancestor of the photograph blurs the photograph the viewer exists to
+  show — a failure that neither throws nor type-errors. `media-lightbox.tsx` puts `glass-behind` on
+  the overlay and the media in the content above it; `media-lightbox.test.tsx` pins the pair.
+- ★ **A GLYPH ON GLASS CARRIES ITS OWN LIGHT** (`glass-mark-lit`). The rose `--like` mark reads 4.4:1
+  through Crystal over the brightest photograph in the repo, under the 4.5:1 floor, and the same
+  arithmetic reaches WHITE on a near-white sky — which the board never saw, because it drew the
+  lightbox's pill over the album ALREADY darkened to half brightness where production floats it over
+  the raw photograph. A pane cannot fix a colour's contrast and raising the tint to carry a sky would
+  sink every dark photograph, so the glyph wears a halo: invisible over a dark photograph, the whole
+  difference over a bright one.
+- **Dark in both themes** (`paper=dark`): chrome over a photograph is chrome over a photograph
+  whatever the page is made of, so no `--glass-*` token is redeclared under `.dark` and the event
+  card's chip wears the same pane on a paper dashboard as on a dark one.
+- ★ **GLASS IS MEDIA CHROME, NEVER A POPOVER.** `floating-layer.ts`'s refusal of a backdrop filter on
+  a floating PANEL stands: a menu, a tooltip, a dialog and a sheet are opaque surfaces with a step
+  and a ring (bible 15). Two tests fence it from both sides.
+- **The section plate is the one place two numbers are local**, and they were measured rather than
+  chosen ([`photo-section.css`](../../src/components/shared/backdrop/photo-section.css)): a
+  chapter-scale pane of reading copy over a full-bleed photograph needs 0.55 through 22 percent to
+  clear 4.5:1 where the pill's pair would not. It takes the material's blur, saturation and edges
+  from the tokens; retune those two by MEASURING, never by matching.
+- **A phone pays nothing for the ground, measured** (2026-09-20, headless Chrome at 375): the
+  lightbox's swipe held 16.7ms at p50 AND p95 with the ground blurred, the same flat, and the same at
+  twice the radius under a 6x CPU throttle. A backdrop filter is GPU work, which is why the throttle
+  proves nothing lands on the CPU. `ui/dialog.tsx` still drops its overlay under a full-screen
+  takeover, and that is a different case: an opaque surface has nothing to show through it.
+
+### The album tile: marks, and the desk's one pane
+
+**A tile shows STATE, not controls** (Will, `tiles`, 2026-09-20, his own alternative to the board's
+options): "Having icons visible on every image card on mobile is going to get way too crowded and
+overwhelming immediately. Aside from an active like icon..., a video play icon..., or a like
+count..., let's handle all actions and controls (like, download, etc) in the lightbox controls." So a
+tile carries exactly three marks, and on a phone that is the whole tile.
+
+- **ONE tile for every album grid** (`tile-grammar`'s call, taken by the Orchestrator with his "If
+  unifying components or keeping them distinct also helps, that's your call"):
+  [`shared/masonry.tsx`](../../src/components/shared/masonry.tsx) serves the guest album
+  (`GuestMasonry` is a thin wrapper over it), the host's moderation gallery, the recovery bin and the
+  two personal feeds. The admin's `ModerationTile` stays its own: a report is not an album.
+- **The desk keeps its hover row, because the rule was a MOBILE rule** (his `bulk-toolbar` note), and
+  the row is ONE PANE rather than three discs (`row=bar`: "This feels much cleaner and more
+  cohesive"). The set is the per-surface `tileActions` prop — guest: like, save; host: like, save,
+  hide/show; the bin: restore, delete forever; the personal feeds: none — and `[data-reveal-chip]`
+  now rides the BAR, so one width opens instead of three chips sliding.
+- ★ **EXPLICIT COLUMNS, OLDEST FIRST INTO THE SHORTEST.** A browser re-flows every column of a
+  `columns-*` box when an item is inserted, which is the opposite of `live=land` ("the album re-flows
+  around it, nothing else moves"). Items are distributed to real column elements walking the array
+  BACKWARDS, so a newly prepended photograph is the last one placed and every tile already on screen
+  keeps its column. Pure, so strict mode's double render and a poll's reconcile agree.
+  `GALLERY_COLUMNS` stays a class string: it is the lab's, marketing's and the skeleton's own box,
+  and it is this grid's pre-measure paint (the column COUNT needs a width the server does not have,
+  so the first paint is the CSS-columns box and a layout effect takes over).
+- **The open item is an ID, never a position.** `items` mutates under an open lightbox (a doorbell
+  prepends, an upload prepends, a removal drops one) and a stored index silently starts pointing at a
+  different photograph. The guest album has carried the id since Phase 4; the shared grid inherits it
+  now that it IS the guest album.
+
 
 ## Motion
 
@@ -958,7 +1041,8 @@ patterns serve the layer: the **`data-swap`-gated box morph** (a size transition
 only when there is a previous size to morph FROM, or a measured-late 0×0 first frame animates as a
 wipe), the **glass LAYER** (`backdrop-filter` on an inert `-z-10` sibling whose `opacity` animates,
 never a class-toggled filter on the bar itself, which both snaps and drags every descendant's repaint
-into a blurred region), and the **measured indicator** (JS writes `offsetLeft`/`offsetWidth`, CSS owns
+into a blurred region; a glass surface that never FADES puts the filter on itself, which is what every
+`.glass` pane does), and the **measured indicator** (JS writes `offsetLeft`/`offsetWidth`, CSS owns
 the tween; the first placement MUST suspend the transition and force a reflow or it flies in from
 x=0). Hover is the one place enters may be SLOWER than exits: a row that is skimmed rather than
 studied needs its in inside ~90ms and can take ~180ms to fade back out.
@@ -971,10 +1055,10 @@ stutters at the loop point). **`MediaTile` (every gallery tile) renders the shim
 until it decodes, then fades the photo in over it:** a cold presigned-R2 load (no thumbnail variant)
 reads as shimmer→photo, never a black square that pops; reduced motion drops to a static muted block. The
 host-review takeover pairs this with a preload of the just-approved photos during the all-caught-up beat so
-the album reveal paints from cache (see [host-app.md](host-app.md)). The host tile action row uses the
-**`[data-reveal-chip]`** hook (globals.css): hover-reveal chips collapse their width + margin at rest so the
-persistent chips (liked / in-reel / hidden) pack to the right edge, then slide back on tile hover (the row is
-margin-spaced, not gap, so no residual gap; reduced-motion = opacity-only). **GOTCHA:** the hook is
+the album reveal paints from cache (see [host-app.md](host-app.md)). A tile's action row uses the
+**`[data-reveal-chip]`** hook (globals.css), and since the glass wiring it rides the BAR rather than each
+glyph: the whole pane collapses its width at rest and opens to one width on tile hover, sized by
+`--reveal-max` from the surface's own verb count (reduced-motion = opacity-only). **GOTCHA:** the hook is
 `!important` because it lives in `@layer base` but the chips carry their own Tailwind `transition`/`ml-1` in
 the higher `utilities` layer (which silently overrides it: no slide, residual gaps); and it expands on
 `:hover` / `:focus-visible` / `:has(:focus-visible)`, NOT `:focus-within`, so a mouse click doesn't leave a
@@ -1245,7 +1329,9 @@ the component (five Badge variants of six, four Button sizes of eight) is exactl
 ## Where it lives
 
 `src/app/globals.css` (tokens + utilities + guards, the single source; its `@theme` block and the `dark`
-variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry) ·
+variant sit in `src/app/theme.css`, shared with the lab's own Tailwind entry; the `--glass-*` block and the
+three glass utilities are here too, because a Tailwind `@utility` compiles only in the entry sheet) ·
+`src/lib/glass.ts` (the material's NAMES, held to that block by `glass.test.ts`) ·
 `src/app/layout.tsx` (font loading) · `src/components/ui/*` (the crafted primitives) ·
 `src/lib/errors/` (taxonomy) · `src/components/vendor/*` (third-party packages copied in verbatim) · `src/components/shared/route-error.tsx` + the route-group
 `error.tsx` files · `src/app/(dev)/design/` (the lab, two areas on one shell:

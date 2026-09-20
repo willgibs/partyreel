@@ -15,25 +15,19 @@ import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { type ModerationGridItem } from "@/lib/moderation/operator-actions";
 
 // The operator moderation grid (admin Albums browser). Reuses the shared MediaTile +
 // MediaLightbox; the per-tile controls are SIBLINGS of the open-lightbox button (the
 // HostMediaGrid pattern), so tapping a control never opens the lightbox. Active items get a
-// Remove (behind a confirm Dialog — it's destructive-ish: pulled from public view now, hard
-// -deleted after a 7-day grace); removed items get a Restore (safe + reversible, so no confirm).
+// Remove (behind the portal's one destructive sheet, `destructive=sheet` 2026-09-20 — it's
+// destructive-ish: pulled from public view now, hard-deleted after a 7-day grace; the dialog it
+// replaces asked nothing and closed on the same click that fired the action, so its own
+// `disabled={isPending}` never engaged); removed items get a Restore (safe + reversible, so no
+// confirm). The TILE is untouched here: the glass lane rewrites every tile's marks.
 // `mode="feed"` shows the album/host caption (linking to the drill-in); `mode="album"` omits it.
 
 function ModerationTile({
@@ -48,6 +42,7 @@ function ModerationTile({
   onOpen: (index: number) => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [asking, setAsking] = useState(false);
 
   function run(
     action: () => Promise<ActionResult>,
@@ -104,50 +99,34 @@ function ModerationTile({
             <Undo2 />
           </Button>
         ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon-sm"
-                disabled={isPending}
-                aria-label="Remove"
-                title="Remove"
-              >
-                <Trash2 />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Remove this item?</DialogTitle>
-                <DialogDescription>
-                  It disappears from the guest album right away. It is
-                  permanently deleted after a 7-day grace period, and you can
-                  restore it until then.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button
-                    variant="destructive"
-                    disabled={isPending}
-                    onClick={() =>
-                      run(
-                        () => removeMediaByOperatorAction(item.id),
-                        "Removed. It is pulled from the album.",
-                        "Couldn't remove that item.",
-                      )
-                    }
-                  >
-                    Remove
-                  </Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <>
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon-sm"
+              disabled={isPending}
+              aria-label="Remove"
+              title="Remove"
+              onClick={() => setAsking(true)}
+            >
+              <Trash2 />
+            </Button>
+            <DestructiveSheet
+              open={asking}
+              onOpenChange={setAsking}
+              title="Remove this item?"
+              lede="It leaves the guest album now, and you can restore it until the grace ends."
+              verb="Remove"
+              touches={[
+                `1 ${item.type} in ${item.eventName}`,
+                "Restorable for seven days, then the purge deletes the bytes",
+                "The guest who uploaded it is not told",
+              ]}
+              severity="reversible"
+              successMessage="Removed. It is pulled from the album."
+              onConfirm={() => removeMediaByOperatorAction(item.id)}
+            />
+          </>
         )}
       </div>
 

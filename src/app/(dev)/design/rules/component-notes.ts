@@ -25,6 +25,52 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
+  // block below it, so several lanes adding `for` lines in one round land on
+  // distinct hunks instead of on each other.
+  "src/components/ui/table.tsx": {
+    for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
+  },
+  "src/components/ui/command-palette.tsx": {
+    for: "a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees",
+  },
+  "src/components/admin/destructive-sheet.tsx": {
+    for: "the ONE panel every destructive act in the portal opens, sized to the damage: it lists what an act touches before it happens, and only a permanent act with something to identify asks you to type. `GuardedSwitch` beside it is the same panel on a kill switch's OFF edge, since turning one back on is free",
+  },
+  "src/components/admin/health-band.tsx": {
+    for: "the backend's health said on whichever admin page you are reading, and absent on a good day. An unreadable heartbeat says so in words and never as a count: a number invented for a failed read is the signal fabricating the answer it exists to find",
+  },
+  "src/components/admin/inbox-pane.tsx": {
+    for: "the list beside the message, for the two admin inboxes whose rows are prose. The selection is a URL (`?id=`), which is what lets the whole pane be server-rendered links with no client component at all",
+  },
+  "src/lib/admin/palette.ts": {
+    for: "what ⌘K can reach in the portal: the surfaces from nav.ts, the acts worth naming, and a small AND-semantics ranker. Every entry is a DESTINATION, so a palette row can never fire a kill switch",
+    unspecimened: "an index and a ranker; the palette that draws them is the specimen",
+  },
+  "src/lib/admin/kpi.ts": {
+    for: "the four figures the portal opens on, reduced from the profile rows: three carry a real fortnight delta and the fourth returns null, because nothing in the database remembers who was paying a fortnight ago",
+    unspecimened: "pure arithmetic and one SVG path string; MetricCard and Sparkline are what a reader looks at",
+  },
+  "src/lib/admin/queue.ts": {
+    for: "what is waiting on the operator, ranked worst first by a written-down severity ladder: an unreadable console, then a failure, then something overdue, then safety, then the inboxes",
+  },
+  "src/lib/admin/tone.ts": {
+    for: "how far a state's colour travels, in one module, so a chip and the row under it can never disagree. The tint reaches a failure and an overdue run and nothing else: four tinted rows is a spreadsheet with a highlighter through it",
+    unspecimened: "two lookup tables; the Table specimen is where they are visible",
+  },
+  /* THE GLASS MATERIAL (glass-wiring, 2026-09-20), at the head for the same
+     reason the block below it is: distinct hunks when several lanes add `for`
+     lines in one round. Two files, because the material is CSS and its names
+     are TypeScript, and a contract has to be able to hold them to each other. */
+  "src/app/globals.css": {
+    for: "the product's entry stylesheet, and since the glass ruling the ONE home of the material every surface over a photograph wears: the `--glass-*` tokens and the `glass` / `glass-mark` / `glass-behind` utilities. A Tailwind `@utility` compiles only in the sheet Tailwind is imported from, which is why the material could not live anywhere else",
+    unspecimened:
+      "a stylesheet: the Library renders the material on the surfaces that wear it (the tiles, the lightbox), never as a swatch of nothing",
+  },
+  "src/lib/glass.ts": {
+    for: "the glass material's NAMES: the class every glass surface wears, the token table `globals.css` is held to, and the floating primitives the material may never reach. It owns no pixels on purpose, so a reviewer can read the two rules a className string cannot show",
+    unspecimened: "a pure module: it declares names, not a surface",
+  },
   /* the event page as a HUB (hub-wiring, 2026-09-20): at the head, like the
      block below it, so several lanes adding `for` lines in one round land on
      distinct hunks instead of on each other. */
@@ -133,6 +179,18 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/guest/claim-handle-prompt.tsx": {
     for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
+  },
+
+  /* the door into an account (door-wiring, 2026-09-20): one object worn four
+     ways, and the two pure modules underneath it. */
+  "src/components/auth/account-door.tsx": {
+    for: "every place the product asks for an account, worn four ways (/login, the guest gate, Save, a like): one email field, Google beside it, a password on a quiet link, one Terms line and one failure table. A place passes the REASON it is asking and nothing else moves",
+  },
+  "src/lib/auth/door-failure.ts": {
+    for: "how the door fails: a kind, one short sentence and three real ways out, shared by the /login page, the callback route's error and the code screen. The password refusal stays generic on purpose, because naming which of three things went wrong is an account-enumeration leak",
+  },
+  "src/lib/auth/remembered-email.ts": {
+    for: "what one DEVICE remembers about the last host through the door: an address, the method that worked, and whether a passkey was saved here. A hint and never an authorization, read on /login alone so a phone passed around a party never shows the last guest's address",
   },
 
   "src/components/shared/album-stream/album-stream.tsx": {
@@ -479,7 +537,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
 
   /* ui */
   "src/components/ui/avatar.tsx": {
-    for: "the account face: the user menu, the account page, a guest in the list",
+    for: "the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it",
   },
   "src/components/ui/badge.tsx": {
     for: "the small status pill; the admin portal's states are most of its work",
@@ -625,7 +683,10 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/app/(dev)/design/sandbox/overtaken.ts": {
     for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
   },
-  "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts": {
+  "src/lib/avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",
+  },
+  "src/lib/avatar/seed.ts": {
+    for: "profiles.id -> the seed every avatar surface paints: a server-side SHA-256, so a raw account id never crosses into a browser that should not hold it",
   },
 };

@@ -42,6 +42,12 @@ type UserMenuProps = {
    * than a dead link (the handle is FREE for everyone, profiles-social.md).
    */
   slug?: string | null;
+  /**
+   * `seedFor(user.id)` (src/lib/avatar/seed.ts), computed by the caller —
+   * never the raw id (a client never receives an id it does not already
+   * hold). Paints the account's colour until a real photo replaces it.
+   */
+  seed?: string | null;
 };
 
 // Theme picker options. Each mode has its own icon; the active one gets a trailing
@@ -111,6 +117,7 @@ export function UserMenu({
   displayName,
   avatarUrl,
   slug = null,
+  seed = null,
 }: UserMenuProps) {
   // ★ THE HANDLE-LESS DOOR. /u/<slug> does not exist until a handle is claimed,
   // and claiming it is free, so the door leads to the claim card rather than
@@ -125,7 +132,7 @@ export function UserMenu({
         aria-label="Account menu"
         className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <Avatar>
+        <Avatar seed={seed ?? undefined}>
           {/* radix Avatar.Image auto-falls-back to the initial when src is null/fails. */}
           <AvatarImage src={avatarUrl ?? undefined} alt="" />
           <AvatarFallback>{initial(email, displayName)}</AvatarFallback>

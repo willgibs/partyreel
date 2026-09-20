@@ -4,6 +4,14 @@ import { Power } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -61,7 +69,9 @@ export default async function ReelsPage() {
         </p>
       </div>
 
-      <Card>
+      {/* The palette jumps here rather than throwing the switch itself
+          (lib/admin/palette.ts), so the id is part of that contract. */}
+      <Card id="reel-renders" className="scroll-mt-20">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Power className="size-5 text-foreground" />
@@ -90,64 +100,73 @@ export default async function ReelsPage() {
             IP, so no raw addresses are stored.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No renders yet.</p>
+            <p className="px-6 text-working text-muted-foreground">No renders yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">When</th>
-                    <th className="py-2 pr-3 font-medium">Event</th>
-                    <th className="py-2 pr-3 font-medium">Outcome</th>
-                    <th className="py-2 pr-3 text-right font-medium">Time</th>
-                    <th className="py-2 text-right font-medium">Cost</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((r) => (
-                    <tr key={r.id} className="border-b border-border/50">
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>When</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Outcome</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
+                  <TableHead className="text-right">Cost</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recent.map((r) => {
+                  const done =
+                    r.outcome === "completed" ||
+                    r.outcome === "cached" ||
+                    r.outcome === "client_encoded";
+                  return (
+                    <TableRow
+                      key={r.id}
+                      tone={r.outcome === "failed" ? "destructive" : undefined}
+                    >
+                      {/* A locale render is the server's timezone during SSR
+                          and the browser's on hydration: React #418 without
+                          this (admin-observability.md's gotcha). */}
+                      <TableCell
+                        suppressHydrationWarning
+                        className="whitespace-nowrap text-muted-foreground"
+                      >
                         {new Date(r.created_at).toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3">
+                      </TableCell>
+                      <TableCell>
                         {r.eventName ?? (
                           <span className="text-muted-foreground">
-                            {r.eventId
-                              ? `${r.eventId.slice(0, 8)}…`
-                              : "unknown"}
+                            {r.eventId ? `${r.eventId.slice(0, 8)}\u2026` : "unknown"}
                           </span>
                         )}
-                      </td>
-                      <td className="py-2 pr-3">
-                        <span
-                          className={
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
                             r.outcome === "failed"
-                              ? "text-destructive"
-                              : r.outcome === "completed" ||
-                                  r.outcome === "cached" ||
-                                  r.outcome === "client_encoded"
-                                ? "text-foreground"
-                                : "text-muted-foreground"
+                              ? "destructive"
+                              : done
+                                ? "success"
+                                : "outline"
                           }
                         >
                           {OUTCOME_LABEL[r.outcome] ?? r.outcome}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
                         {r.durationSec != null
                           ? `${r.durationSec.toFixed(0)}s`
                           : ""}
-                      </td>
-                      <td className="py-2 text-right tabular-nums">
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
                         {r.costUsd != null ? `$${r.costUsd.toFixed(3)}` : ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

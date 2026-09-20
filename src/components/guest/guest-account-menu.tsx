@@ -27,6 +27,7 @@ export function GuestAccountMenu({
   email,
   displayName,
   avatarUrl,
+  seed,
   ownsThisEvent,
   eventId,
   onSignOut,
@@ -35,6 +36,8 @@ export function GuestAccountMenu({
   displayName: string | null;
   /** Presigned avatar URL (server-side via /api/me/menu), or null for the initial-letter fallback. */
   avatarUrl: string | null;
+  /** seedFor(user.id), from /api/me/menu — null until phase 2 resolves (GuestHeader). */
+  seed?: string | null;
   /** True only when /api/me/menu confirmed ownership (RLS-scoped) — never inferred on the client. */
   ownsThisEvent: boolean;
   eventId: string;
@@ -47,7 +50,7 @@ export function GuestAccountMenu({
         aria-label="Account menu"
         className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <Avatar>
+        <Avatar seed={seed ?? undefined}>
           {/* radix Avatar.Image auto-falls-back to the initial when src is null/fails. */}
           <AvatarImage src={avatarUrl ?? undefined} alt="" />
           <AvatarFallback>{initial(email, displayName)}</AvatarFallback>

@@ -187,22 +187,37 @@ export function BigOrb({
     <div
       style={{ ...style, width: px, height: px, color: ink }}
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full border border-border font-medium select-none",
+        "relative box-border flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border font-medium select-none",
         px === 80 ? "text-2xl" : "text-lg",
         driftClass(drift),
         className,
       )}
     >
       {photo ? (
+        // ★ THE BUG (rulings.md, the sixth batch), part one: a bare
+        // width/height equal to `px` measured the BORDER-BOX, so the
+        // photograph (padding-box sized) overran it by the border's own
+        // width on every side — an 80px photograph inside a border-box-80,
+        // 1px-bordered parent left a 78px padding box for it to sit in.
+        // ★ PART TWO, measured live rather than assumed: `inset-0` ALONE
+        // does not stretch an absolutely positioned `<img>` (a replaced
+        // element) to fill it — Chromium sizes it from its own intrinsic
+        // ratio instead, same as it would with no inset at all. `size-full`
+        // is what actually forces the fill; every other `absolute inset-0`
+        // image in this codebase already pairs the two (event-card.tsx,
+        // media-grid.tsx, and more, `git grep "absolute inset-0 size-full"`).
+        // The rim's explicit `calc` mirrors what `inset-[2px]` implies on
+        // all four sides, so the two never disagree over the same box.
         // eslint-disable-next-line @next/next/no-img-element -- as above
         <img
           src={photo}
           alt=""
-          style={{
-            width: after === "rim" ? px - 5 : px,
-            height: after === "rim" ? px - 5 : px,
-          }}
-          className="absolute rounded-full object-cover"
+          className={cn(
+            "absolute rounded-full object-cover",
+            after === "rim"
+              ? "inset-[2px] size-[calc(100%-4px)]"
+              : "inset-0 size-full",
+          )}
         />
       ) : (
         show && initialOf(name)

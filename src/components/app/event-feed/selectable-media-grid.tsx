@@ -9,7 +9,9 @@ import {
   GALLERY_COLUMNS,
   GALLERY_UNIFORM_COLUMNS,
 } from "@/components/shared/masonry";
+import { GLASS, GLASS_BEHIND, GLASS_MARK } from "@/lib/glass";
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
+import { cn } from "@/lib/utils";
 
 // The shared selectable masonry — one natural-ratio grid that BOTH the Review triage and the Gallery
 // album bulk-select render. Media-forward (columns, matching the album look). Reuses the shared CSS
@@ -54,9 +56,7 @@ export function SelectableMediaGrid({
 
   return (
     <>
-      <div
-        className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
-      >
+      <div className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}>
         {items.map((it) => {
           const isSelected = selected.has(it.id);
           return (
@@ -74,7 +74,7 @@ export function SelectableMediaGrid({
               className={
                 uniform
                   ? "relative w-full overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
-                  : "relative mb-[var(--gap-gallery)] w-full overflow-hidden break-inside-avoid bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
+                  : "relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
               }
             >
               <MediaTile item={it} playBadge="none" />
@@ -92,11 +92,7 @@ export function SelectableMediaGrid({
                 }
                 aria-pressed={selectMode ? isSelected : undefined}
                 aria-label={
-                  selectMode
-                    ? isSelected
-                      ? "Deselect"
-                      : "Select"
-                    : "Preview"
+                  selectMode ? (isSelected ? "Deselect" : "Select") : "Preview"
                 }
                 className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
               />
@@ -110,7 +106,11 @@ export function SelectableMediaGrid({
                     type="button"
                     onClick={() => setPreview(it)}
                     aria-label="Preview video"
-                    className="absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white outline-none transition-colors hover:bg-black/70 focus-visible:ring-2 focus-visible:ring-white"
+                    className={cn(
+                      "absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-white outline-none",
+                      "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white active:scale-90 motion-reduce:active:scale-100",
+                      GLASS_MARK,
+                    )}
                   >
                     <Play className="size-4 translate-x-px fill-current" />
                   </button>
@@ -124,19 +124,21 @@ export function SelectableMediaGrid({
                   <span
                     className={`pointer-events-none absolute inset-0 transition-colors ${isSelected ? "bg-black/40" : "bg-black/0"}`}
                   />
+                  {/* ★ THE CHECK IS A MARK, IN THE ONE MATERIAL, and its SELECTED
+                      state keeps its colour: state feedback is always coloured
+                      (--success), which is the rule glass does not get to soften.
+                      Unselected it is the material with the material's own hairline,
+                      so an empty check no longer needs a hand-typed ring. */}
                   <span
-                    className="pointer-events-none absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border-2 transition-colors"
-                    style={
+                    className={cn(
+                      "pointer-events-none absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full",
                       isSelected
-                        ? { borderColor: "#fff", background: "var(--success)" }
-                        : {
-                            borderColor: "rgba(255,255,255,0.85)",
-                            background: "rgba(0,0,0,0.35)",
-                          }
-                    }
+                        ? "bg-success text-success-foreground ring-2 ring-white"
+                        : GLASS_MARK,
+                    )}
                   >
                     {isSelected && (
-                      <Check data-check-pop className="size-3.5 text-white" />
+                      <Check data-check-pop className="size-3.5" />
                     )}
                   </span>
                 </>
@@ -150,7 +152,13 @@ export function SelectableMediaGrid({
           Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar. */}
       {enablePreview && preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+          className={cn(
+            "fixed inset-0 z-50 flex items-center justify-center p-4",
+            // The peek stands on the same ground the lightbox does (`behind=album`):
+            // the queue behind it, blurred at half brightness. Its children paint
+            // above the filter, so the media it exists to show is never in it.
+            GLASS_BEHIND,
+          )}
           onClick={() => setPreview(null)}
         >
           {preview.type === "video" ? (
@@ -175,7 +183,11 @@ export function SelectableMediaGrid({
             type="button"
             onClick={() => setPreview(null)}
             aria-label="Close preview"
-            className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+            className={cn(
+              "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
+              "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+              GLASS,
+            )}
           >
             <X className="size-5" />
           </button>
