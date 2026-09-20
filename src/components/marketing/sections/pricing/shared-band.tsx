@@ -16,6 +16,13 @@ import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 /**
+ * ★ RETIRED FROM THE PRICING PAGE, KEPT ON DISK (Will, 2026-09-20, the `sheet`
+ * ask, his own answer: "I think I'd rather keep the tiles and the table, kill
+ * the band"). It is drawn by the `pricing-page` board's `sheet` step (all three
+ * options render it), which is why the file stays: a wiring lane never deletes
+ * a module the lab imports. Nothing in the product renders it any more. If the
+ * board retires without it coming back, this file goes with it.
+ *
  * "Every plan includes" — the shared floor, so the tiers above never read as a
  * stripped Free vs a complete paid product. A wrapped flex row (the privacy.tsx
  * precedent: seven items never leave an empty grid cell). Every claim is

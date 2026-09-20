@@ -259,6 +259,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the beam on the Pro card, the one standing beam: its ring is always the card's own corner",
   },
 
+  /* marketing / sections / pricing (pricing-wiring, 2026-09-20) */
+  "src/components/marketing/sections/pricing/plan-cards.tsx": {
+    for: "the money page's pair: Free on paper beside Pro in ink, with Pro's room picked on a slider whose stops ARE plansForTier('pro'), so a size nobody can buy can never appear on it",
+    unspecimened:
+      "a page block rather than a component: two full cards wide, and it only reads inside the paper chapter it opens. /pricing is where it is seen, and its contract sits beside it",
+  },
+
   /* marketing / sections / shared */
   "src/components/marketing/sections/shared/bulk-select-mock.tsx": {
     for: "the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls",

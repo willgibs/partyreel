@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { FAQ_ITEMS } from "@/components/marketing/faq-data";
+import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
 import { getPostListItems } from "@/lib/content/blog";
@@ -133,7 +135,13 @@ describe("buildLlmsFullTxt", () => {
 
   it("inlines every FAQ question", () => {
     const questions = [...full.matchAll(/^### /gm)];
-    expect(questions.length).toBeGreaterThanOrEqual(16);
+    // Read off the two lists llms.ts merges, never a number typed here: the
+    // pricing page's own list shrank to six when `close=eight` took his
+    // "reduce the count row (5-6 total?)", and a hardcoded 16 turned that
+    // ruling into a red test in a file about something else.
+    expect(questions.length).toBeGreaterThanOrEqual(
+      FAQ_ITEMS.length + PRICING_FAQ_ITEMS.length,
+    );
   });
 
   it("carries every blog post, since the index is capped", () => {

@@ -4952,6 +4952,42 @@
       ]
     },
     {
+      "id": "plan-cards",
+      "file": "src/components/marketing/sections/pricing/plan-cards.tsx",
+      "names": [
+        "PlanPair",
+        "StatRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is one slider whose stops are exactly the Pro plans tiers.ts declares",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 70
+        },
+        {
+          "title": "moves the price, the stats and the button with the thumb",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "keeps the billing cadence above the slider, and swaps to the annual price",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 111
+        }
+      ]
+    },
+    {
       "id": "bulk-select-mock",
       "file": "src/components/marketing/sections/shared/bulk-select-mock.tsx",
       "names": [
