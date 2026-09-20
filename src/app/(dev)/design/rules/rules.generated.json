@@ -10956,7 +10956,48 @@
         "/design/library/patterns"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "size=%s reads %s with an icon of size-%s",
+          "suite": [
+            "a text size pairs its icon one Tailwind step over its own text"
+          ],
+          "file": "src/components/ui/button.test.tsx",
+          "line": 44
+        },
+        {
+          "title": "size=%s (%s's height) carries an explicit icon of size-%s",
+          "suite": [
+            "an icon-only size pairs by the height it shares with a text size"
+          ],
+          "file": "src/components/ui/button.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "size=%s keeps %s",
+          "suite": [
+            "no size's height moved"
+          ],
+          "file": "src/components/ui/button.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "size=%s keeps its box at %s",
+          "suite": [
+            "no size's height moved"
+          ],
+          "file": "src/components/ui/button.test.tsx",
+          "line": 86
+        },
+        {
+          "title": "size=%s carries its own icon selector, not the base's fallback",
+          "suite": [
+            "every size's icon selector is explicit in the source, none by accident"
+          ],
+          "file": "src/components/ui/button.test.tsx",
+          "line": 122
+        }
+      ]
     },
     {
       "id": "card",

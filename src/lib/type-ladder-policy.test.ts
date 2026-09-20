@@ -78,10 +78,11 @@ import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
  *
  * ★ WHAT NEITHER SCAN SEES, SAID OUT LOUD: a class string that never reaches a
  * JSX attribute. Both walk JSX opening elements, so a size inside a `cva`
- * variant table or a plain const map (Button's four sizes, for one) is
+ * variant table or a plain const map (Button's eight sizes, for one) is
  * invisible here. That is deliberate — a string in a table may never be worn,
  * and guessing which ones are is how an allow-list starts lying — and it is
- * why Button's own sizes are a ROUND (`buttons-pairs`), not a lint.
+ * why Button's own sizes were a ROUND (`buttons-pairs`, wired `body-type` r2,
+ * 2026-09-20), not a lint.
  *
  * The ladder's NUMBERS are not pinned here, and never should be: a contract
  * guards function, never a look, and Will retunes a step without asking a test.
@@ -245,10 +246,11 @@ type BodyException = {
    * box, a price suffix riding a display numeral, an inline plate in a
    * paragraph.
    * `board`: a board on the desk rules this surface's sizes. Will's own
-   * verdicts put two here: the admin ("our internal admin portal favors
-   * information density and can break away from this if helpful") and the
-   * button rung ("not a direct selection, more work required" -> round two,
-   * `buttons-pairs`).
+   * verdict put one here first: the admin ("our internal admin portal favors
+   * information density and can break away from this if helpful"); the
+   * button rung's own two entries (`buttons-pairs`, "not a direct selection,
+   * more work required") are WIRED now (`body-type` r2, `pairs=step-up`,
+   * 2026-09-20) and gone from the list below.
    *
    * `lane` (a lane boundary another manifest held the night the ladder
    * landed) and `pending` (an app-shape lane mid-rebuild) are GONE, not
@@ -404,22 +406,14 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 2,
     why: "the phone sheet's nav rows at 18: nav, not body copy, and `site-chrome` has the board",
   },
-  "src/components/guest/password-gate.tsx": {
-    kind: "board",
-    count: 2,
-    why: 'button text, which `body-type` r1 sent to round two: "not a direct selection, more work required" (`buttons-pairs`)',
-  },
-  // demo-wiring (2026-09-20) swept the rest of entry-modal.tsx clean while
-  // wiring `arrival=role` (the eyebrows onto `text-label`, the byline onto
-  // `text-working`): what is left is three primary-CTA buttons sharing one
-  // size the ladder does not host yet (SuccessStep's retry, WelcomeStep's
-  // "Continue"/"View the album", RoleStep's "Look around" — the demo's own
-  // arrival, same sheet, same reason).
-  "src/components/guest/entry-modal.tsx": {
-    kind: "board",
-    count: 3,
-    why: 'button text, which `body-type` r1 sent to round two: "not a direct selection, more work required" (`buttons-pairs`)',
-  },
+  // `password-gate.tsx` and `entry-modal.tsx` (demo-wiring's three primary-CTA
+  // buttons, SuccessStep's retry, WelcomeStep's "Continue"/"View the album",
+  // RoleStep's "Look around") held their `text-[15px]` here as `board`
+  // entries while `buttons-pairs` was open ("not a direct selection, more
+  // work required"). `body-type` r2 ruled `pairs=step-up` (2026-09-20) and
+  // `buttons-wiring` moved all five onto `size="cta"` (44px, `text-base`,
+  // the door's own precedent via `enter-event-prompt.tsx`'s
+  // `buttonClassName="h-11"`): both entries are GONE, not merely unused.
 };
 
 function filesUnder(dir: string): string[] {

@@ -1,32 +1,58 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { AlertTriangle, Ban, Check, Clock, Wifi } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  Clock,
+  Gauge,
+  KeyRound,
+  Ban,
+  Wifi,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn, formatEventDate } from "@/lib/utils";
 
-import { EVENT, UNPROVEN_MAY_NOT, WALL, type Person } from "./fixtures";
+import {
+  ALLOWANCE,
+  EVENT,
+  FACTS,
+  HELD,
+  JOBS,
+  MAIL_STILL_FAILS,
+  METER,
+  PRINCIPLE,
+  WALL,
+  WALL_UNREAD,
+  type Person,
+} from "./fixtures";
 
 /**
- * THE GROUND ALL SIX DECISIONS STAND ON.
+ * THE GROUND ALL FIVE DECISIONS STAND ON.
  *
- * ★ WHAT IS SHIPPED AND WHAT IS DRAWN, said once here rather than six times.
- * The guest door (`EnterEventPrompt`, and `AccountDoor` inside it), the album
- * (`GuestMasonry`), the queue's grid (`ReviewGrid`) and every avatar (`Avatar`
- * with its `seed`, the orb `avatar-wiring` shipped on 2026-09-20) are the
+ * ★ WHAT IS SHIPPED AND WHAT IS DRAWN, said once here rather than five times.
+ * The guest door (`EnterEventPrompt`, with `AccountDoor` inside it), the album
+ * (`GuestMasonry`), the queue's grid and every avatar (`Avatar` with its
+ * `seed`, the diagonal `avatar-wiring` shipped on 2026-09-20) are the
  * PRODUCTION components, imported whole. What is DRAWN by this board is the
- * only thing the product does not have: any mark, strip, pile or deadline that
- * says an address has not been proven. That is the whole question, so there is
- * nothing to import for it, and none of it is a proposal about a look — a
- * ruling here is a ruling about WHERE the fact goes, not about the glyph.
+ * only thing the product does not have: any mark, slot, allowance or switch
+ * that says an address has not been proven. That is the whole question, so
+ * there is nothing to import for it, and a ruling here is a ruling about WHERE
+ * a fact goes, never about a glyph.
  *
- * ★ PHONE FIRST. A guest is standing at a party holding a phone, and the code
- * that never arrives arrives (or does not) on that phone. 1440 is on the knob
- * because the host reading the queue is at a desk half the time.
+ * ★ PHONE FIRST. A guest is standing at a party holding a phone. 1440 is on the
+ * knob because the host reading the queue and the settings sheet is at a desk
+ * half the time.
  */
 
-/* ── the screens ─────────────────────────────────────────────────────────── */
+/* -- the screens ---------------------------------------------------------- */
 
 export const SCREENS = {
   "375": { w: 375, h: 812, name: "a phone" },
@@ -41,13 +67,13 @@ export const screenOf = (v: string | undefined): ScreenId =>
 /** The shipped guest gutter. */
 export const GUTTER = "px-5";
 
-/* ── the page a guest is standing on ─────────────────────────────────────── */
+/* -- the page a guest is standing on -------------------------------------- */
 
 /**
  * The album's own header, quoted from `event-experience.tsx`'s left-editorial
- * block: the name, the byline, the count. Quoted rather than imported because
- * the shipped shell resolves a live session and a real event payload, and a
- * lab frame would draw whoever the author is signed in as.
+ * block. Quoted rather than imported because the shipped shell resolves a live
+ * session and a real event payload, and a lab frame would draw whoever the
+ * author is signed in as.
  */
 export function EventBlock({
   count,
@@ -65,7 +91,7 @@ export function EventBlock({
           <span className="font-medium text-foreground">{EVENT.host}</span>
         </span>
         <span aria-hidden className="text-faint">
-          ·
+          &middot;
         </span>
         <span>{formatEventDate(EVENT.date)}</span>
       </p>
@@ -97,9 +123,9 @@ export function Page({
 }
 
 /**
- * A labelled half of a frame. `host-lens`, `collision` and `expiry` each have
- * two audiences in one picture (the guest's screen and the host's), and the
- * only honest way to compare "who is told" is to draw both at once.
+ * A labelled half of a frame. Four of the five decisions have two audiences in
+ * one picture (the guest's screen and the host's), and the only honest way to
+ * compare "who is told" is to draw both at once.
  */
 export function Pane({
   label,
@@ -108,7 +134,7 @@ export function Pane({
   children,
 }: {
   label: string;
-  tone?: "plain" | "host" | "warn";
+  tone?: "plain" | "host" | "warn" | "good";
   className?: string;
   children: ReactNode;
 }) {
@@ -126,7 +152,9 @@ export function Pane({
             ? "bg-muted/60 text-foreground"
             : tone === "warn"
               ? "bg-warning/10 text-warning"
-              : "bg-muted/30 text-muted-foreground",
+              : tone === "good"
+                ? "bg-success/10 text-success"
+                : "bg-muted/30 text-muted-foreground",
         )}
       >
         {label}
@@ -136,17 +164,49 @@ export function Pane({
   );
 }
 
-/* ── the marks this board invents, in one place ──────────────────────────── */
+/** One line of board voice under a picture, for a frame note that is not an option. */
+export function FrameNote({
+  label,
+  children,
+  tone = "plain",
+}: {
+  label: string;
+  children: ReactNode;
+  tone?: "plain" | "warn" | "good";
+}) {
+  return (
+    <p
+      data-gv-note
+      className={cn(
+        "rounded-lg px-3 py-2 text-[11px] leading-snug",
+        tone === "warn"
+          ? "bg-warning/10 text-warning"
+          : tone === "good"
+            ? "bg-success/10 text-success"
+            : "bg-muted/50 text-muted-foreground",
+      )}
+    >
+      <span className="font-semibold tracking-[0.06em] uppercase">
+        {label}
+      </span>{" "}
+      {children}
+    </p>
+  );
+}
 
-export type MarkShape = "mark" | "ring" | "none";
+/* -- the mark his ruling already made ------------------------------------- */
+
+export type MarkShape = "mark" | "none";
 
 /**
- * AN AVATAR THAT CAN SAY ITS ADDRESS IS UNPROVEN, three ways.
+ * THE AVATAR THAT SAYS ITS ADDRESS IS UNPROVEN, on his ruling and his note.
  *
- * `Avatar` is the shipped component (and the orb under it is the shipped
- * generator). The mark and the ring are the two guest-visible forms `badge`
- * asks about: a corner glyph that names the state, and a dashed rim that only
- * a person looking for it reads. `none` is the avatar exactly as it ships.
+ * `badge=mark` was ruled, with two corrections in the same breath: "Rather than
+ * a warning icon, this could be more subtle" and "When the icon/mark is
+ * hovered, a tooltip should clarify what it means". So the mark is a small dot
+ * at the disc's corner rather than a triangle, and it carries a real tooltip
+ * with the sentence that tells a guest what to do about it. `Avatar` and the
+ * generator under it are the shipped ones.
  */
 export function PersonAvatar({
   person,
@@ -158,51 +218,46 @@ export function PersonAvatar({
   size?: "sm" | "default" | "lg";
 }) {
   const unproven = !person.proven && shape !== "none";
-  return (
-    // ★ `data-gv-unproven` IS THE MEASUREMENT, not a style hook: `ring` carries
-    // no glyph, so counting marks would report zero for an option that labels
-    // exactly as many people as `mark` does. One attribute, both forms.
+  const disc = (
+    // ★ `data-gv-unproven` IS THE MEASUREMENT, not a style hook: the caption
+    // counts labelled people, and counting glyphs would miss a form that
+    // carries none.
     <span
       data-gv-unproven={unproven ? "" : undefined}
       className="relative inline-flex shrink-0"
     >
-      <Avatar
-        size={size}
-        seed={person.seed}
-        className={cn(
-          unproven &&
-            shape === "ring" &&
-            "opacity-55 after:border-dashed after:border-muted-foreground/70",
-        )}
-      >
+      <Avatar size={size} seed={person.seed}>
         <AvatarImage src={undefined} alt="" />
         <AvatarFallback className="text-[10px]">
           {person.name.slice(0, 1)}
         </AvatarFallback>
       </Avatar>
-      {unproven && shape === "mark" && (
+      {unproven && (
         <span
           data-gv-mark
           aria-label="Email not confirmed"
           className="absolute -right-0.5 -bottom-0.5 flex size-2.5 items-center justify-center rounded-full bg-background"
         >
-          <span className="size-1.5 rounded-full bg-warning" />
+          <span className="size-1.5 rounded-full bg-warning/80" />
         </span>
       )}
     </span>
   );
+  if (!unproven) return disc;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{disc}</TooltipTrigger>
+        <TooltipContent side="top" className="max-w-52 text-center">
+          Hasn&rsquo;t confirmed their email yet. Their photos are in; the mark
+          goes when they tap their code.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
-/**
- * The state in two words, or in one glyph.
- *
- * ★ `compact` IS A MEASUREMENT FINDING, NOT A STYLE. The host's queue is the
- * shipped uniform grid, which is three columns at 375, so a tile is about 110px
- * wide: the words "Not confirmed" beside an avatar and a name clipped at the
- * tile's edge on the first capture. On a tile the state is the glyph and the
- * chip's own tone; the words belong where there is a line to put them on (the
- * host's guest list).
- */
+/** The state in two words, or in one glyph on a tile too narrow for words. */
 export function StateChip({
   proven,
   compact = false,
@@ -219,9 +274,7 @@ export function StateChip({
       className={cn(
         "inline-flex shrink-0 items-center gap-1 rounded-full py-0.5 text-[10px] font-medium",
         compact ? "px-1" : "px-1.5",
-        proven
-          ? "bg-muted text-muted-foreground"
-          : "bg-warning/15 text-warning",
+        proven ? "bg-muted text-muted-foreground" : "bg-warning/15 text-warning",
         className,
       )}
     >
@@ -235,46 +288,119 @@ export function StateChip({
   );
 }
 
-/* ── the cost strips ─────────────────────────────────────────────────────── */
-
 /**
- * WHAT AN UNPROVEN GUEST MAY NOT DO. Identical under every `gate` option on
- * purpose: it is the allowance, which the goal rules is a cost line and not a
- * decision, so drawing it three times unchanged is what keeps the axis being
- * judged the gate itself.
+ * A TYPED ADDRESS, IN A SLOT THAT IS NEVER THE VERIFIED ONE. The red team's
+ * third security case: the host's lightbox has always shown a string proven on
+ * the auth server, and a string somebody typed at a door may not inherit that
+ * place. So it is drawn in its own row, dimmer, with the word "typed" in it,
+ * and it is never the line a host would copy into a mail client by reflex.
  */
-export function AllowanceStrip({ muted = false }: { muted?: boolean }) {
+export function ClaimedSlot({
+  address,
+  className,
+}: {
+  address: string;
+  className?: string;
+}) {
   return (
-    <div
-      data-gv-allowance
+    <span
+      data-gv-claimed
       className={cn(
-        "rounded-lg border border-dashed border-border px-3 py-2",
-        muted && "opacity-45",
+        "inline-flex min-w-0 items-center gap-1 rounded border border-dashed border-warning/45 px-1.5 py-0.5 text-[10px] text-muted-foreground",
+        className,
       )}
     >
-      <p className="text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-        The same on every option
+      <span className="shrink-0 font-medium text-warning">Typed</span>
+      <span className="truncate">{address}</span>
+      <span className="shrink-0 text-faint">unconfirmed</span>
+    </span>
+  );
+}
+
+/* -- the strips every frame can carry ------------------------------------- */
+
+/**
+ * THE PRINCIPLE, THE THREE JOBS, THE FACTS AND THE FOUR HELD RULINGS, on the
+ * first decision's frames. It is the only long thing on this board, and it is
+ * on the FIRST step on purpose: everything after it is a picture.
+ */
+export function FactsPanel({ compact = false }: { compact?: boolean }) {
+  return (
+    <div data-gv-facts className="space-y-2.5">
+      <p className="rounded-lg bg-foreground px-3 py-2 text-[12px] leading-snug font-medium text-background">
+        {PRINCIPLE}
       </p>
-      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
-        {UNPROVEN_MAY_NOT.map((line) => (
-          <li
-            key={line}
-            className="flex items-center gap-1 text-[10px] text-muted-foreground"
+      <div className="grid gap-1.5 sm:grid-cols-3">
+        {JOBS.map((j) => (
+          <div
+            key={j.id}
+            className="rounded-lg border border-border bg-muted/30 px-2.5 py-2"
           >
-            <Ban className="size-2.5 shrink-0" aria-hidden />
-            {line}
-          </li>
+            <p className="text-[10px] font-semibold tracking-[0.08em] uppercase">
+              {j.name}
+            </p>
+            <p className="mt-0.5 text-[10px] leading-snug text-foreground">
+              {j.line}
+            </p>
+            <p className="mt-1 text-[10px] leading-snug text-muted-foreground">
+              Proof: {j.proof}
+            </p>
+          </div>
         ))}
-      </ul>
+      </div>
+      {!compact && (
+        <ul className="space-y-1">
+          {FACTS.map((f) => (
+            <li
+              key={f.id}
+              data-gv-fact={f.kind}
+              className="flex items-start gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5"
+            >
+              {f.kind === "is" ? (
+                <KeyRound
+                  className="mt-0.5 size-3 shrink-0 text-success"
+                  aria-hidden
+                />
+              ) : (
+                <Ban
+                  className="mt-0.5 size-3 shrink-0 text-destructive"
+                  aria-hidden
+                />
+              )}
+              <span className="min-w-0 text-[10px] leading-snug">
+                <span className="font-medium text-foreground">
+                  {f.kind === "is" ? "" : "Refused: "}
+                  {f.what}
+                </span>{" "}
+                <span className="text-muted-foreground">{f.why}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="rounded-lg border border-border bg-muted/30 px-2.5 py-2">
+        <p className="text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+          Held from round one, and everything here is drawn on top of them
+        </p>
+        <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+          {HELD.map((h) => (
+            <li key={h.id} className="text-[10px] text-muted-foreground">
+              <span className="font-medium text-foreground">{h.ask}</span>{" "}
+              {h.said}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
 /**
- * THE WALL, under every `outage` option. The same three rows every time, for
- * the same reason the allowance repeats: the limits do not move, only the
- * remedy does, and an option that reads well against a limit nobody can see is
- * an option chosen blind.
+ * THE WALL, RE-MEASURED. The same four rows wherever it is drawn, for the
+ * reason round one gave and then got wrong: an option that reads well against a
+ * limit nobody can see is an option chosen blind, and a limit drawn wrong is
+ * worse than none. Every figure is Supabase's DOCUMENTED default, labelled as
+ * documented, and the unread line says so.
  */
 export function WallStrip({ compact = false }: { compact?: boolean }) {
   return (
@@ -284,7 +410,7 @@ export function WallStrip({ compact = false }: { compact?: boolean }) {
     >
       <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
         <Wifi className="size-3" aria-hidden />
-        One venue, one IP
+        One venue, one address, as documented
       </p>
       <ul className="mt-1.5 space-y-1">
         {WALL.filter((w) => !compact || w.severe).map((w) => (
@@ -310,6 +436,90 @@ export function WallStrip({ compact = false }: { compact?: boolean }) {
           </li>
         ))}
       </ul>
+      <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+        {WALL_UNREAD}
+      </p>
+      <p className="mt-1 text-[10px] leading-snug text-warning">
+        {MAIL_STILL_FAILS}
+      </p>
     </div>
+  );
+}
+
+/**
+ * THE HOST'S METER, under every `allowance` option. The never-refund fact is
+ * the whole reason that decision exists, and it is invisible in the product:
+ * a host cannot see who spent their month, only that it is spent.
+ */
+export function MeterStrip({
+  spentGb,
+  caption,
+  tone = "plain",
+}: {
+  spentGb: number;
+  caption: string;
+  tone?: "plain" | "warn" | "bad";
+}) {
+  const pct = Math.min(
+    100,
+    Math.round((spentGb / METER.freeMonthlyGb) * 100),
+  );
+  return (
+    <div data-gv-meter data-gv-spent={String(spentGb)} className="space-y-1.5">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Gauge className="size-3" aria-hidden />
+          This month, uploaded &middot; Maya, Free
+        </span>
+        <span>
+          {spentGb} GB of {METER.freeMonthlyGb} GB
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-full rounded-full",
+            tone === "bad"
+              ? "bg-destructive"
+              : tone === "warn"
+                ? "bg-warning"
+                : "bg-foreground/60",
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p
+        className={cn(
+          "text-[10px] leading-snug",
+          tone === "bad"
+            ? "text-destructive"
+            : tone === "warn"
+              ? "text-warning"
+              : "text-muted-foreground",
+        )}
+      >
+        {caption}
+      </p>
+      <p className="text-[10px] leading-snug text-muted-foreground">
+        {METER.line} {METER.abuse}
+      </p>
+    </div>
+  );
+}
+
+/** The allowance in one line, drawn under the options that have one. */
+export function AllowanceLine({ shape }: { shape: "handful" | "budget" | "open" }) {
+  return (
+    <p
+      data-gv-allowance={shape}
+      className="rounded-lg border border-dashed border-border px-3 py-2 text-[10px] leading-snug text-muted-foreground"
+    >
+      {shape === "handful" &&
+        `Every session that has not proved an address may add ${ALLOWANCE.handful} photographs and no video. After that, one tap proves it.`}
+      {shape === "budget" &&
+        `This event accepts ${ALLOWANCE.budget} photographs from sessions that have not proved an address. Maya can raise it while the party runs.`}
+      {shape === "open" &&
+        "No cap. A session that has proved nothing may add as much as any other."}
+    </p>
   );
 }

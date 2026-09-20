@@ -135,7 +135,6 @@ export type SandboxId =
   | "guest-shape"
   | "album-motion"
   | "loose-ends"
-  | "body-type"
   | "privacy-hero"
   | "app-shape";
 
@@ -1295,17 +1294,18 @@ export const RULINGS: Ruling[] = [
       variants: ["Where the controls live"],
     },
   },
-  // A NEW BOARD (guest-verify, 2026-09-20), registered at the head of
-  // DESK_ORDER under the registration exception and moved after `guest-shape`
-  // at the merge: it changes the door every other guest board draws on.
+  // ROUND TWO (guest-verify, 2026-09-20): round one ruled four and the
+  // Orchestrator HELD all four on his own "May have to relitigate", so this
+  // round draws the shape they imply rather than wiring them. It changes the
+  // door every other guest board draws on, which is why it sits here.
   {
     id: "guest-verify",
     title: "Verify, or badge",
     surface: "guest",
     ruled:
-      "open: his `gate=ask` note (Will, 2026-09-19) asked for 1+ exploratory tracks on skipping email confirmation to upload in favour of a verified/unverified badge, with the shared-network outage as the fear and the unverified-address collision as the safety hole; the ruled gate SENTENCE is wired and untouched",
+      "round one ruled in part (Will, 2026-09-20, the closing sitting's first batch) and all four are HELD, not wired, on his own \"May have to relitigate\": gate=after (the photo goes live wearing a mark), badge=mark (subtler than a warning icon, with a tooltip, and on the pop-up and the profile too), host-lens=badge (one queue, every card saying who), expiry=host (nothing removed on a deadline). collision and outage came back `?` with his three cases and a summing-up that re-opened everything: \"Consider all of our ideas and systems up until now unprotected and open to relitigation for best overall idea to streamline account identity.\" Both are re-asked inside round two, collision as its own decision and outage inside what a guest sees; the ruled gate SENTENCE is wired and untouched",
     shipped: null,
-    why: "Six decisions on whether a guest must confirm an email before uploading at all, and what the product has to grow if the answer is no.",
+    why: "Round two, on top of the four held rulings: what a typed address does, who pays once the gate is gone, what a guest sees, and what the host's switch becomes.",
     lives: [
       "docs/systems/guest-flow.md",
       "docs/systems/auth-accounts.md",
@@ -1314,14 +1314,13 @@ export const RULINGS: Ruling[] = [
       "src/components/auth/account-door.tsx",
     ],
     board: {
-      note: "Six decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob: when the address gets proven, what an unproven account shows and to whom, where the photographs land when two people type one address, what rescues a party when the codes stop arriving, what the host's queue says about who sent what, and what day seven does to a photograph nobody ever confirmed",
+      note: "Round two: five decisions on the shipped door, album, guest list, queue and settings sheet, phone first at 375 with 1440 on the knob, drawn on top of the four held rulings. What a typed address does on a session that proved nothing, what such a session may add now that the host's month is the only cost left, where unproven content goes and what a guest is told about the person behind it, his case 2 with cases 1 and 3 drawn beside it as settled fact, and what Require accounts becomes once uploading no longer requires one. The rate-limit wall is re-measured from Supabase's current table, and three ideas are refused on the frames with the cost that refused them",
       variants: [
-        "The gate",
-        "The badge",
-        "The collision",
-        "The outage",
-        "The host's lens",
-        "The expiry",
+        "A typed address",
+        "The allowance",
+        "What a guest sees",
+        "The returning guest",
+        "The host's switch",
       ],
     },
   },
@@ -1523,19 +1522,17 @@ export const RULINGS: Ruling[] = [
     title: "Body and label type",
     surface: "shared",
     ruled:
-      'round one ruled whole (Will, 2026-09-19/20, the fifth batch): six of its seven asks wired at `59345bc8` (`ladder-wiring`): reading=16, working=14, marketing=fluid (16 to 18), caption=10 (the caption step itself stays 12; micro is the new 10 floor), label=12-08, leading=length (2 x size - 8). Round two is open on the button rung alone, his own words: "the download and select buttons felt mismatched between their icon sizes and new font size"',
-    shipped: null,
-    why: "Round two asks how a button's icon and height follow its new text step, three pairings drawn on the real Button at every size, measured in the frame.",
+      "whole: round one (Will, 2026-09-19/20, the fifth batch) wired six of seven asks at `59345bc8` (`ladder-wiring`); round two, the button rung alone, ruled `pairs=step-up` at the closing sitting's first batch (2026-09-20) and wired at `buttons-wiring`",
+    shipped:
+      "The six body steps (reading=16, working=14, marketing=fluid 16 to 18, caption=10 with the caption step at 12, label=12 on 0.08em, leading=2x-8) plus the button rung: every Button size's icon one Tailwind icon-step over its own text (12/14, 14/16, 16/18), explicit on all eight sizes so none falls back to the base by accident",
+    why: 'His "mismatched" icon/text pairing becomes a stated rule: every icon sits one Tailwind step over its text, costing the least motion since most sizes already sat there.',
     lives: [
       "src/app/theme.css",
       "src/lib/utils.ts",
       "src/lib/type-ladder-policy.test.ts",
       "src/components/ui/button.tsx",
+      "docs/systems/design-system.md",
     ],
-    board: {
-      note: "One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box.",
-      variants: ["Icon and height pairing"],
-    },
   },
   {
     id: "voice",
@@ -1616,7 +1613,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
-  "body-type",
   "app-shape",
   "guest-shape",
   "guest-verify",
