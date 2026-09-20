@@ -1,90 +1,77 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-import { EmailSignIn } from "@/components/auth/email-sign-in";
+import { FailurePaths } from "@/components/auth/failure-paths";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginTarget } from "@/lib/auth/admin-host";
+import { doorFailure } from "@/lib/auth/door-failure";
 import { setPasswordSchema, signInSchema } from "@/lib/validation/auth";
 import { createClient } from "@/lib/supabase/client";
 
-type PasswordAuthProps = {
-  // Absolute callback URL for the create-flow OTP magic-link fallback (the code path
-  // verifies in-page). Mirrors how LoginForm passes it to EmailSignIn.
-  emailRedirectTo: string;
-  // Switch the parent to the "email me a code" view (passwordless sign-in).
-  onUseCode: () => void;
-  // Switch the parent to the code view in RESET intent (forgot password → set a new one on
-  // /account after verifying).
-  onForgot: () => void;
-};
+/**
+ * THE PASSWORD DOOR, now a SECOND door rather than the lead.
+ *
+ * ★ RULED (Will, 2026-09-20, `app-door` r1 `lead=code`): one email field, the
+ * same address signs in or creates the account, Google beside it, and a password
+ * drops to a quiet link. So the account-CREATION flow that used to live here
+ * (the "Create account" link, the OTP verify, then "Pick a password") is gone:
+ * creating an account IS the code path now, on every surface, and nothing writes
+ * a password before an address has been proven because nothing writes one at the
+ * door at all.
+ *
+ * What remains is the two things a password is still for:
+ *   `SignIn`             — a returning host who has one, reached from the door's
+ *                          quiet "Have a password?" link.
+ *   `SetInitialPassword` — the end of "forgot password": the code proves the
+ *                          address, then a new password is set on the live
+ *                          session. It is the one component that pairs
+ *                          `updateUser({password})` with `mark_password_set()`,
+ *                          which is what `has_password()` actually reads
+ *                          (auth-accounts.md's placeholder-hash gotcha).
+ *
+ * `<AccountDoor>` is the only caller; it owns which of them is on screen.
+ */
 
-// Email + password surface for the host login page (auth-accounts.md): the lead sign-in form plus
-// an account-creation flow. Create reuses the existing OTP path to prove ownership, then
-// sets the chosen password via updateUser, so a password is only ever written on a verified
-// session. The shared <EmailSignIn> (also used by guests) is reused UNCHANGED.
-export function PasswordAuth({
-  emailRedirectTo,
+export function SignIn({
   onUseCode,
   onForgot,
-}: PasswordAuthProps) {
-  const router = useRouter();
-  const [intent, setIntent] = useState<"signin" | "create">("signin");
-
-  // Host-aware landing, identical to the code path in LoginForm (in-page, no redirect, so
-  // no Supabase redirect-allow-list entry is involved).
-  function land() {
-    router.push(loginTarget(window.location.host));
-    router.refresh();
-  }
-
-  return intent === "create" ? (
-    <CreateAccount
-      emailRedirectTo={emailRedirectTo}
-      onDone={land}
-      onSignIn={() => setIntent("signin")}
-    />
-  ) : (
-    <SignIn
-      onCreate={() => setIntent("create")}
-      onUseCode={onUseCode}
-      onForgot={onForgot}
-      onDone={land}
-    />
-  );
-}
-
-function SignIn({
-  onCreate,
-  onUseCode,
-  onForgot,
+  onGoogle,
   onDone,
+  hintEmail,
+  inputClassName,
+  buttonClassName,
 }: {
-  onCreate: () => void;
+  /** Back to the code ladder (also the `send_code` way out of a refusal). */
   onUseCode: () => void;
+  /** The code ladder in RESET intent: verify, then set a new password. */
   onForgot: () => void;
-  onDone: () => void;
+  /** The surface's Google handler, if it has one. */
+  onGoogle?: () => void;
+  /** Hands back the address it signed in with, so the door can remember it. */
+  onDone: (email: string) => void;
+  hintEmail?: string;
+  inputClassName?: string;
+  buttonClassName?: string;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(hintEmail ?? "");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [refused, setRefused] = useState(false);
   const [pending, start] = useTransition();
 
   function submit() {
     const parsed = signInSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(null);
+      setRefused(false);
       toast.error(parsed.error.issues[0]?.message ?? "Please check the form.");
       return;
     }
     start(async () => {
-      setError(null);
+      setRefused(false);
       const supabase = createClient();
       const { error: err } = await supabase.auth.signInWithPassword({
         email,
@@ -94,23 +81,27 @@ function SignIn({
         // GENERIC by design. signInWithPassword returns the same error for a wrong
         // password, an account with NO password set (a Google/magic-link-only user), and an
         // unknown email — Supabase does this to prevent account enumeration, and we must not
-        // try to distinguish them. NEVER say "wrong password". The code / Google / forgot
-        // affordances below are how a passwordless user proves ownership and sets a password.
-        setError(
-          "That email and password didn't match. If you usually sign in with Google or an email code, use one of those below, or reset your password.",
-        );
+        // try to distinguish them. NEVER say "wrong password". What changed with
+        // `failure=paths` is only what stands UNDER the sentence: the three
+        // recoveries it used to describe in prose are real buttons now.
+        setRefused(true);
         return;
       }
-      onDone();
+      onDone(email);
     });
   }
 
   return (
     <div className="space-y-3">
-      {error && (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
-        </p>
+      {refused && (
+        <FailurePaths
+          failure={doorFailure("password_mismatch")}
+          handlers={{
+            send_code: onUseCode,
+            forgot: onForgot,
+            google: onGoogle,
+          }}
+        />
       )}
       <form
         onSubmit={(e) => {
@@ -127,6 +118,7 @@ function SignIn({
             inputMode="email"
             autoComplete="email"
             placeholder="you@email.com"
+            className={inputClassName}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -149,7 +141,7 @@ function SignIn({
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
+              className={`pr-10 ${inputClassName ?? ""}`}
             />
             <button
               type="button"
@@ -165,77 +157,41 @@ function SignIn({
             </button>
           </div>
         </div>
-        <Button type="submit" className="w-full" disabled={pending}>
+        <Button
+          type="submit"
+          className={`w-full active:scale-[0.99] motion-reduce:active:scale-100 ${buttonClassName ?? ""}`}
+          disabled={pending}
+        >
           {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      {/* Promoting a link means the link goes (the board's own capture): while
+          the refusal is up, its "Send a new code" button IS this link, and
+          drawing both showed the same way out twice inside one card. */}
+      {!refused && (
         <button
           type="button"
           onClick={onUseCode}
-          className="underline-offset-4 hover:underline"
+          className="block w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
         >
           Email me a code instead
         </button>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="underline-offset-4 hover:underline"
-        >
-          Create account
-        </button>
-      </div>
+      )}
     </div>
   );
 }
 
-function CreateAccount({
-  emailRedirectTo,
+export function SetInitialPassword({
   onDone,
-  onSignIn,
+  heading = "Pick a password",
+  line = "You'll use it with your email to sign in next time.",
+  submitLabel = "Save password",
 }: {
-  emailRedirectTo: string;
   onDone: () => void;
-  onSignIn: () => void;
+  heading?: string;
+  line?: string;
+  submitLabel?: string;
 }) {
-  // Two phases: VERIFY (prove email ownership via the shared OTP) then PASSWORD (set it on
-  // the now-verified session). Reusing EmailSignIn means no OTP duplication and no double
-  // email entry; the tradeoff (Risk C in auth-accounts.md) is that a tapped magic LINK instead of
-  // the code lands the host in the app password-less — they can set one in /account.
-  const [phase, setPhase] = useState<"verify" | "password">("verify");
-
-  if (phase === "password") {
-    return <SetInitialPassword onDone={onDone} />;
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="space-y-1 text-center">
-        <p className="text-sm font-medium">Create your account</p>
-        <p className="text-sm text-muted-foreground">
-          We&rsquo;ll email you a code to confirm it&rsquo;s you. You&rsquo;ll
-          pick a password next.
-        </p>
-      </div>
-      <EmailSignIn
-        emailRedirectTo={emailRedirectTo}
-        onVerified={() => setPhase("password")}
-      />
-      <p className="text-center text-xs text-muted-foreground">
-        Already have an account?{" "}
-        <button
-          type="button"
-          onClick={onSignIn}
-          className="text-foreground underline-offset-4 hover:underline"
-        >
-          Sign in
-        </button>
-      </p>
-    </div>
-  );
-}
-
-function SetInitialPassword({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -249,6 +205,8 @@ function SetInitialPassword({ onDone }: { onDone: () => void }) {
     }
     start(async () => {
       const supabase = createClient();
+      // updateUser({password}) runs on the BROWSER client on purpose: it rotates
+      // the session and the browser cookie write is unconditional there.
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         // The account exists and the session is live, but the chosen password was rejected
@@ -275,10 +233,8 @@ function SetInitialPassword({ onDone }: { onDone: () => void }) {
       className="space-y-3"
     >
       <div className="space-y-1 text-center">
-        <p className="text-sm font-medium">Pick a password</p>
-        <p className="text-sm text-muted-foreground">
-          You&rsquo;ll use it with your email to sign in next time.
-        </p>
+        <p className="text-sm font-medium">{heading}</p>
+        <p className="text-sm text-muted-foreground">{line}</p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="create-password">Password</Label>
@@ -312,8 +268,12 @@ function SetInitialPassword({ onDone }: { onDone: () => void }) {
           onChange={(e) => setConfirm(e.target.value)}
         />
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Setting up…" : "Create account"}
+      <Button
+        type="submit"
+        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+        disabled={pending}
+      >
+        {pending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

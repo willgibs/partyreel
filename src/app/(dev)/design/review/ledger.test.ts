@@ -15,6 +15,7 @@ import {
 
 import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
+import { OVERTAKEN, STANDS, overtakenKey } from "@/app/(dev)/design/sandbox/overtaken";
 
 import {
   latestRound,
@@ -147,12 +148,17 @@ describe("a board's status", () => {
     for (const spec of BOARDS) {
       const status = boardStatus(spec.id);
       for (const row of status.answered) {
-        // "stands" is the ONE choice no ask declares, and it is not an option:
-        // it is the `overtaken` grammar's verdict that an earlier ruling
-        // already decided this question (`step.tsx` writes it, the sixth batch
-        // recorded three). Before this line `guest-shape/dialogs=stands` was a
-        // red gate for every lane in the round.
-        if (row.answer.choice === "stands") continue;
+        // "The ruling stands" is a reserved answer, never an option (the sixth
+        // batch was the first to store one): legal only on an ask an earlier
+        // ruling reached, which is exactly what sandbox/overtaken.ts names and
+        // the transcript tool's own rule (docs/reviews/README.md).
+        if (row.answer.choice === STANDS) {
+          expect(
+            overtakenKey(spec.id, row.ask.id) in OVERTAKEN,
+            `${spec.id}/${row.ask.id}: the ledger stores "stands" on an ask no earlier ruling reached`,
+          ).toBe(true);
+          continue;
+        }
         expect(
           row.ask.options.map(optionId),
           `${spec.id}/${row.ask.id}: the ledger stores "${row.answer.choice}", which is not one of the ask's options`,

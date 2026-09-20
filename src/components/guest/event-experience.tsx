@@ -7,7 +7,7 @@ import { ImageUp, Lock } from "lucide-react";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
-import { GhostGrid } from "@/components/guest/ghost-grid";
+import { GhostRiver } from "@/components/guest/gallery-empty-state";
 import { GuestReelCard } from "@/components/guest/guest-reel-card";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
@@ -21,7 +21,6 @@ import {
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { ReportDialog } from "@/components/guest/report-dialog";
-import { SaveEventButton } from "@/components/guest/save-event-button";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import { Button } from "@/components/ui/button";
@@ -85,6 +84,8 @@ export function EventExperience({
   isOwner,
   guestListSlot,
   guestReel,
+  canDeleteIds,
+  isAuthed,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -116,6 +117,13 @@ export function EventExperience({
    *  unpublished / empty / locked / below-full-access, so the card renders on
    *  non-null alone: this component adds only the ruled PLACEMENT. */
   guestReel: GuestReelPayload | null;
+  /** The media ids in this album this SIGNED-IN viewer uploaded — resolved in the
+   *  page RSC, never asserted by the browser (Will, `yours`, 2026-09-20). Empty
+   *  for an anonymous guest, whose list comes from `/api/guests/mine` instead. */
+  canDeleteIds: string[];
+  /** Viewer holds an account -> the signed-in remove path (a Server Function on
+   *  `remove_my_upload`); otherwise the anonymous one (the session token). */
+  isAuthed: boolean;
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
@@ -321,11 +329,21 @@ export function EventExperience({
         </header>
 
         {access === "none" && (
-          // Password not yet unlocked: the GHOST-GRID backdrop (the ratified V4
-          // entry) — shape + the real COUNT tease, zero pixels. The firm password
-          // sheet overlays this; nothing real shows until the password lands.
-          // Act 1 "the stage": the lock line + grid settle in (data-arrive) under
-          // the planted name, instead of popping, before the sheet arrives.
+          // Password not yet unlocked: the real COUNT tease over the ghosted
+          // RIVER — shape and motion, zero pixels of this event's own media.
+          //
+          // ★ ONE PICTURE FOR NOTHING, IN BOTH PLACES A GUEST MEETS IT (Will,
+          // `nothing=river`, 2026-09-20). This was `GhostGrid`, nine empty
+          // squares, while an empty album next door drew the flow: one absence
+          // with two pictures. The flow is the ruled one, at the empty album's
+          // own depth (`GhostRiver` owns that fade, so the two cannot drift
+          // apart again). The locked page still leaks exactly what it leaked
+          // before — the name, the count, and stand-in frames that are not this
+          // event's — because the river's pack is the local guest-ghost WebPs,
+          // never the album behind the lock.
+          //
+          // Act 1 "the stage": the lock line + the flow settle in (data-arrive)
+          // under the planted name, instead of popping, before the sheet arrives.
           <div className="mt-8 space-y-4">
             <div
               data-arrive
@@ -340,7 +358,7 @@ export function EventExperience({
               </p>
             </div>
             <div data-arrive style={{ "--arrive-i": 2 } as React.CSSProperties}>
-              <GhostGrid />
+              <GhostRiver />
             </div>
           </div>
         )}
@@ -348,10 +366,22 @@ export function EventExperience({
         {access !== "none" && (
           <>
             {/* The action block (ratified header): a full-width primary Add (only when
-              the viewer can actually upload right now) over the 2-col secondary row —
-              Save (the growth lever; hidden in the demo) + Invite (share/QR).
+              the viewer can actually upload right now) over the secondary row.
               data-reveal: rises in last on the unlock reveal (the masonry's own
-              seeded stagger carries from here). */}
+              seeded stagger carries from here).
+
+              ★ SAVE HAS LEFT THIS ROW (Will, `account=after`, 2026-09-20:
+              "Moving Save makes it feel more natural after upload rather than a
+              random button above an album for guests"). It was a growth lever
+              asking a stranger to keep an album they had not seen yet, one tap
+              from the event's own name; the offer now waits until a guest has
+              actually put something in the album, where the after-upload card
+              makes it (guest-upload.tsx -> ClaimHandlePrompt -> the save card),
+              in the door's own voice. Invite is what remains, and it takes the
+              width: a 2-col grid with one button in it is a row with a hole in
+              it. Where a guest's actions finally LIVE is `chrome` round two —
+              his "warrants a second round" — which draws this block with Save
+              already gone. */}
             <div
               className="mt-4"
               ref={sentinelRef}
@@ -368,17 +398,7 @@ export function EventExperience({
                   <ImageUp /> Add photos
                 </Button>
               )}
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {!isDemo ? (
-                  <SaveEventButton
-                    eventId={event.id}
-                    qrToken={qrToken}
-                    triggerLabel="Save"
-                    triggerClassName="h-9 w-full"
-                  />
-                ) : (
-                  <span aria-hidden />
-                )}
+              <div className="mt-2 grid grid-cols-1 gap-2">
                 <GuestShare
                   joinUrl={joinUrl}
                   qrStyle={event.qr_style}
@@ -484,6 +504,9 @@ export function EventExperience({
                   canUpload ? () => uploadRef.current?.openPicker() : undefined
                 }
                 joinUrl={joinUrl}
+                canDeleteIds={canDeleteIds}
+                isAuthed={isAuthed}
+                sessionToken={sessionToken}
               />
             </div>
           </Suspense>

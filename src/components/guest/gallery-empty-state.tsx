@@ -44,6 +44,29 @@ export const GUEST_GHOST_FRAMES: RiverFrame[] = Array.from(
   (_, i) => ({ src: `/guest-ghost/g0${i + 1}.webp` }),
 );
 
+/**
+ * THE GHOSTED FLOW, AT ONE DEPTH, FOR BOTH PLACES A GUEST MEETS NOTHING (Will,
+ * `nothing=river`, 2026-09-20: the river on the locked page as well as the
+ * empty album). The locked page drew a nine-cell `GhostGrid` and the empty
+ * album drew the river, so one absence had two pictures; the ruling makes it
+ * one, and ONE FADE is what keeps it one. The depth lives here beside the pack
+ * it fades rather than being retyped at each placement — a second copy of
+ * `opacity-40 grayscale-[85%]` is exactly how the two screens drifted apart the
+ * first time.
+ *
+ * ★ THE FRAMES ARE STAND-INS, NEVER THE EVENT'S OWN. On a locked page that IS
+ * the privacy rule: a password event still leaks what it leaked before, the
+ * name and the count, and zero pixels of its media. On an empty album there is
+ * nothing of the event's to draw in the first place.
+ */
+export function GhostRiver() {
+  return (
+    <div className="opacity-40 grayscale-[85%]">
+      <River frames={GUEST_GHOST_FRAMES} />
+    </div>
+  );
+}
+
 export function GalleryEmptyState({
   onAddFirst,
 }: {
@@ -57,9 +80,7 @@ export function GalleryEmptyState({
           move when the picture changed. It takes its width from this column and
           never from a constant: the guest gallery is 335px at a phone and 632px
           from 672 up, and a later round may widen it. */}
-      <div className="opacity-40 grayscale-[85%]">
-        <River frames={GUEST_GHOST_FRAMES} />
-      </div>
+      <GhostRiver />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
         {/* An empty state's title: the ladder's `subsection`, a step under the
             album's own h1 (`page`) so the empty album never out-shouts it.

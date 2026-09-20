@@ -1,5 +1,15 @@
 import { Camera } from "lucide-react";
 
+/**
+ * ★ RETIRED FROM THE PRODUCT, KEPT ON DISK FOR THE BOARD (Will, `nothing=river`,
+ * 2026-09-20). The locked password page drew this; it draws `GhostRiver`
+ * (gallery-empty-state.tsx) now, so the same absence has one picture on both
+ * screens. The file stays because the `guest-shape` board renders it — the
+ * before of the very question he answered — and a lane never deletes a module
+ * the lab imports (`src/app/(dev)/design/sandbox/guest-shape/page-parts.tsx`).
+ * Nothing in the product imports it. Delete it when that board retires.
+ */
+
 // The locked-event ghost backdrop (Phase 4, the ratified V4 entry): empty
 // bordered tiles standing in for the gallery a guest can't see yet — shape
 // and count tease, zero pixels. A camera glyph every 4th cell keeps it from

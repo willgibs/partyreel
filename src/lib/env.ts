@@ -39,6 +39,14 @@ const publicSchema = z.object({
   // everything else. Unset (local dev, and every deployment until the split lands) serves both, as
   // before. Read by src/proxy.ts and the admin gate; the crons must run on ONE surface only.
   NEXT_PUBLIC_SURFACE: z.enum(["app", "admin"]).optional(),
+  // Passkeys at the door (`app-door` r1 `return=tap`, 2026-09-20). "1" opts the
+  // browser client into Supabase auth-js's EXPERIMENTAL passkey API and turns on
+  // the one-press button on /login plus the Passkeys card on /account. Optional,
+  // and unset means the whole surface is absent: it stays off until the Supabase
+  // dashboard has passkeys enabled AND its WebAuthn Relying Party id matches the
+  // apex, because a passkey registered against the wrong RP id is a credential
+  // the door can never see again.
+  NEXT_PUBLIC_PASSKEYS: z.enum(["1"]).optional(),
   // Sentry DSN (public by design — safe in the client bundle). When unset, Sentry is a
   // no-op (commonInit sets enabled:false) so dev/unconfigured never sends and the build
   // stays green. The build-time SENTRY_AUTH_TOKEN / SENTRY_ORG / SENTRY_PROJECT (source-map
@@ -125,6 +133,7 @@ function parsePublic() {
     NEXT_PUBLIC_DEMO_QR_TOKEN: process.env.NEXT_PUBLIC_DEMO_QR_TOKEN,
     NEXT_PUBLIC_ADMIN_HOST: process.env.NEXT_PUBLIC_ADMIN_HOST,
     NEXT_PUBLIC_SURFACE: process.env.NEXT_PUBLIC_SURFACE,
+    NEXT_PUBLIC_PASSKEYS: process.env.NEXT_PUBLIC_PASSKEYS,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   });
   if (!parsed.success) {

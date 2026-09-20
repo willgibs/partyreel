@@ -44,6 +44,63 @@ session-remove RPC (`remove_my_upload_by_session`, SECURITY DEFINER, `service_ro
 can sign in on its port: the hub gallery's bars and cluster, the admin portal, the account page's passkey and the owner
 mode's avatars are Will's on the alias, and each lane's bullet below says so.
 
+- **`guest-wiring` merged at `7f4f2ffe`** (2026-09-20, Opus; cut `0ad0c32d`): `guest-shape` r1's answers in production.
+  The locked page draws the river at the empty album's own depth (`GhostRiver`, one home for the ghost fade; the
+  ghost grid retired on disk for the board that draws it). A photograph somebody else adds lights a white inset rim
+  that rises in 200 ms and fades over two seconds (pure `newArrivalIds`, one duration shared by sheet and state; the
+  seed render, a rolled presign and the guest's own upload, which keeps its green check, never light); the ruled
+  growth into ONE column did not land: CSS columns are column-major, so it waits for `glass-wiring`'s explicit
+  columns (a ROADMAP line, deferred rather than half-built). Save left the block above the album and Invite takes the
+  row. A guest's own photograph is removable ever under both identities: signed in through a Server Function on
+  `remove_my_upload`, anonymous through `POST /api/guests/remove` on the service-role-only session RPC behind the join
+  limiter; "mine" a server read on both paths (`/api/guests/mine`), never a client claim and never in the gallery's
+  ETag; every database call in `lib/db/mutations/guest-media.ts`; an eleven-way rolled-back RPC check and both routes
+  red-teamed live. Invite and Report onto the responsive Sheet (Download all and Save are other lanes' files: a
+  ROADMAP line). The door's sequence AND shell untouched ("not this sheet design"). Gate 47 on the merged tree; the one
+  red test at its cut was the Orchestrator's (the ledger test predated the `stands` grammar; fixed at `677be39c`).
+  Calls his to overrule on the alias: the arrival as white light, not a state colour; only another's photograph
+  lights; the anonymous removal device-bound; a failed removal restoring the tile with "Couldn't remove that photo.";
+  Report's sheet with the primary first. One help article stale for `help-sync` (`save-an-event-and-find-your-uploads`).
+  NOT SEEN RENDERED: the locked page's river (no password event exists), the signed-in Remove, and Report's textarea
+  on a real iPhone (the Sheet's phone half has never held a focused input) are Will's on the alias.
+
+- **`glass-wiring` merged at `a2a0d973`** (2026-09-20, Opus; cut `0ad0c32d`): glass round two's answer in production.
+  Crystal as the one material, with one home: the `--glass-*` tokens and `@utility glass` in `globals.css` (blur 42,
+  the backdrop at 0.68, saturate 2, 4 percent black, a 28 percent lip and a 10 percent hairline as inset shadows,
+  never a border), named by `lib/glass.ts` and held to it by its test; `glass-mark` re-points one number (a lighter
+  blur for a tile's marks) and `glass-behind` is the lightbox's ground, and there are no more. The lightbox's flat
+  `bg-black/90` became the album blurred at half brightness on its own element. ONE `MediaTile` for every album
+  grid: a phone tile carries an active like, a play mark and a subtle count and nothing else; the desk's verbs are
+  one declared glass pane per surface (guest, host, bin, feeds); the reveal chip rides the bar; `GuestMasonry` is a
+  thin wrapper over the shared grid. The grid left CSS `columns` for explicit columns filled oldest-first into the
+  shortest, so a prepended photograph is the last placed and every tile on screen keeps its column (a property
+  test): the ruled arrival growth is now possible. The reel's Share and Download in the one pane, the event card's
+  chip as dark glass on paper, the marketing plate onto the tokens (its two measured numbers kept); the `glass`
+  board retired, its ledger gone at this record. Gate 48 on the merged tree. Calls his to overrule on the alias: a
+  glyph on glass carries its own halo (`glass-mark-lit`), because production floats the pill over the raw
+  photograph where the board drew it over a half-bright album; the phone keeps the desk's blurred ground (measured:
+  16.7 ms p50 and p95 at 375, blurred, flat and at twice the radius under a 6x CPU throttle); the per-surface hover
+  sets. NOT SEEN RENDERED: the host gallery's one-pane row, the bin and the event card's chip are Will's, signed in.
+
+- **`door-wiring` merged at `f7075a73`** (2026-09-20, Opus; cut `0ad0c32d`): `app-door` r1 wired whole. One
+  `AccountDoor` worn four ways (/login, the guest gate, Save, a like): one email field and the code first, Google
+  beside it, a password on a quiet link; Save and the like dialog gain the Terms line they never had (the gate keeps
+  its on the welcome step); creating an account is the code path, so `CreateAccount` and `PasswordAuth` retired and
+  the hand-copied Google glyph went for the shared icon. `existing=tell` decided server-side after a verified code
+  from the caller's own profile row, only under a create intent, the guest gate holding its photograph claim four
+  seconds so "Not you?" can never strand a guest's pictures. `failure=paths` as one table of six kinds behind
+  `door-failure.ts`, the callback emitting the kind, the ways out as buttons. /login is the door with a wall of
+  marketing frames beside it. Passkeys wired behind `NEXT_PUBLIC_PASSKEYS` on auth-js's experimental API and DARK
+  until Will enables passkeys in the Supabase dashboard with the WebAuthn RP id on the apex (a mismatch is
+  unrecoverable, so the flag ships unset, in `env.ts` and `.env.example` only). Six single-hunk exceptions, each the
+  gate's own demand, listed in its manifest. Not applied: the `PasskeysCard` line on the account page
+  (`avatar-wiring`'s file, unmerged); deferred: the magic-link half of the existing-account line and a Google-only
+  host's memory on /login (ROADMAP). Gate 48 on the merged tree. Calls his to overrule: a recovery already on screen
+  is not promoted twice (the code-led door shows the line over the ladder it has; the password door promotes all
+  three); the four wears' reason lines. Three help articles stale for `help-sync` (`you-cant-sign-in`,
+  `sign-in-options-and-passwords`, `the-email-code-didnt-arrive`). NOT SEEN RENDERED: the existing-account line and
+  its four-second hold, and the passkey row, are Will's (a real second sign-in; the dashboard settings).
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
