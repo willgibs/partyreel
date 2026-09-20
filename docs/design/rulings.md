@@ -8,6 +8,30 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-19 · seeded default avatars: a deterministic gradient orb for every account until a photo replaces it
+
+**Became:** `seed-avatar` (Opus, :3131), a round-one board on the real avatar surfaces (the guest list and the faces
+row, the dashboard's user menu, the guest account menu, the account page, the profile's identity row) with the
+`profile-page` cast: the lane learns hashvatar's gradient mode from its source and writes our own zero-dependency,
+canvas-free generator, credited to hashvatar (MIT), then asks the look (gradient, never dither, his steer), the initial,
+the seed (the account id recommended, never anything private), the palette's range, motion, what happens after an
+upload, and the crowd as the proof at 375 and 1440. It enters the desk after `app-vocabulary` (it colours the parts both
+shapes decide; it changes no other board's question).
+
+Verbatim: "Great work. I'm about to begin reviewing the next batch, but I'd like you to start 1+ exploration around the following idea. A while back, Vercel introduced seed-generated dither avatars, which made new accounts feel way cooler than something generic. I'd like you to explore https://www.hashvatar.com/ (also https://github.com/medhychabour/hashvatar , or https://www.npmjs.com/package/hashvatar ) so that we can bake our own version into the app for new accounts until a new avatar is uploaded to replace. I noticed that with both our guest lists and default dashboard, without avatars/color it feels very bland. This would immediately bring life to all avatar components, without a generic one being repeated for every new account. Guest lists would feel rich and diverse, even without any custom avatars uploaded. I like the gradient over dither for our purposes."
+
+## 2026-09-19 · the desk is ordered by leverage across boards: the earlier influence first
+
+**Became:** a standing rule the Orchestrator keeps, not a round. The desk lists boards in the order of `DESK_ORDER` in
+`touchpoints.ts` (the one home; `BOARDS` in `sandbox/registry.ts`, the board paging and the desk all sort by it), and that order is by leverage: a board whose answer changes another board's question sits above
+it, and boards that touch nothing else sit at the foot in any order (`voice` first, since bible 20 and 21 bind every
+line on every board; then the body ladder, Glass, the host app's shape and the guest experience's shape, the parts under
+them, the admin's shape, the doors, the demo's promise, and only then the boards that ride on those). A lane still
+registers a new board at the head of the list (the merge stays line-disjoint) and the Orchestrator moves it into its
+place at the next record. The preview key echoed in a lane's terminal is not rotated ("Preview key doesn't matter").
+
+Verbatim: "Fantastic work! Preview key doesn't matter. As an added note, as you wind these tracks down and prepare the next alias - our board groups should be ordered by leverage, such that if a question/group compounds into a later question/group, the more atomic question is handled first. We've done a good job of this within groups and over rounds, but wanted to ensure that's how we're also prioritizing across groups. I'm reviewing what's presented to me, so you're in charge of ensuring the execution order makes sense to allow for increasing clarity rather than conflict. For groups who have no impact on other groups and exist somewhat independently, these can be ordered however. This isn't an intense request to rank every question we have by priority, just ensuring that for any potential snowball effects, the earlier influence is addressed first."
+
 ## 2026-09-19 · the lab workflow itself rides rising tides: the decision-per-question shape is the throughput engine, keep improving it
 
 **Became:** a standing directive, not a round. The decision-per-question shape (`defineExploration`, one question per

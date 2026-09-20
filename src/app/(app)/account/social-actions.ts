@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   clearProfileSlug,
   hideEventFromProfile,
+  setProfileBio,
   setProfileSlug,
   unblockUser,
   unfollowUser,
@@ -15,7 +15,8 @@ import {
 import { isSocialSchemaMissing } from "@/lib/db/queries/social";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { profileSlugSchema } from "@/lib/validation/profile";
+import { bioSchema, profileSlugSchema } from "@/lib/validation/profile";
+import { containsProfanity } from "@/lib/validation/profanity";
 
 // The /account social surface's actions (profiles + social slice, profiles-social.md).
 // Same shape as account/actions.ts' ActionResult, kept local so the two files
@@ -40,6 +41,38 @@ export async function setProfileSlugAction(
 ): Promise<SocialActionResult> {
   const result = await setProfileSlug(slug);
   if (result.ok) revalidatePath("/account");
+  return fromMutation(result);
+}
+
+/**
+ * Save (or clear) the public bio — the one line on /u/[slug].
+ *
+ * Reads exactly like updateDisplayNameAction, and for the same reasons: parse
+ * first (bioSchema collapses the line, caps it and refuses links), then the
+ * profanity pass SERVER-SIDE so the obscenity matcher never ships to a browser,
+ * then the service-role write. The public page is revalidated by route pattern
+ * (the slug isn't in scope here) because a stale bio is a moderation problem,
+ * not a caching nicety.
+ */
+export async function setProfileBioAction(
+  rawBio: string,
+): Promise<SocialActionResult> {
+  const parsed = bioSchema.safeParse(rawBio);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Please check your bio.",
+    };
+  }
+  if (parsed.data && containsProfanity(parsed.data)) {
+    return { ok: false, message: "Please choose different wording." };
+  }
+
+  const result = await setProfileBio(parsed.data);
+  if (result.ok) {
+    revalidatePath("/account");
+    revalidatePath("/u/[slug]", "page");
+  }
   return fromMutation(result);
 }
 
@@ -70,9 +103,7 @@ export async function checkProfileSlugAction(
   const parsed = profileSlugSchema.safeParse(rawSlug);
   if (!parsed.success) return { available: false };
 
-  // The same pre-regen typing seam as lib/db/queries/social.ts (types.ts has no
-  // slug column until the orchestrator regenerates it post-apply).
-  const admin = createAdminClient() as unknown as SupabaseClient;
+  const admin = createAdminClient();
   const { data, error } = await admin
     .from("profiles")
     .select("id")

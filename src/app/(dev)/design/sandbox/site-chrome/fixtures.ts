@@ -54,6 +54,22 @@ export const twoDoorsOf = (s: BoardState): TwoDoors =>
 export const footJobOf = (s: BoardState): FootJob =>
   pick(s["foot-job"], ["three", "sitemap", "close"], "close");
 
+/**
+ * ROUND TWO'S ANSWERS (2026-09-19): round one's eight types above stay for
+ * `chrome.tsx` and `menu.tsx`, which still draw the header and phone sheet this
+ * round does not touch (registry.test.ts's own "free of React" check is on
+ * spec.ts alone, so the retired asks' evidence is free to stand as precedent).
+ * The three below are this round's whole state.
+ */
+export type FootAfter = "today" | "quiet" | "merged" | "tucked";
+export type FootAlone = "full" | "same";
+export type FootPhone = "hidden" | "small" | "none";
+
+export const footAfterOf = (s: BoardState): FootAfter =>
+  pick(s["foot-after"], ["today", "quiet", "merged", "tucked"], "quiet");
+export const footAloneOf = (s: BoardState): FootAlone =>
+  pick(s["foot-alone"], ["full", "same"], "full");
+
 /* ── The groups, taken out of the shipped nav ────────────────────────────── */
 
 function group(label: string): NavGroup {

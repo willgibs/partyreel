@@ -29,7 +29,26 @@ label you pointed at; `NAV_INDICATOR` swaps pill↔underline in one word. **Ever
 `var(…, fallback)` clocks**: the root `app/not-found.tsx` renders this header WITHOUT marketing.css, so a
 bare `--mkt-*` reference there is silently unset. The header's glass is an inert `-z-10` layer whose
 opacity animates ([`header-shell.tsx`](../../src/components/marketing/chrome/header-shell.tsx)); the bar
-itself must never carry `backdrop-filter`, or every panel repaint happens inside a blurred region. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
+itself must never carry `backdrop-filter`, or every panel repaint happens inside a blurred region.
+★ **THE BAR LEAVES GOING DOWN AND RETURNS COMING UP** (`on-scroll=hide`, Will 2026-09-19), on BOTH postures
+and by TRANSFORM ALONE: `--mkt-header-h` stays `4rem` and the sticky `z-40` box never moves, because ~14
+consumers derive from that one knob. It goes once the reader commits 8px past a one-header-height reveal
+zone and comes back on ANY upward movement, at the top, and on `:focus-within`; it never leaves with a nav
+panel or the phone sheet open. The hide and its three escapes are ONE compound selector, so no utility
+ordering decides them, and `-translate-y-full` writes the standalone `translate` property, so the clock is
+`transition-[translate]` and never `transition-transform`. Direction is the one thing no
+IntersectionObserver can report, so the site's single passive, rAF-coalesced scroll listener lives in
+[`use-scroll-direction.ts`](../../src/lib/shared/use-scroll-direction.ts) (attached only while something
+reads it); the glass's own signal must stay on its observer.
+★ **THE RIGHT CLUSTER IS THE ONE PERSONAL THING IN THE CHROME** (`returning=dashboard`): a client island
+([`session-hint.tsx`](../../src/components/marketing/chrome/session-hint.tsx)) on `useSyncExternalStore`
+with the SERVER SNAPSHOT `false`, so ~50 prerendered routes ship the stranger's Log in + Start free pair
+and a signed-in host's single `Dashboard` correction lands before paint; the phone sheet's foot swaps with
+it. The signal is the `sb-<project-ref>-auth-token` cookie prefix read from `document.cookie`
+(`@supabase/ssr` defaults `httpOnly: false` and `createBrowserClient` uses `document.cookie` AS its
+session storage, so no presence cookie is needed in `updateSession`). ★ A HINT, NEVER AUTHORIZATION: the
+`(app)` layout's `getUser()` is the boundary and RLS is the boundary under it, and both wrong answers land
+the visitor on `/login`. **Brand = the app's design system turned up**: the ACHROMATIC base (zero-chroma chrome;
 `--brand` aliases ink and there is no brand hue, [design-system.md](design-system.md)
 is authoritative), media is the color; marketing runs louder via type/layout/motion only (motion follows the
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
@@ -95,14 +114,51 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   FAQ band and the GoDeeper row are ONE pair for all six pages
   ([`shared/feature-faq.tsx`](../../src/components/marketing/sections/features/shared/feature-faq.tsx)
   emits the FAQPage JSON-LD itself; each page's `*-faq.ts` is data only).
-- **`/events`** — a full landing hub + 4 umbrella pages (weddings/parties/conferences/trips) off ONE
-  `[slug]` template; copy in [`events.ts`](../../src/lib/constants/events.ts) (`EVENT_TYPE*` — named to
-  avoid colliding with the real `events` domain; + the `EVENTS_HUB` block); distinct hero + "Built for X"
-  layouts via `EVENT_PRESENTATION` ([`events-layout.ts`](../../src/lib/constants/events-layout.ts)) + the
-  `eventFrame()` resolver ([`event-frame.tsx`](../../src/components/marketing/event-frame.tsx)) +
-  [`built-for.tsx`](../../src/components/marketing/built-for.tsx); shared
-  [`event-frame-cards.tsx`](../../src/components/marketing/event-frame-cards.tsx) +
-  [`faq-accordion.tsx`](../../src/components/marketing/faq-accordion.tsx) (+ FAQPage JSON-LD).
+- **`/events`** — a landing hub + 4 umbrella pages (weddings/parties/conferences/trips) off ONE
+  `[slug]` template, rebuilt from the ground up by `events-wiring` (2026-09-19) on the seven directions
+  of `event-identity`. ALL copy AND all per-type media in
+  [`events.ts`](../../src/lib/constants/events.ts) (`EVENT_TYPE*` — named to avoid colliding with the
+  real `events` domain; + the `EVENTS_HUB` block). ★ `media` is the single home for a per-type
+  photograph (`card` / `turn` / `object` / `statement`); five components named their own before the
+  wiring round, so a manifest swap meant five edits and a hunt. The generated set lands HERE and
+  nowhere else (ASSETS rows 24 and 25). **The arc, in order:** `PageHero` on the cut with the eyebrow
+  a link back to the hub, its stage holding ONE lit object per type
+  ([`event-object.tsx`](../../src/components/marketing/sections/events/event-object.tsx)) under a
+  `SectionLight placement="room"` → the statement, still dark
+  ([`event-statement.tsx`](../../src/components/marketing/sections/events/event-statement.tsx): one
+  claim on the `chapter` step, one visual, the long tail as one running line under a hairline) → the
+  turn ([`event-turn.tsx`](../../src/components/marketing/sections/events/event-turn.tsx), a
+  full-width photograph with a centred cast and one line, both hairlines: it IS the chapter cut) → ONE
+  `PaperChapter` holding [`built-for.tsx`](../../src/components/marketing/built-for.tsx) alone → the
+  door proof ([`event-door.tsx`](../../src/components/marketing/sections/events/event-door.tsx)) → the
+  FAQ → `CtaBand`. The hub keeps the ALL-DARK arc (no planning document of its own to earn a light
+  chapter), wears the cross-event object, and has its own `opengraph-image.tsx`.
+  ★ **EVERY OBJECT IS A DOOR.** All five pages server-render the demo's REAL scannable code the way
+  [`footer-qr.tsx`](../../src/components/marketing/chrome/footer-qr.tsx) does (`qrcode-generator` is
+  DOM-free, so the matrix ships as inert markup and the object costs zero client JS), encoding `/demo`
+  at 25 modules, never the event link. With no demo configured each object DROPS the piece that would
+  carry it (the table card, the tent card, the sleeve's plate; the badge falls back to its drawn
+  cells) and the door section goes whole: never a dead link (the `DemoCtaLink` contract).
+  ★ **The prints are literal `bg-white`, never `bg-card`.** These still lifes stand on the cinema
+  ground where the card token is near-black, so a paper border in it renders as a GAP and six prints
+  read as a thumbnail strip. The wedding album is a dark cover holding two ivory pages, and the dark
+  channel between them IS the spine.
+  **One card anatomy at two sizes**
+  ([`event-type-card.tsx`](../../src/components/marketing/sections/events/event-type-card.tsx)): the
+  photograph IS the card for all four types (`aspect-4/5`, the ruled `CARD_COPY_SCRIM`, the name, the
+  teaser, the long tail as one line at directory size), worn by the hub's
+  [`type-directory.tsx`](../../src/components/marketing/sections/events/type-directory.tsx) (2x2, the
+  tilt kept) and by the home's
+  [`events-teaser.tsx`](../../src/components/marketing/sections/home/events-teaser.tsx) (four up, no
+  tilt). Conferences and trips carry a NAMED STAND-IN still until ASSETS 24/25 land; the artifacts
+  ([`event-artifacts.tsx`](../../src/components/marketing/sections/events/event-artifacts.tsx)) stayed
+  only for what a photograph cannot do (the badge is the conference's object, the filling pane is the
+  statement's visual where `media.statement` is null).
+  **At 375** the lockup takes `subheadShort`, the hero's padding closes to `pt-10 pb-0` and the object
+  deliberately CROSSES the fold (measured: it starts at 539 and ends at 912 on weddings); the
+  FAQ-to-close gap is halved below `sm` (`max-sm:pb-10` / `max-sm:pt-10`).
+  `EVENT_PRESENTATION`, `eventFrame()`, `event-frame-cards.tsx`, `event-hero-media.tsx` and
+  `reel-angle-band.tsx` are all GONE; `faq-accordion.tsx` and its FAQPage JSON-LD stay.
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)) — a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`); never one visual reused.
   `QrFrame` takes a `liveQrUrl?` → a REAL scannable QR ([`live-qr.tsx`](../../src/components/marketing/frames/live-qr.tsx) wrapping `StyledQr`) when the demo is set, else a decorative block.
@@ -235,8 +291,8 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
   of the frame list cannot silently rot them. The two lists are separate on purpose: the hero repeats
   the roll three times, so id-based selection would circle every keeper three times over.
   Its composition is this page's alone (home owns the band streaming out of the demo code, pricing the stacked photos,
-  the footer the fanning pile), per the media doctrine in
-  [`event-hero-media.tsx`](../../src/components/marketing/sections/events/event-hero-media.tsx).
+  the footer the fanning pile, the event pages their four lit objects), per the media doctrine in
+  [`event-object.tsx`](../../src/components/marketing/sections/events/event-object.tsx).
   Marks stay ACHROMATIC (white pencil, not the obvious red): there is no brand hue (bible 1).
   ★ **Nothing in the hero is lazy.** The sheet fills the first screen, so every
   one of its cells is above the fold, and `loading="lazy"` on half of them (on the reasoning that
@@ -501,13 +557,21 @@ incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `r
     [`blog-redirects.ts`](../../src/lib/content/blog-redirects.ts) → `redirects()` in
     `next.config.ts` (test-held against the live slugs).
 - `/pricing`, legal. The header `Resources ▾` + footer Resources column group Help + Blog + Press + Contact
-  (a two-way Vitest mirror: change one side and you must change the other).
+  (a two-way Vitest mirror: change one side and you must change the other). **ONE IDEA, ONE PAGE, TWO DOORS
+  TO IT** (`two-doors=one`, Will 2026-09-19): the Resources panel's featured card is the PRIMARY door to
+  `/how-it-works` and the Features panel's footnote is the quieter second one. The help article
+  `how-partyreel-works` is linked from NOWHERE in the chrome; it keeps its row under Help center, the
+  walkthrough's own foot link and the help hub's.
 
 **THE FOOTER (the ink slab).** One always-dark surface under BOTH skins (`--gallery*`, never a
 nested `.dark` — see [design-system.md](design-system.md) for the token-redeclaration trap it hides).
 Three registers: the demo invitation (a server-rendered scannable QR on a fanning pile of event
-photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen, plus a
-secondary `Start free`), the index, and a legal bar. A turbulence-warped seam glow on the ratified
+photos, pointing at `DEMO_EVENT_URL`, desktop-only since you cannot scan your own screen), the index, and a
+legal bar. ★ **THE ACTION IS NOT PART OF THE INVITATION** (`foot-door=always`, Will 2026-09-19): the
+secondary `Start free` sits ABOVE the `if (!DEMO_EVENT_URL)` early return and at every width, one rule in
+both states, because `/about`, `/press`, `/careers`, the legal pages and the 404 carry no `CtaBand` and
+used to end with nothing to do at all whenever the demo token happened to be unset. The invitation still
+stands down with the demo; the action never does. A turbulence-warped seam glow on the ratified
 confetti palette turns the top edge into spilled light instead of a hard cut.
 
 IA is four columns beside the brand block: **Features** · **Events** · **Product** (How it works ·

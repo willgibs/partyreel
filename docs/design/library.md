@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 470 contracts on 61 components · 29 standing boards.**
+**22 laws · 18 policies · 543 contracts on 71 components · 28 standing boards.**
 
 ## What binds you
 
@@ -274,7 +274,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
-| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; trims by the leading it is cancelling, with the sign that trims MORE at a phone; keeps the display step's descender padding; takes every size from the ladder, never from a number here; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
+| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; trims by the leading it is cancelling, with the sign that trims MORE at a phone; keeps the display step's descender padding; takes every size from the ladder, never from a number here; puts the subhead on the ladder's own step, never a stock size; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
 | `src/components/marketing/system/paper-chapter.tsx` | a run of sections forced onto paper inside a cinema page; the flip is a chapter cut | none |
 | `src/components/marketing/system/reveal.tsx` | the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion | none |
 | `src/components/marketing/system/screen-lamp.tsx` | the one underlight: a lit object throws light down, as a SIBLING and never from inside | is a seam that hangs BELOW the object (the one underlight mechanic); renders the lamp AFTER the children, as their sibling; breaks out full-bleed so the field's side edges land off-screen; samples from the DOM it wraps, never from URLs; passes the engine no className (the utilities layer outranks it) |
@@ -332,16 +332,18 @@ function. A contract never freezes a look.
 
 Contracted but outside the library's directories:
 
-- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (18 guards)
+- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (14 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
-- `src/app/(dev)/design/sandbox/registry.ts` (14 guards)
+- `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
+- `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
-- `src/components/lab/board-page.tsx` (14 guards)
-- `src/components/lab/board-spec.ts` (14 guards)
+- `src/components/lab/board-page.tsx` (16 guards)
+- `src/components/lab/board-spec.ts` (16 guards)
 - `src/components/lab/board-state.tsx` (5 guards)
 - `src/components/lab/catalog.tsx` (12 guards)
 - `src/components/lab/compare-two.tsx` (8 guards)
@@ -351,9 +353,14 @@ Contracted but outside the library's directories:
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
-- `src/components/lab/step.tsx` (36 guards)
-- `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
+- `src/components/lab/step.tsx` (30 guards)
+- `src/components/marketing/chrome/header-shell.tsx` (11 guards)
+- `src/components/marketing/chrome/marketing-footer.tsx` (9 guards)
+- `src/components/marketing/chrome/session-hint.tsx` (6 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
+- `src/components/marketing/sections/events/event-door.tsx` (7 guards)
+- `src/components/marketing/sections/events/event-object.tsx` (12 guards)
+- `src/components/marketing/sections/events/event-type-card.tsx` (6 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
 - `src/components/reel/publish-light.tsx` (26 guards)
@@ -371,8 +378,11 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail-engine.ts` (57 guards)
 - `src/components/shared/trail/trail-frames.ts` (57 guards)
 - `src/components/shared/trail/trail.tsx` (17 guards)
+- `src/components/social/guest-list.tsx` (5 guards)
+- `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
+- `src/lib/shared/use-scroll-direction.ts` (8 guards)
 
 ## The standing boards
 
@@ -380,10 +390,9 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `event-identity` | marketing | Seven decisions as concepts on the real /events pieces and the shared engines, on weddings and on conferences (the type the manifest has no honest still for), at 1440 and 375: the hero's theme, the section under it, the arc, the cards, the proof, the ladder, the phone |
-| `event-type-pages` | marketing | Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone |
-| `site-chrome` | marketing | Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names |
-| `profile-page` | guest | Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached |
+| `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
+| `seed-avatar` | shared | Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob |
+| `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
 | `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
 | `media-viewer` | shared | Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address |

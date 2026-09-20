@@ -259,7 +259,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 49
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -267,7 +267,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 61
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -275,7 +275,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 66
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -283,7 +283,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 85
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -291,7 +291,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 155
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 207
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 285
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 324
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -323,7 +323,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 369
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -331,7 +331,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 399
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -339,7 +339,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 498
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -347,7 +347,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 532
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -355,7 +355,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -363,7 +363,140 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 561
+        },
+        {
+          "title": "names every standing board exactly once",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 608
+        },
+        {
+          "title": "is the order BOARDS exports",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 612
+        }
+      ]
+    },
+    {
+      "id": "gradient",
+      "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts",
+      "names": [
+        "FLOOR",
+        "GROUND",
+        "RING"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "gives the same numbers for the same string, every time",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 42
+        },
+        {
+          "title": "sends neighbouring strings nowhere near each other",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 49
+        },
+        {
+          "title": "returns an identical orb on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 57
+        },
+        {
+          "title": "returns an identical background string on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 63
+        },
+        {
+          "title": "gives two different accounts two different colours",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 71
+        },
+        {
+          "title": "fills every one of twelve 30 degree buckets",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 80
+        },
+        {
+          "title": "keeps the curated set to its twelve, and the warm arc to its arc",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 90
+        },
+        {
+          "title": "reads under the initial at 24, 32 and 40px",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 101
+        },
+        {
+          "title": "separates from the page on paper and on ink",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 114
+        },
+        {
+          "title": "never matches the ring drawn over it",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 129
+        },
+        {
+          "title": "keeps the lit pole and the shadow inside the disc's own range",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 136
+        },
+        {
+          "title": "is one CSS value a server component can hand to a style attribute",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 150
+        },
+        {
+          "title": "interpolates in oklab wherever it ramps between two colours",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 158
         }
       ]
     },
@@ -495,6 +628,49 @@
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
           "line": 257
+        }
+      ]
+    },
+    {
+      "id": "claim-handle-prompt",
+      "file": "src/components/guest/claim-handle-prompt.tsx",
+      "names": [
+        "ClaimHandlePrompt"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "signed out: the save-account prompt stands, and no handle is mentioned",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "signed in without a handle: the claim offer, with a door to the account",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "signed in with a handle: nothing at all",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "counts the photographs that landed",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 82
         }
       ]
     },
@@ -866,7 +1042,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 49
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -874,7 +1050,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 61
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -882,7 +1058,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 66
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -890,7 +1066,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 85
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -898,7 +1074,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 155
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -906,7 +1082,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 207
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -914,7 +1090,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 285
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -922,7 +1098,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 324
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -930,7 +1106,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 369
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -938,7 +1114,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 399
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -946,7 +1122,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 498
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -954,7 +1130,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 532
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -962,7 +1138,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -970,7 +1146,23 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 561
+        },
+        {
+          "title": "names every standing board exactly once",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 608
+        },
+        {
+          "title": "is the order BOARDS exports",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 612
         }
       ]
     },
@@ -994,7 +1186,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 49
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -1002,7 +1194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 61
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -1010,7 +1202,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 66
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -1018,7 +1210,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 85
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -1026,7 +1218,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 155
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1034,7 +1226,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 207
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1042,7 +1234,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 285
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1050,7 +1242,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 324
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1058,7 +1250,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 369
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1066,7 +1258,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 399
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1074,7 +1266,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 498
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -1082,7 +1274,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 532
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1090,7 +1282,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 554
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1098,7 +1290,23 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 564
+          "line": 561
+        },
+        {
+          "title": "names every standing board exactly once",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 608
+        },
+        {
+          "title": "is the order BOARDS exports",
+          "suite": [
+            "the desk's order"
+          ],
+          "file": "src/app/(dev)/design/sandbox/registry.test.ts",
+          "line": 612
         }
       ]
     },
@@ -2055,6 +2263,105 @@
       ]
     },
     {
+      "id": "header-shell",
+      "file": "src/components/marketing/chrome/header-shell.tsx",
+      "names": [
+        "HeaderShell"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "starts visible and stays visible inside the reveal zone",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "leaves once the reader commits to scrolling away",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 104
+        },
+        {
+          "title": "comes back on ANY upward movement, with no threshold to clear",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 114
+        },
+        {
+          "title": "comes back at the top of the page without a gesture",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 126
+        },
+        {
+          "title": "hides the SOLID posture on the same signal, not a second rule",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 138
+        },
+        {
+          "title": "stays reachable while it is out of the way",
+          "suite": [
+            "the header's hide-on-scroll"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 152
+        },
+        {
+          "title": "never hides while something inside it is focused",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "never hides with a nav panel or the phone sheet open",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 176
+        },
+        {
+          "title": "honours reduced motion, keeping the function and dropping the slide",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 185
+        },
+        {
+          "title": "animates the property the translate utility actually sets",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 189
+        },
+        {
+          "title": "moves the bar by transform alone: the height knob is untouched",
+          "suite": [
+            "the escapes and the height knob (source pins: no cascade in jsdom)"
+          ],
+          "file": "src/components/marketing/chrome/header-shell-contract.test.tsx",
+          "line": 197
+        }
+      ]
+    },
+    {
       "id": "marketing-footer",
       "file": "src/components/marketing/chrome/marketing-footer.tsx",
       "names": [
@@ -2069,7 +2376,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 26
+          "line": 31
         },
         {
           "title": "never nests .dark (the standing --gallery* rule)",
@@ -2077,7 +2384,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 86
+          "line": 91
         },
         {
           "title": "keeps the QR server-rendered (no client island for a constant graphic)",
@@ -2085,7 +2392,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 94
+          "line": 99
         },
         {
           "title": "the seam glow owns the loop-pause contract, through the primitive",
@@ -2093,7 +2400,7 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 102
+          "line": 107
         },
         {
           "title": "reads the lamps' cadence from the one token, never a literal",
@@ -2101,7 +2408,98 @@
             "the ink-slab footer contract"
           ],
           "file": "src/components/marketing/chrome/footer-contract.test.ts",
-          "line": 122
+          "line": 127
+        },
+        {
+          "title": "offers Start free with a demo event configured",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "offers Start free with NO demo event configured",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "stands the invitation down with the demo, and only the invitation",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "keeps the index and the legal bar in both states",
+          "suite": [
+            "the footer's action, and what it does not depend on"
+          ],
+          "file": "src/components/marketing/chrome/footer-door-contract.test.tsx",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "id": "session-hint",
+      "file": "src/components/marketing/chrome/session-hint.tsx",
+      "names": [
+        "HeaderActions"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "prerenders the stranger's bar even for a signed-in reader",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 43
+        },
+        {
+          "title": "offers Log in and Start free to a stranger",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 51
+        },
+        {
+          "title": "swaps both doors for ONE way back in, to the real route",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "reads a chunked session, which is what a real one usually is",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "never reads a mid-OAuth verifier as a session",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 81
+        },
+        {
+          "title": "never reads an emptied cookie as a session",
+          "suite": [
+            "the returning host's hint"
+          ],
+          "file": "src/components/marketing/chrome/session-hint-contract.test.tsx",
+          "line": 89
         }
       ]
     },
@@ -2507,6 +2905,240 @@
           ],
           "file": "src/components/marketing/legal/legal-document-contract.test.ts",
           "line": 40
+        }
+      ]
+    },
+    {
+      "id": "event-door",
+      "file": "src/components/marketing/sections/events/event-door.tsx",
+      "names": [
+        "EventDoor"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "promises the album without counting it",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 36
+        },
+        {
+          "title": "opens /demo, and only when a demo exists",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 47
+        },
+        {
+          "title": "keeps the door the wider column",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 57
+        },
+        {
+          "title": "leaves the river silent and unfocusable",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 64
+        },
+        {
+          "title": "gives the door column exactly one control",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 85
+        },
+        {
+          "title": "shows the reel as a poster rather than a bordered card",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 95
+        },
+        {
+          "title": "never brings the retired reel band back",
+          "suite": [
+            "the events door proof"
+          ],
+          "file": "src/components/marketing/sections/events/event-door-contract.test.ts",
+          "line": 104
+        }
+      ]
+    },
+    {
+      "id": "event-object",
+      "file": "src/components/marketing/sections/events/event-object.tsx",
+      "names": [
+        "EventObject",
+        "EventsHubObject"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders a REAL code, server-side, not a drawn one",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 42
+        },
+        {
+          "title": "encodes /demo rather than the event link",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 52
+        },
+        {
+          "title": "shows no code and no dead link when no demo is configured",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 61
+        },
+        {
+          "title": "gives the code an accessible name, and never hides it from a reader",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 77
+        },
+        {
+          "title": "knows an object for every type, and takes its stills from events.ts",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 86
+        },
+        {
+          "title": "stands under the page's ONE h1, through PageHero",
+          "suite": [
+            "the event object hero"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 100
+        },
+        {
+          "title": "names only manifest photographs, in every slot",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 115
+        },
+        {
+          "title": "gives the album object enough leaves to be an album",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 135
+        },
+        {
+          "title": "gives the sleeve object its two faces",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 145
+        },
+        {
+          "title": "draws the badges rather than photographing them",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 153
+        },
+        {
+          "title": "gives a type with no statement prints a product pane to stand beside",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 162
+        },
+        {
+          "title": "keeps every object kind reachable from the data",
+          "suite": [
+            "the per-type media slots"
+          ],
+          "file": "src/components/marketing/sections/events/event-object-contract.test.ts",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-type-card",
+      "file": "src/components/marketing/sections/events/event-type-card.tsx",
+      "names": [
+        "EventCard"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is the same component at both sizes",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 35
+        },
+        {
+          "title": "puts a photograph under every card, and no artifact inside one",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 50
+        },
+        {
+          "title": "is a link to its own type page",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 69
+        },
+        {
+          "title": "names no still of its own",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 74
+        },
+        {
+          "title": "wears the ruled copy scrim rather than a fresh ramp",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 84
+        },
+        {
+          "title": "keeps the tilt on the hub and off the home row",
+          "suite": [
+            "the event card"
+          ],
+          "file": "src/components/marketing/sections/events/event-type-card-contract.test.ts",
+          "line": 91
         }
       ]
     },
@@ -3228,7 +3860,7 @@
           "line": 77
         },
         {
-          "title": "keeps every scale in the table rather than inline",
+          "title": "puts the subhead on the ladder's own step, never a stock size",
           "suite": [
             "the page hero lockup"
           ],
@@ -3236,12 +3868,20 @@
           "line": 97
         },
         {
+          "title": "keeps every scale in the table rather than inline",
+          "suite": [
+            "the page hero lockup"
+          ],
+          "file": "src/components/marketing/system/page-hero-contract.test.ts",
+          "line": 114
+        },
+        {
           "title": "keeps the side bearing out of the heading class, gated on align",
           "suite": [
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 101
+          "line": 118
         },
         {
           "title": "offers three named entrances, and the blur-rise never touches the h1",
@@ -3249,7 +3889,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 115
+          "line": 132
         },
         {
           "title": "renders the stage AFTER the lockup, inside the same Container",
@@ -3257,7 +3897,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 131
+          "line": 148
         },
         {
           "title": "keeps the tracking squeeze on the display step itself",
@@ -3265,7 +3905,7 @@
             "the page hero lockup"
           ],
           "file": "src/components/marketing/system/page-hero-contract.test.ts",
-          "line": 143
+          "line": 160
         }
       ]
     },
@@ -7834,6 +8474,101 @@
       "contracts": []
     },
     {
+      "id": "guest-list",
+      "file": "src/components/social/guest-list.tsx",
+      "names": [
+        "GUEST_LIST_FACES_THRESHOLD",
+        "GuestList"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names everyone, in chips, at or under the threshold",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 31
+        },
+        {
+          "title": "condenses to ONE button past the threshold, and the button carries the count",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 39
+        },
+        {
+          "title": "opens IN PLACE, one page at a time, never the whole list at once",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "links a guest WITH a handle and leaves one without unlinked",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "says so when the host's key is on and nobody has added a photo yet",
+          "suite": [
+            "GuestList"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "id": "profile-actions-menu",
+      "file": "src/components/social/profile-actions-menu.tsx",
+      "names": [
+        "ProfileActionsMenu"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers reporting the person AND blocking them",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 44
+        },
+        {
+          "title": "keeps both rows when I already block them (report stays, block becomes unblock)",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 50
+        },
+        {
+          "title": "explains the block before doing it (the confirm is its own step)",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "takes a reason for a report, and reporting is not blocking",
+          "suite": [
+            "ProfileActionsMenu"
+          ],
+          "file": "src/components/social/profile-actions-menu.test.tsx",
+          "line": 62
+        }
+      ]
+    },
+    {
       "id": "avatar",
       "file": "src/components/ui/avatar.tsx",
       "names": [
@@ -8353,6 +9088,79 @@
           ],
           "file": "src/lib/shared/sampled-palette.test.ts",
           "line": 160
+        }
+      ]
+    },
+    {
+      "id": "use-scroll-direction",
+      "file": "src/lib/shared/use-scroll-direction.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "shows the bar at the head of the page, whatever came before",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 26
+        },
+        {
+          "title": "does not hide until the reader commits past the hysteresis",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 34
+        },
+        {
+          "title": "measures the hysteresis from the furthest point, not the last flip",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 42
+        },
+        {
+          "title": "returns on ANY upward movement, with no threshold to clear",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 50
+        },
+        {
+          "title": "holds still inside the band rather than flickering",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 56
+        },
+        {
+          "title": "reads a rubber-band overscroll as the top, never as a scroll up",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 65
+        },
+        {
+          "title": "ignores sub-pixel jitter on a fractional-DPR display",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 69
+        },
+        {
+          "title": "seeds SHOWN even on a page that loads already deep",
+          "suite": [
+            "the scroll-direction machine"
+          ],
+          "file": "src/lib/shared/use-scroll-direction.test.ts",
+          "line": 75
         }
       ]
     }

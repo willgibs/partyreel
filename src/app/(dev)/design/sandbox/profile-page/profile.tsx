@@ -348,8 +348,13 @@ function Follow() {
  * else it is drawn closed, which is how a profile really sits. The first
  * capture read against its own words had it open on every page frame, covering
  * "Joined June 2026" under a menu nobody had asked about.
+ *
+ * ★ EXPORTED FOR ROUND TWO (2026-09-19): `way-back`'s account-menu option
+ * anchors this same panel and row under the header's avatar trigger instead of
+ * the overflow button, so the menu family stays one material rather than a
+ * second copy of `floatingPanel`/`floatingRow` in `reach.tsx`.
  */
-function Menu({ children }: { children: ReactNode }) {
+export function Menu({ children }: { children: ReactNode }) {
   return (
     <div
       className={`absolute top-full right-0 z-50 mt-1 min-w-48 p-1 ${floatingPanel}`}
@@ -359,7 +364,7 @@ function Menu({ children }: { children: ReactNode }) {
   );
 }
 
-function MenuRow({
+export function MenuRow({
   destructive,
   onClick,
   children,
@@ -524,6 +529,7 @@ export function ProfilePage({
   block = "overflow",
   viewer = "stranger",
   menuOpen = false,
+  belowHead,
 }: {
   person: Person;
   head?: HeadOption;
@@ -532,6 +538,12 @@ export function ProfilePage({
   block?: BlockOption;
   viewer?: ViewerId;
   menuOpen?: boolean;
+  /** ROUND TWO's slot (2026-09-19): `way-back`'s pill lands between the header
+   *  and the name, the one place a "back to the album" line can sit without
+   *  moving `Identity` (bible 9's centring ruling keeps the avatar aligned to
+   *  the name, not the page). Undefined renders nothing, so every round-one
+   *  call site is byte-identical. */
+  belowHead?: ReactNode;
 }) {
   return (
     <div data-pp-page className="flex min-h-full flex-1 flex-col">
@@ -541,6 +553,7 @@ export function ProfilePage({
           signed-out visitor gets the same page with the actions gone, which is
           the case `head` is least interesting for. */}
       <Head option={head} signedIn />
+      {belowHead}
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         <Identity
           person={person}

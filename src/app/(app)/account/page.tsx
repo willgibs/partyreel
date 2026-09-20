@@ -12,6 +12,7 @@ import {
   UnfollowButton,
 } from "@/components/social/connection-buttons";
 import { AttendedEventsVisibility } from "@/components/social/attended-events-visibility";
+import { ProfileBioForm } from "@/components/social/profile-bio-form";
 import { ProfileSlugControl } from "@/components/social/profile-slug-control";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -127,9 +128,8 @@ export default async function AccountPage({
     withAvatarUrls(following),
     withAvatarUrls(blocks),
   ]);
-  // Same lock rule as setProfileSlug (locked = free; paid tiers all claim).
   const tier = toBillingTier(profile.tier ?? DEFAULT_TIER);
-  const slugLocked = tier === "free";
+  const bio = profile.bio ?? null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -163,7 +163,10 @@ export default async function AccountPage({
         </CardContent>
       </Card>
 
-      <Card>
+      {/* The id is the after-upload prompt's door: a guest who just added
+          photographs to somebody's wedding arrives here wanting one box, not a
+          five-card page to scroll (Will, `claim=after`, 2026-09-19). */}
+      <Card id="public-profile" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Public profile</CardTitle>
           <CardDescription>
@@ -172,11 +175,11 @@ export default async function AccountPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <ProfileSlugControl
-            siteUrl={siteUrl}
-            slug={slug}
-            locked={slugLocked}
-          />
+          <ProfileSlugControl siteUrl={siteUrl} slug={slug} />
+          {/* The bio lives beside the handle rather than in the Profile card
+              above: it exists at exactly one address, and only once a handle
+              does. */}
+          <ProfileBioForm bio={bio} />
           <div className="space-y-2 border-t border-border/60 pt-5">
             <p className="text-xs font-medium text-muted-foreground">
               Events you joined

@@ -68,3 +68,45 @@ export const profileSlugSchema = z
   );
 
 export type ProfileSlugInput = z.infer<typeof profileSlugSchema>;
+
+export const BIO_MAX_LENGTH = 160;
+
+/**
+ * THE ONE LINE A PERSON WRITES ABOUT THEMSELVES, on /u/[slug] (Will,
+ * `identity=line`, 2026-09-19: "Should also have a few rules to prevent
+ * worst-case intent bios"). Those rules, in the order they bite:
+ *
+ *   1. ONE LINE. Newlines and runs of whitespace collapse to single spaces
+ *      BEFORE anything else, so a bio cannot become a wall, a poem or ASCII
+ *      art. A cap alone would still let 160 characters draw eight lines.
+ *   2. 160 CHARACTERS, mirrored by the profiles_bio_len CHECK (migration
+ *      20260919120000). Short enough that a page can never become a homepage,
+ *      long enough for a sentence with a comma in it.
+ *   3. NO LINKS. A public page that anyone can claim for free is a free
+ *      backlink otherwise, which is the whole spam economy in one field. The
+ *      pattern catches a scheme, a www., and a bare domain ("maya.com",
+ *      "t.me/x", an email address) while leaving ordinary prose alone: a dot
+ *      followed by a space ("Mrs. Smith") and a single letter after a dot
+ *      ("e.g.") both pass.
+ *   4. PROFANITY, server-side only, in the account action exactly as
+ *      displayNameSchema's is: the obscenity matcher must never ship to a
+ *      browser.
+ *
+ * Empty (or whitespace-only) parses to null: clearing the field is how a bio is
+ * removed, so there is no second "remove" path to keep in step.
+ */
+const LINK_PATTERN =
+  /(https?:\/\/|www\.|[a-z0-9][a-z0-9-]*\.[a-z]{2,}(\/|\s|$))/i;
+
+export const bioSchema = z
+  .string()
+  .transform((raw) => raw.replace(/\s+/g, " ").trim())
+  .refine((bio) => bio.length <= BIO_MAX_LENGTH, {
+    message: `Keep your bio to ${BIO_MAX_LENGTH} characters or fewer.`,
+  })
+  .refine((bio) => !LINK_PATTERN.test(bio), {
+    message: "Bios can't contain links or web addresses.",
+  })
+  .transform((bio) => (bio.length === 0 ? null : bio));
+
+export type BioInput = z.infer<typeof bioSchema>;

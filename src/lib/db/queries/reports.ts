@@ -9,6 +9,7 @@
  */
 import "server-only";
 
+
 import type { Database } from "@/lib/db/types";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -38,9 +39,15 @@ export async function listReports(
 ): Promise<ReviewReport[]> {
   const admin = createAdminClient();
 
+  // ★ THE ALBUM ARM ONLY. Since 20260919130000 a report may name a PERSON
+  // instead of an event (Will, `block=report`), and those rows carry no event,
+  // no media and nothing to presign: listProfileReports below is their read and
+  // the page renders them in their own section. Filtering here rather than
+  // letting a null event_id fall through keeps this function's shape honest.
   let query = admin
     .from("reports")
     .select("id, reason, created_at, status, resolved_at, event_id, media_id")
+    .not("event_id", "is", null)
     .order("created_at", { ascending: false });
   if (filter === "open") query = query.eq("status", "open");
 
@@ -48,7 +55,13 @@ export async function listReports(
   if (error) throw error;
   if (!reports || reports.length === 0) return [];
 
-  const eventIds = [...new Set(reports.map((r) => r.event_id))];
+  const eventIds = [
+    ...new Set(
+      reports
+        .map((r) => r.event_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
   const mediaIds = [
     ...new Set(
       reports.map((r) => r.media_id).filter((id): id is string => id !== null),
@@ -87,7 +100,7 @@ export async function listReports(
     created_at: r.created_at,
     status: r.status,
     resolved_at: r.resolved_at,
-    event: eventById.get(r.event_id) ?? null,
+    event: r.event_id ? (eventById.get(r.event_id) ?? null) : null,
     media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
   }));
 }
@@ -101,4 +114,76 @@ export async function countOpenReports(): Promise<number> {
     .eq("status", "open");
   if (error) throw error;
   return count ?? 0;
+}
+
+// ── Person reports (the /u/[slug] menu's first row) ──────────────────────────
+
+export type ReviewProfileReport = {
+  id: string;
+  reason: string | null;
+  created_at: string;
+  status: ReportStatus;
+  resolved_at: string | null;
+  /** Null only if the reported account was deleted between the report and the
+   *  read (the FK cascades, so this is a race window, not a steady state). */
+  profile: { id: string; displayName: string | null; slug: string | null } | null;
+};
+
+/**
+ * Reported PEOPLE, for the person section of /admin/reports. The operator gets
+ * the name, the handle (which the page turns into a link to the live profile)
+ * and the reason: everything needed to look and decide, and nothing about the
+ * reporter, who is not stored.
+ *
+ * Same service-role read as listReports over the same deny-all table, and the
+ * same batched `.in()` lookup rather than an embed (reports now carries two
+ * profiles-adjacent FKs, profile_id and resolved_by, so a bare embed would be
+ * PGRST201-ambiguous).
+ *
+ * reports.profile_id arrived with migration 20260919130000 (applied 2026-09-19).
+ */
+export async function listProfileReports(
+  filter: ReportFilter = "open",
+): Promise<ReviewProfileReport[]> {
+  const admin = createAdminClient();
+
+  let query = admin
+    .from("reports")
+    .select("id, reason, created_at, status, resolved_at, profile_id")
+    .not("profile_id", "is", null)
+    .order("created_at", { ascending: false });
+  if (filter === "open") query = query.eq("status", "open");
+
+  const { data, error } = await query;
+  if (error) throw error;
+  const reports = (data ?? []) as {
+    id: string;
+    reason: string | null;
+    created_at: string;
+    status: ReportStatus;
+    resolved_at: string | null;
+    profile_id: string;
+  }[];
+  if (reports.length === 0) return [];
+
+  const { data: profiles, error: pErr } = await admin
+    .from("profiles")
+    .select("id, display_name, slug")
+    .in("id", [...new Set(reports.map((r) => r.profile_id))]);
+  if (pErr) throw pErr;
+  const byId = new Map(
+    (profiles ?? []).map((p) => [
+      p.id,
+      { id: p.id, displayName: p.display_name, slug: p.slug },
+    ]),
+  );
+
+  return reports.map((r) => ({
+    id: r.id,
+    reason: r.reason,
+    created_at: r.created_at,
+    status: r.status,
+    resolved_at: r.resolved_at,
+    profile: byId.get(r.profile_id) ?? null,
+  }));
 }

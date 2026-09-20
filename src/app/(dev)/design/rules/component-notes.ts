@@ -25,12 +25,43 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* the marketing chrome's two moving parts (chrome-wiring, 2026-09-19): at
+     the head for the same reason as the block below, so three lanes adding
+     `for` lines in one round do not land on each other. */
+  "src/components/marketing/chrome/header-shell.tsx": {
+    for: "the posture every marketing bar sits in: transparent over a hero until the page moves, and out of the way entirely while the reader is scrolling away, by transform alone so the one height knob never moves",
+    unspecimened:
+      "a sticky wrapper with no content of its own; the header inside it is the specimen",
+  },
+  "src/components/marketing/chrome/session-hint.tsx": {
+    for: "the bar's right cluster, and the only personal thing on ~50 prerendered marketing routes: a returning host is offered their dashboard instead of two doors to a login they do not need. A HINT, never authorization",
+    unspecimened:
+      "two buttons whose whole subject is a cookie the library build does not carry",
+  },
+  "src/lib/shared/use-scroll-direction.ts": {
+    for: "which way the page is moving, as one shared store: the site's only scroll listener, passive and rAF-coalesced, because direction is the one thing no IntersectionObserver can answer",
+    unspecimened: "a store; the header it moves is what you can see",
+  },
+
   // ★ AT THE HEAD, not in the shared/ block below, because three wiring lanes
   // add their own `for` lines this round and each one's landing at the top is
   // what keeps the three merges apart. The collector does not index
   // subdirectories of shared/ on its own, so these are here because they carry
   // contracts, and their Library entries read these lines like every other
   // component's (the backdrop and the river said the same thing first).
+  // ★ The profile wiring's three (2026-09-19): all outside the library's
+  // directories, indexed because each carries a contract test. They land at the
+  // head with the round's other lanes so three merges stay apart.
+  "src/components/social/guest-list.tsx": {
+    for: "who added photographs to an album, on both the host's page and the guest's: names in chips until a party is big, then one row of faces that opens a page of names at a time",
+  },
+  "src/components/social/profile-actions-menu.tsx": {
+    for: "the two things one person can do about another: report them to the operator, or block them; it stays visible under a block in either direction, because a menu that vanished would leak one",
+  },
+  "src/components/guest/claim-handle-prompt.tsx": {
+    for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
+  },
+
   "src/components/shared/album-stream/album-stream.tsx": {
     for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
   },
@@ -126,6 +157,23 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/marketing/sections/features/shared/text-swap.tsx": {
     for: "swaps one line of text for another: the old blurs up and out, the new rises in",
+  },
+
+  /* marketing / sections / events (events-wiring, 2026-09-19) */
+  "src/components/marketing/sections/events/event-type-card.tsx": {
+    for: "an event type as a photograph you can walk through, at the two sizes the site shows one; the picture IS the card and the artifact inside it is what the ruling removed",
+    unspecimened:
+      "it takes a whole EventType and links its own page; the hub's directory and the home row are where it is seen",
+  },
+  "src/components/marketing/sections/events/event-door.tsx": {
+    for: "the events proof: a door with the river pouring through it and the reel standing beside it, never under it; with no demo set the door goes rather than dying",
+    unspecimened:
+      "a whole page section with a live engine in it; /events and its four type pages are the specimens",
+  },
+  "src/components/marketing/sections/events/event-object.tsx": {
+    for: "one lit still life per event type, each carrying the demo's REAL scannable code, so a hero is a door rather than a picture of one",
+    unspecimened:
+      "server-rendered around a code that only exists when a demo is configured; the five events pages are where it stands",
   },
 
   /* marketing / sections / home */
@@ -488,5 +536,8 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/app/(dev)/design/sandbox/registry.ts": {
     for: "every standing board's spec, imported here and nowhere else, so the desk, the board page and the ledger read one list",
+  },
+  "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts": {
+    for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",
   },
 };

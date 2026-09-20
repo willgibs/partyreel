@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "seed-avatar"
   | "error-pages"
   | "event-type-pages"
   | "how-it-works"
@@ -108,8 +109,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "event-identity"
-  | "event-type-pages"
+  | "seed-avatar"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -673,39 +673,34 @@ export const RULINGS: Ruling[] = [
       "src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx#river",
     ],
   },
-  // RULED AND RETIRED (round one, 2026-09-19). Will answered all eight steps
-  // and left two notes the wiring answered: the photo strip belongs where the
-  // icon was rather than beneath the words, and a private event should offer a
-  // way to Partyreel rather than nothing at all. NotFoundScreen became the one
-  // primitive every failure page draws from, RouteError folded into it, and the
-  // board left sandbox/ with the round; docs/design/rulings.md keeps his words.
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered all seven steps
+  // and left a note on nearly every one: the drawings "are not nearly good
+  // enough for an event page this is the proposed final page design", the
+  // statement's "UI could be improved a lot", the cards "could use a ton of
+  // design polish", the door's right half "could use a redesign", the ladder's
+  // sizes were his own numbers, and the phone wanted the visual crossing the
+  // fold. The wiring answered each on the real pages; the board left sandbox/
+  // with it, and docs/design/rulings.md keeps his words.
   {
     id: "event-identity",
     title: "The event pages' visual identity",
     surface: "marketing",
-    ruled:
-      'open (Will, 2026-09-19: the pages were a fast V1 and "could use a total visual identity redesign now that other areas like the homepage are progressing beyond them under Rising Tides")',
-    shipped: null,
-    why: "The hub and four type pages from the ground up: the hero's theme in one shared lockup, the section under it, the arc, the cards, the proof, the ladder, the phone.",
+    ruled: "2026-09-19",
+    shipped:
+      "One lit object per type carrying the demo's real scannable code, a statement section in place of the paragraph and its tag list, a photograph the page turns to paper across, the photograph as the card for all four types at both of its sizes, a door with the river pouring through it and the reel beside it, the hero subhead on a 20 to 22 clamp site-wide with the openings at 18, and a phone whose object crosses the fold",
+    why: "The hub and four type pages from the ground up: what makes an event page its own, once every one of them wears the same lockup.",
     lives: [
       "docs/systems/marketing-content.md",
+      "src/lib/constants/events.ts",
       "src/app/(marketing)/(cinema)/events/page.tsx",
       "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
-      "src/components/marketing/sections/events/event-hero-media.tsx",
-      "src/components/marketing/sections/events/type-directory.tsx",
-      "src/components/marketing/sections/events/reel-angle-band.tsx",
+      "src/components/marketing/sections/events/event-object.tsx",
+      "src/components/marketing/sections/events/event-statement.tsx",
+      "src/components/marketing/sections/events/event-turn.tsx",
+      "src/components/marketing/sections/events/event-type-card.tsx",
+      "src/components/marketing/sections/events/event-door.tsx",
+      "src/components/marketing/system/page-hero.tsx",
     ],
-    board: {
-      note: "Seven decisions as concepts on the real /events pieces and the shared engines, on weddings and on conferences (the type the manifest has no honest still for), at 1440 and 375: the hero's theme, the section under it, the arc, the cards, the proof, the ladder, the phone",
-      variants: [
-        "The hero's theme",
-        "The second section",
-        "The arc",
-        "The cards",
-        "The proof",
-      ],
-      tracks: ["event-identity"],
-    },
   },
   {
     id: "error-pages",
@@ -729,31 +724,29 @@ export const RULINGS: Ruling[] = [
       "src/app/global-error.tsx",
     ],
   },
+  // RULED AND RETIRED (round one, 2026-09-19). Will answered seven of the eight
+  // steps as direct picks and turned the eighth into a fresh round: the pages
+  // "were thrown up in a very fast V1... they could use a total visual identity
+  // redesign", which became `event-identity` above and wired with it. Two notes
+  // kept for the record and never marketing copy: kids are never a target user,
+  // and planners get a partners page rather than a line in this hero. The board
+  // left sandbox/ with the wiring; docs/design/rulings.md keeps his words.
   {
     id: "event-type-pages",
     title: "The event-type landing pages",
     surface: "marketing",
-    ruled:
-      'open (Will, 2026-09-19: the overnight round, every surface unprotected, "at worst, net neutral and fully deleted")',
-    shipped: null,
-    why: "One template renders all four types today. Round one asks whether that holds, what each hero shows, one hero component or two, who is greeted, and the mid-page proof.",
+    ruled: "2026-09-19",
+    shipped:
+      "One template for four types, the host alone greeted, every page on the shared PageHero lockup, the hub's 2x2 directory kept with its tilt, the FAQ-to-close gap halved at a phone, and the demo door in place of the reel band as the proof on all five pages",
+    why: "Four umbrella landing pages carry the site's search equity, and a reader who arrives on one from search has to meet the same product the home page sells.",
     lives: [
       "docs/systems/marketing-content.md",
+      "src/lib/constants/events.ts",
       "src/app/(marketing)/(cinema)/events/page.tsx",
       "src/app/(marketing)/(cinema)/events/[slug]/page.tsx",
-      "src/lib/constants/events.ts",
-      "src/components/marketing/sections/events/event-hero-media.tsx",
       "src/components/marketing/sections/events/type-directory.tsx",
+      "src/components/marketing/sections/home/events-teaser.tsx",
     ],
-    board: {
-      note: "Eight decisions on the real hub and type-page pieces with fixture types, at 1440 and 375: one page or four, the hero's picture, one hero, who is greeted, the mid-page proof, how many types, the hub's directory, and the phone",
-      variants: [
-        "One page or four",
-        "The hero's picture",
-        "The proof",
-        "How many",
-      ],
-    },
   },
   // RULED AND RETIRED (round one, 2026-09-19). Will answered seven of the
   // eight steps and dissolved the eighth: `phone` asked what should change
@@ -789,19 +782,20 @@ export const RULINGS: Ruling[] = [
     title: "The marketing site's chrome",
     surface: "marketing",
     ruled:
-      "open (Will, 2026-09-19: the overnight round, the header, the panel, the phone's menu and the footer, unprotected like the rest)",
+      "2026-09-19: seven of eight decisions ruled and landed on the real chrome by chrome-wiring (the bar hides going down and returns coming up, a Dashboard hint for a signed-in host, Start free always with the demo beside it when one is set, both nav doors to /how-it-works; the shape, the holds and the phone's menu kept as they were). The eighth, the foot's job, stays open for round two: the footer alone, against a real closing CTA, his ask by name",
     shipped: null,
-    why: "Eight decisions on the real chrome: the shape, what it holds, the returning host, the phone's menu, on scroll, the foot's job, the foot's door, and two doors to one loop.",
+    why: "Round two re-asks the footer's register after a real closing CTA, and whether a page with none deserves the same; the other seven are ruled and shipped by chrome-wiring.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/chrome/marketing-header.tsx",
+      "src/components/marketing/chrome/header-shell.tsx",
       "src/components/marketing/chrome/mega-panel.tsx",
       "src/components/marketing/chrome/mobile-menu.tsx",
       "src/components/marketing/chrome/marketing-footer.tsx",
       "src/lib/constants/marketing-nav.ts",
     ],
     board: {
-      note: "Eight decisions on the real header, mega panel, phone menu and ink slab, drawn over a real fixture page in a true frame at 1440 and 375: what the bar's middle holds, which sections it names, what a signed-in host sees, what a phone gets, what scrolling does to it, what the footer is for, what it offers with no demo set, and which of two pages telling one loop the chrome names",
+      note: "Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
       variants: [
         "The shape",
         "What it holds",
@@ -813,13 +807,42 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "seed-avatar",
+    title: "The colour a new account is",
+    surface: "shared",
+    ruled:
+      "open: round one on the desk (2026-09-19, Will's ask by name), seven decisions on the seeded default avatar that replaces the grey initial until a photograph lands",
+    shipped: null,
+    why: "Every account without a photograph draws the same grey disc today; a colour derived from the account itself is what makes a guest list read as people.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/components/ui/avatar.tsx",
+      "src/components/social/guest-list.tsx",
+      "src/components/app/user-menu.tsx",
+      "src/components/guest/guest-account-menu.tsx",
+      "src/components/app/account-avatar-form.tsx",
+    ],
+    board: {
+      note: "Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob",
+      variants: [
+        "The shape",
+        "The crowd",
+        "The wheel",
+        "The initial",
+        "The seed",
+        "After a photograph",
+        "Motion",
+      ],
+    },
+  },
+  {
     id: "profile-page",
     title: "What a person is here",
     surface: "guest",
     ruled:
-      'open (Will, 2026-09-19, "the overnight round": the guest pages are unprotected, "at worst, net neutral and fully deleted")',
+      "round one ruled whole (Will, 2026-09-19, the fourth batch); `profile-wiring` wires the eight picks; round two open on the three he left: how View all opens, the quick-look, and the way back to the scanned event",
     shipped: null,
-    why: "Round one asks whether a person has a page at all, what fills it beyond two dates, who an album publishes, and when a handle is ever offered.",
+    why: "Round two, on the three he left open: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable.",
     lives: [
       "docs/systems/profiles-social.md",
       "src/app/(guest)/u/[slug]/page.tsx",
@@ -829,17 +852,8 @@ export const RULINGS: Ruling[] = [
       "src/components/social/profile-slug-control.tsx",
     ],
     board: {
-      note: "Eight decisions on the shipped profile and the shipped guest list (the identity block, EventCard, EmptyState, GuestList, the follow and block controls, GuestMasonry) over one cast at one wedding, phone first at 375 with 1440 on the knob: whether a person has a page at all, what stands above it, what fills it, what its top says, who an album names, when a handle is offered, how a big list draws, and how blocking is reached",
-      variants: [
-        "The page",
-        "The head",
-        "What fills it",
-        "The top",
-        "Block",
-        "The named",
-        "The claim",
-        "The list",
-      ],
+      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
+      variants: ["View all", "Quick-look", "Way back"],
     },
   },
   {
@@ -1449,7 +1463,7 @@ export const RULINGS: Ruling[] = [
       "docs/systems/design-system.md#the-media-forward-card",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/features/shared/related-features.tsx",
-      "src/components/marketing/sections/home/event-type-card.tsx",
+      "src/components/marketing/sections/events/event-type-card.tsx",
       "src/components/shared/river/qr-plate.tsx",
       "src/app/demo/route.ts",
     ],
@@ -1608,7 +1622,66 @@ export const RULINGS: Ruling[] = [
 ];
 
 /** The standing boards, in registry order: the sidebar's Sandbox zone. */
-export const SANDBOX: Ruling[] = RULINGS.filter((r) => r.board !== undefined);
+/**
+ * ★ THE DESK'S ORDER IS BY LEVERAGE, AND THIS LIST IS ITS ONE HOME (Will,
+ * 2026-09-19, verbatim in docs/design/rulings.md): "our board groups should be
+ * ordered by leverage, such that if a question/group compounds into a later
+ * question/group, the more atomic question is handled first... for any
+ * potential snowball effects, the earlier influence is addressed first." He
+ * reviews what is presented top to bottom, so a board whose answer changes
+ * another board's question sits ABOVE it, and boards that touch nothing else
+ * sit at the foot in any order. The desk, the board-to-board paging and
+ * `BOARDS` in sandbox/registry.ts all sort by this list. The chain as it
+ * stands: the voice binds every line on every board (bible 20 and 21); the body
+ * ladder sizes every reading slot; Glass is the material the two shapes' chrome
+ * wears; the host app's shape and the guest experience's shape decide the parts
+ * (app-vocabulary), the doors (app-door, app-pricing), the first event, the
+ * upload, the viewer, curation, the reel and the export; the admin's shape
+ * decides triage; the demo's promise decides every demo door, the footer's
+ * included. A lane registering a NEW board adds its id at the HEAD of this list
+ * (as it does in `BOARDS`; merges stay line-disjoint) and the Orchestrator moves
+ * it into its place at the next record; a retiring lane removes its id.
+ * registry.test.ts holds this list and `BOARDS` to the same members.
+ */
+export const DESK_ORDER: readonly SandboxId[] = [
+  "voice",
+  "body-type",
+  "glass",
+  "app-shape",
+  "guest-shape",
+  "app-vocabulary",
+  "seed-avatar",
+  "admin",
+  "app-door",
+  "demo-event",
+  "pricing-page",
+  "app-pricing",
+  "first-event",
+  "guest-upload",
+  "media-viewer",
+  "host-curation",
+  "reel-studio",
+  "export-flow",
+  "admin-triage",
+  "help-center",
+  "emails",
+  "site-chrome",
+  "profile-page",
+  "privacy-hero",
+  "album-motion",
+  "loose-ends",
+  "contact-page",
+  "press-page",
+];
+
+const deskIndex = (id: string): number => {
+  const i = (DESK_ORDER as readonly string[]).indexOf(id);
+  return i < 0 ? DESK_ORDER.length : i;
+};
+
+export const SANDBOX: Ruling[] = RULINGS.filter(
+  (r) => r.board !== undefined,
+).sort((a, b) => deskIndex(a.id) - deskIndex(b.id));
 
 export function getRuling(id: string): Ruling | undefined {
   return RULINGS.find((r) => r.id === id);

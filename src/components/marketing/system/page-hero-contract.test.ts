@@ -94,6 +94,23 @@ describe("the page hero lockup", () => {
     expect(table).not.toMatch(/\btracking-/);
   });
 
+  it("puts the subhead on the ladder's own step, never a stock size", () => {
+    // Will, 2026-09-19 (`the-ladder=reading`): "On desktop, hero sub maybe
+    // 20-22 and opening stays 18." The slot was a flat `text-lg`, the same 18
+    // pixels at 375 and at 1440 under an h1 that clamps from 34 to 80, so the
+    // lockup's proportion came apart as the window grew and nothing about it
+    // looked broken at either end on its own. The NUMBERS are not pinned (he
+    // retunes a step without asking a test, and said so: "not a strict hard
+    // ruling"); what is pinned is that the slot reads a step at all, which is
+    // the thing a later edit would quietly undo by typing `text-lg` back.
+    const subhead = code.slice(code.indexOf("{subhead && ("));
+    const p = subhead.slice(0, subhead.indexOf("</p>"));
+    expect(p).toContain("text-subhead");
+    expect(p).not.toMatch(/text-(xs|sm|base|lg|xl|[2-9]xl)\b/);
+    expect(p).not.toMatch(/text-\[/);
+    expect(p).not.toMatch(/\b(sm|md|lg|xl|2xl):text-/);
+  });
+
   it("keeps every scale in the table rather than inline", () => {
     for (const step of ["display:", "xl:", "lg:"]) expect(code).toContain(step);
   });

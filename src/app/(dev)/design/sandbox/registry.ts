@@ -1,7 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
+import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { EVENT_IDENTITY } from "./event-identity/spec";
-import { EVENT_TYPE_PAGES } from "./event-type-pages/spec";
+import { SEED_AVATAR } from "./seed-avatar/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
@@ -45,39 +45,56 @@ import { VOICE } from "./voice/spec";
  * it: the ruling lives on in its RULINGS row (touchpoints.ts), the words in
  * docs/design/rulings.md, and the board in git. A lane adds or removes ONLY its
  * own board's lines here (the registration and retirement exceptions,
- * docs/tracks/orchestrator.md): a new board at the head of the list.
+ * docs/tracks/orchestrator.md): a new board at the head of the list, moved
+ * into its leverage place by the Orchestrator at the next record (below).
  */
-export const BOARDS: readonly BoardSpec[] = [
-  EVENT_IDENTITY,
-  EVENT_TYPE_PAGES,
-  SITE_CHROME,
-  PROFILE_PAGE,
-  EXPORT_FLOW,
-  ADMIN_TRIAGE,
-  MEDIA_VIEWER,
-  EMAILS,
-  REEL_STUDIO,
-  HELP_CENTER,
-  HOST_CURATION,
-  GUEST_UPLOAD,
-  FIRST_EVENT,
+/**
+ * ★ ORDERED BY LEVERAGE AT EXPORT. The one home of the desk's order is
+ * `DESK_ORDER` in touchpoints.ts (Will, 2026-09-19: the earlier influence
+ * first); the literal below is the REGISTRATION list, where a lane adds a new
+ * board at the head so merges stay line-disjoint, and `BOARDS` is that list
+ * sorted by `DESK_ORDER` so the desk, the paging and every walk agree. A board
+ * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
+ */
+const REGISTERED: readonly BoardSpec[] = [
+  SEED_AVATAR,
+  VOICE,
+  BODY_TYPE,
+  GLASS,
+  APP_SHAPE,
+  GUEST_SHAPE,
+  APP_VOCABULARY,
+  ADMIN,
   APP_DOOR,
+  DEMO_EVENT,
   PRICING_PAGE,
   APP_PRICING,
-  PRESS_PAGE,
-  CONTACT_PAGE,
-  APP_VOCABULARY,
-  DEMO_EVENT,
-  GUEST_SHAPE,
-  ALBUM_MOTION,
-  APP_SHAPE,
-  ADMIN,
-  LOOSE_ENDS,
-  GLASS,
-  BODY_TYPE,
-  VOICE,
+  FIRST_EVENT,
+  GUEST_UPLOAD,
+  MEDIA_VIEWER,
+  HOST_CURATION,
+  REEL_STUDIO,
+  EXPORT_FLOW,
+  ADMIN_TRIAGE,
+  HELP_CENTER,
+  EMAILS,
+  SITE_CHROME,
+  PROFILE_PAGE,
   PRIVACY_HERO,
+  ALBUM_MOTION,
+  LOOSE_ENDS,
+  CONTACT_PAGE,
+  PRESS_PAGE,
 ];
+
+const deskIndex = (id: string): number => {
+  const i = (DESK_ORDER as readonly string[]).indexOf(id);
+  return i < 0 ? DESK_ORDER.length : i;
+};
+
+export const BOARDS: readonly BoardSpec[] = [...REGISTERED].sort(
+  (a, b) => deskIndex(a.id) - deskIndex(b.id),
+);
 
 export function boardSpec(id: string): BoardSpec | undefined {
   return BOARDS.find((b) => b.id === id);

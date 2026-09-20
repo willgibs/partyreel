@@ -418,7 +418,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
         "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you have contributed to where the host shows a guest list and you have not hidden them. You can hide any event from your profile at any time. Profiles never show email addresses or follower counts.",
       ),
       p(
-        "Hosts may show a guest list on an event, which names every signed-in uploader to everyone who can see the album; the ways to stay off a guest list are described in the Privacy Policy. Following someone is visible only to you and them. Blocking someone removes each of you from the other's social surfaces across the Service. Do not use profiles or social features to harass anyone or to gather personal information about other users.",
+        "A profile may also carry a short bio you write. Like your display name it is public wherever your profile is, it is limited in length, it may not contain links, and names or wording that impersonate others, contain profanity, or use reserved words are not permitted; we may remove a bio that breaks this rule.",
+      ),
+      p(
+        "Hosts may show a guest list on an event, which names every signed-in uploader to everyone who can see the album; the ways to stay off a guest list are described in the Privacy Policy. Following someone is visible only to you and them. Blocking someone removes each of you from the other's social surfaces across the Service. You can report a person from their profile, as you can report an album or an item; we review reports and the person reported is not told who reported them. Do not use profiles or social features to harass anyone or to gather personal information about other users.",
       ),
     ],
   },

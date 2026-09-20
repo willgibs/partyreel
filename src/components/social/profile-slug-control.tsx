@@ -39,22 +39,25 @@ type Status =
 const DEBOUNCE_MS = 400;
 
 /**
- * Claim / change / release the public profile handle (/u/[slug]). Paid feature
- * via the house upgrade-hint pattern (visible-but-locked, like the composer's
- * 60s chip and the event slug): Free sees the affordance + the /pricing nudge,
- * never a hidden feature. A downgraded account keeps its live handle and can
- * still Remove it (setProfileSlug gates SET only; clear never tier-checks).
+ * Claim / change / release the public profile handle (/u/[slug]).
+ *
+ * ★ FREE FOR EVERYONE SINCE 2026-09-19, and the upgrade hint that used to stand
+ * here is gone with the gate. Will, in plan mode: "Free to claim for everyone,
+ * as you recommend it. We can keep custom event slugs as a pro feature, but
+ * handles for everyone incentivizes guests to get deeper into our ecosystem and
+ * hopefully upgrade to host one day." The person this control is for is the
+ * guest who was just told, on an album, that their name could be a page; a
+ * /pricing wall at the end of that sentence is the whole loop broken. Custom
+ * EVENT slugs stay Pro (GATED_EVENT_SETTINGS), which is where the paid idea
+ * actually belongs: a host feature on a host's event.
  */
 export function ProfileSlugControl({
   siteUrl,
   slug,
-  locked,
 }: {
   siteUrl: string;
   /** The persisted profiles.slug, or null; refreshes after an action revalidates. */
   slug: string | null;
-  /** Tier-locked (Free): can't CLAIM or CHANGE a handle; Remove always works. */
-  locked: boolean;
 }) {
   const [editing, setEditing] = useState(!slug);
   const [value, setValue] = useState(slug ?? "");
@@ -166,37 +169,24 @@ export function ProfileSlugControl({
         Profile handle
       </p>
 
-      {locked && !slug ? (
-        <p className="text-sm text-muted-foreground">
-          A public profile page is a paid feature.{" "}
-          <Link
-            href="/pricing"
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Upgrade to claim your handle
-          </Link>
-          .
-        </p>
-      ) : slug && !editing ? (
+      {slug && !editing ? (
         <div className="space-y-2">
           <CopyShareLink url={`${siteUrl.replace(/\/+$/, "")}/u/${slug}`} />
           <div className="flex flex-wrap items-center gap-3">
             <Button asChild variant="ghost" size="sm">
               <Link href={`/u/${slug}`}>View profile</Link>
             </Button>
-            {!locked && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setValue(slug);
-                  setEditing(true);
-                }}
-              >
-                Change
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setValue(slug);
+                setEditing(true);
+              }}
+            >
+              Change
+            </Button>
             <Button
               type="button"
               variant="ghost"

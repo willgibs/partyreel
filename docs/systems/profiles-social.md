@@ -23,11 +23,12 @@ the escape hatches already exist at the right layer. The consequence to carry: t
 legitimate interest over already-public attribution rather than on opt-in consent, so the `/privacy` and ToS
 wording is what has to hold up, not a consent checkbox.
 
-Surfaces: `/u/[slug]` (hosted-events grid + link-less "Also at" attended list, indexable, minimal
-guest-side chrome); the Account page (slug claim, attended-event visibility switches, Connections
-card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD permanent consent copy on
-`show_guest_list`); the host feed's "Guests" section + pill and the guest album's post-gallery
-"Guests (N)" section; the dashboard "Following" chip.
+Surfaces: `/u/[slug]` (ONE grid of event cards, hosted and attended together with a Host or Guest
+marker on each, the person's bio under the name row, indexable, on the album's own `GuestHeader` in
+its event-less mode); the Account page (slug claim, bio, attended-event visibility switches,
+Connections card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD permanent
+consent copy on `show_guest_list`); the host feed's "Guests" section + pill and the guest album's
+post-gallery "Guests" section; the dashboard "Following" chip.
 
 ## Where it lives
 
@@ -40,9 +41,16 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
 - **`profiles.slug` is service-role-write-only** (outside the authenticated column grant); format is a
   DB CHECK (lowercase 3-30 `[a-z0-9-]`, no edge hyphen) + a PLAIN partial unique index (the CHECK
   already forces lowercase, and the RPC's `slug = lower(trim(input))` predicate can only use a plain
-  index, not a `lower()` expression index). The **Pro gate is APP-side only** (`setProfileSlug` locks on
-  `tier === "free"`, same rule as password/custom_slug); `/u/[slug]` renders for ANY profile with a
-  slug; a downgraded account keeps its handle + Remove.
+  index, not a `lower()` expression index). **The handle is FREE for everyone** (Will, 2026-09-19:
+  "handles for everyone incentivizes guests to get deeper into our ecosystem"): no tier check in
+  `setProfileSlug`, no locked branch in the control. Custom EVENT slugs stay Pro
+  (`GATED_EVENT_SETTINGS`); do not confuse the two again.
+- **`profiles.bio` is the same write class**: service-role only, never in the authenticated grant, so
+  the account action is its only writer and a PostgREST PATCH cannot skip the rules. `bioSchema`
+  (validation/profile.ts) collapses it to one line, caps it at 160 (mirrored by the
+  `profiles_bio_len` CHECK), refuses links and bare domains, and empties to null;
+  `containsProfanity` runs server-side in the action, exactly as the display name's does.
+  `get_public_profile` returns it (migration 20260919120000, which REPLACES the function).
 - **The graph is owner-private.** `get_public_profile` returns no follow data; follower/following lists
   and counts render only to the owner (Connections card). Never add public counts.
 - **Attendance is not a capability grant.** The attended arm returns NO `qr_token`/`custom_slug`, and is
@@ -56,7 +64,21 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
 - **One guest-list read** (`getEventGuestList`, admin client): BOTH surfaces call it AFTER their own
   access gate (host page = ownership; guest album = `access === "full"`, never demo); returns null when
   `show_guest_list` is off; approved signed-in uploaders only, deduped by user; explicit id-list joins
-  (the PGRST201 embed landmine), no `select(*)` on media.
+  (the PGRST201 embed landmine), no `select(*)` on media. `GuestList` draws chips at or under
+  `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces plus "N guests added photos" above it,
+  expanding in place 24 at a time; because the row says the count, both callers drop the count from
+  their own heading above the threshold (the album's pill, the feed's `guestsCountInList`). HOW View
+  all opens is round two's (`profile-reach`); the in-place paging is the interim.
+- **The attended arm's covers re-prove their own scope.** `getPublicProfileAttendedCoverUrls` takes
+  ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's
+  `profile_hidden_events` again before presigning: a presign turns an id into someone else's
+  photograph, so it proves the scope rather than inheriting it from a payload.
+- **A person can be reported** (`reports.profile_id`, migration 20260919130000; `event_id` relaxed to
+  nullable under a CHECK that one subject is set). The menu on `/u/[slug]` holds Report this person
+  and Block; the route arm is SIGNED IN (`getUser()`, no capability token exists for a profile) and
+  rate-limited per profile, the write is service-role over the deny-all table, and `/admin/reports`
+  renders a People section above the album queue. No reporter is stored. Reporting never blocks,
+  never hides and never tells the reported person who reported them.
 - **Blocks shape the follow graph only** (not profile reads — the viewer may be anonymous). The
   `follow_user` RPC is block-silent (privacy) AND `enforce_follow_not_blocked` (BEFORE INSERT,
   SECURITY DEFINER — owner-RLS can't see "they blocked me") is the hard backstop; a block severs both
@@ -80,6 +102,18 @@ card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD per
   people's events, not the user's own media scroll) and a full-fetch, not a paginated feed.
 - `checkProfileSlugAction` requires `getUser()` (no anon RPC for profile-slug availability — keeps it
   off the anonymous enumeration surface; it reveals only what a save's 23505 already would).
+- ★ **`/u/[slug]` must never get a `loading.tsx`.** A loading file wraps the route in Suspense, so
+  Next flushes the shell before the page runs and a dead handle answers 200 instead of 404 (measured
+  in dev and against `next start`; `/e/<bad token>` next door answers 404). Throwing from
+  `generateMetadata` does not help either. The page decides the 404 at the top and streams only the
+  card grid, behind its own in-page `<Suspense>`.
+- The handle is offered right after an upload lands: `ClaimHandlePrompt` owns the post-upload slot
+  and renders ONE card by state (signed out = the save-account prompt, as before; signed in without a
+  handle = the claim line; signed in with one = nothing), with a per-event dismissal. Its door is
+  `/account#public-profile`, the id on the Public profile card.
+- The marketing promise matches the product since 2026-09-19 (`named=everyone`): a handle buys a
+  PAGE, not invisibility. `profiles-section.tsx` and the two help articles say the same sentence; if
+  the guest list's membership ever changes, all three move together.
 - The event-settings `ProfileSocialCard` lives OUTSIDE the RHF form (each key flip is its own consented
   act, persisted instantly) and hides entirely pre-apply (`getEventSocialSettings` → null).
 
