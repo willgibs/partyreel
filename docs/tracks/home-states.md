@@ -1,6 +1,6 @@
 ---
 track: home-states
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "3cf43bde"          # the launch-prep SHA the branch was cut from
 board: app-shape       # round two on the same board id, the home across host states
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -175,24 +175,71 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none yet (lab-only round; nothing shipped changes, so `docs/systems/host-app.md` is untouched)
 
-## Deferred (ROADMAP one-liners, bucket named)
+## Deferred (ROADMAP one-liners, bucket named "Now")
 
-- none yet
+- From `home-states` (2026-09-20, the lab): if `app-shape`'s `busy=collapsed` is picked, `next-step-band.tsx` needs a
+  real collapse capability built into the shipped component; this round's `CollapsedNextStepBand`
+  (`sandbox/app-shape/home.tsx`) is a lab-only proof over the same `resolveNextSteps` output (never a fork of the rule
+  itself), not a component to import into production as-is.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board `54ee10f6` (app-shape round two: the home across three host states), pushed; synced with launch-prep at
+  `20189c86` (it had moved: type-sync, guest-verify, buttons-pairs, avatar-look and demo-doors landed since the
+  `3cf43bde` cut; the merge auto-resolved with one clean hunk in `overtaken.ts`, see the lane-check exception below).
+- Gates on the synced tree: design:rules ok (no diff), specimens ok (no diff), typecheck ok, lint ok (8 known, 0
+  new), test ok (3053 passed, 1 skipped), build ok (255 pages); `pnpm lab:smoke` ok (444 checks, 0 failing);
+  `pnpm lab:demo --board app-shape` ok (3 steps, 0 failing, every option draws; one transient `ELIFECYCLE` on the
+  merged tree's first attempt, not reproduced on an immediate clean re-run — likely contention with another lane's
+  concurrent `lab:smoke` on this shared machine, not a code fault).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the seven files under `sandbox/app-shape/` (five
+  edited, `account.tsx` and `event.tsx` deleted) plus ONE exception outside `owns`: `sandbox/overtaken.ts`, one hunk,
+  removing the stale `"app-shape.you"` badge. Round two drops round one's eight asks (home, density, event, nav,
+  share, settings, you, phone) the way `app-vocabulary`'s own round two dropped its seven — `you=?` is his own
+  outright answer, wired by `home-wiring`, not a still-open question for a later ruling to reach, and a badge naming
+  a gone ask is exactly what `overtaken.test.ts` refuses. The comment block replacing it follows the letter of the
+  `app-vocabulary` entry already sitting in the same file.
+- The items, one line each:
+  - `empty`: `wizard` recommended — nothing but the create door and the storage line, exactly what zero events
+    renders today; `ghosts` (both bands as faint placeholders) and `guided` (a `/welcome`-style hero over
+    `HOW_IT_WORKS`'s own first three steps) both drawn in full as real contenders.
+  - `first`: `share` recommended — the code and the link lead the page, since that is Jordan's one real job left;
+    `promise` (the guest album's own voice turned on the host) and `pulse` (today's exact composition) both drawn.
+  - `busy`: `collapsed` recommended — the top three chips by tone, the rest behind one chip that expands in place;
+    `ruled` (all six, unmodified) and `events-first` (the events grid leads) both drawn.
+  - Lab-only; nothing wired, so nothing lands in the Library yet. The board stays open past this round (his own
+    note, `home=pulse`: "worth more dashboard explorations from here").
+- Calls his to overrule, one line each:
+  - "Your events" draws as a plain grid of the real `EventCard`, never the real `EventsSection`: that component's
+    view toggle calls the real `setEventsViewAction` Server Action (`path: "/"`), so a click inside this board would
+    silently rewrite the reviewer's own live `/dashboard` view preference. `density=cover` is already ruled and
+    wired, so this round has nothing to prove on that toggle either way.
+  - `busy.collapsed`'s "top three" is ranked by tone (waiting, then warning, then quiet), never by event recency or
+    a fixed order; his to re-rank if he reads the urgency differently.
+  - Every hosted card carries a fixture QR chip (`EventCardQr`, a fixed stand-in token) for fidelity with the
+    shipped card; not asked for by this round and easy to drop if it reads as noise.
+  - `empty.guided`'s three steps quote `HOW_IT_WORKS` (the real `/welcome` tutorial's own first three) verbatim
+    rather than new copy written for this one screen.
+  - `first.promise`'s heading ("Jordan's Housewarming's album starts with you") extends the ruled voice ("Your first
+    album starts here" / "The album starts with you") to a named event; it is this lane's phrasing, not his ruling.
+- The help articles this lane makes stale: none (a lab-only round; nothing shipped changes).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/app-shape`. `busy.collapsed` first (his own worry, "a very boring and bland initial
+  host experience", answered from the other end: a band genuinely too crowded to read at a glance), then
+  `empty.guided` beside `empty.wizard` (his bar, "feel polished while getting the user to having one event", read
+  two ways), then `first.share` beside `first.promise`.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). App-shape round two answered his ask by name ("worth more
+dashboard explorations from here ... across all host states") with three asks drawn on the wired pulse rather than
+round one's stand-ins: `empty` (Alex Rivera, nothing created; wizard recommended), `first` (Jordan Kim, one event
+minutes old, Free at cap; share recommended), `busy` (Maya Chen, five events at once; collapsed recommended). Every
+option composed the real `NextStepBand`, `JustArrived`, `StorageMeter` and `EventsEmptyTeaser` over fresh fixtures;
+round one's eight ruled asks and their stand-in renderers (`event.tsx`, `account.tsx`) retired with them. One
+exception outside the lane's `owns`: `overtaken.ts`'s stale `app-shape.you` badge removed, the `app-vocabulary`
+precedent. Gate green on the synced tree (3053 tests, 255 pages, lab:smoke 444, lab:demo 3 steps). The board stays
+open (his own note); on the desk for his next sitting.
