@@ -8,6 +8,12 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-20 · the morning: close the board
+
+Will, 12:07 EDT, after the weekly token limit killed the six running lanes at 07:30 EDT: "Amazing work. You hit the weekly limit overnight, which killed all of our running processes. Now that the limit is reset, please capture all progress and complete any open explorations. Then we'll start working on answering everything on the board, rather than continue stacking."
+
+**Became:** the six lanes (`help-sync`, `home-states`, `guest-verify`, `buttons-pairs`, `toasts`, `demo-doors`) resumed into their own worktrees with what git showed of each; nothing new is cut but `type-sync`, the batch's last queue item; the night's eight exploration briefs (the venue screen, the home-screen install, the legal read, the about page, the blog read, the link cards, the feature anatomy, the AI-reader surface) stay written and uncut until he asks for them by name.
+
 ## 2026-09-20 · the night, second: the batch first, then explorations that touch nothing open; the morning closes the board
 
 **Became:** the order of the night (his words below): every lane of the sixth batch and its queue integrated first; then the
