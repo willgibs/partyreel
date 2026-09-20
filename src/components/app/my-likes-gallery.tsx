@@ -50,7 +50,11 @@ export function MyLikesGallery({
         mode="remove"
         onRemoved={(id) => setRemoved((prev) => new Set(prev).add(id))}
       >
-        <MasonryColumns items={visible} />
+        {/* No hover verbs (a personal feed is not an album to curate) and no
+            like MARK: every tile here is liked by definition, so the mark would
+            be wallpaper. The heart that unlikes is the lightbox's, at every
+            width, which is exactly where `tiles` put it. */}
+        <MasonryColumns items={visible} hideLikeMark />
       </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">

@@ -23,7 +23,6 @@ import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board"
 import { AppShapeBoard } from "@/app/(dev)/design/sandbox/app-shape/board";
 import { BodyTypeBoard } from "@/app/(dev)/design/sandbox/body-type/board";
 import { DemoEventBoard } from "@/app/(dev)/design/sandbox/demo-event/board";
-import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { GuestShapeBoard } from "@/app/(dev)/design/sandbox/guest-shape/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
@@ -70,7 +69,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "app-shape": { Component: AppShapeBoard },
   admin: { Component: AdminBoard },
   "loose-ends": { Component: LooseEndsBoard },
-  glass: { Component: GlassBoard },
   "body-type": { Component: BodyTypeBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
 };
