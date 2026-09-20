@@ -120,7 +120,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host allows it, guests may also upload without signing in, and those uploads are shown as Anonymous.",
       ),
       p(
-        "Uploads made while signed in are attributed to your display name and, if the host shows a guest list, listed there by name. If you sign in later, uploads you made anonymously from the same browser can be claimed to your account. A signed-in guest can delete their own uploads from their dashboard at any time, in any event; that deletion is final and the host cannot restore it. A guest who uploaded without signing in can ask the host to remove an item.",
+        "Uploads made while signed in are attributed to your display name and, if the host shows a guest list, listed there by name. If you sign in later, uploads you made anonymously from the same browser can be claimed to your account. You may delete any upload of your own, right on the album, at any time, whether or not you are signed in; without signing in, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
       ),
       p(
         "Guests pay nothing to join, view, upload or download. These Terms apply to guests in full, including the sections on your content, acceptable use and copyright.",

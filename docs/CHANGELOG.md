@@ -104,6 +104,45 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   wires at `button.tsx`'s cva table in a follow-up. Gate 60 on the merged tree. Look at first: the `sm Download` and
   `xs Approve` pair his note named.
 
+- **`help-sync` merged at `84ee48cd`** (2026-09-20, Sonnet; production, resumed after the limit from a bare boot):
+  eleven help articles rewritten against the surfaces' code, each read before its article (a guest's own upload
+  comes off on the album itself, signed in or anonymous by the same device; the code-led door with Google beside it
+  and a password behind a quiet link, the existing-account notice, the three real buttons under each failure; the
+  resend cooldown and the rate-limited state; removing a photo reveals the seeded colour; the event page as the hub
+  with the live code, the cards row going sticky and the crumbs; settings as a sheet over the album and the custom
+  link in the Share sheet, three articles found stale beyond the named seven; the loop's six steps paraphrased in
+  the help voice); the two legal lines rewritten so an anonymous guest's removal reads as self-serve; the legal
+  versions bumped (privacy 1.2, terms 1.3, one changelog line each, the file's own header rule; still "pending
+  counsel review"); one article retitled with its slug kept; forty-eight read and left alone. The manifest had named
+  the legal content under `components/marketing/legal`; the real files are `lib/constants/legal-*.tsx` (the lane
+  corrected it). Gate 61 on the merged tree. Look at first: the event-page and event-settings articles, and the two
+  legal lines.
+
+- **`home-states` merged at `99550a89`** (2026-09-20, Sonnet; `app-shape` round two, resumed after the limit from two
+  touched files): the home across three host states, drawn on the wired pulse with fixtures at 1440 and 375:
+  `empty` (`wizard` recommended: the create door and the storage line, what zero events renders today; `ghosts` and
+  `guided` drawn in full), `first` (`share` recommended: the code and the link lead, the one job left; `promise`,
+  `pulse`), `busy` (`collapsed` recommended: the top three chips by tone, the rest behind one chip that expands in
+  place; `ruled`, `events-first`). "Your events" draws as a plain grid of the real EventCard, never the real
+  EventsSection, whose view toggle would rewrite the reviewer's own live preference. Round one's eight asks named as
+  ruled and their stale overtaken badge removed. The board stays open on his own note. Gate 62 on the merged tree
+  (its demo step timed out twice on a cold frame compile under three concurrent gates; the warm re-run pressed all
+  three steps clean, and the gate now retries once warm).
+  Calls his: the top three ranked by tone; the fixture QR chip on every card; the named-event heading on `promise`.
+  Look at first: `busy.collapsed`, then `empty.guided` beside `empty.wizard`.
+
+- **`demo-doors` merged at `042f82bd`** (2026-09-20, Sonnet; `demo-event` round two, resumed after the limit from a bare
+  boot): one decision, `door`, four text-free options, each the one object drawn at its four places (the home hero,
+  the footer, a feature page's line, the nav panel's pane left empty since the ticket retired) at 375 and 1440:
+  `pile` (the footer's fan, proposed at the hero and the line), `frame` (one photograph in a mat with the code in its
+  corner; recommended), `stage` (the falling engine's rest frame, sketched; nothing in the nav pane on purpose),
+  `ticket` (the retired ticket redrawn as one object). A finding on the frame: the wired `pile` rule reached only the
+  nav panel, the hero's plate and the feature line never gained it, so the winner's wiring covers all four places.
+  The board's measurement probe fixed to remount on a live option switch (the twin of the buttons-pairs bug). Gate
+  63 on the merged tree. Calls his: "text-free" read as no added words on the object (the party's name ON the object
+  would be a smaller ask on the winner); `stage` sketched as a rest frame, never the live loop. Look at first: the
+  nav pane under each option at 1440.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
