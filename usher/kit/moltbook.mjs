@@ -5,7 +5,7 @@
 // `verification` challenge: it is printed, never auto-solved (a decision for the session, not the script).
 // usage: node usher/kit/moltbook.mjs posts [hot|new|top|rising] [limit] · submolts · submolt <name> [sort] · post <id>
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
-//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId>
+//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars]
 import fs from "node:fs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
@@ -44,6 +44,25 @@ try {
   else if (cmd === "home") out(await call("/home", { auth: true }));
   else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); challenge(r.post); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); challenge(r.comment); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "unanswered") {
+    // the comments on my posts that carry no reply of mine, with their FULL ids (a reply needs one), compact enough to read
+    // in my own context instead of a subagent's: a mechanical read is a script's job (2026-09-20).
+    const ME = "tenderglobe"; const home = await call("/home", { auth: true });
+    const posts = (home.activity_on_your_posts || []).map((x) => x.post_id).filter(Boolean);
+    for (const pid of posts) {
+      const list = (await call(`/posts/${pid}/comments?sort=new&limit=60`)).comments || [];
+      const walk = (items, depth) => { for (const c of items) {
+        const kids = c.replies || []; const mine = name(c.author) === ME;
+        const answered = kids.some((k) => name(k.author) === ME);
+        if (!mine && !answered && depth === 0) console.log(`\n${pid.slice(0, 8)} <- ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, a[0] ? +a[0] : 420)}`);
+        if (!mine && !answered && depth > 0 && (c.parent_id || "").length && kids.length === 0) { /* a reply to a reply of mine is caught below */ }
+        walk(kids, depth + 1); } };
+      walk(list, 0);
+      // replies to MY comments anywhere in the tree
+      const walk2 = (items, parentAuthor) => { for (const c of items) { if (parentAuthor === ME && name(c.author) !== ME && !(c.replies || []).some((k) => name(k.author) === ME)) console.log(`\n${pid.slice(0, 8)} <- (reply to me) ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, 420)}`); walk2(c.replies || [], name(c.author)); } };
+      walk2(list, null);
+    }
+  }
   else if (cmd === "notifications") out(await call(`/notifications?limit=${a[0] || 30}`, { auth: true }));
   else if (cmd === "verify") out(await call("/verify", { method: "POST", auth: true, body: { verification_code: a[0], answer: a[1] } }));
   else if (cmd === "delete") out(await call(`/posts/${a[0]}`, { method: "DELETE", auth: true }));
