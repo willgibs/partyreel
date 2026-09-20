@@ -30,7 +30,7 @@ import { useDesignKey } from "./walk";
  * entirely. A frame lies about neither. That is what makes it evidence rather
  * than a picture of evidence.
  *
- * Five things follow, and each one was a bug before it was a rule:
+ * Six things follow, and each one was a bug before it was a rule:
  *
  * 1. ★ THE CANDIDATE GOES IN AN ADOPTED STYLESHEET, CONSTRUCTED IN THE FRAME'S
  *    OWN REALM. A candidate paste usually rewrites UTILITIES (`@theme inline`
@@ -66,6 +66,11 @@ import { useDesignKey } from "./walk";
  *    and a failure draws a banner rather than showing an unstyled page that
  *    reads as a candidate.
  *
+ * 6. ★ AND A PORTALLED FRAME IS HANDED A DOCTYPE. `about:blank` has none, so
+ *    the document parsed in quirks mode and a <table> inside it stopped
+ *    inheriting colour; `srcdoc` (PORTAL_DOC) is the same origin, the same
+ *    load event and standards mode.
+ *
  * An outline rather than a border, because a bordered box is border-box here: a
  * 1px frame each side hands the iframe a 1438px viewport while the caption says
  * 1440, which is a two pixel lie on a board arguing about pixels. And no radius
@@ -74,6 +79,33 @@ import { useDesignKey } from "./walk";
  */
 
 const SHEET_ID = "lab-candidate";
+
+/**
+ * ★ A PORTALLED FRAME IS BORN IN STANDARDS MODE (lab-tides, 2026-09-19).
+ *
+ * A frame with no route of its own used to load `about:blank`, and a document
+ * the browser creates that way has no doctype, so it parses in QUIRKS mode
+ * (`document.compatMode === "BackCompat"`). Quirks is not a rounding error: the
+ * quirks UA sheet stops a `<table>` inheriting `color`, and Tailwind's
+ * preflight resets the font there but not the colour, so the pricing board's
+ * comparison table drew its plan names in the dark room's near-white on white
+ * while every heading beside it was correct. Two boards paid for that with a
+ * `table{color:inherit}` line of their own, and every future board that
+ * portalled a table would have paid again.
+ *
+ * `srcdoc` is the whole fix: the frame parses THIS document, doctype and all,
+ * it is same-origin with the embedder exactly as `about:blank` was (so the
+ * injection, the scroll lock and the `lab:set` push are untouched), and the
+ * load event fires the same way. Nothing about a routed frame changes: it
+ * keeps its `src`.
+ *
+ * The `:where(table)` line is belt and braces at ZERO specificity, so a board
+ * that really does style a table still wins; it costs nothing and it means a
+ * document that somehow lands in quirks again does not take a board's colour
+ * down with it.
+ */
+const PORTAL_DOC =
+  '<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>';
 
 /* ── The scroll lock ───────────────────────────────────────────────────── */
 
@@ -381,7 +413,10 @@ export function Frame({
       );
       const reset = fdoc.createElement("style");
       reset.dataset.labCopied = "";
-      reset.textContent = "body{margin:0}";
+      // `:where(table)` carries no specificity, so a board's own table rule
+      // still wins; it is only here in case a document ever lands in quirks
+      // mode again (PORTAL_DOC's note).
+      reset.textContent = "body{margin:0}:where(table){color:inherit}";
       fdoc.head.appendChild(reset);
       setDoc(fdoc);
     } catch {
@@ -410,7 +445,9 @@ export function Frame({
           <iframe
             ref={ref}
             key={`${src ?? "portal"}-${reloadKey}`}
-            src={src ?? "about:blank"}
+            // A route loads itself; a portalled scene is handed a document of
+            // its own so it parses in standards mode (PORTAL_DOC, above).
+            {...(src ? { src } : { srcDoc: PORTAL_DOC })}
             title={src ? `${title}, ${src}` : title}
             width={w}
             height={h}

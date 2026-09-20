@@ -690,7 +690,8 @@ export function buildDrift(text, root) {
   if (!build) return null;
   const head = treeHead(root);
   if (!head) return `composed on build ${build}`;
-  if (head.startsWith(build)) return `composed on build ${build}, the tree's own`;
+  if (head.startsWith(build))
+    return `composed on build ${build}, the tree's own`;
   let behind = null;
   try {
     behind = execFileSync(
@@ -726,6 +727,57 @@ export function readLibraryEntries(root) {
   }
 }
 
+/* ── A RE-SEND THAT CHANGES NOTHING ──────────────────────────────────────────
+ *
+ * ★ THE PROBLEM (Will, 2026-09-19). His answers stay in the browser's review
+ * store after he pastes a batch, and the store only learns what the LEDGER
+ * holds from the build he is reading: on a stale alias that ledger is old, so
+ * the next paste carries the first batch again. Today one such line refuses the
+ * WHOLE message ("site-chrome is in round 2, not r1"), which is exactly what a
+ * stale re-send looks like the day a round-two lane lands, and he loses the new
+ * answers in the same paste with it.
+ *
+ * ★ THE RULE, and it keeps all-or-nothing for everything else. A clause that
+ * merely REPEATS what the ledger already holds is a no-op: it is accepted
+ * whatever the board has done since (a later round, or no spec at all, because
+ * the ledger file outlives the board), and it is printed as `unchanged` rather
+ * than written. A clause that carries anything the ledger does NOT hold is
+ * judged exactly as before, and the refusal names it. So a stale re-send is
+ * free, a changed mind is still a replacement, and a genuinely new answer to a
+ * closed round is still refused.
+ */
+
+/** A note as the ledger holds it: absent, empty and whitespace are one thing. */
+const flat = (text) => (text ?? "").replace(/\s+/g, " ").trim();
+
+/** One round of a ledger, or undefined. `n` is written as a number or a string. */
+function ledgerRound(ledger, n) {
+  return ledger?.rounds?.find((r) => Number(r.n) === Number(n));
+}
+
+/** Whether the ledger already holds this exact answer: same ask, choice and note. */
+function heldAnswer(ledger, round, a) {
+  const was = ledgerRound(ledger, round)?.answers?.find((x) => x.ask === a.ask);
+  if (!was) return false;
+  // "?" is a null choice in the ledger and the same answer in the grammar.
+  const choice = was.choice === null ? "?" : was.choice;
+  return choice === a.choice && flat(was.note) === flat(a.note);
+}
+
+/** The same, for a verdict on a catalog card. */
+function heldItem(ledger, round, i) {
+  const was = ledgerRound(ledger, round)?.items?.find((x) => x.item === i.item);
+  return Boolean(
+    was && was.verdict === i.verdict && flat(was.note) === flat(i.note),
+  );
+}
+
+/** A board note the round already carries, word for word. */
+function heldNote(ledger, round, n) {
+  const notes = ledgerRound(ledger, round)?.notes ?? [];
+  return notes.some((x) => flat(x.text) === flat(n.text));
+}
+
 /** The one place a repeated id on one line is refused, whatever it names. */
 function refuseDuplicates(rows, key, what, push) {
   const seen = new Set();
@@ -737,8 +789,19 @@ function refuseDuplicates(rows, key, what, push) {
   }
 }
 
-/** Every refusal in the message, against the specs; an empty array means go. */
-export function validate(entries, specs, library = null) {
+/**
+ * Every refusal in the message, against the specs; an empty array means go.
+ *
+ * `ledgerOf` is how the re-send rule above sees what is already recorded; it is
+ * injected so the reader stays testable and so a caller that does not care
+ * (nothing today) gets the strict reading it always had.
+ */
+export function validate(
+  entries,
+  specs,
+  library = null,
+  ledgerOf = () => null,
+) {
   const errors = [];
   const at = (line, column, message) =>
     errors.push(new ReviewError(message, { line, column }));
@@ -748,24 +811,63 @@ export function validate(entries, specs, library = null) {
       continue;
     }
     const spec = specs.get(e.board);
+    const ledger = ledgerOf(e.board);
+    // Which clauses are pure echoes of the ledger. They are exempt from every
+    // check below, including the board's round and the spec's ask list,
+    // because repeating a recorded decision cannot record a wrong one.
+    const echoAnswer = (a) => heldAnswer(ledger, e.round, a);
+    const echoItem = (i) => heldItem(ledger, e.round, i);
+    // Everything on this line the ledger does NOT already hold, with the
+    // column to point at when it has nowhere to land.
+    const news = [
+      ...e.answers
+        .filter((a) => !echoAnswer(a))
+        .map((a) => ({ at: a.askAt, what: `${a.ask}=${a.choice}` })),
+      ...e.items
+        .filter((i) => !echoItem(i))
+        .map((i) => ({ at: i.itemAt, what: `item:${i.item}=${i.verdict}` })),
+      ...e.notes
+        .filter((n) => !heldNote(ledger, e.round, n))
+        .map(() => ({ at: e.roundAt, what: "the note" })),
+    ];
     if (!spec) {
-      at(
-        e.line,
-        e.boardAt,
-        specs.size === 0
-          ? `no board carries a spec yet, so "${e.board}" cannot be checked`
-          : `"${e.board}" is not a standing board (${list([...specs.keys()])})`,
-      );
+      // ★ A BOARD WITH NO SPEC IS ONE OF TWO THINGS, and the refusal has to
+      // tell them apart. A name that was never a board is a typo, and it is
+      // refused at the NAME, as it always was. A board that has RETIRED still
+      // has its ledger on disk, and a re-send of what that ledger holds is
+      // welcome; only a clause the ledger does not hold has nowhere to land.
+      const retired = (ledger?.rounds ?? []).length > 0;
+      if (!retired) {
+        at(
+          e.line,
+          e.boardAt,
+          specs.size === 0
+            ? `no board carries a spec yet, so "${e.board}" cannot be checked`
+            : `"${e.board}" is not a standing board (${list([...specs.keys()])})`,
+        );
+        continue;
+      }
+      for (const n of news)
+        at(
+          e.line,
+          n.at,
+          `${e.board} has left the lab, and "${n.what}" is not what its ledger holds (a re-send may only repeat what is recorded)`,
+        );
       continue;
     }
     if (spec.round !== null && e.round !== spec.round) {
-      at(
-        e.line,
-        e.roundAt,
-        `${e.board} is in round ${spec.round}, not r${e.round}`,
-      );
+      // The round has moved on. Everything the ledger already holds for r<n>
+      // rides as a no-op; anything new to that round is refused by name.
+      for (const n of news)
+        at(
+          e.line,
+          n.at,
+          `${e.board} is in round ${spec.round}, not r${e.round}, and "${n.what}" is not what r${e.round} holds`,
+        );
+      continue;
     }
     for (const a of e.answers) {
+      if (echoAnswer(a)) continue;
       const ask = spec.asks.find((x) => x.id === a.ask);
       if (!ask) {
         at(
@@ -792,7 +894,7 @@ export function validate(entries, specs, library = null) {
         );
       }
     }
-    validateItems(e, spec, at);
+    validateItems(e, spec, at, echoItem);
     refuseDuplicates(
       e.answers,
       { id: "ask", at: "askAt" },
@@ -810,12 +912,13 @@ export function validate(entries, specs, library = null) {
  * board carries candidates, and accepting a verdict on one that the board never
  * offered for ruling would record a decision on something nobody displayed.
  */
-function validateItems(e, spec, at) {
-  if (e.items.length === 0) return;
+function validateItems(e, spec, at, echoItem = () => false) {
+  const fresh = e.items.filter((i) => !echoItem(i));
+  if (fresh.length === 0) return;
   if (!spec.catalog) {
     at(
       e.line,
-      e.items[0].itemAt,
+      fresh[0].itemAt,
       `${e.board} declares no catalog, so it has no items to rule on`,
     );
     return;
@@ -823,12 +926,12 @@ function validateItems(e, spec, at) {
   if (spec.items === null) {
     at(
       e.line,
-      e.items[0].itemAt,
+      fresh[0].itemAt,
       `${e.board}'s candidates cannot be read off its spec: write the items out as a const in spec.ts`,
     );
     return;
   }
-  for (const i of e.items) {
+  for (const i of fresh) {
     if (!spec.items.includes(i.item)) {
       at(
         e.line,
@@ -935,11 +1038,16 @@ function readLibraryLedger(root) {
  * first, which is exactly what the README promises.
  */
 export function applyEntries(root, entries, { by, at }) {
+  // Every ledger this message touched, and the ones it actually CHANGED. A
+  // message that is nothing but a stale re-send writes no file at all, so a
+  // harmless paste leaves the tree exactly as it found it.
+  const seen = new Map();
   const changed = new Map();
   const summary = [];
   for (const e of entries) {
     if (e.kind === "library") {
-      const ledger = changed.get(LIBRARY_LEDGER) ?? readLibraryLedger(root);
+      const ledger = seen.get(LIBRARY_LEDGER) ?? readLibraryLedger(root);
+      seen.set(LIBRARY_LEDGER, ledger);
       changed.set(LIBRARY_LEDGER, ledger);
       if (!Array.isArray(ledger.entries)) ledger.entries = [];
       for (const r of e.entries) {
@@ -959,7 +1067,36 @@ export function applyEntries(root, entries, { by, at }) {
       }
       continue;
     }
-    const ledger = changed.get(e.board) ?? readLedger(root, e.board);
+    const ledger = seen.get(e.board) ?? readLedger(root, e.board);
+    seen.set(e.board, ledger);
+    // What the ledger held BEFORE this message: an echo is judged against the
+    // file on disk, never against a clause applied a moment ago on the same
+    // line (that one is a duplicate, and the parser refuses those already).
+    const was = { rounds: JSON.parse(JSON.stringify(ledger.rounds ?? [])) };
+    const echo = {
+      answer: (a) => heldAnswer(was, e.round, a),
+      item: (i) => heldItem(was, e.round, i),
+      note: (n) => heldNote(was, e.round, n),
+    };
+    const nothingNew =
+      e.answers.every(echo.answer) &&
+      e.items.every(echo.item) &&
+      e.notes.every(echo.note);
+    if (nothingNew) {
+      // Not even an empty round is opened for a line that says nothing new.
+      for (const a of e.answers)
+        summary.push([`${e.board} r${e.round}`, a.ask, a.choice, "unchanged"]);
+      for (const i of e.items)
+        summary.push([
+          `${e.board} r${e.round}`,
+          `item:${i.item}`,
+          i.verdict,
+          "unchanged",
+        ]);
+      for (const n of e.notes)
+        summary.push([`${e.board} r${e.round}`, "note", n.text, "unchanged"]);
+      continue;
+    }
     changed.set(e.board, ledger);
     let round = ledger.rounds.find((r) => Number(r.n) === e.round);
     if (!round) {
@@ -971,6 +1108,12 @@ export function applyEntries(root, entries, { by, at }) {
     if (!Array.isArray(round.notes)) round.notes = [];
     if (!Array.isArray(round.items)) round.items = [];
     for (const a of e.answers) {
+      if (echo.answer(a)) {
+        // The ledger already says exactly this. Leave `by` and `at` alone: a
+        // re-send is not a new decision and must not look like one in git.
+        summary.push([`${e.board} r${e.round}`, a.ask, a.choice, "unchanged"]);
+        continue;
+      }
       // "?" lands as a null choice: the ask stays open on the desk, flagged as
       // waiting on a clearer question, with the reviewer's words beside it.
       const entry = { ask: a.ask, choice: a.choice === "?" ? null : a.choice };
@@ -990,6 +1133,15 @@ export function applyEntries(root, entries, { by, at }) {
     // One verdict per item per round: ruling again in the same round
     // overwrites, exactly as answering an ask again does.
     for (const i of e.items) {
+      if (echo.item(i)) {
+        summary.push([
+          `${e.board} r${e.round}`,
+          `item:${i.item}`,
+          i.verdict,
+          "unchanged",
+        ]);
+        continue;
+      }
       const entry = { item: i.item, verdict: i.verdict };
       if (i.note) entry.note = i.note;
       entry.by = by;
@@ -1005,6 +1157,12 @@ export function applyEntries(root, entries, { by, at }) {
       ]);
     }
     for (const n of e.notes) {
+      // A note is append-only, so the same words twice would read as two
+      // separate remarks. The ledger holding them already is the whole test.
+      if (echo.note(n)) {
+        summary.push([`${e.board} r${e.round}`, "note", n.text, "unchanged"]);
+        continue;
+      }
       round.notes.push({ on: null, text: n.text, by, at });
       summary.push([`${e.board} r${e.round}`, "note", n.text, "added"]);
     }
@@ -1035,7 +1193,9 @@ export function run(
   const entries = parseMessage(text);
   if (entries.length === 0) throw new ReviewError("nothing to record");
   const specs = readSpecs(root);
-  const errors = validate(entries, specs, readLibraryEntries(root));
+  const errors = validate(entries, specs, readLibraryEntries(root), (board) =>
+    readLedger(root, board),
+  );
   if (errors.length) return { ok: false, errors, summary: [] };
   const { ledgers, summary } = applyEntries(root, entries, { by, at: stamp });
   if (!dry) writeLedgers(root, ledgers);
@@ -1056,6 +1216,10 @@ const HELP = `pnpm lab:review "<the pasted line>"
   review <board> r<n>: <ask>=? "what was unclear"      (not answered; needs the note)
   review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
   review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
+
+  A line that merely repeats what the ledger already holds is a no-op
+  (printed as unchanged), whatever round the board has since moved to, so a
+  stale re-send costs nothing. Anything new to a closed round is still refused.
 
   --root <dir>   the repo to write into (default: this one)
   --by <name>    who answered (default: Will)
@@ -1135,8 +1299,14 @@ function main(argv) {
       `${String(row[0]).padEnd(w(0))}  ${String(row[1]).padEnd(w(1))}  ${String(row[2]).padEnd(w(2))}  ${row[3]}`,
     );
   }
+  const same = result.summary.filter((r) => r[3] === "unchanged").length;
+  const wrote = result.summary.length - same;
   console.log(
-    `\n${result.summary.length} recorded in ${result.boards.map((b) => `docs/reviews/${b}.json`).join(", ")}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
+    `\n${wrote} recorded${
+      result.boards.length
+        ? ` in ${result.boards.map((b) => `docs/reviews/${b}.json`).join(", ")}`
+        : ""
+    }${same ? `, ${same} already recorded (unchanged)` : ""}${argv.includes("--dry") ? " (dry run: nothing written)" : ""}`,
   );
   // The build he composed on, beside the tree being written into. Printed last
   // because it is context for everything above, and only when the desk stamped

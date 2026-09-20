@@ -244,6 +244,33 @@ export type CatalogSpec<SectionId extends string = string> = {
   stage?: SectionId;
 };
 
+/**
+ * A CALL THE LANE CARRIED, WHICH IS HIS TO OVERRULE (lab-tides, 2026-09-19).
+ *
+ * ★ THE FINDING THIS ANSWERS. Every lane carries the calls its goal left open
+ * on its own recommendation (its manifest's Questions), and until now those
+ * calls reached Will only through the round's CHANGELOG entry, a page away from
+ * the board he is answering. A decision taken for him that he never sees is not
+ * a decision he made. So a board may carry them and the template draws them
+ * above its sections, in the one place he is already reading.
+ *
+ * Three strings and an id, because that is the whole of it: what was asked,
+ * what the lane did, and what changes if he says otherwise. It is NOT an ask.
+ * An ask is a question with drawn options and a step of its own; dressing a
+ * carried call as one would put a question on the desk that the lane has
+ * already built past, which is the opposite of what carrying it means.
+ */
+export type CarriedCall = {
+  /** Stable kebab id; the review grammar names it (`call:<id>`). */
+  id: string;
+  /** What the goal left open, in plain words, ending in a question mark. */
+  question: string;
+  /** The answer the lane took and built on. */
+  taken: string;
+  /** What changes if he says otherwise. */
+  overrule: string;
+};
+
 /** The board's state: every declared control's current option id. */
 export type BoardState = Readonly<Record<string, string>>;
 
@@ -292,6 +319,11 @@ export type BoardSpec<S extends readonly Section[] = readonly Section[]> = {
   /** Empty allowed; the panel prints "none requested". */
   assets: readonly Asset[];
   sections: S;
+  /**
+   * The calls the lane took without him, drawn above the sections. Empty or
+   * absent on a board whose goal left nothing open, which is most of them.
+   */
+  carried?: readonly CarriedCall[];
   catalog?: CatalogSpec<S[number]["id"]>;
   /**
    * A board that truly needs more words than `LIMITS.readingWords` says WHY
@@ -330,6 +362,15 @@ export const LIMITS = {
   context: 600,
   candidateOne: 120,
   candidateLands: 120,
+  /**
+   * A carried call is a ROW, not a card: the question, what the lane took and
+   * what changes if he says otherwise, each short enough to read at a glance on
+   * the way past. A call that needs more than this is an ask, and belongs on a
+   * step with its options drawn.
+   */
+  carriedQuestion: 160,
+  carriedTaken: 160,
+  carriedOverrule: 160,
   /** The words a board may show outside its collapsed folds before it is a paper (the smoke measures it). */
   readingWords: 1200,
 } as const;

@@ -35,7 +35,12 @@ import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 import type { BoardState, Control } from "./board-spec";
 import { ControlKnobs } from "./board-state";
 import { CatalogTiles } from "./catalog";
-import { type LabFit, type LabSidebar, setLabPref, useLabPrefs } from "./lab-prefs";
+import {
+  type LabFit,
+  type LabSidebar,
+  setLabPref,
+  useLabPrefs,
+} from "./lab-prefs";
 import { useDesignKey } from "./walk";
 
 /**
@@ -105,6 +110,16 @@ import { useDesignKey } from "./walk";
 export type StepBoard = {
   /** The board's declared controls, for an ask's config strip. */
   controls?: readonly Control[];
+  /**
+   * THE BOARD'S OWN DOCK CLUSTER, REACHABLE FROM A STEP (lab-tides,
+   * 2026-09-19). A step's dock is the ANSWER's: the options, Pick, the note,
+   * Back and Next, and nothing a board could add. That left a board's own
+   * tools (a Reload frames, a Replay, an Apply) reachable only by leaving the
+   * question and opening the whole board, which is the trip the stepped review
+   * exists to end. They ride the stage head instead, beside the scale, where
+   * they stay on screen while a tall stage scrolls.
+   */
+  tools?: React.ReactNode;
   /** The live board state (`useBoardState`), which the stage reads. */
   state: BoardState;
   setState: (patch: Record<string, string>) => void;
@@ -171,6 +186,14 @@ export function Step({
   const held =
     step?.kind === "ask"
       ? store.answers[holdId(step.board, step.round, step.askId)]
+      : undefined;
+  // ★ AND WHETHER IT HAS ALREADY BEEN PASTED (lab-tides, 2026-09-19). A pasted
+  // answer stays held in the browser until the ledger catches up, which on a
+  // stale alias is the next day. Saying so where the answer is means he never
+  // has to wonder whether an answer he can still see has reached anybody.
+  const sent =
+    step?.kind === "ask"
+      ? store.sent?.[holdId(step.board, step.round, step.askId)]
       : undefined;
   const choice = held?.choice ?? "";
   const unclear = step?.kind === "ask" && choice === UNCLEAR;
@@ -438,6 +461,14 @@ export function Step({
   // The walk's own numbering: a staged step is not a step the reviewer has.
   const walk = steps.filter((s) => stepBlocked(s, store) === null);
   const n = walk.indexOf(step) + 1;
+  // ★ A STEP REACHED BY URL MAY NOT BE IN THE WALK AT ALL (lab-tides,
+  // 2026-09-19). Back and Next skip a staged step, but a pasted link, a
+  // reload after answering its prerequisite the other way, or the desk's own
+  // deep link can land on one. It used to draw itself as "step 8 of 7": a
+  // number that is not a position, on a page that is not in the walk. The
+  // spine says what it is instead, and the step stays readable, because a
+  // reader who followed a link to a question is owed the question.
+  const blocked = stepBlocked(step, store);
   // The options the dock carries: the ones drawn on the stage. A catalog's
   // winner is pressed on its cards, and an option in words on its own card.
   const pictured =
@@ -456,6 +487,7 @@ export function Step({
         step={step}
         n={n > 0 ? n : walk.length + 1}
         of={Math.max(walk.length, 1)}
+        blocked={blocked}
         transcribed={transcribed}
         build={build}
       />
@@ -483,6 +515,7 @@ export function Step({
         pictured={pictured}
         choice={choice}
         shown={shown}
+        sent={sent}
         note={held?.note ?? ""}
         unclear={unclear}
         needsWhy={needsWhy}
@@ -544,12 +577,15 @@ function Spine({
   step,
   n,
   of,
+  blocked,
   transcribed,
   build,
 }: {
   step: SessionStep;
   n: number;
   of: number;
+  /** Null when the step is in the walk; otherwise why it is not. */
+  blocked?: "staged" | "moot" | null;
   transcribed?: Transcribed;
   build?: string | null;
 }) {
@@ -558,9 +594,24 @@ function Spine({
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <span className="text-[11px] font-medium">{step.boardTitle}</span>
-        <span className="text-[11px] text-muted-foreground tabular-nums">
-          step {n} of {of}
-        </span>
+        {blocked ? (
+          <span
+            className="text-[11px] text-muted-foreground"
+            title={
+              blocked === "staged"
+                ? "Answer the question it waits on and it joins the walk."
+                : "The question it waited on went the other way."
+            }
+          >
+            {blocked === "staged"
+              ? "not in the walk yet: it waits on an earlier answer"
+              : "not in the walk: moot this round"}
+          </span>
+        ) : (
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            step {n} of {of}
+          </span>
+        )}
         {/* The build being served, beside the round it is serving. A page
             cannot know a newer build exists, but the reviewer and the
             Orchestrator can compare this one line (Will, 2026-09-17: a batch
@@ -588,9 +639,13 @@ function Spine({
         className="block h-px w-full bg-border"
         role="presentation"
       >
+        {/* A step outside the walk has no position in it, so it draws no
+            progress rather than a length it did not reach. */}
         <span
           className="block h-px bg-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none"
-          style={{ width: `${Math.round((n / Math.max(of, 1)) * 100)}%` }}
+          style={{
+            width: blocked ? 0 : `${Math.round((n / Math.max(of, 1)) * 100)}%`,
+          }}
         />
       </span>
     </div>
@@ -609,7 +664,7 @@ function Head({ step }: { step: SessionStep }) {
   const aside = step.kind === "ask" && Boolean(step.lands || step.look);
   return (
     <header className="lab-step-head" data-aside={aside ? "" : undefined}>
-      <div className="min-w-0 max-w-3xl">
+      <div className="max-w-3xl min-w-0">
         <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
           {step.kind === "items" ? headingFor(step) : step.question}
         </h1>
@@ -703,6 +758,7 @@ function AskBody({
   // A question whose options cannot be drawn: the evidence as the question is
   // asked, then the options in words, each its own card.
   const strip = board && step.strip && step.strip.length > 0;
+  const tools = board?.tools;
   return (
     <>
       {board && section && (
@@ -710,7 +766,21 @@ function AskBody({
           {board.evidence(section, { ...board.state, ...stateFor(step) })}
         </div>
       )}
-      {strip && <ConfigStrip step={step} board={board} />}
+      {(strip || tools) && (
+        // No stage head on a words step, so the strip and the board's own
+        // tools share a row of their own rather than being unreachable.
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          {strip && <ConfigStrip step={step} board={board} />}
+          {tools && (
+            <span
+              data-lab-board-tools=""
+              className="flex flex-wrap items-center gap-1.5"
+            >
+              {tools}
+            </span>
+          )}
+        </div>
+      )}
       <ul className="lab-word-options">
         {step.options.map((option, i) => (
           <li key={option.id} className="min-w-0 list-none">
@@ -794,7 +864,9 @@ function StageViews({
     room !== null &&
     !room.phone &&
     room.width >= options.length * PHONE_W + (options.length - 1) * SIDE_GAP;
-  const mode: Arrange = room?.phone ? "flip" : (arrange ?? (fits ? "side" : "flip"));
+  const mode: Arrange = room?.phone
+    ? "flip"
+    : (arrange ?? (fits ? "side" : "flip"));
   // `g` swaps at any width but a phone's; the button is offered only where
   // side by side draws every option at its true size, or to leave it.
   const canSide = !room?.phone;
@@ -1005,6 +1077,16 @@ function StageHead({
       </div>
       {strip && <ConfigStrip step={step} board={board} />}
       <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+        {/* The board's own cluster, on the one bar that stays on screen while
+            the stage scrolls. A board that declares none adds nothing. */}
+        {board.tools && (
+          <span
+            data-lab-board-tools=""
+            className="flex flex-wrap items-center gap-1.5"
+          >
+            {board.tools}
+          </span>
+        )}
         {canSide && step.options.length > 1 && (
           <button
             type="button"
@@ -1310,6 +1392,7 @@ function Dock({
   pictured,
   choice,
   shown,
+  sent,
   note,
   unclear,
   needsWhy,
@@ -1326,6 +1409,8 @@ function Dock({
   pictured: readonly SessionOption[];
   choice: string;
   shown: string | null;
+  /** When this answer last rode a paste, if it has; it rides again if changed. */
+  sent?: { build: string | null; at: string };
   note: string;
   unclear: boolean;
   needsWhy: boolean;
@@ -1343,11 +1428,7 @@ function Dock({
   return (
     <div data-lab-dock="" className="lab-dock">
       {step.kind === "ask" && pictured.length > 0 && (
-        <div
-          className="lab-dock-options"
-          role="group"
-          aria-label="The options"
-        >
+        <div className="lab-dock-options" role="group" aria-label="The options">
           {pictured.map((option) => {
             const i = step.options.indexOf(option);
             const on = shown === option.id;
@@ -1435,6 +1516,14 @@ function Dock({
               Say what was unclear, then go on.
             </span>
           )}
+          {sent && !needsWhy && (
+            <span
+              className="shrink-0 text-[11px] text-faint"
+              title="It rode a paste. Change it and it goes again as a replacement."
+            >
+              {sent.build ? `sent on ${sent.build}` : "sent"}
+            </span>
+          )}
         </div>
       )}
 
@@ -1444,29 +1533,29 @@ function Dock({
       <div className="lab-dock-way">
         <Way dir="back" onGo={back} />
         {live && (
-            <button
-              type="button"
-              data-dir-press
-              data-lab-pick=""
-              aria-pressed={picked}
-              onClick={() => onChoose(live.id)}
-              className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
-                picked
-                  ? "border border-border text-muted-foreground hover:text-foreground"
-                  : "border border-transparent bg-foreground text-background hover:opacity-90",
-              )}
-            >
-              {picked ? (
-                <>
-                  <Check className="size-3" aria-hidden />
-                  Picked
-                </>
-              ) : (
-                `Pick ${step.kind === "ask" ? step.options.indexOf(live) + 1 : 1}`
-              )}
-            </button>
-          )}
+          <button
+            type="button"
+            data-dir-press
+            data-lab-pick=""
+            aria-pressed={picked}
+            onClick={() => onChoose(live.id)}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+              picked
+                ? "border border-border text-muted-foreground hover:text-foreground"
+                : "border border-transparent bg-foreground text-background hover:opacity-90",
+            )}
+          >
+            {picked ? (
+              <>
+                <Check className="size-3" aria-hidden />
+                Picked
+              </>
+            ) : (
+              `Pick ${step.kind === "ask" ? step.options.indexOf(live) + 1 : 1}`
+            )}
+          </button>
+        )}
         <Way dir="next" onGo={next} filled={filled} />
       </div>
     </div>

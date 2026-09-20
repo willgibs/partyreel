@@ -95,7 +95,14 @@ export function useBoardState(spec: BoardSpec): {
           if (v === c.default) url.searchParams.delete(c.id);
           else url.searchParams.set(c.id, v);
         }
-        window.history.replaceState(null, "", url);
+        // ★ THE ENTRY'S STATE OBJECT IS KEPT, NOT REPLACED WITH NULL
+        // (lab-tides, 2026-09-19). Next's App Router keeps its own bookkeeping
+        // on `history.state` (the tree it restores, the scroll position), and
+        // `replaceState(null, ...)` throws it away: `step.tsx` passes
+        // `window.history.state` through on every step write and this one did
+        // not, so one knob flipped on a board quietly emptied what the router
+        // needs to go Back through that entry.
+        window.history.replaceState(window.history.state, "", url);
         window.dispatchEvent(new Event(URL_EVENT));
       } catch {
         // A sandboxed frame or a blocked history API. Nothing to fall back on:

@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 
 import ts from "typescript";
 
-export const SPECIMENS_VERSION = 1;
+export const SPECIMENS_VERSION = 2;
 
 /** Where the five family declarations live (the shell route group). */
 export const FAMILY_DIR = "src/app/(dev)/design/(shell)/library";
@@ -77,13 +77,47 @@ function unwrap(node) {
 }
 
 /**
+ * ★ WHAT THE COLLECTOR COULD NOT READ IS RECORDED, NOT SWALLOWED (lab-tides,
+ * 2026-09-19).
+ *
+ * This is a SOURCE reader, not an importer, so everything it knows it knows
+ * from the literal text of `gallery-demos.tsx`. Hoist an entry's specimens into
+ * a named const (`specimens: FORM_SPECIMENS`) and the entry simply stopped
+ * existing here: no key in `code`, no code panel in the library, and
+ * `specimens.test.ts` could not see the hole either, because it walks the
+ * artifact's own keys and the entry was not in them. A silent omission is the
+ * one failure mode a derived artifact can have.
+ *
+ * So the pass records `unread`: one line per entry or specimen it met and could
+ * not read, with what to do about it. `specimens.test.ts` fails on a non-empty
+ * list, which turns "the Code tab is quietly missing" into a red test.
+ *
+ * An entry list is recognised by its shape (an array literal with at least one
+ * element carrying both a literal `id` and a literal `specimens` array), so the
+ * other exported arrays in these modules are never judged as entries.
+ */
+function looksLikeEntries(list) {
+  return list.elements.some((el) => {
+    if (!ts.isObjectLiteralExpression(el)) return false;
+    const specimens = propOf(el, "specimens");
+    return (
+      Boolean(stringOf(propOf(el, "id"))) &&
+      Boolean(specimens) &&
+      ts.isArrayLiteralExpression(specimens)
+    );
+  });
+}
+
+/**
  * Every entry's specimens, in declaration order, as the source wrote them.
- * Returns { [entryId]: string[] } with one entry per family module; an entry
- * whose specimen is a bare component reference (`<FormDemo />`) is kept as
- * written, because that IS what the library declares.
+ * Returns { [entryId]: string[] } with one entry per family module, plus
+ * `unread`: the entries and specimens the reader met and could not lift. An
+ * entry whose specimen is a bare component reference (`<FormDemo />`) is kept
+ * as written, because that IS what the library declares.
  */
 export function collectSpecimenCode(root) {
   const code = {};
+  const unread = [];
   for (const family of FAMILIES) {
     const rel = entryModule(family);
     const abs = join(root, rel);
@@ -106,22 +140,50 @@ export function collectSpecimenCode(root) {
       for (const declaration of statement.declarationList.declarations) {
         const list = declaration.initializer;
         if (!list || !ts.isArrayLiteralExpression(list)) continue;
-        for (const element of list.elements) {
-          if (!ts.isObjectLiteralExpression(element)) continue;
+        const entries = looksLikeEntries(list);
+        for (const [i, element] of list.elements.entries()) {
+          if (!ts.isObjectLiteralExpression(element)) {
+            if (entries)
+              unread.push(
+                `${rel}: entry ${i + 1} is not written out (spread or reference); write the entry inline`,
+              );
+            continue;
+          }
           const id = stringOf(propOf(element, "id"));
-          if (!id) continue;
+          if (!id) {
+            if (entries)
+              unread.push(
+                `${rel}: entry ${i + 1} has no literal id; write it as a string`,
+              );
+            continue;
+          }
           const specimens = propOf(element, "specimens");
-          if (!specimens || !ts.isArrayLiteralExpression(specimens)) continue;
-          code[id] = specimens.elements.map((specimen) => {
-            if (!ts.isObjectLiteralExpression(specimen)) return "";
+          if (!specimens || !ts.isArrayLiteralExpression(specimens)) {
+            if (entries)
+              unread.push(
+                `${rel}: ${id} declares its specimens elsewhere; write the array inline or it ships with no code panel`,
+              );
+            continue;
+          }
+          code[id] = specimens.elements.map((specimen, k) => {
+            if (!ts.isObjectLiteralExpression(specimen)) {
+              unread.push(
+                `${rel}: ${id} specimen ${k + 1} is not written out; write it inline`,
+              );
+              return "";
+            }
             const node = propOf(specimen, "node");
-            return node ? dedent(unwrap(node).getText()) : "";
+            if (!node) {
+              unread.push(`${rel}: ${id} specimen ${k + 1} declares no node`);
+              return "";
+            }
+            return dedent(unwrap(node).getText());
           });
         }
       }
     }
   }
-  return { version: SPECIMENS_VERSION, code };
+  return { version: SPECIMENS_VERSION, code, unread };
 }
 
 // Run directly to rewrite the artifact. Imported by specimens.test.ts, which
@@ -144,4 +206,5 @@ if (
   console.log(
     `specimen source: ${specimens} specimens on ${entries} entries -> ${ARTIFACT_PATH}`,
   );
+  for (const line of artifact.unread) console.log(`  could not read: ${line}`);
 }

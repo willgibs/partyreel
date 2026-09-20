@@ -64,7 +64,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 142
+          "line": 146
         },
         {
           "title": "sends a cleared choice's surviving note as a note on that ask",
@@ -72,7 +72,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 166
+          "line": 170
         },
         {
           "title": "never sends an entry from a round the board has left, whatever the ledger lists",
@@ -80,7 +80,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 181
+          "line": 185
         },
         {
           "title": "omits a not-clear answer the ledger holds as null with the same note",
@@ -88,7 +88,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 204
+          "line": 208
         },
         {
           "title": "never sends a note the ledger's open round already holds",
@@ -96,7 +96,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 223
+          "line": 227
         },
         {
           "title": "sends a note again the moment its words change",
@@ -104,7 +104,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 249
+          "line": 253
         },
         {
           "title": "sends nothing for a step the open round no longer asks",
@@ -112,7 +112,7 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 260
+          "line": 272
         },
         {
           "title": "takes a board note along only on the board's open round",
@@ -120,7 +120,39 @@
             "composeSoFar"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 282
+          "line": 294
+        },
+        {
+          "title": "names every hold id the message carries, and nothing else",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 314
+        },
+        {
+          "title": "leaves out what a previous paste already took",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 336
+        },
+        {
+          "title": "carries a marked entry again once it changes",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 357
+        },
+        {
+          "title": "marks a cleared choice's surviving note under the answer's own key",
+          "suite": [
+            "composeSoFar"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 376
         }
       ]
     },
@@ -1643,6 +1675,8 @@
         "CANVAS",
         "CARD_PARAM",
         "Candidate",
+        "CarriedCall",
+        "CarriedCalls",
         "Catalog",
         "CatalogRenderArgs",
         "CatalogSpec",
@@ -2104,7 +2138,7 @@
             "a step, as a form"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 541
+          "line": 543
         },
         {
           "title": "skips a staged step, and reaches it once its question is answered",
@@ -2112,7 +2146,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 548
+          "line": 550
         },
         {
           "title": "drops a staged step as moot when its question went the other way",
@@ -2120,7 +2154,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 571
+          "line": 573
         },
         {
           "title": "counts the walk without the staged steps",
@@ -2128,7 +2162,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 585
+          "line": 587
         },
         {
           "title": "draws a staged step wearing the answer it waits on",
@@ -2136,7 +2170,7 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 591
+          "line": 593
         },
         {
           "title": "wears the ledger's answer from an earlier sitting when this one holds none",
@@ -2144,7 +2178,55 @@
             "a step, staged behind another"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 604
+          "line": 606
+        },
+        {
+          "title": "does not count itself into the walk when it was reached staged",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 621
+        },
+        {
+          "title": "says a step is moot when the question it waited on went the other way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 632
+        },
+        {
+          "title": "counts itself again once its question is answered its way",
+          "suite": [
+            "a step, staged behind another"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 645
+        },
+        {
+          "title": "puts it on the stage head, where a tall stage keeps it on screen",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 664
+        },
+        {
+          "title": "offers it beside the strip on a step whose options are words",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 676
+        },
+        {
+          "title": "adds nothing when the board declares none",
+          "suite": [
+            "a step carries the board's own dock cluster"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 685
         },
         {
           "title": "asks a pick-one catalog's winner on the cards themselves",
@@ -2152,7 +2234,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 613
+          "line": 692
         },
         {
           "title": "walks a keep-any catalog one card at a time",
@@ -2160,7 +2242,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 629
+          "line": 708
         },
         {
           "title": "keeps a catalog as ONE step whichever way it is walked",
@@ -2168,7 +2250,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 636
+          "line": 715
         },
         {
           "title": "fills Next only once every card has a verdict",
@@ -2176,7 +2258,7 @@
             "a step on a catalog"
           ],
           "file": "src/components/lab/step.test.tsx",
-          "line": 641
+          "line": 720
         }
       ]
     },
