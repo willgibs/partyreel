@@ -63,14 +63,18 @@ import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
  *    preflight's 1.5 and computes to 22.5, off the 4px grid — which is the
  *    silent half: the size is visible in the source, the leading never is.
  *
- * ★ WAY 6 IS AN ALLOW-LIST THAT ONLY SHRINKS, NOT A HARD FAIL, AND ON PURPOSE.
- * Four other wiring lanes were open the night this landed and they own files
- * this sweep may not touch. So the body scan ships the way the heading table
- * ships: every survivor named, counted and reasoned, and the count pinned so
- * the hole cannot grow. A `pending` entry is one an app-shape lane is already
- * rebuilding; it goes RED when that element disappears, which is the signal to
- * delete the entry, not to widen it. Flipping the scan to a hard fail once the
- * list is empty is one line (`BODY_EXCEPTIONS` to `{}`).
+ * ★ WAY 6 SHIPPED AS AN ALLOW-LIST THAT ONLY SHRANK, NOT A HARD FAIL, WHILE
+ * four other wiring lanes owned files this sweep could not touch (`lane`) or
+ * an app-shape lane was mid-rebuild (`pending`). `type-sync` (2026-09-20)
+ * closed both: every `lane` and `pending` entry moved onto a step and its
+ * entry is gone, and `BodyException.kind` dropped the two names outright, so
+ * either one coming back is a typecheck failure, not a review comment — the
+ * hard fail the ladder-wiring Handoff deferred, for the half that was ever
+ * temporary. `depicted`, `relative` and `board` remain and are not the same
+ * kind of entry: a picture, an `em` and a board still on the desk are
+ * structural, not a boundary in time, so they stay exactly as the heading
+ * table's own `EXCEPTIONS` do — named, counted and reasoned, never emptied
+ * on a deadline.
  *
  * ★ WHAT NEITHER SCAN SEES, SAID OUT LOUD: a class string that never reaches a
  * JSX attribute. Both walk JSX opening elements, so a size inside a `cva`
@@ -240,20 +244,19 @@ type BodyException = {
    * to hold to a rung — an initial inside a 14px avatar, an OTP digit in its
    * box, a price suffix riding a display numeral, an inline plate in a
    * paragraph.
-   * `lane`: a LANE BOUNDARY kept the sweep out — another manifest owned the
-   * file the night the ladder landed, or no manifest owned it at all. Nothing
-   * is wrong with these sizes except that this lane could not touch them; the
-   * `type-sync` follow-up deletes the entry and the size together.
-   * `pending`: an element an app-shape lane is rebuilding on the label step.
-   * It goes RED when that element disappears, which is the signal to DELETE
-   * the entry at that merge — never to widen it.
    * `board`: a board on the desk rules this surface's sizes. Will's own
    * verdicts put two here: the admin ("our internal admin portal favors
    * information density and can break away from this if helpful") and the
    * button rung ("not a direct selection, more work required" -> round two,
    * `buttons-pairs`).
+   *
+   * `lane` (a lane boundary another manifest held the night the ladder
+   * landed) and `pending` (an app-shape lane mid-rebuild) are GONE, not
+   * merely unused: `type-sync` (2026-09-20) swept every entry of either kind
+   * onto a step and deleted it, and this union no longer names them, so one
+   * coming back does not compile.
    */
-  kind: "depicted" | "relative" | "lane" | "pending" | "board";
+  kind: "depicted" | "relative" | "board";
   /** Exactly how many elements the exception excuses, so the hole cannot grow. */
   count: number;
   why: string;
@@ -368,66 +371,13 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 1,
     why: "the /mo suffix at 0.55em, sized to the price numeral it rides",
   },
-  // ── lane: a lane boundary kept the sweep out (a `type-sync` follow-up) ──
-  "src/components/marketing/chrome/marketing-footer.tsx": {
-    kind: "lane",
-    count: 6,
-    why: "voice-wiring owns the footer this round (it is rewriting every line in it)",
-  },
-  "src/components/guest/enter-event-prompt.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "voice-wiring owns it (his gate line, verbatim); the eyebrow's tracking, the last one left after door-wiring moved the gate's password form into <AccountDoor>",
-  },
-  "src/components/marketing/sections/home/pricing-teaser.tsx": {
-    kind: "lane",
-    count: 2,
-    why: "voice-wiring owns it (the Pro line's sibling)",
-  },
-  "src/components/marketing/sections/features/album/how-much-fits.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "voice-wiring owns it (the Pro line's sibling)",
-  },
-  "src/components/marketing/sections/home/no-app.tsx": {
-    kind: "lane",
-    count: 1,
-    why: 'voice-wiring owns it ("No app required.")',
-  },
-  "src/components/marketing/sections/events/event-statement.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "no manifest owns it this round: a section lede at a flat 18, which is exactly what `copy` is for",
-  },
-  "src/components/marketing/sections/features/qr/qr-hero.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "no manifest owns it this round: a hero lede at a flat 18",
-  },
-  "src/components/marketing/sections/reel/reel-hero.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "no manifest owns it this round: a hero lede at a flat 18",
-  },
-  "src/components/marketing/sections/reel/wysiwyg-section.tsx": {
-    kind: "lane",
-    count: 1,
-    why: "no manifest owns it this round: one aria-hidden decorative arrow at 18 (home-wiring moved the 11 px label onto the label pair at its merge, 2026-09-20; one element remains, type-sync's)",
-  },
-  // ── pending: an app-shape lane is rebuilding the element ──
-  // (u/[slug]/page.tsx's entry went, 2026-09-20: its one avatar initial
-  // folded onto Avatar's own xl size, avatar-wiring — see the relative
-  // entry above for src/components/ui/avatar.tsx.)
-  "src/components/app/event-feed/feed-section-header.tsx": {
-    kind: "pending",
-    count: 1,
-    why: "hub-wiring rebuilds the feed header on the label step",
-  },
-  "src/components/app/event-feed/event-feed-action-bar.tsx": {
-    kind: "pending",
-    count: 1,
-    why: "hub-wiring rebuilds the action bar on the label step",
-  },
+  // ── lane and pending: CLOSED (type-sync, 2026-09-20). Every lane-boundary
+  // entry (marketing-footer.tsx: 6, enter-event-prompt.tsx, pricing-teaser.tsx:
+  // 2, how-much-fits.tsx, no-app.tsx, event-statement.tsx, qr-hero.tsx,
+  // reel-hero.tsx, wysiwyg-section.tsx — 15 elements) and every pending entry
+  // (feed-section-header.tsx, event-feed-action-bar.tsx — 2 elements) moved
+  // onto the step its role calls for and the entry left with it; `kind`
+  // above no longer has either name to give a future one.
   // ── board: a board on the desk rules this surface's sizes ──
   "src/app/admin/forensics/page.tsx": {
     kind: "board",

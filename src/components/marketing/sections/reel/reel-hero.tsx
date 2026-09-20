@@ -45,7 +45,7 @@ export function ReelHero() {
             </h1>
             <p
               {...cut(2)}
-              className="max-w-xl text-lg text-pretty text-muted-foreground"
+              className="max-w-xl text-copy text-pretty text-muted-foreground"
             >
               {
                 "Your guests' photos, cut into a cinematic highlight video, automatically. You pick the style, the engine does the editing."

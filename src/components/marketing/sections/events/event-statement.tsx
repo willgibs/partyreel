@@ -116,7 +116,7 @@ export function EventStatement({
             </h2>
             <p
               data-mkt-reveal
-              className="mt-6 max-w-xl text-lg text-pretty text-muted-foreground"
+              className="mt-6 max-w-xl text-copy text-pretty text-muted-foreground"
               style={seat(1)}
             >
               {type.statement.line}

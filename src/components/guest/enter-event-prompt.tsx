@@ -39,7 +39,7 @@ export function EnterEventPrompt({
       {/* The ratified gate framing (Phase 4.5 warm rewrite): the "almost in"
           eyebrow, the REAL count as the promise, and the account step as the
           HOST'S safety choice (intent preserved, tone softened). */}
-      <p className="flex items-center justify-center gap-1.5 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+      <p className="flex items-center justify-center gap-1.5 text-label font-medium text-muted-foreground uppercase">
         <Lock className="size-3" aria-hidden />
         {DOOR_WEAR.gate.heading}
       </p>

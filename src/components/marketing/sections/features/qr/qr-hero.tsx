@@ -105,7 +105,7 @@ export function QrHero() {
             <h1 className="font-heading text-title text-balance">{page.h1}</h1>
             <p
               {...cut(1)}
-              className="max-w-xl text-lg text-pretty text-muted-foreground"
+              className="max-w-xl text-copy text-pretty text-muted-foreground"
             >
               {page.heroSub}
             </p>

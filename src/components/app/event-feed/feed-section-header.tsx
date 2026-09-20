@@ -26,7 +26,7 @@ export function FeedSectionHeader({
       <h2 className="flex items-center gap-1.5">
         <span
           className={cn(
-            "text-[11px] font-semibold tracking-wide uppercase",
+            "text-label font-semibold uppercase",
             amber ? "text-warning" : "text-muted-foreground",
           )}
         >
