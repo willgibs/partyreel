@@ -2027,6 +2027,146 @@
       ]
     },
     {
+      "id": "account-door",
+      "file": "src/components/auth/account-door.tsx",
+      "names": [
+        "AccountDoor",
+        "DOOR_WEAR"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws the login wear's own heading and reason",
+          "suite": [
+            "the four wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "leaves heading and reason to the surface when it owns them",
+          "suite": [
+            "the four wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 109
+        },
+        {
+          "title": "carries the Terms line on every wear that asks for it",
+          "suite": [
+            "the four wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 127
+        },
+        {
+          "title": "drops it only where the surface above already said it",
+          "suite": [
+            "the four wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 143
+        },
+        {
+          "title": "offers a password only where the surface says there is one",
+          "suite": [
+            "the four wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "says nothing before a code is verified",
+          "suite": [
+            "the account the address already had"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 198
+        },
+        {
+          "title": "names the account after a verified code, under a create intent",
+          "suite": [
+            "the account the address already had"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "offers a way out when it was a mistake",
+          "suite": [
+            "the account the address already had"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 214
+        },
+        {
+          "title": "stays silent for a brand-new account",
+          "suite": [
+            "the account the address already had"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 222
+        },
+        {
+          "title": "stays silent on a plain sign-in, where every host already had one",
+          "suite": [
+            "the account the address already had"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "is absent with the flag off, even with a hint and a browser that can",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 260
+        },
+        {
+          "title": "is absent with the flag on but nothing registered here",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 270
+        },
+        {
+          "title": "is absent on a browser with no WebAuthn at all",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 280
+        },
+        {
+          "title": "appears with the flag, the hint and a browser that can",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 290
+        },
+        {
+          "title": "never remembers an address on a surface a stranger's phone can reach",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 303
+        },
+        {
+          "title": "prefills the remembered address on /login",
+          "suite": [
+            "the one press"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 321
+        }
+      ]
+    },
+    {
       "id": "claim-handle-prompt",
       "file": "src/components/guest/claim-handle-prompt.tsx",
       "names": [
@@ -10486,6 +10626,202 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "door-failure",
+      "file": "src/lib/auth/door-failure.ts",
+      "names": [
+        "DOOR_FAILURE_KINDS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "gives each kind a line and exactly three actions",
+          "suite": [
+            "every failure names three ways out"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 29
+        },
+        {
+          "title": "never offers the same way out twice in one failure",
+          "suite": [
+            "every failure names three ways out"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 40
+        },
+        {
+          "title": "keeps the password refusal generic",
+          "suite": [
+            "every failure names three ways out"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 47
+        },
+        {
+          "title": "counts in its label and stays unpressable",
+          "suite": [
+            "the limiter's countdown"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 64
+        },
+        {
+          "title": "falls back to a plain label when nobody named the seconds",
+          "suite": [
+            "the limiter's countdown"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 71
+        },
+        {
+          "title": "only the limiter takes a countdown",
+          "suite": [
+            "the limiter's countdown"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 77
+        },
+        {
+          "title": "passes every kind through by name",
+          "suite": [
+            "what a ?error= means"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 86
+        },
+        {
+          "title": "still understands the flag already sitting in mailboxes",
+          "suite": [
+            "what a ?error= means"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 92
+        },
+        {
+          "title": "maps Supabase's own refusals",
+          "suite": [
+            "what a ?error= means"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 98
+        },
+        {
+          "title": "treats anything else as nothing, so a typed query paints no scare",
+          "suite": [
+            "what a ?error= means"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 104
+        },
+        {
+          "title": "reads a 429 as the limiter",
+          "suite": [
+            "reading GoTrue's refusal"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 112
+        },
+        {
+          "title": "reads an ordinary failure as an ordinary failure",
+          "suite": [
+            "reading GoTrue's refusal"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 122
+        },
+        {
+          "title": "takes the seconds GoTrue names, and nothing else",
+          "suite": [
+            "reading GoTrue's refusal"
+          ],
+          "file": "src/lib/auth/door-failure.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "id": "remembered-email",
+      "file": "src/lib/auth/remembered-email.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "remembers an address and the method that worked",
+          "suite": [
+            "the remembered door"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 68
+        },
+        {
+          "title": "forgets everything, including the passkey hint, on Not you",
+          "suite": [
+            "the remembered door"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 76
+        },
+        {
+          "title": "reads a hand-edited value as nothing rather than trusting it",
+          "suite": [
+            "the remembered door"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 86
+        },
+        {
+          "title": "writes nothing for an empty address",
+          "suite": [
+            "the remembered door"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 101
+        },
+        {
+          "title": "remembers nothing when the store is missing",
+          "suite": [
+            "no storage at all"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 108
+        },
+        {
+          "title": "remembers nothing when every call throws",
+          "suite": [
+            "no storage at all"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 116
+        },
+        {
+          "title": "keeps the shape and gives away one letter",
+          "suite": [
+            "the mask"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 135
+        },
+        {
+          "title": "never reveals the whole local part, however long",
+          "suite": [
+            "the mask"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 140
+        },
+        {
+          "title": "leaves anything that is not an address alone",
+          "suite": [
+            "the mask"
+          ],
+          "file": "src/lib/auth/remembered-email.test.ts",
+          "line": 146
+        }
+      ]
     },
     {
       "id": "feature-pages",
