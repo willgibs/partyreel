@@ -202,7 +202,9 @@ describe("the overtaken map", () => {
 
   it("counts a board's overtaken asks for the desk", () => {
     expect(overtakenOn("first-event")).toBe(4);
-    expect(overtakenOn("app-vocabulary")).toBe(5);
+    // Round one's five badges retired with the asks they named (album-controls,
+    // 2026-09-20): the board's round two is too new for anything to overtake yet.
+    expect(overtakenOn("app-vocabulary")).toBe(0);
     // The sixth batch ruled the portal's whole shell, one board over.
     expect(overtakenOn("admin-triage")).toBe(7);
     // A board nothing reached counts none, and never throws for asking.
