@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "toasts"
   | "guest-verify"
   | "seed-avatar"
   | "error-pages"
@@ -110,6 +111,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "toasts"
   | "guest-verify"
   | "seed-avatar"
   | "site-chrome"
@@ -1566,6 +1568,25 @@ export const RULINGS: Ruling[] = [
       "src/app/admin/page.tsx",
     ],
   },
+  {
+    id: "toasts",
+    title: "The toast, as a system",
+    surface: "shared",
+    ruled:
+      "open (Will, 2026-09-19, the fifth batch, `moment=today`: \"This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I'd like to redesign our toasts.\")",
+    shipped: null,
+    why: "Six boards already decided a toast's words; this asks the system underneath: if the control can show it, no toast halves the count before anything else is asked.",
+    lives: [
+      "src/components/ui/sonner.tsx",
+      "src/app/layout.tsx",
+      "src/app/globals.css",
+      "docs/systems/design-system.md",
+    ],
+    board: {
+      note: "Five decisions on the real toasts (183 sonner calls today, six kinds), drawn on guest-upload's send, host-curation's bulk verdict, an export mint, a pricing refusal and a plain info, at 375 and 1440: where a toast sits, what it is made of, how long it lives, how a pile of them behaves, and whether one may ever carry a button.",
+      variants: ["Where", "Material", "Life", "Stack", "Action"],
+    },
+  },
 ];
 
 /** The standing boards, in registry order: the sidebar's Sandbox zone. */
@@ -1595,6 +1616,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge: it
   // changes the guest door every guest board draws on).
+  "toasts",
   "body-type",
   "app-shape",
   "guest-shape",
