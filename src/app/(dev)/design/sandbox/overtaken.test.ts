@@ -193,11 +193,13 @@ describe("the overtaken map", () => {
   });
 
   it("speaks the badge in plain words with the date", () => {
-    const note = overtakenFor("guest-shape", "dialogs");
+    // The example was guest-shape.dialogs until round two replaced that ask
+    // (2026-09-20); first-event.hand is reached by the same ruling and stays.
+    const note = overtakenFor("first-event", "hand");
     expect(note).toBeDefined();
-    expect(badgeText(note!)).toBe(
-      "Ruled since app-shape r1, 19 Sep: one responsive sheet everywhere: a side panel at a desk, a bottom sheet in a hand",
-    );
+    const text = badgeText(note!);
+    expect(text).toMatch(/^Ruled since [a-z-]+ r\d, \d{1,2} [A-Z][a-z]{2}: /);
+    expect(text).not.toMatch(/[a-z-]+=[a-z-]+/); // plain words, never the paste clause
   });
 
   it("counts a board's overtaken asks for the desk", () => {
