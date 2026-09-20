@@ -176,7 +176,8 @@ in a unit renders the bare number and you write the unit; a name for a thing ren
 ## The product, in one place (write from this, verify against the source)
 
 - **The loop.** A host creates an event and gets one QR code and one link. Guests scan with the
-  phone camera and upload from the browser: no app, no account, no password. By default guests
+  phone camera and upload from the browser: no app required, no password. NEVER write "no
+  account": a host may require one and the setting is ON by default. By default guests
   confirm their email with a one-tap code (the "Require accounts to upload" setting, free on
   every plan, on by default); the host can allow fully anonymous uploads per event. The album
   fills live. The host approves, hides or removes anything, in review mode (uploads wait for

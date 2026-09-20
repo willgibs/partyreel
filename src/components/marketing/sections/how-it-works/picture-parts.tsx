@@ -125,7 +125,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
+        "flex items-center gap-1.5 rounded-md border px-2 py-1 text-caption font-medium",
         on
           ? "text-foreground ring-1 ring-foreground/40"
           : "text-muted-foreground",

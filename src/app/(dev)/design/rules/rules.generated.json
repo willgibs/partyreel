@@ -2,6 +2,49 @@
   "version": 3,
   "components": [
     {
+      "id": "page",
+      "file": "src/app/(app)/account/page.tsx",
+      "names": [
+        "AccountPage"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "derives the tier from the server-side profile row",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 29
+        },
+        {
+          "title": "takes every plan fact from that row, never from a param or a prop",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 34
+        },
+        {
+          "title": "keeps ?reset as this page's only search param",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 49
+        },
+        {
+          "title": "single-sources every limit from tiers.ts",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 55
+        }
+      ]
+    },
+    {
       "id": "copy-so-far",
       "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx",
       "names": [
@@ -153,6 +196,22 @@
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
           "line": 376
+        },
+        {
+          "title": "composes as any other answer does, with its reason",
+          "suite": [
+            "an answer that stands by an earlier ruling"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 418
+        },
+        {
+          "title": "is dropped once the ledger holds it, and rides again when overridden",
+          "suite": [
+            "an answer that stands by an earlier ruling"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 438
         }
       ]
     },
@@ -161,6 +220,8 @@
       "file": "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts",
       "names": [
         "SESSION_END",
+        "STANDS",
+        "STANDS_NOTE",
         "UNCLEAR"
       ],
       "specimens": [],
@@ -172,7 +233,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 71
+          "line": 72
         },
         {
           "title": "opens once that question is answered THIS WAY in the session",
@@ -180,7 +241,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 77
+          "line": 78
         },
         {
           "title": "is moot once that question went the other way",
@@ -188,7 +249,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 82
+          "line": 83
         },
         {
           "title": "stays staged on 'not clear to me', which is not a decision",
@@ -196,7 +257,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 87
+          "line": 88
         },
         {
           "title": "opens on a ruling from an earlier sitting, with nothing held here",
@@ -204,7 +265,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 98
+          "line": 99
         },
         {
           "title": "is moot on a ruling from an earlier sitting that went the other way",
@@ -212,7 +273,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 106
+          "line": 107
         },
         {
           "title": "lets this sitting's answer overrule the ledger's",
@@ -220,7 +281,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 113
+          "line": 114
         },
         {
           "title": "keeps a staged step out of the walk and the rest of it in",
@@ -228,7 +289,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 120
+          "line": 121
         },
         {
           "title": "is staged until the card is ruled, and moot on the other verdict",
@@ -236,7 +297,103 @@
             "a step waiting on a catalog card"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 137
+          "line": 138
+        }
+      ]
+    },
+    {
+      "id": "overtaken",
+      "file": "src/app/(dev)/design/sandbox/overtaken.ts",
+      "names": [
+        "AS_TODAY_GLOSS",
+        "OVERTAKEN",
+        "STANDS",
+        "STANDS_NOTE"
+      ],
+      "specimens": [
+        "/design/lab"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "annotates only questions a standing board still asks",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 53
+        },
+        {
+          "title": "never annotates a board that did the overtaking",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 71
+        },
+        {
+          "title": "credits a real board with every ruling",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 80
+        },
+        {
+          "title": "holds every judgment to one line, in the two words",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 95
+        },
+        {
+          "title": "reads a concession off the line it is written on",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 111
+        },
+        {
+          "title": "speaks the badge in plain words with the date",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 121
+        },
+        {
+          "title": "counts a board's overtaken asks for the desk",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 129
+        },
+        {
+          "title": "finds the options whose 'as today' now means something else",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 145
+        },
+        {
+          "title": "derives what became of an overtaken ask from the ledger alone",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 170
+        },
+        {
+          "title": "names the reserved word and the words that ride with it",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 179
         }
       ]
     },
@@ -291,7 +448,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -299,7 +456,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -307,7 +464,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -315,7 +472,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -323,7 +480,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -331,7 +488,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -339,7 +496,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -347,7 +504,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -355,7 +512,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -363,7 +520,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -371,7 +528,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -379,7 +536,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -497,6 +654,49 @@
           ],
           "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
           "line": 158
+        }
+      ]
+    },
+    {
+      "id": "owner-sections",
+      "file": "src/app/(guest)/u/[slug]/owner-sections.tsx",
+      "names": [
+        "OwnerSections"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "takes no identity at all",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 29
+        },
+        {
+          "title": "reads only auth.uid()-scoped sources",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 38
+        },
+        {
+          "title": "renders only for the person themselves",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 56
+        },
+        {
+          "title": "has no loading.tsx, ever",
+          "suite": [
+            "the route's 404 still decides before anything streams"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 67
         }
       ]
     },
@@ -632,6 +832,1201 @@
       ]
     },
     {
+      "id": "events-section",
+      "file": "src/components/app/dashboard/events-section.tsx",
+      "names": [
+        "EventsSection"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "paints cards when the cookie said cards",
+          "suite": [
+            "the view the server chose"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "paints rows when the cookie said rows, without being told twice",
+          "suite": [
+            "the view the server chose"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 110
+        },
+        {
+          "title": "persists the choice through the Server Action",
+          "suite": [
+            "flipping the view"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "persists the way back too",
+          "suite": [
+            "flipping the view"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "reorders the list by what is waiting",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 132
+        },
+        {
+          "title": "offers the order with the rows, where he expects it",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 148
+        },
+        {
+          "title": "keeps the bin out of the live list",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 155
+        },
+        {
+          "title": "reaches the bin from the DEFAULT view, not only from the rows",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "offers the create hero only to a host with nothing at all",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 169
+        }
+      ]
+    },
+    {
+      "id": "event-cards-row",
+      "file": "src/components/app/event-feed/event-cards-row.tsx",
+      "names": [
+        "EventCardsRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-gallery",
+      "file": "src/components/app/event-feed/event-gallery.tsx",
+      "names": [
+        "EventGallery"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "review-room",
+      "file": "src/components/app/event-feed/review-room.tsx",
+      "names": [
+        "ReviewRoom"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-settings-sheet",
+      "file": "src/components/app/event-settings/event-settings-sheet.tsx",
+      "names": [
+        "EventSettingsSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-code-door",
+      "file": "src/components/app/share/event-code-door.tsx",
+      "names": [
+        "EventCodeDoor"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-code-modal",
+      "file": "src/components/app/share/event-code-modal.tsx",
+      "names": [
+        "EventCodeModal"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-link-row",
+      "file": "src/components/app/share/event-link-row.tsx",
+      "names": [
+        "EventLinkRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-share-provider",
+      "file": "src/components/app/share/event-share-provider.tsx",
+      "names": [
+        "CODE_MORPH_NAME",
+        "EventShareProvider"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-share-sheet",
+      "file": "src/components/app/share/event-share-sheet.tsx",
+      "names": [
+        "EventShareSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-sheets",
+      "file": "src/components/app/share/event-sheets.tsx",
+      "names": [
+        "EventSheets"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "use-copy-link",
+      "file": "src/components/app/share/use-copy-link.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
       "id": "claim-handle-prompt",
       "file": "src/components/guest/claim-handle-prompt.tsx",
       "names": [
@@ -700,7 +2095,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 97
+          "line": 104
         },
         {
           "title": "leaves nothing in the decoration for a keyboard to land on",
@@ -708,7 +2103,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 105
+          "line": 112
         },
         {
           "title": "shows the CTA only to a viewer who can upload",
@@ -716,7 +2111,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 118
+          "line": 125
         },
         {
           "title": "takes its photographs from the guest pack, one card each",
@@ -724,7 +2119,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 128
+          "line": 135
         },
         {
           "title": "runs no frame loop until it is on screen",
@@ -732,7 +2127,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 140
+          "line": 147
         },
         {
           "title": "stands still for a reader who asked for less motion, even on screen",
@@ -740,7 +2135,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 147
+          "line": 154
         },
         {
           "title": "paints the settled flow in the server's own HTML",
@@ -748,7 +2143,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 159
+          "line": 166
         }
       ]
     },
@@ -1074,7 +2469,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1082,7 +2477,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1090,7 +2485,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1098,7 +2493,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1106,7 +2501,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1114,7 +2509,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1122,7 +2517,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -1130,7 +2525,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1138,7 +2533,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1146,7 +2541,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -1154,7 +2549,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -1162,7 +2557,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -1218,7 +2613,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1226,7 +2621,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1234,7 +2629,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1242,7 +2637,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1250,7 +2645,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1258,7 +2653,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1266,7 +2661,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -1274,7 +2669,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1282,7 +2677,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1290,7 +2685,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -1298,7 +2693,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -1306,7 +2701,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -2259,6 +3654,70 @@
           ],
           "file": "src/components/lab/step.test.tsx",
           "line": 720
+        },
+        {
+          "title": "badges it in place and still asks the question",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 794
+        },
+        {
+          "title": "glosses 'as today' only where an option still says it",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 809
+        },
+        {
+          "title": "records 'the ruling stands' as an answer, with its reason",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 817
+        },
+        {
+          "title": "clears on a second press, like every other answer",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 836
+        },
+        {
+          "title": "primes the button where the lane conceded",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 847
+        },
+        {
+          "title": "fills Next once the ruling is said to stand",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 855
+        },
+        {
+          "title": "offers nothing to stand by on an ordinary question",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 867
+        },
+        {
+          "title": "answers with s, and only where there is a ruling",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 874
         }
       ]
     },
@@ -2544,7 +4003,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2552,7 +4011,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2560,7 +4019,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2568,7 +4027,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2576,7 +4035,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2584,7 +4043,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2592,7 +4051,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2613,7 +4072,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2621,7 +4080,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2629,7 +4088,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2637,7 +4096,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2645,7 +4104,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2653,7 +4112,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2661,7 +4120,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2683,7 +4142,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2691,7 +4150,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2699,7 +4158,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2707,7 +4166,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2715,7 +4174,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2723,7 +4182,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2731,7 +4190,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2752,7 +4211,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2760,7 +4219,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2768,7 +4227,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2776,7 +4235,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2784,7 +4243,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2792,7 +4251,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2800,7 +4259,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2821,7 +4280,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2829,7 +4288,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2837,7 +4296,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2845,7 +4304,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2853,7 +4312,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2861,7 +4320,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2869,7 +4328,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -3584,7 +5043,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -3592,7 +5051,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -3600,7 +5059,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -3608,7 +5067,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -3616,7 +5075,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -3624,7 +5083,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -3632,7 +5091,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -5783,6 +7242,59 @@
       "contracts": []
     },
     {
+      "id": "crumbs",
+      "file": "src/components/shared/crumbs.tsx",
+      "names": [
+        "CrumbsBar",
+        "CrumbsProvider",
+        "SetCrumbs"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders nothing at all until a route claims it",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "is a breadcrumb landmark whose last step is the page itself",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "makes every step but the last a walkable link",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "keeps a way UP in reach at a phone's width, where the full trail cannot fit",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 93
+        },
+        {
+          "title": "is declared by every route inside an event, with a walkable parent",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 108
+        }
+      ]
+    },
+    {
       "id": "empty-state",
       "file": "src/components/shared/empty-state.tsx",
       "names": [
@@ -6539,7 +8051,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6547,7 +8059,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6555,7 +8067,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6563,7 +8075,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6571,7 +8083,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6579,7 +8091,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6587,7 +8099,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -7177,7 +8689,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 97
+          "line": 104
         },
         {
           "title": "leaves nothing in the decoration for a keyboard to land on",
@@ -7185,7 +8697,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 105
+          "line": 112
         },
         {
           "title": "shows the CTA only to a viewer who can upload",
@@ -7193,7 +8705,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 118
+          "line": 125
         },
         {
           "title": "takes its photographs from the guest pack, one card each",
@@ -7201,7 +8713,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 128
+          "line": 135
         },
         {
           "title": "runs no frame loop until it is on screen",
@@ -7209,7 +8721,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 140
+          "line": 147
         },
         {
           "title": "stands still for a reader who asked for less motion, even on screen",
@@ -7217,7 +8729,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 147
+          "line": 154
         },
         {
           "title": "paints the settled flow in the server's own HTML",
@@ -7225,7 +8737,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 159
+          "line": 166
         }
       ]
     },
@@ -8950,6 +10462,17 @@
       "contracts": []
     },
     {
+      "id": "toggle-group",
+      "file": "src/components/ui/toggle-group.tsx",
+      "names": [
+        "ToggleGroup",
+        "ToggleGroupItem"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": []
+    },
+    {
       "id": "tooltip",
       "file": "src/components/ui/tooltip.tsx",
       "names": [
@@ -8997,6 +10520,243 @@
           ],
           "file": "src/lib/constants/feature-pages.test.ts",
           "line": 28
+        }
+      ]
+    },
+    {
+      "id": "arrivals",
+      "file": "src/lib/dashboard/arrivals.ts",
+      "names": [
+        "ARRIVALS_TARGET"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "stays on the last hour when the hour holds twelve",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 25
+        },
+        {
+          "title": "widens to today when the hour is short",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 33
+        },
+        {
+          "title": "takes the widest window when nothing fills the strip, and dates it",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 47
+        },
+        {
+          "title": "widens past today only when today is genuinely empty",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 57
+        },
+        {
+          "title": "says which window it settled on, including how stale the newest is",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 64
+        },
+        {
+          "title": "never claims freshness it cannot back up",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 75
+        }
+      ]
+    },
+    {
+      "id": "events-view",
+      "file": "src/lib/dashboard/events-view.ts",
+      "names": [
+        "DEFAULT_EVENTS_VIEW",
+        "EVENTS_FILTER_OPTIONS",
+        "EVENTS_SORT_OPTIONS",
+        "EVENTS_VIEW_COOKIE",
+        "EVENTS_VIEW_COOKIE_MAX_AGE"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "defaults to the cover cards",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 50
+        },
+        {
+          "title": "honours a stored choice and refuses anything else",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 57
+        },
+        {
+          "title": "narrows the order and the lens the same way",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 66
+        },
+        {
+          "title": "keeps the bin out of the live list",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 83
+        },
+        {
+          "title": "shows exactly one kind when asked for one",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 87
+        },
+        {
+          "title": "sorts newest first by the row's own recency key",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 94
+        },
+        {
+          "title": "sorts by what is waiting, and stays stable where nothing is",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 105
+        },
+        {
+          "title": "sorts names the way a person reads them, accents included",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 118
+        },
+        {
+          "title": "never mutates the list it was handed",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "id": "next-step",
+      "file": "src/lib/dashboard/next-step.ts",
+      "names": [
+        "STORAGE_STEP_PCT"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers nothing for an event that wants nothing",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 42
+        },
+        {
+          "title": "puts a waiting queue first, above every other claim on the host",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 46
+        },
+        {
+          "title": "falls to paused uploads once the queue is clear",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 60
+        },
+        {
+          "title": "offers the reel only for a live album that has something to cut",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 68
+        },
+        {
+          "title": "offers the code the day before, and not on the day or after",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 79
+        },
+        {
+          "title": "crosses a year boundary without losing a day",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 87
+        },
+        {
+          "title": "links the reel step at the reel, not at the event",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 95
+        },
+        {
+          "title": "gives each event exactly one step, in the order it was handed them",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 107
+        },
+        {
+          "title": "adds the storage step last, and only over the threshold",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 112
+        },
+        {
+          "title": "returns an empty band for a settled host rather than inventing work",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 126
         }
       ]
     },
@@ -9288,8 +11048,8 @@
     {
       "file": "src/lib/type-ladder-policy.test.ts",
       "scope": "engineering",
-      "title": "One type ladder, and every heading on it",
-      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading.",
+      "title": "One type ladder, and every heading and sentence on it",
+      "summary": "a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a stack out of order at either end, a bottom rung under the floor, a stock, arbitrary or inline size on a heading, and an off-step size or a hand-set label tracking on body copy outside the allow-list.",
       "line": 1
     }
   ]

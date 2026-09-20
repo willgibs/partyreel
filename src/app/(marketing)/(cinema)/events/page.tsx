@@ -19,7 +19,7 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 export const metadata: Metadata = {
   title: "Events",
   description:
-    "Collect every photo and video from any event in one shared album. Guests scan a QR code and upload from their phones, no app and no account. Weddings, parties, conferences, trips, and more.",
+    "Collect every photo and video from any event in one shared album. Guests scan a QR code and upload from their phones, with no app required. Weddings, parties, conferences, trips, and more.",
   alternates: { canonical: "/events" },
 };
 

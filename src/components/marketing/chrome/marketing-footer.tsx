@@ -206,7 +206,7 @@ function SignOff() {
           <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the
-              way a guest arrives. No app, no account.
+              way a guest arrives. No app required.
             </span>
             <span className="sm:hidden">
               A real event album, exactly the way a guest arrives. No app, no

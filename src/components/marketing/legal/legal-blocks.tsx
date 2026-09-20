@@ -63,7 +63,7 @@ export function LegalBlocks({
                         <th
                           key={col.header}
                           scope="col"
-                          className="py-2 pr-4 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase"
+                          className="py-2 pr-4 text-label font-medium text-muted-foreground uppercase"
                         >
                           {col.header}
                         </th>

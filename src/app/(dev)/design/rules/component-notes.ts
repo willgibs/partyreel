@@ -25,6 +25,53 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* the event page as a HUB (hub-wiring, 2026-09-20): at the head, like the
+     block below it, so several lanes adding `for` lines in one round land on
+     distinct hunks instead of on each other. */
+  "src/components/shared/crumbs.tsx": {
+    for: "the one way back in the host app: a trail in the bar that each route declares for itself. A CONTEXT and not a prop, because a page is the (app) layout's grandchild and cannot hand one up; the cost is that the trail lands at hydration, which a fixed-height bar makes invisible",
+    unspecimened:
+      "three parts of one mechanism (a provider, a setter that renders nothing, and a bar that is empty until a route claims it), none of which draws anything on its own",
+  },
+  "src/components/app/share/event-share-provider.tsx": {
+    for: "the hub's single island: which sheet the URL has open, whether the code's mini-modal is up, and which of the three codes owns the view transition. The sheets ride history so Back closes them; the mini-modal deliberately does not",
+    unspecimened: "state and history plumbing; it renders only its children",
+  },
+  "src/components/app/share/event-code-door.tsx": {
+    for: "the live, scannable code at the left of the event's title (a real QR at rest, not a glyph that opens one), and the source of the morph into the mini-modal. A paused event dims it and says so, which is where the retired 'accepting uploads' chip went",
+  },
+  "src/components/app/share/event-code-modal.tsx": {
+    for: "the code, bigger: the whole screen and white in a hand, because a host holds the phone up and someone else's camera reads it. The one sanctioned surface in the floating family with no entrance of its own, since the view transition IS its entrance",
+  },
+  "src/components/app/share/event-link-row.tsx": {
+    for: "the subtle event link under the metadata: it SHOWS the slug when there is one and always COPIES the permanent link, because a printed code outlives a slug. Confirms in place, never with a toast",
+  },
+  "src/components/app/share/event-share-sheet.tsx": {
+    for: "the one sharing surface: the code and its downloads, the designer, the link, and the custom-link claim that used to live on the settings route. Anything future about getting people to an album belongs here",
+  },
+  "src/components/app/share/event-sheets.tsx": {
+    for: "the hub's three floating surfaces mounted once, as siblings of the album rather than inside it, so radix can portal them and the album stays mounted and scrolled behind",
+    unspecimened:
+      "a mounting point for three surfaces that each have their own entry",
+  },
+  "src/components/app/share/use-copy-link.ts": {
+    for: "copying the event link, once, for the three controls that do it: the permanent url, an in-place confirmation rather than a toast, and a failure arm that does not claim a copy the clipboard refused",
+    unspecimened: "a hook",
+  },
+  "src/components/app/event-feed/event-cards-row.tsx": {
+    for: "the row of doors under the event's header (Review, Reel, Guests, then Settings), sticky and condensing as the album scrolls. Links in a group and never tabs, since three of them are rooms you go to; the QR pill at its end exists only while the header's code is off screen",
+  },
+  "src/components/app/event-feed/event-gallery.tsx": {
+    for: "the album as the hub's subject, with the controls that used to be spread across a command strip and a section header: Add photos, Download all, Select, and the Deleted filter the bin folded into. The bin is fetched only when asked, never with the page",
+  },
+  "src/components/app/event-feed/review-room.tsx": {
+    for: "the Review room's client boundary: the triage machine, owned by a room instead of shared with a floating bar, handed to the section that draws it",
+    unspecimened:
+      "a thin owner around review-section, which is the specimen worth drawing",
+  },
+  "src/components/app/event-settings/event-settings-sheet.tsx": {
+    for: "the event's settings over the album that they govern, so a change to who can see this is judged against the photographs it applies to. The form is imported whole; what changed is the frame and a close that confirms while dirty",
+  },
   /* the marketing chrome's two moving parts (chrome-wiring, 2026-09-19): at
      the head for the same reason as the block below, so three lanes adding
      `for` lines in one round do not land on each other. */
@@ -52,6 +99,32 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   // ★ The profile wiring's three (2026-09-19): all outside the library's
   // directories, indexed because each carries a contract test. They land at the
   // head with the round's other lanes so three merges stay apart.
+  /* ★ AT THE HEAD, with the round's other wiring lanes (home-wiring,
+     2026-09-20): the host's home became a pulse, the events list gained a
+     second view behind a remembered toggle, and the personal feeds moved to
+     the profile's owner mode. Six lanes merge into this file this round and
+     landing at the top is what keeps them line-disjoint. */
+  "src/lib/dashboard/next-step.ts": {
+    for: "the one thing each event wants next, in a fixed order over real state: the rule that stops the host's home going blank for anybody who is up to date",
+  },
+  "src/lib/dashboard/arrivals.ts": {
+    for: "how wide 'just arrived' has to open to hold twelve photographs, and the caption that admits which window it settled on",
+  },
+  "src/lib/dashboard/events-view.ts": {
+    for: "whether your events draw as cover cards or rows, in what order and through which lens; the view is a cookie because the server has to know it before the first byte",
+  },
+  "src/components/app/dashboard/events-section.tsx": {
+    for: "your events, both ways: the cards by default, the rows for a host with many, the toggle opposite the heading, and the bin and the saved events as lenses rather than a chip row",
+  },
+  "src/app/(guest)/u/[slug]/owner-sections.tsx": {
+    for: "the three feeds only you see on your own profile page: your uploads, your likes, the people you follow. It takes no identity at all, so it can never be pointed at somebody else",
+    unspecimened:
+      "an async Server Component reading three auth.uid() RPCs; there is no signed-in caller in a library build",
+  },
+  "src/app/(app)/account/page.tsx": {
+    for: "the person's account: the Plan card that is billing's only door, then the profile, the handle, connections, password and the way out",
+    unspecimened: "a route, not a component",
+  },
   "src/components/social/guest-list.tsx": {
     for: "who added photographs to an album, on both the host's page and the guest's: names in chips until a party is big, then one row of faces that opens a page of names at a time",
   },
@@ -460,6 +533,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/ui/switch.tsx": {
     for: "the settings toggle, from an event's upload rules to the admin kill switches",
   },
+  "src/components/ui/toggle-group.tsx": {
+    for: "the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today",
+    unspecimened:
+      "generated for one product surface and mounted there (the dashboard's events heading); it earns a gallery entry when a lane owns the gallery, which none does this round",
+  },
   "src/components/ui/tabs.tsx": {
     for: "the tab group, filled or underlined; only the design lab mounts it today",
   },
@@ -536,6 +614,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/app/(dev)/design/sandbox/registry.ts": {
     for: "every standing board's spec, imported here and nowhere else, so the desk, the board page and the ledger read one list",
+  },
+  "src/app/(dev)/design/sandbox/overtaken.ts": {
+    for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
   },
   "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",

@@ -318,7 +318,7 @@ export function HelpPaletteProvider({
                 }}
                 onKeyDown={onInputKeyDown}
                 placeholder="Search the help center..."
-                className="h-full flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+                className="h-full flex-1 bg-transparent text-reading text-foreground outline-none placeholder:text-muted-foreground"
               />
               {query.length > 0 && (
                 <button
@@ -349,7 +349,7 @@ export function HelpPaletteProvider({
               className="max-h-[min(26rem,55vh)] overflow-y-auto p-1"
             >
               {!hasQuery && (
-                <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                <p className="px-3 pt-2 pb-1.5 text-label font-medium text-muted-foreground uppercase">
                   Suggested
                 </p>
               )}
@@ -395,7 +395,7 @@ export function HelpPaletteProvider({
               {options.map((option, optionIndex) => (
                 <span key={option.id} className="block">
                   {option.kind === "page" && optionIndex === firstPageIndex && (
-                    <p className="px-3 pt-3 pb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    <p className="px-3 pt-3 pb-1.5 text-label font-medium text-muted-foreground uppercase">
                       Pages
                     </p>
                   )}
@@ -540,7 +540,7 @@ export function HelpSearchTrigger({
         aria-hidden
         className="size-[18px] shrink-0 text-muted-foreground"
       />
-      <span className="flex-1 truncate text-[15px] text-muted-foreground">
+      <span className="flex-1 truncate text-reading text-muted-foreground">
         Search the help center...
       </span>
       <Kbd>{shortcut}</Kbd>

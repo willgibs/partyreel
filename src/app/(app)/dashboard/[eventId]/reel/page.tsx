@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
+import { ReelPanel } from "@/components/app/reel-panel";
 import { ReelProvider } from "@/components/reel/reel-provider";
+import { ReelStageProvider } from "@/components/reel/reel-stage-provider";
 import { ReelStudio } from "@/components/reel/reel-studio";
+import { SetCrumbs } from "@/components/shared/crumbs";
+import { PageHeading } from "@/components/shared/page-heading";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import { getEvent } from "@/lib/db/queries/events";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
@@ -28,13 +32,22 @@ export async function generateMetadata({
 }
 
 /**
- * THE REEL STUDIO, as a route (ruled by Will, R3).
+ * THE REEL ROOM, as a route (ruled by Will, R3; one of the hub's cards since
+ * `event=hub`, 2026-09-20).
  *
  * A route and not a modal: the reel deserves a place you GO to, the room survives
  * a refresh, and the phone's back gesture means what it looks like it means.
  *
  * It loads the SAME items as the event page through the shared mapper, because the
  * Studio is a different view of one reel, not a second source of truth for it.
+ *
+ * ★ THE ROOM NOW HOLDS BOTH SIDES OF THE REEL'S BIRTH, and that is what let the
+ * old redirect go. This route used to bounce a host with no reel back to
+ * `?section=reel` — the feed section that could create one. The sections are
+ * cards now and there is no such filter, so rather than re-point a redirect at
+ * a surface that no longer exists, the room renders the BUILDER before birth
+ * and the STUDIO after it. The hub's card reads "Create reel" until then, so
+ * the door says what is behind it and never leads anywhere empty.
  */
 export default async function ReelStudioPage({ params }: PageProps) {
   const { eventId } = await params;
@@ -54,12 +67,6 @@ export default async function ReelStudioPage({ params }: PageProps) {
       getReelConfig(event.id),
     ]);
 
-  // ★ No config row means the reel has not been BORN yet, and birth belongs to the
-  // builder's Create (that tap is the ratified reveal's trigger). So the Studio is
-  // a post-birth room only: send a host who arrives early back to the section that
-  // can actually create it, rather than showing them an empty room.
-  if (!reelConfig) redirect(`/dashboard/${event.id}?section=reel`);
-
   const galleryItems = await toHostGalleryItems({
     media,
     eventName: event.name,
@@ -69,8 +76,45 @@ export default async function ReelStudioPage({ params }: PageProps) {
   // Pending uploads live in the review queue, never in the reel.
   const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
+  const crumbs = (
+    <SetCrumbs
+      trail={[
+        { label: "Partyreel", href: "/dashboard" },
+        { label: event.name, href: `/dashboard/${event.id}` },
+        { label: "Reel" },
+      ]}
+    />
+  );
+
+  // ★ No config row means the reel has not been BORN yet, and birth belongs to
+  // the builder's Create (that tap is the ratified reveal's trigger). The
+  // builder is the room's pre-birth face; ReelStageProvider is what the
+  // builder's create path reads.
+  if (!reelConfig) {
+    return (
+      <div data-route-fade className="space-y-6">
+        {crumbs}
+        <PageHeading>Reel</PageHeading>
+        <ReelProvider eventId={event.id} initialReelIds={reelIds}>
+          <ReelStageProvider initialCreated={false}>
+            <ReelPanel
+              eventId={event.id}
+              eventName={event.name}
+              items={visibleItems}
+              reelConfig={null}
+              watermark={tier === "free"}
+              tier={tier}
+              guestVisible={false}
+            />
+          </ReelStageProvider>
+        </ReelProvider>
+      </div>
+    );
+  }
+
   return (
     <ReelProvider eventId={event.id} initialReelIds={reelIds}>
+      {crumbs}
       <ReelStudio
         eventId={event.id}
         eventName={event.name}

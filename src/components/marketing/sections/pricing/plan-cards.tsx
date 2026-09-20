@@ -11,6 +11,7 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { PRO_LINE } from "@/lib/constants/marketing-voice";
 import {
   annualPlanFor,
   friendlyCapacity,
@@ -312,9 +313,13 @@ export function PlanPair() {
           <PhotoStack ink />
           <div className="flex flex-col gap-2">
             <h2 className="font-heading text-subsection">Pro</h2>
-            <p className="text-sm text-pretty text-background/75">
-              For hosts who host again.
-            </p>
+            {/* RULED (Will, 2026-09-19, voice r1 `pro-line=video`). It used to
+                read "For hosts who host again.", which describes the buyer
+                rather than what they get; his line names the two things Pro
+                actually unlocks, video first. The one home is marketing-voice.ts
+                (the four sibling statements of the same value share its ORDER,
+                never its bytes). */}
+            <p className="text-sm text-pretty text-background/75">{PRO_LINE}</p>
             <div className="mt-3 font-heading text-section tabular-nums">
               {/* Keyed remount so a size/cadence change swaps the price instantly
                 (high-frequency interaction: no re-pop theater). */}

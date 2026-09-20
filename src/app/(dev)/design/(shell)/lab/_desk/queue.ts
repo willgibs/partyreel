@@ -7,6 +7,12 @@ import {
   type BoardStatus,
   boardStatus,
 } from "@/app/(dev)/design/review/status";
+import {
+  type Outcome,
+  outcomeOf,
+  type OvertakenNote,
+  overtakenFor,
+} from "@/app/(dev)/design/sandbox/overtaken";
 
 import type { Transcribed } from "./review-message";
 import { holdId, itemHoldId } from "./step-id";
@@ -46,6 +52,13 @@ export type AskState = {
   staged: boolean;
   /** Its prerequisite went the other way: not asked this round at all. */
   moot: boolean;
+  /**
+   * An earlier ruling reached this question (`sandbox/overtaken.ts`). It is
+   * still asked and still answerable; the note is what the desk badges it with.
+   */
+  overtaken?: OvertakenNote;
+  /** What the ledger says became of it: open, stood, or overrode the ruling. */
+  outcome: Outcome;
 };
 
 /** One catalog card of one board, with the ruling standing against it (or none). */
@@ -82,6 +95,14 @@ export type BoardRow = {
   /** The ledger's own note texts in the board's OPEN round, under the round
    *  guard: what "Copy so far" must not send a second time. */
   heldNotes: string[];
+  /**
+   * How many of this board's asks an earlier ruling reached, and how many of
+   * those are still open. The desk prints both and says what it counts ("3
+   * overtaken"), because a count that reads as "answered" is precisely the
+   * silence his ruling exists to prevent.
+   */
+  overtaken: AskState[];
+  overtakenOpen: AskState[];
 };
 
 /** What the registry says about a board, as the desk needs it. */
@@ -109,18 +130,26 @@ export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
   const spec = status.spec;
   if (!spec) return [];
   const current = status.round !== null && status.round.n === spec.round.n;
-  return status.asks.map((a) => ({
-    board: board.id,
-    boardTitle: board.title,
-    round: spec.round.n,
-    ask: a.ask,
-    answer:
+  return status.asks.map((a) => {
+    const answer =
       current && (a.state === "answered" || a.state === "unclear")
         ? { choice: a.answer.choice, note: a.answer.note }
-        : null,
-    staged: a.state === "staged",
-    moot: a.state === "moot",
-  }));
+        : null;
+    return {
+      board: board.id,
+      boardTitle: board.title,
+      round: spec.round.n,
+      ask: a.ask,
+      answer,
+      staged: a.state === "staged",
+      moot: a.state === "moot",
+      overtaken: overtakenFor(board.id, a.ask.id),
+      // Derived from the ledger, never stored beside the note: the ledger is
+      // the one home of what was answered, and a second copy would drift the
+      // first time he changed his mind (`sandbox/overtaken.ts`).
+      outcome: outcomeOf(answer?.choice),
+    };
+  });
 }
 
 /** The catalog's cards against one status reading, under the same round guard. */
@@ -179,6 +208,12 @@ export function deskRows(
       // land in this very sitting, which only the browser knows; a MOOT one is
       // gone for the round.
       open: asks.filter((a) => a.answer === null && !a.moot),
+      // An overtaken ask is a normal ask everywhere else: it queues, it walks,
+      // it counts. These two lists exist only so the desk can SAY so.
+      overtaken: asks.filter((a) => a.overtaken && !a.moot),
+      overtakenOpen: asks.filter(
+        (a) => a.overtaken && !a.moot && a.outcome === "open",
+      ),
       // `status.notes` mixes the window's GLOBAL notes into every board, which
       // would print the same four lines fourteen times; the desk prints those
       // once, in their own section. What belongs on a row is the board's own:

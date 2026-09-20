@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 553 contracts on 71 components · 28 standing boards.**
+**22 laws · 18 policies · 642 contracts on 90 components · 27 standing boards.**
 
 ## What binds you
 
@@ -222,7 +222,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, and every heading on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading and sentence on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a stack out of order at either end, a bottom rung under the floor, a stock, arbitrary or inline size on a heading, and an off-step size or a hand-set label tracking on body copy outside the allow-list. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -288,6 +288,7 @@ function. A contract never freezes a look.
 | `src/components/shared/app-shell.tsx` | the signed-in app frame | none |
 | `src/components/shared/claim-uploads-on-auth.tsx` | claims a guest's uploads onto the account that just signed in | none |
 | `src/components/shared/container.tsx` | the centered page gutter: the single source of horizontal rhythm | none |
+| `src/components/shared/crumbs.tsx` | the one way back in the host app: a trail in the bar that each route declares for itself. A CONTEXT and not a prop, because a page is the (app) layout's grandchild and cannot hand one up; the cost is that the trail lands at hydration, which a fixed-height bar makes invisible | renders nothing at all until a route claims it; is a breadcrumb landmark whose last step is the page itself; makes every step but the last a walkable link; keeps a way UP in reach at a phone's width, where the full trail cannot fit; is declared by every route inside an event, with a walkable parent |
 | `src/components/shared/empty-state.tsx` | the neutral placeholder for an empty gallery, dashboard or list | none |
 | `src/components/shared/error-digest.tsx` | a crash's correlation code, with the one sentence saying what it is for and a Copy control; only a render crash passes one, because a 404 throws nothing to correlate | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
 | `src/components/shared/floating-add-button.tsx` | the floating Add photos pill, shown only while the header's Add button is off screen | none |
@@ -328,15 +329,31 @@ function. A contract never freezes a look.
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
+| `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
 | `src/components/ui/tooltip.tsx` | the hover and focus label; useless on touch, where a Popover is the honest answer | none |
 
 Contracted but outside the library's directories:
 
-- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (18 guards)
+- `src/app/(app)/account/page.tsx` (4 guards)
+- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
+- `src/app/(dev)/design/sandbox/overtaken.ts` (10 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
+- `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/app/dashboard/events-section.tsx` (9 guards)
+- `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
+- `src/components/app/event-feed/event-gallery.tsx` (10 guards)
+- `src/components/app/event-feed/review-room.tsx` (10 guards)
+- `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/share/event-code-door.tsx` (12 guards)
+- `src/components/app/share/event-code-modal.tsx` (12 guards)
+- `src/components/app/share/event-link-row.tsx` (12 guards)
+- `src/components/app/share/event-share-provider.tsx` (12 guards)
+- `src/components/app/share/event-share-sheet.tsx` (12 guards)
+- `src/components/app/share/event-sheets.tsx` (12 guards)
+- `src/components/app/share/use-copy-link.ts` (12 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
@@ -353,7 +370,7 @@ Contracted but outside the library's directories:
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
-- `src/components/lab/step.tsx` (36 guards)
+- `src/components/lab/step.tsx` (44 guards)
 - `src/components/marketing/chrome/header-shell.tsx` (11 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (9 guards)
 - `src/components/marketing/chrome/session-hint.tsx` (6 guards)
@@ -381,6 +398,9 @@ Contracted but outside the library's directories:
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
+- `src/lib/dashboard/arrivals.ts` (6 guards)
+- `src/lib/dashboard/events-view.ts` (9 guards)
+- `src/lib/dashboard/next-step.ts` (10 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 - `src/lib/shared/use-scroll-direction.ts` (8 guards)
 
@@ -416,6 +436,5 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
 | `glass` | shared | Round two, two decisions: the ONE material (Frost, Crystal, or the reel's white on Frost's filter) drawn on all six glass surfaces in a single frame per option, and then its edge on whichever body wins; over the darkest, middling and brightest photographs at 375 and 1440, every option drawing an ACTIVE rose mark, every number read off the rendered pane (the mark's contrast, the pill's, the capsule's, and the compositor cost of a phone scroll) |
 | `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
-| `voice` | shared | Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column |
 | `admin` | admin | Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen |
 

@@ -6,28 +6,28 @@
 
 ## Dashboard landing
 
-[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, four tabs
-deep-linkable via `?filter=` (the legacy `?tab=` still translated; [`filter-chips.tsx`](../../src/components/app/dashboard/filter-chips.tsx)
-syncs the URL with `history.replaceState` so switching stays instant, no server round-trip):
-- **Events** — hosted + saved events MERGED into one list, interleaved by recency (hosted by `created_at`,
-  saved by `saved_at`, so a just-created OR just-saved event lands top) + icon-differentiated (a calendar
-  glyph vs a bookmark) on the shared `EventCard`. Saved cards keep their visibility masking + unsave (→
-  [notifications-analytics-growth.md](notifications-analytics-growth.md)).
-- **Uploads** — the host's OWN media across ALL events (host uploads + guest uploads), via the authenticated
-  `get_my_uploads` RPC (UNION of host-arm + guest-arm; `is_host_upload` + event/type/date make it filter-ready
-  for a future cross-gallery filter; presigned server-side; ≤200 with a truncation footer). Reuses `MediaGrid`
-  + the lightbox (view + per-item download + **delete-own** via a confirm-gated Trash control → the
-  `remove_my_upload` RPC; optimistic removal) + a gated event-context caption per item →
-  [uploads-and-r2.md](uploads-and-r2.md). A guest's self-deletion stays private to the host → [lifecycle-recovery.md](lifecycle-recovery.md).
-- **Likes** — every photo/video the viewer has LIKED across all events (newest-liked first), via the
-  authenticated `get_my_likes` RPC (it re-applies the like access predicate, so a now-inaccessible like drops
-  out + never leaks its key). Reuses `MediaGrid` + the lightbox; here the heart (tile or lightbox) UNLIKES and
-  drops the item. "Like" = a favorite collected from ANY gallery (distinct from Save = an event bookmark);
-  anonymous guests get the like button + the same create-account flow as Save. The per-event like COUNT is
-  HOST-ONLY, a subtle "♥ N" badge on the event-detail management gallery (`get_event_like_counts`,
-  host-gated), never on a guest surface; it also seeds the future sort/filter. → [database-security.md](database-security.md), [guest-flow.md](guest-flow.md).
-- **Trash** — the soft-deleted EVENTS recovery bin →
-  [lifecycle-recovery.md](lifecycle-recovery.md).
+[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home and, since 2026-09-20
+(`home=pulse`), a PULSE rather than an inbox: "what needs you, then what just arrived". The five-chip
+filter bar is gone, and so are the personal feeds it mixed in - your uploads, your likes and the hosts
+you follow moved to the profile's owner mode (→ [profiles-social.md](profiles-social.md)), because your
+own likes were never a hosting job. Four bands, in this order:
+- **What needs you** — one NEXT BEST STEP per event from a pure rule
+  ([`next-step.ts`](../../src/lib/dashboard/next-step.ts)), first match wins: a queue waiting, uploads
+  paused, a live album with items but no reel, an event dated tomorrow. Plus the storage step over 85%.
+  ★ **It must never render as a void.** Will approved the pulse while warning that the old inbox existed
+  so the app would not feel "limited and empty... until more things start to happen". A band wired
+  straight to the review queue is blank for every host who is up to date, so the rule is what ships and
+  an empty result renders a calm line, not nothing. `home-states` (app-shape round two) inherits this.
+- **Just arrived** — the newest photographs, in a window that WIDENS until it holds twelve (the last
+  hour, then today, then the newest across events) and a caption that says which it settled on
+  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)). ★ These tiles are the ONE host surface that
+  keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just arrived, so the
+  animation is the only thing on the page reporting what changed. Reads + presigns live in
+  [`pulse.ts`](../../src/lib/db/queries/pulse.ts), a separate file from `events.ts` on purpose - the
+  event SETTINGS page shares `getEventCardStats`, and growing that module ties two surfaces together.
+- **The storage line** — the ambient `StorageMeter`, now UNCONDITIONAL (it used to need 1+ events). A
+  host with no events still has a plan and a shelf. The over-cap grace banner stays its own top alert.
+- **Your events** — hosted + saved, interleaved by recency, in either of two views (below).
 
 ## Events & the create flow
 
@@ -66,6 +66,17 @@ guards `MAX_EVENTS`. **Events have no end date**: deletion is the only lifecycle
   controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
+- **The events list draws two ways, and the choice is a COOKIE** (`density=cover`, Will 2026-09-20:
+  "let's do both"). Cover cards by default; a row view (the cover behind at 12%, the counts in columns,
+  the newest few beside the name) behind a toggle aligned right opposite "Your events", with a sort menu
+  (Newest · Most waiting · Name) that rides with the rows. The bin and the saved events are FILTERS of
+  this one list, never a chip row, and the filter shows in BOTH views - it is the only door to the bin,
+  so hiding it in the row view would strand a default-view host. "Deleted" names one thing.
+  ★ **The view is a cookie set by a Server Action, not localStorage, and that is load-bearing**: the
+  server has to know the view before the first byte or every cold load paints cards and swaps to rows
+  after hydration. Setting a cookie in a Server Function also re-renders the page server-side, so the
+  toggle needs no `router.refresh()`. Cross-device persistence would want a `profiles.events_view`
+  column; that is an open migration proposal, not shipped.
 
 ## QR designer
 
@@ -76,7 +87,8 @@ single-sourced in [`qr-presets.ts`](../../src/lib/constants/qr-presets.ts) (`cla
 persisted on `events.qr_style` (a plain **text** column, app-validated rather than a DB enum, so presets grow
 without a migration; unknown/legacy → `classic`). Chain: `StyledQr` (renderer) → `QrPresetPicker`
 ([`qr-preset-picker.tsx`](../../src/components/app/qr-preset-picker.tsx), reused by the wizard) → `EventQr`
-(+ SVG/PNG download) → `QrDesignerDialog`.
+(+ SVG/PNG download) → `QrDesignerDialog`, which rides in the event's SHARE SHEET. `StyledQr` also draws the
+hub's header code and the mini-modal's, so one renderer serves every code a host sees.
 **Invariant:** every preset keeps DARK data modules on a WHITE background for scannability; brand color only
 tints the corner finder patterns. Prove a new preset by SCANNING it (the host UI is auth-gated → verify on partyreel.com).
 
@@ -89,8 +101,9 @@ RPC-write-only) is set/cleared by `set_event_slug` / `clear_event_slug` (authent
 DEFINER, tier-gated on the `event_password_hash` pattern). `get_event_by_qr_token` resolves
 `qr_token OR custom_slug` (token wins) and returns the canonical `qr_token`. Validation + a reserved-word
 list: [`validation/event.ts`](../../src/lib/validation/event.ts) + [`reserved-slugs.ts`](../../src/lib/constants/reserved-slugs.ts);
-the UI is [`event-slug-control.tsx`](../../src/components/app/event-slug-control.tsx) (set/change/remove) in
-the "Share with guests" card AND reused in the wizard's Share step. It has **debounced live availability**
+the UI is [`event-slug-control.tsx`](../../src/components/app/event-slug-control.tsx) (set/change/remove), which
+lives in the event's SHARE SHEET (its one home since `share=room`, 2026-09-20) AND is reused in the
+wizard's Share step. It has **debounced live availability**
 (via the authenticated `check_slug_available` RPC, browser-called + request-id race-guarded; the pure
 classifier is `evaluateSlugInput` in [`slug.ts`](../../src/lib/slug.ts)), a change/remove warning dialog
 (both break the live link), and a name-derived suggestion chip. Downgrade keeps the slug resolving +
@@ -116,132 +129,139 @@ the `/dashboard` guard bounces the host straight back. The `/welcome` route itse
 `welcomed_at` (no loop). `welcomed_at` is on the `profiles` host-writable allowlist. The "how it works"
 story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
 marketing page — edit it once).
+A host arriving from the wizard lands on the pulse with no events yet, where the events band renders the
+create-first hero (`events-empty-teaser.tsx`) rather than the four bands: the "what needs you" band is
+suppressed at zero events, because a rule with nothing to rule on is the empty surface the pulse exists
+to avoid. The storage line and the create door still render, so the page is never bare.
 
 ## The event page
 
-[`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) mirrors the guest experience: the
-gallery IS the page under a minimal editorial header. Composition (top → bottom): an **editorial status-row
-header** (event name + a stat line of date / items / contributors / views — `contributorCount` computed
-LOCALLY from the media rows, distinct `guest_id` + host, so it stays host-accurate even for password/private
-events where `getGalleryStats` would zero it, plus config-status chips: visibility Open/Password/Private + an
-Accepting-uploads dot) → a **command bar** → a **stacked, pill-filtered feed**, never tabs.
+[`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) is a **HUB** (Will's
+`event=hub`, 2026-09-20): a live QR code at the left of the title + metadata + link stack, a row of CARDS
+into the event's rooms, and the ALBUM beneath them in most-recent order, which is the page's subject. The
+Share-primary command strip, the five filter pills and the stacked Review / Reel / Guests sections are
+RETIRED; `event-feed.tsx` and `event-feed-action-bar.tsx` stay on disk for the lab alone.
 
 ★ **It is the ONE wide page in the host app** (Will's `host=same`, 2026-09-19: a host sees as many
 photographs at once as a guest). The page marks its root `data-app-wide` and
 [`AppShell`](../../src/components/shared/app-shell.tsx) answers in `:has()` — a page is the layout's
-grandchild and cannot hand a prop back up to it — so BOTH of its containers drop the 1280 cap and keep the
-gutter. The words (the back link, the header block, the command strip) stay at `max-w-7xl` pinned LEFT, the
-FEED takes the window, and logo / heading / pills / section label / first column measure to one left line
-(32px at `lg`). Every OTHER host page is untouched: no `data-app-wide`, so the shell is still the centred
-1280 column. What changed for them is the GRIDS, not the page — `MasonryColumns` now carries the shared
-column rule (`GALLERY_COLUMNS` / `GALLERY_UNIFORM_COLUMNS`, one floor, `--album-column`), so Uploads, Likes,
-the recovery bin, the Reel and the Review queue all went from 3 or 4 fixed columns to ~240px tiles: 5 across
-inside a 1280 column, 6 at 1512 and 8 at 1920 on this page.
+grandchild and cannot hand a prop back up to it — so BOTH containers drop the 1280 cap and keep the gutter.
+The logo, the code, the cards row and the album's first column all start on ONE left line.
 
-**The feed** ([`event-feed/`](../../src/components/app/event-feed/), the DashboardFeed analog): the RSC page
-resolves every section + presigns server-side and hands the **Gallery + Reel** sections to the client
-[`EventFeed`](../../src/components/app/event-feed/event-feed.tsx) as opaque pre-rendered SLOTS; the **Review**
-queue crosses as DATA (its inline triage is interactive). `EventFeed` owns the active filter (URL-synced via
-`replaceState` on `?section=`; legacy `?eventTab=` still resolves) and the urgency order, and decides what
-shows. **"All" stacks** the three sections; the [`EventFilterPills`](../../src/components/app/event-feed/event-filter-pills.tsx)
-(`All · Review · Gallery · Reel · Guests`, aria-pressed buttons in a group, NOT radix Tabs) narrow to one. The
-section model is pure + node-safe in [`lib/event/sections.ts`](../../src/lib/event/sections.ts)
-(`resolveInitialEventSection`, `orderedSections`; mirrors `lib/dashboard/filters.ts`), unit-tested.
-**Urgency order:** Review leads the stack (and the pills) ONLY while moderation is on
-AND a queue waits; otherwise the album leads and Review sinks LAST (the caught-up line, or the moderation-off
-discovery teaser). The Review pill count is **LIVE + AMBER** (a needs-action signal, driving the order);
-Gallery/Reel counts are the server snapshot.
+**The header is one object.** A real, scannable ~112px `StyledQr`
+([`share/event-code-door.tsx`](../../src/components/app/share/event-code-door.tsx)) whose height is the
+title + metadata + link stack, wrapped in a `<button aria-label="Show the code for {event}">` **beside** the
+h1 and never inside it (an h1 containing a control stops being the page's accessible name). It is a code at
+REST, not a glyph that opens one: that is what "get the QR and sharing more infusion to the album UI
+visually" asked for. ★ **The header's two chips are gone:** "accepting uploads" is now the code's OWN state
+(paused = the code dimmed, "Paused" over it, `title="Uploads paused"`), and visibility rides the **Settings
+card's value line**. Under the metadata sits the third, subtler link
+([`share/event-link-row.tsx`](../../src/components/app/share/event-link-row.tsx)): it SHOWS the pretty URL
+(the slug when set, else the `/e/` link middle-truncated at 375) and always COPIES the permanent
+`qr_token` one, confirmed IN PLACE with a 90ms pop and an `aria-live` line, never a toast.
 
-**Section headers + empty states (consistent, no-bounce).** Every section leads with ONE shared
-[`FeedSectionHeader`](../../src/components/app/event-feed/feed-section-header.tsx): a subtle 11px uppercase
-eyebrow + the pill-identical count badge (amber on a live Review queue), locked to **`min-h-7`** on the row.
-That fixed band height (== the tallest right-slot control, a `size="sm"` h-7 button) is the **no-bounce
-guarantee**: a label-only Gallery/Reel header and the Review-pending header (which carries the Select/Approve
-all cluster in its action slot) resolve to the same 28px band, so toggling pills never shifts the header's top.
-★ Keep anything in the action slot ≤ h-7, or the band grows and the bounce comes back.
-The empty/teaser bodies share ONE
-[`FeedSectionEmpty`](../../src/components/app/event-feed/feed-section-empty.tsx): centered, card-less, the
-size-12 icon circle (the "Reel" treatment, Will, 2026-06-22), used by Reel-empty, Gallery-empty, and
-Review caught-up + moderation-off; it renders UNDER the header, never replacing it.
+**The cards row** ([`event-feed/event-cards-row.tsx`](../../src/components/app/event-feed/event-cards-row.tsx)):
+Review · Reel · Guests · **Settings LAST** (the Album card it replaced is not a door any more). A
+`role="group"` of **LINKS, never tabs** — three are rooms you navigate to and the fourth opens a sheet, so
+nothing here switches a panel in place. Sticky at `top-14`, condensing **in place** on an
+IntersectionObserver (a remount would drop the QR pill's `view-transition-name` mid-morph and restart the
+ticking count, so the compact state is styling on the same DOM). The Review count ticks down on return
+(tabular figures, 200ms, a rAF even under reduced motion so no setState lands in an effect body). Sideways
+scrolling with **conditional** edge fades: each edge masks only while something is past it.
+★ **Share's place in the sticky row** (his `nav` note asked for "a creative way to get share in there"): a
+**QR pill at the row's end that exists ONLY while the header's code is off screen**, carrying the morph's
+name while it is the code on screen, so nothing is duplicated at rest.
 
-- **Command bar** ([`host-command-strip.tsx`](../../src/components/app/host-command-strip.tsx)): Share PRIMARY
-  + Add + Settings, responsive (Share full-width with Add+Settings beneath on a phone, one row when wide;
-  viewport breakpoints are correct here, it's page-width). **Share** opens
-  [`EventShareDialog`](../../src/components/app/event-share-dialog.tsx) (QR + copy link), which surfaces the
-  **QR designer** ("Customize", a fun, core, growth-loop feature, kept in the share flow and NOT tucked into
-  settings) + a quiet link to Settings.
-- **Add:** the command Add toggles the inline upload panel (the
-  command strip stays the panel HOST). The floating Add is part of the feed's **contextual action bar**
-  (below); the strip + the bar share one [`HostAddProvider`](../../src/components/app/host-add-provider.tsx),
-  so the floating Gallery action opens the SAME panel + scrolls to it, with the live "N uploading" chip
-  (`HostUpload` reports its in-flight count to the provider).
-- **Settings = a dedicated ROUTE** ([`/settings`](../../src/app/(app)/dashboard/[eventId]/settings/page.tsx)):
-  the settings form (an orchestrator over `event-settings/{details,visibility,uploads,
-  danger-zone}-section.tsx`, sections reading the one form via `useFormContext`) + the link/slug (URL) config
-  + the **Deleted** recovery bin (intentionally behind settings, because the retrieval path is where a host looks). A
-  lean CSS route crossfade (`[data-route-fade]` in globals.css, `@starting-style`) gives the "view-transition
-  feel" without the experimental View Transitions API; the sections settle in a light `--arrive-i` stagger
-  atop it. **Leaving with unsaved edits warns:** a client wrapper
-  ([`settings-with-guard.tsx`](../../src/components/app/event-settings/settings-with-guard.tsx)) owns the
-  form's `dirty` (the form reports via `onDirtyChange`) and guards a HARD nav
-  ([`use-unsaved-changes-guard.ts`](../../src/lib/use-unsaved-changes-guard.ts) → `beforeunload`) + the
-  back-link (Next 16 `Link.onNavigate` → preventDefault → a confirm Dialog → Discard `router.push` / Keep
-  editing). Scope: the back-link + beforeunload ONLY (not every app-shell link, not popstate).
-- **The contextual floating action bar** ([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx),
-  the feed's headline control): one fixed-bottom surface generalizing the floating Add. It appears
-  once the feed scrolls past its top sentinel (or whenever review select mode needs its bulk controls) and
-  **MORPHS its action to the section the host is looking at** via a scroll-spy
-  ([`use-active-section.ts`](../../src/lib/shared/use-active-section.ts), one `IntersectionObserver` with a
-  center band): **Review** → `Select` / `Approve all` (then the select-mode bulk bar); **Gallery** → `Add
-  photos` (opens the shared panel); **Reel** → pre-Create a violet `Create reel` pill that fires the
-  BUILDER's own create via `ReelStageProvider.requestCreate()` (the reveal's FLIP measures the builder's
-  tiles, on screen by construction while the section is active).
-  ★ The builder registers that target only
-  once ≥1 moment is picked, because `create()` refuses at zero and an unregistered target means NO pill
-  rather than a dead tap. Post-Create it is the `Open studio` link. A
-  section with nothing to act on yields no bar. Content crossfades on section change (`[data-section-swap]`). In "All" the active
-  section is the scroll-spy's; when filtered, it's the pinned pill.
-- **Hydration:** the SSR'd surfaces (header, command-bar row, pills, gallery/reel tiles) are native-`title`
-  ONLY, with NO radix Tooltip on SSR'd elements (the silent prod-hydration regression cause, see
-  [architecture.md](architecture.md)). The feed/sections/bar are client islands fed by RSC-resolved props;
-  the section model is pure so the server-resolved initial filter matches the client's first render. Rich
-  client UI (the share dialog, QR designer, the review peek overlay) is safe inside client islands.
-- **Motion** (Will, 2026-06-22; the hooks live in [design-system.md](design-system.md)): **A=Condense** (the sticky pill bar shrinks on scroll, `data-stuck`), **B=Fade** (the filter
-  swap re-keys the feed → `[data-section-swap]`), **C=FLIP** (the urgency reorder slides the sections via a
-  hand-rolled CSS FLIP, [`use-flip.ts`](../../src/lib/shared/use-flip.ts); `motion`/framer was trialed and
-  REJECTED, and the package is not in the tree). The inline Review keeps the takeover's choreography: the bulk REMOVAL EXIT
-  (`[data-exiting]`), the checkmark pop (`[data-check-pop]`), and the ALL-CAUGHT-UP beat
-  (`[data-unlock-success]`) that plays in place THEN the FLIP relocates the section. All timings are
-  var-tunable LIVE via the dev-only, design-key-gated **motion tuner**
-  ([`motion-tuner.tsx`](../../src/components/dev/motion-tuner.tsx); the baked `--tune-*` values live
-  in globals.css; hooks in [design-system.md](design-system.md)).
+**Rooms, sheets, and the album.** Review, Reel and Guests are ROOMS (routes with a crumb); Settings and
+Share are SHEETS; the album is the hub page itself.
+- **The crumbs** ([`shared/crumbs.tsx`](../../src/components/shared/crumbs.tsx), `nav=crumbs`): "Partyreel /
+  the event / the room" in the bar, `<nav aria-label="Breadcrumb">` with `aria-current` on the last step,
+  cut at 375 to the parent step alone behind a back chevron. `CrumbsProvider` lives inside `AppShell` and
+  each route declares `<SetCrumbs>`, so `(app)/layout.tsx` needs no edit. ★ The trail lands at HYDRATION
+  (a page cannot hand a prop up to its layout and CSS cannot carry an event's name); the bar's fixed height
+  means nothing shifts, and the h1 carries the name throughout.
+- **The two sheets ride `?room=`**, owned by one client island
+  ([`share/event-share-provider.tsx`](../../src/components/app/share/event-share-provider.tsx)). ★ `?room=`
+  IS the state, read from `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a
+  settings action cannot close the panel. Opening pushes a history entry whose marker is a **FIELD on the
+  state Next merges** — Next's patched `pushState` copies `__NA` onto whatever object it is handed and its
+  `popstate` handler does `if (!state.__NA) window.location.reload()`, so replacing the state wholesale
+  turns Back into a full page reload. Closing calls `history.back()` only when that marker is ours (a
+  bookmarked deep link has nothing of ours behind it and replaces the URL in place instead). Radix portals
+  keep the album mounted and scrolled behind.
+- **Share** ([`share/event-share-sheet.tsx`](../../src/components/app/share/event-share-sheet.tsx)) is the
+  ONE sharing surface: the code with its SVG/PNG downloads, the designer, the link, and the custom-link
+  claim that used to live on the settings route.
+  [`event-share-dialog.tsx`](../../src/components/app/event-share-dialog.tsx) survives as a thin wrapper
+  over it with all nine props, so the dashboard card's QR chip needs no import swap.
+- **Settings** ([`event-settings/event-settings-sheet.tsx`](../../src/components/app/event-settings/event-settings-sheet.tsx))
+  imports `EventSettingsForm` whole, so the sheet and the retired route cannot disagree about what a setting
+  does. The unsaved guard grew a third door: a sheet has no back-link, so the scrim, Escape and the close
+  button all land on one guarded close. **`/settings` survives as a `redirect` to `?room=settings`** —
+  it is a URL we published for months.
+- **The QR mini-modal** ([`share/event-code-modal.tsx`](../../src/components/app/share/event-code-modal.tsx))
+  takes NO URL: a look at the code is a beat, not a destination. It grows out of the header's code on the
+  **native View Transitions API** (the `morph-delegate.tsx` pattern, 240ms on `--ease-emphasis`, name-scoped
+  in [`share/share.css`](../../src/components/app/share/share.css) because `::view-transition-*` are
+  document-global and `theme.css`/`globals.css` belong to another lane). Exactly one of header / pill /
+  modal carries the name at a time (a duplicate makes the browser skip the transition). On a phone it is the
+  whole screen, white for scanner contrast, the code at 80vw with the event's name under it and
+  `navigator.share` as its third action. ★ Its entrance is the one **sanctioned hole in bible 15**:
+  `floatingTransitionEntrance` in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts) declares
+  no animation, because the transition IS the entrance, and falls back to the standard clock under reduced
+  motion. It is listed by name in `floating-layer.test.ts`, whose family scan reads `ui/` only.
+- **The album** ([`event-feed/event-gallery.tsx`](../../src/components/app/event-feed/event-gallery.tsx))
+  carries Add photos (which left the deleted command strip), Download all, Select, and the **Deleted
+  filter**: the recovery bin joined the album, so "Deleted" names exactly one thing.
+  ★ The bin is fetched **on demand** through `listDeletedMediaAction` (a `getUser()`-gated Server Function),
+  never with the page — each item needs its own presign, and the hub must not pay N of them for a drawer a
+  host opens once. The bin's items are never in the album's count.
+- **The Reel room** holds the BUILDER before the reel's birth and the Studio after it, which DELETED the old
+  `redirect('?section=reel')` rather than re-pointing it at a filter that no longer exists; the card reads
+  "Create reel" until then. Legacy `?section=` / `?eventTab=` deep links redirect into the rooms
+  (`legacySectionRoom` in [`lib/event/sections.ts`](../../src/lib/event/sections.ts)).
+
+**ONE responsive Sheet for the product** ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)): a side panel
+at a desk, a bottom sheet in a hand, **opt-in by the `responsive` prop**. It emits `data-side="responsive"`
+so none of the four fixed-side rules can race it, and its posture pair lives in `floating-layer.ts` rather
+than in the sheet. The default `side` is untouched for `marketing/chrome/mobile-menu.tsx` and the design
+shell, and `ui/drawer.tsx` is NOT retired (the lab's gallery demos draw it). This is the sheet
+`guest-shape`'s dialogs, `profile-page`'s quick-look and `app-pricing`'s object inherit.
+
+- **Hydration:** the SSR'd surfaces are native-`title` ONLY, with NO radix Tooltip on SSR'd elements (the
+  silent prod-hydration regression cause, see [architecture.md](architecture.md)). Rich client UI (the
+  sheets, the mini-modal, the QR designer) is safe inside client islands.
+- **`loading.tsx`** draws the hub's own shape (code, title stack, cards row, album) so the retired strip
+  never flashes before the cards arrive.
 
 ## Moderation & curation (host side)
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from
 the event's `moderation_mode`. The host grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx))
-does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) surface in the inline
-**Review section** ([`review-section.tsx`](../../src/components/app/event-feed/review-section.tsx)) —
-urgency-ordered to the TOP of the feed while a queue waits (the pop-up takeover is RETIRED). The triage state
-machine ([`use-review-triage.ts`](../../src/components/app/event-feed/use-review-triage.ts), lifted out of
-the old takeover) is OWNED by `EventFeed` and shared by the Review grid AND the floating action bar, so both
-read + drive it. Four states: **pending** (the dense triage grid + an amber `Review · N waiting` eyebrow),
+does per-item Approve/Hide/Unhide/Remove. Pending uploads (`hold_for_approval`) surface in the
+**Review ROOM** ([`/review`](../../src/app/(app)/dashboard/[eventId]/review/page.tsx), one of the hub's
+cards since `event=hub`, 2026-09-20; the inline urgency-ordered SECTION and the pop-up takeover before it are
+both RETIRED). `ReviewSection` is unchanged and still draws it; the triage state machine
+([`use-review-triage.ts`](../../src/components/app/event-feed/use-review-triage.ts)) is now owned by the thin
+[`review-room.tsx`](../../src/components/app/event-feed/review-room.tsx) boundary rather than shared with a
+floating bar, because a room has only one reader. The hub's Review card carries the count and ticks it down
+on return. Four states: **pending** (the dense triage grid + an amber `Review · N waiting` eyebrow),
 **caught-up** (a slim line, sorts last), **moderation-off** (a one-tap "Turn on review" discovery teaser →
 `updateEventAction { moderation_mode: hold_for_approval }`, no confirm turning ON, sorts last), and the inline
 **beat** (the all-caught-up pop that rides out THEN the FLIP relocates the section to the bottom). The grid
 ([`review-grid.tsx`](../../src/components/app/event-feed/review-grid.tsx)) is a media-forward natural-ratio
 masonry (matches the album) with two modes: **browse** (a tap peeks the media full-bleed — a self-contained
 overlay, so scrolling "All" never selects by accident) and **select** (a tap toggles selection + a
-`[data-check-pop]` checkmark; a video ▶ peeks before you select). The bulk controls live in the floating bar
-(DRY [`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), rendered inline in browse
-+ in the bar on scroll): **Approve all** is the FAST primary path (`approveAllPending`, no confirm — most
+`[data-check-pop]` checkmark; a video ▶ peeks before you select). The bulk controls are DRY in
+[`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), rendered inline in the room:
+**Approve all** is the FAST primary path (`approveAllPending`, no confirm — most
 moderation is a quick scroll-then-approve); **Select** opens deliberate triage where the bar becomes `Select
-all · N · Hide · Approve · Cancel`. **Turning moderation OFF** (the `/settings` uploads section) while a queue
-exists pops a consequence confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred
+all · N · Hide · Approve · Cancel`. **Turning moderation OFF** (the uploads section inside the
+SETTINGS SHEET) while a queue exists pops a consequence confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred
 open); on save `updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is
 the INVARIANT (live mode never holds pending media; idempotent, `getUser` + RLS-scoped). Optimistic with
 revert-on-failure: acted tiles fade+scale out (`[data-exiting]`) before the list reflows, and clearing the
-LAST pending plays the "all caught up" beat (~2.5s hold) before the FLIP sinks the section. The just-approved
+LAST pending plays the "all caught up" beat (~2.5s hold). The just-approved
 photos are **preloaded during that beat** (the triage holds their stable presigned URLs, which recur
 byte-identical in the album → the reveal paints from cache, not a cold full-res fetch). **Tiles render via the
 shared `MediaTile`** (a plain `<img>` / `<video>` poster) — NEVER `next/image`: its optimizer 400s on the
@@ -391,13 +411,15 @@ is optimistic and reverts on the `stale`/error path.
 **THE FEED / STUDIO SPLIT (the composition rule, Will).** The feed's
 Reel section is over-controlled for a visual surface, so the two host reel surfaces have disjoint jobs and
 that split is load-bearing:
-- **The FEED section is VISUAL ONLY.** Post-Create it is [`reel-marquee.tsx`](../../src/components/reel/reel-marquee.tsx)
-  = status chip + "Open studio" door · the `PosterCard` (a live paused `CanvasReelPlayer`, the reel's face,
-  IO-gated) · `ReelShareCard`. **Nothing else may be added here.** A consequence worth keeping: the feed mounts
-  **zero thumbnail canvases** (the poster is its only player). The section header is label + count only.
-  PRE-Create is unchanged — the builder (quick-add → Create → the ratified reveal) stays a feed moment,
-  because birth is a feed event.
-- **The STUDIO (`/dashboard/[eventId]/reel`) is the EXCLUSIVE room for every control.** Five slide-up sheets
+- **The REEL ROOM holds both sides of the reel's birth** (`event=hub`, 2026-09-20). The hub's Reel card is
+  the door and reads "Create reel" until a reel exists. PRE-Create the room renders the BUILDER (quick-add →
+  Create → the ratified reveal); post-Create it is the Studio. ★ This is what deleted `/reel`'s old
+  `redirect('?section=reel')`: the feed section it bounced to no longer exists, and a room that can create
+  the thing it is named after never needs to bounce. `ReelPanel` is unchanged and still draws the pre-Create
+  face = `reel-marquee.tsx` (status chip + door · the `PosterCard`, a live paused `CanvasReelPlayer`, the
+  reel's face, IO-gated · `ReelShareCard`). **Nothing else may be added to it,** and the consequence worth
+  keeping is that it mounts **zero thumbnail canvases** (the poster is its only player).
+- **The STUDIO (`/dashboard/[eventId]/reel`, post-Create) is the EXCLUSIVE room for every control.** Five slide-up sheets
   (`[data-rxp-sheet]`): **Moments** (first) · Style · Cover · Length (incl. the free-tier `/pricing` upsell,
   which moved down WITH the control) · Layout, plus the filmstrip **dock** (order-only) and Download.
 - **The Moments picker** ([`studio-moments-picker.tsx`](../../src/components/reel/studio-moments-picker.tsx))

@@ -140,7 +140,7 @@ export function TakeHomeSection() {
             <span className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-4 text-xs font-medium text-neutral-900">
               <Download className="size-3.5" /> Download album
             </span>
-            <span className="text-[11px] font-medium text-white/85 tabular-nums">
+            <span className="text-micro font-medium text-white/85 tabular-nums">
               {ALBUM_ITEMS} items · {formatBytes(ALBUM_BYTES)}
             </span>
           </span>
@@ -159,7 +159,7 @@ export function TakeHomeSection() {
               <Play className="ml-0.5 size-4 fill-white text-white" />
             </span>
           </span>
-          <span className="absolute top-3 left-3 inline-flex h-6 items-center rounded-full bg-black/55 px-2 text-[11px] font-medium text-white tabular-nums">
+          <span className="absolute top-3 left-3 inline-flex h-6 items-center rounded-full bg-black/55 px-2 text-micro font-medium text-white tabular-nums">
             0:47
           </span>
         </Plate>

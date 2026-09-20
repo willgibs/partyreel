@@ -15,6 +15,7 @@ import { AttendedEventsVisibility } from "@/components/social/attended-events-vi
 import { ProfileBioForm } from "@/components/social/profile-bio-form";
 import { ProfileSlugControl } from "@/components/social/profile-slug-control";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,13 +23,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import { CheckoutButton } from "@/components/app/checkout-button";
+import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import {
+  DEFAULT_TIER,
+  MAX_EVENTS,
+  TIER_NAMES,
+  effectiveStorageCap,
+  formatLimit,
+  friendlyCapacity,
+  toBillingTier,
+  withinLimit,
+} from "@/lib/constants/tiers";
 import {
   countMyLiveEvents,
   isOnNewsletterList,
 } from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { formatBytes } from "@/lib/utils";
 import {
   getMyAttendedEvents,
   getMyBlocks,
@@ -105,6 +119,7 @@ export default async function AccountPage({
     notificationPrefs,
     onNewsletterList,
     liveEventCount,
+    storage,
   ] = await Promise.all([
     getProfile(),
     hasPassword(),
@@ -120,6 +135,7 @@ export default async function AccountPage({
     getNotificationPrefs(),
     isOnNewsletterList(),
     countMyLiveEvents(),
+    getHostStorageSummary(),
   ]);
   if (!profile) redirect("/login");
 
@@ -131,6 +147,34 @@ export default async function AccountPage({
   const tier = toBillingTier(profile.tier ?? DEFAULT_TIER);
   const bio = profile.bio ?? null;
 
+  /* ── The Plan card's facts, every one of them SERVER-DERIVED ────────────────
+     ★ THE CLIENT IS NEVER ASKED WHAT PLAN SOMEBODY IS ON. `profiles.tier`,
+     `storage_cap_bytes`, `tier_expires_at` and `event_slots` are written ONLY
+     by the Stripe webhook through the service-role client (billing-caps.md),
+     read here through RLS-scoped `getProfile()`, and rendered. Nothing on this
+     page takes an entitlement from a prop, a search param or a cookie, and the
+     buttons below only ever ASK the server to start a session — the route
+     re-resolves the entitlement from `profiles` itself and refuses if it
+     disagrees. A Plan card is exactly the surface where trusting the client
+     would be cheapest and worst. */
+  const planName = TIER_NAMES[tier];
+  const planCap = effectiveStorageCap(tier, profile.storage_cap_bytes ?? null);
+  const planUsed = storage.activeBytes;
+  // Stacked Event Passes override the static tier limit, exactly as
+  // enforce_event_limit does in SQL.
+  const planMaxEvents = profile.event_slots ?? MAX_EVENTS[tier];
+  const planAtCap = !withinLimit(liveEventCount, planMaxEvents);
+  const planCapacity = planCap ? friendlyCapacity(planCap) : null;
+  const passExpiry =
+    tier === "event_pass" && profile.tier_expires_at
+      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : null;
+  const hasBilling = Boolean(profile.stripe_customer_id);
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
@@ -139,6 +183,86 @@ export default async function AccountPage({
           Manage your profile and how you sign in.
         </p>
       </div>
+
+      {/* BILLING'S FIRST DOOR (`you=?`, Will 2026-09-20: "plans, billing, etc
+          should live under an account page"). Until now the only path to a plan
+          in the whole app was a popover on the storage strip on the dashboard,
+          and the only path to the Billing Portal was a button inside it. First
+          on the page because it is the one card a host arrives here looking
+          for; the profile they came to edit is one scroll down and always was. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Plan</CardTitle>
+          <CardDescription>
+            {planCap
+              ? `${planName} · ${formatBytes(planUsed)} of ${formatBytes(planCap)} used`
+              : `${planName} · ${formatBytes(planUsed)} used`}
+            {passExpiry ? ` · expires ${passExpiry}` : ""}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-muted-foreground">
+                Events
+              </dt>
+              {/* THE UPGRADE TRIGGER. "3 of 3 used" is the sentence that makes
+                  a host understand why the New event button went grey, and it
+                  has to be readable BEFORE they go looking for it. */}
+              <dd className="text-sm">
+                <span className={planAtCap ? "font-medium text-warning" : ""}>
+                  {liveEventCount} of {formatLimit(planMaxEvents)} used
+                </span>
+              </dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-muted-foreground">
+                Storage
+              </dt>
+              <dd className="text-sm">
+                {planCapacity
+                  ? `About ${planCapacity.photos.toLocaleString()} photos or ${planCapacity.videoMinutes.toLocaleString()} min of video`
+                  : `${formatBytes(planUsed)} used`}
+              </dd>
+            </div>
+          </dl>
+
+          {tier === "free" && (
+            <p className="text-sm text-muted-foreground">
+              {/* ★ SINGLE-SOURCE FOLLOW-UP. This is the ruled Pro line
+                  (`pro-line=video`, his words: "For videos and unlimited
+                  events."). Its HOME is `lib/constants/marketing-voice.ts`
+                  beside the other ruled lines, and `voice-wiring` is the lane
+                  adding it there — it does not exist yet, so importing it would
+                  not compile. When that lane lands, swap this literal for the
+                  import; it is one line in the handoff, not a second home. */}
+              <strong className="font-medium text-foreground">
+                For videos and unlimited events.
+              </strong>{" "}
+              <Link
+                href="/pricing"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                See plans
+              </Link>
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {hasBilling && <ManageBillingButton />}
+            {tier === "event_pass" && (
+              <CheckoutButton planId="event_pass" renewal variant="outline">
+                Renew Event Pass
+              </CheckoutButton>
+            )}
+            {!hasBilling && tier === "free" && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/pricing">See plans</Link>
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

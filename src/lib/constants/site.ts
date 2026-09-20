@@ -1,4 +1,7 @@
-import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
+import {
+  SITE_DESCRIPTION_LINE,
+  SITE_THESIS,
+} from "@/lib/constants/marketing-voice";
 import { env } from "@/lib/env";
 
 // Single source for the canonical public origin + brand strings. Used by sitemap,
@@ -21,7 +24,15 @@ export const BRAND_HEX = "#101010";
 // never has to change when `help@` receiving is wired up later.
 export const SUPPORT_EMAIL = "help@partyreel.com";
 
-// The site-wide meta description (root layout, manifest, RSS, JSON-LD),
-// composed from the byte-pinned voice constants so every unfurl carries the
-// ruled 2026-08-25 register and a thesis rewrite propagates automatically.
-export const SITE_DESCRIPTION = `${SITE_THESIS} ${SITE_SUBHEAD}`;
+// The site-wide meta description (root layout, manifest, RSS, JSON-LD).
+//
+// ★ IT IS NO LONGER `${SITE_THESIS} ${SITE_SUBHEAD}`. Will's hero sentence
+// (2026-09-19, voice r1) is 144 characters on its own, so the composed form
+// reached 175 and every search result and unfurl truncated mid-clause, which is
+// the one place the subhead's closing benefit lived. A meta description and a
+// hero subhead are read in different places by different people and only
+// happened to be the same sentence; they are two lines now. The THESIS is still
+// interpolated, so a thesis rewrite still propagates here, and the second half
+// carries the same three beats in the ruled order (the opportunity is implied by
+// the thesis above it, then what we do, then the benefit). Keep it under ~160.
+export const SITE_DESCRIPTION = `${SITE_THESIS} ${SITE_DESCRIPTION_LINE}`;

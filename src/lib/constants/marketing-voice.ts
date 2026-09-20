@@ -12,6 +12,44 @@
  * The ruled voice around all of it: warm-host ease x big-event stakes, disciplined by concise
  * clarity; "night" is BANNED as identity language; collection value co-leads the reel. Byte-match
  * pins make any rewrite a deliberate act, never drift.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────────────────────
+ * ★ THE ACCOUNT RULE (Will, 2026-09-19, `voice` r1 `absence=named`; bible 20 ruled PERMISSIVE).
+ *
+ * NEVER PROMISE "NO ACCOUNT" ANYWHERE. A host may require one, and Require accounts to upload
+ * DEFAULTS ON for a new event, so "No app, no account." was a promise the product breaks on most
+ * events. His instruction, verbatim: "since many events will likely require guests accounts,
+ * let's change 'No app, no account.' to 'No app required.'" That exact swap ran through every
+ * surface (the OG cards, the trust strip, the footer, six feature pages, the guest door, the
+ * wizard, help and the blog).
+ *
+ * "NO APP" STAYS, as a benefit we are allowed to say: "No app is a big benefit we're allowed to
+ * mention. The rule was meant to be avoid 'we're not cloud storage, we're not vsco, etc'." The
+ * fence is only on defining Partyreel AGAINST another product, never on naming an absence a guest
+ * is wary of.
+ *
+ * Which lines survive the sweep: a line that PROMISES a guest needs no account changes; a line
+ * that describes the per-event switch truthfully, or reports a fact about a different act
+ * (reporting is anonymous; the demo opens with no sign-up), stays. The trap is the SUGGESTED HOST
+ * ANNOUNCEMENT: a help or blog line handing a host the words "no sign-up" becomes a support
+ * question a hundred times over the moment their event asks for an email, which our own
+ * conference article already warns about. Those were the lines that had to move.
+ *
+ * ★ THE SUBHEAD SHAPE (Will, 2026-09-19, `hero-sub`). SITE_SUBHEAD below is his own sentence, and
+ * he named what makes it work: "This frames the opportunity, then what we do, then the benefit
+ * all together." That ORDER is the rule every subhead written after it takes. The opportunity is
+ * the READER'S, not ours (their guests already shot the best photographs of the day); what we do
+ * is one clause with no mechanism in it; the benefit is the failure it spares them.
+ *
+ * ★ THE EMPTY-STATE VOICE (the finding of `voice` r1). Two questions were put deliberately
+ * identically, one for the host with no events (`host-empty`) and one for the guest in an album
+ * with no photographs (`empty`), and he picked the same voice for both: the ALBUM as the noun and
+ * "starts" as the verb ("Your first album starts here" / "The album starts with you"). His reason
+ * is about the VERB rather than the noun: "This incentivizes action (first upload) rather than
+ * feeling passive and waiting for a picture to land." An empty state here names the thing that is
+ * about to exist and puts the reader at the start of it. It never describes the void, and it
+ * never waits.
+ * ───────────────────────────────────────────────────────────────────────────────────────────────
  */
 
 export const GOLDEN_LINES = {
@@ -29,9 +67,57 @@ export const GOLDEN_LINES = {
 export const SITE_THESIS = "The whole event, in one album.";
 export const SITE_THESIS_STATUS: "provisional" | "ruled" = "ruled";
 
-/** RULED (Will, 2026-08-25), verbatim. */
+/**
+ * RULED (Will, 2026-09-19, `voice` r1 `hero-sub`), VERBATIM: his own alternate answer, supplied in
+ * the note rather than picked from the four drawn candidates. It supersedes the 2026-08-25 line,
+ * which opened on the mechanism ("with one QR code") and asserted what we do before the reader had
+ * anything at stake.
+ *
+ * The shape is the rule (see the head comment): the opportunity, then what we do, then the
+ * benefit. Note it never names the QR code. The mechanism is the page's job below the fold; the
+ * hero's job is that the best photographs of the event already exist and are not yours yet.
+ *
+ * ★ 144 CHARACTERS, which is why SITE_DESCRIPTION is no longer composed from it. `site.ts` used to
+ * build the meta description as `${SITE_THESIS} ${SITE_SUBHEAD}` (175 here, past the ~160 a
+ * description gets read at), so it carries a line of its own that still interpolates the thesis.
+ */
 export const SITE_SUBHEAD =
-  "Partyreel collects the photos and videos from your guests with one QR code. No more chasing group chats the morning after.";
+  "Your guests took the best photos and videos at your event. Partyreel collects them with one easy link. No more chasing group chats the next day.";
+
+/**
+ * The META DESCRIPTION's own sentence, composed with SITE_THESIS in `site.ts`
+ * (which is where every consumer already imports SITE_DESCRIPTION from, and
+ * which touches `env.ts`, so the COPY lives here where a pure test can measure
+ * it and the composition lives there).
+ *
+ * ★ WHY IT IS NOT THE SUBHEAD ANY MORE. `SITE_DESCRIPTION` was
+ * `${SITE_THESIS} ${SITE_SUBHEAD}`, which was fine while the subhead was one
+ * sentence. His ruled hero line is three and runs 144 characters on its own, so
+ * the composed form hit 175 and every search result and unfurl cut it mid-clause
+ * at roughly 160, losing precisely the closing benefit the sentence was built to
+ * land. A hero subhead and a meta description are read by different people in
+ * different places and only ever happened to be one string.
+ *
+ * It keeps the ruled shape in the same order (the thesis carries the
+ * opportunity, this carries what we do, then the benefit) and must leave the
+ * composed line under 160; `home-sections.test.ts` pins both.
+ */
+export const SITE_DESCRIPTION_LINE =
+  "Partyreel collects your guests’ photos and videos with one easy link, so nobody chases a group chat the next day.";
+
+/**
+ * The Pro plan's one-liner, RULED (Will, 2026-09-19, `voice` r1 `pro-line=video`), verbatim:
+ * "Close, but let's go with 'For videos and unlimited events.' States direct benefit, but longer
+ * reel isn't as important. Videos and unlimited events is huge."
+ *
+ * ★ ONE HOME, and an ORDER the four siblings share. `plan-cards.tsx` renders this constant; the
+ * four other places Pro's value is stated in one breath (`pricing-teaser.tsx`, `faq-data.ts`,
+ * `how-much-fits.tsx` and `llms.ts`) are DIFFERENT sentences for different readers, so they are
+ * not made to import it (`single-source-policy.test.ts` would refuse a second UPPER_SNAKE home
+ * anyway). What they share is his ranking: VIDEO FIRST, unlimited events second. Before this
+ * round three of them led with unlimited events, which is the weaker half of the pair.
+ */
+export const PRO_LINE = "For videos and unlimited events.";
 
 export type HeaderStatus = "ruled" | "provisional";
 
@@ -49,9 +135,9 @@ export const SECTION_HEADERS: Record<
     status: "ruled",
   },
   noApp: {
-    line: "Nothing to install. Nothing to sign up for.",
+    line: "Nothing to install. Just the browser they already have.",
     status: "provisional",
-    note: "Round 2 (2026-09-01): the guest-side wind-down Will asked for above the live demo. Draft line; his ruling pending.",
+    note: "Round 2 (2026-09-01): the guest-side wind-down Will asked for above the live demo. Draft line; his ruling pending. Second half rewritten 2026-09-19 (voice r1, absence=named): it read 'Nothing to sign up for', which is the account promise the rule now forbids. The replacement keeps the parallel shape and says the true thing, that the album opens where they already are.",
   },
   fullQuality: {
     line: "Everything they shoot, at the size they shot it.",

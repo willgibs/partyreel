@@ -111,7 +111,7 @@ function Welcome() {
       <div className="mt-4 flex flex-col gap-2.5">
         <p className="flex items-start gap-2 text-[11px] leading-snug">
           <Camera className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-          Add your photos and videos in seconds. No app, no account.
+          Add your photos and videos in seconds. No app required.
         </p>
         <p className="flex items-start gap-2 text-[11px] leading-snug">
           <Images className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />

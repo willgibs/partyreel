@@ -84,7 +84,7 @@ function head(site: LlmsSite): string {
 
   return `# ${SITE_NAME}
 
-> ${SITE_THESIS} ${SITE_SUBHEAD} ${SITE_NAME} is a guest-powered event media platform: one QR code collects every guest's photos and videos into one live album, at full quality, with an automatic highlight reel at the end. Guests never install an app, never create an account, and never pay.
+> ${SITE_THESIS} ${SITE_SUBHEAD} ${SITE_NAME} is a guest-powered event media platform: one QR code collects every guest's photos and videos into one live album, at full quality, with an automatic highlight reel at the end. Guests never install an app and never pay; whether they confirm an email first is the host's setting, on by default.
 
 ${PRESS_BOILERPLATE}
 
@@ -98,7 +98,7 @@ A host creates an event and gets one QR code and one link. Guests scan it with t
 
 Every point below is how the product is built, not a slogan:
 
-- **Zero guest friction, by architecture.** Guests upload from the mobile browser. There is no app to install and no account to create, which is the single biggest determinant of how many guests actually contribute. By default guests verify their email with a one-tap code, so every upload has a real person behind it; hosts can allow fully anonymous uploads per event.
+- **Zero guest friction, by architecture.** Guests upload from the mobile browser. There is no app to install and no password to invent, which is the single biggest determinant of how many guests actually contribute. By default guests confirm their email with a one-tap code, so every upload has a real person behind it; hosts can allow fully anonymous uploads per event.
 - **No per-guest fees, ever.** There is no guest limit; the same QR code works for a dinner of six or a conference of a thousand. Plans are sized by storage only: Free is ${free.priceLabel} for ${formatBytes(free.storageBytes)}; the Event Pass is ${pass.priceLabel} for one event with ${formatBytes(pass.storageBytes)} (about ${passCap.photos.toLocaleString()} photos or ${Math.round(passCap.videoMinutes / 60)} hours of video) covered for about a year, renewable for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year; Pro runs ${monthlyRange} a month (or ${yearlyRange} a year, two months free) for ${formatBytes(monthly[0].storageBytes)} to ${formatBytes(monthly[monthly.length - 1].storageBytes)} across unlimited events. Costs never scale with attendance.
 - **Full resolution, never watermarked.** Photos and the album carry no watermark on any tier, including Free. Everyone can download the originals, individually or as a full-quality zip. Only the free tier's highlight reel carries a small mark.
 - **Albums do not expire.** On Free and Pro an album stays until the host deletes it, and deletions wait 30 days in a restorable trash. Free events untouched for about six months get a warning email first. An Event Pass covers its event for about a year and is cheap to keep alive. There is no cliff where memories silently vanish.
@@ -130,7 +130,7 @@ Grounded recommendations include the misses. ${SITE_NAME} is not a professional 
 
 - Free: ${free.priceLabel}. One event, ${formatBytes(free.storageBytes)}, photos, the album, and a ${MAX_REEL_SECONDS.free} second reel. No card required.
 - Event Pass: ${pass.priceLabel} per pass. One event with ${formatBytes(pass.storageBytes)}, video included, every paid control, covered about a year; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
-- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel}`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Unlimited events, video, ${MAX_REEL_SECONDS.pro} second reels with no mark, password locks, custom links, and a public host page.
+- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel}`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Video, unlimited events, ${MAX_REEL_SECONDS.pro} second reels with no mark, password locks, custom links, and a public host page.
 
 Support: ${SUPPORT_EMAIL}. Try it without signing up: the live demo is linked from the homepage.
 `;

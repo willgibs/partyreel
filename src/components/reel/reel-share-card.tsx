@@ -171,7 +171,7 @@ export function ReelShareCard({
               <Share2 className="size-4" aria-hidden />
               Share with guests
             </button>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            <p className="mt-2 text-center text-caption text-muted-foreground">
               Only you can see it until you share
             </p>
           </div>
@@ -185,7 +185,7 @@ export function ReelShareCard({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium">Live for your guests</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 On the album page, ready to watch
               </p>
             </div>
@@ -193,7 +193,7 @@ export function ReelShareCard({
               type="button"
               onClick={() => flip(false)}
               disabled={pending}
-              className="shrink-0 rounded text-[11px] font-medium text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70"
+              className="shrink-0 rounded text-caption font-medium text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-70"
             >
               Unshare
             </button>

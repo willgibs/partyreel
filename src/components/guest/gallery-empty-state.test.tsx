@@ -90,8 +90,15 @@ describe("the empty album is decoration plus a promise, and nothing else", () =>
       // Inside the hidden subtree, not beside it.
       expect(hidden!.contains(img)).toBe(true);
     }
-    // The promise itself is NOT hidden: it is the only thing to hear.
-    expect(screen.getByText("This is where it all lands")).toBeInTheDocument();
+    // The promise itself is NOT hidden: it is the only thing to hear. Asserted
+    // as a STRUCTURE, never as bytes (2026-09-19): this line used to pin the
+    // copy verbatim, so Will's ruled rewrite of the empty state (`empty=starts`)
+    // turned a contract about assistive tech into a copy diff. What the contract
+    // owes is that some readable text exists outside the aria-hidden subtree.
+    const promise = [...container.querySelectorAll("p")].filter(
+      (el) => !hidden!.contains(el) && (el.textContent ?? "").trim().length > 0,
+    );
+    expect(promise.length).toBeGreaterThan(0);
   });
 
   it("is not a door out of the host's album: no link and no code in it", () => {

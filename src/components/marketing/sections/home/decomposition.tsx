@@ -324,7 +324,7 @@ function DecompositionStage({ onReplay }: { onReplay: () => void }) {
         </div>
         <p
           data-mkt-reveal
-          className="mx-auto mt-4 max-w-md text-center text-[15px] leading-relaxed text-muted-foreground"
+          className="mx-auto mt-4 max-w-md text-center text-copy text-muted-foreground"
           style={{ "--i": 4, "--mkt-stagger-ms": "260ms" } as CSSProperties}
         >
           {CLOSING_LINE}

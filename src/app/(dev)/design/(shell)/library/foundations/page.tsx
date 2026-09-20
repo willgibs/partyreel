@@ -123,12 +123,12 @@ export default async function FoundationsPage({
       <Section
         id="type"
         title="Type"
-        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one ten-step ladder under both halves of the site."
+        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one sixteen-step ladder under both halves of the site: ten heading steps, then six for the sentences under them."
       >
         <Sub
           id="ladder"
           title="The ladder"
-          blurb="Ten steps, one set, and the law is the order: every heading stays above the one it heads, at a phone and at 1440. The desktop ends are the sizes Will ruled; each phone end is the rung that keeps the order, so marketing travels further than the app and the card step travels not at all. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
+          blurb="Sixteen steps, one set, and the law is the order: every heading stays above the one it heads and nothing goes under the floor, at a phone and at 1440. The desktop ends are the sizes Will ruled; each phone end is the rung that keeps the order, so marketing travels further than the app, the card step travels not at all, and of the six body steps only marketing's copy travels. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
         >
           <TypeLadder />
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -136,10 +136,15 @@ export default async function FoundationsPage({
             takes the prose step on marketing and the page step inside the app.
             Nothing in the heading face may wear a stock size (text-3xl) or an
             arbitrary one, and the policy refuses both; a heading the ladder
-            cannot name is a heading whose role has not been decided yet. The
-            only type set off it is drawn inside a picture (a phone, a printed
-            sign, an asset plate), and the Inter labels a few heading tags carry
-            for the outline.
+            cannot name is a heading whose role has not been decided yet. Under
+            the hairline the same law holds for sentences: a body size resolves
+            to 10, 12, 14 or 16 or it is off the ladder, an uppercase label
+            carries no tracking of its own because the label step carries it,
+            and marketing&rsquo;s 18 is reachable only through the copy step.
+            The only type set off all of it is drawn inside a picture (a phone,
+            a printed sign, an asset plate), sized in em to whatever it rides,
+            or named in the policy&rsquo;s own allow-list with a reason and a
+            count.
           </p>
         </Sub>
         <Sub

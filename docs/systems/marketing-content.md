@@ -54,6 +54,32 @@ is authoritative), media is the color; marketing runs louder via type/layout/mot
 in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`site.ts`](../../src/lib/constants/site.ts),
 incl. `BRAND_HEX` — satori needs a literal hex) is shared by `sitemap.ts` / `robots.ts` / the root `metadataBase`.
 
+★ **NEVER PROMISE "NO ACCOUNT", ANYWHERE** (`absence=named`, Will 2026-09-19; bible 20 ruled PERMISSIVE
+with it). Require accounts to upload DEFAULTS ON for a new event, so the site's oldest four-word claim,
+"No app, no account.", was false on most events. It is **"No app required."** verbatim now, on all 27
+production sites it reached (the OG cards and the shared kicker, the trust strip, the footer's demo
+invitation, `features.ts`, `events.ts`, `press.ts`, `careers.ts`, the help shelf, `llms.txt`, the
+JSON-LD feature list, four feature-page surfaces, the guest entry sheet, the create wizard, the host
+tutorial, the guest 404, and seven help/blog articles). **"No app" STAYS** as a benefit we are allowed
+to say; the fence is only on defining Partyreel AGAINST another product ("we're not cloud storage"),
+never on naming an absence a guest is wary of. The test that decides a line: one that PROMISES a guest
+needs no account goes; one that describes the per-event switch truthfully, or reports a different act
+(reporting is anonymous, the demo opens with no sign-up), stays. ★ The expensive case is a **suggested
+host announcement** — a help or blog line handing a host the words "no sign-up" becomes a support
+question a hundred times over the moment their event asks for an email, which `conference-photo-sharing-no-app.mdx`
+already warns about in prose. Those were the lines that had to move, not just the literal.
+Every ruled line and the rule itself live in
+[`marketing-voice.ts`](../../src/lib/constants/marketing-voice.ts)'s head comment.
+
+**A SUBHEAD RUNS OPPORTUNITY → WHAT WE DO → BENEFIT** (`hero-sub`, Will 2026-09-19, his own sentence
+and his own reading of it: "This frames the opportunity, then what we do, then the benefit all
+together"). `SITE_SUBHEAD` is the model and never names the QR code: the mechanism is the page's job
+below the fold. **AN EMPTY STATE NAMES WHAT IS ABOUT TO EXIST** (`host-empty` + `empty`, put to him
+deliberately identically and answered with one voice): the album as the noun and "starts" as the verb,
+"Your first album starts here" for a host with no events and "The album starts with you" for a guest in
+an empty album, because "this incentivizes action (first upload) rather than feeling passive and waiting
+for a picture to land".
+
 ## Pages + their single-sources
 
 - **home** + **`/features`** (copy in [`features.ts`](../../src/lib/constants/features.ts), feeding the home
@@ -595,7 +621,14 @@ themselves, never inherited from that sheet.
 ## SEO / OG
 
 `metadataBase` is set in the root [`layout.tsx`](../../src/app/layout.tsx) (`env.NEXT_PUBLIC_SITE_URL ??
-"https://partyreel.com"`); WITHOUT it Next errors on relative OG URLs. OG images are **code-generated via
+"https://partyreel.com"`); WITHOUT it Next errors on relative OG URLs.
+★ **`SITE_DESCRIPTION` IS NO LONGER THE HERO SUBHEAD.** It was `${SITE_THESIS} ${SITE_SUBHEAD}`, which
+worked only while the subhead was one sentence; his ruled hero line (2026-09-19) is three and runs 144
+characters, so the composed form hit 175 and every search result and unfurl cut it mid-clause at ~160,
+losing exactly the closing benefit it was built to land. The meta line is its own ruled copy,
+`SITE_DESCRIPTION_LINE` in `marketing-voice.ts` (the golden-copy home, and `env.ts`-free so a pure test
+can measure it), composed with the thesis in `site.ts` so a thesis rewrite still propagates to all six
+consumers. `home-sections.test.ts` pins the composition under 160 and pins the two apart. OG images are **code-generated via
 `next/og`** ([`opengraph-image.tsx`](../../src/app/opengraph-image.tsx) site-wide + a per-event card at
 `(guest)/e/[token]/opengraph-image.tsx`). `sitemap.ts`/`robots.ts` list/allow ONLY the marketing routes
 (sitemap `lastModified` carries help/blog frontmatter dates; build time elsewhere).

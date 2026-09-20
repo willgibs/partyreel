@@ -164,7 +164,7 @@ export default function AboutPage() {
               {ABOUT_STORY.paragraphs.map((paragraph) => (
                 <p
                   key={paragraph.slice(0, 32)}
-                  className="text-[17px] leading-8 text-pretty"
+                  className="text-copy text-pretty"
                 >
                   {paragraph}
                 </p>
@@ -204,7 +204,7 @@ export default function AboutPage() {
                   can pick a worse break than the natural one at that length. */}
                 <h3 className="font-heading text-subhead">{title}</h3>
                 <div>
-                  <p className="text-[15px] leading-7 text-pretty text-muted-foreground">
+                  <p className="text-copy text-pretty text-muted-foreground">
                     {body}
                   </p>
                   {/* Only this column is a link, so the h3 deliberately does not

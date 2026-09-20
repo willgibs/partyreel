@@ -167,7 +167,7 @@ export const CAREERS_STORY: StoryBeat[] = [
   {
     eyebrow: "The solution",
     title: "So we gather all of it in one place.",
-    body: "One QR code, no app and no account. Every guest's photos land in the same album, and the host decides what stays.",
+    body: "One QR code, no app required. Every guest's photos land in the same album, and the host decides what stays.",
   },
   {
     eyebrow: "The highlights",

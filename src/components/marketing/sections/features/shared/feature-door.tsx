@@ -124,7 +124,7 @@ export const CARD_COPY_SCRIM: CSSProperties = {
 /** One small chip in the app's own tile-chip register (white on a dark wash). */
 function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-black/55 px-2 text-[11px] leading-none font-medium text-white backdrop-blur-sm">
+    <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-black/55 px-2 text-micro font-medium text-white backdrop-blur-sm">
       {children}
     </span>
   );

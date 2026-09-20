@@ -80,7 +80,7 @@ export function StatBand({
             <StatValue value={stat.value} mode={mode} fired={inView} />
             {stat.suffix}
           </div>
-          <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <span className="text-label font-medium text-muted-foreground uppercase">
             {stat.label}
           </span>
         </div>

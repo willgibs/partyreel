@@ -34,7 +34,7 @@ export function FloatingAddButton({
         <ImageUp className="size-4" />
         Add photos
         {uploadingCount > 0 && (
-          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px] tabular-nums">
+          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-micro tabular-nums">
             {uploadingCount} uploading
           </span>
         )}

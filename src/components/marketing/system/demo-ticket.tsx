@@ -76,7 +76,7 @@ export function DemoTicket({
       >
         <span
           className={cn(
-            "text-sm font-medium sm:text-[15px]",
+            "text-reading font-medium",
             column ? "text-foreground" : "text-white",
           )}
         >

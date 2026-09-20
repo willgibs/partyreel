@@ -170,7 +170,7 @@ export function ReviewSwitch() {
             ) : (
               <span className="flex min-h-[7rem] flex-col items-center gap-2.5 rounded-lg bg-card px-3">
                 <span className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold tracking-wide text-warning uppercase">
+                  <span className="text-label font-semibold text-warning uppercase">
                     Review
                   </span>
                   <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-semibold text-warning tabular-nums">
@@ -187,14 +187,14 @@ export function ReviewSwitch() {
                   )}
                 </span>
                 <span className="flex flex-wrap items-center justify-center gap-1.5">
-                  <span className="inline-flex h-7 items-center gap-1 rounded-lg border bg-background px-2 text-[11px] font-medium text-muted-foreground">
+                  <span className="inline-flex h-7 items-center gap-1 rounded-lg border bg-background px-2 text-caption font-medium text-muted-foreground">
                     <ListChecks className="size-3" /> Select
                   </span>
                   <button
                     type="button"
                     onClick={() => setApproved(true)}
                     disabled={approved}
-                    className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2 text-[11px] font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-50 motion-reduce:active:scale-100"
+                    className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2 text-caption font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-50 motion-reduce:active:scale-100"
                   >
                     <Check className="size-3" /> Approve all
                   </button>
@@ -250,7 +250,7 @@ export function ReviewSwitch() {
 function Plate({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="relative flex min-w-0 flex-col gap-2.5 px-1 py-1">
-      <span className="text-center text-[11px] font-medium text-muted-foreground">
+      <span className="text-center text-caption font-medium text-muted-foreground">
         {label}
       </span>
       {children}

@@ -30,16 +30,27 @@ import { cn } from "@/lib/utils";
  *
  * ★ AND THE WORDS ARE THE SITE'S OWN. A specimen set in "Aa Bb Cc" is a font
  * sample; a ladder is judged on the copy that actually stands at each step.
+ *
+ * ★ THE BODY HALF IS DRAWN IN INTER (the body wiring, 2026-09-20). The six
+ * steps under `card-title` are read in the body face, so the specimen sets
+ * them in `font-sans`: a body ladder drawn in Urbanist would be showing you a
+ * font nobody sets them in, and the whole point of drawing a step at true size
+ * is that it is the thing itself. The `label` row wears `uppercase` for the
+ * same reason — 0.08em of tracking on lowercase is not what that step is.
  */
 
-type Register = "marketing" | "app";
+type Register = "marketing" | "app" | "body";
 
-/** A step: its name, its class, its register and the line that stands there. */
+/** A step: its name, its class, its register and the line that stands there.
+ *  `face` is "body" for the six body steps: those are read in INTER, and a
+ *  ladder that drew them in Urbanist would be showing you a font nobody sets
+ *  them in. */
 const STEPS: {
   id: string;
   label: string;
   cls: string;
   register: Register;
+  face?: "body";
   where: string;
   word: string;
 }[] = [
@@ -125,6 +136,66 @@ const STEPS: {
     register: "app",
     where: "CardTitle, and every sheet, drawer and dialog title",
     word: "Mara and Tom",
+  },
+  {
+    id: "copy",
+    label: "Copy",
+    cls: "text-copy",
+    register: "body",
+    face: "body",
+    where:
+      "marketing's ledes and paragraphs, the one body step that travels (16 at a phone, 18 at a desk)",
+    word: "Your guests took the best photos at your event.",
+  },
+  {
+    id: "reading",
+    label: "Reading",
+    cls: "text-reading",
+    register: "body",
+    face: "body",
+    where:
+      "every guest-facing sentence, and a single-line label or field on it",
+    word: "The album is open. Add anything you took tonight.",
+  },
+  {
+    id: "working",
+    label: "Working",
+    cls: "text-working",
+    register: "body",
+    face: "body",
+    where:
+      "the app, the admin and marketing's own UI chrome: a row, a cell, a control",
+    word: "14 photos waiting for review",
+  },
+  {
+    id: "caption",
+    label: "Caption",
+    cls: "text-caption",
+    register: "body",
+    face: "body",
+    where:
+      "a caption, a hint, a descriptor, a control's label (the Caption atom)",
+    word: "Originals in, originals out",
+  },
+  {
+    id: "label",
+    label: "Label",
+    cls: "text-label",
+    register: "body",
+    face: "body",
+    where:
+      "every uppercase label, marketing and app (the Eyebrow atom): the caption step's twin, tracked 0.08em",
+    word: "On this page",
+  },
+  {
+    id: "micro",
+    label: "Micro",
+    cls: "text-micro",
+    register: "body",
+    face: "body",
+    where:
+      "the floor: metadata over a photograph, a count, a pip, a keycap. Nothing on Partyreel is under 10.",
+    word: "128 items · 2.1 GB",
   },
 ];
 
@@ -225,19 +296,20 @@ export function TypeLadder() {
     <div className="overflow-hidden rounded-lg border">
       {STEPS.map((step, i) => {
         const r = read[step.id];
-        const opens =
-          step.register === "app" && STEPS[i - 1]?.register !== "app";
+        const opens = i > 0 && STEPS[i - 1]?.register !== step.register;
         return (
           <div
             key={step.id}
             className={cn(
               "px-4 py-4",
               i > 0 && "border-t",
-              // ★ ONE HAIRLINE SAYS "THIS IS THE OTHER HALF OF THE SITE".
-              // Marketing descends to its sub-head and the app starts again a
-              // rung ABOVE it (the page title), which reads as a broken ladder
-              // until you know why. The rule is the why, and it is drawn from
-              // the data, never typed in (the sizes are on the rows above).
+              // ★ A HAIRLINE SAYS "THIS IS ANOTHER HALF OF THE SITE", AND
+              // THERE ARE TWO. Marketing descends to its sub-head and the app
+              // starts again a rung ABOVE it (the page title), which reads as
+              // a broken ladder until you know why; then the BODY steps start
+              // again at 16, level with the card title they sit under, and the
+              // one that travels (`copy`) tops out above it on a desk. Both
+              // rules are drawn from the data, never typed in.
               opens && "border-t-2 border-t-foreground/20",
             )}
           >
@@ -264,8 +336,10 @@ export function TypeLadder() {
                   else lines.current.delete(step.id);
                 }}
                 className={cn(
-                  "block font-heading whitespace-nowrap",
+                  "block whitespace-nowrap",
+                  step.face === "body" ? "font-sans" : "font-heading",
                   step.cls,
+                  step.id === "label" && "uppercase",
                   SEMIBOLD.has(step.id) && "font-semibold",
                 )}
               >

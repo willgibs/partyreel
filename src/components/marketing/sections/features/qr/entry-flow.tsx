@@ -13,7 +13,7 @@ const UPLOADING_IDS = ["wedding-toast", "party-balloons", "reception-table"];
  * /features/qr dark close, part 1: THE ENTRY FLOW. Three mini frames of what a
  * guest actually sees after the scan, quoting the shipped entry modal's exact
  * strings ("You're invited to" / "Add your photos and videos in seconds. No
- * app, no account." / the album line) and the uploader's "Add photos &
+ * app required." / the album line) and the uploader's "Add photos &
  * videos" control, stylized to marketing. Fixture family: Maya & Jay.
  */
 
@@ -74,7 +74,7 @@ export function EntryFlow() {
           <div className="flex flex-1 flex-col gap-3.5 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
               <Camera className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              Add your photos and videos in seconds. No app, no account.
+              Add your photos and videos in seconds. No app required.
             </p>
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
               <Images className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

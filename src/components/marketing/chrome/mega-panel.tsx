@@ -58,7 +58,7 @@ export function MegaPanel({ group }: { group: NavGroup }) {
         {group.href && (
           <NavigationMenuLink
             asChild
-            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
+            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-label font-medium text-muted-foreground uppercase transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
           >
             <Link href={group.href}>
               All {group.label.toLowerCase()}

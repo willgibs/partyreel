@@ -75,7 +75,7 @@ export const HELP_CATEGORIES = [
     slug: "guest-experience",
     stripLabel: "Guests",
     title: "For guests",
-    blurb: "Joining, adding your photos, and browsing: no app, no account.",
+    blurb: "Joining, adding your photos, and browsing: no app required.",
     icon: Users,
     feature: { href: "/features/guests", label: "Guests & profiles" },
   },

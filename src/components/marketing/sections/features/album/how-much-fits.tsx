@@ -150,6 +150,11 @@ export function HowMuchFits() {
             fill={pro[0].storageBytes / largest}
             price={`from ${pro[0].priceLabel}`}
             rows={[
+              // ★ VIDEO LEADS, and it already did here (Will, 2026-09-19, voice
+              // r1 `pro-line=video`: "Videos and unlimited events is huge").
+              // This column is one of five places Pro's value is stated in a
+              // breath; the plan card, the home teaser, the FAQ and llms.txt all
+              // moved to this order, so keep video above events on any rewrite.
               { text: "Photos and video", included: true },
               { text: "Unlimited events", included: true },
               {

@@ -131,7 +131,7 @@ export function PosterCard({
           // The reel's identity hue (violet, ratified), lightened for contrast
           // against the gradient — --reel itself is tuned for ICONS on the app
           // background, not for small text on a photo.
-          <p className="mt-0.5 text-[11px] font-medium text-[oklch(0.8_0.14_300)]">
+          <p className="mt-0.5 text-micro font-medium text-[oklch(0.8_0.14_300)]">
             {meta}
           </p>
         ) : null}
@@ -144,7 +144,7 @@ export function PosterCard({
  *  sides name the thing the same way. */
 export function PosterCardChip({ label = "The reel" }: { label?: string }) {
   return (
-    <span className="flex items-center gap-1.5 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-semibold tracking-[0.14em] text-white uppercase backdrop-blur-sm">
+    <span className="flex items-center gap-1.5 rounded-full bg-black/45 px-2 py-0.5 text-label font-semibold text-white uppercase backdrop-blur-sm">
       <Clapperboard className="size-2.5 text-[oklch(0.8_0.14_300)]" />
       {label}
     </span>

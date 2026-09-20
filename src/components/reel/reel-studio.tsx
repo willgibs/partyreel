@@ -103,7 +103,7 @@ function RoomChip({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex h-8 items-center gap-1 rounded-[var(--radius-action-sm)] border px-3 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] disabled:opacity-50 motion-reduce:active:scale-100",
+        "flex h-8 items-center gap-1 rounded-[var(--radius-action-sm)] border px-3 text-caption font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] disabled:opacity-50 motion-reduce:active:scale-100",
         active
           ? "border-white bg-white text-zinc-900"
           : "border-white/20 text-white/80",
@@ -243,10 +243,10 @@ export function ReelStudio({
           <X className="size-4" aria-hidden />
         </button>
         <div className="min-w-0 text-center">
-          <p className="text-[9px] font-medium tracking-[0.24em] text-white/50 uppercase">
+          <p className="text-label font-medium text-white/50 uppercase">
             The studio
           </p>
-          <p className="truncate text-[11px] text-white/40">{meta}</p>
+          <p className="truncate text-micro text-white/40">{meta}</p>
         </div>
         {!publish.shared ? (
           <button
@@ -330,7 +330,7 @@ export function ReelStudio({
               <Check className="size-3.5" />
             </span>
             <div>
-              <p className="text-[11px] font-medium text-zinc-900">
+              <p className="text-caption font-medium text-zinc-900">
                 Guests can now watch
               </p>
               <p className="text-[10px] text-zinc-500">
@@ -379,7 +379,7 @@ export function ReelStudio({
                 setSheet(sheet === id ? "none" : id);
               }}
               className={cn(
-                "flex h-8 shrink-0 items-center rounded-[var(--radius-action-sm)] border px-3 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
+                "flex h-8 shrink-0 items-center rounded-[var(--radius-action-sm)] border px-3 text-caption font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100",
                 sheet === id
                   ? "border-white bg-white text-zinc-900"
                   : "border-white/20 text-white/80",
@@ -411,7 +411,7 @@ export function ReelStudio({
           )}
         >
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-[10px] font-semibold tracking-[0.16em] text-white/45 uppercase">
+            <p className="text-label font-semibold text-white/45 uppercase">
               {SHEETS.find((s) => s.id === sheet)?.label}
             </p>
             <button
@@ -498,7 +498,7 @@ export function ReelStudio({
               {/* The free-tier upgrade line. It followed the length control down from the marquee
                   (host-app.md): the Lock on 60s is the nudge, and this is the only place that says
                   what to do about it, so the move had to bring it along. */}
-              <p className="mt-2 text-[11px] text-white/45">
+              <p className="mt-2 text-caption text-white/45">
                 Auto fits your moments into {config.maxSeconds} seconds.
                 {config.tier === "free" ? (
                   <>
@@ -536,13 +536,13 @@ export function ReelStudio({
           {sheet === "length" ? (
             <div className="mt-3 border-t border-white/10 pt-3">
               {config.exportSupported === false ? (
-                <p className="text-[11px] text-white/45">{NO_EXPORT_NOTICE}</p>
+                <p className="text-caption text-white/45">{NO_EXPORT_NOTICE}</p>
               ) : (
                 <button
                   type="button"
                   onClick={config.handleDownload}
                   disabled={config.downloading}
-                  className="flex h-8 items-center gap-1.5 rounded-[var(--radius-action-sm)] border border-white/20 px-3 text-[11px] font-medium text-white/80 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
+                  className="flex h-8 items-center gap-1.5 rounded-[var(--radius-action-sm)] border border-white/20 px-3 text-caption font-medium text-white/80 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] disabled:opacity-60 motion-reduce:active:scale-100"
                 >
                   <Download className="size-3.5" aria-hidden />
                   {config.downloading ? "Preparing…" : "Download video"}
