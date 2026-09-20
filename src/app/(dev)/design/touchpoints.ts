@@ -1133,26 +1133,17 @@ export const RULINGS: Ruling[] = [
     title: "The pricing page",
     surface: "marketing",
     ruled:
-      'open (Will, 2026-09-19: the marketing pricing page, "a more granular exploration than simply comparing new page versions themselves at such a high level")',
+      "2026-09-20: six of eight decisions ruled and landed on the real page by pricing-wiring (the paper opening, Free and Pro side by side with Pro's own slider, the Event Pass a wide ticket, one dark room from the tiles to the table, six FAQ items). Two stay open for round two, his ask by name: Find your size (a couple more explorations, naming Higgsfield's configurator-and-result shape) and the phone row (its demo repaired first, proven with lab:demo)",
     shipped: null,
-    why: "The page asked part by part rather than version by version: the opening, the plan row, the size, the pass, the fit, the sheet, the close and the phone, one question each.",
+    why: "Round two re-asks Find your size and the phone row on the real shipped pair and ticket; the other six are ruled and shipped by pricing-wiring.",
     lives: [
       "src/app/(marketing)/(cinema)/pricing/page.tsx",
       "src/components/marketing/sections/pricing/",
       "docs/systems/marketing-content.md",
     ],
     board: {
-      note: "Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands",
-      variants: [
-        "What the page opens on",
-        "How Free and Pro stand",
-        "Choosing a size",
-        "Where the pass stands",
-        "Find your size",
-        "The grid, the table, the band",
-        "The questions and the close",
-        "The page in a hand",
-      ],
+      note: "Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed",
+      variants: ["Find your size", "The page in a hand"],
     },
   },
   {
