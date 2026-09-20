@@ -51,6 +51,16 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   them retired from the overtaken map with the count corrected. Gate 55 on the merged tree. Look at first: `view-menu`
   against `row` at 375, side by side.
 
+- **`pricing-fit` merged at `3cf43bde`** (2026-09-20, Sonnet; `pricing-page` round two): `fit`, three options on the wired page at 1440
+  and 375: the wall as today, `split` (Higgsfield's configurator-left and designed-plan-card-right shape, read live
+  from its page and built fresh with Partyreel's own controls, copy and photographs; recommended), `inline` (the whole
+  block gone, drawn as a real contender). `phone`, re-asked with its demo REPAIRED and proven end to end by `lab:demo`
+  (his "I think the demo is broken, so I can't actually see it live"): `stack` as today, `swipe` (recommended; its
+  row reshapes the Pass into a compact card so three peers share one height), `tabs`. Round one's six asks named as
+  ruled. Gate 56 on the merged tree. Calls his: `split`'s execution is the lane's reading of the reference, not a
+  literal match; two Pass shapes on one board, deliberately. One lab finding on the ROADMAP: a fully ruled ask is
+  unreachable by `?session=` even by a direct link.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
