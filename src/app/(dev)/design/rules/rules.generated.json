@@ -305,6 +305,7 @@
       "id": "overtaken",
       "file": "src/app/(dev)/design/sandbox/overtaken.ts",
       "names": [
+        "ALSO_REACHED",
         "AS_TODAY_GLOSS",
         "OVERTAKEN",
         "STANDS",
@@ -321,23 +322,23 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 53
+          "line": 82
         },
         {
-          "title": "never annotates a board that did the overtaking",
+          "title": "never lets a board overtake its own question",
           "suite": [
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 71
+          "line": 100
         },
         {
-          "title": "credits a real board with every ruling",
+          "title": "credits a ruled board with every ruling",
           "suite": [
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 80
+          "line": 109
         },
         {
           "title": "holds every judgment to one line, in the two words",
@@ -345,7 +346,15 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 95
+          "line": 127
+        },
+        {
+          "title": "appends a second ruling behind the first, named and dated",
+          "suite": [
+            "the overtaken map"
+          ],
+          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
+          "line": 156
         },
         {
           "title": "reads a concession off the line it is written on",
@@ -353,7 +362,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 111
+          "line": 184
         },
         {
           "title": "speaks the badge in plain words with the date",
@@ -361,7 +370,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 121
+          "line": 195
         },
         {
           "title": "counts a board's overtaken asks for the desk",
@@ -369,7 +378,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 129
+          "line": 203
         },
         {
           "title": "finds the options whose 'as today' now means something else",
@@ -377,7 +386,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 145
+          "line": 221
         },
         {
           "title": "derives what became of an overtaken ask from the ledger alone",
@@ -385,7 +394,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 170
+          "line": 246
         },
         {
           "title": "names the reserved word and the words that ride with it",
@@ -393,7 +402,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 179
+          "line": 255
         }
       ]
     },
@@ -1025,6 +1034,89 @@
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
           "line": 169
+        }
+      ]
+    },
+    {
+      "id": "bulk-bar",
+      "file": "src/components/app/event-feed/bulk-bar.tsx",
+      "names": [
+        "BulkBar"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names every action with an accessible label, plus All/Clear and Cancel",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 50
+        },
+        {
+          "title": "reads Clear once every item is selected",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 67
+        },
+        {
+          "title": "runs a plain action at once",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 81
+        },
+        {
+          "title": "nests Delete's confirm dialog inside its tooltip trigger, and runs only on confirm",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "calls onSelectAll and onCancel from their own controls",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 115
+        },
+        {
+          "title": "disables every action while busy, All/Clear and Cancel included",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 133
+        },
+        {
+          "title": "carries the house press feedback on every icon button, important enough to beat Button's own",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 149
+        },
+        {
+          "title": "slides the tooltip in the direction of travel, and only fades the first one",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 158
+        },
+        {
+          "title": "gates the rich sliding tooltip behind a hydrated flag that starts false",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 206
         }
       ]
     },
@@ -5206,6 +5298,42 @@
       ]
     },
     {
+      "id": "plan-cards",
+      "file": "src/components/marketing/sections/pricing/plan-cards.tsx",
+      "names": [
+        "PlanPair",
+        "StatRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is one slider whose stops are exactly the Pro plans tiers.ts declares",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 70
+        },
+        {
+          "title": "moves the price, the stats and the button with the thumb",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "keeps the billing cadence above the slider, and swaps to the annual price",
+          "suite": [
+            "the Pro card's size control"
+          ],
+          "file": "src/components/marketing/sections/pricing/plan-cards-contract.test.tsx",
+          "line": 111
+        }
+      ]
+    },
+    {
       "id": "bulk-select-mock",
       "file": "src/components/marketing/sections/shared/bulk-select-mock.tsx",
       "names": [
@@ -9232,6 +9360,67 @@
       ]
     },
     {
+      "id": "route-skeleton",
+      "file": "src/components/shared/route-skeleton.tsx",
+      "names": [
+        "RouteSkeleton"
+      ],
+      "specimens": [
+        "/design/library/patterns"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "marks all three shapes busy for assistive tech",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 23
+        },
+        {
+          "title": "draws the pulse and the hub as bare app-shell content, never a fixed takeover",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 36
+        },
+        {
+          "title": "draws the studio as the room itself: fixed, full-bleed, always dark",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 49
+        },
+        {
+          "title": "never tints the studio's blocks off the theme's --color-foreground",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 60
+        },
+        {
+          "title": "honours reduced motion on every shape",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 71
+        },
+        {
+          "title": "is what all three loading.tsx files delegate to, on their own shape",
+          "suite": [
+            "RouteSkeleton"
+          ],
+          "file": "src/components/shared/route-skeleton.test.tsx",
+          "line": 84
+        }
+      ]
+    },
+    {
       "id": "set-name-step",
       "file": "src/components/shared/set-name-step.tsx",
       "names": [
@@ -9240,6 +9429,86 @@
       "specimens": [
         "/design/library/patterns"
       ],
+      "indexed": true,
+      "contracts": []
+    },
+    {
+      "id": "tile-size-control",
+      "file": "src/components/shared/tile-size-control.tsx",
+      "names": [
+        "TileSizeControl"
+      ],
+      "specimens": [
+        "/design/library/patterns"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "accepts exactly the three wired steps",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 31
+        },
+        {
+          "title": "falls back to the wired default on anything else",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "starts at the server-resolved size and updates optimistically",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 45
+        },
+        {
+          "title": "never persists a no-op pick",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 54
+        },
+        {
+          "title": "draws exactly the three wired steps, the current one pressed",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "calls onChange with the pressed step",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "names Sort and Filter as reserved, inert slots",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "id": "tooltip-slide",
+      "file": "src/components/shared/tooltip-slide.tsx",
+      "names": [
+        "TooltipSlide",
+        "TooltipSlideGroup"
+      ],
+      "specimens": [],
       "indexed": true,
       "contracts": []
     },
@@ -10646,6 +10915,59 @@
           ],
           "file": "src/components/ui/command-palette.test.tsx",
           "line": 117
+        }
+      ]
+    },
+    {
+      "id": "confirm-switch",
+      "file": "src/components/ui/confirm-switch.tsx",
+      "names": [
+        "ConfirmSwitch"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "shows the glyph beside the label, unconditionally",
+          "suite": [
+            "ConfirmSwitch"
+          ],
+          "file": "src/components/ui/confirm-switch.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "applies at once on the edge confirmWhen refuses",
+          "suite": [
+            "ConfirmSwitch"
+          ],
+          "file": "src/components/ui/confirm-switch.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "asks on the edge confirmWhen names, and applies nothing until confirmed",
+          "suite": [
+            "ConfirmSwitch"
+          ],
+          "file": "src/components/ui/confirm-switch.test.tsx",
+          "line": 67
+        },
+        {
+          "title": "applies the pending value on Confirm",
+          "suite": [
+            "ConfirmSwitch"
+          ],
+          "file": "src/components/ui/confirm-switch.test.tsx",
+          "line": 91
+        },
+        {
+          "title": "leaves the value untouched on Cancel",
+          "suite": [
+            "ConfirmSwitch"
+          ],
+          "file": "src/components/ui/confirm-switch.test.tsx",
+          "line": 105
         }
       ]
     },
@@ -12165,6 +12487,78 @@
       ]
     },
     {
+      "id": "tile-size-cookie",
+      "file": "src/lib/shared/tile-size-cookie.ts",
+      "names": [
+        "DEFAULT_TILE_SIZE",
+        "TILE_SIZES",
+        "TILE_SIZE_COOKIE",
+        "TILE_SIZE_COOKIE_MAX_AGE"
+      ],
+      "specimens": [
+        "/design/library/patterns"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "accepts exactly the three wired steps",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 31
+        },
+        {
+          "title": "falls back to the wired default on anything else",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "starts at the server-resolved size and updates optimistically",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 45
+        },
+        {
+          "title": "never persists a no-op pick",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 54
+        },
+        {
+          "title": "draws exactly the three wired steps, the current one pressed",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "calls onChange with the pressed step",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "names Sort and Filter as reserved, inert slots",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 81
+        }
+      ]
+    },
+    {
       "id": "use-scroll-direction",
       "file": "src/lib/shared/use-scroll-direction.ts",
       "names": [],
@@ -12234,6 +12628,71 @@
           ],
           "file": "src/lib/shared/use-scroll-direction.test.ts",
           "line": 75
+        }
+      ]
+    },
+    {
+      "id": "use-tile-size",
+      "file": "src/lib/shared/use-tile-size.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "accepts exactly the three wired steps",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 31
+        },
+        {
+          "title": "falls back to the wired default on anything else",
+          "suite": [
+            "resolveTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "starts at the server-resolved size and updates optimistically",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 45
+        },
+        {
+          "title": "never persists a no-op pick",
+          "suite": [
+            "useTileSize"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 54
+        },
+        {
+          "title": "draws exactly the three wired steps, the current one pressed",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 63
+        },
+        {
+          "title": "calls onChange with the pressed step",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "names Sort and Filter as reserved, inert slots",
+          "suite": [
+            "TileSizeControl"
+          ],
+          "file": "src/components/shared/tile-size-control.test.tsx",
+          "line": 81
         }
       ]
     }

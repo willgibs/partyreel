@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest"
 import {
   floatingClock,
   floatingCorner,
+  floatingCrossSlide,
   floatingEdgeEntranceResponsive,
   floatingRow,
 } from "./floating-layer"
@@ -318,6 +319,33 @@ describe("bible 15: one floating layer, read from one contract", () => {
       floatingEdgeEntranceResponsive.includes("rounded-t-float"),
       "the bottom sheet's one non-viewport edge left the shared corner token",
     ).toBe(true)
+  })
+
+  it("keeps the cross-slide a fade at its floor, with direction and blur behind motion-safe", () => {
+    // vocab-wiring, 2026-09-20: a second consumer (the bulk bar's sliding
+    // tooltip) reads this constant; navigation-menu.tsx still spells its own
+    // copy (outside this lane's owns), so nothing here asserts against it.
+    // The baseline fade has no variant at all - it is what every state gets,
+    // reduced motion included.
+    expect(floatingCrossSlide).toMatch(
+      /data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0/,
+    )
+    // Direction and blur are gated on motion-safe (never unprefixed, or
+    // reduced motion would need to out-specificity its own travel instead of
+    // the class simply not existing under that media query).
+    for (const utility of [
+      "data-[motion=from-end]:slide-in-from-right-8",
+      "data-[motion=from-start]:slide-in-from-left-8",
+      "data-[motion=to-end]:slide-out-to-right-8",
+      "data-[motion=to-start]:slide-out-to-left-8",
+      "data-[motion^=from-]:blur-in-[3px]",
+      "data-[motion^=to-]:blur-out-[3px]",
+    ]) {
+      expect(
+        floatingCrossSlide,
+        `${utility} rides unprefixed: reduced motion would have to out-specificity it rather than it simply being absent`,
+      ).toContain(`motion-safe:${utility}`)
+    }
   })
 
   it("holds the sanctioned no-entrance surface to every other clause", () => {

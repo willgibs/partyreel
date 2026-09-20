@@ -19,7 +19,9 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
 import {
   ActionTooltipDemo,
   FloatingAddDemo,
+  RouteSkeletonDemo,
   SetNameStepDemo,
+  TileSizeControlDemo,
 } from "./interactive-demos";
 
 /**
@@ -357,6 +359,34 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
         label: "FloatingAddButton",
         hint: "fixed to the bottom of the viewport",
         node: <FloatingAddDemo />,
+      },
+    ],
+  },
+  {
+    id: "route-skeleton",
+    badge: "new",
+    family: "patterns",
+    section: "Surfaces",
+    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (`app-vocabulary` r1, `loading=asneeded`): the dashboard and the event hub mirror the page they precede byte for byte; the Studio gets its first skeleton here, on its own real shape rather than a rough sketch.",
+    specimens: [
+      {
+        label: "The three shapes",
+        hint: "pulse and hub inline; the Studio is the real fixed room, shown on demand like FloatingAddButton above",
+        node: <RouteSkeletonDemo />,
+      },
+    ],
+  },
+  {
+    id: "tile-size-control",
+    badge: "new",
+    family: "patterns",
+    section: "Surfaces",
+    lede: "The gallery's tile-size cluster (`app-vocabulary` r1, `gallery-controls-home=cluster`): three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row already reads as a group of controls before either exists.",
+    specimens: [
+      {
+        label: "TileSizeControl",
+        hint: "controlled: the caller owns persistence (use-tile-size.ts) and applies --album-column to its own grid's ancestor",
+        node: <TileSizeControlDemo />,
       },
     ],
   },

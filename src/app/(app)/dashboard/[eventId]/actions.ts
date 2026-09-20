@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
@@ -20,6 +21,11 @@ import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
+import {
+  resolveTileSize,
+  TILE_SIZE_COOKIE,
+  TILE_SIZE_COOKIE_MAX_AGE,
+} from "@/lib/shared/tile-size-cookie";
 
 // Allowlist the host-settable statuses HERE, at the action boundary — the
 // client calls these with a raw string and we never trust it. 'removed' is not
@@ -352,4 +358,22 @@ export async function listDeletedMediaAction(
     });
     return { ok: false, message: "Couldn't load deleted items." };
   }
+}
+
+/**
+ * The gallery's tile-size cookie (`app-vocabulary` r1,
+ * `gallery-controls-persistence`, overruled to a cookie: `tile-size-cookie.ts`
+ * has why). A preference, not a trust boundary — no auth check, same as
+ * `setEventsViewAction` in `dashboard/actions.ts`, whose pattern this mirrors
+ * exactly. `resolveTileSize` narrows whatever arrives to the three wired
+ * steps, so a hand-forged call can only ever set one of them.
+ */
+export async function setTileSizeAction(size: number): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(TILE_SIZE_COOKIE, String(resolveTileSize(String(size))), {
+    maxAge: TILE_SIZE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    path: "/",
+    httpOnly: false,
+  });
 }

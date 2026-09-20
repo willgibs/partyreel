@@ -384,11 +384,6 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 1,
     why: "voice-wiring owns it (his gate line, verbatim); the eyebrow's tracking, the last one left after door-wiring moved the gate's password form into <AccountDoor>",
   },
-  "src/components/marketing/sections/pricing/plan-cards.tsx": {
-    kind: "lane",
-    count: 2,
-    why: "voice-wiring owns it (the Pro line, his words)",
-  },
   "src/components/marketing/sections/home/pricing-teaser.tsx": {
     kind: "lane",
     count: 2,

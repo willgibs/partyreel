@@ -107,8 +107,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/app/event-feed/event-cards-row.tsx": {
     for: "the row of doors under the event's header (Review, Reel, Guests, then Settings), sticky and condensing as the album scrolls. Links in a group and never tabs, since three of them are rooms you go to; the QR pill at its end exists only while the header's code is off screen",
   },
+  "src/components/app/event-feed/bulk-bar.tsx": {
+    for: "the one select-mode cluster behind ReviewActions and GalleryBulkBar: All/Clear, the count, one icon per verb, Cancel, icons with instant sliding tooltips mounted behind a hydrated flag",
+    unspecimened:
+      "outside the library's directories; ReviewActions and GalleryBulkBar (src/components/app/event-feed) are the real callers",
+  },
   "src/components/app/event-feed/event-gallery.tsx": {
-    for: "the album as the hub's subject, with the controls that used to be spread across a command strip and a section header: Add photos, Download all, Select, and the Deleted filter the bin folded into. The bin is fetched only when asked, never with the page",
+    for: "the album as the hub's subject, with the controls that used to be spread across a command strip and a section header: Add photos, Download all, the tile-size cluster, Select, and the Deleted filter the bin folded into. The bin is fetched only when asked, never with the page",
   },
   "src/components/app/event-feed/review-room.tsx": {
     for: "the Review room's client boundary: the triage machine, owned by a room instead of shared with a floating bar, handed to the section that draws it",
@@ -317,6 +322,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the beam on the Pro card, the one standing beam: its ring is always the card's own corner",
   },
 
+  /* marketing / sections / pricing (pricing-wiring, 2026-09-20) */
+  "src/components/marketing/sections/pricing/plan-cards.tsx": {
+    for: "the money page's pair: Free on paper beside Pro in ink, with Pro's room picked on a slider whose stops ARE plansForTier('pro'), so a size nobody can buy can never appear on it",
+    unspecimened:
+      "a page block rather than a component: two full cards wide, and it only reads inside the paper chapter it opens. /pricing is where it is seen, and its contract sits beside it",
+  },
+
   /* marketing / sections / shared */
   "src/components/marketing/sections/shared/bulk-select-mock.tsx": {
     for: "the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls",
@@ -519,8 +531,19 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "fires Sentry on mount; /design/library/patterns renders a static mock of its screen",
   },
+  "src/components/shared/route-skeleton.tsx": {
+    for: "the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room",
+  },
   "src/components/shared/set-name-step.tsx": {
     for: "the one required add-your-name step, reused at every gate that asks for one",
+  },
+  "src/components/shared/tile-size-control.tsx": {
+    for: "the gallery's tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Controlled: the caller owns the persistence",
+  },
+  "src/components/shared/tooltip-slide.tsx": {
+    for: "the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide)",
+    unspecimened:
+      "a group context plus one trigger wrapper; BulkBar (src/components/app/event-feed, outside the library) is the real caller and the honest demo",
   },
   "src/components/shared/upload-thumbnail.tsx": {
     for: "the per-file thumbnail in the upload queue",
@@ -540,6 +563,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/ui/card.tsx": {
     for: "the panel the settings, dashboard, admin and auth surfaces are built out of",
+  },
+  "src/components/ui/confirm-switch.tsx": {
+    for: "the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently",
   },
   "src/components/ui/dialog.tsx": {
     for: "the modal, plus the fullScreen takeover a whole-screen surface asks for",
@@ -612,6 +638,13 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/lib/shared/sampled-palette.ts": {
     for: "law 3 made real: the spill takes its hues from the photograph it is lighting",
+  },
+  "src/lib/shared/tile-size-cookie.ts": {
+    for: "the gallery tile-size cookie's name, steps and resolver: the pure half events-view.ts's own split keeps out of next/headers",
+  },
+  "src/lib/shared/use-tile-size.ts": {
+    for: "the tile-size control's state: optimistic locally, persisted through whatever Server Action the caller wires in",
+    unspecimened: "a hook; TileSizeControl is what you can see",
   },
 
   /* the lab kit (src/components/lab) */
