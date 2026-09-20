@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
 
-import { EmailSignIn } from "@/components/auth/email-sign-in";
-import { GoogleIcon } from "@/components/auth/google-icon";
+import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
@@ -177,19 +175,6 @@ export function SaveEventButton({
     setOpen(true);
   }
 
-  async function signInWithGoogle() {
-    const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${window.location.pathname}`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-    if (error)
-      toast.error("Couldn't start Google sign-in", {
-        description: error.message,
-      });
-  }
-
   const emailRedirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
@@ -218,15 +203,23 @@ export function SaveEventButton({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
+          {/* The Dialog owns the title and the description for a11y (Radix
+              wires aria-labelledby / -describedby to these), so the words come
+              from the door's own wear table rather than being retyped here. */}
           <DialogHeader>
-            <DialogTitle>Save this event</DialogTitle>
-            <DialogDescription>
-              Create a free account to keep this event on your dashboard and
-              come back to it anytime. No app, just your email.
-            </DialogDescription>
+            <DialogTitle>{DOOR_WEAR.save.heading}</DialogTitle>
+            <DialogDescription>{DOOR_WEAR.save.reason}</DialogDescription>
           </DialogHeader>
-          <EmailSignIn
+          {/* ★ THE SAVE WEAR (Will, 2026-09-20, `surfaces=one`). Save was one of
+              the two account surfaces that created accounts with NO Terms line;
+              the door carries it now, for every wear, and it cannot be
+              forgotten by a new surface again. */}
+          <AccountDoor
+            wear="save"
+            methods={{ code: true, google: true }}
             emailRedirectTo={emailRedirectTo}
+            chrome="none"
+            intent="create"
             onVerified={async () => {
               // In-page OTP verify (no reload) -> claim this browser's anonymous uploads directly. Silent:
               // the "Saved to your dashboard." toast below is the feedback here. The redirect paths (Google /
@@ -238,36 +231,24 @@ export function SaveEventButton({
               if (ok) toast.success("Saved to your dashboard.");
               else toast.error("Couldn't save this event.");
             }}
-          />
-          {offerNewsletter && (
-            <div className="flex items-center gap-2">
-              <Switch
-                id="pr-save-newsletter"
-                size="sm"
-                checked={optIn}
-                onCheckedChange={setOptIn}
-              />
-              <Label
-                htmlFor="pr-save-newsletter"
-                className="text-xs font-normal text-muted-foreground"
-              >
-                Send me occasional Partyreel updates
-              </Label>
-            </div>
-          )}
-          <div className="flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <Separator className="flex-1" />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={signInWithGoogle}
           >
-            <GoogleIcon /> Continue with Google
-          </Button>
+            {offerNewsletter && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="pr-save-newsletter"
+                  size="sm"
+                  checked={optIn}
+                  onCheckedChange={setOptIn}
+                />
+                <Label
+                  htmlFor="pr-save-newsletter"
+                  className="text-xs font-normal text-muted-foreground"
+                >
+                  Send me occasional Partyreel updates
+                </Label>
+              </div>
+            )}
+          </AccountDoor>
         </DialogContent>
       </Dialog>
     </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { type CSSProperties, useTransition } from "react";
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,7 +11,6 @@ import {
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
 import { MasonryColumns } from "@/components/shared/masonry";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +23,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
+import { GLASS, GLASS_MARK } from "@/lib/glass";
+import { cn } from "@/lib/utils";
 
 // The host "Recently deleted" MEDIA grid (event-detail). Reuses the shared
 // MasonryColumns (natural ratios, clamped for control legibility); the per-tile
@@ -88,36 +89,54 @@ function BinTileOverlay({
 
   return (
     <>
-      <Badge variant="secondary" className="absolute top-1.5 left-1.5 z-10">
+      {/* The countdown is a MARK, so it stays at every width: it is the only
+          thing that makes this grid different from the album. */}
+      <span
+        className={cn(
+          "pointer-events-none absolute top-1.5 left-1.5 z-10 inline-flex h-5 items-center rounded-full px-2 text-micro font-medium text-white",
+          GLASS_MARK,
+        )}
+      >
         {binCountdownLabel(item.countdownDays)}
-      </Badge>
+      </span>
 
-      <div className="absolute inset-x-0 top-0 flex items-center justify-end gap-1 bg-gradient-to-b from-black/70 to-transparent p-1.5">
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon-sm"
-          disabled={isPending}
-          aria-label="Restore"
-          title="Restore"
-          onClick={onRestore}
-        >
-          <Undo2 />
-        </Button>
-
+      {/* The bin's two verbs, in the one pane the grid draws. Restore is
+          capacity-gated in the RPC (safe + reversible, no confirm); Delete
+          permanently skips the 30-day window, so it stays behind a confirm.
+          The Dialog lives HERE rather than in the row because the row is a
+          declared action set and a trigger is a component. */}
+      <div className="absolute top-1.5 right-1.5 z-10 hidden md:block">
         <Dialog>
-          <DialogTrigger asChild>
-            <Button
+          <div
+            data-reveal-chip
+            style={{ "--reveal-max": "4rem" } as CSSProperties}
+            className={cn(
+              "flex items-center gap-0.5 rounded-full p-0.5",
+              GLASS,
+            )}
+          >
+            <button
               type="button"
-              variant="destructive"
-              size="icon-sm"
               disabled={isPending}
-              aria-label="Delete permanently"
-              title="Delete permanently"
+              aria-label="Restore"
+              title="Restore"
+              onClick={onRestore}
+              className={BIN_ACTION}
             >
-              <Trash2 />
-            </Button>
-          </DialogTrigger>
+              <Undo2 className="size-4" />
+            </button>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                disabled={isPending}
+                aria-label="Delete permanently"
+                title="Delete permanently"
+                className={cn(BIN_ACTION, "hover:text-destructive")}
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </DialogTrigger>
+          </div>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete permanently?</DialogTitle>
@@ -146,6 +165,10 @@ function BinTileOverlay({
     </>
   );
 }
+
+/** One glyph of the bin's pane: no surface of its own (`row=bar`). */
+const BIN_ACTION =
+  "flex size-6 cursor-pointer items-center justify-center rounded-full text-white outline-none transition-[color,transform] duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50";
 
 export function RecentlyDeletedGrid({
   eventId,

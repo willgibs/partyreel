@@ -1,46 +1,21 @@
 ---
-track: guest-wiring
+track: pricing-wiring
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "c935f072"          # the launch-prep SHA the branch was cut from
-board: guest-shape     # wiring; round two on the chrome and the welcome is another lane
+cut: "7f4f2ffe"          # the launch-prep SHA the branch was cut from
+board: pricing-page    # wiring six of eight; round two on fit and the phone row is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/components/guest/entry-shell.tsx
-  - src/components/guest/entry-modal.tsx
-  - src/components/guest/entry-modal.test.tsx
-  - src/components/guest/entry-step-transition.tsx
-  - src/components/guest/event-experience.tsx
-  - src/components/guest/live-gallery.tsx
-  - src/components/guest/live-gallery.css
-  - src/components/guest/ghost-grid.tsx
-  - src/components/guest/gallery-empty-state.tsx
-  - src/components/guest/gallery-empty-state.test.tsx
-  - src/components/guest/save-account-prompt.tsx
-  - src/components/guest/guest-upload.tsx
-  - src/components/guest/guest-share.tsx
-  - src/components/guest/report-dialog.tsx
-  - src/components/ui/sheet.tsx
-  - src/lib/guest/
-  - src/lib/db/mutations/guest-media.ts
-  - src/app/(guest)/e/[token]/
-  - src/app/api/guests/gallery/route.ts
-  - src/app/api/guests/remove/
-  - src/app/api/guests/mine/
-  - docs/systems/guest-flow.md
+  - src/app/(marketing)/(cinema)/pricing/
+  - src/components/marketing/sections/pricing/
+  - docs/systems/marketing-content.md
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/guest-shape.json
+  - docs/reviews/pricing-page.json
   - docs/design/rulings.md
-  - src/components/guest/enter-event-prompt.tsx
-  - src/components/guest/guest-masonry.tsx
-  - src/components/shared/masonry.tsx
-  - src/components/shared/media-lightbox.tsx
-  - src/lib/db/types.ts
-  - supabase/migrations/20260609150000_remove_my_upload.sql
-  - supabase/migrations/20260920090000_remove_my_upload_by_session.sql
-  - docs/systems/database-security.md
-  - src/app/(dev)/design/sandbox/guest-shape/
+  - src/lib/constants/tiers.ts
+  - src/lib/constants/marketing-voice.ts
+  - src/app/(dev)/design/sandbox/pricing-page/
 ---
 
-# lp/guest-wiring
+# lp/pricing-wiring
 
 **Goal.** Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the sixth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -49,62 +24,17 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `806695d1`)
 
-- Owns: `src/components/guest/entry-shell.tsx`, `entry-modal.tsx`, `entry-modal.test.tsx`, `entry-step-transition.tsx`,
-  `event-experience.tsx`, `live-gallery.tsx`, a new `live-gallery.css` (the arrival glow, a lane-owned sheet like the
-  river's), `ghost-grid.tsx` (retired), `gallery-empty-state.tsx` and its test, `save-account-prompt.tsx`,
-  `guest-upload.tsx` (the Save offer's placement only), `guest-share.tsx` and `report-dialog.tsx` (onto the Sheet);
-  `ghost-grid.tsx` stays ON DISK with a head comment naming the guest-shape board that draws it (never deleted);
-  `src/components/ui/sheet.tsx`; `src/lib/guest/`; a new `src/lib/db/mutations/guest-media.ts` (every database call of
-  this lane lives there, the DRY rule); `src/app/(guest)/e/[token]/` (the page, a new `actions.ts`);
-  `src/app/api/guests/gallery/route.ts`; new `src/app/api/guests/remove/route.ts` and `src/app/api/guests/mine/route.ts`;
-  `docs/systems/guest-flow.md`. (`ui/floating-layer.ts` is vocab-wiring's.) The Handoff's stale list names the two
-  legal lines that still say an anonymous uploader asks the host (`legal-privacy.tsx:515-520`, `legal-terms.tsx:123`). Reads: `entry-steps.ts`'s consumers,
-  `enter-event-prompt.tsx` (door-wiring's, composed as today through its export), the seam's props, the sandbox
-  `guest-shape/` (never edits: round two's).
-- The door: welcome then gate, the sequence untouched (`entry-steps.ts`), and its SHELL UNTOUCHED too: "not this
-  sheet design" withholds the shell, so it is neither rebuilt nor restyled here; its design (with the demo's welcome,
-  which he also says "could be redesigned") is re-asked in guest-shape round two beside the chrome. The four guest
-  dialogs take the ruled Sheet (`dialogs=stands`): Invite and Download all now, with nothing typed in them; Save and
-  Report too, as ruled, with the risk written in the Handoff: the responsive Sheet's phone half has never held a
-  focused input on a real iPhone (vaul's `repositionInputs` is why the door kept its engine, `entry-shell.tsx:23-33`),
-  the lane checks it in the pane and on the alias, and if the keyboard covers the field the Sheet's phone half becomes
-  vaul-backed as one follow-up rather than a per-dialog exception. The river replaces `GhostGrid` on the locked page
-  at the empty album's depth.
-- The arrival (`live=land`): `reconcile-gallery-items.ts` reports ids new since the last snapshot; `live-gallery.tsx`
-  holds them for the glow's life and passes `arrivedIds` through the seam; the tile grows into ONE column under a
-  glow that fades and only that column re-flows, which the glass lane's explicit column assignment makes possible
-  (CSS `columns` are column-major, so a head insert would shift every tile: the ruling as drawn cannot land on them;
-  until the glass lane merges, an arrival lands in the seam's `prefix` row, glowing, and the columns adopt it on the
-  next natural refresh); reduced motion a plain appearance.
-- Save after upload: the block above the album loses Save (`event-experience.tsx:373-378`); the after-upload card is
-  the one offer, in the door's voice through `SaveEventButton` (door-wiring's wear) as today.
-- A guest's own photographs, removable ("A guest can delete any photo they've personally uploaded, ever"): signed in,
-  a new `removeMyUploadGuestAction` in `(guest)/e/[token]/actions.ts` calling the existing `remove_my_upload` (the
-  guest arm covers claimed rows), "mine" computed server-side in the page (one admin-client read of the media ids
-  whose guest row belongs to the user) and passed as `canDelete` through the seam, never in the gallery payload or its
-  ETag (the fingerprint is per access, not per viewer); anonymous, the RPC `remove_my_upload_by_session(p_session_token,
-  p_media_id)` APPLIED BY THE ORCHESTRATOR AT THE CUT from this spec so the lane's call typechecks against generated
-  types (SECURITY DEFINER, `search_path` empty, EXECUTE revoked explicitly from `public`, `anon` and `authenticated`
-  and granted to `service_role` only; its body requires `media.guest_id -> guests.session_token = p_session_token`,
-  `guests.user_id IS NULL` (a claimed row belongs to the account path: a shared device's stale token never deletes a
-  signed-in person's photograph), `guests.event_id = media.event_id`, the event not deleted; a rolled-back RPC check
-  and `get_advisors` after, the function added to the accepted advisor set), reached through
-  `POST /api/guests/remove` on the admin client behind the join limiter, idempotent on already-removed, marking
-  `removed_by_uploader` so the bin and `restore_media` never see it; "mine" for an anonymous guest comes from the
-  SERVER too (`POST /api/guests/mine`, the token in the body, returning the session's media ids, cached in
-  `live-gallery.tsx`), never a client list, so uploads made before this lands are covered; sign-in claims the rows
-  and the account path takes over. The migration is PROPOSED in the Handoff as SQL and applied by the Orchestrator.
-  Never: an `anon` grant, a client-asserted mine, the token in a URL, a delete of a row with no guest.
-- Tests: `entry-modal.test.tsx` on the Dialog branch; the arrival ids (pure); the remove and mine routes (a wrong
-  token 403, a foreign media 404, idempotent; mine never lists another session's ids); `gallery-empty-state` green;
-  the gate; `lab:smoke` whole.
-- Red-team on the alias at 375 in the pane, signed out: the disposable event's door (welcome, then the gate, on the
-  sheet; the desk centre at 1440), the locked page's river, a photograph arriving (a second tab uploads; the glow),
-  Save absent above the album and present after the first upload, the anonymous Remove on an own upload and its
-  absence on another's; the signed-in Remove is Will's.
-- His to overrule: the door's shell left exactly as it is until round two; Save and Report on the Sheet before the
-  iPhone check; the river on the locked page at the same depth; the glow's life; the anonymous remove being
-  device-bound; the removal final for the host.
+- Owns `src/app/(marketing)/(paper)/pricing/`
+(or wherever `pricing/page.tsx` lives: the lane check names it), `src/components/marketing/sections/pricing/`
+(`plan-cards.tsx`, `pass-card.tsx`, `calculator.tsx`, the unlock grid, the shared band retired on disk if the lab
+draws it, the FAQ block), `pricing-faq-data.ts`, the pricing lines of `docs/systems/marketing-content.md`. Reads,
+never edits: `src/lib/constants/tiers.ts` (the sizes and cadence the slider walks: the one source), `marketing-voice.ts`
+(`PRO_LINE`), the checkout doors (their targets unchanged; Stripe stays TEST), `sandbox/pricing-page/` (round two's).
+The chapter rhythm: paper opening, the pair and the Pass, the dark tiles chapter, "Find your plan size" as today, the
+dark table, the accordion, the band. Tests: the FAQ count and the JSON-LD parity, the slider's steps equal `tiers.ts`,
+the cadence toggle above the slider, `marketing-h1-policy`, `content-policy`; the gate. Red-team on the alias signed
+out at 1440 and 375: the whole page, the slider, the dark chapters' transitions, the accordion, the Pass beneath.
+His to overrule: the Pass's new design; the accordion's count; the tiles chapter's copy.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
@@ -270,38 +200,6 @@ vocab-wiring lands). Typecheck and the tests green. (If the seam cannot land cle
 - `phone=swipe` + "I think the demo is broken, so I can't actually see it live. Would like to prove it in the lab
   before passing": NOT wired. The board's `phone` step is repaired in the lab and the ask stays open on the board for
   his eye (round two carries it beside `fit`).
-
-**Lane 7: `pricing-wiring` (Opus, the first seat that frees; the money page):** owns `src/app/(marketing)/(paper)/pricing/`
-(or wherever `pricing/page.tsx` lives: the lane check names it), `src/components/marketing/sections/pricing/`
-(`plan-cards.tsx`, `pass-card.tsx`, `calculator.tsx`, the unlock grid, the shared band retired on disk if the lab
-draws it, the FAQ block), `pricing-faq-data.ts`, the pricing lines of `docs/systems/marketing-content.md`. Reads,
-never edits: `src/lib/constants/tiers.ts` (the sizes and cadence the slider walks: the one source), `marketing-voice.ts`
-(`PRO_LINE`), the checkout doors (their targets unchanged; Stripe stays TEST), `sandbox/pricing-page/` (round two's).
-The chapter rhythm: paper opening, the pair and the Pass, the dark tiles chapter, "Find your plan size" as today, the
-dark table, the accordion, the band. Tests: the FAQ count and the JSON-LD parity, the slider's steps equal `tiers.ts`,
-the cadence toggle above the slider, `marketing-h1-policy`, `content-policy`; the gate. Red-team on the alias signed
-out at 1440 and 375: the whole page, the slider, the dark chapters' transitions, the accordion, the Pass beneath.
-His to overrule: the Pass's new design; the accordion's count; the tiles chapter's copy.
-
-**Lane 8: `demo-wiring` (Sonnet, cut AFTER `guest-wiring` merges, since its items live in that lane's files):** owns,
-then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
-`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
-`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
-the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
-retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
-`marketing-content.md`. The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
-every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
-Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
-mark, an upload's turn card, the pair with the pane and a second tab.
-
-**Round twos from this paste (Sonnet, lab-only, as seats free):** `pricing-fit` (pricing-page round two: `fit`, with
-the Higgsfield research, and `phone` with its demo repaired) and `demo-doors` (demo-event round two on `doors`
-alone). Both boards keep their ids; their RULINGS rows are rewritten by the round-two lanes.
-
-**Their reach on the boards still open (for `overtaken-2`):** `app-pricing.carry`, `pass` and `learn` (the marketing
-page's new shape and the Pass's place); `first-event.limit` (a Free host's upgrade door opens on the paper plans);
-`site-chrome` round two's `foot-after` (the pricing page now closes on the accordion and the band); `help-center.hub`
-(the FAQ data's split); `demo-event`'s doors reach the nav panel `site-chrome` round one landed (the ticket goes).
 
 ## The ownership rules every lane follows this round
 

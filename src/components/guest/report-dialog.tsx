@@ -6,23 +6,37 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Discreet report control on the event page. Anonymous: it POSTs the event's
-// qr_token (its capability) + an optional reason to /api/reports. Reporting NEVER
-// hides content — it just queues an operator review (anti-griefing — see
-// create_report). The trigger is a muted link; the Dialog renders on the default
-// themed surface via the portal.
+/**
+ * The discreet report control at the foot of the event page. Anonymous: it
+ * POSTs the event's `qr_token` (its capability) plus an optional reason to
+ * /api/reports. Reporting NEVER hides content — it queues an operator review
+ * (anti-griefing; see `create_report`). The trigger stays a muted link.
+ *
+ * ★ IT WEARS THE ONE PRODUCT SHEET NOW (Will, `dialogs=stands`, 2026-09-20),
+ * like the Invite beside it.
+ *
+ * ★ AND IT IS THE ONE WITH A FIELD IN IT, which is the risk this lane wrote
+ * down rather than discovered later: the responsive Sheet's phone half is a
+ * Radix panel, and a Radix panel has never held a FOCUSED input on a real
+ * iPhone in this product. The guest gate next door kept vaul's engine for
+ * exactly that reason (`repositionInputs`, entry-shell.tsx) — vaul lifts the
+ * sheet above the keyboard and Radix does not. If the keyboard covers this
+ * textarea on a real phone, the fix is the SHEET's phone half becoming
+ * vaul-backed for every consumer, ONE follow-up, never a per-dialog exception
+ * that puts this screen back on its own surface.
+ */
 export function ReportDialog({ qrToken }: { qrToken: string }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -59,8 +73,8 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
@@ -68,16 +82,16 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
         >
           <Flag /> Report
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Report this event</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent responsive className="overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Report this event</SheetTitle>
+          <SheetDescription>
             Tell us what&rsquo;s wrong and our team will review it. Reports are
             anonymous.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="space-y-2 px-4">
           <Label htmlFor="report-reason">
             Reason{" "}
             <span className="font-normal text-muted-foreground">
@@ -93,15 +107,17 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
             placeholder="What's the problem here?"
           />
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
+        {/* A panel's footer stacks (it has a column, not a dialog's row of two);
+            the primary leads, because the way out of a sheet is also its edge. */}
+        <SheetFooter>
           <Button disabled={isPending} onClick={onSubmit}>
             {isPending ? "Sending…" : "Submit report"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <SheetClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

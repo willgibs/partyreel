@@ -340,13 +340,15 @@
      layer), never for a flat surface. */
   --background: oklch(0.105 0.0053 286);
   --foreground: oklch(0.965 0.0045 286);
-  /* ★ THE VEIL RETIRED (card=declared, Will 2026-09-17: "If we ever need to
-     design that glass style over photos, we can design that custom."). This was
-     the system's ONE translucent surface and no document said so: 62% of a grey
-     over whatever sat behind it, which read solid over a page and turned to
-     glass over a photograph. A card is an OPAQUE surface everywhere now. Do not
-     re-introduce an alpha here; a glass surface over media is a design task with
-     its own ruling, not a token's side effect. */
+  /* ★ THE VEIL RETIRED, AND THE GLASS IT HINTED AT NOW EXISTS ELSEWHERE
+     (card=declared, Will 2026-09-17: "If we ever need to design that glass style
+     over photos, we can design that custom."; designed and ruled as Crystal,
+     2026-09-20). This was the system's ONE translucent surface and no document
+     said so: 62% of a grey over whatever sat behind it, which read solid over a
+     page and turned to glass over a photograph. A card is an OPAQUE surface
+     everywhere now, and that is still the rule: the custom glass he asked for is
+     `.glass` (THE GLASS MATERIAL below), it is MEDIA chrome only, and a surface
+     token never carries an alpha to get it. */
   --card: oklch(0.225 0.006 286);
   --card-foreground: oklch(0.965 0.0045 286);
   --popover: oklch(0.27 0.006 286);
@@ -975,6 +977,129 @@
       }
     }
   }
+}
+
+/* ═══════════ THE GLASS MATERIAL: CRYSTAL ═══════════════════════════════════
+   (the `glass` board, round one 2026-09-18 + round two 2026-09-20; the board
+   retired at this wiring. `src/lib/glass.ts` names these tokens for the
+   contract test and `docs/systems/design-system.md` carries the facts.)
+
+   ★ ONE MATERIAL, EVERYWHERE, AND THAT IS THE RULING. Will, on the reel's white
+   pane: "I don't want to have separate glass treatments and would prefer to find
+   a global that works everywhere". Round two drew three bodies on all six glass
+   surfaces at once and he picked `material=crystal` with `edge=double`. So the
+   numbers live HERE, once, and every glass surface in the product wears
+   `.glass`. A pill that types its own `bg-black/55 backdrop-blur-sm` is the
+   drift this block exists to end.
+
+   ★ FIVE NUMBERS AND TWO EDGES, NOTHING ELSE. A blur radius, a backdrop
+   brightness, a backdrop saturation, a tint (black, at an alpha) painted OVER
+   the blurred backdrop, and two hairlines. BRIGHTNESS is the move that makes
+   glass legible: a blur does not change the mean luminance under a pill, so a
+   near-clear pane over a bright photograph loses its white text however wide the
+   blur. `brightness()` inside the backdrop filter darkens what is behind WITHOUT
+   flattening its colour, which is what lets Crystal carry a 4 percent tint and
+   still hold white text over the brightest photograph in the repo.
+
+   ★ THE EDGES ARE INSET SHADOWS, NEVER A BORDER. A border changes the pane's
+   size and would make every glass surface a different pane; an inset shadow
+   draws on the padding box at the surface's own radius, which is bible 9's
+   concentric arc for free. The lip is offset down by 1px (light landing on the
+   upper edge); the hairline is a 1px spread all the way round.
+
+   ★ THE MATERIAL IS DARK IN BOTH THEMES (`paper=dark`, 2026-09-20). Chrome over
+   a photograph is chrome over a photograph whatever the page is made of, so
+   nothing here lives under `.dark` and a chip on a paper dashboard card wears
+   the same pane as one over the guest album at night.
+
+   ★ GLASS IS MEDIA CHROME, NEVER A POPOVER. `ui/floating-layer.ts` refuses a
+   backdrop filter on a floating PANEL and that refusal STANDS: a menu, a
+   tooltip, a dialog and a sheet are opaque surfaces with a step and a ring.
+   `src/lib/glass.test.ts` holds the line by name.
+
+   ★ AND THE MARKS WEAR A LIGHTER BLUR. A 42px backdrop filter on every tile of
+   a hundred-photograph album is a phone's scroll budget spent on chrome nobody
+   is reading. `glass-mark` re-points ONE number — the material's tint, edges and
+   backdrop are untouched — so a mark is the same material and costs a fraction. */
+:root {
+  /* The body (Crystal, `material=crystal`). */
+  --glass-blur: 42px;
+  --glass-brightness: 0.68;
+  --glass-saturate: 2;
+  --glass-tint: 0.04;
+  /* The edges (`edge=double`): a 28 percent lip and a 10 percent hairline. */
+  --glass-lip: 0.28;
+  --glass-hairline: 0.1;
+  /* The marks' blur (a tile carries one on every photograph; see above). */
+  --glass-blur-mark: 12px;
+  /* The ground BEHIND a photograph in the lightbox (`behind=album`): the album
+     itself, blurred at half brightness, so a photograph reads as lifted out of
+     the room rather than as a new screen. Its own numbers, because it is a
+     full-viewport ground rather than a pane you press. */
+  --glass-behind-blur: 28px;
+  --glass-behind-brightness: 0.5;
+  --glass-behind-saturate: 1.2;
+  --glass-behind-tint: 0.35;
+}
+
+/* ★ AND THE PHONE KEEPS THE SAME GROUND, MEASURED RATHER THAN ASSUMED.
+   `ui/dialog.tsx` refuses a full-viewport backdrop filter under a full-screen
+   dialog because a phone pays for one every frame, so this wiring measured the
+   lightbox's swipe at 375 before shipping the ground: 16.7 ms p50 AND p95 with
+   the ground blurred, the same with it flat, and the same again at twice the
+   radius under a 6x CPU throttle — a backdrop filter is GPU work, so the
+   throttle proves the CPU is not where it lands. One number, then, for one
+   material. If a real phone on the alias ever tells a different story, the fix
+   is this token and nothing else. */
+
+/* THE MATERIAL. One rule, read through the tokens, so a retune is one line up
+   there and never a sweep through className strings. */
+@utility glass {
+  background-color: rgb(0 0 0 / var(--glass-tint));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    brightness(var(--glass-brightness)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) brightness(var(--glass-brightness))
+    saturate(var(--glass-saturate));
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--glass-lip)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--glass-hairline));
+}
+
+/* The same material at the mark's blur. Worn WITH `glass` (`class="glass
+   glass-mark"`): it declares the one variable the material reads, so the order
+   the two land in the utilities layer cannot matter. */
+@utility glass-mark {
+  --glass-blur: var(--glass-blur-mark);
+}
+
+/* THE GROUND BEHIND A PHOTOGRAPH (`behind=album`). Its own element, always: the
+   photograph must never sit INSIDE the blurred region, or the viewer blurs the
+   thing it exists to show. `media-lightbox.tsx` puts this on the overlay and the
+   media in the content above it; `media-lightbox.test.ts` pins the pair. */
+@utility glass-behind {
+  background-color: rgb(0 0 0 / var(--glass-behind-tint));
+  -webkit-backdrop-filter: blur(var(--glass-behind-blur))
+    brightness(var(--glass-behind-brightness))
+    saturate(var(--glass-behind-saturate));
+  backdrop-filter: blur(var(--glass-behind-blur))
+    brightness(var(--glass-behind-brightness))
+    saturate(var(--glass-behind-saturate));
+}
+
+/* ★ A GLYPH ON GLASS CARRIES ITS OWN LIGHT, AND NO MATERIAL CARRIES IT FOR HIM.
+   Will's first reason for looking at Frost was that it "keeps an active icon a
+   bit more visible", and round two measured it: the rose `--like` mark reads
+   4.4:1 through Crystal, under the 4.5:1 floor, over the brightest photograph in
+   the repo. The same arithmetic reaches WHITE over a near-white sky, which the
+   board never saw because it drew the lightbox's pill over the album ALREADY
+   darkened to half brightness, where production floats it over the raw
+   photograph. A pane cannot fix either (a pill is a few hundred square pixels;
+   raising its tint to carry a sky would sink every dark photograph in the repo).
+   So the glyph wears a halo of its own: invisible over a dark photograph, the
+   whole difference over a bright one, and Crystal untouched. */
+@utility glass-mark-lit {
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.55))
+    drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
 }
 
 /* THE HEADING TYPE UTILITY (the swappable global heading face).

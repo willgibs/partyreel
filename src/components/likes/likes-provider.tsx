@@ -10,9 +10,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { EmailSignIn } from "@/components/auth/email-sign-in";
-import { GoogleIcon } from "@/components/auth/google-icon";
-import { Button } from "@/components/ui/button";
+import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 
@@ -280,19 +277,6 @@ export function LikesProvider({
     }
   }
 
-  async function signInWithGoogle() {
-    const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${window.location.pathname}`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-    if (error)
-      toast.error("Couldn't start Google sign-in", {
-        description: error.message,
-      });
-  }
-
   const emailRedirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
@@ -304,27 +288,24 @@ export function LikesProvider({
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
+          {/* The Dialog owns the title and the description for a11y (Radix
+              wires aria-labelledby / -describedby to these), so the words come
+              from the door's own wear table rather than being retyped here. */}
           <DialogHeader>
-            <DialogTitle>Like this</DialogTitle>
-            <DialogDescription>
-              Create a free account to save your favorites and find them on your
-              dashboard. No app, just your email.
-            </DialogDescription>
+            <DialogTitle>{DOOR_WEAR.like.heading}</DialogTitle>
+            <DialogDescription>{DOOR_WEAR.like.reason}</DialogDescription>
           </DialogHeader>
-          <EmailSignIn emailRedirectTo={emailRedirectTo} onVerified={onVerified} />
-          <div className="flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <Separator className="flex-1" />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={signInWithGoogle}
-          >
-            <GoogleIcon /> Continue with Google
-          </Button>
+          {/* ★ THE LIKE WEAR (Will, 2026-09-20, `surfaces=one`). This dialog was
+              Save's near copy, and the second of the two surfaces creating
+              accounts with no Terms line; the door carries it now. */}
+          <AccountDoor
+            wear="like"
+            methods={{ code: true, google: true }}
+            emailRedirectTo={emailRedirectTo}
+            chrome="none"
+            intent="create"
+            onVerified={onVerified}
+          />
         </DialogContent>
       </Dialog>
     </LikesContext.Provider>

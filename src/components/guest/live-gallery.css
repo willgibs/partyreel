@@ -1,0 +1,78 @@
+/* ── THE ARRIVAL (live-gallery.tsx), Will's `live=land`, 2026-09-20: "a new
+   photograph grows into its column under a glow that fades, the album re-flows
+   around it, nothing else moves."
+
+   THE GROWTH IS ALREADY THERE and is deliberately not re-declared here: every
+   gallery tile mounts through the `[data-media-tile]` entrance in globals.css
+   (opacity + a small rise and scale on --ease-emphasis, @starting-style so a
+   reconciled tile never replays it). A second transform on the same box would
+   fight it. What this sheet adds is the LIGHT — the part that says this one is
+   new, and that only a new one gets.
+
+   ★ IT IS A LIGHT, NOT A COLOUR. The album's tiles are photographs and the
+   surface under them is dark, so white reads on every one of them; a state hue
+   would also be a claim (the guest's OWN landing already owns --success, the
+   green check, and these two marks must stay legible as different things). Bible:
+   the media is the colour.
+
+   ★ INSET, BECAUSE THE TILE CLIPS. The tile box is overflow-hidden, so a halo
+   outside it would be cut by its own corner; the rim and the wash are drawn
+   INSIDE the photograph, which is also where a reader is already looking.
+
+   ★ OPACITY ALONE ANIMATES. A box-shadow keyframe repaints the tile every
+   frame across an album that may be eight columns wide; a pseudo-element
+   fading its opacity is composited. The pseudo-element also keeps the glow
+   entirely out of the tile's own stacking work, so nothing here can reach the
+   lightbox's origin or the hover row above it.
+
+   THE LIFE IS ONE NUMBER, AND IT LIVES IN TYPESCRIPT (ARRIVAL_GLOW_MS in
+   lib/guest/arrival-glow.ts). live-gallery.tsx writes it onto the album box as
+   --arrival-glow-ms and holds the id for exactly that long, so the attribute
+   and the animation can never disagree: retune it there and both move. ── */
+
+[data-media-tile][data-arrived]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Under the hover action row (z-10) and under the landed check: the light is
+     atmosphere, never a layer over a control. */
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.9),
+    inset 0 0 26px 3px rgb(255 255 255 / 0.38);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-media-tile][data-arrived]::after {
+    animation: pr-arrival-glow var(--arrival-glow-ms, 2000ms)
+      var(--ease-emphasis) forwards;
+  }
+}
+
+/* Up fast (the photograph is already landing), then most of the life is the
+   fade — a light going out, not a pulse asking to be looked at twice. */
+@keyframes pr-arrival-glow {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── REDUCED MOTION: A PLAIN APPEARANCE (ruled). Not a slower glow and not a
+   static rim left burning on the tile — the photograph simply arrives, which is
+   the whole information. The rule above already renders the pseudo-element at
+   opacity 0 with no animation to run, so this is only the belt: nothing paints
+   at all. ── */
+@media (prefers-reduced-motion: reduce) {
+  [data-media-tile][data-arrived]::after {
+    content: none;
+  }
+}
