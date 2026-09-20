@@ -1,6 +1,6 @@
 ---
 track: welcome-tour
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "b81ed49a"          # the launch-prep SHA the branch was cut from
 board: app-door        # round two on the same board id: the welcome tour's design
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -208,28 +208,101 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the brief named all four shapes, their means and a cost line each, so nothing open here needed a
+  guess ahead of the board itself; the interpretive calls made while drawing are below under "Calls his to
+  overrule", not here.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: `owns` is lab-only (`sandbox/app-door/`), so there is no `docs/systems/` fact inside this lane's
+  paths to refine. `host-app.md`'s "## First-time host welcome" section is `home-wiring`'s to update once a
+  shape wires.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none new. The one loose end touched in passing (`you-cant-sign-in`'s stale failure copy) is already on
+  the CHANGELOG's `help-sync` list from `door-wiring`'s merge, not a fresh find.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `ddde9c63`, pushed; synced (merged, never rebased) with `launch-prep` at `11c24d13`, from the
+  tip `42a2ec2e` — origin had moved 25 commits past the cut (vocab-wiring, pricing-wiring and avatar-wiring
+  all merged, `overtaken-2` merged, `demo-wiring` cut) by the time this lane finished. One conflict, in
+  `sandbox/overtaken.ts` (see the lane check below); everything else, including the generated
+  `docs/design/library.md`, merged clean and was re-verified by regenerating on the synced tree rather than
+  trusted from the auto-merge.
+- Gates on the synced tree (`11c24d13`), each its own exit code: `design:rules` ok (180 components, 94
+  indexed, 1286 contracts), the specimen collector ok (140 specimens on 101 entries), `typecheck` ok, `lint`
+  ok (8 known warnings, 0 errors), `test` ok (287 files, 3024 passed, 1 pre-existing failure unrelated to
+  this lane — see "Look at first"), `build` ok (255 pages). `pnpm lab:smoke --base :3134` ok (433 checks, 0
+  failing; `app-door` reads at 214 of its 1200-word budget). `pnpm lab:demo --board app-door --base :3134`
+  ok (1 step, 0 failing: `app-door.tour` at 1.7 screens / 224 words, all four options drawn, the stage
+  moves by up to 19.86 percent between them — nothing UNPAINTED, no backdrop-filter in this board's own CSS).
+  Verified by eye in the browser pane at 1440 and 375, all four options, both breakpoints, stage's "beside"
+  columns collapsing to a stacked band at 375 as designed.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` (post-sync) = every path under
+  `src/app/(dev)/design/sandbox/app-door/` this manifest owns (`app-door.css`, `board.tsx`, `fixtures.ts`,
+  `shells.tsx`, `spec.ts`, `welcome.tsx` rewritten; `film.tsx`, `stage.tsx` new; `edges.tsx`, `methods.tsx`,
+  `surfaces.tsx` deleted with round one's six now-ruled asks) plus this manifest. Two exceptions:
+  - `src/app/(dev)/design/touchpoints.ts` (the registration exception named in the brief): the `app-door`
+    RULINGS row rewritten for round two (`ruled`, `why`, `lives`, `board.note`, `board.variants`), and its
+    generated twin `docs/design/library.md` (`pnpm design:rules`).
+  - `src/app/(dev)/design/sandbox/overtaken.ts` (not named in the brief's registration exception, but the
+    same fix `admin-wiring` made for the retired admin board, `c5bfe92b`): round one's three now-orphaned
+    entries (`app-door.surfaces`, `app-door.welcome`, `app-door.page`, all badged "stands" by an earlier
+    ruling) removed with an explanatory comment in their place, because `overtaken.test.ts` refuses a badge
+    on a question no board still asks and round two replaced round one's seven asks with one rather than
+    keeping them. Applied AFTER syncing past `overtaken-2`'s own merge into this same file (its 47 new
+    badges elsewhere are untouched); the one merge conflict this produced was resolved keeping the removal
+    over the incoming three stale entries.
+- The one item, drawn four ways (nothing to keep/refine/kill yet — the board awaits his review):
+  `tour`: recommended `film` (the twelve bespoke how-it-works pictures already exist, so motion is the only
+  new cost, and it is the literal word of his ask); `stage` is the strongest alternative (the real product
+  working rather than an illustration of it, at the cost of new fixtures); `cards` answers none of his note
+  (the shipped tutorial, corrected); `one` is the boldest cut but names its own real cost, the tutorial's
+  copy losing its only home inside the app. A kept shape becomes the wired `/welcome` in the app-door
+  wiring round this board's review opens.
+- Calls his to overrule, one line each (this board was not pushed to the alias — a lab round verifies local
+  and light; these are worth his eye whichever surface he reviews on):
+  - `stage`'s three beats reuse `HOW_IT_WORKS`'s existing create/share/fill copy and pair it with the code
+    live (create), a guest's phone (share) and the album filling (fill); if "the code on a table" in the
+    brief names its own beat distinct from creation, the mapping shifts by one and a fourth real screen
+    joins the three.
+  - `film`'s copy sits on a `bg-card` plate overlapping the picture's foot (`SharePicture`'s own QR-card
+    device, host-pictures.tsx) rather than a scrim darkening the photograph itself; six of the twelve
+    pictures are bright app panels a dark overlay would fight rather than read as cinema, so this is the
+    device that survives all twelve, not a literal "type over the image."
+  - `one` folds the name step's own reason-for-asking line into a single product-promise line rather than
+    keeping both; if the screen should carry both sentences, it grows past what "the boldest cut" argues.
+  - `stage`'s close previews the create-event wizard's Details step as a dimmed, unfocusable peek (hand-
+    drawn field outlines under a gradient), never the real wizard component; a wiring round would swap in
+    the genuine first step rather than this stand-in.
+- The help articles this lane makes stale: none — no production copy shipped (a lab round ships no
+  production byte). `you-cant-sign-in.mdx` is already stale from `door-wiring`'s shipped failure copy
+  (CHANGELOG.md, tracked for `help-sync`), found again only because it is this session's one failing test;
+  not this lane's to fix (`content/help/` is `voice-wiring`'s alone) and not made worse by anything here.
+- Assets requested from Will: none. Every visual reuses shipped components (`StyledQr`, `SetNameStep`,
+  `AppShell`) or existing marketing assets (`StepPicture`'s twelve pictures, `PhoneShell`, the twelve
+  `MARKETING_IMAGES` stills) at their real sizes; nothing new was generated or asked for.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the board at `/design/lab/app-door` — `film` (the recommendation) first, then `stage`,
+  `cards`, `one` in turn; each option's closing screen especially (`stage`'s wizard peek, `film`'s reel
+  picture) is new drawing, not a redraw of round one. The one failing test on this tree,
+  `src/lib/content/help-ui-labels.test.ts`'s `you-cant-sign-in: 7 labels`, is pre-existing and unrelated
+  (confirmed present on `origin/launch-prep` before this branch synced, via the CHANGELOG's own record of
+  it) — flagged here so it is not mistaken for something this merge introduced.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `app-door` round two answered the one ask round one left
+open, `welcome`'s redesign, drawn whole as `tour`: four shapes on the real `/welcome` at 1440 and 375, the
+name step untouched and the closing primary-and-skippable pair identical in every one (his ruling, unchanged
+since round one). `cards` drew the shipped tutorial honestly, its one stale line corrected ("No app
+required."); `stage` built three real screens of the product with copy beside them, alternating sides, and
+closed on a dimmed peek at the create-event wizard; `film` set the twelve bespoke how-it-works pictures in
+motion with copy overlapping their foot, recommended because the pictures already exist and motion is the
+only new cost; `one` cut the tour to a single screen and named its own real cost, the tutorial's copy losing
+its only home inside the app. Round one's six now-ruled asks left with their files (`methods.tsx`,
+`edges.tsx`, `surfaces.tsx` deleted); the `touchpoints.ts` RULINGS row and three now-orphaned
+`overtaken.ts` badges went with them. Gate green on the synced tree; `board: app-door` stays open, awaiting
+his review.
