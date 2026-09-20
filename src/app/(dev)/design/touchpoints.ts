@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "seed-avatar"
   | "error-pages"
   | "event-type-pages"
   | "how-it-works"
@@ -108,6 +109,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "seed-avatar"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -801,6 +803,35 @@ export const RULINGS: Ruling[] = [
         "The phone's menu",
         "On scroll",
         "The foot's job",
+      ],
+    },
+  },
+  {
+    id: "seed-avatar",
+    title: "The colour a new account is",
+    surface: "shared",
+    ruled:
+      "open: round one on the desk (2026-09-19, Will's ask by name), seven decisions on the seeded default avatar that replaces the grey initial until a photograph lands",
+    shipped: null,
+    why: "Every account without a photograph draws the same grey disc today; a colour derived from the account itself is what makes a guest list read as people.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/components/ui/avatar.tsx",
+      "src/components/social/guest-list.tsx",
+      "src/components/app/user-menu.tsx",
+      "src/components/guest/guest-account-menu.tsx",
+      "src/components/app/account-avatar-form.tsx",
+    ],
+    board: {
+      note: "Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob",
+      variants: [
+        "The shape",
+        "The crowd",
+        "The wheel",
+        "The initial",
+        "The seed",
+        "After a photograph",
+        "Motion",
       ],
     },
   },
@@ -1613,6 +1644,7 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
+  "seed-avatar",
   "voice",
   "body-type",
   "glass",
