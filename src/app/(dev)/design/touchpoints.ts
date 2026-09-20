@@ -1614,14 +1614,14 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
-  // at the merge (`guest-verify` went after `guest-shape` at its merge: it
-  // changes the guest door every guest board draws on).
-  "toasts",
+  // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
+  // after `app-vocabulary`: a part under both shapes).
   "body-type",
   "app-shape",
   "guest-shape",
   "guest-verify",
   "app-vocabulary",
+  "toasts",
   "seed-avatar",
   "app-door",
   "demo-event",
