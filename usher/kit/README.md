@@ -11,7 +11,9 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   library resolved, the manifest deleted, the artifact regenerated, typecheck and the registry tests before the commit; it clears `.next/dev` first (a killed dev server leaves a truncated
   `.next/dev/types/validator.ts` the typecheck reads) and prints the typecheck error instead of a bare STEP FAILED.
 - `gate-lane.sh <N> <board>`: design:rules, the specimen collector, lint, test, build, `lab:smoke`, `lab:demo`, each on
-  its own exit code, on :3137; `GATE<N> DONE` at the end for a wait loop; `lab:demo` retried once on the warm server (a cold frame compile under
+  its own exit code, on :3137; `GATE<N> DONE` at the end for a wait loop; the harness's own negative control first (one step known to move, `seed-avatar.look`,
+  pressed before the board's demo; if it reads FROZEN the run is blind and a frozen step below is the harness, not the
+  board: `gate<N>-sight.log`), then `lab:demo` retried once on the warm server (a cold frame compile under
   three concurrent gates stalls CDP past 60 s and reads TIMED OUT; the retry is the test, not a longer timeout); it waits up to four minutes for the built server to answer (a big build once needed more than 90 s, and the smoke ran against nothing).
 - `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): finds or creates the launch-prep deployment for a `[preview]`
   commit, waits for READY, assigns the alias, reads the served stamp. `vercel-lib.mjs` is its client (the token from
