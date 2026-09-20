@@ -1338,9 +1338,9 @@ export const RULINGS: Ruling[] = [
     title: "The guest experience's shape",
     surface: "guest",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+      "round one ruled whole (Will, 2026-09-20, the sixth batch): door=today (the welcome-then-gate sequence, not the sheet design), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after, dialogs=stands; `guest-wiring` wires five of seven; round two open on the chrome (his \"warrants a second round\"), the welcome's shell on a real gate and the demo's own arrival, and where a guest finds their own photographs at scale",
     shipped: null,
-    why: "Round one asks the shape from the scan: the door, an album with nothing in it, the chrome over a wide album, the other surfaces, a guest's own photograph.",
+    why: "Round two: where Add and Invite live so the top action is found landing and reachable deep, the door's shell, and where a guest finds their own photographs at scale.",
     lives: [
       "docs/systems/guest-flow.md",
       "src/app/(guest)/e/[token]/page.tsx",
@@ -1349,13 +1349,8 @@ export const RULINGS: Ruling[] = [
       "src/components/guest/gallery-empty-state.tsx",
     ],
     board: {
-      note: "Seven decisions on the real guest components over one wedding in its four access states, phone first at 375 and also at 1440: the door, one language for nothing-here-yet, the chrome over an album that runs to the window, whether the album admits it is filling, one object for the other four surfaces, what a guest can do about their own photograph, and how many voices ask for an account",
-      variants: [
-        "The door",
-        "Nothing here yet",
-        "The album's chrome",
-        "The other surfaces",
-      ],
+      note: "Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68",
+      variants: ["The chrome", "The welcome", "Theirs"],
     },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step

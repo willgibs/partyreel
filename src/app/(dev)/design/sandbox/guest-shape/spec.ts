@@ -2,48 +2,48 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE GUEST EXPERIENCE'S SHAPE, FROM THE SCAN, ROUND ONE (2026-09-19).
+ * THE GUEST EXPERIENCE'S SHAPE, ROUND TWO: THE CHROME, THE WELCOME, THEIRS
+ * (2026-09-20).
  *
- * Will (docs/design/rulings.md, 2026-09-19): "Let's treat the full app
- * experience as well as guest pages as unprotected. Anything and everything is
- * open to relitigate or reconcept from the ground up... The existing version is
- * closer to a Frankenstein's monster as we were trying to integrate new
- * feature ideas 1 by 1, rather than having a complete idea of the full app from
- * the beginning."
+ * Round one answered whole (docs/reviews/guest-shape.json; verbatim in
+ * docs/design/rulings.md, "the sixth batch"). Five of its seven asks are
+ * ruled and wired (`guest-wiring`, `7f4f2ffe`): `nothing=river`, `live=land`,
+ * `account=after`, `dialogs=stands`, and `yours` by his own rule, verbatim,
+ * "a guest can delete any photo they've personally uploaded, ever" (final for
+ * the host too). Two of his notes stayed open rather than answers:
  *
- * So this round asks the SHAPE and nothing else, on the eleven seams the
- * Orchestrator's walk found (docs/tracks/orchestrator.md, "The app round's
- * map"). Seven decisions, every option drawn on the real guest components over
- * one wedding, PHONE FIRST: 375 by 812 is the default screen on every step,
- * because a guest is at a party holding a phone, and 1440 by 900 is the knob,
- * because a host and half the people a link is forwarded to are not.
+ *  - `chrome=dock`, verbatim: "This is the best option of these three, but
+ *    having the actions tucked in the bottom right is one of the last places
+ *    a guest's eye will reach, especially if they don't know to look for
+ *    upload in the first place... Having the actions above felt more
+ *    actionable when landing on the page... However, also appreciate that the
+ *    actions docked are always accessible, no matter how deep into the album
+ *    you get. This likely warrants a second round of exploration." → `chrome`.
+ *  - `door=today`, verbatim: "To be clear, this is directly approving the
+ *    welcome then gate, not this sheet design." The SEQUENCE is ruled and
+ *    stays exactly as it is; only the SHELL returns. Named again the same
+ *    night on `demo-event`'s own arrival, `arrival=role`: "This welcome
+ *    screen could be redesigned." → `welcome`.
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED. The tile's own grammar and the gallery's
- * controls are `app-vocabulary`'s round, so no option here touches what a tile
- * carries. How wide an album runs was answered on 2026-09-18 (`gallery-width`:
- * 240px tiles to the window, the words on the gallery's left line) and is drawn
- * here as settled law rather than re-asked: the album's own `GALLERY_COLUMNS` and
- * the page's COLUMN and BLEED constants are the shipped ones, and a frame is a
- * real viewport, so they resolve at the screen being judged. The anti-abuse core is not a design
- * variable and no option moves it: the capability token, the presigned URLs,
- * the limiters and the signed unlock cookie are out of frame. And the behaviour
- * pins (`entry-modal.test.tsx`, `guest-upload.test.tsx`,
- * `password-gate.test.tsx`) guard function, never look: the step order, the
- * dismiss rules, the queue's one-at-a-time and retry, the five strikes and the
- * cooldown survive every shape below.
+ * And the plan's own third ask, now that Remove lives in the lightbox rather
+ * than a strip in the album (round one's `yours=mine` option, not chosen):
+ * where a guest finds their own photographs once an album is big rather than
+ * a small wedding's 34. → `theirs`.
  *
- * ★ THE STAGING. "Nothing here yet" waits on the door, because one of the
- * door's answers swallows the locked backdrop whole. The live signal waits on
- * the chrome, because where a signal can sit depends on what the header became.
- * The account voices wait on the dialogs, because one of the two moments IS a
- * dialog. Everything else is independent and can be taken in any order.
+ * ★ ROUND ONE'S SEVEN ASKS ARE GONE FROM `asks` ON PURPOSE (the `profile-page`
+ * precedent: a round replaces its questions rather than accreting them). The
+ * ledger keeps their answers for ever; the RULINGS row names them as ruled.
+ * `page-parts.tsx` keeps the ground every one of the three below draws on
+ * (`TopBar`, `EventBlock`, the tile-size control's guest mount); the files
+ * that only ever answered a now-ruled ask (`door.tsx`, `dialogs.tsx`,
+ * `account.tsx`, `yours.tsx`) are gone with it.
+ *
+ * ★ PHONE FIRST, STILL. A guest is at a party holding a phone; 1440 stays the
+ * knob every decision shares, because a host and half the people a link is
+ * forwarded to are not.
  */
 
-/**
- * THE SCREEN, the knob every decision shares, so one real viewport is on the
- * stage at a time. 375 by default and everywhere: this is the phone-first
- * round, and a laptop answer that contradicts the phone is a finding.
- */
+/** The screen every decision shares. */
 const SCREEN: Control = {
   id: "screen",
   label: "Screen",
@@ -54,330 +54,212 @@ const SCREEN: Control = {
   default: "375",
 };
 
-/** Which of the four states the scanned code resolves to. */
-const EVENT: Control = {
-  id: "event",
-  label: "The event",
+/** `chrome`'s own knob: found on landing, or reachable well past it. The
+ *  measuring instrument for his own criterion, not a preference either way. */
+const POSITION: Control = {
+  id: "position",
+  label: "Scroll position",
   options: [
-    { id: "password", label: "Behind a password" },
-    { id: "account", label: "Account required" },
-    { id: "open", label: "Open to everyone" },
+    { id: "landing", label: "Landing" },
+    { id: "deep", label: "Scrolled deep into the album" },
+  ],
+  default: "landing",
+};
+
+/** `welcome`'s own knob: a real gated event in two flavours, an open one, and
+ *  the demo's own arrival, all on the same four shells. */
+const WHICH: Control = {
+  id: "which",
+  label: "Which door",
+  options: [
+    { id: "password", label: "A gated event, behind a password" },
+    { id: "account", label: "A gated event, an account required" },
+    { id: "open", label: "An open event" },
+    { id: "demo", label: "The demo's own arrival" },
   ],
   default: "password",
 };
 
-/** Which screen with no photographs on it is being drawn. */
-const SIDE: Control = {
-  id: "side",
-  label: "Which screen",
+/** `welcome`'s second knob: the ruled sequence's two screens, on whichever
+ *  shell is on the dock. Moot for the demo, which has one screen and no gate. */
+const STEP: Control = {
+  id: "step",
+  label: "Which step",
   options: [
-    { id: "locked", label: "Locked, before the password" },
-    { id: "empty", label: "Open, nothing added yet" },
+    { id: "welcome", label: "The welcome" },
+    { id: "gate", label: "The gate that follows" },
   ],
-  default: "locked",
+  default: "welcome",
 };
 
-/** Which of the four guest surfaces is open. */
-const WHICH: Control = {
-  id: "which",
-  label: "Which surface",
+/** `theirs`'s own knob: the full 68, or narrowed to this guest's own ten. */
+const SHOW: Control = {
+  id: "show",
+  label: "Showing",
   options: [
-    { id: "invite", label: "Invite, the tallest" },
-    { id: "report", label: "Report, the shortest" },
+    { id: "all", label: "All 68" },
+    { id: "mine", label: "Yours only" },
   ],
-  default: "invite",
-};
-
-/** Which of the two account moments is on screen. */
-const MOMENT: Control = {
-  id: "moment",
-  label: "Which moment",
-  options: [
-    { id: "gate", label: "The gate, on the way in" },
-    { id: "save", label: "Save, in the album" },
-  ],
-  default: "gate",
+  default: "all",
 };
 
 const DRAFT = defineExploration({
   id: "guest-shape",
   title: "The guest experience",
   round: {
-    n: 1,
-    date: "2026-09-19",
+    n: 2,
+    date: "2026-09-20",
     changed:
-      "The first round: the door, what an album with nothing in it says, the chrome over a wide album, whether the album admits it is filling, the other four guest surfaces, what a guest can do about their own photograph, and how many voices ask for an account. Phone first, on the real components.",
+      "Round one's seven decisions are ruled and five are wired; this round drops them and asks the two he named by hand (the chrome, the welcome's shell) plus the plan's third (where a guest finds their own photographs once the album is big), on the wired album and the demo's own arrival.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-19",
+      changed:
+        "The first round: the door, what an album with nothing in it says, the chrome over a wide album, whether the album admits it is filling, the other four guest surfaces, what a guest can do about their own photograph, and how many voices ask for an account. Phone first, on the real components.",
+    },
+  ],
   context:
-    "One landing resolves access on the server and wraps whatever it earns in a sheet. Round one draws every option over one wedding in the four states a scanned code can reach: open with 34 photographs, the same behind a password, the same needing an account, and the same with nothing in it yet. The album already runs to the window at a 240px tile with the words on their own left-pinned column (ruled 2026-09-18, wired 2026-09-19), so every option is drawn on the shipped page.",
+    "The wired album today: a full-width Add over a full-width Invite (Save moved out, `account=after`), a floating Add pill once that row scrolls away, a welcome-then-gate door in the shell he flagged, and a guest's own Remove for ever in the lightbox with no way to find it again past the first screen. Every option below is that page or that door with one thing changed.",
   bible: [1, 4, 15, 21],
   asks: [
     {
-      id: "door",
-      label: "The door",
-      question: "What should a guest meet in the first seconds after a scan?",
-      context:
-        "Today the page settles, then a sheet rises: a welcome screen, and the gate behind it. The sheet is a drawer on a phone, a centred dialog from 640 up. Drawn on the password event, the arrival most guests meet; the knob carries the rest.",
-      options: [
-        {
-          id: "today",
-          label: "The welcome, then the gate",
-          means:
-            "Two screens on a gated event, and the shell changes type at 640: a drawer below it, a centred float above.",
-        },
-        {
-          id: "one",
-          label: "One screen, whatever the event",
-          means:
-            "The gate carries the invitation's two promises, so no event is two screens deep; an open event's sheet sits at its own height with the album behind it.",
-        },
-        {
-          id: "page",
-          label: "The door is the page",
-          means:
-            "No sheet at any width. The arrival is the whole screen and the album begins underneath it, so nothing floats over nothing.",
-        },
-      ],
-      recommended: "one",
-      because:
-        "A gated guest answers two screens to reach one album and the second repeats the first's name and count. Collapsed, the door is one screen for every event, and the drama stays where the lock is instead of in front of an open one.",
-      overrule:
-        "If the invitation deserves its own screen, a host's name before anything is asked, today's two steps keep it.",
-      lands:
-        "The arrival every scanned code opens on, at every width, and how many screens stand between a scan and the album.",
-      tile: "phone",
-      configs: [SCREEN, EVENT],
-    },
-    {
-      id: "nothing",
-      label: "Nothing here yet",
-      question: "How should an album with no photographs in it speak?",
-      context:
-        "One idea is drawn twice today in two unrelated languages: a locked page gets nine empty squares, an empty album gets the river pouring down. The knob flips between the two screens; whatever wins has to hold on both.",
-      options: [
-        {
-          id: "two",
-          label: "Two pictures, made a family",
-          means:
-            "The locked page keeps a shape-only backdrop and the empty album keeps the river, redrawn to the same rhythm and weight.",
-        },
-        {
-          id: "river",
-          label: "One picture: the river, on both",
-          means:
-            "The river carries both screens at one depth. Its nine frames are local stand-ins, never the event's own, so a locked page leaks exactly what it leaks today.",
-        },
-        {
-          id: "words",
-          label: "No picture at all",
-          means:
-            "A locked page is the door and nothing else; an empty album is a line and a button on the page's own paper.",
-        },
-      ],
-      recommended: "river",
-      because:
-        "The river is already the ruled picture for an empty album, and a locked page is saying the same thing: photographs are coming. Two unrelated languages for one idea is the seam, not the feature.",
-      overrule:
-        "If a locked page should look locked rather than full, the shape-only backdrop is the more honest wall.",
-      lands:
-        "Every guest screen with no photographs on it: the locked page, the empty album, and any later one.",
-      after: { ask: "door" },
-      tile: "phone",
-      configs: [SCREEN, SIDE],
-    },
-    {
       id: "chrome",
-      label: "The album's chrome",
-      question: "What should sit above an album that runs to the window?",
+      label: "The chrome",
+      question:
+        "Where should Add and Invite live so the most important action is found on landing and reachable at any depth?",
       context:
-        "The words keep a readable column and the photographs now run to the edge, which leaves the buttons stranded: a full-width Add is right at 375 and absurd across 1400. Every option is the same event, 34 photographs, at the screen on the knob.",
+        "Save already left this row. Today: a full-width Add over a full-width Invite on landing, then only a floating Add pill once that row scrolls away, Invite gone with it. Drawn on the real 34-photograph album at both ends of a real scroll, landing and 900px down, well past the row at either screen this board judges.",
       options: [
         {
           id: "column",
-          label: "The column, as today",
+          label: "The row, plus the floating pill (today)",
           means:
-            "Name, byline, count, then a full-width Add over Save and Invite, all on the album's left line, and a floating pill once they scroll away.",
-        },
-        {
-          id: "bar",
-          label: "One line over the album",
-          means:
-            "At a laptop the event sits left and the three actions at the album's right edge; at a phone they are three equal buttons on one line.",
+            "As shipped: Add over Invite on landing; scrolled deep, only the floating Add pill remains and Invite is out of reach.",
         },
         {
           id: "dock",
-          label: "The event above, the actions docked",
+          label: "Both actions, docked at every depth",
           means:
-            "The header is the event alone; Add, Save and Invite live in one bar at the foot of the screen, at every scroll position and every width.",
+            "No row under the event at all. Add and Invite share one bar fixed to the foot of the screen, landing or deep, always the same two buttons.",
+        },
+        {
+          id: "both",
+          label: "The row on landing, a dock once it scrolls away",
+          means:
+            "Today's row stays for the first look; once it scrolls out of view a dock with both actions takes its place, and the single pill retires.",
+        },
+        {
+          id: "header",
+          label: "Add in a sticky header, Invite in a dock",
+          means:
+            "The header pins to the top and carries Add beside the wordmark; Invite lives alone in a bar fixed to the foot. Two objects, each always on screen.",
         },
       ],
-      recommended: "dock",
+      recommended: "both",
       because:
-        "Adding a photograph is why the page is open, and two objects carry it today: a header button, and a floating pill that replaces it once it scrolls off. One dock is one object, always in a thumb's reach, and it hands the top of the page back to the event.",
+        "His own words hold both halves of the criterion at once: the row felt more actionable landing on the page, and he appreciated always accessible, no matter how deep. `both` is the row he liked first becoming the dock he trusted, so neither half depends on a guest noticing a lone pill scroll in.",
       overrule:
-        "If a permanent bar reads as an app where the page should read as a host's invitation, the column keeps it.",
-      lands:
-        "The top of every guest album, and whether the floating Add pill survives.",
+        "If one object beats the row's first impression, the dock alone is never a different picture at any depth, the simpler promise and the closest to his own pick.",
+      lands: "The top of every guest album, and whether the floating Add pill survives.",
       tile: "phone",
-      configs: [SCREEN],
+      configs: [SCREEN, POSITION],
     },
     {
-      id: "live",
-      label: "The album filling",
-      question: "Should a guest see the album filling while they are in it?",
+      id: "welcome",
+      label: "The welcome",
+      question: "What shell should the door and its welcome screen wear?",
       context:
-        "Photographs already arrive in under a second (the doorbell), and nothing on the page says so: the live signal only chooses how often the page asks. Drawn on the chrome you picked, at the moment somebody else's phone reaches the album.",
-      options: [
-        {
-          id: "none",
-          label: "No, as today",
-          means:
-            "A photograph is simply there on the next look. The album is live and never says it.",
-        },
-        {
-          id: "line",
-          label: "A line that counts",
-          means:
-            "The count line gains a quiet dot and how recently the last one landed, and the number ticks as they arrive.",
-        },
-        {
-          id: "land",
-          label: "The photograph announces itself",
-          means:
-            "The new tile grows into its column under a glow that fades, the album re-flows around it, and nothing else moves.",
-        },
-      ],
-      recommended: "land",
-      because:
-        "The proof that everyone's phone reaches this album is a photograph appearing in front of you, and that is also the argument for adding yours. A counter states it; an arrival shows it, and costs one animation.",
-      overrule:
-        "If a moving album is a distraction while a guest is reading it, the quiet line says the same thing once.",
-      lands:
-        "What the doorbell is allowed to show, and the album's motion when a photograph arrives.",
-      after: { ask: "chrome" },
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "dialogs",
-      label: "The other surfaces",
-      question: "Invite, Save, Report and Download all: one object, or four?",
-      context:
-        "The door is a phone-native sheet; the other four are the host app's centred dialogs, floating mid-phone. Drawn on Invite, the tallest of the four; the knob carries Report, the shortest. Whatever holds both holds the other two.",
+        "The sequence is ruled: welcome, then the gate, on a gated event, exactly as it stands. The shell it rides was named directly, not this sheet design. Drawn on a real gated event (password the knob's default, account the other flavour), an open event, and the demo's own arrival, the same four shells around each.",
       options: [
         {
           id: "today",
-          label: "Four centred dialogs",
+          label: "The drawer and dialog, as shipped",
           means:
-            "As shipped: a small float in the middle of the screen, at every width, with a corner close.",
+            "Unchanged: a drawer at the foot below 640, the centred dialog above it, today's copy.",
+        },
+        {
+          id: "page",
+          label: "The welcome is the page",
+          means:
+            "No floating chrome at any width. The welcome fills the screen; the gate replaces it in place as the ruled second step, and the album begins once both are past.",
+        },
+        {
+          id: "card",
+          label: "A compact card, the album behind it",
+          means:
+            "A small float over the album's own top: the locked page's river, or the real photographs, visible in the room the card leaves rather than dimmed behind a scrim.",
         },
         {
           id: "sheet",
-          label: "One sheet for all of them",
+          label: "The responsive Sheet's own posture",
           means:
-            "Every guest surface is the door's sheet: it rises from the foot on a phone with a real handle, and centres from 640 up.",
-        },
-        {
-          id: "inline",
-          label: "No overlay at all",
-          means:
-            "Each opens in the page, under the button that asked for it. Nothing dims, nothing traps focus, and the album stays where it was.",
+            "The primitive promoted everywhere else: a bottom sheet under 640, a full-height panel from the right edge from 640 up, no centred float at a desk.",
         },
       ],
-      recommended: "sheet",
+      recommended: "card",
       because:
-        "The sheet is already proven on the one surface every guest meets, and the other four were inherited from a page built for a laptop. One object is one set of dismiss rules, one entrance and one answer to the iOS keyboard.",
+        "It is the one shape that is not a sheet at all, which is what he flagged. A compact float that admits the party is already happening behind it (the real teaser, or the locked page's own river) reads as an invitation continuing rather than a form standing in front of one.",
       overrule:
-        "If a three-line Report reads better as a small float than a full-width sheet, the dialog is less furniture for the same words.",
+        "If a guest's first screen should hold their whole attention, `page` gives welcome and gate the whole screen each, the album hidden until both pass.",
       lands:
-        "Invite, Save, Report and Download all, and whatever the guest surface adds next.",
+        "The one shell a guest's very first screen wears, on a real gate and on the demo's own arrival.",
       tile: "phone",
-      configs: [SCREEN, WHICH],
+      configs: [SCREEN, WHICH, STEP],
     },
     {
-      id: "yours",
-      label: "A guest's own photograph",
-      question: "What can a guest do about the photograph they just added?",
+      id: "theirs",
+      label: "Theirs",
+      question: "Where does a guest find their own photographs once the album is big?",
       context:
-        "Nothing, today, and nothing says so: the viewer has a Remove, the guest surface never passes it, and a guest who sends the wrong shot has only the host to ask. The host's own moderation is unchanged under every option.",
+        "A guest's own photograph is already removable for ever, on both identities, final for the host too. That answers what a guest can do about it; it says nothing about finding it again. Drawn on a 68-photograph album, ten of them this guest's own, spread from near the top to well past the fold.",
       options: [
         {
-          id: "never",
-          label: "Nothing, and say so at the act",
+          id: "none",
+          label: "Nothing added (today)",
           means:
-            "One line under the Add button makes the album's terms plain, so nobody hunts for a control that was never there.",
+            "The lightbox's Remove is the whole of it. Finding one of ten among 68 is scrolling and recognising it by eye.",
         },
         {
-          id: "window",
-          label: "Take it back, for a few minutes",
+          id: "chip",
+          label: "A \"Yours\" chip in the control row",
           means:
-            "Their own photograph gains a Remove in the viewer while the window lasts, and the caption says how long is left.",
+            "One filter chip beside Sort and Filter, in the row the tile-size control already sits in. On, the grid narrows to the ten.",
         },
         {
-          id: "mine",
-          label: "A 'yours' strip in the album",
+          id: "strip",
+          label: "Their own, in a strip above the album",
           means:
-            "Everything this device added, in one place at the top of the album, each removable until the host closes uploads.",
+            "Everything this guest added, together, above the full album rather than in place of any of it.",
+        },
+        {
+          id: "mark",
+          label: "A mark on their own tiles, tap to filter",
+          means:
+            "A subtle mark rides the ten tiles that are theirs, wherever they fall in the grid; a tap on the mark is the same filter as the chip.",
         },
       ],
-      recommended: "window",
+      recommended: "mark",
       because:
-        "The shot a guest wants back is the one they just sent, and they know within a minute. A short window covers the whole of that regret and never hands a stranger a delete button on a host's album hours later.",
+        "It costs no new surface (no chip's real estate, no strip's second copy of ten photographs) and answers the harder half of the question too, which one of the 68 is mine, wherever it falls, before a single tap.",
       overrule:
-        "If a host's album must be the host's alone, saying so at the upload moment is honest and costs nothing to build.",
+        "If a mark on every tile a guest scrolls past is too quiet to ever be found, the chip names itself in the one row a guest already reads for Download all.",
       lands:
-        "Whether the guest surface ever passes the viewer's Remove, and what the upload moment promises.",
+        "Whether the album ever says which tiles are a guest's own, and how the removal a guest already has stays findable at scale.",
       tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "account",
-      label: "Asking for an account",
-      question: "How many voices should ask a guest for an account?",
-      context:
-        "Two places ask for one account with one first field: the gate on the way in, and Save inside the album. One is an invitation with the real count as its promise; the other a sign-up form with a switch, a rule and Google. The knob flips them.",
-      options: [
-        {
-          id: "two",
-          label: "Two, as today",
-          means:
-            "The gate stays an invitation and Save stays a form. A guest who meets both meets two products in one visit.",
-        },
-        {
-          id: "one",
-          label: "One voice, one surface",
-          means:
-            "Both wear the gate's framing and the same first field; only the reason line changes, so the second time is already familiar.",
-        },
-        {
-          id: "after",
-          label: "One voice, and Save moves",
-          means:
-            "The account is asked once, at the door. Keeping the album becomes a one-tap offer after a guest's first photograph lands, not a second form.",
-        },
-      ],
-      recommended: "one",
-      because:
-        "The two moments ask for one thing and a guest can meet both in a minute. One framing and one field is one thing to learn, and the reason is the only part that was ever different.",
-      overrule:
-        "If Save is a growth lever that earns its own pitch (the dashboard, Google, the newsletter), keeping its form keeps the pitch.",
-      lands:
-        "Every place the guest surface asks for an account, and which one the profile page inherits.",
-      after: { ask: "dialogs" },
-      tile: "phone",
-      configs: [SCREEN, MOMENT],
+      configs: [SCREEN, SHOW],
     },
   ],
 });
 
 /**
- * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT.
- * `defineExploration` flattens every decision's `configs` into the board's
- * controls, so a knob seven decisions share arrives seven times: the dock
- * would draw it seven times and React would warn on the duplicate key. Each
- * decision keeps it on its own strip (that is what `configs` is for); the
- * board declares it once. The same finding `gallery-width` left for the
- * constructor, which could dedupe by id itself.
+ * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT. `defineExploration`
+ * flattens every decision's `configs` into the board's controls, so a screen
+ * knob three decisions share arrives three times: the dock would draw it
+ * three times and React would warn on the duplicate key. Each decision keeps
+ * it on its own strip; the board declares it once (the `guest-shape` round one
+ * and `profile-page` precedent).
  */
 export const GUEST_SHAPE: typeof DRAFT = {
   ...DRAFT,
