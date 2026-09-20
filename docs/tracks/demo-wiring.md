@@ -1,6 +1,6 @@
 ---
 track: demo-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2a5c7018"          # the launch-prep SHA the branch was cut from
 board: demo-event      # wiring six of seven; round two on the doors is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -266,28 +266,49 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every call below was built confidently on the brief's own recommendation or the board's own sandbox precedent, verified live, and listed under Handoff's "calls his to overrule" rather than held for an answer.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md` "Demo mode": two paragraphs added in place (the arrival/framing/turn wiring; the `phone=pair` broadcast mechanism) describing what shipped, cross-referencing `entry-steps.ts`, `guest-header.tsx`, `guest-upload.tsx`, `event-experience.tsx` and `lib/demo.ts`.
+- `docs/systems/marketing-content.md` "Interactive demo (marketing side)": one paragraph added in place naming `doors=pile`, the Features nav panel's retired `DemoTicket`, and that round two on `doors` still owns the hero/line objects.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now / doors round two (already queued, not a new find): the Features nav mega-panel's featured pane is empty now (no replacement card drawn for it — out of this lane's brief, which named only the ticket's retirement); round two on `doors` is the natural place to decide what, if anything, replaces it.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commits `f1ba85f3` (demo-event r1 wired: the arrival, the mark, the turn, the action row, the closing card, the pile as the rule, the pair, the seeded bylines) and `80a76db2` (pickAboveAlbumState moved to lib/demo.ts so "the turn card only in the demo" is unit-testable); sync-merge commits `65ce43dc` then `e4704d5a` (origin/launch-prep moved twice mid-lane — vocab-wiring/pricing-wiring/overtaken-2, then album-controls/toasts' queue cut; both merges resolved with only the generated `library.md`/specimens conflicting, regenerated, zero source conflicts). Pushed.
+- Gates on the synced tree (re-run clean after each sync): `pnpm design:rules` ok (181 components, 94 indexed) · specimen collector ok (140 specimens) · `pnpm typecheck` ok · `pnpm lint` ok (8 known warnings, 0 errors) · `pnpm test` ok (3044 tests, 289 files) · `pnpm build` ok (255 pages) · `pnpm lab:smoke --base :3136` ok (429 checks, 0 failing). No `lab:demo` (a production lane, not a lab one).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = six of the eight owned paths (`entry-modal.tsx`, `event-experience.tsx`, `guest-header.tsx`, `guest-upload.tsx`, `demo-ticket.tsx`, `lib/demo.ts`); `marketing-footer.tsx` and `live-demo.tsx` are untouched, verified rather than edited (see "calls his to overrule" for `live-demo.tsx`; the footer's pile already was the `doors=pile` rule, confirmed live, nothing to change) + this file, plus these exceptions, each load-bearing:
+  - `src/app/(guest)/e/[token]/page.tsx`: `isDemo` hoisted above the private-event early return so `GuestHeader` gets it on every branch; `getHostAvatarUrl` swapped for `getHostAvatarSeed`, `hostSeed` threaded to `EventExperience`.
+  - `src/lib/db/queries/guest-events-admin.ts`: `getHostAvatarUrl` → `getHostAvatarSeed` (additive: same one admin read, now also returns `seedFor(host_id)`), its one call site updated in page.tsx.
+  - `src/components/marketing/chrome/mega-panel.tsx`: the retired `DemoTicket` import and its `Features` FEATURED entry removed (the panel's own existing no-card fallback takes over; not a new branch).
+  - `src/lib/guest/entry-steps.ts` + its test: `isDemo` dropped entirely from `computeEntry` (the demo now falls through the same `welcome`-then-nothing path a public event takes) — the exact pin `spec.ts`'s own header comment flagged as "a finding, not a wall."
+  - `src/lib/type-ladder-policy.test.ts`: `entry-modal.tsx`'s body-ladder exception moved from `kind: "lane"` (voice-wiring, retired) to `kind: "board"` (the button rung, `buttons-pairs`), swept from 4 survivors to 3 (both eyebrows onto `text-label`, the byline onto `text-working`; only the button-text pattern the ladder does not host yet remains, matching `password-gate.tsx`'s precedent verbatim).
+  - `src/app/(dev)/design/rules/component-notes.ts`: one new `for` line for `guest-header.tsx` (its own contract, `guest-header.test.tsx`, made it indexed for the first time; nothing rendered it stale, it simply had none before) — the exception is the file, not the owned `demo-ticket.tsx` entry updated alongside it.
+  - Generated, mechanical: `docs/design/library.md`, `rules.generated.json`, `specimens.generated.json` (via `pnpm design:rules` / the specimen collector after every source or merge change).
+- The items, one line each:
+  - `arrival=role`: the demo's own arrival (`RoleStep`, entry-modal.tsx) — computeEntry no longer special-cases the demo, so it is the same `welcome` step every guest gets, wearing different words; its shell/design is untouched (guest-shape round two redraws both together).
+  - `framing=tag`: a Demo mark beside the wordmark (guest-header.tsx, `isDemo` prop), the header pinned to the top for the whole visit; the old in-page banner retired.
+  - `try=turn`: `TurnCard` (guest-upload.tsx) directly above the album's first tile once a (simulated) upload lands.
+  - `next=slot` + `next=foot`: for a demo visitor only, "Start your own" fills the action row beside Invite (a real guest's row stays the one column `account=after` already gave it — the board's "blanked Save slot" premise was itself overtaken by that landed ruling); a `ClosingCard` repeats the offer below the whole album, in the report footer's place.
+  - `doors=pile`: the footer's pile (`FooterDemo`) confirmed as the standing rule, unchanged; the Features nav panel's `DemoTicket` retired (kept on disk, unused, for the Library's own specimen only) — a kept working version, not a Library entry of its own (it wires an existing ruling into what was already there).
+  - `phone=pair`: one ephemeral Supabase Realtime broadcast channel per pairing (`lib/demo.ts`), keyed by a fresh id folded into the demo's own Invite link, never the shared `gallery:<qr_token>` channel every visitor on the public demo shares; REST `httpSend` (no subscribe needed to send), a canvas-downscaled JPEG thumbnail, decoded back into a File on the far end through `LiveGallery`'s own optimistic-tile path. No new table.
+  - `event=one`: unchanged (already the shape).
+  - The "Hosted by" byline (both files) folds onto the seeded `Avatar` (`getHostAvatarSeed`, `seedFor(host_id)` server-side) — avatar-wiring's deferred line, closed; every named host now wears their colour, photo or not.
+- Calls his to overrule:
+  - `next=slot`'s demo-only 2-column row (Start your own + Invite) is a new fork from the real guest's 1-column row, since the board's premise (a blanked Save slot to fill) no longer exists after `account=after` landed — if he'd rather the demo also stay one column with "Start your own" living somewhere else, that's a small change.
+  - `doors=pile`'s nav-panel resolution: the Features mega-panel's featured pane is simply empty now, no replacement card — flagged again under Deferred for round two on `doors`.
+  - `phone=pair`'s mechanism (an ephemeral per-visitor Realtime channel keyed by a URL param, a canvas-downscaled JPEG over REST) is this lane's own engineering reading of "one broadcast channel, no stored bytes" — verified working end to end against the real Supabase project (see below), but the exact shape (channel-per-pairing vs. some other scheme) was never spelled out in the ruling.
+  - `live-demo.tsx` (owned, per the brief) shipped untouched: verified it is the "Live demo" animated home-page section spec.ts itself rules decoupled from this board (art-directed fixtures, no real link, no QR any visitor could scan) — nothing in the seven verdicts touches it.
+- Verified live (`pnpm dev` on :3136, never the shared pane's other tabs): the arrival at 1440 and 375 (role copy, host name, both icon rows, both CTAs); the sticky header + Demo mark surviving a scroll (computed `position: sticky; top: 0px` confirmed, not just eyeballed); the seeded byline avatar on both the welcome/role sheet and the page header; the action row at both widths; an upload's `TurnCard` (and the pluralization bug it caught in `ClosingCard`, fixed the same pass: "1 guest" not "1 guests"); the closing card; the Features nav panel's clean one-column fallback; the footer's pile unchanged. `phone=pair` end to end against the real Supabase project: a raw listener subscribed to a chosen `demo-pair:<id>` channel received the real sender code's `httpSend` broadcast with the exact channel/event/payload shape and a genuinely decodable JPEG thumbnail; the sending tab's own `PairedPhoneLine` confirmed; an unrelated tab (a different pairing id) stayed silent, confirming no cross-visitor cross-talk on the shared public demo event. No console errors traced to this lane's code across any of it.
+- The help articles this lane makes stale: none (`content/help/` has no article mentioning the demo).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the phone-pairing flow live (open the demo on a laptop, scan the Invite QR with an actual phone, add a photo on the phone, watch it land on the laptop) — the one surface this lane could only rehearse with a raw test listener standing in for the second real device.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). demo-event r1 wired whole: the demo's own arrival screen (RoleStep, reusing the guest welcome's exact shell), a Demo mark pinned to the header for the whole visit, a turn card above the album's first tile after an upload, "Start your own" in the demo's action row plus a closing card below the album, the footer's photo pile confirmed as the doors rule with the nav panel's ticket retired, and one ephemeral Realtime broadcast channel pairing a scanned phone to the laptop that showed the code (a downscaled thumbnail over REST, no new table). The "Hosted by" byline on both files folds onto the seeded Avatar, closing avatar-wiring's deferred line. `computeEntry` no longer special-cases the demo (entry-steps.ts); `getHostAvatarUrl` became `getHostAvatarSeed`; the nav panel's DemoTicket import removed. Verified live on :3136 at 1440/375, including the pairing broadcast end to end against the real Supabase project. Gate green on the synced tree (3044 tests, 255 pages, lab:smoke 429 checks). Doors round two and the nav panel's empty featured pane stay open.
