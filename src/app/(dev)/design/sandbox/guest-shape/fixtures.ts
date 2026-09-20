@@ -89,20 +89,35 @@ export const ALBUM: GridMedia[] = [...ROLL].map((letter, i) => {
 export const TEASER: GridMedia[] = ALBUM.slice(0, 9);
 
 /**
- * THE PHOTOGRAPH THAT LANDS WHILE A GUEST IS LOOKING. One more upload, from
- * another phone, prepended to the album (the doorbell's arrivals are
- * newest-first). A 3:4 portrait on a still the album's first screen does not
- * already hold, so it reads as new rather than as a repeat re-entering.
+ * THE BIG ALBUM, FOR "THEIRS" ALONE. Round one's 34 is a small wedding; where a
+ * guest finds their own photographs is only a real question once the album is
+ * one they cannot hold in their head. Same twelve stills, `ROLL` run twice, a
+ * plain deterministic interleave rather than `ORDER`'s searched one — this
+ * fixture's job is SCALE, not the adjacent-repeat polish the small album earns
+ * for its own screenshots.
  */
-export const ARRIVAL: GridMedia = {
-  id: "gs-arrival",
-  type: "photo",
-  url: MARKETING_IMAGES[7].src,
-  downloadUrl: MARKETING_IMAGES[7].src,
-  status: "approved",
-  width: 1200,
-  height: 1600,
-};
+export const ALBUM_BIG: GridMedia[] = [...ROLL, ...ROLL].map((letter, i) => {
+  const img = MARKETING_IMAGES[(i * 7 + 3) % MARKETING_IMAGES.length];
+  const [w, h] = SHAPES[letter as keyof typeof SHAPES];
+  return {
+    id: `gs-big-${i}`,
+    type: "photo",
+    url: img.src,
+    downloadUrl: img.src,
+    status: "approved",
+    width: w * 400,
+    height: h * 400,
+  } satisfies GridMedia;
+});
+
+/**
+ * TEN OF THE 68 ARE THIS GUEST'S OWN, spread from near the top to well past
+ * the fold at every screen this board judges, which is the whole shape of the
+ * problem: "yours" is never all in one place.
+ */
+export const MINE_IDS: ReadonlySet<string> = new Set(
+  [2, 9, 16, 23, 30, 37, 44, 51, 58, 65].map((i) => `gs-big-${i}`),
+);
 
 /** The event, as every guest surface names it. */
 export const EVENT = {

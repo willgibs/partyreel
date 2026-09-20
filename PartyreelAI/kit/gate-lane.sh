@@ -18,7 +18,7 @@ for i in $(seq 1 60); do curl -s -o /dev/null -w '%{http_code}' http://localhost
 echo "dev ready after ${i}x2s"
 for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:3137/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
 echo "lab ready after ${j}x2s"
-pnpm -s lab:smoke --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tail -8; echo "EXIT[lab:smoke]=${pipestatus[1]}"
-perl -e 'alarm 300; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tail -14; echo "EXIT[lab:demo $BOARD]=${pipestatus[1]}"
+pnpm -s lab:smoke --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tee "$S/gate$N-smoke.log" | tail -8; echo "EXIT[lab:smoke]=${pipestatus[1]}"
+perl -e 'alarm 300; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tee "$S/gate$N-demo.log" | tail -14; echo "EXIT[lab:demo $BOARD]=${pipestatus[1]}"
 lsof -ti tcp:3137 | xargs -r kill 2>/dev/null
 echo "GATE$N DONE $(date -u)"

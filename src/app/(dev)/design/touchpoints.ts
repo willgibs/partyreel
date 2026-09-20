@@ -36,6 +36,7 @@ export type RulingId =
   | "profile-page"
   | "export-flow"
   | "admin-triage"
+  | "admin"
   | "media-viewer"
   | "emails"
   | "reel-studio"
@@ -79,7 +80,6 @@ export type RulingId =
   | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
-  | "admin"
   | "loose-ends"
   | "glass"
   | "body-type"
@@ -130,7 +130,6 @@ export type SandboxId =
   | "demo-event"
   | "guest-shape"
   | "album-motion"
-  | "admin"
   | "loose-ends"
   | "body-type"
   | "privacy-hero"
@@ -1105,27 +1104,18 @@ export const RULINGS: Ruling[] = [
     title: "The door into the host app",
     surface: "host",
     ruled:
-      'open (Will, 2026-09-19, "stack the lab": login and signup is one of the surfaces he named, and everything is open to relitigate from the ground up)',
+      'round one ruled whole (Will, 2026-09-20, the sixth batch): six of its seven asks wired at `f7075a73` (`door-wiring`): lead=code, surfaces=one, page=beside, existing=tell, failure=paths; return=tap flagged ("a press that signs anyone in without a credential is never acceptable") and shipped as back, passkeys dark behind a flag. Round two is open on welcome alone, his ask by name: "this welcome tour could use a huge redesign to feel more alive"',
     shipped: null,
-    why: "The door asked from the foundation: what it asks for, how many account surfaces there are, what /login is, and what stands between a new account and the app.",
+    why: "Round two asks what the tour itself should be, four whole shapes drawn on the real /welcome from the shipped cards to no tour at all; the wiring lane follows its ruling.",
     lives: [
-      "docs/systems/auth-accounts.md",
-      "src/app/(auth)/login/page.tsx",
-      "src/components/auth/login-form.tsx",
-      "src/components/auth/password-sign-in.tsx",
-      "src/components/auth/email-sign-in.tsx",
-      "src/components/guest/enter-event-prompt.tsx",
+      "src/app/(app)/welcome/page.tsx",
       "src/components/app/welcome-flow.tsx",
+      "src/lib/constants/how-it-works.ts",
+      "docs/systems/host-app.md",
     ],
     board: {
-      note: "Seven decisions on the real auth components with fixtures at 1440 and 375: what the door asks for first, how many account surfaces the product has, what stands between a new account and the app, what /login is as a page, what happens when a new account's email already has one, how the door fails, and what a host the browser already knows meets",
-      variants: [
-        "What the door asks for",
-        "How many doors",
-        "The first screen",
-        "The page",
-        "The returning host",
-      ],
+      note: "Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all",
+      variants: ["The tour"],
     },
   },
   {
@@ -1329,9 +1319,9 @@ export const RULINGS: Ruling[] = [
     title: "The guest experience's shape",
     surface: "guest",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+      "round one ruled whole (Will, 2026-09-20, the sixth batch): door=today (the welcome-then-gate sequence, not the sheet design), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after, dialogs=stands; `guest-wiring` wires five of seven; round two open on the chrome (his \"warrants a second round\"), the welcome's shell on a real gate and the demo's own arrival, and where a guest finds their own photographs at scale",
     shipped: null,
-    why: "Round one asks the shape from the scan: the door, an album with nothing in it, the chrome over a wide album, the other surfaces, a guest's own photograph.",
+    why: "Round two: where Add and Invite live so the top action is found landing and reachable deep, the door's shell, and where a guest finds their own photographs at scale.",
     lives: [
       "docs/systems/guest-flow.md",
       "src/app/(guest)/e/[token]/page.tsx",
@@ -1340,13 +1330,8 @@ export const RULINGS: Ruling[] = [
       "src/components/guest/gallery-empty-state.tsx",
     ],
     board: {
-      note: "Seven decisions on the real guest components over one wedding in its four access states, phone first at 375 and also at 1440: the door, one language for nothing-here-yet, the chrome over an album that runs to the window, whether the album admits it is filling, one object for the other four surfaces, what a guest can do about their own photograph, and how many voices ask for an account",
-      variants: [
-        "The door",
-        "Nothing here yet",
-        "The album's chrome",
-        "The other surfaces",
-      ],
+      note: "Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68",
+      variants: ["The chrome", "The welcome", "Theirs"],
     },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
@@ -1568,8 +1553,9 @@ export const RULINGS: Ruling[] = [
     title: "The admin portal",
     surface: "admin",
     ruled:
-      'open (Will, 2026-09-18: "the full portal could likely be rethought from the ground up... plenty of thought should go into this prior to diving straight in")',
-    shipped: null,
+      "2026-09-20 (the sixth batch, seven answers: the numbers first with the queue beneath, a rail with a command palette, a table for data and a pane for prose, colour reaching the row, one destructive sheet sized to the damage, the health band under the bar, a 44 px tool bar)",
+    shipped:
+      "The portal on four figures with the ranked queue beneath, the 44 px bar with the crumb and the live tag, the 232 px rail at lg and the dropdown below it, the health band on a bad day, the command palette on ui/command-palette.tsx, ui/table.tsx with tone and four state colours reaching the row, one destructive sheet on nine controls, Exports in NAV (admin-wiring, merged b81ed49a, 2026-09-20); the board's fixtures survive as a Library demo.",
     why: "Sixteen routes behind one dropdown, every page a column of cards, no health signal away from the jobs console; round one asks the portal's shape as seven decisions.",
     lives: [
       "docs/systems/admin-observability.md",
@@ -1577,18 +1563,6 @@ export const RULINGS: Ruling[] = [
       "src/components/admin/admin-shell.tsx",
       "src/app/admin/page.tsx",
     ],
-    board: {
-      note: "Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen",
-      variants: [
-        "The operator's home",
-        "The navigation",
-        "Density and the list",
-        "Colour for state",
-        "Destructive actions",
-        "The health strip",
-        "The chrome's identity",
-      ],
-    },
   },
 ];
 
@@ -1620,7 +1594,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "guest-shape",
   "app-vocabulary",
   "seed-avatar",
-  "admin",
   "app-door",
   "demo-event",
   "pricing-page",
