@@ -378,7 +378,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 203
+          "line": 205
         },
         {
           "title": "finds the options whose 'as today' now means something else",
@@ -386,7 +386,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 221
+          "line": 225
         },
         {
           "title": "derives what became of an overtaken ask from the ledger alone",
@@ -394,7 +394,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 246
+          "line": 250
         },
         {
           "title": "names the reserved word and the words that ride with it",
@@ -402,7 +402,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 255
+          "line": 259
         }
       ]
     },
@@ -613,7 +613,7 @@
             "the stats are real, not decorative"
           ],
           "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 112
+          "line": 117
         },
         {
           "title": "holds the control's letter reading close to the production contract's own body/ink promise",
@@ -621,7 +621,7 @@
             "the stats are real, not decorative"
           ],
           "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 118
+          "line": 123
         },
         {
           "title": "writes a caption naming all four floors for every look",
@@ -629,13 +629,13 @@
             "the stats are real, not decorative"
           ],
           "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 128
+          "line": 133
         },
         {
           "title": "prints LOOK_STATS for the spec's own drafting",
           "suite": [],
           "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 141
+          "line": 146
         }
       ]
     },

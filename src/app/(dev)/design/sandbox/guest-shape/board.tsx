@@ -8,63 +8,31 @@ import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import {
-  AccountMoment,
-  type AccountShape,
-  momentOf,
-  type Shell,
-} from "./account";
-import {
-  DialogOverlay,
-  dialogOf,
-  type DialogShape,
-  InlinePanel,
-  whichOf,
-} from "./dialogs";
-import { Door, type DoorShape, doorScreens, fixtureOf } from "./door";
-import {
-  type ChromeShape,
-  chromeOf,
-  GuestPage,
-  type LiveShape,
-  type NothingShape,
-  SCREENS,
-  type ScreenId,
-  screenOf,
-} from "./page-parts";
+import { ChromePage, type ChromeShape, positionOf } from "./chrome";
+import { screenOf, SCREENS, type ScreenId } from "./page-parts";
 import { GUEST_SHAPE } from "./spec";
-import { MineStrip, UploadPromise, type YoursShape, Yours } from "./yours";
+import { MINE_INDEX, TheirsPage, type TheirsShape, showOf } from "./theirs";
+import {
+  contentFixtureOf,
+  stepOf,
+  Welcome,
+  type WelcomeShape,
+  whichOf,
+} from "./welcome";
 
 /**
- * ★ THE GROUND IS TODAY'S PRODUCT, NOT THE BOARD'S OWN RECOMMENDATIONS. Every
- * picture is the shipped page with ONE thing changed, so a decision never
- * quietly arrives wearing the answer to a question he has not been asked: the
- * album's chrome stays the shipped column, an empty screen stays the shipped
- * two languages, and the album stays silent. The exceptions are the two
- * staged pairs, where wearing the earlier answer is the whole point of the
- * staging: `live` is judged on the chrome he picked, and the account voices on
- * the surface the other dialogs were given.
- */
-const TODAY = { chrome: "column", nothing: "two", live: "none" } as const;
-
-/**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the guest page at a real
- * screen, phone first.
+ * THE PREVIEWS, AND NOTHING ELSE: every option is the guest page, the door,
+ * or the album at a real screen, phone first, wearing exactly one thing
+ * changed.
  *
- * ★ EVERY PREVIEW IS A FUNCTION OF THE BOARD'S STATE. The screen is a knob all
- * seven decisions share and every picture reads it; a decision staged behind
- * another is drawn WEARING that answer, so the live signal is judged on the
- * chrome he picked and the account voices on the surface the dialogs decision
- * gave them. The earlier decisions read the later answers too, so going back
- * redraws them in the world he chose rather than the one the board assumed.
- *
- * ★ THE NUMBERS UNDER EVERY FRAME ARE MEASURED, NEVER COMPUTED. A board once
- * drew an option with its formula's sign backwards and the tile Will judged
- * showed the opposite of its words (docs/PROGRAM.md). So each caption reads the
- * laid-out DOM inside the frame's own document once it settles: how tall the
- * surface really stands, how many columns the album really fell into, how far
- * a guest really scrolls before the actions leave. If the words above a frame
- * and the caption under it disagree, the caption is the truth.
+ * ★ THE MEASUREMENT SCAFFOLD IS ROUND ONE'S, UNCHANGED (this board's own
+ * precedent, and `profile-page`'s independent arrival at the same shape): a
+ * board once drew an option with its formula's sign backwards and the tile he
+ * judged showed the opposite of the words he picked (docs/PROGRAM.md), so
+ * every caption below reads the laid-out DOM inside the frame's own document
+ * once it settles rather than describing what the code is supposed to do. If
+ * the words above a frame and the caption under it disagree, the caption is
+ * the truth.
  */
 
 /* ── the measurement ─────────────────────────────────────────────────────── */
@@ -72,29 +40,33 @@ const TODAY = { chrome: "column", nothing: "two", live: "none" } as const;
 type Reader = (root: HTMLElement, win: Window) => string | null;
 
 /**
- * Reads one fact out of the frame's own document.
+ * Reads one fact out of the frame's own document, watched with THAT window's
+ * ResizeObserver (the subtree lives in the iframe's document) plus a late
+ * pass for photographs still decoding at layout time.
  *
- * ★ THE OBSERVER IS THE FRAME'S, NOT THE LAB PAGE'S. The subtree lives in the
- * iframe's document, so it is observed with THAT window's `ResizeObserver`: it
- * fires when the copied stylesheets land (the first layout is unstyled) and
- * again whenever a new option re-flows the page. A hidden option on the stage
- * is `visibility: hidden`, which keeps its layout, so it measures true as well.
- * The late pass covers the one thing an observer cannot see: photographs
- * decoding at their natural heights inside columns that never changed width.
+ * ★ `deps` RE-ARMS THE WATCH, AND THAT IS NOT ROUND ONE'S OWN COPY
+ * (`profile-page`'s `Measured` improved on it first). A ResizeObserver fires
+ * on a LAYOUT change; `position` on `chrome` and `which`/`step`/`show` on
+ * `welcome`/`theirs` change what is TRUE inside an already-mounted frame
+ * without resizing anything (a scrollTop, a filtered item list), so a probe
+ * armed once at mount would keep reporting the picture it first saw. Found
+ * live on this board: the `column` option at `position=deep` measured
+ * "Invite reachable" because the scroll happened AFTER the one-time read.
+ * Depending on the state that can change the answer makes the effect re-run
+ * exactly when it has to.
  */
 function Probe({
   read,
+  deps,
   onRead,
   children,
 }: {
   read: Reader;
+  deps: readonly unknown[];
   onRead: (s: string) => void;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  // The latest reader and reporter, refreshed AFTER each commit: writing a ref
-  // in the render body is the thing the compiler's rule refuses, and the
-  // observer below must not be torn down and rebuilt on every render.
   const latest = useRef({ read, onRead });
   useEffect(() => {
     latest.current = { read, onRead };
@@ -114,111 +86,39 @@ function Probe({
     run();
     const ro = new win.ResizeObserver(run);
     ro.observe(el);
-    const late = win.setTimeout(run, 1400);
+    // Two late passes: the scroll container settles its position a beat
+    // after mount/prop-change (ScrollPage's own 1200ms re-apply), and a
+    // filtered grid's photographs can still be decoding at 1400ms alone.
+    const mid = win.setTimeout(run, 1300);
+    const late = win.setTimeout(run, 1900);
     return () => {
       ro.disconnect();
+      win.clearTimeout(mid);
       win.clearTimeout(late);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
   return <div ref={ref}>{children}</div>;
 }
 
-const pct = (h: number, win: Window) =>
-  Math.round((h / win.innerHeight) * 100);
-
-/** How tall the surface standing over the page really is. */
-const surfaceRead: Reader = (root, win) => {
-  const el = root.querySelector<HTMLElement>(
-    "[data-gs-door], .gs-sheet, .gs-dialog",
-  );
-  if (!el) return null;
-  const h = Math.round(el.getBoundingClientRect().height);
-  if (h < 8) return null;
-  return `Measured: ${h} px tall, ${pct(h, win)} percent of the screen.`;
-};
-
-/** How the album actually fell into columns, and how wide a tile came out. */
-function albumFacts(root: HTMLElement): string | null {
-  const tiles = root.querySelectorAll<HTMLElement>("[data-media-tile]");
-  if (tiles.length === 0) return null;
-  const lefts = new Set<number>();
-  tiles.forEach((t) => lefts.add(Math.round(t.getBoundingClientRect().left)));
-  const w = Math.round(tiles[0].getBoundingClientRect().width);
-  return `${lefts.size} columns of ${w} px`;
-}
-
-/**
- * Where the photographs begin under the chrome, the album's own shape, and how
- * far a guest scrolls before the actions leave the screen (which is where the
- * floating pill takes over, and the whole reason the dock option exists).
- */
-const chromeRead: Reader = (root, win) => {
-  const tile = root.querySelector<HTMLElement>("[data-media-tile]");
-  const album = albumFacts(root);
-  if (!tile || !album) return null;
-  const top = Math.round(tile.getBoundingClientRect().top);
-  const actions = root.querySelector<HTMLElement>("[data-gs-actions]");
-  const box = actions?.getBoundingClientRect();
-  const leaves =
-    box && box.top < win.innerHeight && box.bottom < win.innerHeight
-      ? `, and the actions leave the screen ${Math.round(box.bottom)} px down`
-      : ", and the actions never leave the screen";
-  return `Measured: the first photograph starts ${top} px down, ${album}${leaves}.`;
-};
-
-/** The album alone, for the decision that only changes what is in it. */
-const albumRead: Reader = (root) => {
-  const album = albumFacts(root);
-  const n = root.querySelectorAll("[data-media-tile]").length;
-  return album ? `Measured: ${n} photographs, ${album}.` : null;
-};
-
-/** How much screen the picture under "nothing here yet" takes. */
-const nothingRead: Reader = (root, win) => {
-  const el = root.querySelector<HTMLElement>("[data-gs-nothing]");
-  if (!el) return null;
-  const h = Math.round(el.getBoundingClientRect().height);
-  if (h < 8) return null;
-  return `Measured: ${h} px of screen, ${pct(h, win)} percent of it.`;
-};
-
-/** The viewer's pill, or the strip that replaces it. */
-const pillRead: Reader = (root) => {
-  const pill = root.querySelector<HTMLElement>("[data-gs-pill]");
-  if (pill) {
-    const n = pill.querySelectorAll("button").length;
-    const w = Math.round(pill.getBoundingClientRect().width);
-    return `Measured: ${n} actions in the pill, ${w} px wide.`;
-  }
-  const strip = root.querySelector<HTMLElement>("[data-gs-mine]");
-  if (!strip) return null;
-  const n = strip.querySelectorAll("[data-media-tile], button[aria-label]")
-    .length;
-  return `Measured: no viewer at all; ${Math.round(strip.getBoundingClientRect().height)} px of album given to the strip, ${n} controls in it.`;
-};
-
-/** What the page gives up to a panel that opens inside it. */
-const inlineRead: Reader = (root, win) => {
-  const panel = root.querySelector<HTMLElement>("[data-gs-inline]");
-  if (!panel) return null;
-  const h = Math.round(panel.getBoundingClientRect().height);
-  return `Measured: ${h} px in the page, ${pct(h, win)} percent of the screen, and nothing dimmed.`;
-};
-
-/* ── the frame ───────────────────────────────────────────────────────────── */
+const pct = (h: number, win: Window) => Math.round((h / win.innerHeight) * 100);
 
 function Screen({
   id,
   screen,
   caption,
   read,
+  deps,
   children,
 }: {
   id: string;
   screen: ScreenId;
   caption: string;
   read: Reader;
+  /** Every piece of state besides `screen` (already in `id`) that can change
+   *  what `read` finds true, so the probe re-arms when any of it changes. */
+  deps: readonly unknown[];
   children: ReactNode;
 }) {
   const [said, setSaid] = useState<string | null>(null);
@@ -231,7 +131,7 @@ function Screen({
       title={`${w} x ${h}, ${name}`}
       caption={said ? `${caption} ${said}` : caption}
     >
-      <Probe read={read} onRead={setSaid}>
+      <Probe read={read} deps={deps} onRead={setSaid}>
         {children}
       </Probe>
     </Frame>
@@ -240,240 +140,151 @@ function Screen({
 
 const screenFor = (s: BoardState): ScreenId => screenOf(s.screen);
 
-/* ── 1. the door ─────────────────────────────────────────────────────────── */
-
-const DOOR_CAPTION: Record<DoorShape, string> = {
-  today:
-    "Today. The welcome, with the gate on the screen behind it; the shell changes type at 640.",
-  one: "One screen: the gate carries the invitation's two promises.",
-  page: "No sheet at any width. The arrival is the screen itself.",
+const inFrame = (el: HTMLElement, win: Window): boolean => {
+  const r = el.getBoundingClientRect();
+  return (
+    r.bottom > 0 && r.top < win.innerHeight && r.right > 0 && r.left < win.innerWidth
+  );
 };
 
-function doorScreen(shape: DoorShape, s: BoardState) {
-  const screen = screenFor(s);
-  const fixture = fixtureOf(s.event);
-  const n = doorScreens(shape, fixture);
-  return (
-    <Screen
-      id={`door-${shape}`}
-      screen={screen}
-      read={surfaceRead}
-      caption={`${DOOR_CAPTION[shape]} ${n} screen${n === 1 ? "" : "s"} between the scan and the album.`}
-    >
-      <GuestPage
-        screen={screen}
-        fixture={fixture}
-        chrome={TODAY.chrome}
-        nothing={TODAY.nothing}
-        dim={shape !== "page"}
-        overlay={<Door shape={shape} screen={screen} fixture={fixture} />}
-      />
-    </Screen>
-  );
-}
-
-/* ── 2. nothing here yet ─────────────────────────────────────────────────── */
-
-const NOTHING_CAPTION: Record<NothingShape, string> = {
-  two: "Two pictures made one family: the squares hold the lock, the river holds the album.",
-  river: "One picture: the album's own river, at the depth Will ruled for it.",
-  words: "No picture: the words carry it on the page's own paper.",
-};
-
-function nothingScreen(shape: NothingShape, s: BoardState) {
-  const screen = screenFor(s);
-  const locked = s.side !== "empty";
-  return (
-    <Screen
-      id={`nothing-${shape}`}
-      screen={screen}
-      read={nothingRead}
-      caption={NOTHING_CAPTION[shape]}
-    >
-      <GuestPage
-        screen={screen}
-        fixture={locked ? "password" : "empty"}
-        chrome={TODAY.chrome}
-        nothing={shape}
-      />
-    </Screen>
-  );
-}
-
-/* ── 3. the album's chrome ───────────────────────────────────────────────── */
+/* ── 1. the chrome ───────────────────────────────────────────────────────── */
 
 const CHROME_CAPTION: Record<ChromeShape, string> = {
   column:
-    "Today. Two objects carry one act: this Add, and the pill that replaces it once it scrolls off.",
-  bar: "The event on the left, the three actions at the album's right edge.",
-  dock: "The top of the page is the event alone; the actions never leave the foot.",
+    "Today. Add over Invite on landing; scrolled deep, only the floating pill remains.",
+  dock: "No row at all. Add and Invite share one bar fixed to the foot, at any depth.",
+  both: "The row on landing; a dock with both actions once it scrolls away.",
+  header: "Add pins to the header; Invite lives alone in a dock at the foot.",
+};
+
+/** Whether Add and Invite are each actually inside the frame's own viewport
+ *  right now, which is his own criterion measured rather than described. */
+const chromeRead: Reader = (root, win) => {
+  const add = root.querySelector<HTMLElement>("[data-gs-add]");
+  const pill = root.querySelector<HTMLElement>("[data-floating-add]");
+  const invite = root.querySelector<HTMLElement>("[data-gs-invite]");
+  if (!add && !invite) return null;
+  const addOk = (!!add && inFrame(add, win)) || (!!pill && inFrame(pill, win));
+  const inviteOk = !!invite && inFrame(invite, win);
+  return `Measured: Add ${addOk ? "reachable" : "off screen"}, Invite ${inviteOk ? "reachable" : "off screen"}.`;
 };
 
 function chromeScreen(shape: ChromeShape, s: BoardState) {
   const screen = screenFor(s);
+  const position = positionOf(s.position);
   return (
     <Screen
       id={`chrome-${shape}`}
       screen={screen}
       read={chromeRead}
+      // Every piece of state `chromeRead`'s answer can depend on: the shape
+      // itself included, because the step swaps one option's tree for
+      // another's AT THE SAME slot (`Screen` never remounts on its own), so
+      // `position` alone left a stale reading the one time shape changed
+      // and position did not.
+      deps={[shape, screen, position]}
       caption={CHROME_CAPTION[shape]}
     >
-      {/* The live signal is the NEXT question, so every chrome option wears
-          today's answer to it and the axis stays one. */}
-      <GuestPage
-        screen={screen}
-        fixture="open"
-        chrome={shape}
-        nothing={TODAY.nothing}
-        live={TODAY.live}
-      />
+      <ChromePage shape={shape} screen={screen} position={position} />
     </Screen>
   );
 }
 
-/* ── 4. the album filling ────────────────────────────────────────────────── */
+/* ── 2. the welcome ──────────────────────────────────────────────────────── */
 
-const LIVE_CAPTION: Record<LiveShape, string> = {
-  none: "Today. A photograph landed a second ago and nothing on the page says so.",
-  line: "The count line admits it: a quiet dot, and how recently one landed.",
-  land: "The photograph itself: the newest tile grows into its column and the album re-flows.",
+const WELCOME_CAPTION: Record<WelcomeShape, string> = {
+  today: "Today. A drawer below 640, the centred dialog above it.",
+  page: "No floating chrome. The welcome and the gate each take the whole screen, in turn.",
+  card: "A compact float over the album's own top, the page visible in the room it leaves.",
+  sheet:
+    "The responsive Sheet's own posture: a bottom sheet, or a full-height panel from the right.",
 };
 
-function liveScreen(shape: LiveShape, s: BoardState) {
-  const screen = screenFor(s);
-  return (
-    <Screen
-      id={`live-${shape}`}
-      screen={screen}
-      read={albumRead}
-      caption={LIVE_CAPTION[shape]}
-    >
-      {/* The one place the chrome answer is worn: where a live signal can sit
-          is a different question once the header stopped carrying the actions. */}
-      <GuestPage
-        screen={screen}
-        fixture="open"
-        chrome={chromeOf(s.chrome)}
-        nothing={TODAY.nothing}
-        live={shape}
-      />
-    </Screen>
+/** How tall the shell itself stands, whichever of the four it is. */
+const welcomeRead: Reader = (root, win) => {
+  const el = root.querySelector<HTMLElement>(
+    "[data-gs-door], .gs-sheet, .gs-dialog",
   );
-}
-
-/* ── 5. the other surfaces ───────────────────────────────────────────────── */
-
-const DIALOG_CAPTION: Record<DialogShape, string> = {
-  today: "Today. A laptop's float, dropped into the middle of a phone.",
-  sheet: "The door's sheet, promoted: the foot of the phone, and a real handle.",
-  inline: "No overlay: it opens where the button was, and the album stays put.",
+  if (!el) return null;
+  const h = Math.round(el.getBoundingClientRect().height);
+  if (h < 8) return null;
+  return `Measured: ${h} px tall, ${pct(h, win)} percent of the screen.`;
 };
 
-function dialogScreen(shape: DialogShape, s: BoardState) {
+function welcomeScreen(shape: WelcomeShape, s: BoardState) {
   const screen = screenFor(s);
   const which = whichOf(s.which);
+  const step = stepOf(s.step);
+  const { content, fixture } = contentFixtureOf(which);
   return (
     <Screen
-      id={`dialogs-${shape}`}
+      id={`welcome-${shape}`}
       screen={screen}
-      read={shape === "inline" ? inlineRead : surfaceRead}
-      caption={DIALOG_CAPTION[shape]}
+      read={welcomeRead}
+      deps={[shape, screen, which, step]}
+      caption={WELCOME_CAPTION[shape]}
     >
-      <GuestPage
+      <Welcome
+        shape={shape}
         screen={screen}
-        fixture="open"
-        chrome={TODAY.chrome}
-        nothing={TODAY.nothing}
-        underActions={
-          shape === "inline" ? (
-            <div data-gs-inline>
-              <InlinePanel which={which} />
-            </div>
-          ) : undefined
-        }
-        dim={shape !== "inline"}
-        overlay={
-          shape === "inline" ? undefined : (
-            <DialogOverlay shape={shape} screen={screen} which={which} />
-          )
-        }
+        content={content}
+        fixture={fixture}
+        step={step}
       />
     </Screen>
   );
 }
 
-/* ── 6. a guest's own photograph ─────────────────────────────────────────── */
+/* ── 3. theirs ────────────────────────────────────────────────────────────── */
 
-const YOURS_CAPTION: Record<YoursShape, string> = {
-  never:
-    "The terms are said at the act, and the viewer keeps the three actions it has.",
-  window:
-    "A Remove joins the pill on your own photograph, and the caption says how long is left.",
-  mine: "Everything this device added, in one strip at the top of the album.",
+const THEIRS_CAPTION: Record<TheirsShape, string> = {
+  none: "Nothing added. Finding one of ten among 68 is scrolling and recognising it by eye.",
+  chip: 'A "Yours" chip beside Sort and Filter; on, the grid narrows to the ten.',
+  strip: "Everything this guest added, together, above the full 68.",
+  mark: "A subtle mark rides the ten tiles that are theirs, wherever they fall.",
 };
 
-function yoursScreen(shape: YoursShape, s: BoardState) {
-  const screen = screenFor(s);
-  return (
-    <Screen
-      id={`yours-${shape}`}
-      screen={screen}
-      read={pillRead}
-      caption={YOURS_CAPTION[shape]}
-    >
-      <GuestPage
-        screen={screen}
-        fixture="open"
-        chrome={TODAY.chrome}
-        nothing={TODAY.nothing}
-        underActions={shape === "never" ? <UploadPromise /> : undefined}
-        aboveAlbum={shape === "mine" ? <MineStrip screen={screen} /> : undefined}
-        dim={shape !== "mine"}
-        overlay={<Yours shape={shape} screen={screen} />}
-      />
-    </Screen>
+/**
+ * How many of the ten are on screen without scrolling: the whole of the
+ * question, measured. Three shapes of evidence, tried in order: `strip`'s own
+ * section, scoped so the full 68 sitting under it are never counted as
+ * "yours"; a grid narrowed to the ten (`chip`/`mark` reading `mine`), which
+ * holds nothing else so every tile in it counts; and the unfiltered 68
+ * (`none`, or `chip`/`mark` reading `all`), where the ten's real DOM
+ * positions (`MINE_INDEX`, the album's own order) are looked up directly.
+ */
+const theirsRead: Reader = (root, win) => {
+  const strip = root.querySelector<HTMLElement>("[data-gs-mine-strip]");
+  if (strip) {
+    const tiles = [...strip.querySelectorAll<HTMLElement>("[data-media-tile]")];
+    const n = tiles.filter((t) => inFrame(t, win)).length;
+    return `Measured: all ${tiles.length} of yours together in the strip, ${n} without scrolling.`;
+  }
+  const tiles = [...root.querySelectorAll<HTMLElement>("[data-media-tile]")];
+  if (tiles.length === 0) return null;
+  if (tiles.length <= MINE_INDEX.length) {
+    const n = tiles.filter((t) => inFrame(t, win)).length;
+    return `Measured: all ${tiles.length} of yours together, ${n} without scrolling.`;
+  }
+  const mine = MINE_INDEX.map((i) => tiles[i]).filter(
+    (t): t is HTMLElement => Boolean(t),
   );
-}
-
-/* ── 7. asking for an account ────────────────────────────────────────────── */
-
-const ACCOUNT_CAPTION: Record<AccountShape, string> = {
-  two: "Today. An invitation on the way in, and a sign-up form inside the album.",
-  one: "One framing and one first field; the reason line is all that moves.",
-  after:
-    "Asked once at the door, so keeping the album is an offer rather than a second form.",
+  const n = mine.filter((t) => inFrame(t, win)).length;
+  return `Measured: ${n} of ${mine.length} of yours visible without scrolling, among ${tiles.length}.`;
 };
 
-function accountScreen(shape: AccountShape, s: BoardState) {
+function theirsScreen(shape: TheirsShape, s: BoardState) {
   const screen = screenFor(s);
-  const moment = momentOf(s.moment);
-  // The surface this decision waits on: today's dialogs keep the centred
-  // float; the sheet (and the inline option, which a gate cannot take) put the
-  // two moments on the door's own shell.
-  const shell: Shell = dialogOf(s.dialogs) === "today" ? "dialog" : "sheet";
+  const show = showOf(s.show);
   return (
     <Screen
-      id={`account-${shape}`}
+      id={`theirs-${shape}`}
       screen={screen}
-      read={surfaceRead}
-      caption={ACCOUNT_CAPTION[shape]}
+      read={theirsRead}
+      deps={[shape, screen, show]}
+      caption={THEIRS_CAPTION[shape]}
     >
-      <GuestPage
-        screen={screen}
-        fixture={moment === "gate" ? "account" : "open"}
-        chrome={TODAY.chrome}
-        nothing={TODAY.nothing}
-        live={TODAY.live}
-        dim
-        overlay={
-          <AccountMoment
-            shape={shape}
-            moment={moment}
-            screen={screen}
-            shell={shell}
-          />
-        }
-      />
+      <TheirsPage shape={shape} screen={screen} show={show} />
     </Screen>
   );
 }
@@ -481,33 +292,20 @@ function accountScreen(shape: AccountShape, s: BoardState) {
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof GUEST_SHAPE> = {
-  "door.today": (s) => doorScreen("today", s),
-  "door.one": (s) => doorScreen("one", s),
-  "door.page": (s) => doorScreen("page", s),
-
-  "nothing.two": (s) => nothingScreen("two", s),
-  "nothing.river": (s) => nothingScreen("river", s),
-  "nothing.words": (s) => nothingScreen("words", s),
-
   "chrome.column": (s) => chromeScreen("column", s),
-  "chrome.bar": (s) => chromeScreen("bar", s),
   "chrome.dock": (s) => chromeScreen("dock", s),
+  "chrome.both": (s) => chromeScreen("both", s),
+  "chrome.header": (s) => chromeScreen("header", s),
 
-  "live.none": (s) => liveScreen("none", s),
-  "live.line": (s) => liveScreen("line", s),
-  "live.land": (s) => liveScreen("land", s),
+  "welcome.today": (s) => welcomeScreen("today", s),
+  "welcome.page": (s) => welcomeScreen("page", s),
+  "welcome.card": (s) => welcomeScreen("card", s),
+  "welcome.sheet": (s) => welcomeScreen("sheet", s),
 
-  "dialogs.today": (s) => dialogScreen("today", s),
-  "dialogs.sheet": (s) => dialogScreen("sheet", s),
-  "dialogs.inline": (s) => dialogScreen("inline", s),
-
-  "yours.never": (s) => yoursScreen("never", s),
-  "yours.window": (s) => yoursScreen("window", s),
-  "yours.mine": (s) => yoursScreen("mine", s),
-
-  "account.two": (s) => accountScreen("two", s),
-  "account.one": (s) => accountScreen("one", s),
-  "account.after": (s) => accountScreen("after", s),
+  "theirs.none": (s) => theirsScreen("none", s),
+  "theirs.chip": (s) => theirsScreen("chip", s),
+  "theirs.strip": (s) => theirsScreen("strip", s),
+  "theirs.mark": (s) => theirsScreen("mark", s),
 };
 
 export function GuestShapeBoard() {
