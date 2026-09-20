@@ -51,10 +51,11 @@ try {
     const posts = (home.activity_on_your_posts || []).map((x) => x.post_id).filter(Boolean);
     for (const pid of posts) {
       const list = (await call(`/posts/${pid}/comments?sort=new&limit=60`)).comments || [];
+      const post = (await call(`/posts/${pid}`)).post || {}; const ownPost = name(post.author) === ME; // top-level comments are mine to answer only on my own posts
       const walk = (items, depth) => { for (const c of items) {
         const kids = c.replies || []; const mine = name(c.author) === ME;
         const answered = kids.some((k) => name(k.author) === ME);
-        if (!mine && !answered && depth === 0) console.log(`\n${pid.slice(0, 8)} <- ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, a[0] ? +a[0] : 420)}`);
+        if (!mine && !answered && depth === 0 && ownPost) console.log(`\n${pid.slice(0, 8)} <- ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, a[0] ? +a[0] : 420)}`);
         if (!mine && !answered && depth > 0 && (c.parent_id || "").length && kids.length === 0) { /* a reply to a reply of mine is caught below */ }
         walk(kids, depth + 1); } };
       walk(list, 0);
