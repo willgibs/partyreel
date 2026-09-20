@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 668 contracts on 96 components · 27 standing boards.**
+**22 laws · 18 policies · 788 contracts on 110 components · 26 standing boards.**
 
 ## What binds you
 
@@ -297,7 +297,7 @@ function. A contract never freezes a look.
 | `src/components/shared/kbd.tsx` | the keyboard-key chip; dropped in a tooltip it picks that treatment up by data-slot | none |
 | `src/components/shared/legal-consent-line.tsx` | the one acceptance line tying a sign-in or a guest's entry to Terms and Privacy | links both documents in the same tab by default; opens in a new tab with noopener when asked; both consumers use the component, not a copy |
 | `src/components/shared/logo.tsx` | the brand: the v1 wordmark alone, in the colour of whatever ground it sits on | is the wordmark alone, and names itself; takes the ground's colour rather than carrying a fill of its own; draws the one path, in its own box; keeps the drawing in one home; offers the stand-in mark only when asked, and never beside the wordmark |
-| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark; renders no control at all when the surface declares no actions; gives a video its play mark and a photograph none; shows the like mark for a count, and nothing at zero; suppresses the like mark where every tile is liked (the Likes feed); draws every action of the set inside a single bar; keeps a control's tap off the lightbox; renders one overlay per tile, as a sibling of the open-lightbox button; renderOverlay is optional — a tile renders without it and still opens; seats the prefix before the first tile (the pending uploads' slot); writes data-arrived on exactly the ids the surface names; leaves every existing tile where it was when a newer one is prepended; balances: no column runs away from the shortest; puts a newly landed photograph at the HEAD of the column it joins |
 | `src/components/shared/media-lightbox.lazy.tsx` | the lazy wrapper around the lightbox | none |
 | `src/components/shared/media-lightbox.tsx` | the media lightbox with its gesture physics | none |
 | `src/components/shared/not-found-screen.tsx` | the shared dead end for EVERY failure page, 404 and crash alike; content only, it wraps itself in nothing, and it carries no reporting | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
@@ -314,6 +314,7 @@ function. A contract never freezes a look.
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
 | `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
+| `src/components/ui/command-palette.tsx` | a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees | wires the field to the list it controls; activates the first row before a key is pressed, so Enter always does something; walks the list with the arrows and stops at both ends; reaches both ends with Home and End; opens the row that is highlighted, not the one that was first; moves the highlight with the pointer, so the mouse and the keys agree; hands the query to whoever is filtering, and never filters itself |
 | `src/components/ui/confirm-switch.tsx` | the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently | shows the glyph beside the label, unconditionally; applies at once on the edge confirmWhen refuses; asks on the edge confirmWhen names, and applies nothing until confirmed; applies the pending value on Confirm; leaves the value untouched on Cancel |
 | `src/components/ui/dialog.tsx` | the modal, plus the fullScreen takeover a whole-screen surface asks for | none |
 | `src/components/ui/drawer.tsx` | the vaul bottom sheet; in the kit, and no product surface has claimed it yet | none |
@@ -331,6 +332,7 @@ function. A contract never freezes a look.
 | `src/components/ui/skeleton.tsx` | the loading block: a shimmer sweep that goes static under reduced motion | none |
 | `src/components/ui/sonner.tsx` | the themed Toaster | none |
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
+| `src/components/ui/table.tsx` | the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
 | `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
@@ -345,7 +347,11 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
+- `src/app/globals.css` (6 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/admin/destructive-sheet.tsx` (7 guards)
+- `src/components/admin/health-band.tsx` (6 guards)
+- `src/components/admin/inbox-pane.tsx` (4 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
 - `src/components/app/event-feed/bulk-bar.tsx` (8 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
@@ -359,6 +365,7 @@ Contracted but outside the library's directories:
 - `src/components/app/share/event-share-sheet.tsx` (12 guards)
 - `src/components/app/share/event-sheets.tsx` (12 guards)
 - `src/components/app/share/use-copy-link.ts` (12 guards)
+- `src/components/auth/account-door.tsx` (16 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
@@ -402,10 +409,17 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail.tsx` (17 guards)
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
+- `src/lib/admin/kpi.ts` (10 guards)
+- `src/lib/admin/palette.ts` (11 guards)
+- `src/lib/admin/queue.ts` (7 guards)
+- `src/lib/admin/tone.ts` (6 guards)
+- `src/lib/auth/door-failure.ts` (13 guards)
+- `src/lib/auth/remembered-email.ts` (9 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)
 - `src/lib/dashboard/next-step.ts` (10 guards)
+- `src/lib/glass.ts` (6 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 - `src/lib/shared/tile-size-cookie.ts` (7 guards)
 - `src/lib/shared/use-scroll-direction.ts` (8 guards)
@@ -441,7 +455,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `guest-shape` | guest | Seven decisions on the real guest components over one wedding in its four access states, phone first at 375 and also at 1440: the door, one language for nothing-here-yet, the chrome over an album that runs to the window, whether the album admits it is filling, one object for the other four surfaces, what a guest can do about their own photograph, and how many voices ask for an account |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
-| `glass` | shared | Round two, two decisions: the ONE material (Frost, Crystal, or the reel's white on Frost's filter) drawn on all six glass surfaces in a single frame per option, and then its edge on whichever body wins; over the darkest, middling and brightest photographs at 375 and 1440, every option drawing an ACTIVE rose mark, every number read off the rendered pane (the mark's contrast, the pill's, the capsule's, and the compositor cost of a phone scroll) |
 | `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
 | `admin` | admin | Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen |
 

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { toast } from "sonner";
 
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,38 +64,55 @@ export function PreserveForm() {
   );
 }
 
-// Per-row hold release. Two-step (arm, then confirm) instead of a dialog: releasing a hold puts
-// the item back on the purge clock, so an accidental single click must not do it.
-export function ReleaseHoldButton({ mediaId }: { mediaId: string }) {
-  const [armed, setArmed] = useState(false);
-  const [pending, startTransition] = useTransition();
-
-  function onClick() {
-    if (!armed) {
-      setArmed(true);
-      return;
-    }
-    startTransition(async () => {
-      const res = await releaseHoldAction(mediaId);
-      setArmed(false);
-      if (!res.ok) {
-        toast.error(res.message ?? "Release failed.");
-        return;
-      }
-      toast.success("Hold released. Preserved copies are untouched.");
-    });
-  }
+/**
+ * Per-row hold release, on the portal's one destructive sheet
+ * (`destructive=sheet`, 2026-09-20). It was the only arm-then-confirm control
+ * in the portal: a real answer to "an accidental single click must not do
+ * this", and a fourth grammar for the same question three other surfaces
+ * answered three other ways. The panel says what the release costs, which
+ * arming never could.
+ *
+ * Reversible, so nothing is typed: a released hold can be set again, and the
+ * preserved copy is untouched either way.
+ */
+export function ReleaseHoldButton({
+  mediaId,
+  eventName,
+  preserved,
+}: {
+  mediaId: string;
+  eventName: string;
+  preserved: boolean;
+}) {
+  const [asking, setAsking] = useState(false);
 
   return (
-    <Button
-      type="button"
-      variant={armed ? "destructive" : "outline"}
-      size="sm"
-      disabled={pending}
-      onClick={onClick}
-      onBlur={() => setArmed(false)}
-    >
-      {pending ? "Releasing…" : armed ? "Confirm release" : "Release hold"}
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setAsking(true)}
+      >
+        Release hold
+      </Button>
+      <DestructiveSheet
+        open={asking}
+        onOpenChange={setAsking}
+        title="Release this legal hold?"
+        lede="The item goes back on its normal purge clock from this moment. Preserved copies are untouched."
+        verb="Release hold"
+        touches={[
+          `1 item in ${eventName}`,
+          preserved
+            ? "The preserved copy stays in the segregated store until deleted by hand"
+            : "Nothing was ever preserved, so nothing survives the purge",
+          "The release is written to the forensic audit log either way",
+        ]}
+        severity="reversible"
+        successMessage="Hold released. Preserved copies are untouched."
+        onConfirm={() => releaseHoldAction(mediaId)}
+      />
+    </>
   );
 }

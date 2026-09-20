@@ -1,6 +1,7 @@
 import {
   Activity,
   BarChart3,
+  Download,
   Film,
   Fingerprint,
   Flag,
@@ -87,6 +88,15 @@ export const NAV: NavItem[] = [
     icon: Megaphone,
     group: "Operations",
   },
+  // Exports was reachable only from the old home's card grid, which the KPI
+  // home retired (`home=kpi`, 2026-09-20); a surface the nav does not list is
+  // a surface the rail, the crumb and the palette cannot reach either.
+  {
+    href: "/admin/exports",
+    label: "Exports",
+    icon: Download,
+    group: "Operations",
+  },
   {
     href: "/admin/forensics",
     label: "Forensics",
@@ -122,4 +132,38 @@ export function navGroups(): { group: NavGroup; items: NavItem[] }[] {
 export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/**
+ * WHAT IS WAITING, AS THE NAV READS IT.
+ *
+ * ★ THE SHAPE AND ITS LOOKUP LIVE HERE, NOT BESIDE THE QUERY THAT FILLS THEM,
+ * because the rail is a CLIENT component and `lib/admin/pending.ts` is
+ * `server-only`: a value imported from there pulls the service-role Supabase
+ * client into the browser bundle and the build refuses it outright (it did,
+ * once). This module is pure and client-safe, which is what every reader of
+ * these numbers needs.
+ */
+export type PendingCounts = {
+  support: number;
+  applicants: number;
+  reports: number;
+  /** Jobs an operator has to act on; 1 stands for an unreadable console. */
+  jobs: number;
+};
+
+/** The count a nav row shows, by href. Zero means the row shows nothing at all. */
+export function pendingForHref(counts: PendingCounts, href: string): number {
+  switch (href) {
+    case "/admin/support":
+      return counts.support;
+    case "/admin/applicants":
+      return counts.applicants;
+    case "/admin/reports":
+      return counts.reports;
+    case "/admin/jobs":
+      return counts.jobs;
+    default:
+      return 0;
+  }
 }

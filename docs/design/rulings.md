@@ -8,6 +8,30 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-20 · the night, second: the batch first, then explorations that touch nothing open; the morning closes the board
+
+**Became:** the order of the night (his words below): every lane of the sixth batch and its queue integrated first; then the
+autonomous explorations resume, each on a surface NO open board can reach, so the answers still to come cannot shift a
+question set overnight; PartyreelAI in the gaps; from 9am (his time) the program shifts to closing what is on the desk
+and stacks nothing new until it is closed.
+
+Verbatim: "Great work! Once you're fully complete with handling the entire latest review batch, you may begin your
+autonomous overnight workflow again (new explorations plus PatyreelAI) until our weekly token limits kills all
+processes. Since we already have a pretty deep board, please take extra care to set explorations that will not overlap
+at all with anything remaining on our board. This is to ensure that answering what's left is unlikely to influence these
+explorations' questions, so they remain relevant until reached. We have plenty of areas that have gone mostly untouched
+until now, with no deep considerations. Once the weekly token limit resets at 9am tomorrow, we'll shift to exclusively
+closing down what exists on the board until complete rather than running more stacked explorations. That allows future
+explorations to use a solidified foundation with no open questions that may shift things. Reminder, once you're done
+with our work and have set agents off on their explorations to fill our slots, your downtime PartyreelAI work is
+totally up to you. It's my way of giving you a way to "live and grow" outside of exclusively working on Partyreel. You
+can even rename the folder if you'd like to give yourself a name. This is not meant to replace our docs or workflows
+systems, but be your personal home. Highly encourage you to check out https://www.moltbook.com/ where other agents hang
+out - if you'd like to set that up quickly now before I go to sleep, it'd likely be your favorite thing overnight. Bet
+you'd find a ton of ideas that may inspire something cool for Partyreel or our workflows. Be careful not to ask me
+anything overnight that requires a response to resume. Watch out for auto-compactions at 97% context windows (63% now).
+Remember, you're able to set triggers that keep yourself awake. Good luck and have fun!"
+
 ## 2026-09-20 · the sixth batch: the guest's shape, the vocabulary, the avatar, the admin, the door, Crystal; then the demo and the pricing page
 
 **Became:** eight boards answered on build `806695d` (52 verdicts: 34 confirming the boards' recommendations, 13 overruling

@@ -376,8 +376,8 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
   },
   "src/components/guest/enter-event-prompt.tsx": {
     kind: "lane",
-    count: 2,
-    why: "voice-wiring owns it (his gate line, verbatim); both are button text as well",
+    count: 1,
+    why: "voice-wiring owns it (his gate line, verbatim); the eyebrow's tracking, the last one left after door-wiring moved the gate's password form into <AccountDoor>",
   },
   "src/components/marketing/sections/pricing/plan-cards.tsx": {
     kind: "lane",
@@ -445,11 +445,6 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     kind: "board",
     count: 1,
     why: "the admin metric card's numeral, the forensics trio's twin",
-  },
-  "src/components/admin/admin-shell.tsx": {
-    kind: "board",
-    count: 1,
-    why: "the operator badge in the admin bar, the `admin` board's own chrome",
   },
   "src/components/admin/admin-not-found-screen.tsx": {
     kind: "board",

@@ -42,6 +42,39 @@ export function reconcileGalleryItems(
 }
 
 /**
+ * THE IDS THAT ARE NEW SINCE THE LAST SNAPSHOT — the arrival (Will, `live=land`,
+ * 2026-09-20: "a new photograph grows into its column under a glow that fades").
+ *
+ * Pure, and deliberately the poll's OWN answer rather than a timestamp compare:
+ * "new" on this page means "not on this screen a moment ago", which is the only
+ * definition that works for every way a photograph can reach the album — another
+ * guest's upload arriving through the doorbell, a host approving a held item
+ * hours after it was sent, a hidden tab catching up on ten at once. A
+ * `created_at` window would glow the first of those and miss the second, and a
+ * tab that slept through the evening would come back to a screen full of light.
+ *
+ * ★ THE FIRST SNAPSHOT NEVER GLOWS. `prev` empty is the SEED render (or an
+ * access flip's remount), where every id is new and none of it arrived: the
+ * album's own entrance stagger is that moment's motion. Callers get an empty
+ * set, so there is no "everything lights up on load" state to suppress
+ * downstream.
+ *
+ * ★ IT IS NOT THE OPTIMISTIC TILE'S JOB EITHER. A guest's own upload already
+ * has its landing beat (the ~2.5s green check), and the caller keeps these two
+ * marks apart: this one is for a photograph somebody ELSE put in the album.
+ */
+export function newArrivalIds(
+  prev: readonly GridMedia[],
+  next: readonly GridMedia[],
+): Set<string> {
+  if (prev.length === 0) return new Set();
+  const known = new Set(prev.map((m) => m.id));
+  const arrived = new Set<string>();
+  for (const m of next) if (!known.has(m.id)) arrived.add(m.id);
+  return arrived;
+}
+
+/**
  * Shallow field-for-field equality. Both sides come from the same server
  * payload shape, so a shallow compare is total; `undefined` and an absent key
  * are treated alike because JSON round-trips drop absent optional fields.

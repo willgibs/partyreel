@@ -24,3 +24,6 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `board-card.mjs <board...>` or `--desk`: one screen per board (the RULINGS row's title, surface, ruling and `lives`
   as the wiring's first `owns`; the spec's asks with their recommendations; what the ledger answered; which asks an
   earlier ruling reaches), or the whole desk in order, one line each. `batch-reader.mjs` exports its spec parser for it.
+- `wave6-check.mjs` (pattern): the served alias against a wave's ruled lines through the HTML, no key. And a rule the
+  night taught: the built-in pane is one browser every running lane may also drive, so never CLICK in it while lanes
+  run (a click meant for the alias landed on a lane's localhost page); navigate and read, or fetch.

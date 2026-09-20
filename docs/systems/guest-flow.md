@@ -26,11 +26,26 @@ neighbouring code says.
 The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
 is the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line**
 ("N photos & videos from M guests") → the **action block**: a full-width primary **Add photos** over a
-2-col **`[Save] [Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`);
+full-width **`[Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`);
 a **floating Add pill** ([`floating-add-button.tsx`](../../src/components/guest/floating-add-button.tsx))
 appears once the header Add scrolls out of view (an `IntersectionObserver` sentinel —
 [`use-in-view-sentinel.ts`](../../src/lib/guest/use-in-view-sentinel.ts) — never both, never over the
-empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + native Share + Download).
+empty-state CTA). `GuestShare` is the Invite trigger + sheet (QR + Copy + native Share + Download).
+★ **SAVE IS NOT IN THIS ROW** (Will, `account=after`, 2026-09-20: "Moving Save makes it feel more natural
+after upload rather than a random button above an album for guests"). The account is asked once at the door,
+and keeping the album is a one-tap offer AFTER a guest's first photograph lands
+([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx) → `ClaimHandlePrompt` → `SaveAccountPrompt`,
+wearing `SaveEventButton`), never a form above the album. Where a guest's actions finally live is `chrome`
+round two, which draws this block with Save already gone.
+★ **THE GUEST'S OVERLAYS WEAR THE ONE RESPONSIVE SHEET** (`dialogs=stands`, 2026-09-20, deferring to
+`settings=sheet`'s "apply this sheet concept everywhere"): `SheetContent responsive`
+([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)) — a side panel at a desk, a bottom sheet in a hand.
+Invite ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)) and Report
+([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)) are on it. The DOOR is NOT: its shell
+stays vaul-backed (below), and "Download all" (`ExportDialog`) + Save (`SaveEventButton`) are shared with host
+surfaces, so they follow in their owning lanes. ⚠ Report is the one with a FIELD in it, and the responsive
+Sheet's phone half has never held a focused input on a real iPhone — if the keyboard covers the textarea the
+fix is the Sheet's phone half becoming vaul-backed for every consumer, one change, never a per-dialog exception.
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
   is one admin select over approved media → `{approvedTotal, contributorCount}` (distinct uploader guests
   +1 if the host uploaded). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes
@@ -65,9 +80,11 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise — the RIVER (`shared/river`, Will's `guest-photos=ghost`, 2026-09-18) in a square
   box the width of the column, the `public/guest-ghost` WebPs pouring down under a centered `font-heading`
-  title and CTA. The fade (grayscale 0.85 at 40%) is a filter on the placement's WRAPPER, never a layer
-  over the photographs, and NOTHING sits at the top of the flow: a demo code inside a host's own album is
-  what bible 4 refuses. At 0 items the header drops its Add (the CTA owns it).
+  title and CTA. The fade (grayscale 0.85 at 40%) is a filter on the WRAPPER, never a layer over the
+  photographs, and NOTHING sits at the top of the flow: a demo code inside a host's own album is what bible 4
+  refuses. At 0 items the header drops its Add (the CTA owns it). ★ **That wrapper is `GhostRiver`, exported
+  from this file and the ONE home of the depth**, because the locked page draws the same picture
+  (`nothing=river`) and two copies of the fade are how the two screens drifted apart the first time.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
   full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
   Delete) over an ATTRIBUTION PILL ("[name] [Host] / Anonymous(i) · i+1 of N" — the counter always
@@ -85,9 +102,13 @@ empty-state CTA). `GuestShare` is the Invite trigger + dialog (QR + Copy + nativ
 ## State follows `visibility`: a 3-state enum, NOT a boolean
 
 - **`private`** = the master lock → a locked screen (no name / gallery / upload); `generateMetadata` hides the name.
-- **`password`** → access `none`: a **ghost-grid backdrop** + the real "N photos & videos inside" count tease
+- **`password`** → access `none`: the **ghosted RIVER backdrop** (`GhostRiver`, the empty album's own picture
+  at the empty album's own depth — Will's `nothing=river`, 2026-09-20: one absence, one picture, where the
+  locked page used to draw nine empty squares) + the real "N photos & videos inside" count tease
   (name shown — it's link-shared, not the secret) with the entry modal's password step over it, until a
-  signed unlock cookie is present; then the full experience. ★ **The page passes a REDACTED `shellEvent`
+  signed unlock cookie is present; then the full experience. The river's frames are the local `guest-ghost`
+  pack, never this event's media, so a locked page still leaks exactly what it leaked before. `GhostGrid`
+  stays on disk, imported only by the `guest-shape` board. ★ **The page passes a REDACTED `shellEvent`
   at access `none`** (`host_display_name` + `description` + `event_date` blanked) so they never reach the
   RSC flight payload: a locked page leaks the event NAME + COUNT only, zero media URLs. The date is
   blanked too, because the welcome byline renders it.
@@ -221,6 +242,13 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   required name step (the upload is attributed), else the upload panel (anonymous-friendly); uploads off → the
   view-only line. At `teaser` the slot is just the gallery + a "See all N photos" button that opens the modal's
   account step; at `none` a locked backdrop (name only). (`needsAccount` was REMOVED — `access` drives it.)
+- **A guest's OWN-photograph removal is never a client claim, and never a client list.** The two RPCs decide
+  ownership inside themselves (`auth.uid()`, or the session token matched against the media's own guest row)
+  and the "mine" list that decides whether the control APPEARS is a server read on both paths. Three things
+  that must stay true: `anon` never gets EXECUTE on `remove_my_upload_by_session` (service-role only, reached
+  through `/api/guests/remove` behind the join limiter); a session token never travels in a URL; and a guest
+  row with `user_id` set is untouchable by the session path, so a shared phone's stale token can never delete
+  a signed-in person's photograph. A withdrawal is final for the host (`removed_by_uploader`), his answer.
 
 ## Joining + identity
 
@@ -291,6 +319,33 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   `create_media` returned `approved`. Hold-for-approval items stay pending until the host's approval
   rings the doorbell. Upload completions reach LiveGallery through a `LiveGalleryHandle` callback ref
   (with a pre-mount buffer, since the gallery streams in async).
+- **The ARRIVAL** (Will, `live=land`, 2026-09-20: "a new photograph grows into its column under a glow that
+  fades"): `newArrivalIds(prev, next)`
+  ([`reconcile-gallery-items.ts`](../../src/lib/guest/reconcile-gallery-items.ts)) reports the ids that were
+  NOT on screen a moment ago — the only definition that catches every route into the album (a doorbell
+  arrival, a held item approved an hour later, a burst after a hidden tab wakes). `LiveGallery` holds each
+  for `ARRIVAL_GLOW_MS` ([`arrival-glow.ts`](../../src/lib/guest/arrival-glow.ts)) and passes `arrivedIds`
+  through the seam → `data-arrived` on the tile box → the white inset rim + wash that fades in
+  [`live-gallery.css`](../../src/components/guest/live-gallery.css). ★ Three things it never lights: the SEED
+  render (`prev` empty; the album's own entrance stagger is that moment's motion), a rolled presign, and this
+  guest's OWN upload (that has the `--success` check; the exclusion reads `blobUrls` BEFORE the optimistic
+  cleanup). The GROWTH is the existing `[data-media-tile]` entrance in `globals.css`, deliberately not
+  re-declared. Reduced motion = a plain appearance, no rim at all. ⚠ **"Only that column re-flows" is NOT
+  landed**: CSS columns are column-major, so any head insert shifts every tile — it needs the glass lane's
+  explicit column assignment. The glow is what ships until then.
+- **A guest's own photographs, removable ever** (Will, `yours`, 2026-09-20; final for the host too):
+  two identities, one control. SIGNED IN → `removeMyUploadGuestAction`
+  ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on the existing `remove_my_upload`
+  (`auth.uid()`, any device, for ever); ANONYMOUS → `POST /api/guests/remove` → the service-role-only
+  `remove_my_upload_by_session`, which validates the device-bound session token INSIDE the function against
+  the media's own guest row (unclaimed, same event, event live). ★ **"Mine" is ALWAYS a server read, never a
+  client claim**: the signed-in list is one indexed read in the page RSC (`listAccountMediaIds`), the
+  anonymous list is `POST /api/guests/mine` (`listSessionMediaIds`, the token in the BODY, cached per mount);
+  both live in [`mutations/guest-media.ts`](../../src/lib/db/mutations/guest-media.ts). It is deliberately NOT
+  in the gallery payload or its ETag — that fingerprint is per ACCESS and shared between viewers, this list is
+  per person — which also means uploads made before this shipped are covered. The ids reach the grid as
+  `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so the host's bin
+  never shows it and `restore_media` refuses it; the purge cron reclaims the bytes on the usual 30-day path.
 
 ## Auth-aware header island
 

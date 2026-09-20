@@ -7,6 +7,7 @@ import {
   Lock,
 } from "lucide-react";
 
+import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 /**
@@ -25,8 +26,18 @@ import { cn } from "@/lib/utils";
  * construction (hosted has the chip + no action; saved/trash have an action + no
  * pending), so the top-right slot never collides.
  */
-const PILL =
-  "flex h-5 items-center gap-1 rounded-full border border-white/30 bg-black/25 px-2 text-[10px] font-medium backdrop-blur-sm";
+/**
+ * ★ DARK GLASS, ON PAPER TOO (`paper=dark`, Will 2026-09-20). A chip over a
+ * photograph is chrome over a photograph whatever the page under it is made of,
+ * so this one pane serves the light dashboard and the dark one identically. The
+ * border went with it: the material carries its own lip and hairline as inset
+ * shadows, and a real border would have made the chip a different size from
+ * every other glass surface in the product.
+ */
+const PILL = cn(
+  "flex h-5 items-center gap-1 rounded-full px-2 text-[10px] font-medium text-white",
+  GLASS_MARK,
+);
 
 export function EventCard({
   href,
@@ -143,7 +154,10 @@ export function EventCard({
         <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>
       ) : variant === "saved" ? (
         <div
-          className="pointer-events-none absolute top-2.5 left-2.5 z-10 flex items-center justify-center rounded-[var(--radius-tile)] bg-black/35 p-1.5 text-white backdrop-blur-sm"
+          className={cn(
+            "pointer-events-none absolute top-2.5 left-2.5 z-10 flex items-center justify-center rounded-[var(--radius-tile)] p-1.5 text-white",
+            GLASS_MARK,
+          )}
           title="A saved event"
         >
           <Bookmark className="size-3.5" aria-hidden />

@@ -6,18 +6,32 @@
 
 ## What it does
 
-Supabase Auth with three interchangeable credentials on ONE `auth.users` row: **email + password**,
-**email magic-link / OTP**, and **Google OAuth** ([`(auth)/login`](../../src/app/(auth)) +
-[`/auth/callback`](../../src/app/(auth)/auth/callback/route.ts)). The `(app)` layout
-([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the single gate. The `handle_new_user` trigger creates
-one `profiles` row per signup.
+Supabase Auth with three interchangeable credentials on ONE `auth.users` row: **email magic-link / OTP**
+(the lead), **Google OAuth**, and **email + password** (a quiet second door), plus **passkeys behind a
+flag** ([`(auth)/login`](../../src/app/(auth)) + [`/auth/callback`](../../src/app/(auth)/auth/callback/route.ts)).
+The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the single gate. The `handle_new_user`
+trigger creates one `profiles` row per signup.
 
 ## Where it lives
 
 - Clients: [`../../src/lib/supabase/`](../../src/lib/supabase) — `client` / `server` / `middleware` / `admin`.
-- Sign-in UI: [`password-sign-in.tsx`](../../src/components/auth/password-sign-in.tsx) (host `/login`, leads
-  with password) wraps the shared [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) (code +
-  magic-link OTP, reused by the guest prompt too); [`login-form.tsx`](../../src/components/auth/login-form.tsx).
+- **ONE account door, worn four ways** ([`account-door.tsx`](../../src/components/auth/account-door.tsx),
+  Will 2026-09-20, `app-door` r1 `surfaces=one` + `lead=code`): the host `/login`, the guest gate
+  ([`enter-event-prompt.tsx`](../../src/components/guest/enter-event-prompt.tsx)), Save
+  ([`save-event-button.tsx`](../../src/components/guest/save-event-button.tsx)) and a like
+  ([`likes-provider.tsx`](../../src/components/likes/likes-provider.tsx)) all render `<AccountDoor>`; each
+  passes only the REASON it is asking (`wear`), which methods it offers, and where a redirect returns.
+  `DOOR_WEAR` is the one table of the four headings and reason lines, so a surface that owns its own
+  semantic title (a `DialogTitle`, the gate's ruled framing) reads the words from there and passes
+  `chrome="none"`. **Every wear carries the Terms line** (`consent`, default true) — the gate is the one
+  exception, because the welcome step above it already says it.
+- Inside it: [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) (the one field: code +
+  magic-link OTP), [`password-sign-in.tsx`](../../src/components/auth/password-sign-in.tsx) (`SignIn` behind
+  the quiet "Have a password?" link, and `SetInitialPassword` at the end of forgot-password),
+  [`failure-paths.tsx`](../../src/components/auth/failure-paths.tsx) over
+  [`door-failure.ts`](../../src/lib/auth/door-failure.ts), and
+  [`login-form.tsx`](../../src/components/auth/login-form.tsx), now a thin `/login` wrapper that owns only
+  the host-aware landing.
 - Account page: `/account` — the **Plan card** (first on the page), password set/change,
   [`display-name-form.tsx`](../../src/components/app/display-name-form.tsx),
   [`account-avatar-form.tsx`](../../src/components/app/account-avatar-form.tsx) + [`avatar-cropper.tsx`](../../src/components/app/avatar-cropper.tsx).
@@ -82,26 +96,63 @@ one `profiles` row per signup.
   successful `updateUser({password})`; `has_password()` reads the flag (migration `…210158`).
 - **Ownership is proven BEFORE a password is ever written, and there is no `signUp({email,password})`.**
   Every path is the same shape: prove the email (a fresh OTP verify, or an already-live session), then
-  `updateUser({ password })`. Creating an account runs the ordinary OTP sign-in first; a Google or
-  magic-link host adds a password from `/account` on their live session, which is the proof; "forgot"
-  reuses the OTP sign-in and lands on `/account?reset=1`. `signUp({email,password})` is avoided
-  deliberately (it carries anti-enumeration quirks and its own "Confirm signup" verify type, and it would
-  write a password before the address is proven), and there is NO Supabase recovery template and no
-  `type:'recovery'` branch to maintain, because a verified OTP already yields a live session. Accepted
-  edge: in create or forgot, tapping the magic LINK instead of typing the code leaves the page for
-  `/auth/callback`, so the held intent is lost and the host lands password-less; the UI leads with the
-  code for that reason.
+  `updateUser({ password })`. **Creating an account IS the code path now** (`lead=code`, 2026-09-20): the
+  door writes no password at all, so a brand-new host never picks one; a Google or magic-link host adds one
+  from `/account` on their live session, which is the proof. "Forgot" verifies a code and then finishes
+  in the door itself (`SetInitialPassword`), with `/account?reset=1` still serving other entries.
+  `signUp({email,password})` is avoided deliberately (it carries anti-enumeration quirks and its own
+  "Confirm signup" verify type, and it would write a password before the address is proven), and there is
+  NO Supabase recovery template and no `type:'recovery'` branch to maintain, because a verified OTP already
+  yields a live session.
+- **"You already had an account" is a SERVER fact, decided only after the code.**
+  [`checkExistingAccount`](../../src/app/(auth)/actions.ts) re-checks `getUser()` and reads the caller's OWN
+  `profiles` row: a `welcomed_at`, a `password_set_at`, or a row more than three minutes older than this
+  sign-in. ★ Never say it before a verify (that is the enumeration oracle again), never from a browser
+  clock, and never on a plain sign-in — only under a CREATE intent, or every returning host's code reads as
+  a warning. The line is dismissible with "Not you? Sign out"; ★ on the guest gate the door HOLDS the
+  caller's `onVerified` for four seconds or until a choice, because `claimAnonymousUploads` stamps a
+  guest's photographs onto the signed-in account and the claim RPC never re-stamps an owned row.
+- **One failure table, three real ways out** ([`door-failure.ts`](../../src/lib/auth/door-failure.ts),
+  `failure=paths`): a kind (`expired_link`, `wrong_code`, `send_failed`, `rate_limited`, `google_failed`,
+  `password_mismatch`), one short line and three actions. The callback route emits the KIND
+  (`?error=expired_link`; the legacy `auth_callback` and Supabase's own `otp_expired` / `access_denied` /
+  `server_error` map through `doorFailureKind`), and `/login` renders it. ★ A recovery already on screen is
+  not promoted twice: `suppress` drops the ids the surface's own ladder shows, which is why the password
+  door gets all three buttons and the code-led door gets the line over the controls it already has.
 - **The email OTP leads with the CODE, and the magic link is the fallback.** One Supabase email carries
   both. An iPhone PWA opens a tapped link in Safari rather than the installed app, which strands a
   mid-flow guest or host outside the session they just created; `verifyOtp({ type: 'email' })` needs no
   redirect at all. The shared [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) owns NO
-  navigation: its caller's `onVerified` decides (host to the dashboard, guest to a `router.refresh()`),
-  which is why the host login, the guest entry gate and the save dialog can all reuse it unchanged.
+  navigation: `<AccountDoor>` decides what a verified code leads to, and each wear's `onVerified` decides
+  what happens then (host to the dashboard, guest to a `router.refresh()`), which is why one object can be
+  worn by four surfaces. Accepted edge, unchanged: tapping the magic LINK instead of typing the code leaves
+  the page for `/auth/callback`, so an in-page step (the existing-account line, the passkey offer) is lost
+  and the host simply lands in the app; the UI leads with the code for that reason.
 - **`updateUser({password})` runs on the BROWSER client** (it rotates the session; the browser cookie write
   is unconditional). The current-password re-check before a CHANGE is the `verify_current_password` RPC
   (READ-only → no session disruption); a first-time SET needs only the session.
 - **`signInWithPassword`'s error is GENERIC by design** (wrong pw / no pw set / unknown email are
-  indistinguishable — anti-enumeration). NEVER say "wrong password"; offer the code / Google / forgot affordances.
+  indistinguishable — anti-enumeration). NEVER say "wrong password". The sentence is
+  `door-failure.ts`'s `password_mismatch` line, and the three affordances it used to describe in prose
+  (a code, Google, a new password) are real buttons under it; `door-failure.test.ts` refuses a specific one.
+- **Passkeys are OFF until two dashboard settings are true, and the flag is how.** `NEXT_PUBLIC_PASSKEYS=1`
+  opts [`supabase/client.ts`](../../src/lib/supabase/client.ts) into auth-js's EXPERIMENTAL
+  `auth.experimental.passkey` (2.106 gates `signInWithPasskey` / `registerPasskey` / `auth.passkey.*` on it
+  and throws from all of them while it is off), and turns on the one-press button on `/login`, the offer
+  after a code sign-in, and the [Passkeys card](../../src/app/(app)/account/passkeys-card.tsx). ★ **Will
+  must enable passkeys in the Supabase dashboard AND set the WebAuthn Relying Party id to the apex first**:
+  a passkey registered against the wrong RP id is a credential the door can never see again. The whole
+  ceremony is the browser's (a live session is the authorisation), so there is no server action.
+- **The one-press is never an auto sign-in.** auth-js's WebAuthn helper has no conditional mediation, so
+  the passkey button is drawn from a device HINT (`pr_passkey_hint`) plus `"PublicKeyCredential" in window`
+  rather than by asking the browser on load, which would throw a system sheet at a stranger; a stale hint
+  costs one refused press and clears itself. Google's hinted "Continue as …" passes `login_hint` WITH
+  `prompt=select_account`, so a shared laptop always sees the chooser.
+- **The remembered address is `/login`-only, by prop** ([`remembered-email.ts`](../../src/lib/auth/remembered-email.ts)).
+  A hint, never an authorization: it is parsed like untrusted input (it is the visitor's own storage),
+  every read and write is wrapped because `localStorage` THROWS when site data is blocked, and it is shown
+  masked. ★ The guest gate and the Save dialog pass no hint at all — a phone passed around a party and a
+  venue's iPad must never show the last guest's address to the next one — and no email ever goes in a URL.
 - **Identity linking:** Supabase auto-links identities that share a **verified** email into ONE user (so
   magic-link + Google for the same email land on the same account); it refuses to link an *unverified*
   email (anti-takeover). Matching is exact-string, so Gmail dot/plus aliases (`will.g+x@…`) are distinct users.
@@ -112,7 +163,10 @@ one `profiles` row per signup.
   Both email templates must carry `{{ .Token }}` alongside `{{ .ConfirmationURL }}` (Magic Link and Confirm
   signup), or the code-first flow ships an email with no code in it, and "Allow new user signups" must stay
   ON or account creation dies at the first OTP. The apex `https://partyreel.com/auth/callback**` entry in
-  the redirect allow-list is what lets a guest magic link carry its `?next=/e/[token]` back.
+  the redirect allow-list is what lets a guest magic link carry its `?next=/e/[token]` back. **Passkeys
+  (Auth → Sign In / Providers) must be ENABLED and their WebAuthn RP id must equal the apex** before
+  `NEXT_PUBLIC_PASSKEYS=1` goes anywhere; see the passkey gotcha below for why an RP-id mismatch is
+  unrecoverable rather than merely broken.
 - **Avatars are deterministic + orphan-free by construction.** The cropper re-encodes to a 512px WebP
   client-side → `POST /api/account/avatar` (validated server-side: content-type + size + magic-byte WebP
   sniff, so no SVG/XSS) → a DETERMINISTIC object `<id>/avatar.webp` in the **public Supabase Storage

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
+import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
   getHostAvatarUrl,
@@ -212,9 +213,23 @@ export default async function GuestEventPage({
   // see a published, non-empty reel" (access, publish state, curation, locks),
   // so the card below needs no further gating. The raw `event` on purpose: it
   // carries the canonical qr_token the RPC matches on.
-  const [stats, guestReel] = await Promise.all([
+  //
+  // A GUEST'S OWN PHOTOGRAPHS ride alongside them (Will, `yours`, 2026-09-20:
+  // "A guest can delete any photo they've personally uploaded, ever"). For a
+  // SIGNED-IN viewer the answer is here: one indexed read of the media ids
+  // whose guest row belongs to this account in this event. Never a client
+  // claim, and deliberately NOT in the gallery payload or its ETag — that
+  // fingerprint is per ACCESS and shared between viewers, while this list is
+  // per person. The ANONYMOUS half cannot be answered here at all: that
+  // identity is a session token in the browser's own storage, so LiveGallery
+  // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
+  // rendered to remove) and in the demo (nothing there is real).
+  const [stats, guestReel, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     getGuestReelContext(event, access),
+    userId && !isDemo && access !== "none"
+      ? listAccountMediaIds({ eventId: event.id, userId })
+      : Promise.resolve<string[]>([]),
   ]);
 
   // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
@@ -305,6 +320,8 @@ export default async function GuestEventPage({
         isOwner={isOwner}
         guestListSlot={guestListSlot}
         guestReel={guestReel}
+        canDeleteIds={canDeleteIds}
+        isAuthed={Boolean(userId)}
       />
     </div>
   );

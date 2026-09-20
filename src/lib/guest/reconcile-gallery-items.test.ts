@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
-import { reconcileGalleryItems } from "@/lib/guest/reconcile-gallery-items";
+import {
+  newArrivalIds,
+  reconcileGalleryItems,
+} from "@/lib/guest/reconcile-gallery-items";
 
 // A presigned gallery row. `sig` stands in for the SigV4 signature that rolls
 // when the 30-min presign bucket rolls.
@@ -80,5 +83,50 @@ describe("reconcileGalleryItems", () => {
 
   it("empty server payload clears the gallery", () => {
     expect(reconcileGalleryItems([media("a", "s1")], [])).toEqual([]);
+  });
+});
+
+/**
+ * THE ARRIVAL (Will, `live=land`, 2026-09-20). What the glow is allowed to mean:
+ * this photograph was not on the screen a moment ago. Never "it is recent",
+ * never "this tab uploaded it".
+ */
+describe("newArrivalIds", () => {
+  it("reports exactly what was not on screen a moment ago", () => {
+    const prev = [media("a", "s1")];
+    const next = [media("c", "s1"), media("b", "s1"), media("a", "s1")];
+    expect(newArrivalIds(prev, next)).toEqual(new Set(["c", "b"]));
+  });
+
+  it("the FIRST snapshot never glows: a seeded album is not an arrival", () => {
+    // The album's own entrance stagger is the motion for a page load; lighting
+    // every tile on the seed would be a screen full of glow at first paint.
+    expect(newArrivalIds([], [media("a", "s1"), media("b", "s1")])).toEqual(
+      new Set(),
+    );
+  });
+
+  it("a rolled presign is not an arrival", () => {
+    // Every 30 minutes the bucket rolls and every row's URL changes. That is a
+    // re-presign, not a photograph: nothing may light up.
+    const prev = [media("a", "s1"), media("b", "s1")];
+    const next = [media("a", "s2"), media("b", "s2")];
+    expect(newArrivalIds(prev, next)).toEqual(new Set());
+  });
+
+  it("a REMOVED item is not an arrival, and neither is what is left", () => {
+    const prev = [media("a", "s1"), media("b", "s1")];
+    expect(newArrivalIds(prev, [media("b", "s1")])).toEqual(new Set());
+  });
+
+  it("catches a whole burst at once (a hidden tab catching up)", () => {
+    const prev = [media("a", "s1")];
+    const next = ["e", "d", "c", "b", "a"].map((id) => media(id, "s1"));
+    expect(newArrivalIds(prev, next)).toEqual(new Set(["e", "d", "c", "b"]));
+  });
+
+  it("an unchanged poll reports nothing", () => {
+    const prev = [media("a", "s1"), media("b", "s1")];
+    expect(newArrivalIds(prev, prev)).toEqual(new Set());
   });
 });

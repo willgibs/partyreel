@@ -6,9 +6,19 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Button } from "@/components/ui/button";
 import { ConfirmSwitch } from "@/components/ui/confirm-switch";
+import {
+  CommandPalette,
+  CommandPaletteContent,
+  CommandPaletteFooter,
+  CommandPaletteGroup,
+  CommandPaletteInput,
+  CommandPaletteItem,
+  CommandPaletteList,
+} from "@/components/ui/command-palette";
 import {
   Form,
   FormControl,
@@ -200,6 +210,109 @@ export function EmptyAlbumDemo({ width }: { width: number }) {
   return (
     <div style={{ width }}>
       <GalleryEmptyState onAddFirst={() => {}} />
+    </div>
+  );
+}
+
+/**
+ * THE COMMAND PALETTE (admin-wiring, 2026-09-20). Opened by its own button,
+ * because the primitive is controlled and a palette that is always on screen is
+ * not a palette. The rows are three of the portal's real surfaces and the
+ * filtering is the call site's, which is the point of the primitive: it owns
+ * the combobox and the keys, and nothing else.
+ */
+export function CommandPaletteDemo() {
+  const [open, setOpen] = useState(false);
+  const [chose, setChose] = useState<string | null>(null);
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        Open the palette
+      </Button>
+      {chose ? (
+        <p className="text-caption text-muted-foreground">
+          It would have jumped to {chose}.
+        </p>
+      ) : null}
+      <CommandPalette open={open} onOpenChange={setOpen}>
+        <CommandPaletteContent label="Search the operations portal">
+          <CommandPaletteInput
+            label="Search surfaces"
+            placeholder="Search or jump to..."
+          />
+          <CommandPaletteList label="Surfaces">
+            <CommandPaletteGroup heading="Surfaces">
+              {["Support", "Applicants", "Jobs"].map((name) => (
+                <CommandPaletteItem
+                  key={name}
+                  onSelect={() => setChose(name)}
+                >
+                  <span className="flex-1">{name}</span>
+                </CommandPaletteItem>
+              ))}
+            </CommandPaletteGroup>
+          </CommandPaletteList>
+          <CommandPaletteFooter>
+            <span>Arrows to move</span>
+            <span>Enter to open</span>
+            <span>Esc to close</span>
+          </CommandPaletteFooter>
+        </CommandPaletteContent>
+      </CommandPalette>
+    </div>
+  );
+}
+
+/**
+ * THE DESTRUCTIVE SHEET (admin-wiring, 2026-09-20). The reversible wear and the
+ * permanent one side by side, which is the whole of the sizing rule: only the
+ * act that nothing comes back from asks you to type. Both confirmations here
+ * resolve without touching anything, so the panel is the specimen and the act
+ * is not.
+ */
+export function DestructiveSheetDemo() {
+  const [reversible, setReversible] = useState(false);
+  const [permanent, setPermanent] = useState(false);
+  return (
+    <div className="flex flex-wrap items-start gap-2">
+      <Button variant="outline" size="sm" onClick={() => setReversible(true)}>
+        Pause the purge sweep
+      </Button>
+      <Button variant="destructive" size="sm" onClick={() => setPermanent(true)}>
+        Delete an account
+      </Button>
+      <DestructiveSheet
+        open={reversible}
+        onOpenChange={setReversible}
+        title="Pause the purge sweep?"
+        lede="It skips every run until you turn it back on."
+        verb="Pause the sweep"
+        touches={[
+          "No storage is reclaimed while it is off",
+          "About 40 GB a day, at today's rate",
+          "Over-capacity accounts stay blocked",
+        ]}
+        severity="reversible"
+        successMessage="Nothing happened: this is the library."
+        onConfirm={async () => ({ ok: true })}
+      />
+      <DestructiveSheet
+        open={permanent}
+        onOpenChange={setPermanent}
+        title="Delete this account?"
+        lede="Immediate and permanent, exactly as if the account holder had done it themselves."
+        verb="Delete account"
+        touches={[
+          "1 Pro subscription, cancelled in Stripe first",
+          "18 events and 4,120 photographs, binned now",
+          "The profile, anonymised at once",
+          "2 events under legal hold, skipped",
+        ]}
+        severity="permanent"
+        confirmText="grace@whitlockevents.co"
+        successMessage="Nothing happened: this is the library."
+        onConfirm={async () => ({ ok: true })}
+      />
     </div>
   );
 }
