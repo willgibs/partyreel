@@ -13,8 +13,8 @@ owns:
   # board under it.runIf), so a retirement never needs them released again.
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
-  - src/app/globals.css
-  - src/app/theme.css
+  # src/app/theme.css and src/app/globals.css are RELEASED to ladder-wiring (2026-09-20: the six body steps, their
+  # companions and the label @utility) and come back here at its merge, as they did after events-wiring.
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here
   # (the registration and retirement exceptions, announced 2026-09-18).
