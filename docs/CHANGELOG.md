@@ -42,6 +42,15 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   of the twelve are bright app panels); `stage`'s three beats on the create, share and fill copy; `one` folding the
   name step's reason into one promise line.
 
+- **`album-controls` merged at `ad967efc`** (2026-09-20, Sonnet; `app-vocabulary` round two): one decision, where the
+  host gallery's five controls live, four options drawn on the real wired Album header with the production leaf
+  components at 1440 and 375: the row as shipped (three wrapped lines at 375), a View menu holding tile size, Sort and
+  Filter beside the two verbs (recommended: his own first instinct, two lines at 375, the same at both widths), the
+  view controls in the responsive Sheet at 375 only, and every control riding the sticky cards row with nothing left
+  in the header (drawn at rest and stuck). Round one's seven asks replaced and named as ruled; five orphaned badges on
+  them retired from the overtaken map with the count corrected. Gate 55 on the merged tree. Look at first: `view-menu`
+  against `row` at 375, side by side.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
