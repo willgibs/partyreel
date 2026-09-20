@@ -1,6 +1,6 @@
 ---
 track: pricing-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "7f4f2ffe"          # the launch-prep SHA the branch was cut from
 board: pricing-page    # wiring six of eight; round two on fit and the phone row is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -260,27 +260,101 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Every one below was TAKEN on its recommendation and built; none stopped the lane. They are here so he can
+overrule on the alias.
+
+- **The bar over the paper opening.** `opening=plans` is drawn in the lab with the PAPER header (the board
+  renders its own chrome and could choose); production cannot. Bible 16: "a page cannot flip its header from
+  inside, the group's layout picks the skin", and globals.css refuses `.dark` inside `.surface-paper`, so the
+  (paper) group would buy the white bar and cost the dark tiles, the dark table and the dark FAQ he asked for in
+  the same answer. **Taken: the page stays in (cinema) and the cinema bar sits over the paper chapter.** The
+  alternative, if he wants the white bar more than the dark chapters, is a route move plus a paper table.
+- **Which two questions left the FAQ.** His "5-6 total?" leaves the choice open. **Taken: six** — the four that
+  settle money plus expiry and stacking; "Do my guests ever pay or need an account?" and "How big can uploads be?"
+  moved to Help (both are in the site FAQ and in `llms-full.txt` still, and the page's subhead already carries
+  "No per-guest fees").
+- **The Pass's new design.** His brief was "more beautiful" and "more unique as its own option". **Taken: a
+  ticket** — one photograph down the left edge (the pair wears stacked prints, the pass wears a frame), the pair's
+  own StatRow instead of a bullet spelling the same three numbers, and the dashed stub rule punched with a notch
+  at each end.
+- **The tiles chapter's copy.** Unchanged: `sheet` moved WHERE the tiles sit, not what they say, and the four
+  lines still name exactly where Free ends. **Taken: leave the copy; the round two on `fit` is next door.**
+- **The slider's stops are not tappable.** One control, one job: a native range already jumps to wherever its
+  track is pressed, and three buttons under it would be the segmented switch again. **Taken: the labels are
+  labels.**
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/marketing-content.md`, "Pages + their single-sources": a **new `/pricing` bullet** (the page had
+  none; its facts lived nowhere). Names the chapter order, why the route stays in (cinema), the slider's stops,
+  the ticket, the six-question FAQ feeding the JSON-LD, and `shared-band.tsx` retired on disk.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now**: `/pricing` opens on paper but the (cinema) layout pins `themeColor: #040405`, so a phone's browser
+  chrome is dark over a white first screen. The layout's own note forbids a per-page `viewport` export; the fix is
+  a group-level answer, not a page's.
+- **Now**: delete `src/components/marketing/sections/pricing/shared-band.tsx` when the `pricing-page` board
+  retires (it is the only thing that still draws it; the product does not).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `a93c246e`, pushed; `origin/launch-prep` had moved to `2dcfcf50`, merged in at `1d4d4d1e` (one
+  conflict, `docs/design/library.md`, resolved by regenerating it with `pnpm design:rules`).
+- Gates on the synced tree, each on its own exit code: `design:rules` 0 · specimens 0 (137 on 98 entries) ·
+  `typecheck` 0 · `lint` 0 (8 known warnings) · `test` 0 (283 files, 2996 passed, 1 skipped) · `build` 0 (255
+  pages, `/pricing` still static) · `lab:smoke --base http://localhost:3132` 0 (425 checks, 0 failing). No
+  `lab:demo`: this lane draws no board.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(marketing)/(cinema)/pricing/page.tsx` · `src/components/marketing/sections/pricing/{plan-cards,pass-card,comparison-table,pricing-faq-data,shared-band}.tsx|ts` ·
+  `src/components/marketing/sections/pricing/{plan-cards-contract.test.tsx,pricing-page.test.ts}` ·
+  `docs/systems/marketing-content.md` — plus four outside `owns`, each the gate's own demand:
+  `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md` (generated by `pnpm design:rules`,
+  the gate's first step); `src/app/(dev)/design/rules/component-notes.ts` (+7 lines: the `for` line a new contract
+  requires, in its own new block so a second lane lands on a distinct hunk); `src/lib/type-ladder-policy.test.ts`
+  (-5 lines: the `plan-cards.tsx` body exception deleted, since its two hand-set uppercase trackings are on
+  `text-label` now — the allow-list that only shrinks); `src/lib/content/llms.test.ts` (one assertion read off
+  `FAQ_ITEMS.length + PRICING_FAQ_ITEMS.length` instead of a hardcoded 16, which the FAQ trim turned red).
+- The items, one line each:
+  - `opening=plans`: wired. The PageHero is gone; the page opens on one PaperChapter, the ruled line at the
+    chapter step with the plans under it, the h1 ungated (bible 13) and first paint the words. The cinema bar
+    over paper is the one thing his capture did not show (above).
+  - `pair=pro` + his flip: wired as no change to the layout. His flip (Free and Pro side by side, the Pass a
+    full-width card beneath) IS what ships today, so the pair keeps its ink inversion and its photo stacks.
+  - `size=slider`: wired. `SizeSlider` in `plan-cards.tsx` is a real `input[type=range]` whose stops are
+    `plansForTier("pro")` (a fourth Pro size appears on it the day it appears in the table); the fill is painted
+    into the track, the thumb swells while held and nothing else animates (dragging is high-frequency); the
+    cadence toggle stays above it. Lands in the Library as the `plan-cards.tsx` entry with three guards.
+  - `pass=under`: wired, redrawn as a ticket (above). `StatRow` is now EXPORTED from `plan-cards.tsx` and
+    imported by `pass-card.tsx` rather than copied.
+  - `sheet` (his own answer): wired. `SharedBand` off the page (the file kept with a head comment naming the
+    board that draws it), `UnlockGrid` opens the dark chapter, `ComparisonTable` lost its PaperChapter and the
+    matrix's portaled tooltip carries `portalSkinProps("cinema")` now (a portal cannot read the room it opened
+    from).
+  - `close=eight` at his count: wired at six, one list still feeding the accordion AND the `FaqPage` JSON-LD.
+  - `fit=wall`: untouched, as the brief says (the today option; round two draws the Higgsfield split).
+  - `phone=swipe`: untouched. Not wired, by his own note.
+- Calls his to overrule on the alias, one line each:
+  - The cinema bar over the paper opening (the route-group question above) and, with it, the dark browser-chrome
+    tint on the first screen.
+  - The Pass as a photographic ticket, and `wedding-petals` as its frame.
+  - Six questions, and the two that moved to Help.
+  - The slider's look: a 6 px track in the ink card's white at 20 percent, a 20 px thumb, the three sizes named
+    under it in the floor step. At the first stop the track is empty by construction.
+  - `StatRow` on `text-label` (12 on 0.08em) where it was a hand-set 10 on 0.14em: the stat and badge labels are
+    a rung larger and calmer than they were this morning.
+- The help articles this lane makes stale: **none rewritten, two now carry more of the load** —
+  `content/help/what-you-can-upload.mdx` and `content/help/how-guests-join-and-upload.mdx` /
+  `require-accounts-to-upload-explained.mdx` are where the two dropped FAQ answers now live. Both already answer
+  them; a `help-sync` lane needs to do nothing unless he wants the pricing page to link them.
+- Assets requested from Will: none. The Pass's frame is an existing library image (`wedding-petals`).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. Checkout targets are untouched and Stripe
+  stays TEST.
+- Look at first: **/pricing at 1440, the first screen** — the cinema bar over the paper chapter is the call worth
+  ten seconds before anything else. Then the Event Pass card (the notches read at both widths), then drag the Pro
+  slider through its three stops and watch the price, the stats and the button follow, then the run from the
+  tiles to the FAQ with no paper in it. At 375: the pair stacks, the Pass stacks photo-first, and the notches
+  move to the card's left and right edges.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
