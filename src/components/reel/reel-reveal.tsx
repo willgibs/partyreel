@@ -345,7 +345,7 @@ export function ReelReveal({
             data-rvl-title
             className="absolute inset-x-0 top-[68%] px-6 text-center"
           >
-            <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
+            <p className="text-label font-medium text-white/70 uppercase">
               The reel
             </p>
             {/* The title card names the event: the `page` step, like every

@@ -259,7 +259,7 @@ export default async function GuestEventPage({
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
           <h2 className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <span className="text-label font-semibold text-muted-foreground uppercase">
               Guests
             </span>
             {!listSaysCount && (

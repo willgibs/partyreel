@@ -146,7 +146,7 @@ export function DemoDoor() {
               <FooterQr value={`${SITE_URL}/demo`} size={120} />
             </span>
             <span className="flex max-w-xs flex-col gap-1.5">
-              <span className="mkt-learn inline-flex items-center gap-1 text-[15px] font-medium text-foreground">
+              <span className="mkt-learn inline-flex items-center gap-1 text-reading font-medium text-foreground">
                 Open the demo album
                 <LearnChevron />
               </span>

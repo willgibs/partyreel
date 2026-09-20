@@ -321,7 +321,7 @@ export function ComparisonTable() {
                   <th
                     colSpan={4}
                     scope="colgroup"
-                    className="bg-muted/40 px-4 py-2 text-left text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase max-sm:block"
+                    className="bg-muted/40 px-4 py-2 text-left text-label font-medium text-muted-foreground uppercase max-sm:block"
                   >
                     {group.title}
                   </th>

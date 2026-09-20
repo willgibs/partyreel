@@ -80,14 +80,14 @@ export function StudioMomentsPicker({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] text-white/55 tabular-nums">
+        <p className="text-micro text-white/55 tabular-nums">
           {count === 1 ? "1 moment" : `${count} moments`}
         </p>
         {toAdd.length > 0 ? (
           <button
             type="button"
             onClick={() => void reel.addMany(toAdd)}
-            className="flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-reel/50 px-2.5 text-[11px] font-medium text-[oklch(0.8_0.14_300)] transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100"
+            className="flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-reel/50 px-2.5 text-caption font-medium text-[oklch(0.8_0.14_300)] transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.97] motion-reduce:active:scale-100"
           >
             <Clapperboard className="size-3" aria-hidden />
             Add suggested ({toAdd.length})
@@ -154,7 +154,7 @@ export function StudioMomentsPicker({
               {inReel ? (
                 <span
                   aria-hidden
-                  className="absolute top-1 left-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-reel px-1 text-[9px] font-semibold text-white tabular-nums"
+                  className="absolute top-1 left-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-reel px-1 text-micro font-semibold text-white tabular-nums"
                 >
                   {position}
                 </span>
@@ -172,7 +172,7 @@ export function StudioMomentsPicker({
               {hint ? (
                 <span
                   aria-hidden
-                  className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 pt-2 pb-0.5 text-[8px] font-medium tracking-wide text-white/85 uppercase"
+                  className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1 pt-2 pb-0.5 text-label font-medium text-white/85 uppercase"
                 >
                   Suggested
                 </span>
@@ -191,7 +191,7 @@ export function StudioMomentsPicker({
               {!inReel && (m.likeCount ?? 0) > 0 ? (
                 <span
                   aria-hidden
-                  className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded-full bg-black/55 px-1 text-[9px] font-medium text-white tabular-nums"
+                  className="absolute bottom-1 left-1 flex items-center gap-0.5 rounded-full bg-black/55 px-1 text-micro font-medium text-white tabular-nums"
                 >
                   <Heart className="size-2 fill-current" />
                   {m.likeCount}

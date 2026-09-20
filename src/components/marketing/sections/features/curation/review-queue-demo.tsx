@@ -211,7 +211,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
           {/* The REVIEW header row: the FeedSectionHeader shape, quoted. */}
           <div className="flex min-h-7 flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <span className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold tracking-wide text-warning uppercase">
+              <span className="text-label font-semibold text-warning uppercase">
                 Review
               </span>
               {queueCount > 0 && (
@@ -308,7 +308,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
           {/* The album beneath: same band grammar, muted tone. */}
           <div className="mt-5 flex min-h-7 items-center justify-between gap-3">
             <span className="flex items-center gap-1.5">
-              <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              <span className="text-label font-semibold text-muted-foreground uppercase">
                 Gallery
               </span>
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">

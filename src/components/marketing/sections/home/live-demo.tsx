@@ -153,7 +153,7 @@ export function LiveDemo() {
             {/* The phone: where everything launches from. */}
             <div className="w-32 shrink-0 sm:w-40">
               <div className="rounded-[14px] border bg-card p-3 ring-1 ring-foreground/5">
-                <p className="text-center text-[11px] font-medium">
+                <p className="text-center text-caption font-medium">
                   Scan to join
                 </p>
                 <div
@@ -346,7 +346,7 @@ function LiveCounters({ phase, reduced }: { phase: Phase; reduced: boolean }) {
   const shown = counting && reduced ? COUNTER_TARGETS : counts;
 
   return (
-    <p className="text-[13px] text-muted-foreground tabular-nums">
+    <p className="text-caption text-muted-foreground tabular-nums">
       {shown.photos} photos · {shown.guests} guests · 1 reel
     </p>
   );

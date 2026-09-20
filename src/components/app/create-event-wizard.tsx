@@ -136,7 +136,7 @@ export function CreateEventWizard({
               <li key={label} className="flex items-center gap-2">
                 <span
                   className={cn(
-                    "flex size-5 items-center justify-center rounded-full text-[11px] font-medium",
+                    "flex size-5 items-center justify-center rounded-full text-micro font-medium",
                     active
                       ? "bg-brand text-brand-foreground"
                       : done

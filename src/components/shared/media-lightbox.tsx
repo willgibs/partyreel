@@ -145,7 +145,7 @@ function AttributionPill({
 
   return (
     <div className="pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90">
+      <span className="inline-flex items-center gap-1.5 text-caption font-medium text-white/90">
         {hasAttribution &&
           (item.isAnonymous ? (
             <>

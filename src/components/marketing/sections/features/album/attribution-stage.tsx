@@ -85,7 +85,7 @@ export function AttributionStage() {
                 </span>
                 {/* THE PILL, the app's anatomy: name, badge or mark, the
                     position in a quieter white inside the same capsule. */}
-                <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-[11px] leading-4 font-medium text-white/90">
+                <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-micro font-medium text-white/90">
                   <span className="inline-flex items-center gap-1.5">
                     <TextSwap value={current.name} />
                     {current.badge && (

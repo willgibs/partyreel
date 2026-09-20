@@ -222,7 +222,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, and every heading on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading and sentence on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a stack out of order at either end, a bottom rung under the floor, a stock, arbitrary or inline size on a heading, and an off-step size or a hand-set label tracking on body copy outside the allow-list. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 

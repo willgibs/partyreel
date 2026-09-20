@@ -329,7 +329,7 @@ export function CinemaHero() {
             {SITE_THESIS}
           </h1>
           <p
-            className="mx-auto mt-4 text-[15px] leading-relaxed text-pretty text-white/80 lg:mt-5"
+            className="mx-auto mt-4 text-copy text-pretty text-white/80 lg:mt-5"
             style={{ maxWidth: "var(--hhs-low-max)" }}
           >
             {SITE_SUBHEAD}

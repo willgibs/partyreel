@@ -282,7 +282,7 @@ function PrintsObject({ stills }: { stills: readonly string[] }) {
         <div className="relative z-10 -mt-12 flex justify-center sm:-mt-14">
           <div className="flex w-[140px] rotate-[2deg] flex-col items-center gap-2 rounded-xl border bg-card p-3 shadow-lift ring-1 ring-foreground/10 sm:w-[156px] sm:gap-2.5 sm:p-3.5">
             <DemoCode size={88} />
-            <ScanLine className="text-[11px]">Scan to add yours</ScanLine>
+            <ScanLine className="text-caption">Scan to add yours</ScanLine>
           </div>
         </div>
       )}
@@ -486,7 +486,7 @@ function HubObject({ stills }: { stills: readonly string[] }) {
         <div className="relative z-10 -mt-12 flex justify-center sm:-mt-14">
           <div className="flex w-[146px] -rotate-[3deg] flex-col items-center gap-2.5 rounded-xl border bg-card p-3.5 shadow-lift ring-1 ring-foreground/10 sm:w-[164px]">
             <DemoCode size={92} />
-            <ScanLine className="text-[11px]">
+            <ScanLine className="text-caption">
               Scan to open a real album
             </ScanLine>
           </div>

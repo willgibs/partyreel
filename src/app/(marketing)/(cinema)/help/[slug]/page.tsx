@@ -210,7 +210,7 @@ export default async function HelpArticlePage({
                   a card lying flat on the page takes no shadow. */}
               <div className="surface-paper relative z-10 mt-8 -mb-10">
                 <div className="rounded-2xl border bg-card p-5 shadow-lift ring-1 ring-foreground/5 sm:p-6">
-                  <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                  <p className="text-label font-medium text-muted-foreground uppercase">
                     In short
                   </p>
                   <p className="mt-1.5 leading-7 text-pretty text-foreground">
@@ -388,7 +388,7 @@ export default async function HelpArticlePage({
                     aria-label="On this page"
                     className="sticky top-[var(--mkt-rail-top)]"
                   >
-                    <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    <p className="text-label font-medium text-muted-foreground uppercase">
                       On this page
                     </p>
                     {/* The reading spine, shared with the blog article (Will, 2026-08-29):

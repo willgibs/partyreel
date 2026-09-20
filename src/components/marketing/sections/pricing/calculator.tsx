@@ -118,7 +118,7 @@ export function Calculator() {
               "focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
           />
-          <div className="mt-2 flex justify-between text-[10px] tracking-[0.1em] text-faint uppercase">
+          <div className="mt-2 flex justify-between text-micro text-faint uppercase">
             <span>{formatBytes(STOP_GB[0] * GIGABYTE)}</span>
             <span>{formatBytes(STOP_GB[STOP_GB.length - 1] * GIGABYTE)}</span>
           </div>
@@ -221,7 +221,7 @@ export function Calculator() {
                     ? "The Event Pass fits"
                     : `${rec.plan.name} fits`}
               </p>
-              <span className="text-lg font-semibold tabular-nums">
+              <span className="text-subsection font-semibold tabular-nums">
                 {rec.plan.priceLabel}
               </span>
             </div>

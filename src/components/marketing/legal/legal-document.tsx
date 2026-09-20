@@ -213,7 +213,7 @@ export function LegalDocument({
                   aria-label="On this page"
                   className="sticky top-[var(--mkt-rail-top)] max-h-[calc(100vh-7rem)] overflow-y-auto pl-2"
                 >
-                  <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                  <p className="text-label font-medium text-muted-foreground uppercase">
                     On this page
                   </p>
                   <ArticleToc

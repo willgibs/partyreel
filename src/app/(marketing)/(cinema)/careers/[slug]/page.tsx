@@ -99,7 +99,7 @@ export default async function RolePage({
             <h1 className="mt-3 max-w-3xl font-heading text-chapter text-balance">
               {job.title}
             </h1>
-            <p className="mt-5 max-w-2xl text-lg text-pretty text-muted-foreground">
+            <p className="mt-5 max-w-2xl text-subhead text-pretty text-muted-foreground">
               {job.summary}
             </p>
             <Button asChild className="mt-8 h-10 px-5">
@@ -275,10 +275,8 @@ function ApplyNote({
   // to three ragged lines.
   return (
     <div className="flex flex-col gap-1.5 py-4">
-      <dt className="text-xs tracking-wide text-muted-foreground uppercase">
-        {term}
-      </dt>
-      <dd className="text-[15px] leading-relaxed text-pretty">{children}</dd>
+      <dt className="text-label text-muted-foreground uppercase">{term}</dt>
+      <dd className="text-copy text-pretty">{children}</dd>
     </div>
   );
 }
@@ -301,7 +299,7 @@ function RoleList({
         {items.map((item) => (
           <li
             key={item}
-            className="py-4 text-[15px] leading-relaxed text-pretty text-muted-foreground"
+            className="py-4 text-copy text-pretty text-muted-foreground"
           >
             {item}
           </li>

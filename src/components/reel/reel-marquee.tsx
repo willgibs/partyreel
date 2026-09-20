@@ -73,7 +73,7 @@ export function ReelMarquee({
         <ReelStatusChip shared={publish.shared} />
         <Link
           href={`/dashboard/${eventId}/reel`}
-          className="flex items-center gap-1 rounded text-[11px] font-medium text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-1 rounded text-caption font-medium text-muted-foreground underline underline-offset-2 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
           Open studio
           <ExternalLink className="size-3" aria-hidden />
