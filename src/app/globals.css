@@ -155,6 +155,8 @@
   --success-foreground: oklch(0.99 0 0);
   --warning: oklch(0.8 0.14 80);
   --warning-foreground: oklch(0.25 0.05 70);
+  --info: oklch(0.62 0.15 250);
+  --info-foreground: oklch(0.99 0 0);
   --like: oklch(0.63 0.21 15);
   /* save/download = the one NON-state action hue (blue): feature recognizability
      across the app, used as the ICON color on direct hover, never a brand wash. */
@@ -381,6 +383,8 @@
   --success-foreground: oklch(0.13 0 0);
   --warning: oklch(0.84 0.14 82);
   --warning-foreground: oklch(0.25 0.05 70);
+  --info: oklch(0.72 0.14 250);
+  --info-foreground: oklch(0.13 0 0);
   --like: oklch(0.68 0.2 15);
   --save: oklch(0.72 0.15 252);
   --save-foreground: oklch(0.13 0 0);

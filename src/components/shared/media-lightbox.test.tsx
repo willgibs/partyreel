@@ -421,3 +421,39 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
     expect(onRemove).toHaveBeenCalledWith(items[0]);
   });
 });
+
+/* THE SEAM (the Orchestrator, 2026-09-20): `canDelete` gates the personal Delete per item, so a
+   surface that may remove SOME photographs (a guest's own) shows the Trash only on those. */
+describe("canDelete gates the personal Delete per item", () => {
+  it("shows the Trash on the item it allows and never on another", () => {
+    const onDeleteCurrent = vi.fn();
+    const allowP2 = (m: GridMedia) => m.id === "p2";
+    const first = render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+          onDeleteCurrent={onDeleteCurrent}
+          canDelete={allowP2}
+        />
+      </TooltipProvider>,
+    );
+    expect(screen.queryByRole("button", { name: /^delete$/i })).toBeNull();
+    first.unmount();
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={1}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+          onDeleteCurrent={onDeleteCurrent}
+          canDelete={allowP2}
+        />
+      </TooltipProvider>,
+    );
+    expect(screen.getByRole("button", { name: /^delete$/i })).toBeTruthy();
+  });
+});

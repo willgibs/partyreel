@@ -206,6 +206,7 @@ export function MediaLightbox({
   onIndexChange,
   viewerIsHost = false,
   onDeleteCurrent,
+  canDelete,
   shareUrl,
   onSetStatus,
   onRemove,
@@ -223,6 +224,11 @@ export function MediaLightbox({
    * else (public album, host grid, recovery bin), so those lightboxes are unchanged.
    */
   onDeleteCurrent?: (item: GridMedia) => void;
+  /**
+   * THE SEAM (2026-09-20): gates `onDeleteCurrent` per item, so a surface that can delete SOME
+   * photographs (a guest's own) shows the Trash only on those. Omitted = every item, as before.
+   */
+  canDelete?: (item: GridMedia) => boolean;
   /**
    * Opt-in Share button. The guest event page passes the event JOIN url; the host gallery (3c.2) also
    * passes it (the host can share the album). NEVER a presigned media URL. Native share with a
@@ -754,7 +760,7 @@ export function MediaLightbox({
                     )}
                     {/* Personal Uploads delete (unchanged) — never co-occurs with the
                         host curate group (the host grid sets onRemove, not this). */}
-                    {onDeleteCurrent && (
+                    {onDeleteCurrent && (canDelete ? canDelete(current) : true) && (
                       <Dialog>
                         <ActionTooltip label="Delete">
                           <DialogTrigger asChild>

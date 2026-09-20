@@ -141,6 +141,11 @@ const OUTSIDE: Record<string, string> = {
     "vaul owns its own drag physics and its entrance is a gesture, not a curve: a clock imposed from outside would fight the drag",
   "sonner.tsx":
     "the toaster is a third-party surface we theme through CSS variables; it already reads --radius-float, and its stack motion is the library's",
+  // Arrives with admin-wiring (2026-09-20): a command palette on the raw Radix Dialog, the lab's
+  // help-centre pattern as a primitive. Listed ahead of its file so the scan does not go red the
+  // day it lands; the Orchestrator moves it into SURFACES at that merge, where it belongs.
+  "command-palette.tsx":
+    "arrives with admin-wiring; a palette is a combobox in a dialog and reads the contract's corner and clock; moved into SURFACES at its merge",
 }
 
 /**

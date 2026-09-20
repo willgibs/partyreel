@@ -26,7 +26,7 @@
  *   Ratified in the lab; flagged for live review.
  */
 import { useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Check, Download, Play, RefreshCw } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
@@ -61,8 +61,22 @@ export function GuestMasonry({
   justLandedIds,
   onRetryPending,
   shareUrl,
+  onDeleteItem,
+  canDelete,
+  arrivedIds,
+  prefix,
 }: {
   items: GridMedia[];
+  /**
+   * THE SEAM (the Orchestrator, 2026-09-20): additive props for the guest lane's own-photograph
+   * Remove (`onDeleteItem` gated per item by `canDelete`; the lightbox's Trash), the arrival mark
+   * (`arrivedIds` -> `data-arrived` on the tile box) and a slot before the first tile (`prefix`),
+   * so the guest lane passes them from live-gallery.tsx while the glass lane rebuilds this grid.
+   */
+  onDeleteItem?: (id: string) => void;
+  canDelete?: (item: GridMedia) => boolean;
+  arrivedIds?: ReadonlySet<string>;
+  prefix?: ReactNode;
   /** In-flight uploads, rendered FIRST (newest activity leads the flow). */
   pending?: PendingTile[];
   /** Media ids that JUST landed (the ~2.5s green --success check window). */
@@ -93,6 +107,7 @@ export function GuestMasonry({
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
+        {prefix}
         {pending.map((p) => (
           <div
             key={p.queueId}
@@ -156,6 +171,7 @@ export function GuestMasonry({
           <div
             key={item.id}
             data-media-tile
+            data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
             data-lit=""
             style={
               {
@@ -224,6 +240,15 @@ export function GuestMasonry({
         onIndexChange={(i) => setOpenId(items[i]?.id ?? null)}
         viewerIsHost={false}
         shareUrl={shareUrl}
+        canDelete={canDelete}
+        onDeleteCurrent={
+          onDeleteItem
+            ? (item) => {
+                setOpenId(null);
+                onDeleteItem(item.id);
+              }
+            : undefined
+        }
       />
     </>
   );

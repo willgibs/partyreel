@@ -112,10 +112,24 @@ export function MasonryColumns<T extends GridMedia>({
   onRemove,
   onTileLongPress,
   layout = "masonry",
+  arrivedIds,
+  canDelete,
+  prefix,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
   onDeleteItem?: (id: string) => void;
+  /**
+   * THE SEAM (the Orchestrator, 2026-09-20, before the sixth batch's lanes were cut): three
+   * additive props so the guest lane can pass what it knows from its own files while the glass
+   * lane rebuilds this grid. `arrivedIds` marks tiles that just arrived (`data-arrived` on the
+   * tile box; the glow is the guest lane's sheet, the growth the glass lane's layout); `canDelete`
+   * gates `onDeleteItem` per item (a guest may remove their OWN photographs, never another's);
+   * `prefix` renders before the first tile inside the columns box (the pending tiles' seat).
+   */
+  arrivedIds?: ReadonlySet<string>;
+  canDelete?: (item: GridMedia) => boolean;
+  prefix?: ReactNode;
   stagger?: boolean;
   clampAspect?: boolean;
   /** "masonry" = natural-ratio CSS columns (the Gallery "wow"). "uniform" = a fixed-aspect CSS grid
@@ -155,10 +169,12 @@ export function MasonryColumns<T extends GridMedia>({
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
       >
+        {prefix}
         {items.map((item, i) => (
           <div
             key={item.id}
             data-media-tile
+            data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
             // The bright edge (globals.css, [data-lit]): this div owns the tile
             // radius and clips the photo, so the hook sits here and nowhere
             // above it. No value: a tile has no border for the light to land on.
@@ -222,6 +238,7 @@ export function MasonryColumns<T extends GridMedia>({
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
         onSetStatus={onSetStatus}
+        canDelete={canDelete}
         onDeleteCurrent={
           onDeleteItem
             ? (item) => {

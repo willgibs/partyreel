@@ -1525,6 +1525,10 @@ export type Database = {
         Returns: undefined
       }
       remove_my_upload: { Args: { p_media_id: string }; Returns: Json }
+      remove_my_upload_by_session: {
+        Args: { p_media_id: string; p_session_token: string }
+        Returns: Json
+      }
       reorder_reel: {
         Args: { p_event_id: string; p_media_ids: string[] }
         Returns: Json

@@ -53,7 +53,7 @@ The expected, accepted set:
   too). Both keep their anon grant — the fix is the payload, not the grant. (Was 8 —
   the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
   DROPPED in the one-link consolidation.)
-- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `create_media`,
+- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `remove_my_upload_by_session` (an anonymous guest's own-photograph removal: the session token validated inside against the media's guest row, a claimed row never touched; reached only through `POST /api/guests/remove` on the admin client; the sixth batch, 2026-09-20), `create_media`,
   `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
   route-level guard (the R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
