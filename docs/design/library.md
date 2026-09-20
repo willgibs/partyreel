@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 807 contracts on 113 components · 25 standing boards.**
+**22 laws · 18 policies · 817 contracts on 114 components · 25 standing boards.**
 
 ## What binds you
 
@@ -345,6 +345,7 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (11 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
+- `src/app/(dev)/design/sandbox/seed-avatar/looks.ts` (10 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/app/globals.css` (6 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
@@ -434,7 +435,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | board | surface | the question |
 | --- | --- | --- |
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
-| `seed-avatar` | shared | Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob |
+| `seed-avatar` | shared | Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
 | `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
