@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
 
@@ -33,6 +34,7 @@ import {
 } from "@/lib/db/queries/social";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
+import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
 import { VISIBILITY_LABELS } from "@/lib/events/visibility-labels";
@@ -122,6 +124,7 @@ export default async function EventDetailPage({
     guestListEntries,
     socialSettings,
     myProfileSlug,
+    jar,
   ] = await Promise.all([
     listEventMedia(event.id),
     getLinkStats(event.id),
@@ -132,7 +135,11 @@ export default async function EventDetailPage({
     getEventGuestList(event.id),
     getEventSocialSettings(event.id),
     getMyProfileSlug(),
+    cookies(),
   ]);
+  // The gallery's tile size, painted inline from the cookie (`app-vocabulary`
+  // r1, `gallery-controls-persistence`; events-view.ts's own precedent).
+  const tileSize = resolveTileSize(jar.get(TILE_SIZE_COOKIE)?.value);
 
   const galleryItems = await toHostGalleryItems({
     media,
@@ -267,6 +274,7 @@ export default async function EventDetailPage({
               eventId={event.id}
               albumCount={visibleItems.length}
               videosAllowed={videosAllowedForTier(tier)}
+              initialTileSize={tileSize}
             >
               <EventUploads
                 eventId={event.id}

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 779 contracts on 107 components · 26 standing boards.**
+**22 laws · 18 policies · 810 contracts on 114 components · 26 standing boards.**
 
 ## What binds you
 
@@ -305,13 +305,17 @@ function. A contract never freezes a look.
 | `src/components/shared/password-strength-meter.tsx` | soft guidance while a new password is typed; never a gate, the validators enforce | none |
 | `src/components/shared/play-badge.tsx` | the this-is-a-video badge on a poster; pointer-transparent, so it never eats a swipe | none |
 | `src/components/shared/route-error.tsx` | the route error boundary: the reporting effect, the digest and the per-surface help line around the shared dead-end screen | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
+| `src/components/shared/route-skeleton.tsx` | the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room | marks all three shapes busy for assistive tech; draws the pulse and the hub as bare app-shell content, never a fixed takeover; draws the studio as the room itself: fixed, full-bleed, always dark; never tints the studio's blocks off the theme's --color-foreground; honours reduced motion on every shape; is what all three loading.tsx files delegate to, on their own shape |
 | `src/components/shared/set-name-step.tsx` | the one required add-your-name step, reused at every gate that asks for one | none |
+| `src/components/shared/tile-size-control.tsx` | the gallery's tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Controlled: the caller owns the persistence | accepts exactly the three wired steps; falls back to the wired default on anything else; starts at the server-resolved size and updates optimistically; never persists a no-op pick; draws exactly the three wired steps, the current one pressed; calls onChange with the pressed step; names Sort and Filter as reserved, inert slots |
+| `src/components/shared/tooltip-slide.tsx` | the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide) | none |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
 | `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets a two-hue backgroundImage on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the SAME colour on two different avatars; a DIFFERENT seed paints a different colour; with no seed, the root paints nothing and the fallback stays today's grey |
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
 | `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
 | `src/components/ui/command-palette.tsx` | a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees | wires the field to the list it controls; activates the first row before a key is pressed, so Enter always does something; walks the list with the arrows and stops at both ends; reaches both ends with Home and End; opens the row that is highlighted, not the one that was first; moves the highlight with the pointer, so the mouse and the keys agree; hands the query to whoever is filtering, and never filters itself |
+| `src/components/ui/confirm-switch.tsx` | the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently | shows the glyph beside the label, unconditionally; applies at once on the edge confirmWhen refuses; asks on the edge confirmWhen names, and applies nothing until confirmed; applies the pending value on Confirm; leaves the value untouched on Cancel |
 | `src/components/ui/dialog.tsx` | the modal, plus the fullScreen takeover a whole-screen surface asks for | none |
 | `src/components/ui/drawer.tsx` | the vaul bottom sheet; in the kit, and no product surface has claimed it yet | none |
 | `src/components/ui/dropdown-menu.tsx` | the menu behind the user menu, the notification bell and the admin controls | portals the submenu, so a transformed or scrolled parent cannot clip it; refuses a third level, at render, rather than in a review note; wears a title row, labelled groups and a footer rail when a menu has them; renders a two-row overflow with none of them, because Card's cost is real |
@@ -339,7 +343,7 @@ Contracted but outside the library's directories:
 - `src/app/(app)/account/page.tsx` (4 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
-- `src/app/(dev)/design/sandbox/overtaken.ts` (10 guards)
+- `src/app/(dev)/design/sandbox/overtaken.ts` (11 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/app/globals.css` (6 guards)
@@ -348,6 +352,7 @@ Contracted but outside the library's directories:
 - `src/components/admin/health-band.tsx` (6 guards)
 - `src/components/admin/inbox-pane.tsx` (4 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
+- `src/components/app/event-feed/bulk-bar.tsx` (9 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
 - `src/components/app/event-feed/review-room.tsx` (10 guards)
@@ -387,6 +392,7 @@ Contracted but outside the library's directories:
 - `src/components/marketing/sections/events/event-type-card.tsx` (6 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
+- `src/components/marketing/sections/pricing/plan-cards.tsx` (3 guards)
 - `src/components/reel/publish-light.tsx` (26 guards)
 - `src/components/reel/reel-share-card.tsx` (26 guards)
 - `src/components/reel/reel-studio.tsx` (26 guards)
@@ -418,7 +424,9 @@ Contracted but outside the library's directories:
 - `src/lib/dashboard/next-step.ts` (10 guards)
 - `src/lib/glass.ts` (6 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
+- `src/lib/shared/tile-size-cookie.ts` (7 guards)
 - `src/lib/shared/use-scroll-direction.ts` (8 guards)
+- `src/lib/shared/use-tile-size.ts` (7 guards)
 
 ## The standing boards
 
