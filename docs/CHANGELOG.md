@@ -150,8 +150,23 @@ unexplored surfaces and the Orchestrator gets `PartyreelAI/`, a folder of its ow
   are in its Handoff (the 375 fold, one element carrying the view-transition name, the sheet's Back, a fresh-tab
   `?room=settings`). Gate 45 green on the merged tree.
 
-**Next.** `glass-material`'s handoff, the waiting four, the night's explorations; his eye on the alias, signed in, in
-the morning.
+- **`glass-material` merged at `337f1de9`** (2026-09-20, Opus; cut `e271729a`): glass round two, the ONE material his
+  notes asked for. Frost, Crystal and the reel's white on Frost's filter, drawn on all six glass surfaces in a single
+  frame per option (the lightbox pill, the mobile card's three marks, the reel's controls, the host's bar, a chip on
+  paper, the guest's Add pill) over the darkest, middling and brightest photographs at 375 and 1440, every option
+  carrying an active rose mark; the edge freed from the body as a second decision so "a bit darker" and "the double
+  edge" stop competing. Every number re-measured off the rendered pane, the active icon for the first time: Frost keeps
+  the rose mark at 5.30:1 against Crystal's 4.44 and White's 3.61 over the darkest photograph, white text survives on
+  all three, the three cost the same to scroll; the double edge holds 97 percent of a pane's outline where no hairline
+  holds 59. Round one's answers spent subtractively (`veil`, the quiet grade, the flat control and the paper material
+  deleted); two carried calls on the board (one frame for six surfaces, the Add pill drawn in the material). The lab's
+  UNPAINTED cause found one layer down: a clipped capture drops the backdrop-filter layer, not the renderer (a ROADMAP
+  line with the headed-capture loss and the rose mark no material saves over a bright photograph). The lane force-pushed
+  its own manifest commit to amend a SHA into its Handoff and flagged it itself; the rule stands. Gate 46 green on the
+  merged tree.
+
+**Next.** His next batch, composed on the alias; the waiting four and the night's explorations once he sleeps; his eye
+on the alias, signed in, in the morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
 
