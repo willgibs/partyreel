@@ -137,6 +137,19 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   (`display-name-and-profile-photo`). The board stays for round two on the look. NOT SEEN RENDERED: a signed-in
   person's own menus and the owner sections are Will's; `/u/willg` signed out carries the identity row live.
 
+- **`overtaken-2` merged at `ca9bc121`** (2026-09-20, Opus; the desk lane): the judgment pass for the sixth batch and
+  its second paste. All 110 open asks across the twenty standing boards read against the eight ruling boards'
+  answers and drawings; the map from 29 keys to 76 (47 new badges; nine first-pass lines gain a second clause behind
+  `ALSO_REACHED`, the first judgment never rewritten; 68 stands, 8 concedes; heaviest where a whole backdrop was
+  ruled: guest-upload 8 of 8, admin-triage 7 of 8, app-pricing 6, host-curation 6; press-page 0). Two corrections:
+  `media-viewer.holds` and `host-curation.peek` were badged by glass's "every action lives in the lightbox", which his
+  batch narrowed to a phone, and both now say so where they are read (`peek` keeps its concedes word and is flagged
+  as the one judgment worth his eye). The test's blunt rule (a ruling board is never itself reached) replaced by the
+  real invariant (a note never credits its own board), since six of the eight are still on the desk with round twos
+  coming. The retired `admin` board's three entries left the map at the record. The desk reads 66 of 76 overtaken
+  still open. Gate 51 on the tree with `vocab-wiring`. Deferred (ROADMAP): `first-event.first`, `.asks` and `.limit`
+  are reached and unbadged behind the desk queue test's pins (three lines and three entries, the Orchestrator's).
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
