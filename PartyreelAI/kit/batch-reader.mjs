@@ -19,6 +19,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
@@ -132,6 +133,8 @@ function parsePaste(text) {
   return { build, reviews };
 }
 
+export { readSpec, parsePaste, reading };
+
 /* ---------- the reading ---------- */
 
 function reading(spec, v) {
@@ -166,6 +169,8 @@ function printBoard(spec) {
   }
 }
 
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
 if (boardArg) {
   const spec = readSpec(boardArg);
   if (!spec) { console.error(`no spec for "${boardArg}" under ${SANDBOX}`); process.exit(2); }
@@ -213,3 +218,4 @@ for (const b of out.boards) {
   for (const n of b.notes) console.log(`\n  [board note] ${n}`);
 }
 process.exit(problems ? 1 : 0);
+}

@@ -21,3 +21,6 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `test-delta.sh <base-sha>`: the tests at HEAD against the tests at a base commit, by name (`vitest list` on a
   throwaway worktree, sorted, `comm`), for a gate whose count moved with no test file in the diff. Tonight's answer
   was the deleted manifest's own two generated tests.
+- `board-card.mjs <board...>` or `--desk`: one screen per board (the RULINGS row's title, surface, ruling and `lives`
+  as the wiring's first `owns`; the spec's asks with their recommendations; what the ledger answered; which asks an
+  earlier ruling reaches), or the whole desk in order, one line each. `batch-reader.mjs` exports its spec parser for it.
