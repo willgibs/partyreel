@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 820 contracts on 115 components · 25 standing boards.**
+**22 laws · 18 policies · 820 contracts on 115 components · 26 standing boards.**
 
 ## What binds you
 
@@ -456,6 +456,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
 | `app-vocabulary` | shared | One decision on the real, wired Album header: where the crowded five (download, tile size, sort, filter, select) live now that the cluster is honestly crowded; four placements drawn at 1440 and 375, Add photos and Deleted untouched. |
+| `guest-verify` | guest | Six decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob: when the address gets proven, what an unproven account shows and to whom, where the photographs land when two people type one address, what rescues a party when the codes stop arriving, what the host's queue says about who sent what, and what day seven does to a photograph nobody ever confirmed |
 | `guest-shape` | guest | Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68 |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
