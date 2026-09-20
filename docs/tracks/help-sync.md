@@ -1,6 +1,6 @@
 ---
 track: help-sync
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2b1369ed"          # the launch-prep SHA the branch was cut from
 board: none            # production follow-up: the help articles the wiring lanes made stale; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -215,28 +215,93 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every fix below reads a shipped surface and reports what it found; nothing here needed Will's product
+  judgment. The judgment calls this lane did make (a wrong path in this manifest, a scope expansion, a rename) are
+  under Handoff, "Calls his to overrule".
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: this lane reads `guest-flow.md`, `auth-accounts.md` and `host-app.md` but owns no `docs/systems/` doc, so it
+  refines none. (`auth-accounts.md`'s avatar fact and the two "Hosted by" bylines that `avatar-wiring` left for this
+  lane's owner turned out to be someone else's file, not help content; untouched here.)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: no help article mentions the demo (`content/help/*.mdx` grepped clean for "demo" after `demo-wiring` /
+  `demo-doors` merged into this lane's sync). Nothing is false, so outside this rewrite-only brief; a future round
+  should pick the slug and audience deliberately rather than have this lane guess one.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Content at `4d935a49`, synced with `origin/launch-prep` at `bf03c4f4` (25 commits behind at the cut, merged clean,
+  no conflicts); this manifest commits alone on top and pushes.
+- Gates on the synced tree: design:rules ok (no diff), specimens ok (no diff), typecheck ok, lint ok (8 known warnings,
+  0 errors), test ok (3053 passed, 1 skipped), build ok (255 pages); `pnpm lab:smoke --base http://localhost:3131` ok
+  (441 checks, 0 failing). No board, so no `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the 11 `content/help/*.mdx` files below, plus
+  `src/lib/constants/legal-privacy.tsx` and `legal-terms.tsx` (both owned), plus `src/lib/constants/legal.ts` (one
+  exception, why below), plus this manifest.
+- Exception: `src/lib/constants/legal.ts` is not in `owns`. Bumped `version` and `lastUpdated` for both `privacy`
+  (1.1 to 1.2) and `terms` (1.2 to 1.3), with one changelog-comment line each, because the file's own header says to
+  ("bump on any material change, with a new lastUpdated") and both drafts changed in substance, not wording.
+- The articles touched, each with the surface it now describes:
+  - `save-an-event-and-find-your-uploads.mdx`: a guest's own upload now comes off right on the album, signed in or
+    anonymous by the same device, final for the host too; the dashboard's Uploads tab is a second place, not the only
+    one (read `media-lightbox.tsx`, `live-gallery.tsx`, `guest-masonry.tsx`, `db/mutations/guest-media.ts`).
+  - `you-cant-sign-in.mdx` and `sign-in-options-and-passwords.mdx`: the code-led door (email code first, Google
+    beside it, a password behind a quiet "Have a password? Use it instead" link), the existing-account notice, and
+    the three real buttons under each of the password-mismatch, expired-link and wrong-code failures (read
+    `door-failure.ts`, `account-door.tsx`, `email-sign-in.tsx`, `password-sign-in.tsx`, `failure-paths.tsx`,
+    `login-form.tsx`).
+  - `the-email-code-didnt-arrive.mdx`: the same door-failure table's resend cooldown and its "Too many tries for
+    now." rate-limited state, with the real recovery under it.
+  - `display-name-and-profile-photo.mdx`: removing a photo reveals the account's own seeded colour, never a plain
+    grey initial (read `ui/avatar.tsx`, `account-avatar-form.tsx`).
+  - `your-event-page-explained.mdx`: the event page as the hub (the live code and its mini-modal, the cards row into
+    Review/Reel/Guests/Settings going sticky, the album's own header row, the app-bar crumbs) (read
+    `dashboard/[eventId]/page.tsx`, `event-cards-row.tsx`, `event-gallery.tsx`, `event-code-door.tsx`,
+    `event-code-modal.tsx`, `event-link-row.tsx`, `event-sheets.tsx`, `crumbs.tsx`).
+  - `event-settings-explained.mdx` (found stale, not on the named list): Settings is a sheet over the album now, not
+    its own page; the Event link card moved to Share and the Deleted card became an album filter (read
+    `dashboard/[eventId]/settings/page.tsx`'s own redirect comment, `event-settings-sheet.tsx`).
+  - `custom-event-link.mdx` (found stale): the custom-link control lives in the Share sheet's "A readable link"
+    section now, reached from the event's code (read `event-share-sheet.tsx`, `event-slug-control.tsx`).
+  - `who-can-see-your-event.mdx` (found stale): dropped a claim that the event page's visibility chip explains the
+    guest experience on hover; that chip no longer exists (the header carries only the code and its stats now).
+  - `why-an-event-asks-for-your-email.mdx` (one-line touch, inside `owns`): fixed a cross-reference's link text to
+    match the retitled sign-in article.
+  - `how-partyreel-works.mdx`: the loop now tells six steps, matching `lib/constants/how-it-works.ts`'s `HOST_STEPS`
+    (paraphrased in the help voice, not copied verbatim, so the two surfaces don't duplicate the same sentences).
+  - `legal-privacy.tsx` / `legal-terms.tsx`: the two lines rewritten so an anonymous guest's removal reads as
+    self-serve, not "ask the host".
+  - Every other article was left alone: none of the remaining forty-eight names a surface this batch's lanes moved.
+- Calls his to overrule:
+  - This manifest's own `owns:` names `src/components/marketing/legal/legal-privacy.tsx` and `legal-terms.tsx`;
+    neither exists (that path holds `legal-blocks.tsx` and `legal-document.tsx`, the rendering components, never the
+    content). Edited the real files instead, `src/lib/constants/legal-privacy.tsx` and `legal-terms.tsx` (same
+    names, and the cited line numbers, 515-520 and 123, land inside the right paragraph in both).
+  - Expanded past the seven named articles to three more (`event-settings-explained`, `custom-event-link`,
+    `who-can-see-your-event`) after reading the hub's code and finding them false the same way; the retired
+    settings route's own comment names "a help article or two" as exactly this.
+  - Retitled `sign-in-options-and-passwords.mdx` from "Sign in: password, email code, or Google" to "Sign in: a
+    code, Google, or a password" (the slug is untouched, so no referrer breaks); swept the two other articles that
+    named the old title in a link.
+  - Bumped `legal.ts` outside `owns` (see the exception above) rather than leave two re-dated drafts pointing at a
+    stale version number.
+- No new help articles made stale by this lane's own edits.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `your-event-page-explained.mdx` and `event-settings-explained.mdx` (the biggest rewrites, against
+  the hub as it actually renders), and the two legal lines (`/privacy#your-choices`, `/terms#guests`).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Reread eleven help articles and the two legal drafts against the tree
+the guest, avatar, door and hub lanes left, each fix read from the real component before it was written: a guest's
+self-delete described as it ships (the album itself, signed in or anonymous by device, final for the host too, both
+legal drafts too); the door's code-first sign-in with its three real buttons under each failure and no separate
+Create-account step; a removed profile photo revealing the account's seeded colour; the event page's new hub (the
+code, the cards row, the album's own header, Settings and Share as two sheets), which turned up three more stale
+articles the same way (`event-settings-explained`, `custom-event-link`, `who-can-see-your-event`); the loop's six
+steps. One exception line in `legal.ts` (the version and date bump its own rule asks for). Gate green on the synced
+tree (3053 tests, 255 pages, `lab:smoke` 441 checks).
