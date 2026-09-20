@@ -2074,7 +2074,8 @@
       "file": "src/components/guest/gallery-empty-state.tsx",
       "names": [
         "GUEST_GHOST_FRAMES",
-        "GalleryEmptyState"
+        "GalleryEmptyState",
+        "GhostRiver"
       ],
       "specimens": [
         "/design/library/components"
