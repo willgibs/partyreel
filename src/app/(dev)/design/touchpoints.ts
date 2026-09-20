@@ -1161,24 +1161,19 @@ export const RULINGS: Ruling[] = [
     title: "The live demo",
     surface: "marketing",
     ruled:
-      'open (Will, 2026-09-19: the demo event is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
+      "round one ruled whole (Will, 2026-09-20, the sixth batch); demo-wiring wires all seven on the real site (the arrival, the Demo mark, the turn card, the way out, the pile as the rule, the phone pair, one party); round two open on the one he flagged: a better door object than reusing the footer, drawn at a fourth place too, the nav panel's pane left empty since its ticket retired",
     shipped: null,
-    why: "The demo is the one place a prospective host meets the product working, and it drops them inside somebody's wedding with one grey line of explanation and no way on.",
+    why: "Round two asks whether the object behind every demo door is the best a text-free page can show; the retired nav ticket's pane is its fourth place.",
     lives: [
       "src/lib/demo.ts",
       "src/app/demo/route.ts",
-      "src/components/guest/event-experience.tsx",
       "src/components/marketing/chrome/footer-demo.tsx",
       "src/components/marketing/system/demo-cta-link.tsx",
+      "src/components/marketing/chrome/mega-panel.tsx",
     ],
     board: {
-      note: "Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is",
-      variants: [
-        "The first seconds",
-        "Adding a photo",
-        "What a door promises",
-        "Scanned off a laptop",
-      ],
+      note: "One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440.",
+      variants: ["The door"],
     },
   },
   {
