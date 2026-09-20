@@ -1,66 +1,69 @@
-import Link from "next/link";
-import { LogOut } from "lucide-react";
+"use client";
 
-import { signOutAction } from "@/app/(auth)/actions";
-import { AdminNav } from "@/components/admin/admin-nav";
-import {
-  OperatorAlerts,
-  type OperatorAlertCounts,
-} from "@/components/admin/operator-alerts";
-import { Container } from "@/components/shared/container";
-import { Logo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
-// Chrome for the operations portal — deliberately distinct from the host AppShell (an "Ops" mark +
-// the operator nav) so it's obvious you're in the internal tool. The nav is a single dropdown
-// ([admin-nav.tsx]); the alerts bell surfaces pending work portal-wide ([operator-alerts.tsx]).
+import { AdminBar } from "@/components/admin/admin-bar";
+import { AdminPalette } from "@/components/admin/admin-palette";
+import { AdminRail } from "@/components/admin/admin-rail";
+import { HealthBand } from "@/components/admin/health-band";
+import type { PendingCounts } from "@/lib/admin/nav";
+import type { JobHealthReport } from "@/lib/jobs/health-summary";
+
+/**
+ * THE PORTAL'S CHROME, AS THE THREE ANSWERS WEARING EACH OTHER
+ * (`chrome=devtool` + `nav=rail-palette` + `health=portal`, Will 2026-09-20).
+ *
+ * A 44px tool bar, a 232px rail at `lg`, a band under the bar on a bad day, and
+ * the palette both the bar and the rail open. It replaces a 56px bar with an
+ * Ops chip, a dropdown, and no health signal anywhere but /admin/jobs.
+ *
+ * ★ IT IS A CLIENT COMPONENT NOW, AND ONLY BECAUSE OF THE PALETTE. One piece of
+ * state, `paletteOpen`, shared by three things that cannot otherwise reach each
+ * other: the bar's Search button, the rail's Search row and the ⌘K listener.
+ * Nothing here queries anything: every number arrives as a prop, already read
+ * and reduced by the layout, so the boundary costs a shell and not a page.
+ *
+ * ★ THE 1280 COLUMN GOES WHEN THE RAIL ARRIVES, at `lg` and not before. The
+ * product's `Container` centres a column, which is right for a page a host
+ * reads and wrong beside a fixed rail: the content would start two hundred
+ * pixels right of the header's first word. Below `lg` there is no rail, so the
+ * page keeps a readable measure of its own.
+ */
 export function AdminShell({
   email,
-  alerts,
+  counts,
+  health,
+  env,
   children,
 }: {
   email: string | null;
-  alerts: OperatorAlertCounts;
+  counts: PendingCounts;
+  health: JobHealthReport;
+  /** `VERCEL_ENV`, read on the server (this side of the boundary has no env). */
+  env: string | null;
   children: React.ReactNode;
 }) {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-        <Container className="flex h-14 items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              aria-label="Partyreel operations"
-              className="flex items-center gap-2"
-            >
-              <Logo />
-              <span className="rounded-md bg-foreground px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-background uppercase">
-                Ops
-              </span>
-            </Link>
-            <AdminNav />
+    <div className="flex min-h-svh flex-col">
+      <AdminBar
+        email={email}
+        alerts={counts}
+        env={env}
+        unhealthyJobs={health.readable ? health.unhealthy.length : null}
+        onOpenPalette={() => setPaletteOpen(true)}
+      />
+      <HealthBand health={health} />
+      <div className="flex min-h-0 flex-1">
+        <AdminRail counts={counts} onOpenPalette={() => setPaletteOpen(true)} />
+        <main className="min-w-0 flex-1 px-4 py-6 lg:px-6">
+          <div className="mx-auto max-w-5xl lg:mx-0 lg:max-w-none">
+            {children}
           </div>
-          <div className="flex items-center gap-2">
-            <OperatorAlerts {...alerts} />
-            {email && (
-              <span className="hidden text-xs text-muted-foreground md:inline">
-                {email}
-              </span>
-            )}
-            {/* Sign-out is the shared server action; on the subdomain it clears the
-                host-isolated admin cookies and redirects to /login. */}
-            <form action={signOutAction}>
-              <Button type="submit" variant="ghost" size="sm">
-                <LogOut className="size-4" />
-                Sign out
-              </Button>
-            </form>
-          </div>
-        </Container>
-      </header>
-      <main className="flex-1 py-8">
-        <Container>{children}</Container>
-      </main>
+        </main>
+      </div>
+      <AdminPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }

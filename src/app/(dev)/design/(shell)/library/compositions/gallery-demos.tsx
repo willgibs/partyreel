@@ -18,6 +18,9 @@ import {
   FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
+  AdminHealthBandDemo,
+  AdminQueueDemo,
+  AdminRailDemo,
 } from "./composition-demos";
 
 /**
@@ -63,6 +66,37 @@ const qrSlot = (
 );
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
+  /* THE OPERATIONS PORTAL'S SHELL (added by lp/admin-wiring at the HEAD of the
+     list, so several lanes in one round land on distinct hunks). The `admin`
+     board retires into this: every /admin route is behind requireAdmin() plus
+     AAL2 on its own host, so nothing automated can open one, and these are the
+     only crawl-reachable rendering of the portal's shape there is. */
+  {
+    id: "admin-shell",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/admin-rail.tsx",
+    title: "The portal's shell",
+    lede: "The rail, the band and the queue the `admin` board ruled (Will, 2026-09-20: a rail with a command palette, a band under the bar that is gone on a good day, the numbers first with the queue beneath). Fed one Tuesday's fixtures, credential-free: the bar is left out because its operator menu holds a real sign-out form, and a gallery page does not get to end somebody's session.",
+    specimens: [
+      {
+        label: "The rail",
+        hint: "232px at lg; counts on Support, Applicants, Reports and Jobs. No row is current here, because the path is the library's",
+        node: <AdminRailDemo />,
+      },
+      {
+        label: "The band, on a bad day and on an unreadable one",
+        hint: "it names the jobs while there are few enough to name; an unreadable heartbeat says so in words and never as a count",
+        node: <AdminHealthBandDemo />,
+      },
+      {
+        label: "What is waiting, worst first",
+        hint: "a failed purge outranks a press enquiry, and the tint reaches only the rows worth finding by scrolling",
+        node: <AdminQueueDemo />,
+      },
+    ],
+  },
   {
     id: "event-card",
     family: "compositions",

@@ -21,10 +21,13 @@ export function AccountAvatarForm({
   avatarUrl,
   displayName,
   email,
+  seed,
 }: {
   avatarUrl: string | null;
   displayName: string | null;
   email: string | null;
+  /** `seedFor(userId)` (src/lib/avatar/seed.ts), computed by account/page.tsx. */
+  seed?: string;
 }) {
   const router = useRouter();
   // Local source of truth for THIS form's avatar (immediate feedback); the UserMenu updates
@@ -105,7 +108,7 @@ export function AccountAvatarForm({
 
   return (
     <div className="flex items-center gap-4">
-      <Avatar className="size-16">
+      <Avatar className="size-16" seed={seed}>
         <AvatarImage src={currentUrl ?? undefined} alt="" />
         <AvatarFallback className="text-lg">
           {initialFrom(displayName, email)}

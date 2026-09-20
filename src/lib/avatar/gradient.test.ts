@@ -1,4 +1,5 @@
-// @contract-for: src/app/(dev)/design/sandbox/seed-avatar/gradient.ts
+// @contract-for: src/lib/avatar/gradient.ts
+import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
 
@@ -31,10 +32,15 @@ import {
  * The sizes do not relax the floor. None of 24, 32 or 40px carries large text (WCAG
  * starts that relief at 18.66px bold or 24px, and the initials are 10, 14 and 18), so
  * 4.5:1 is the one number that applies at every size the `Avatar` contract names.
+ *
+ * ★ MOVED HERE FROM THE SANDBOX (2026-09-20, `avatar-wiring`): the seeds below are
+ * real UUIDs, not the `u-N-acct` shape the board's exploration used — `seed=account`
+ * feeds the account id straight to `orbFor` (through `seedFor`, `seed.test.ts`'s own
+ * contract), so this is the shape a concentration would actually show up on.
  */
 
-/** A crowd big enough to find a hole in: a thousand accounts. */
-const SEEDS = Array.from({ length: 1000 }, (_, i) => `u-${i.toString(36)}-acct`);
+/** A crowd big enough to find a hole in: a thousand real account-id-shaped seeds. */
+const SEEDS = Array.from({ length: 1000 }, () => randomUUID());
 const MODES: PaletteMode[] = ["wheel", "curated", "warm"];
 const LOOKS: Look[] = ["orb", "diagonal", "aurora", "flat"];
 
@@ -77,13 +83,22 @@ describe("the same seed gives the same colours", () => {
 });
 
 describe("a thousand seeds spread across the wheel", () => {
-  it("fills every one of twelve 30 degree buckets", () => {
+  it("fills every one of twelve 30 degree buckets, and never concentrates in one or two", () => {
     const buckets = new Array(12).fill(0);
     for (const s of SEEDS) buckets[Math.floor(orbFor(s).hue / 30) % 12] += 1;
     // Uniform would be 83 per bucket; 40 is half of that, which catches a
     // generator that has lost a quadrant without failing on ordinary noise.
+    // ★ THE CEILING (Will, the sixth batch: "ensure the account ID randomness
+    // ... can't lead to a high concentration of one to two colors"): twice the
+    // mean is generous headroom for noise and still catches a hash that piles
+    // a crowd into a couple of buckets.
+    const mean = SEEDS.length / buckets.length;
     for (const [i, n] of buckets.entries()) {
       expect(n, `bucket ${i * 30} to ${i * 30 + 30} holds ${n}`).toBeGreaterThan(40);
+      expect(
+        n,
+        `bucket ${i * 30} to ${i * 30 + 30} holds ${n}, over twice the ${mean.toFixed(0)} mean`,
+      ).toBeLessThan(mean * 2);
     }
   });
 

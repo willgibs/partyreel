@@ -101,6 +101,42 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   `sign-in-options-and-passwords`, `the-email-code-didnt-arrive`). NOT SEEN RENDERED: the existing-account line and
   its four-second hold, and the passkey row, are Will's (a real second sign-in; the dashboard settings).
 
+- **`admin-wiring` merged at `b81ed49a`** (2026-09-20, Opus; cut `0ad0c32d`, synced at `8e800240`): `admin` r1 wired
+  whole. The portal opens on four figures (Accounts, Active hosts, Uploads, Paid subscribers; the fourth carries no
+  arrow because no history exists to compare against, and "active" means last seen in the fortnight) with the ranked
+  queue beneath; a 44 px bar with the crumb and the live tag, a 232 px rail at `lg` and the dropdown below it, the
+  health band under the bar only on a bad day, and a command palette on the new `ui/command-palette.tsx` primitive (a
+  surface, an account, an action); `ui/table.tsx` with `tone` as a data attribute and four state colours reaching the
+  row (`info` the fourth); one destructive sheet on nine controls, the permanent one typed; Exports joined to NAV. The
+  `admin` board retired, its ledger gone at this record, its fixtures kept as a Library demo of the real rail, band,
+  queue, table, palette and sheet (the only automated eye on a portal nothing can sign into). Eleven files outside its
+  owns, each the gate's own demand and named in its manifest. The `admin_actions` table proposed under Questions and
+  not built. Gate 49 on the merged tree. Calls his to overrule on the alias: the four figures and the arrowless
+  fourth; "active" as last seen; whether a paid-subscriber delta is worth a `tier_events` table (his question, open).
+  Deferred (ROADMAP): the components gallery's duplicate "Surfaces" block (a duplicate React key, pre-existing); the
+  help centre's palette onto the primitive (and the second global ⌘K listener gone); the queue's Reports row costing a
+  full list for one timestamp; the two report verdicts still unconfirmed (admin-triage's lane). NOT SEEN RENDERED: the
+  whole portal is Will's, signed in on the admin host (the bar, the rail at 1440 and the dropdown at 375, ⌘K three
+  ways, the figures against /admin/metrics, the band absent, the sheet on a disposable announcement); the typed account
+  delete never exercised.
+
+- **`avatar-wiring` merged at `2a5c7018`** (2026-09-20, Sonnet; cut `0ad0c32d`, synced at `87cadbcf`): `seed-avatar` r1
+  wired whole. The clipping bug first: the root clips (one `overflow-hidden`, one `rounded-full`) and neither the image
+  nor the fallback carries a radius of its own, pinned by `avatar.test.tsx` and verified live. The generator moved
+  home to `src/lib/avatar/` with `seedFor`, a server-side SHA-256 of `profiles.id`, so one person is one colour on
+  every surface and a client never holds a raw id it does not already have; `Avatar`'s `seed` prop paints the
+  diagonal under the initial and under the photograph (the fallback transparent, the image covering the root once
+  mounted), the whole wheel at full strength, the initial always, no motion; the crowd test on a thousand real UUIDs
+  through the generator and through the production pipeline. Every surface seeded: the user menu, the account form,
+  the guest account menu (through `/api/me/menu`'s hashed `seed`, not a raw id: the lane's call), the guest list's
+  chips and faces row and the owner sections through `ProfileCardItem`, the profile identity row folded onto `Avatar`
+  at a new `xl` size. The Library's Avatar entry enhanced. Three additive exceptions named. Gate 50 on the merged tree.
+  Calls his to overrule: the 80 px fourth size; the transparent fallback ground; the bucket bound at twice the mean;
+  the menu route's hashed seed. Deferred (ROADMAP): the two "Hosted by" bylines still show no colour behind a missing
+  host photo (`seedFor(host_id)` is ready, the guest files' owner places it). One help article stale for `help-sync`
+  (`display-name-and-profile-photo`). The board stays for round two on the look. NOT SEEN RENDERED: a signed-in
+  person's own menus and the owner sections are Will's; `/u/willg` signed out carries the identity row live.
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)

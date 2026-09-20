@@ -24,6 +24,10 @@ function guests(n: number, withSlug = false): ProfileCardItem[] {
     slug: withSlug ? `guest-${i}` : null,
     avatarMarker: null,
     avatarUrl: null,
+    // A fixture stand-in for withAvatarUrls' seedFor(id): this file's
+    // contract is the list's shape, never a colour, so a plain per-index
+    // string is enough to satisfy the type.
+    seed: `seed-${i}`,
   }));
 }
 
