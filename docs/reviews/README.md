@@ -71,6 +71,17 @@ declares no `catalog` has no items, and a ruling on one is refused. One verdict 
 ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
 `items: [{ item, verdict, note?, by, at }]` beside its `answers`.
 
+`call:<id>=yes|no "a note"` -- a call the lane CARRIED, answered. A lane that meets a question its goal left open
+takes its own recommendation and builds on it rather than stopping; the board then draws those calls above its
+sections ("Calls the lane carried, yours to overrule"), each with an id. `yes` keeps what the lane took, `no`
+overrules it and the note says what to do instead; a call nobody answers stays taken. It rides an ordinary board
+line beside the answers, in any order:
+
+    review site-chrome r2: hero=lit; call:footer-close=no "keep the CTA above the footer"
+
+In the ledger the round grows a `calls` array beside `answers`, `items` and `notes`: one entry per call per round,
+`{ call, answer, note?, by, at }`, replaced when the same call is answered again, exactly as an ask is.
+
 `review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
 lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
 rounds: the Library is not explored in rounds, so there is one ruling per entry and the newest

@@ -10,7 +10,7 @@
  *
  * The grammar is stated once, in docs/reviews/README.md:
  *
- *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; note: "a board note"
+ *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; call:<id>=yes|no "a note"; note: "a board note"
  *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
  *   review library: <entry-id>=keep|redesign|retire "a note"
  *
@@ -307,8 +307,9 @@ function arrayOfConst(masked, name) {
 /**
  * One board's spec as the fields this script validates against: the id (the
  * directory, which is the board), the round it is in, every ask with its
- * options, whether its candidates are declared a CATALOG, and their ids.
- * Anything else in a spec is for the board page to render.
+ * options, whether its candidates are declared a CATALOG, and their ids, and
+ * the ids of every call it carried. Anything else in a spec is for the board
+ * page to render.
  */
 export function readSpec(id, source) {
   const masked = mask(source);
@@ -382,11 +383,30 @@ export function readSpec(id, source) {
       i = close + 1;
     }
   }
+  const carriedRange = top.get("carried");
+  const calls = [];
+  if (carriedRange) {
+    const inside = matchBracket(masked, carriedRange[0]);
+    let i = carriedRange[0] + 1;
+    while (i < inside) {
+      if (masked[i] !== "{") {
+        i++;
+        continue;
+      }
+      const close = matchBracket(masked, i);
+      const fields = entriesOf(masked, i + 1, close);
+      const callId = fields.has("id")
+        ? stringAt(source, fields.get("id"))
+        : null;
+      if (callId) calls.push(callId);
+      i = close + 1;
+    }
+  }
   const catalog = top.has("catalog");
   const items = top.has("candidates")
     ? candidateIdsIn(masked, source, top.get("candidates"))
     : null;
-  return { id, round, asks, catalog, items };
+  return { id, round, asks, catalog, items, calls };
 }
 
 /** Every standing board's spec, by id. An unreadable spec is a loud failure. */
@@ -561,12 +581,14 @@ export function parseLine(raw, lineNo = 1) {
 
   const answers = [];
   const items = [];
+  const calls = [];
   const notes = [];
   while (true) {
     i = skipSpace(line, i);
     if (i >= line.length) break;
     const noteHead = /^note\s*:/.exec(line.slice(i));
     const itemHead = /^item\s*:/.exec(line.slice(i));
+    const callHead = /^call\s*:/.exec(line.slice(i));
     if (noteHead) {
       i = skipSpace(line, i + noteHead[0].length);
       if (line[i] !== '"') {
@@ -595,6 +617,30 @@ export function parseLine(raw, lineNo = 1) {
         note: pair.note,
       });
       i = pair.end;
+    } else if (callHead) {
+      // `call:` is checked BEFORE the ask clause for the same reason as
+      // `item:`: a token may hold a colon, and `readToken` would swallow
+      // `call:footer-close` whole.
+      const pair = readPair(
+        line,
+        skipSpace(line, i + callHead[0].length),
+        lineNo,
+        { id: "a carried call id", after: "the call", value: "yes or no" },
+      );
+      if (pair.value !== "yes" && pair.value !== "no") {
+        throw new ReviewError(
+          `"${pair.value}" is not an answer to a carried call (yes, no)`,
+          { line: lineNo, column: pair.valueAt },
+        );
+      }
+      calls.push({
+        call: pair.id,
+        callAt: pair.idAt,
+        answer: pair.value,
+        answerAt: pair.valueAt,
+        note: pair.note,
+      });
+      i = pair.end;
     } else {
       const pair = readPair(line, i, lineNo, {
         id: "an ask id",
@@ -614,7 +660,12 @@ export function parseLine(raw, lineNo = 1) {
     i = sep.end;
     if (!sep.more) break;
   }
-  if (answers.length === 0 && items.length === 0 && notes.length === 0) {
+  if (
+    answers.length === 0 &&
+    items.length === 0 &&
+    calls.length === 0 &&
+    notes.length === 0
+  ) {
     throw new ReviewError("the line carries no answer, no ruling and no note", {
       line: lineNo,
       column: line.length + 1,
@@ -628,6 +679,7 @@ export function parseLine(raw, lineNo = 1) {
     roundAt,
     answers,
     items,
+    calls,
     notes,
     line: lineNo,
   };
@@ -772,6 +824,14 @@ function heldItem(ledger, round, i) {
   );
 }
 
+/** The same, for a carried call the ledger already holds an answer for. */
+function heldCall(ledger, round, c) {
+  const was = ledgerRound(ledger, round)?.calls?.find((x) => x.call === c.call);
+  return Boolean(
+    was && was.answer === c.answer && flat(was.note) === flat(c.note),
+  );
+}
+
 /** A board note the round already carries, word for word. */
 function heldNote(ledger, round, n) {
   const notes = ledgerRound(ledger, round)?.notes ?? [];
@@ -817,6 +877,7 @@ export function validate(
     // because repeating a recorded decision cannot record a wrong one.
     const echoAnswer = (a) => heldAnswer(ledger, e.round, a);
     const echoItem = (i) => heldItem(ledger, e.round, i);
+    const echoCall = (c) => heldCall(ledger, e.round, c);
     // Everything on this line the ledger does NOT already hold, with the
     // column to point at when it has nowhere to land.
     const news = [
@@ -826,6 +887,9 @@ export function validate(
       ...e.items
         .filter((i) => !echoItem(i))
         .map((i) => ({ at: i.itemAt, what: `item:${i.item}=${i.verdict}` })),
+      ...e.calls
+        .filter((c) => !echoCall(c))
+        .map((c) => ({ at: c.callAt, what: `call:${c.call}=${c.answer}` })),
       ...e.notes
         .filter((n) => !heldNote(ledger, e.round, n))
         .map(() => ({ at: e.roundAt, what: "the note" })),
@@ -895,6 +959,7 @@ export function validate(
       }
     }
     validateItems(e, spec, at, echoItem);
+    validateCalls(e, spec, at, echoCall);
     refuseDuplicates(
       e.answers,
       { id: "ask", at: "askAt" },
@@ -952,6 +1017,34 @@ function validateItems(e, spec, at, echoItem = () => false) {
     e.items,
     { id: "item", at: "itemAt" },
     "ruled",
+    (column, message) => at(e.line, column, message),
+  );
+}
+
+/**
+ * A board line's `call:` clauses against its spec's carried calls.
+ *
+ * Unlike `item:`, a call needs no catalog to exist: `carried` and `catalog`
+ * are unrelated, so the only question is whether the id is one the spec's
+ * `carried` list actually names.
+ */
+function validateCalls(e, spec, at, echoCall = () => false) {
+  const fresh = e.calls.filter((c) => !echoCall(c));
+  if (fresh.length === 0) return;
+  const known = spec.calls ?? [];
+  for (const c of fresh) {
+    if (!known.includes(c.call)) {
+      at(
+        e.line,
+        c.callAt,
+        `"${c.call}" is not a call ${e.board} carried (${list(known)})`,
+      );
+    }
+  }
+  refuseDuplicates(
+    e.calls,
+    { id: "call", at: "callAt" },
+    "answered",
     (column, message) => at(e.line, column, message),
   );
 }
@@ -1076,11 +1169,13 @@ export function applyEntries(root, entries, { by, at }) {
     const echo = {
       answer: (a) => heldAnswer(was, e.round, a),
       item: (i) => heldItem(was, e.round, i),
+      call: (c) => heldCall(was, e.round, c),
       note: (n) => heldNote(was, e.round, n),
     };
     const nothingNew =
       e.answers.every(echo.answer) &&
       e.items.every(echo.item) &&
+      e.calls.every(echo.call) &&
       e.notes.every(echo.note);
     if (nothingNew) {
       // Not even an empty round is opened for a line that says nothing new.
@@ -1091,6 +1186,13 @@ export function applyEntries(root, entries, { by, at }) {
           `${e.board} r${e.round}`,
           `item:${i.item}`,
           i.verdict,
+          "unchanged",
+        ]);
+      for (const c of e.calls)
+        summary.push([
+          `${e.board} r${e.round}`,
+          `call:${c.call}`,
+          c.answer,
           "unchanged",
         ]);
       for (const n of e.notes)
@@ -1107,6 +1209,7 @@ export function applyEntries(root, entries, { by, at }) {
     if (!Array.isArray(round.answers)) round.answers = [];
     if (!Array.isArray(round.notes)) round.notes = [];
     if (!Array.isArray(round.items)) round.items = [];
+    if (!Array.isArray(round.calls)) round.calls = [];
     for (const a of e.answers) {
       if (echo.answer(a)) {
         // The ledger already says exactly this. Leave `by` and `at` alone: a
@@ -1153,6 +1256,32 @@ export function applyEntries(root, entries, { by, at }) {
         `${e.board} r${e.round}`,
         `item:${i.item}`,
         i.verdict,
+        was < 0 ? "new" : "replaced",
+      ]);
+    }
+    // One answer per carried call per round, replaced when he answers it
+    // again, exactly as an item's verdict is.
+    for (const c of e.calls) {
+      if (echo.call(c)) {
+        summary.push([
+          `${e.board} r${e.round}`,
+          `call:${c.call}`,
+          c.answer,
+          "unchanged",
+        ]);
+        continue;
+      }
+      const entry = { call: c.call, answer: c.answer };
+      if (c.note) entry.note = c.note;
+      entry.by = by;
+      entry.at = at;
+      const was = round.calls.findIndex((x) => x.call === c.call);
+      if (was < 0) round.calls.push(entry);
+      else round.calls[was] = entry;
+      summary.push([
+        `${e.board} r${e.round}`,
+        `call:${c.call}`,
+        c.answer,
         was < 0 ? "new" : "replaced",
       ]);
     }
@@ -1215,6 +1344,7 @@ const HELP = `pnpm lab:review "<the pasted line>"
   review <board> r<n>: <ask>=<option> "a note"; <ask>=<option>; note: "a board note"
   review <board> r<n>: <ask>=? "what was unclear"      (not answered; needs the note)
   review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
+  review <board> r<n>: call:<id>=yes|no "a note"   (a call the lane carried)
   review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
 
   A line that merely repeats what the ledger already holds is a no-op

@@ -129,6 +129,16 @@ describe("the board registry", () => {
           LIMITS.candidateLands,
         );
       }
+      for (const c of b.carried ?? []) {
+        under(`${b.id}.call ${c.id}`, c.question, LIMITS.carriedQuestion);
+        under(`${b.id}.call ${c.id}.taken`, c.taken, LIMITS.carriedTaken);
+        under(
+          `${b.id}.call ${c.id}.overrule`,
+          c.overrule,
+          LIMITS.carriedOverrule,
+        );
+        expect(c.id).toMatch(/^[a-z][a-z0-9-]*$/);
+      }
       for (const d of [
         ...b.departures,
         ...b.candidates.flatMap((c) => c.departures ?? []),
