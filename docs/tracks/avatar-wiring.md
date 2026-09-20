@@ -1,6 +1,6 @@
 ---
 track: avatar-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: seed-avatar     # wiring; round two on the look is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -328,28 +328,40 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every open call below is reversible (a JSON field name, a data shape), so it rides "his to overrule" in the Handoff rather than stopping the lane.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/profiles-social.md`, under "One guest-list read": a new bullet, "Every `ProfileCardItem` carries a colour, not just an avatar URL" — `withAvatarUrls` (`lib/social/cards.ts`) now hydrates `seed: seedFor(card.id)` alongside `avatarUrl`, single-sourcing the colour for the guest list, the owner mode's Connections and the account page's Following/Blocked rows; cross-references `auth-accounts.md` for the fuller avatar-system writeup this lane could not place there (not owned this round).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now**: the two guest-facing "Hosted by" bylines (`event-experience.tsx:271`, `entry-modal.tsx:459`) still show no colour behind a missing host photo — `seedFor(host_id)` (`src/lib/avatar/seed.ts`) is ready for them, computed server-side so `host_id` itself never reaches the guest's browser, but `guest-wiring` merged (`7f4f2ffe`) before this lane landed `seedFor` and is closed, so nobody picked it up. A small follow-up: compute `seedFor(event.host_id)` wherever `getHostAvatarUrl` already runs and pass it to `Avatar seed=` on both bylines.
+- **Now**: `docs/systems/auth-accounts.md` (avatars' actual home per its own header) is still missing the seeded-avatar system fact — generator, `seedFor`, `Avatar`'s `seed` prop, the "one colour per person, never the raw id" rule. Not this lane's to write (not owned this round); `profiles-social.md` carries a narrow, correctly-scoped fact and points here.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `c973781f` ("seed-avatar r1 wired"); sync-merge commit `87cadbcf` (`origin/launch-prep` had moved: guest-wiring, glass-wiring, door-wiring and the ledger "stands" fix all landed while this lane worked); one commit after the sync, `f6188a4f`, landing the profile's duplicate paper pill onto `GLASS_MARK` now that glass-wiring merged first (his own manifest text: "whichever of this lane and glass-wiring lands second"). Pushed.
+- Gates on the synced, glass-swapped tree: design:rules ok, specimens ok (131 on 94 entries), typecheck ok, lint ok (8 known, 0 new), test ok (2923 passed, 1 skipped, one pre-existing failure confirmed byte-for-byte unrelated — `docs/tracks/guest-shape-r2.md` and `docs.test.ts` are identical to `origin/launch-prep`, neither touched by this lane), build ok (255 pages); `pnpm lab:smoke` ok (407 checks, 0 failing); `pnpm lab:demo --board seed-avatar` ok (0 steps — a comparison board, not a flow — every option draws).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the 13 owned paths' files (25 total, `src/lib/avatar/` new) plus three small additive exceptions, each listed with why: `src/lib/social/cards.ts` (`withAvatarUrls` hydrates `seed` alongside `avatarUrl` — the one place every `ProfileCardItem` caller, including files this lane cannot touch, gets a colour with zero changes of their own; `seed` is optional on the type so the retired `profile-page` sandbox board's `Chip[]` fixtures stay valid), `src/app/(app)/layout.tsx` (two lines: `seedFor(user.id)` computed and passed to `UserMenu` — without it the host's own dashboard menu never receives a seed at all), `src/lib/type-ladder-policy.test.ts` (this lane's own regression against an existing policy: the profile page's one pending avatar-initial exception went when its `<div>` became `Avatar size="xl"`; a new `relative` exception covers the same initial's `text-2xl`, now living in `avatar.tsx`). `rules/component-notes.ts` touched per the brief's own text (Avatar's `for` line, the moved `gradient.ts` entry, a new `seed.ts` entry) — own entries only.
+- The items, one line each:
+  - `look=diagonal` (overrules `orb`): kept, `Avatar`'s `seed` prop hardcodes it (round two on `look` alone stays open on the sandbox board, which re-exports the generator rather than owning it).
+  - `the-crowd=full`: kept — production never mutes a seed; every avatar that gets one gets it at full strength.
+  - `palette=wheel`: kept — `orbFor`'s own default, untouched.
+  - `letter=always`: kept — the fallback's initial child is unchanged by this lane; the seed only changes its ground and ink.
+  - `seed=account` + the variety guarantee: kept, `seedFor(profiles.id)` (SHA-256, `src/lib/avatar/seed.ts`); the crowd test now runs on a thousand real UUIDs on two paths (the generator alone, `gradient.test.ts`, and the full production pipeline through `seedFor`, `seed.test.ts`), each bucket held to both a floor (40) and a new ceiling (twice the mean).
+  - `after-upload=under`: kept — the root always paints, the fallback turns transparent so the colour shows through it, and `AvatarImage` (unconditionally `size-full`, no inset) simply covers the root once radix mounts it. No per-call `after` option in production; it is the only behaviour now.
+  - `motion=none`: kept — no animation code added anywhere in the wired path.
+  - The bug (found and fixed before any of the above): the root now clips (`overflow-hidden` + one `rounded-full`) and neither `AvatarImage` nor `AvatarFallback` carries its own radius; pinned by `avatar.test.tsx` and verified live in a real browser (DOM measurement, not just jsdom) against the one seeded account in the dev database.
+  - All seven land in the Library as the same entry: `/design/library/avatar` (the existing `Avatar` entry, enhanced, not a new one).
+- Calls his to overrule:
+  - The three the brief named: the 80px fourth size (`xl`, the profile identity row); the transparent fallback ground; the bucket bound (twice the mean).
+  - `/api/me/menu` returns a field named `seed` holding `seedFor(user.id)` (already hashed), not the raw `id` the brief's prose named — needed so the same person is provably one colour on every surface (a guest's own account menu and, say, their host dashboard) rather than raw-id-here, hashed-there. The guest's own id was already implicitly available to their own browser via the local Supabase session either way, so nothing new is exposed; only the field's exact shape differs from the brief's literal words.
+- The help articles this lane makes stale, one line each: `content/help/display-name-and-profile-photo.mdx` — "Tap Remove to go back to the plain initial" now understates it: removing a photo reveals the seeded colour, not a plain grey initial.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/u/willg` signed out (the one real profile in the dev database — the 80px identity-row avatar and the Host pill on its event card, both live); the `seed-avatar` board at `/design/lab/seed-avatar` for the full option comparison against today's grey.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `seed-avatar` r1 wired whole: the clipping bug fixed at the root first (one `overflow-hidden` clip, no radius on the children, verified live); the generator moved to `src/lib/avatar/` with `seedFor` (a server-side SHA-256) as the one function between an id and a seed, so a raw id never reaches a client that should not hold it. `Avatar` gains `seed?` and a fourth size, `xl` (80px, his to overrule); wired on both menus, the account form, the guest list, the profile owner mode and its identity row. The variety guarantee held against a thousand real UUIDs, a floor and a new ceiling; the profile's duplicate pill swapped onto `GLASS_MARK`, landing second past glass-wiring. Deferred: the two guest-side "Hosted by" bylines still want `seedFor(host_id)` (guest-wiring closed first); `auth-accounts.md` owes the fuller avatar fact. Gate green (2923 tests, 255 pages) but for one pre-existing, confirmed-unrelated docs test.
