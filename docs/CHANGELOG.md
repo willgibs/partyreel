@@ -54,8 +54,26 @@ rule); then his night instruction: the seats run all night on unexplored surface
   backdrop-filter as one flat colour) instead of a false FROZEN: they need a headed eye before his answers on them mean
   anything. The desk-wide demo green at 187 steps. Gate 40 green on the merged tree.
 
-**Next.** The five lanes' handoffs, `lab-tides`' merge and `overtaken`, the waiting four, the night's explorations; his
-eye on the alias in the morning.
+- **`voice-wiring` merged at `32861973`** (2026-09-20, Opus; cut `20cc9b5f`): the voice's eight ruled lines in
+  production and the board retired in the same lane. "No app, no account." became "No app required." verbatim on 27
+  production sites and the prose variants were rewritten in their own sentences under one rule now written in
+  `marketing-voice.ts` (a line that PROMISES a guest needs no account goes, a line that describes the per-event switch
+  truthfully stays, and the expensive case is the suggested host announcement in help and blog, three help articles
+  and four posts rewritten; `require-accounts-to-upload-explained` read end to end and already true). His hero sentence
+  landed whole; at 144 characters it pushed the composed meta description to 175, past the ~160 that gets read, so the
+  meta line is its own ruled copy (`SITE_DESCRIPTION_LINE`) with a pin. The Pro line single-sourced (`PRO_LINE`) with its
+  four siblings aligned video-first; both empty states in one voice (the album, "starts"); the gate on his adjusted
+  line; the toast untouched. The six feature h1s measured at 1440: `/features/album` is the one that wraps to three
+  lines (kept, since `feature-h1=today` ruled nothing moves; three two-line candidates in the calls). Calls his to
+  overrule on the alias: the meta line's own copy; two Pro-line alternates ("Video, and every event after this one." /
+  "Add video. Host as many events as you like."); the album h1 ("Every photo, from every guest." recommended); the
+  curation subhead left as it is (it already clarifies the good part); no phone trim of the hero sentence (four lines
+  at 375, the CTAs above the fold); the blog comparison table's "No account" column kept as category analysis; `llms.ts`'s
+  plan table shape kept; "No app, just your email." kept in the save and likes prompts as the register's model. Gate 41
+  green on the merged tree.
+
+**Next.** The other five lanes' handoffs, the waiting four, the night's explorations; his eye on the alias in the
+morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
 

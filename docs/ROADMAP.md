@@ -157,6 +157,8 @@ The app:
 - Bulk Restore-all and Empty-bin for the recovery bins; immediate hard-purge for egregious content in `/admin/albums`.
 - File-picker upload e2e reconfirm on a real device; the arrival choreography fine-tune on a real gated event, one round after the V1 phases.
 
+- From `voice-wiring` (2026-09-20): ten lab boards still on the desk draw the retired literal "No app, no account." in their fixtures (`app-door/welcome.tsx`, `app-shape/event.tsx`, `app-vocabulary/empty-states.tsx`, `demo-event/arrival.tsx`, `demo-event/doors.tsx`, `first-event/venue.tsx`, `guest-shape/door.tsx`, `help-center/fixtures.ts`, `help-center/who-first.tsx`, `site-chrome/foot.tsx`), so Will reads a line the batch ruled away; one sweep lane, or each board's wiring.
+- From `voice-wiring` (2026-09-20): `/features/album`'s h1 is the one of six that wraps to three lines at 1440 (44 characters in `max-w-3xl` at 80 px); `feature-h1=today` ruled nothing moves; the measured two-line candidates are in the CHANGELOG, his call.
 - From batch five (2026-09-20): the share surface has no `docs/systems/` home (host-app.md owns the designer and the slug, guest-flow.md the link) and the reel has none; `hub-wiring` writes the share surface into host-app.md; a reel doc once `reel-studio` is ruled.
 - From batch five: `app-door.surfaces` reads like `app-shape.you` (it asks about auth entry points, not the profile/account split); rename at its next touch.
 - From batch five: the six feature h1s at 1440 on `PageHero`'s `lg` scale (80 px in a load-bearing `max-w-3xl`) likely wrap to three lines, which Will dislikes; `voice-wiring` measures each and proposes shorter copy where they do, never the width.
