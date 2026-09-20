@@ -118,3 +118,37 @@ export async function pairThumbnailToFile(
 export function newPairId(): string {
   return crypto.randomUUID();
 }
+
+/**
+ * `try=turn` + `phone=pair`, decided (Will, the sixth batch, 2026-09-20): one
+ * slot directly above the album, never stacked, never for a real event. A
+ * pure function HERE rather than inline in event-experience.tsx on purpose —
+ * that component transitively imports a Next.js Server Action
+ * (live-gallery.tsx's `removeMyUploadGuestAction`), which drags in
+ * `server-only`-marked modules a plain Vitest run cannot resolve at all; this
+ * module already carries the lane's other pairing logic and needs nothing
+ * event-experience.tsx does, so the manifest's own contract ("the turn card
+ * only in the demo") is testable in isolation. Same reasoning as
+ * entry-steps.ts's own header comment about entry-modal.tsx.
+ */
+export type AboveAlbumState = "none" | "paired-phone" | "paired-laptop" | "turn";
+export function pickAboveAlbumState({
+  isDemo,
+  pairedAsPhone,
+  pairedArrivals,
+  demoUploaded,
+}: {
+  isDemo: boolean;
+  /** This tab sent at least one paired upload out ("It's on your laptop already"). */
+  pairedAsPhone: boolean;
+  /** This tab has received at least one paired arrival ("That one just came from your phone"). */
+  pairedArrivals: number;
+  /** This tab's own (real or simulated) upload queue has a completed item. */
+  demoUploaded: boolean;
+}): AboveAlbumState {
+  if (!isDemo) return "none";
+  if (pairedAsPhone) return "paired-phone";
+  if (pairedArrivals > 0) return "paired-laptop";
+  if (demoUploaded) return "turn";
+  return "none";
+}

@@ -6,9 +6,14 @@
  * REAL implementations under test, so only `@/lib/env` is faked.
  *
  * The `phone=pair` broadcast itself (a Supabase Realtime channel) is UI
- * wiring, pinned where it is driven (event-experience's own tests) — what's
- * pure and worth freezing here is the channel name, the event name, and the
- * two data-URL <-> File conversions the sender and receiver each run.
+ * wiring, verified live (this lane's Handoff) rather than pinned here — what's
+ * pure and worth freezing in this file is the channel name, the event name,
+ * the two data-URL <-> File conversions the sender and receiver each run, and
+ * `pickAboveAlbumState`: the manifest's own explicit ask ("the turn card only
+ * in the demo"), which lives here rather than in event-experience.tsx because
+ * THAT file transitively imports a Next.js Server Action
+ * (live-gallery.tsx's `removeMyUploadGuestAction`) that a plain Vitest run
+ * cannot resolve at all (see pickAboveAlbumState's own comment).
  */
 import { describe, expect, it, vi } from "vitest";
 
@@ -26,6 +31,7 @@ import {
   newPairId,
   pairChannelName,
   pairThumbnailToFile,
+  pickAboveAlbumState,
 } from "@/lib/demo";
 
 describe("pairChannelName", () => {
@@ -70,5 +76,51 @@ describe("pairThumbnailToFile", () => {
     const dataUrl = "data:image/jpeg;base64,dGVzdA==";
     const file = await pairThumbnailToFile(dataUrl, "custom.jpg");
     expect(file.name).toBe("custom.jpg");
+  });
+});
+
+describe("pickAboveAlbumState", () => {
+  const base = {
+    isDemo: true,
+    pairedAsPhone: false,
+    pairedArrivals: 0,
+    demoUploaded: false,
+  };
+
+  it("is never anything but none for a real event, whatever else is true", () => {
+    expect(
+      pickAboveAlbumState({
+        ...base,
+        isDemo: false,
+        pairedAsPhone: true,
+        pairedArrivals: 3,
+        demoUploaded: true,
+      }),
+    ).toBe("none");
+  });
+
+  it("is none for a fresh demo visit (no upload, no pairing)", () => {
+    expect(pickAboveAlbumState(base)).toBe("none");
+  });
+
+  it("is the turn card once this tab's own (simulated) upload lands", () => {
+    expect(pickAboveAlbumState({ ...base, demoUploaded: true })).toBe("turn");
+  });
+
+  it("is the laptop's line once a paired arrival lands, even with an unrelated own upload", () => {
+    expect(
+      pickAboveAlbumState({ ...base, demoUploaded: true, pairedArrivals: 1 }),
+    ).toBe("paired-laptop");
+  });
+
+  it("is the phone's line once this tab has sent a paired upload out", () => {
+    expect(
+      pickAboveAlbumState({
+        ...base,
+        demoUploaded: true,
+        pairedArrivals: 2,
+        pairedAsPhone: true,
+      }),
+    ).toBe("paired-phone");
   });
 });

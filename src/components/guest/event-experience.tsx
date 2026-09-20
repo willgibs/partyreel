@@ -44,6 +44,7 @@ import {
   newPairId,
   pairChannelName,
   pairThumbnailToFile,
+  pickAboveAlbumState,
   type DemoPairArrival,
 } from "@/lib/demo";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
@@ -344,15 +345,20 @@ export function EventExperience({
   // say more (the SAME moment, worded for a second screen); unpaired, the
   // plain turn card owns it. One slot, never stacked.
   const demoUploaded = isDemo && queue.some((it) => it.status === "done");
-  const aboveAlbum = !isDemo
-    ? null
-    : pairedAsPhone
-      ? <PairedPhoneLine />
-      : pairedArrivals > 0
-        ? <PairedLaptopLine />
-        : demoUploaded
-          ? <TurnCard />
-          : null;
+  const aboveAlbumState = pickAboveAlbumState({
+    isDemo,
+    pairedAsPhone,
+    pairedArrivals,
+    demoUploaded,
+  });
+  const aboveAlbum =
+    aboveAlbumState === "paired-phone" ? (
+      <PairedPhoneLine />
+    ) : aboveAlbumState === "paired-laptop" ? (
+      <PairedLaptopLine />
+    ) : aboveAlbumState === "turn" ? (
+      <TurnCard />
+    ) : null;
 
   return (
     <div
