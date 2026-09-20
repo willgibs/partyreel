@@ -55,6 +55,21 @@
       ],
       "notes": [],
       "items": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "pairs",
+          "choice": "step-up",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

@@ -71,6 +71,35 @@
         }
       ],
       "items": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "empty",
+          "choice": "wizard",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        },
+        {
+          "ask": "first",
+          "choice": "pulse",
+          "note": "I don't like prompting a single event share from the main dashboard separately rather than from the event itself.",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        },
+        {
+          "ask": "busy",
+          "choice": "collapsed",
+          "note": "However, I like 'just arrived' underneath the events. Notices & storage are more helpful above, more global and immediately helpful..",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

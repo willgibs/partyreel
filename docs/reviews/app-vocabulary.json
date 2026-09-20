@@ -55,6 +55,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "controls-home",
+          "choice": "view-menu",
+          "note": "If it's easier to have sort, filter, or more than one exclusive 'View' menu, that's okay. However, the rest of the options with everything visible at the top-level felt far too busy.",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

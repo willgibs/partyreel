@@ -56,6 +56,36 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "chrome",
+          "choice": "both",
+          "note": "I like this because you see the actions higher on the page when first landing, and then keep them visible as you continue.",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        },
+        {
+          "ask": "welcome",
+          "choice": "sheet",
+          "note": "Aligning to the bottom rather than centering as a modal gives much more blurred visual preview of the album awaiting above to incentivize/tease through the welcome gates.",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        },
+        {
+          "ask": "theirs",
+          "choice": "mark",
+          "note": "We could likely combine this new filter with the tile size filter to create a new parent dropdown, rather than just adding more and more configs here. This would be more scalable as we progress.",
+          "by": "Will",
+          "at": "2026-09-20T22:58:23Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
