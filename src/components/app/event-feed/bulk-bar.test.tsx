@@ -155,6 +155,54 @@ describe("BulkBar", () => {
     expect(src).toContain("motion-reduce:active:scale-100!");
   });
 
+  it("slides the tooltip in the direction of travel, and only fades the first one", () => {
+    // Radix opens a tooltip on focus as well as hover, and jsdom's fireEvent
+    // reflects that reliably (unlike a hand-dispatched PointerEvent sequence,
+    // which raced Radix's own state machine when checked live in Chrome —
+    // documented in the manifest's Handoff rather than fought here).
+    render(
+      <BulkBar
+        count={2}
+        allSelected={false}
+        onSelectAll={() => {}}
+        onCancel={() => {}}
+        actions={actions(() => {})}
+      />,
+    );
+    const like = screen.getByRole("button", { name: "Like" });
+    const del = screen.getByRole("button", { name: "Delete" });
+    const cancel = screen.getByRole("button", { name: "Cancel selection" });
+
+    const openTip = () =>
+      [...document.querySelectorAll('[data-slot="tooltip-content"]')].find(
+        (el) => el.getAttribute("data-state")?.includes("open"),
+      );
+
+    fireEvent.focus(like);
+    expect(openTip()?.getAttribute("data-motion"), "nothing to slide from yet").toBeNull();
+
+    fireEvent.blur(like);
+    fireEvent.focus(del);
+    expect(openTip()?.textContent).toContain("Delete");
+    expect(openTip()?.getAttribute("data-motion"), "rightward: in from the end").toBe(
+      "from-end",
+    );
+
+    fireEvent.blur(del);
+    fireEvent.focus(like);
+    expect(openTip()?.getAttribute("data-motion"), "leftward: in from the start").toBe(
+      "from-start",
+    );
+
+    fireEvent.blur(like);
+    fireEvent.focus(cancel);
+    expect(openTip()?.textContent).toContain("Cancel selection");
+    expect(
+      openTip()?.getAttribute("data-motion"),
+      "Cancel sits after every action, so arriving from Like is still rightward",
+    ).toBe("from-end");
+  });
+
   it("gates the rich sliding tooltip behind a hydrated flag that starts false", () => {
     // architecture.md: SSR'd radix Tooltips on gallery actions silently broke
     // prod hydration once already. The fix here is structural — no Tooltip

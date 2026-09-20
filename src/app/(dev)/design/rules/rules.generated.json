@@ -1211,12 +1211,20 @@
           "line": 149
         },
         {
-          "title": "gates the rich sliding tooltip behind a hydrated flag that starts false",
+          "title": "slides the tooltip in the direction of travel, and only fades the first one",
           "suite": [
             "BulkBar"
           ],
           "file": "src/components/app/event-feed/bulk-bar.test.tsx",
           "line": 158
+        },
+        {
+          "title": "gates the rich sliding tooltip behind a hydrated flag that starts false",
+          "suite": [
+            "BulkBar"
+          ],
+          "file": "src/components/app/event-feed/bulk-bar.test.tsx",
+          "line": 206
         }
       ]
     },
