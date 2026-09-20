@@ -117,22 +117,17 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     line: "stands: the app owns a real table now, which makes one dense table here cheaper than it was when this was drawn.",
   },
 
-  /* ── app-door ────────────────────────────────────────────────────────── */
-  "app-door.surfaces": {
-    ...APP_SHAPE,
-    ruling: "the personal lives on the profile page and money on the account page",
-    line: "stands: this asks how many sign-in surfaces there are, not how many account pages, so the You ruling passes it by.",
-  },
-  "app-door.welcome": {
-    ...APP_SHAPE,
-    ruling: "the dashboard opens on what needs you, then what just arrived",
-    line: "stands: the pulse gives the dashboard a designed empty state, which is where name-and-straight-in always wanted the tour.",
-  },
-  "app-door.page": {
-    ...APP_SHAPE,
-    ruling: "one responsive sheet is the product's overlay everywhere",
-    line: "stands: the sheet is ruled vocabulary and free to build, so the photographs beside the door must earn their column against it.",
-  },
+  /* ── app-door ────────────────────────────────────────────────────────────
+   * Round one's `surfaces`, `welcome` and `page` were badged here (all
+   * "stands"); round two replaces round one's seven asks with one, `tour`
+   * ("a round replaces its questions rather than accreting them", spec.ts),
+   * so all three questions this section badged are gone from the board's own
+   * walk. The ledger keeps his "stands" answers for ever
+   * (docs/reviews/app-door.json once transcribed); this file only holds a
+   * badge on a QUESTION STILL ASKED, and none of the three still is
+   * (overtaken.test.ts, "the one failure this exists to catch"). Removed by
+   * `welcome-tour`, the lane that retired the asks, rather than left dangling
+   * for whichever lane happened to run the suite next. */
 
   /* ── app-pricing ─────────────────────────────────────────────────────── */
   "app-pricing.doors": {
