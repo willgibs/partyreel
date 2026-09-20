@@ -8,21 +8,33 @@ import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 
-// The "Invite" action (Part 2 redesign): one compact button in the header action row
-// that opens a dialog holding everything share-related — the event QR (host's chosen
-// qr_style), Copy link, native Share, and Download. The QR no longer sits inline
-// mid-page (that split upload from the gallery); folding it behind one trigger keeps
-// upload + gallery contiguous. The join link IS the capability: recipients land on
-// /e/[qr_token] and can view + add photos (whatever the configs allow).
+/**
+ * The "Invite" action: one compact button in the action row that opens
+ * everything share-related — the event QR (the host's chosen `qr_style`), Copy
+ * link, native Share and Download. The QR has never sat inline mid-page (that
+ * split upload from the gallery); folding it behind one trigger keeps upload
+ * and gallery contiguous. The join link IS the capability: recipients land on
+ * /e/[qr_token] and can view and add photos (whatever the configs allow).
+ *
+ * ★ IT WEARS THE ONE PRODUCT SHEET NOW (Will, `dialogs=stands`, 2026-09-20 —
+ * "the earlier ruling stands", the earlier ruling being `settings=sheet`'s "we
+ * likely want to apply this sheet concept everywhere"). It was a centred
+ * Dialog, which on a phone is a box floating in the middle of the screen with
+ * the album showing around it, while the host's sharing, the settings and the
+ * guest's own gate all arrive from an edge. `responsive` is the whole change: a
+ * side panel at a desk, a bottom sheet in a hand, one primitive. Nothing is
+ * typed in here, so this migration carries none of the keyboard risk the
+ * Report sheet next door does.
+ */
 export function GuestShare({
   joinUrl,
   qrStyle,
@@ -70,8 +82,8 @@ export function GuestShare({
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button
           type="button"
           variant="outline"
@@ -83,16 +95,18 @@ export function GuestShare({
         >
           <Share2 /> Invite
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-xs">
-        <DialogHeader>
-          <DialogTitle>Invite guests</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent responsive className="overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Invite guests</SheetTitle>
+          <SheetDescription>
             Share the link or let them scan the code to join {eventName} and add
             photos.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col items-center gap-4">
+          </SheetDescription>
+        </SheetHeader>
+        {/* The body carries its own padding (SheetHeader owns the top): a panel
+            runs to its own edges, where the dialog box this replaced did not. */}
+        <div className="flex flex-col items-center gap-4 px-4 pb-6">
           <div className="rounded-xl bg-white p-3">
             <StyledQr
               ref={enlargedQr}
@@ -134,7 +148,7 @@ export function GuestShare({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
