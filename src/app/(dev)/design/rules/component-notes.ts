@@ -537,6 +537,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/app/(dev)/design/sandbox/registry.ts": {
     for: "every standing board's spec, imported here and nowhere else, so the desk, the board page and the ledger read one list",
   },
+  "src/app/(dev)/design/sandbox/overtaken.ts": {
+    for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
+  },
   "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",
   },
