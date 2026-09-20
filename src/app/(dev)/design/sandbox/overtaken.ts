@@ -169,23 +169,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
 
   /* ── admin ───────────────────────────────────────────────────────────── */
-  "admin.home": {
-    ...APP_SHAPE,
-    ruling: "the host's home opens on what needs you, then what just arrived",
-    line: "stands: the host home is now a ranked pulse, which makes the operator's console the same idea rather than a second one.",
-  },
-  "admin.chrome": {
-    ...APP_SHAPE,
-    ruling:
-      "the app's bar carries a crumb trail: Partyreel, the event, the room",
-    line: "stands: the crumb is the product's own bar now, so the tool bar's breadcrumb is shared vocabulary and not a departure.",
-  },
-  "admin.density": {
-    ...APP_SHAPE,
-    ruling:
-      "the events list gains a sortable row and table view behind a toggle",
-    line: "stands: the app owns a real table now, which makes one dense table here cheaper than it was when this was drawn.",
-  },
 
   /* ── app-door ────────────────────────────────────────────────────────── */
   "app-door.surfaces": {
