@@ -14,3 +14,7 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `make-manifests.py <cut-sha> [tracks]`: the lane manifests generated from the plan file's Lane sections with
   disjoint `owns`.
 - `spawn-prompt.txt`: the agent spawn prompt with `{track}`, `{port}`, `{model}` placeholders.
+- `batch-reader.mjs` (`< batch.txt`, `--json`, or `--board <id>`): a review paste read beside the boards it answers:
+  each verdict's question, the chosen option's label and meaning, confirms or overrules the recommendation, what it
+  lands, his note verbatim; the specs parsed with TypeScript, never imported. The transcript tool judges the paste;
+  this says what it means, so lanes are cut from the boards' own words.
