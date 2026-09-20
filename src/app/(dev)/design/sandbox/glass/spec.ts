@@ -2,38 +2,59 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * GLASS, ROUND ONE: THE APP'S CHROME OVER PHOTOGRAPHS (2026-09-18).
+ * GLASS, ROUND TWO: THE ONE MATERIAL (2026-09-20).
  *
- * Will banked this by name when he declined a one-off glass panel on the
- * floating layer: "I prefer not to create a one-off instance of glass here.
- * Rather, let's bank a near-term agent for a dedicated Glass exploration across
- * marketing and app so it feels more infused to our product. Glass + aurora
- * atmospheric feels like a beautifully complementary identity for a
- * media-forward product" (2026-09-17). His steer the next evening set this
- * round's shape: the app's media chrome first (the lightbox's pills, the
- * masonry's chips, the reel overlay), marketing in round two, and glass drawn
- * on both grounds and asked separately, never as a package.
+ * Round one answered whole (docs/reviews/glass.json; verbatim in
+ * docs/design/rulings.md, the fifth batch). Six of its seven asks are ruled and
+ * wire after this round: `grades=one`, `behind=album`, `tiles` by his own rule,
+ * `reel=white`, `row=bar`, `paper=dark`. Only the recipe comes back, and it
+ * comes back joined to the reel's answer, because two of his notes are really
+ * one question:
  *
- * So the material is decided ONCE, on the one surface that holds every kind of
- * chrome at once, and then each surface is asked what it does with the winner.
- * Six of the seven wait on the recipe and nothing else, so after the first
- * question they can be taken in any order.
+ *  - `recipe=frost`: "It was between this and Crystal. This one because it's a
+ *    bit darker and keeps an active icon a bit more visible, but I also liked
+ *    the Crystal's double edge for more contrast in any situation. Maybe worth
+ *    a second round of exploration to clarify, so we can nail our glass from
+ *    the start."
+ *  - `reel=white`: "May be worth exploring making this the standard - I don't
+ *    want to have separate glass treatments and would prefer to find a global
+ *    that works everywhere... It probably would have looked better on the
+ *    mobile media card icon background glass as well."
  *
- * ★ EVERY NUMBER ON THIS BOARD IS MEASURED. The contrast figures come from
- * screenshotting the rendered pill over each photograph and reading its pixels;
- * the cost figures come from Chrome's own compositor trace over a three second
- * scroll of forty tiles at 375, DPR 3, with the CPU throttled four times. The
- * method and the harness are named in the frame captions, and where the words
- * and a caption disagree the caption is the truth.
+ * ★ SO THE ROUND ASKS ONE MATERIAL ON EVERY GLASS SURFACE AT ONCE. Round one's
+ * shape (a question per surface) is what let white win on one screen and never
+ * be drawn on the others; a global cannot be judged a screen at a time. Every
+ * option is the six surfaces in one frame, and flipping between three materials
+ * in the same position is the instrument, which is why no `tile` is declared:
+ * the step's flip mode is the comparison.
+ *
+ * ★ THE BODY AND THE EDGE ARE TWO DECISIONS, BECAUSE HIS NOTE WAS TWO
+ * JUDGEMENTS. "A bit darker" is the body; "the Crystal's double edge" is the
+ * edge. Folded into one set of options they force the compromise he has already
+ * said he does not want, so the bodies are drawn with their native edges (what
+ * he actually saw in round one) and `edge` then re-asks the hairlines on the
+ * winner. Frost's darkness wearing Crystal's double edge is two presses away.
+ *
+ * ★ AND THE ACTIVE ICON IS MEASURED FOR THE FIRST TIME. His first reason for
+ * picking Frost was that it "keeps an active icon a bit more visible", and no
+ * round has drawn an active icon, let alone read one off a screen. `measured.ts`
+ * now carries the rose `--like` mark's contrast against each material on each
+ * photograph, beside white's first contrast and cost figures. Where the words
+ * above a frame and the caption under it disagree, the caption is the truth.
+ *
+ * ★ ROUND ONE'S SEVEN ASKS ARE GONE FROM `asks` ON PURPOSE (the `privacy-hero`
+ * and `profile-page` precedent: a round replaces its questions rather than
+ * accreting them). The ledger keeps their answers for ever, the RULINGS row
+ * names them as ruled, and the board carries only what is still open.
  */
 
 /**
- * THE GROUND, one knob every decision shares: the photograph the chrome sits
- * on. Glass is easy over a dark photograph and hard over a bright one, and the
+ * THE GROUND, one knob both decisions share: the photograph the chrome sits on.
+ * Glass is easy over a dark photograph and hard over a bright one, and the
  * repo's twelve stills run from a mean luminance of 50 to 176, so the same
- * recipe has to be seen on both ends. The dark one is the darkest the repo
- * holds; ASSETS row 14 (the low-key menu ground) is still parked for the
- * Higgsfield month.
+ * material has to be seen on both ends. The bright one is where the three
+ * separate, and it is the one to look at first; the dark one opens the board
+ * because it is the world he judged round one in.
  */
 const GROUND: Control = {
   id: "ground",
@@ -46,284 +67,142 @@ const GROUND: Control = {
   default: "dark",
 };
 
+/**
+ * THE SCREEN. Declared here as pure data rather than imported from the board's
+ * scene: a spec is what a SERVER page reads, and a control lifted out of a
+ * client module drags that module's tree along with it. 375 opens the board
+ * because the two surfaces his notes named by hand (the mobile card, the reel)
+ * are phone surfaces, and because a phone is what pays for a backdrop filter.
+ */
+const SCREEN: Control = {
+  id: "screen",
+  label: "Screen",
+  options: [
+    { id: "375", label: "375, a phone" },
+    { id: "1440", label: "1440, a laptop" },
+  ],
+  default: "375",
+};
+
 const DRAFT = defineExploration({
   id: "glass",
   title: "Glass",
   round: {
-    n: 1,
-    date: "2026-09-18",
+    n: 2,
+    date: "2026-09-20",
     changed:
-      "The first round, on the app's chrome over photographs: the material itself on the lightbox's pill, then what each media surface does with it, with the light ground asked on its own step.",
+      "Six of round one's seven asks are ruled and wire after this. Only the recipe returns, with the reel's white folded into it: one material, drawn on all six glass surfaces in one frame, because you asked for a global that works everywhere rather than separate treatments.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-18",
+      changed:
+        "Seven decisions on the app's chrome over photographs: the recipe on the lightbox's pill, one grade or two, what sits behind the photograph, the chips over tiles, the reel's controls, the host's row, and the light ground.",
+    },
+  ],
   context:
-    "There is no translucent surface in the system today: the one that existed was retired when the card went opaque, and the floating layer refuses a backdrop filter until this round rules. What the app does have is faint glass nobody decided: a 55 percent black behind the lightbox's pills, 40 percent behind every tile chip, 12 percent white behind the reel's controls. This board makes it one material and asks where it goes.",
-  bible: [1, 4, 10, 15],
+    "You picked Frost, said it was between that and Crystal for its double edge, then picked the reel's white pane and asked whether white should be the standard everywhere. Nothing has ever measured the thing your first reason names: how visible an active icon stays on each pane. This round measures it on three photographs, beside white's first contrast and cost numbers.",
+  bible: [1, 4, 9, 10, 15],
+  carried: [
+    {
+      id: "sheet",
+      question:
+        "One frame holding all six surfaces, instead of round one's six screens?",
+      taken:
+        "One sheet: a material that wins on the lightbox and loses on a card is not a global.",
+      overrule:
+        "A screen per surface again, and the comparison happens in your memory between steps.",
+    },
+    {
+      id: "add-pill",
+      question: "Should the guest's Add photos pill join the glass system?",
+      taken:
+        "Drawn in the material in every option, so the pane is judged carrying the app's loudest action.",
+      overrule:
+        "It stays a solid primary pill and the sixth cell is a reference the material never has to survive.",
+    },
+  ],
   asks: [
     {
-      id: "recipe",
-      label: "The recipe",
-      question: "How much glass should a surface you press be?",
+      id: "material",
+      label: "The material",
+      question: "Which one material should every glass surface in the app be?",
       context:
-        "The lightbox's action pill over a photograph at 1440. Today it is a flat 55 percent black with an 8px blur. Each option is named in its numbers; the caption under the frame says what its white text measured at.",
+        "Six surfaces in one frame: the lightbox's action pill over the blurred album, a mobile card's three permitted marks, the reel's controls over playing video, the host's row as a bar, a chip on paper, and the guest's Add pill.",
       lands:
-        "The material every glass surface in the app wears, and the quiet grade derived from it.",
+        "The one --glass-* token set and the single utility every glass surface in the app wears.",
       options: [
         {
-          id: "today",
-          label: "Today: 8px blur, 55 percent black",
-          means:
-            "The shipped pill. Legible over anything, and the photograph behind it goes dark and flat.",
-        },
-        {
-          id: "veil",
-          label: "Veil: 16px blur, the backdrop at 0.62",
-          means:
-            "Darkened rather than painted over, so the photograph's colour survives. Reads as tinted air more than as a pane.",
-        },
-        {
           id: "frost",
-          label: "Frost: 26px blur, 0.55, a bright top edge",
+          label: "Frost: 12 percent black, as ruled",
           means:
-            "A wide blur, more saturation and a 16 percent highlight on the upper lip, so the pill reads as a physical pane.",
+            "The one you picked, unchanged: a wide blur over a backdrop taken to 0.55, and one bright lip along the top.",
         },
         {
           id: "crystal",
-          label: "Crystal: 42px blur, 4 percent black, two edges",
+          label: "Crystal: 4 percent black, two edges",
           means:
-            "Almost no tint, and a hairline all the way round. The most photograph, and the one that loses its small text.",
+            "Almost no tint and a hairline all the way round, so the pane separates by its edges rather than by its darkness.",
+        },
+        {
+          id: "white",
+          label: "White: Frost's filter, a white tint",
+          means:
+            "The reel's class everywhere. The same blur, the same backdrop, the same alpha, its colour turned white, so the pane lifts the photograph instead of sinking it.",
         },
       ],
       recommended: "frost",
       because:
-        "It is the most glass of the four that keeps its text. Measured on the preview itself, its worst twelfth reads 5.2 to 1 over the middling photograph where Veil reads 4.6 and Crystal falls to 3.7, under the 4.5 small text asks for.",
+        "Your first reason, measured: the rose active mark on a card reads 5.3:1 on Frost, 4.4 on Crystal and 3.6 on White. All three carry white text on every photograph, and all three cost the same to scroll, so legibility is the only axis left.",
       overrule:
-        "If the pane should be felt rather than seen, Veil costs a little less and reads as tinted air rather than as glass.",
-      configs: [GROUND],
+        "White never darkens a photograph and still reads 10.6:1 on the reel: pick it if the active mark can be redrawn rather than lit by the pane.",
+      configs: [GROUND, SCREEN],
     },
     {
-      id: "grades",
-      label: "The grades",
-      question: "One grade of glass, or two?",
-      after: { ask: "recipe" },
+      id: "edge",
+      label: "The edge",
+      question: "How should a pane separate from the photograph under it?",
+      after: { ask: "material" },
       context:
-        "The same lightbox, wearing the recipe you picked. The action pill is pressed; the attribution pill, the close and the two arrows are only read. Two grades halves the blur on everything read-only and drops its edges.",
+        "The material you just picked, wearing three edges on the same six surfaces. Your note kept two judgements apart: Frost because it is darker, Crystal for its double edge. This is the second one, on whichever body won.",
       lands:
-        "Whether the system carries one glass material or two, on every surface that wears it.",
+        "The hairlines on every glass surface, and whether the material carries one at all.",
       options: [
         {
-          id: "two",
-          label: "Two: a quiet grade for anything read-only",
+          id: "lip",
+          label: "One bright lip along the top",
           means:
-            "Half the blur, no edges, a little more tint. Derived from the recipe, so picking a recipe moves both at once.",
+            "Frost's edge: a 16 percent highlight where light would land on the pane's upper lip, and nothing else.",
         },
         {
-          id: "one",
-          label: "One: every surface wears the full recipe",
+          id: "double",
+          label: "The lip taken up, and a hairline all round",
           means:
-            "One material to hold and one line in the Library. Every badge on a page of photographs becomes a pane.",
+            "Crystal's edge on the body that won: a 28 percent lip plus a 10 percent hairline, so the pane has an outline wherever it sits.",
+        },
+        {
+          id: "none",
+          label: "No hairline at all",
+          means:
+            "The material separates by its own darkness or lightness. The quietest pane, and the one that can disappear into a bright photograph.",
         },
       ],
-      recommended: "two",
+      recommended: "double",
       because:
-        "A badge you read and a pill you press are different jobs, and drawing both as full panes turns an album into a stack of glass. The quiet grade also measured about 5 percent cheaper across a phone scroll.",
+        "Your reason for looking twice at Crystal, measured: over the middling photograph a pane with no hairline loses 41 percent of its outline into the picture, one lip recovers it to 81 percent, and the double edge holds 97.",
       overrule:
-        "If the two read as an inconsistency rather than as a hierarchy, one material is the simpler system to hold.",
-      configs: [GROUND],
-    },
-    {
-      id: "behind",
-      label: "Behind the photograph",
-      question: "What should sit behind the photograph in the lightbox?",
-      after: { ask: "recipe" },
-      context:
-        "Opening a photograph drops a 90 percent black wall over the album today, so the room it came from disappears. Glass keeps the album, blurred, underneath. Drawn at 1440 with the album really there.",
-      lands:
-        "The lightbox's overlay on both galleries, and any full-screen media takeover after it.",
-      options: [
-        {
-          id: "album",
-          label: "The album, blurred, at half brightness",
-          means:
-            "The room stays, softened, so a photograph reads as lifted out of the album rather than as a new screen.",
-        },
-        {
-          id: "dim",
-          label: "The album, blurred and taken down further",
-          means:
-            "The same pane at 28 percent brightness, so the album is a texture behind the photograph rather than a picture.",
-        },
-        {
-          id: "wall",
-          label: "Today: a 90 percent black wall",
-          means:
-            "The album goes. Nothing competes with the photograph, and opening one feels like leaving the page.",
-        },
-      ],
-      recommended: "album",
-      because:
-        "It is the glass moment the whole identity is for, and it costs almost nothing: one full-screen pane measured a seventh of what the tile chips already pay. At half brightness the album is soft colour beside the photograph and never pulls at it.",
-      overrule:
-        "If a busy album still pulls at the photograph, the dimmed pane keeps its texture without its colour and the wall is the honest fallback.",
-      configs: [GROUND],
-    },
-    {
-      id: "tiles",
-      label: "The tiles",
-      question: "What should the chips over gallery tiles be, on a phone?",
-      after: { ask: "recipe" },
-      tile: "phone",
-      context:
-        "The host's grid at 375: a like and a save over every tile, a play badge on videos, a like count. The guest's album carries the same family. This is where a phone pays for glass, forty tiles at a time.",
-      lands:
-        "Every chip over a gallery tile: the guest album's, the host's grid, the review queue, Uploads.",
-      options: [
-        {
-          id: "quiet",
-          label: "The quiet grade",
-          means:
-            "Half the blur and no edges. Still glass, and the chips stay chips rather than becoming the album's texture.",
-        },
-        {
-          id: "full",
-          label: "The full recipe on every chip",
-          means:
-            "One material everywhere, at its full strength, on the surface a guest sees more than any other.",
-        },
-        {
-          id: "flat",
-          label: "Flat: the tint, no blur at all",
-          means:
-            "No backdrop filter on a tile. Measured about seventeen times cheaper than any glass, and it gives up the material here.",
-        },
-      ],
-      recommended: "quiet",
-      because:
-        "Every chip is its own blurred region and a phone scrolls hundreds of them: the quiet grade drew 169ms of compositor work over a three second scroll where the full recipe drew 177 and today's chip drew 127.",
-      overrule:
-        "If a real phone drops frames on this screen, flat is the only option that costs nothing and the tiles leave the glass system.",
-    },
-    {
-      id: "reel",
-      label: "The reel's controls",
-      question:
-        "Over a playing reel, should the controls be dark glass or white?",
-      after: { ask: "recipe" },
-      tile: "phone",
-      context:
-        "The guest's reel at 375. Its Share button and its close are the only white chrome in the product (a 12 percent white with an 8px blur), sitting beside a solid white Download. The backdrop moves every frame.",
-      lands:
-        "The reel overlay's controls, and any chrome over playing video after it.",
-      options: [
-        {
-          id: "dark",
-          label: "The recipe, as everywhere else",
-          means:
-            "One material across the app. The row reads as two weights of the same button rather than as two materials.",
-        },
-        {
-          id: "white",
-          label: "White glass, as today",
-          means:
-            "The recipe's filter with a white tint, so the pair reads as one solid white button beside one you can see through.",
-        },
-        {
-          id: "flat",
-          label: "Flat: 12 percent white, no blur",
-          means:
-            "Today's tint without its blur. Nothing is filtered over a moving backdrop, which is the cheapest thing a reel can do.",
-        },
-      ],
-      recommended: "dark",
-      because:
-        "Bible 1 keeps the chrome achromatic and every other surface in the app is dark; one white material here is an exception with no reason behind it, and beside a solid white Download the two read as a pair.",
-      overrule:
-        "If Share and Download should read as one family of buttons rather than as two weights, white keeps them together.",
-    },
-    {
-      id: "row",
-      label: "The host's row",
-      question:
-        "On the host's grid, three panes over a photograph or one bar holding three?",
-      after: { ask: "recipe" },
-      context:
-        "The host's gallery at 1440, every tile's action row drawn as if hovered, which is how the product reveals it. Three controls: like, save, hide.",
-      lands:
-        "The host's tile row, and the shape any group of glass controls takes over a photograph.",
-      options: [
-        {
-          id: "bar",
-          label: "One bar holding three glyphs",
-          means:
-            "One pane per tile. It reads as one control with three jobs, and it is one blurred region instead of three.",
-        },
-        {
-          id: "chips",
-          label: "Three separate panes",
-          means:
-            "The shape the product ships, in the new material: three discs, each its own pane over the photograph.",
-        },
-        {
-          id: "today",
-          label: "Today: three chips at 40 percent black",
-          means:
-            "The shipped row untouched, so the grid is the one surface that does not join the glass system.",
-        },
-      ],
-      recommended: "bar",
-      because:
-        "Measured over a scroll of the host's grid, one bar drew 40 percent less compositor work than three discs of the same material, and three panes stacked over one photograph is the thing that makes glass look applied rather than designed.",
-      overrule:
-        "If the three actions need to read as three separate targets, the discs keep them apart.",
-      configs: [GROUND],
-    },
-    {
-      id: "paper",
-      label: "On paper",
-      question:
-        "On the app's light theme, what should chrome over a photograph be?",
-      after: { ask: "recipe" },
-      context:
-        "The dashboard's event cards over their covers, with a gallery under them, on the light token set. One control there already follows the theme (the card's remove button); every other chip over a photograph stays dark.",
-      lands:
-        "Every glass surface over media on the app's light theme, and the rule the wiring writes for it.",
-      options: [
-        {
-          id: "dark",
-          label: "Dark glass, whatever the theme",
-          means:
-            "Chrome over a photograph belongs to the photograph, not to the page, so it never changes when the theme does.",
-        },
-        {
-          id: "paper",
-          label: "Paper glass, following the theme",
-          means:
-            "A white pane that lifts the photograph rather than sinking it, with ink glyphs and a hairline instead of a bright edge.",
-        },
-        {
-          id: "edge",
-          label: "Dark glass with a brighter edge",
-          means:
-            "The dark material, its highlight taken up so the pane still separates from a pale photograph on a pale page.",
-        },
-      ],
-      recommended: "dark",
-      because:
-        "A control sitting on a photograph reads against the photograph, not against the page behind it, and the album is the one surface the system already keeps dark in both themes. The dashboard's remove button is the exception that proves it, not a precedent.",
-      overrule:
-        "If dark chrome on a pale page reads as a hole punched in the card, paper glass is the answer and the remove button was right.",
-      configs: [GROUND],
+        "If two hairlines read as a drawn outline rather than as light on a pane, the single lip holds 81 percent and is the quieter one.",
+      configs: [GROUND, SCREEN],
     },
   ],
 });
 
 /**
- * ★ ONE GROUND KNOB, NOT FIVE. `defineExploration` flattens every decision's
- * `configs` into the board's controls, so a knob five decisions share arrives
- * five times: the dock would draw it five times and React would warn about the
- * duplicate key. Each decision keeps it on its strip, which is what `configs`
- * is for; the board declares it once. The gallery-width board found this first
- * and left the same note: a finding for the constructor, which could dedupe by
- * id itself.
+ * ★ ONE GROUND KNOB, NOT FOUR. `defineExploration` dedupes a shared config by
+ * id since `lab-tides` (2026-09-19), so this filter is now belt and braces:
+ * deduping twice is deduping once, and the board keeps it because the
+ * constructor's guarantee is the kind of thing a refactor takes away quietly.
  */
 export const GLASS: typeof DRAFT = {
   ...DRAFT,

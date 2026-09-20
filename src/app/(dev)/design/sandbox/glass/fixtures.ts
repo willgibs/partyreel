@@ -22,6 +22,8 @@ export const GROUNDS = {
   dark: {
     id: "concert-confetti",
     label: "The darkest",
+    /** The label without its article, for a caption that reads as a sentence. */
+    short: "darkest",
     /** Mean luminance of the decoded image, 0 to 255. */
     luma: 50,
     note: "the darkest photograph the repo holds (ASSETS row 14 is still parked)",
@@ -29,12 +31,14 @@ export const GROUNDS = {
   mid: {
     id: "party-dj",
     label: "A middling one",
+    short: "middling",
     luma: 100,
     note: "half lit, half dark: a disco ball over a packed floor",
   },
   bright: {
     id: "wedding-arch",
     label: "The brightest",
+    short: "brightest",
     luma: 176,
     note: "open sky behind pale florals: where a transparent pane loses its text",
   },
@@ -76,6 +80,15 @@ export type Tile = {
   kind: "photo" | "video";
   liked: boolean;
   likes: number;
+  /**
+   * `object-position` for a tile that has been re-pointed at the ground
+   * photograph. The marked cards all follow the knob, and three identical
+   * crops of one still side by side read as a rendering bug rather than as an
+   * album, so each takes a different part of the same picture, which is also
+   * what makes the mark's contrast a reading of the photograph rather than of
+   * one lucky corner of it.
+   */
+  at?: string;
 };
 
 /**
@@ -116,6 +129,64 @@ export const ALBUM: Tile[] = [...ROLL].map((letter, i) => {
     likes: i % 4 === 1 ? (i % 11) + 2 : 0,
   } satisfies Tile;
 });
+
+/**
+ * ★ THE THREE MARKS HIS RULE PERMITS, PINNED RATHER THAN LEFT TO AN INDEX
+ * (round two). `tiles=?` was answered by Will himself (2026-09-20): "Having
+ * icons visible on every image card on mobile is going to get way too crowded
+ * and overwhelming immediately. Aside from an active like icon (not unliked to
+ * perform the action), a video play icon (to denote video from picture), or a
+ * like count (design to be more subtle)... let's handle all actions and
+ * controls in the lightbox controls."
+ *
+ * The mobile card is therefore a STATE surface, and those three states are the
+ * only glass a guest meets forty times a screen. `ALBUM`'s modular arithmetic
+ * puts them wherever it puts them, which is right for a scroll and useless for
+ * a cell four tiles tall, so these four are chosen: the first column a reviewer
+ * sees carries an active like mark, a play mark and a like count, and nothing
+ * else. One of them is unmarked on purpose, because the rule's real claim is
+ * how QUIET the surface becomes.
+ */
+export const MARKS: Tile[] = [
+  // Column one, top: the densest state the rule permits, an active like mark
+  // and a count on one card, which is the crowding he was worried about.
+  {
+    ...ALBUM[0],
+    id: "gl-mark-0",
+    ratio: "3 / 4",
+    liked: true,
+    likes: 24,
+    kind: "photo",
+    at: "50% 40%",
+  },
+  {
+    ...ALBUM[1],
+    id: "gl-mark-1",
+    ratio: "4 / 5",
+    liked: false,
+    likes: 0,
+    kind: "photo",
+  },
+  // Column two, top: the video mark, the only one that is not about liking.
+  {
+    ...ALBUM[2],
+    id: "gl-mark-2",
+    ratio: "4 / 5",
+    liked: false,
+    likes: 0,
+    kind: "video",
+    at: "12% 55%",
+  },
+  {
+    ...ALBUM[3],
+    id: "gl-mark-3",
+    ratio: "3 / 4",
+    liked: true,
+    likes: 0,
+    kind: "photo",
+    at: "88% 30%",
+  },
+];
 
 /** The event every scene names. */
 export const EVENT = {

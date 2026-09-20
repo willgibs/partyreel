@@ -1517,26 +1517,21 @@ export const RULINGS: Ruling[] = [
     title: "Glass",
     surface: "shared",
     ruled:
-      'open (Will, 2026-09-17: "bank a near-term agent for a dedicated Glass exploration across marketing and app so it feels more infused to our product"; 2026-09-18: the app\'s media chrome first, both grounds asked separately)',
+      "round one ruled whole (Will, 2026-09-20, the fifth batch): six of its seven asks stand and wire after this round (one grade of glass, the album blurred behind the lightbox, his own rule for a mobile card's marks, white on the reel, the host's row as one bar, dark glass on paper). Round two is open on the recipe alone, joined to the reel's white and asked as the ONE material: his ask by name, \"Maybe worth a second round of exploration to clarify, so we can nail our glass from the start\"",
     shipped: null,
-    why: "The system has no translucent surface and the app has faint glass nobody decided; round one makes it one material and asks which media surfaces wear it, on each ground.",
+    why: "Round two asks one material on all six glass surfaces at once, with the active icon's contrast measured for the first time; the wiring lane follows its ruling.",
     lives: [
       "src/components/shared/media-lightbox.tsx",
       "src/components/app/host-media-grid.tsx",
       "src/components/guest/guest-reel-overlay.tsx",
       "src/components/ui/floating-layer.ts",
+      "src/components/likes/like-button.tsx",
+      "src/components/guest/guest-masonry.tsx",
+      "src/components/shared/floating-add-button.tsx",
     ],
     board: {
-      note: "Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step",
-      variants: [
-        "The recipe",
-        "The grades",
-        "Behind the photograph",
-        "The tiles",
-        "The reel's controls",
-        "The host's row",
-        "On paper",
-      ],
+      note: "Round two, two decisions: the ONE material (Frost, Crystal, or the reel's white on Frost's filter) drawn on all six glass surfaces in a single frame per option, and then its edge on whichever body wins; over the darkest, middling and brightest photographs at 375 and 1440, every option drawing an ACTIVE rose mark, every number read off the rendered pane (the mark's contrast, the pill's, the capsule's, and the compositor cost of a phone scroll)",
+      variants: ["The material", "The edge"],
     },
   },
   {
