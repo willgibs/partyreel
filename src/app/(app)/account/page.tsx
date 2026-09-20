@@ -53,6 +53,7 @@ import {
 } from "@/lib/db/queries/social";
 import { withAvatarUrls, type ProfileCardItem } from "@/lib/social/cards";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
+import { seedFor } from "@/lib/avatar/seed";
 import { getSiteUrl } from "@/lib/site-url";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -69,7 +70,7 @@ function PersonRow({
 }) {
   const identity = (
     <>
-      <Avatar size="sm">
+      <Avatar size="sm" seed={item.seed}>
         <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
         <AvatarFallback className="text-[10px]">
           {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
@@ -140,6 +141,10 @@ export default async function AccountPage({
   if (!profile) redirect("/login");
 
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
+  // Server-side SHA-256 of the account id (docs/design/rulings.md, the sixth
+  // batch, `seed=account`): one colour per person everywhere, never the raw
+  // id itself (src/lib/avatar/seed.ts).
+  const seed = seedFor(profile.id);
   const [followingItems, blockItems] = await Promise.all([
     withAvatarUrls(following),
     withAvatarUrls(blocks),
@@ -276,6 +281,7 @@ export default async function AccountPage({
             avatarUrl={avatarUrl}
             displayName={profile.display_name}
             email={profile.email}
+            seed={seed}
           />
           <DisplayNameForm displayName={profile.display_name} />
           <div className="space-y-1.5">

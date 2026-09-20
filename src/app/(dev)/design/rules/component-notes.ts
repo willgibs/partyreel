@@ -530,7 +530,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
 
   /* ui */
   "src/components/ui/avatar.tsx": {
-    for: "the account face: the user menu, the account page, a guest in the list",
+    for: "the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it",
   },
   "src/components/ui/badge.tsx": {
     for: "the small status pill; the admin portal's states are most of its work",
@@ -676,7 +676,10 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/app/(dev)/design/sandbox/overtaken.ts": {
     for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
   },
-  "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts": {
+  "src/lib/avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",
+  },
+  "src/lib/avatar/seed.ts": {
+    for: "profiles.id -> the seed every avatar surface paints: a server-side SHA-256, so a raw account id never crosses into a browser that should not hold it",
   },
 };

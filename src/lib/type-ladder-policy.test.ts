@@ -353,6 +353,11 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 1,
     why: "an avatar's initial, sized to the size-16 circle around it",
   },
+  "src/components/ui/avatar.tsx": {
+    kind: "relative",
+    count: 1,
+    why: "the same avatar initial, for the 80px xl size the profile identity row folded onto Avatar (avatar-wiring, 2026-09-20): sized to the circle around it, one rung below the 64px case above",
+  },
   "src/components/ui/input-otp.tsx": {
     kind: "relative",
     count: 1,
@@ -420,11 +425,9 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     why: "no manifest owns it this round: one aria-hidden decorative arrow at 18 (home-wiring moved the 11 px label onto the label pair at its merge, 2026-09-20; one element remains, type-sync's)",
   },
   // ── pending: an app-shape lane is rebuilding the element ──
-  "src/app/(guest)/u/[slug]/page.tsx": {
-    kind: "pending",
-    count: 1,
-    why: "home-wiring rebuilds the profile as an owner mode: one uppercase section label on the label step, one avatar initial",
-  },
+  // (u/[slug]/page.tsx's entry went, 2026-09-20: its one avatar initial
+  // folded onto Avatar's own xl size, avatar-wiring — see the relative
+  // entry above for src/components/ui/avatar.tsx.)
   "src/components/app/event-feed/feed-section-header.tsx": {
     kind: "pending",
     count: 1,

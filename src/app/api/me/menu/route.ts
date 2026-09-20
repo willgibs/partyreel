@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { seedFor } from "@/lib/avatar/seed";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +57,13 @@ export async function GET(request: Request) {
     email: user.email ?? null,
     displayName: menu.displayName,
     avatarUrl,
+    // seedFor(user.id) — the visitor's OWN colour, hashed server-side before
+    // it reaches their browser (never the raw id itself: seed.ts). This is
+    // the same rule the "host_id never leaks to the client" comment above
+    // states for host_id; it costs nothing extra here since it is already
+    // this endpoint's own account, but going through the one function keeps
+    // this person the same colour on every OTHER surface that draws them too.
+    seed: seedFor(user.id),
     ownsThisEvent,
   });
 }
