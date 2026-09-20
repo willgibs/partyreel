@@ -9,6 +9,10 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import type { BoardStatus } from "@/app/(dev)/design/review/status";
 
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
+
+import { type AskStep, toSteps } from "./session-step";
+
 import {
   askStates,
   boardWork,
@@ -318,5 +322,91 @@ describe("what the ledger already holds", () => {
       () => [],
     );
     expect(transcribedFrom(rows).notes).toEqual({});
+  });
+});
+
+/**
+ * THE QUESTIONS AN EARLIER RULING REACHED (Will, 2026-09-19).
+ *
+ * ★ AGAINST A REAL BOARD ON PURPOSE. Everything else here runs on the fixture,
+ * because the join being proven is a shape; this one is a JOIN BETWEEN TWO REAL
+ * LISTS (`sandbox/overtaken.ts` and a board's own asks), and a fixture would
+ * prove only that the code compiles. `first-event` is one of the thirteen the
+ * fifth batch reached, and if its spec ever stops declaring these four asks
+ * this fails here as well as in the map's own test.
+ *
+ * ★ AND THE COUNT IS TWO NUMBERS, NEVER ONE. An overtaken ask is a normal ask
+ * everywhere the desk counts: it queues, it walks, it fills Next. What the desk
+ * owes him is the ability to SAY so, which takes how many were reached and how
+ * many of those are still open.
+ */
+describe("the asks an earlier ruling reached", () => {
+  const FIRST_EVENT = BOARDS.find((b) => b.id === "first-event")!;
+  const board = {
+    id: FIRST_EVENT.id,
+    title: FIRST_EVENT.title,
+    surfaceLabel: "App",
+    note: "",
+    tracks: ["first-event"],
+  };
+  const rowFor = (answers: [string, string][]) =>
+    deskRows(
+      [board],
+      () => status(FIRST_EVENT.round.n, answers, [], FIRST_EVENT),
+      () => [],
+    )[0];
+
+  it("carries the note onto the ask the ruling reached, and no other", () => {
+    const states = askStates(board, status(FIRST_EVENT.round.n, [], [], FIRST_EVENT));
+    const landing = states.find((a) => a.ask.id === "landing");
+    expect(landing?.overtaken?.by).toBe("app-shape");
+    expect(landing?.overtaken?.line.startsWith("stands: ")).toBe(true);
+    expect(states.find((a) => a.ask.id === "asks")?.overtaken).toBeUndefined();
+  });
+
+  it("counts them apart from the answered, and says how many are open", () => {
+    const untouched = rowFor([]);
+    expect(untouched.overtaken).toHaveLength(4);
+    expect(untouched.overtakenOpen).toHaveLength(4);
+    // An overtaken ask is still open work: it queues like any other.
+    expect(untouched.open.map((a) => a.ask.id)).toContain("empty");
+  });
+
+  /**
+   * ★ THE STEP IS HANDED WORDS, NEVER THE MAP. The kit may not import anything
+   * in the sandbox (`boundary.test.ts`), so the badge is resolved on this side
+   * and the step renders what it is given. This is the seam that proves it.
+   */
+  it("hands the step the badge already in plain words", () => {
+    const row = rowFor([]);
+    const steps = toSteps(boardWork([row]), () => FIRST_EVENT, null);
+    const hand = steps.find(
+      (s) => s.kind === "ask" && s.askId === "hand",
+    ) as AskStep;
+    expect(hand.overtaken?.badge).toMatch(/^Ruled since app-shape r1, 19 Sep: /);
+    expect(hand.overtaken?.conceded).toBe(false);
+    // "The share dialog at 375, as today" was drawn before sharing was a sheet.
+    expect(hand.overtaken?.gloss).toContain("before that ruling");
+    const asks = steps.find(
+      (s) => s.kind === "ask" && s.askId === "asks",
+    ) as AskStep;
+    expect(asks.overtaken).toBeUndefined();
+  });
+
+  it("derives standing and overriding from the ledger alone", () => {
+    const row = rowFor([
+      ["empty", "stands"],
+      ["style", "after"],
+    ]);
+    const by = (id: string) => row.asks.find((a) => a.ask.id === id);
+    expect(by("empty")?.outcome).toBe("stood");
+    expect(by("style")?.outcome).toBe("overrode");
+    expect(by("landing")?.outcome).toBe("open");
+    // Both are answers, so neither is open work any more; two of four remain.
+    expect(row.overtakenOpen.map((a) => a.ask.id).sort()).toEqual([
+      "hand",
+      "landing",
+    ]);
+    expect(row.open.map((a) => a.ask.id)).not.toContain("empty");
   });
 });

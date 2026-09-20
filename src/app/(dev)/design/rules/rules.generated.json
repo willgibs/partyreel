@@ -153,6 +153,22 @@
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
           "line": 376
+        },
+        {
+          "title": "composes as any other answer does, with its reason",
+          "suite": [
+            "an answer that stands by an earlier ruling"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 418
+        },
+        {
+          "title": "is dropped once the ledger holds it, and rides again when overridden",
+          "suite": [
+            "an answer that stands by an earlier ruling"
+          ],
+          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
+          "line": 438
         }
       ]
     },
@@ -161,6 +177,8 @@
       "file": "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts",
       "names": [
         "SESSION_END",
+        "STANDS",
+        "STANDS_NOTE",
         "UNCLEAR"
       ],
       "specimens": [],
@@ -172,7 +190,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 71
+          "line": 72
         },
         {
           "title": "opens once that question is answered THIS WAY in the session",
@@ -180,7 +198,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 77
+          "line": 78
         },
         {
           "title": "is moot once that question went the other way",
@@ -188,7 +206,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 82
+          "line": 83
         },
         {
           "title": "stays staged on 'not clear to me', which is not a decision",
@@ -196,7 +214,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 87
+          "line": 88
         },
         {
           "title": "opens on a ruling from an earlier sitting, with nothing held here",
@@ -204,7 +222,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 98
+          "line": 99
         },
         {
           "title": "is moot on a ruling from an earlier sitting that went the other way",
@@ -212,7 +230,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 106
+          "line": 107
         },
         {
           "title": "lets this sitting's answer overrule the ledger's",
@@ -220,7 +238,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 113
+          "line": 114
         },
         {
           "title": "keeps a staged step out of the walk and the rest of it in",
@@ -228,7 +246,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 120
+          "line": 121
         },
         {
           "title": "is staged until the card is ruled, and moot on the other verdict",
@@ -236,7 +254,7 @@
             "a step waiting on a catalog card"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 137
+          "line": 138
         }
       ]
     },
@@ -2259,6 +2277,70 @@
           ],
           "file": "src/components/lab/step.test.tsx",
           "line": 720
+        },
+        {
+          "title": "badges it in place and still asks the question",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 794
+        },
+        {
+          "title": "glosses 'as today' only where an option still says it",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 809
+        },
+        {
+          "title": "records 'the ruling stands' as an answer, with its reason",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 817
+        },
+        {
+          "title": "clears on a second press, like every other answer",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 836
+        },
+        {
+          "title": "primes the button where the lane conceded",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 847
+        },
+        {
+          "title": "fills Next once the ruling is said to stand",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 855
+        },
+        {
+          "title": "offers nothing to stand by on an ordinary question",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 867
+        },
+        {
+          "title": "answers with s, and only where there is a ruling",
+          "suite": [
+            "a step an earlier ruling reached"
+          ],
+          "file": "src/components/lab/step.test.tsx",
+          "line": 874
         }
       ]
     },
