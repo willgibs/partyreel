@@ -1,6 +1,6 @@
 ---
 track: vocab-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: app-vocabulary  # wiring; round two on the gallery's controls is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -345,28 +345,115 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every open call was one the brief already named as "his to overrule" (below), not a genuinely new
+  one-way door. Built the recommended answer in each case and listed it there for his eye on the alias.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md`: the "Require accounts to upload" bullet now names `ConfirmSwitch` instead of
+  describing the hand-rolled `setTimeout` dance directly; "Moderation & curation"'s bulk-controls paragraph
+  names the shared `BulkBar` (icons, sliding tooltips) in place of the old worded description, and records
+  the select-mode header-slot fix; "Album bulk-select" now describes `BulkBar`/`GalleryBulkBar` mounted in
+  the section header's own action slot (never a floating bar, which retired with `event=hub` and left select
+  mode with nothing there until this lane); "The album" bullet gains the tile-size cluster (`--album-column`,
+  the `pr_tile_size` cookie, the persistence overrule) as its own `★` paragraph; the `loading.tsx` bullet
+  names `RouteSkeleton` and its three shapes, the Studio's first.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Design system: `navigation-menu.tsx`'s cross-slide still spells `data-[motion=...]` inline; a DRY follow-up
+  swaps it onto `floating-layer.ts`'s new `floatingCrossSlide` (identical values, no visual change) once a
+  lane owns that file.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The wiring landed at `73d075ec`, pushed; synced (merged, never rebased) with `launch-prep` at `baf0ef15` —
+  origin had moved substantially past the cut (glass-wiring, guest-wiring, door-wiring and admin-wiring all
+  merged, plus their round-two/follow-up tracks) by the time this lane finished. Four merge conflicts, all in
+  shared registry files other lanes also touched (`docs/design/library.md`, the components `gallery-demos.tsx`,
+  `specimens.generated.json`, `rules.generated.json`); the generated three were resolved by regenerating on
+  the merged tree rather than hand-merging JSON, and the one hand-authored conflict (an import list) kept
+  both sides' names.
+- Gates on the synced tree, each its own exit code: `design:rules` ok (178 components, 94 indexed), the
+  specimen collector ok (140 specimens on 101 entries), `typecheck` ok, `lint` ok (8 known warnings, 0
+  errors), `test` ok (283 files, 2998 passed, 1 skipped — the ledger's pre-existing `stands` failure at the
+  cut is gone post-merge, not this lane's fix), `build` ok (255 pages). `pnpm lab:smoke --base :3135` ok (430
+  checks, 0 failing). `pnpm lab:demo --board app-vocabulary --base :3135` ok (0 open steps to press: this
+  board's asks all draw their options inline rather than through a pressable step sequence).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = every path this manifest owns, plus:
+  - `src/app/(app)/dashboard/[eventId]/actions.ts` and `.../page.tsx` (unowned, unclaimed by any open
+    manifest): one small Server Action (`setTileSizeAction`, mirroring `dashboard/actions.ts`'s
+    `setEventsViewAction` byte for byte) and reading + threading the `pr_tile_size` cookie, because the
+    brief's own cookie mechanism ("the hub page reads and paints inline") has no other home — `EventGallery`
+    cannot read `next/headers` itself.
+  - `src/components/app/event-feed/review-section.tsx` (unowned): one gating removed. It read
+    `action={!selectMode ? <ReviewActions triage={triage} /> : undefined}`, which blanked the header's action
+    slot the instant a host entered select mode — no visible Hide, Approve or Cancel. `ReviewActions` now
+    draws both its own faces (unchanged externally), so the gate was strictly wrong once this lane's `BulkBar`
+    face existed; left as found, my own Delete/Hide wiring would have shipped dead.
+  - `src/app/(dev)/design/rules/component-notes.ts`, the four `gallery-demos.tsx`/`interactive-demos.tsx`
+    pairs (`components/`, `patterns/`), `rules.generated.json`, `specimens.generated.json`,
+    `docs/design/library.md`: the shared, additive design-registry files every lane appends to per the
+    ownership rules ("every new component gets its `for` line... so it lands in the Library"), not a
+    per-lane exception.
+- The items, one line each:
+  - `empty-states=stands`: nothing wired (the earlier ruling stands; not this board's to touch).
+  - `loading=asneeded`: wired. `RouteSkeleton` (three shapes: pulse, hub, the Studio's first); the two
+    existing `loading.tsx` files became it and the Studio gained its own. Lands in the Library as
+    `/design/library/route-skeleton` (patterns, `new`).
+  - `tile-grammar=stands`: nothing wired here (glass-wiring's file; it rewrites every tile's marks anyway).
+  - `bulk-toolbar=icon`: wired. One `BulkBar` behind `ReviewActions` and `GalleryBulkBar`, icons with an
+    instant sliding tooltip (`shared/tooltip-slide.tsx`, `floatingCrossSlide` lifted into
+    `floating-layer.ts`), mounted behind a hydrated flag. `bulk-bar.tsx` sits outside the library's indexed
+    directories (contract-only; `ReviewActions`/`GalleryBulkBar` are its real, visible callers).
+  - `gallery-controls-home=cluster`: wired. `TileSizeControl` (three steps + two reserved slots) in the hub
+    gallery's header, beside Download and Select. Lands as `/design/library/tile-size-control` (patterns,
+    `new`).
+  - `gallery-controls-persistence`: the ruled answer (`device` = localStorage) overruled to a cookie — see
+    "calls his to overrule" below.
+  - `confirm-switch=primitive`: wired. `ConfirmSwitch` owns the glyph and the deferred-open dance;
+    `uploads-section.tsx`'s two hand-rolled pairs retired into it. Lands as `/design/library/confirm-switch`
+    (components, `new`).
+- Calls his to overrule on the alias, one line each:
+  - `gallery-controls-persistence`: built as a cookie (`pr_tile_size`, `tile-size-cookie.ts`), not the ruled
+    localStorage. A `--album-column` change reflows the whole grid's tile height, and painting the wired
+    default server-side then resizing after hydration is a worse flash than the events-view toggle's own
+    cards-to-rows swap that `device=localStorage` was itself weighed against; `events-view.ts`'s cookie
+    pattern is the direct precedent. Still per-device, no account, no migration — the ruling's INTENT holds,
+    only the mechanism changed.
+  - The reserved slots' words ("Sort", "Filter"), the slide's distance (32px, the nav's own cross-slide
+    value, lifted verbatim), the skeleton's three shapes (the Studio's especially — new design, not
+    previously drawn in detail), and the cluster's order (Download, tile size, Select) — all named in the
+    brief as his to overrule; built on the recommended answer in each case.
+  - The confirm-switch glyph (`ShieldCheck`): matches the sandbox exploration's own mock exactly, never
+    re-picked.
+  - Two structural fixes beyond the seven asks, both gaps this lane's own wiring would otherwise have shipped
+    dead: the Review room's select-mode header went empty before this lane (see the lane-check exception
+    above), and the Gallery's select mode had NO bulk-bar mount point anywhere in production since the
+    floating `EventFeedActionBar` retired with `event=hub` — `event-gallery.tsx`'s header now swaps to
+    `GalleryBulkBar` there. Neither changes what a host can already do; both make an existing, unreachable
+    path reachable.
+- The help articles this lane makes stale: none. Every changed control keeps its existing label and copy
+  (`Require accounts to upload`, `Review uploads before they appear`, `Add photos`, `Download all`,
+  `Select`, `Deleted`); the tile-size cluster is new surface no article describes yet, not a description
+  that turned wrong.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the sliding tooltip's FEEL (confirmed mechanically live — direction, the skip-delay window,
+  the motion attribute — via focus-driven checks in Chrome, since the lab's specimen iframes portal radix
+  content to the outer page and pointer-event dispatch raced Radix's own state machine; motion feel itself is
+  never tooling-judgeable); the Studio's skeleton shape at `/dashboard/<event>/reel` mid-load; the tile-size
+  cluster's real crowding at 375 on the live hub gallery (his own worry, deferred to `gallery-controls` round
+  two, worth a glance regardless); the ConfirmSwitch dialog copy on both settings toggles.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `app-vocabulary` r1 wired whole: one `RouteSkeleton` (pulse,
+hub, the Studio's first skeleton) replacing both existing `loading.tsx` files; the shared `BulkBar` behind
+`ReviewActions` and `GalleryBulkBar` (icons, an instant sliding tooltip via the new `floatingCrossSlide` and
+`tooltip-slide.tsx`, mounted behind a hydrated flag) with two structural fixes riding along (Review's
+select-mode header was empty, Gallery's select mode had no bulk-bar mount at all); `ConfirmSwitch` retiring
+uploads-section.tsx's two hand-rolled confirm dances; the gallery's tile-size cluster persisted in a device
+cookie, overruling the board's own localStorage answer (an honest first paint). `empty-states` and
+`tile-grammar` stand on earlier rulings. Calls his to overrule in the CHANGELOG. `board: app-vocabulary`
+retires with this merge.
