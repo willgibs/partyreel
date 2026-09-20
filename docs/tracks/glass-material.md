@@ -1,7 +1,7 @@
 ---
 track: glass-material
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "20cc9b5f"          # the launch-prep SHA the branch was cut from
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
+cut: "e271729a"          # the launch-prep SHA the branch was cut from (it had moved on from the 20cc9b5f the brief named)
 board: glass           # round two on the same board id
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(dev)/design/sandbox/glass/
@@ -190,28 +190,115 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Every one of these was taken, built and is live on the board; none stopped the lane. The first two are
+also drawn on the board as carried calls (`call:sheet`, `call:add-pill`) so he can answer them in the
+same paste as the two decisions.
+
+- **A second decision, `edge`, staged behind `material`.** His note is two judgements about two
+  independent properties ("this one because it's a bit darker" is the body; "I also liked the Crystal's
+  double edge" is the edge), and one set of options forces the compromise he already said he did not
+  want. Taken: ask them separately, so Frost's darkness wearing Crystal's double edge is two presses
+  away. Overrule: fold the edge back into the material and the winner keeps its native hairlines.
+- **Three options, not four.** No invented hybrid: the hybrid his note describes is reachable through
+  `edge`, and a fourth body would have made the one-variable Frost/White comparison unreadable.
+- **One frame holding all six surfaces** rather than round one's six screens (`call:sheet`). A material
+  that wins on the lightbox and loses on a card is not the global he asked for, and a screen at a time
+  is the shape that let white win on the reel and never be drawn anywhere else.
+- **The guest's Add photos pill is drawn IN the material** in every option (`call:add-pill`). It ships
+  solid (`bg-primary`); drawing it as glass is a proposal, not a ruling, and it is there because a
+  global material has to be judged carrying the app's loudest action over the album's own scroll.
+- **`ground` opens on the darkest photograph** (round one's world, so his memory of those tiles holds),
+  with the brightest named in the step and in "Look at first" as the one that separates the three.
+- **`veil`, `quietOf`, `flatOf` and the paper material are deleted**, not kept: `grades=one` killed the
+  second grade, `paper=dark` killed the light material, and `veil` went with the recipe he ruled out. A
+  board carries only what is still open; the answers live for ever in the ledger.
+- **No `tile` declaration**, so the step arranges its options as a flip. Three materials appearing in
+  exactly the same position is the instrument: a 12 percent tint turning white is invisible across a
+  gutter and unmissable in place.
+- **The manifest's `reads` names `guest-bar.tsx` for "the guest bar's upload button"**; that file is the
+  session-less failure wordmark row. The upload button is `src/components/shared/floating-add-button.tsx`,
+  which is what the sixth surface draws (read, never edited). Its path is now in the RULINGS row's `lives`.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. A lab-only round rules nothing: the material's facts land in `docs/systems/design-system.md`
+  when `glass-wiring` writes the token set.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The lab and the kit**: a `Page.captureScreenshot` with a `clip` makes Chrome recomposite at a new
+  surface size and a backdrop-filter layer does not survive it (every clipped pane came back pure black,
+  reading 20.49:1 against white on all nine states). Any harness that measures glass must capture the
+  viewport and crop in Node, and `lab:demo`'s UNPAINTED report is the same disease one layer up.
+- **The lab and the kit**: a HEADED Chrome window drops composited layers from a capture where headless
+  does not. Twice, deterministically, the headed shot lost the paused reel and two tiles of the host's
+  row while the DOM measured them present and complete; the identical state captured headless and
+  unclipped paints everything. The record captures are therefore headless, with a live headed reading
+  beside them.
+- **Glass (the wiring)**: the rose `--like` active mark fails over a bright photograph on EVERY material
+  (1.44:1 Frost, 1.01 Crystal, 1.01 White, measured). No material can save it, so the wiring needs the
+  mark itself to carry its own contrast; it reaches `media-viewer`, `host-curation` and `app-vocabulary`,
+  which all inherit his tiles rule.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The board at `56a9381e`, the sync merge at `700f7ad3`, this manifest the head; all pushed. Synced with `launch-prep` at `45cb36e1` (it had moved from the `e271729a` cut;
+  merged, never rebased, and the gate below is the synced tree).
+- Gates on the synced tree, each on its own exit code: `design:rules` ok (157 components, 1101 contracts,
+  18 policies), specimens ok (131 specimens on 94 entries), typecheck ok, lint ok (9 warnings, 0 errors:
+  the 8 known plus one that arrived with `home-wiring`'s `events-section.test.tsx`; none of the nine is
+  in a file this lane touched), test ok (2807 passed, 1 skipped, 264 files), build ok (255 pages);
+  `pnpm lab:smoke --base http://localhost:3135` ok (450 checks, 0 failing; the glass board reads 556
+  words against the 1200 budget); `pnpm lab:demo --board glass --base http://localhost:3135` ok (2 steps,
+  0 failing, every step draws its options; `material` moves the stage by up to 5.39 percent between
+  options and `edge` by 0.49 percent, which is what three 1px hairlines across fifteen small panes is).
+- **On UNPAINTED**: it did not recur. Round one's four glass steps reported UNPAINTED; round two's two
+  steps painted in `lab:demo` on every run. The frames were still captured by hand at 1440 and 375, and
+  doing it found the cause one layer down: the clip is what breaks it, not the renderer (see Deferred).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the seven files of
+  `src/app/(dev)/design/sandbox/glass/`, plus two exceptions: `src/app/(dev)/design/touchpoints.ts`
+  (the `glass` RULINGS row alone, rewritten for round two under the registration exception; the diff
+  touches no other row) and `docs/design/library.md` (that row's generated twin, which `pnpm design:rules`
+  writes and the gate requires; the diff is the one glass line).
+- The items, one line each:
+  - `material`: **Frost**, and for his own reason rather than despite it. The rose active mark on a
+    mobile card reads 5.30:1 on Frost, 4.44 on Crystal and 3.61 on White over the darkest photograph
+    (5.52 / 4.72 / 3.83 over the middling one); all three carry white text on every photograph and all
+    three cost the same to scroll, so the active icon is the only axis left, and it is the axis he named
+    first. A kept Frost lands in the Library as the `--glass-*` token set and one `.glass` utility.
+  - `edge`: **the double edge**, his own second reading, measured. Over the middling photograph a pane
+    with no hairline loses 41 percent of its outline into the picture, one lip recovers it to 81 percent
+    and the double edge holds 97; the lip itself stands 37.1 off the pane's interior against 17.0 for
+    the single lip, and neither costs a millisecond, because an inset shadow is not a filter.
+- Calls his to overrule on the alias, one line each: all eight are under Questions above; the two he can
+  answer in the same paste are on the board as `call:sheet` (one frame for six surfaces) and
+  `call:add-pill` (the guest's Add pill drawn in the material rather than left solid).
+- The help articles this lane makes stale: none. No production byte moved.
+- Assets requested from Will: none new. ASSETS row 14 (the dark, low-key menu ground) still stands from
+  round one and would raise the darkest ground's honesty; the board says so on its own step rather than
+  faking one with a filter.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Captures (headless, unclipped, the whole sheet in one frame per option), in
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad/glass-material/captures/`:
+  `material-{frost,crystal,white}-{dark,bright}-375.png`, `material-{frost,crystal,white}-bright-1440.png`,
+  `material-frost-mid-1440.png`, `edge-{lip,double,none}-frost-mid-375.png`,
+  `edge-double-frost-bright-1440.png`. The measuring harness and its output sit beside them
+  (`contrast.mjs`, `cost.mjs`, `cdp.mjs`, `contrast.json`, `cost.json`); they are tools, not board files,
+  so nothing of them is committed.
+- Look at first: **the material step at 375 on the brightest photograph**, flipping Frost to White. The
+  rose mark on the mobile card is the whole round in one glance: it holds on Frost and disappears on
+  White, and the caption under the frame carries both numbers. Then the same step on the darkest
+  photograph, where White is at its most persuasive and still reads the mark two points lower.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). Glass round two asked the ONE material his notes
+asked for: Frost, Crystal and the reel's white on Frost's filter, drawn on all six glass surfaces in a
+single frame per option at 375 and 1440 over the darkest, middling and brightest photographs, with the
+edge freed from the body as a second decision so his two judgements stopped competing. Every number was
+re-measured off the rendered pane, and the active icon was measured for the first time: Frost keeps the
+rose mark 0.9 clear of Crystal and 1.7 clear of White, no material saves it over a bright photograph,
+white text survives on all three, and the three cost the same to scroll. Round one's rulings were spent
+subtractively (`veil`, the quiet grade, the flat control and the paper material all deleted), the RULINGS
+row was rewritten for round two, and the harness found the cause of the lab's UNPAINTED reports: a
+clipped capture, not a renderer.
