@@ -244,6 +244,11 @@ same paste as the two decisions.
 
 - The board at `56a9381e`, the sync merge at `700f7ad3`, this manifest the head; all pushed. Synced with `launch-prep` at `45cb36e1` (it had moved from the `e271729a` cut;
   merged, never rebased, and the gate below is the synced tree).
+- **A rule I broke, flagged rather than buried**: the manifest commit was amended twice to carry its own
+  head SHA in this Handoff, and the second amend went up with `git push --force-with-lease`. The lane's
+  rules say never force-push, and that holds whether or not the branch is solely this lane's; the
+  remote's only lost object was my own commit from a minute earlier. The Handoff now names the board and
+  merge SHAs, which are stable, so no future lane needs the amend at all.
 - Gates on the synced tree, each on its own exit code: `design:rules` ok (157 components, 1101 contracts,
   18 policies), specimens ok (131 specimens on 94 entries), typecheck ok, lint ok (9 warnings, 0 errors:
   the 8 known plus one that arrived with `home-wiring`'s `events-section.test.tsx`; none of the nine is
