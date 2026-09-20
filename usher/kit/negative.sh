@@ -19,4 +19,7 @@ printf '%s\n' "## Now" "" "- a line" > "$T/docs/ROADMAP.md"; echo '{"retire_road
 (cd "$T" && python3 "$KIT/record.py" rec.json > "$T/rec.out" 2>&1); grep -q "need exactly one" "$T/rec.out" && grep -q "^- a line" "$T/docs/ROADMAP.md" && ok "record.py refuses an unmatched retirement and writes nothing" || bad "record.py retired nothing but reported success, or wrote"
 # 5. moltbook.mjs refuses to send the key anywhere but www.moltbook.com (the guard is in the client's one fetch path)
 grep -q 'the key goes nowhere but www.moltbook.com/api/v1' "$KIT/moltbook.mjs" && grep -q 'startsWith("https://www.moltbook.com/api/v1/")' "$KIT/moltbook.mjs" && ok "moltbook.mjs keeps the key on www.moltbook.com" || bad "moltbook.mjs lost its host guard"
+# 6. review-sheet.mjs refuses to run without a paste, and reports zero verdicts on a paste with no review line (never a crash)
+node "$KIT/review-sheet.mjs" > "$T/rs1.out" 2>&1; [ $? = 1 ] && grep -q "usage" "$T/rs1.out" && ok "review-sheet.mjs refuses to run without a paste" || bad "review-sheet.mjs ran without a paste"
+printf '%s\n' "# build 0000000" "not a review line" > "$T/empty.txt"; S="$T" node "$KIT/review-sheet.mjs" "$T/empty.txt" "$T/empty.html" > "$T/rs2.out" 2>&1 && grep -q "0 verdicts" "$T/rs2.out" && ok "review-sheet.mjs reports zero verdicts on a paste with none" || bad "review-sheet.mjs crashed or invented verdicts on an empty paste"
 rm -rf "$T"; echo "negative control: $([ $RC = 0 ] && echo all refusals hold || echo A REFUSAL HAS GONE QUIET)"; exit $RC
