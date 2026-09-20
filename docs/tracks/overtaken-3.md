@@ -1,6 +1,6 @@
 ---
 track: overtaken-3
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c75734b9"          # the launch-prep SHA the branch was cut from
 board: none            # lab infrastructure: the judgment lines for the closing sitting's first batch; no board of its own
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -199,30 +199,134 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None needing an answer to proceed. Four calls were taken on the brief's recommendation and are listed in the
+  Handoff under "his to overrule"; none is a one-way door, and every one of them is a line he can press through.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (this lane owns no `docs/systems/` fact; the mechanism's own home is the head comment of `overtaken.ts`)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** de-pin the desk's proof of the overtaken join. `src/app/(dev)/design/(shell)/lab/_desk/queue.test.ts`
+  proves the real join against `first-event` by restating its numbers (`toHaveLength(4)` at :369 and :370, the
+  `overtakenOpen` list at :406, and two `asks` pins at :364 and :393). It has now cost two judgment passes five
+  real badges (three in the sixth batch's, two in this one) because a pass may not edit a file it only reads.
+  Deriving the count and the unbadged ask from `OVERTAKEN` itself proves the same join and never churns again.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `1d8af324` (the judgment pass); sync-merge `05498a8a` (`origin/launch-prep` had moved to `436ef3d3`,
+  two `usher/` commits, nothing this lane reads). The manifest rides one plain commit after it.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` 0 (182 components, 1300 contracts,
+  18 policies) · specimen collector 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0
+  (8 problems, 0 errors, 8 warnings: the baseline) · `pnpm test` 0 (3059 passed, 1 skipped, 290 files) ·
+  `pnpm build` 0 (255/255 pages). `pnpm lab:smoke --base http://localhost:3136` 0 (439 checks, 0 failing).
+  `pnpm lab:demo --board export-flow --base http://localhost:3136` 0 (8 steps, 0 failing, five of them badged and
+  one carrying three clauses) and `--board seed-avatar` 0 (1 step, the held badge). Logs in the lane's scratch dir.
+  `pnpm lab:demo --board toasts` reports `material` and `action` FROZEN: that is the toasts board's own known state
+  (STATUS, "two steps judged by hand (the harness)"), it predates this lane, and both badged steps there pass.
+- Read by eye at 1440 and 375 on :3136: the held badge on `seed-avatar.look` ("Ruled and held since guest-verify r1,
+  20 Sep: ..." over "held for guest-verify round two: badge=mark") and the three-clause line on `media-viewer.holds`.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`:
+  ```
+  docs/design/library.md
+  src/app/(dev)/design/rules/rules.generated.json
+  src/app/(dev)/design/sandbox/overtaken.test.ts
+  src/app/(dev)/design/sandbox/overtaken.ts
+  ```
+  Two exceptions, both generated, both a mechanical consequence of an owned file and both the precedent the sixth
+  batch's pass set (`ca9bc121` committed the same two): `pnpm design:rules` is a gate step, and the owned contract
+  test gained one `it` and renamed two, so the artifact and the Library file move with it (821 contracts, 12 guards
+  on `overtaken.ts`). Nothing else, and no unowned source file.
+
+### The items, one line each (27 asks reached; the map 62 keys to 70)
+
+**New judgments (7).**
+- `toasts.where`: stands; every guest album gains a fixed foot, so the bottom band is a strip a dock stands in.
+- `toasts.stack`: stands; the dashboard's own pile shows three and folds the rest, which is neither drawn option.
+- `host-curation.verb`: stands; a tile is ruled to carry a fourth mark, so the Hidden chip has its precedent.
+- `reel-studio.styles`: stands; a sheet at a desk is a side panel, so the wall stops covering the reel.
+- `export-flow.chips`: stands; the rule kills the chip that renders a zero, and two answers are left.
+- `admin-triage.reason`: concedes; "absent, never empty" IS this ask's nothing-drawn option.
+- `emails.moments`: concedes; a switch with nothing behind it is ruled absent, which is retiring the four.
+
+**Held, the badge and no judgment (1).**
+- `seed-avatar.look`: `held for guest-verify round two: badge=mark`; four backgrounds may not be weighed against a
+  mark that round two may withdraw.
+
+**Lines gaining a clause, the earlier judgment untouched (19).**
+- by `welcome=sheet` (no centred float survives at a desk): `app-pricing.object`, `first-event.hand`,
+  `media-viewer.opening`, `profile-page.view-all`, `profile-page.quick-look`.
+- by `chrome=both` (the row on landing, then a dock): `guest-upload.tap`, `guest-upload.words`,
+  `help-center.from-product`.
+- by `theirs=mark` (a fourth mark on a tile, its tap a filter): `guest-upload.landing`, `host-curation.told`,
+  `export-flow.means`, `loose-ends.everywhere-pill`.
+- by `empty=wizard` (absent, never empty): `first-event.empty`.
+- by `first=pulse` (never a single event's prompt on the dashboard): `first-event.landing`, `host-curation.count`.
+- by `busy=collapsed` (three, then one chip that expands in place): `host-curation.arrivals`.
+- by `controls-home=view-menu` (a crowded top level folds behind one button): `media-viewer.holds`,
+  `export-flow.object`, `admin-triage.idiom`.
+
+### The counts
+
+- Per ruling board: `body-type` r2 **0** · `app-shape` r2 **8** (empty 4, first 2, busy 2) · `guest-shape` r2 **15**
+  (chrome 4, welcome 6, theirs 5) · `app-vocabulary` r2 **3** · `guest-verify` r1 **1 drawn** (six more reaches
+  recorded below, not drawn).
+- Per board reached: host-curation 4 · first-event 3, guest-upload 3, export-flow 3 · toasts 2, media-viewer 2,
+  admin-triage 2, profile-page 2 · seed-avatar 1, app-pricing 1, reel-studio 1, help-center 1, emails 1,
+  loose-ends 1.
+- Stands and concedes, on the new judgments only: **5 stands, 2 concedes**, 1 held. Across the whole map after this
+  pass: 70 keys, 1 of them held.
+- `body-type` r2 reaching nothing is a finding, not a miss: a rung that pairs an icon with its text is mechanical,
+  it lands inside `buttons-wiring`, and round one reached nothing either (no entry has ever credited that board).
+
+### The held list (his four `guest-verify` rulings, reaching asks a standing ruling already badges)
+
+Recorded here and NOT written into the map, because an appended clause rides inside a judgment and a held ruling
+gets none. Round two can relitigate all four with nothing leaning on the walk.
+- `badge=mark` reaches `media-viewer.who` (badged by seed-avatar r1), `profile-page.quick-look` and
+  `profile-page.view-all` (both took a standing clause this pass).
+- `host-lens=badge` reaches `host-curation.queue` (badged by app-vocabulary r1) and `host-curation.count`.
+- `gate=after` reaches `guest-upload.held`, `guest-upload.warning`, `emails.code` and `emails.guest`, all badged.
+- `expiry=host` reaches `admin-triage.notice`, badged by guest-shape r1. It reached no unbadged ask at all.
+
+### Asks added or dropped against the plan's list
+
+- Added: none. The brief named the fourteen verdicts as "the starting point, not the lines", and every line here was
+  written from a board's own option set read against the ruling.
+- **Dropped, two, and not on judgment:** `first-event.asks` (reached by `controls-home=view-menu`: he refuses a top
+  level that shows everything at once, which is the case against the create form's three fields) and
+  `first-event.first` (reached by the HELD `gate=after`: the photograph is live before anything is confirmed).
+  `_desk/queue.test.ts` pins `first-event` at four overtaken asks and names `asks` as the one nothing reached, and
+  this lane only reads that file. The sixth batch's pass dropped three on the same board for the same reason. The
+  map now carries a head comment on the section saying so, and the ROADMAP line above is the fix.
+
+### Calls his to overrule on the alias, one line each
+
+- The hold's grammar: a held badge carries the fact and no judgment, and `badgeText` says "Ruled and held since ..."
+  so the walk cannot read one as law. The dock's "The ruling stands" is still pressable on it (that button lives in
+  `step.tsx`, not this lane); pressing it is HIS lift of the hold, which is the only way a hold should ever lift.
+- `export-flow.chips` judged **stands**, not concedes: the ruling kills the chip that can only ever render a zero,
+  but a chip that is dimmed and says why is not a hollow band, so two answers survive it.
+- `body-type` r2 badged nowhere (above), rather than reaching for the one button an open ask still draws.
+- `media-viewer.holds` now carries two clauses from the same board (app-vocabulary r1 and r2). Accurate, and the
+  first pass's judgment is untouched; a reader meets the narrowing and the fold in the order they happened.
+
+### The rest
+
+- Help articles this lane makes stale: none (no shipped surface changed).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `seed-avatar.look` and `media-viewer.holds` on the lab at 1440, then the ROADMAP line above.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). The desk's third judgment pass read every open ask on the 22
+standing boards against the closing sitting's first batch (14 verdicts on five boards) and the drawings his verdicts
+sat beside: 27 reached, the map from 62 keys to 70. Seven new judgments (5 stands, 2 concedes), nineteen lines
+gaining a clause behind the one they had, and a third grammar for a ruling he may relitigate, which carries the hold
+and no judgment at all (`seed-avatar.look`, by `badge=mark`). `guest-shape` r2 did the most work: no centred float
+survives at a desk, a guest album gains a fixed foot, and a tile gains a fourth mark, so glass's three-marks rule has
+already moved. `body-type` r2 reached nothing, as its round one had. Two reached asks were dropped again behind the
+desk queue test's pins on `first-event`, with a ROADMAP line to stop the next pass paying for it.
