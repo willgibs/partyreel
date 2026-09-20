@@ -100,11 +100,16 @@ export function ReviewSection({
   // visualState === "pending"
   return (
     <section aria-label="Review" className="space-y-2.5">
+      {/* ReviewActions draws BOTH its own faces now (`app-vocabulary` r1,
+          `bulk-toolbar=icon`: the browse duo, and the shared BulkBar cluster
+          in select mode) — it no longer needs gating here. Gated the way it
+          used to read, select mode left the header's action slot empty, so a
+          host mid-selection had no visible Hide, Approve or even Cancel. */}
       <FeedSectionHeader
         label="Review"
         count={pending.length}
         amber
-        action={!selectMode ? <ReviewActions triage={triage} /> : undefined}
+        action={<ReviewActions triage={triage} />}
       />
       <ReviewGrid
         items={pending}

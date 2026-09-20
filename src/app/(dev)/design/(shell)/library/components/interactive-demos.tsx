@@ -9,6 +9,7 @@ import { z } from "zod";
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Button } from "@/components/ui/button";
+import { ConfirmSwitch } from "@/components/ui/confirm-switch";
 import {
   CommandPalette,
   CommandPaletteContent,
@@ -97,6 +98,27 @@ export function OtpDemo() {
         <InputOTPSlot index={5} />
       </InputOTPGroup>
     </InputOTP>
+  );
+}
+
+/** ConfirmSwitch: on the real edge it asks on (uploads-section.tsx's own
+ *  "Require accounts to upload" — turning it OFF is the consequential
+ *  direction). Uncontrolled state, so pressing it here really opens the
+ *  dialog and really flips the switch on Confirm. */
+export function ConfirmSwitchDemo() {
+  const [checked, setChecked] = useState(true);
+  return (
+    <ConfirmSwitch
+      checked={checked}
+      onCheckedChange={setChecked}
+      label="Require accounts to upload"
+      description="On (recommended): guests verify a free account before uploading."
+      confirmWhen={(next) => !next}
+      dialogTitle="Allow anonymous uploads?"
+      dialogDescription="Anyone with the link will be able to add photos without creating an account."
+      confirmLabel="Allow anyone to upload"
+      cancelLabel="Keep accounts required"
+    />
   );
 }
 
