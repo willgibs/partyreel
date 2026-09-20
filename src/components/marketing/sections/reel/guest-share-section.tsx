@@ -49,7 +49,7 @@ export function GuestShareSection() {
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
             The reel lives on the same link as the album. Guests watch it right
-            on your event page and save it to their phones. No app, no account,
+            on your event page and save it to their phones. No app required, and
             no export settings.
           </p>
           <p {...rise(3)} className="text-pretty text-muted-foreground">

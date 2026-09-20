@@ -289,7 +289,7 @@ export function CreateEventWizard({
                   <p className="text-sm font-medium">Your event link</p>
                   <p className="text-sm text-muted-foreground">
                     Print or display the QR, or share the link. Guests just open
-                    it. No app, no account.
+                    it. No app required.
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-3 pt-1">

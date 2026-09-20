@@ -52,7 +52,7 @@ export default function GuestNotFound() {
               </Link>
             ) : (
               <span className="text-muted-foreground">
-                Hosting your own? It is free to start. No app, no account.
+                Hosting your own? It is free to start. No app required.
               </span>
             )
           }

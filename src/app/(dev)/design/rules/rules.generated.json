@@ -291,7 +291,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -323,7 +323,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -331,7 +331,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -339,7 +339,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -347,7 +347,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -355,7 +355,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -363,7 +363,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -371,7 +371,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -379,7 +379,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -700,7 +700,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 97
+          "line": 104
         },
         {
           "title": "leaves nothing in the decoration for a keyboard to land on",
@@ -708,7 +708,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 105
+          "line": 112
         },
         {
           "title": "shows the CTA only to a viewer who can upload",
@@ -716,7 +716,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 118
+          "line": 125
         },
         {
           "title": "takes its photographs from the guest pack, one card each",
@@ -724,7 +724,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 128
+          "line": 135
         },
         {
           "title": "runs no frame loop until it is on screen",
@@ -732,7 +732,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 140
+          "line": 147
         },
         {
           "title": "stands still for a reader who asked for less motion, even on screen",
@@ -740,7 +740,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 147
+          "line": 154
         },
         {
           "title": "paints the settled flow in the server's own HTML",
@@ -748,7 +748,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 159
+          "line": 166
         }
       ]
     },
@@ -1074,7 +1074,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1082,7 +1082,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1090,7 +1090,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1098,7 +1098,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1106,7 +1106,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1114,7 +1114,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1122,7 +1122,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -1130,7 +1130,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1138,7 +1138,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1146,7 +1146,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -1154,7 +1154,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -1162,7 +1162,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -1218,7 +1218,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 152
+          "line": 162
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1226,7 +1226,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 204
+          "line": 214
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1234,7 +1234,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 282
+          "line": 292
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1242,7 +1242,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 321
+          "line": 331
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1250,7 +1250,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 366
+          "line": 376
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1258,7 +1258,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 396
+          "line": 406
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1266,7 +1266,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 495
+          "line": 505
         },
         {
           "title": "computes one anchor everywhere",
@@ -1274,7 +1274,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 529
+          "line": 539
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1282,7 +1282,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 551
+          "line": 561
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1290,7 +1290,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 561
+          "line": 571
         },
         {
           "title": "names every standing board exactly once",
@@ -1298,7 +1298,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 608
+          "line": 618
         },
         {
           "title": "is the order BOARDS exports",
@@ -1306,7 +1306,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 622
         }
       ]
     },
@@ -7177,7 +7177,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 97
+          "line": 104
         },
         {
           "title": "leaves nothing in the decoration for a keyboard to land on",
@@ -7185,7 +7185,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 105
+          "line": 112
         },
         {
           "title": "shows the CTA only to a viewer who can upload",
@@ -7193,7 +7193,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 118
+          "line": 125
         },
         {
           "title": "takes its photographs from the guest pack, one card each",
@@ -7201,7 +7201,7 @@
             "the empty album is decoration plus a promise, and nothing else"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 128
+          "line": 135
         },
         {
           "title": "runs no frame loop until it is on screen",
@@ -7209,7 +7209,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 140
+          "line": 147
         },
         {
           "title": "stands still for a reader who asked for less motion, even on screen",
@@ -7217,7 +7217,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 147
+          "line": 154
         },
         {
           "title": "paints the settled flow in the server's own HTML",
@@ -7225,7 +7225,7 @@
             "the flow costs nothing when nobody is looking"
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
-          "line": 159
+          "line": 166
         }
       ]
     },

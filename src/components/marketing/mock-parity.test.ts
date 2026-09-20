@@ -69,7 +69,7 @@ const ENTRIES: ParityEntry[] = [
     marketingFile:
       "src/components/marketing/sections/features/album/entry-phone.tsx",
     appFile: "src/components/guest/entry-modal.tsx",
-    literal: "No app, no account.",
+    literal: "No app required.",
   },
   {
     label: "album entry phone browse-out",

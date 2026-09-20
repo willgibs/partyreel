@@ -109,7 +109,7 @@ export function WelcomeFlow({
             <PageHeading>Welcome to Partyreel</PageHeading>
             <p className="text-muted-foreground">
               Collect every photo and video from your event. Your guests just
-              scan a QR code. No app, no accounts.
+              scan a QR code. No app required.
             </p>
           </div>
         )}

@@ -53,9 +53,19 @@ export function EnterEventPrompt({
           ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
           : "See all the photos"}
       </p>
+      {/* ★ RULED (Will, 2026-09-19, voice r1 `gate=ask`), his own adjustment to
+          the winning candidate and wired verbatim. What he was ruling OUT is
+          the reading the other candidates carried: "The rest of the options
+          feel like the host has gated the event to certain emails." They do not
+          - the gate is a yes/no switch, not an allow-list - so the body has to
+          say WHY (safety), WHOSE call it is (the host's) and how much it costs
+          (one tap). The eyebrow, the title's real count and the password path
+          are unchanged. His larger question, whether confirmation should be
+          skipped for a verified-email badge, is the queued `guest-verify`
+          exploration, NOT this line. */}
       <p className="mx-auto mt-2 mb-4 max-w-xs text-base leading-relaxed text-muted-foreground">
-        To keep this album just for guests, the host asks for a quick email
-        check. One tap, no password needed, and you&rsquo;re in.
+        For safety, the host has requested you confirm your email. One tap and
+        you&rsquo;re in.
       </p>
       <div className="mx-auto max-w-xs text-left">
         {mode === "email" ? (

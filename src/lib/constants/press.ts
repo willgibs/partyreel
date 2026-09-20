@@ -28,7 +28,7 @@ const PRESS_DOMAIN = "partyreel.com";
  * per-tier (tiers.ts MAX_REEL_SECONDS), so a fixed number here would be wrong on Free.
  */
 export const PRESS_BOILERPLATE =
-  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos with no app and no account. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and any album can become a highlight reel.";
+  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos from the browser, with no app required. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and any album can become a highlight reel.";
 
 /** The one-sentence version: what a reporter pastes into a story. */
 export const PRESS_BOILERPLATE_SHORT =
@@ -50,7 +50,10 @@ export const PRESS_FACTS: { label: string; value: string }[] = [
   { label: "How it works", value: "One QR code in, one album out." },
   {
     label: "Guests need",
-    value: "A phone and a browser. No app, no account, no fee.",
+    // ★ NEVER "no account" (2026-09-19, voice r1): a reporter quotes a fact
+    // sheet verbatim, so this row was the most expensive place the old promise
+    // lived. What is true on every event is the phone, the browser and the fee.
+    value: "A phone and a browser. No app required, and no fee.",
   },
   {
     label: "Hosts get",

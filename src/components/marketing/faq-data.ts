@@ -44,7 +44,10 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What does it cost?",
-    a: `Start free with one event and ${formatBytes(free.storageBytes)} of storage. Upgrade to Pro for unlimited events and more storage, or buy a one-time Event Pass for a single big event.`,
+    // Pro's value in his ruled order, video first (2026-09-19, voice r1
+    // `pro-line=video`): video is the upgrade a host feels, unlimited events is
+    // the one they grow into. The sentence is this surface's own.
+    a: `Start free with one event and ${formatBytes(free.storageBytes)} of storage. Upgrade to Pro for video, unlimited events, and more storage, or buy a one-time Event Pass for a single big event.`,
   },
   {
     q: "What's an Event Pass?",

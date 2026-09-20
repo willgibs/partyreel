@@ -27,7 +27,6 @@ import { GlassBoard } from "@/app/(dev)/design/sandbox/glass/board";
 import { GuestShapeBoard } from "@/app/(dev)/design/sandbox/guest-shape/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
-import { VoiceBoard } from "@/app/(dev)/design/sandbox/voice/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
 /**
@@ -73,6 +72,5 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "loose-ends": { Component: LooseEndsBoard },
   glass: { Component: GlassBoard },
   "body-type": { Component: BodyTypeBoard },
-  voice: { Component: VoiceBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
 };

@@ -143,7 +143,7 @@ export const EVENT_TYPES: EventType[] = [
     subheadShort:
       "Your photographer gets the formals. Your guests get everything else.",
     intro:
-      "A wedding is the most photographed day of your life, and almost none of those photos ever reach you. Guests fill their camera rolls and the shots scatter across phones and group chats. Partyreel turns every guest into a second shooter. No app, no account, just a QR code on the table.",
+      "A wedding is the most photographed day of your life, and almost none of those photos ever reach you. Guests fill their camera rolls and the shots scatter across phones and group chats. Partyreel turns every guest into a second shooter. No app required, just a QR code on the table.",
     statement: {
       claim: "The most photographed day of your life.",
       line: "Almost none of those photographs ever reach you. A code on the table turns everyone in the room into a second shooter, and every angle lands in one album you keep.",
@@ -200,7 +200,7 @@ export const EVENT_TYPES: EventType[] = [
     faq: [
       {
         q: "Do wedding guests need to download an app?",
-        a: "No. Guests scan your QR code and upload straight from their phone's browser. There's nothing to install and no account to create.",
+        a: "No. Guests scan your QR code and upload straight from their phone's browser. There's nothing to install and no password to invent.",
       },
       {
         q: "Can we keep the wedding album private?",
@@ -372,7 +372,7 @@ export const EVENT_TYPES: EventType[] = [
     faq: [
       {
         q: "How do attendees contribute photos?",
-        a: "They scan a QR code (on a badge, a sign, or a slide) and upload from their phone browser. No app, no account, no attendee onboarding.",
+        a: "They scan a QR code (on a badge, a sign, or a slide) and upload from their phone browser. No app required, and no attendee onboarding.",
       },
       {
         q: "Can we review photos before they're public?",
@@ -440,7 +440,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         icon: Smartphone,
         title: "Add photos as you go",
-        body: "Scan once and upload from anywhere. No app, no account, works on everyone's phone.",
+        body: "Scan once and upload from anywhere. No app required, works on everyone's phone.",
       },
       {
         icon: Images,
@@ -457,7 +457,7 @@ export const EVENT_TYPES: EventType[] = [
     faq: [
       {
         q: "How does everyone add their photos?",
-        a: "Share one QR code or link with the group. Everyone scans and uploads from their own phone, with no app and no account needed.",
+        a: "Share one QR code or link with the group. Everyone scans and uploads from their own phone, with no app required.",
       },
       {
         q: "Can everyone download the photos afterward?",

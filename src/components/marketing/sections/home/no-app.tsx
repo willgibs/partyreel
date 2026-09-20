@@ -7,9 +7,9 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 
 /**
- * QUIET (the loud/quiet map): the guest side of "no app, no account" as three
- * SPECIFIC claims, quiet reveals only. The trust strip states this in four
- * words at the top of the chapter; this is where the four words get their
+ * QUIET (the loud/quiet map): the guest side of "No app required" as three
+ * SPECIFIC claims, quiet reveals only. The trust strip states this in three
+ * words at the top of the chapter; this is where the three words get their
  * specifics (specifics over adjectives).
  *
  * WHY IT IS HERE (the chapter arc, design-system.md "Chapters"): chapter 1
@@ -39,8 +39,12 @@ const CLAIMS: { title: string; body: string }[] = [
     body: "The QR opens in the browser they already have. iPhone, Android, whatever is in their pocket.",
   },
   {
-    title: "No account, no app",
-    body: "Guests upload without signing up for anything. If you want a verified email first, that is one switch.",
+    // ★ THE CLAIM THAT INVERTED ITSELF (Will, 2026-09-19, voice r1). The title
+    // promised no account and the body then explained the switch that requires
+    // one, which is the promise and its own refutation on one row. The switch
+    // is the interesting half and it is true either way, so it leads now.
+    title: "One tap to join",
+    body: "New events ask a guest to confirm an email, once. Want anyone with the link to upload? That is one switch.",
   },
   {
     title: "Nothing to learn",

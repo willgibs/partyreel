@@ -134,7 +134,6 @@ export type SandboxId =
   | "loose-ends"
   | "glass"
   | "body-type"
-  | "voice"
   | "privacy-hero"
   | "app-shape";
 
@@ -1571,26 +1570,15 @@ export const RULINGS: Ruling[] = [
     title: "The voice",
     surface: "shared",
     ruled:
-      "open (Will, 2026-09-17: the brand-voice board killed unruled at round seven; the voice is rebuilt from won lines, one real comparison at a time)",
-    shipped: null,
-    why: "No voice is declared: eight real lines in their real places, three or four close candidates each, and the voice is written up from what his wins share.",
+      "2026-09-19 (the fifth batch, voice r1: all eight answered; bible 20 ruled PERMISSIVE and rewritten with it)",
+    shipped:
+      "The account rule (never promise \"no account\"; \"No app required.\" everywhere), his hero sentence, the curation h1 kept, the Pro line, the album noun on both empty states, his gate line, today's toast",
+    why: "An absence may be NAMED, a denial of someone else may not, and \"no account\" is never promised: Require accounts to upload defaults on.",
     lives: [
       "src/lib/constants/marketing-voice.ts",
       "src/app/(dev)/design/rules/bible.ts",
+      "docs/systems/marketing-content.md",
     ],
-    board: {
-      note: "Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column",
-      variants: [
-        "Naming an absence",
-        "The home hero's sentence",
-        "A feature page's headline",
-        "The Pro card's line",
-        "A host's first screen",
-        "Asking for an email",
-        "An empty album",
-        "The upload's answer",
-      ],
-    },
   },
   {
     id: "admin",
@@ -1644,7 +1632,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "voice",
   "body-type",
   "glass",
   "app-shape",
