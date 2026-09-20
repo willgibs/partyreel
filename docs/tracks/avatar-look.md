@@ -1,6 +1,6 @@
 ---
 track: avatar-look
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
 board: seed-avatar     # round two on the same board id: the look
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -204,11 +204,12 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- The brief's `mesh` guess ("several hue stops, not two") does not match hashvatar's own source, read this round (`gh api`/`curl` on `medhychabour/hashvatar`, not only its site): with no `tones` passed — the demo's own default state, and what all four of its gallery samples render — its `hashToColors` gives every one of its four colours the SAME hue, varying only lightness and chroma (one bright primary, three darker secondaries), composited as blurred blobs blended with `overlay`/`soft-light`. Built `mesh` to match what hashvatar actually draws by default (one hue, several tonal depths, diffused and layered) rather than the brief's guess. Recommended: keep as built, it is the literal, sourced answer to his question ("is this the best hashvatar had to offer"). Overrule: if he remembers wanting a genuinely multi-hue reading, that is a different, uncorroborated board.
+- Measuring `letter`/`paper`/`ink`/`ring` this rigorously (real compositing math for the exact centre pixel, not a nearby stop) is stricter than the production contract (`gradient.test.ts`) has ever held any look to, and it surfaces that EVERY option here, including the wired control, fails `paper`/`ink`/`ring` at the disc's brightest/darkest corners (`orb.lit`'s highlight was never held past a loose `> 1.3` bound against paper). Recommended: read this as a finding about the existing generator, not a defect unique to any one option — the ring (`after:border-border`) keeps every disc a findable circle regardless, and no option differs from another on it. Overrule: if this bar should gate the generator itself, that is a `src/lib/avatar/gradient.ts` fix outside this lane's `owns`.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (docs/systems/auth-accounts.md's seed-avatar lines describe the wired diagonal, which this round only measures against, never changes; the winner's wiring is a future lane's system-doc edit)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -216,16 +217,16 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Board `310713d5`, pushed; synced with `launch-prep` at `47e819de` (`origin/launch-prep` had moved to `cb0fe23e` since the `58f7acbd` cut: album-controls, welcome-tour and the admin board's retirement landed underneath this lane)
+- Gates on the synced tree, each its own exit code: `design:rules` ok (181 components, 114 with contracts) · specimen collector ok (140 specimens) · `typecheck` ok · `lint` ok (8 known warnings, unchanged) · `test` ok (3032 passed, 1 skipped, 288 files) · `build` ok (255 pages) · `pnpm lab:smoke --base :3131` ok (430 checks, 0 failing) · `pnpm lab:demo --board seed-avatar --base :3131` ok (1 step, 0 failing, the stage moves up to 3.38% per option). The board verified at 1440 and 375 (headless captures, this lane's own CDP script, never the shared pane) and with `--force-prefers-reduced-motion` (no new animation this round; nothing to honour beyond staying still).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md`, `src/app/(dev)/design/rules/component-notes.ts`, `src/app/(dev)/design/rules/rules.generated.json`, `src/app/(dev)/design/sandbox/overtaken.ts`, `src/app/(dev)/design/sandbox/seed-avatar/{board.tsx,fixtures.ts,looks.test.ts,looks.ts,orb.tsx,spec.ts}`, `src/app/(dev)/design/touchpoints.ts`, this file. Exceptions and why: `touchpoints.ts` is the registration exception (the seed-avatar RULINGS row rewritten for round two, `board.tracks: ["avatar-look"]` added since the track name differs from the board id); `library.md` and `rules.generated.json` are `pnpm design:rules`'s own regeneration of that edit plus `looks.ts`'s new contract, mechanical and required by the gate; `component-notes.ts` gained the one `for:` line `looks.ts`'s `@contract-for` test requires (`gallery.test.ts`, part of the gate); `overtaken.ts` lost the one `seed-avatar.after-upload` entry, an ask round two retired (`overtaken.test.ts`, part of the gate; the `retired-admin` precedent other lanes already used the same way this batch).
+- The items, one line each: `look: mesh recommended (hashvatar's own register, reproduced from its source; clears the letter floor on 100% of a thousand seeds, worst 4.69:1, against the wired diagonal's 76%, worst 4.13:1); the winner lands in src/lib/avatar/gradient.ts's background() at its own wiring lane, this board never edits it`
+- Calls his to overrule on the alias, one line each: both under Questions above (the `mesh` register correction; the stricter paper/ink/ring measurement's shared finding) — no others; every other choice is drawn as an option on the board itself.
+- The help articles this lane makes stale: none
+- Assets requested from Will: none
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: the board has one ask (`look`); it opens on `mesh`, the recommendation, with the measured caption on the first frame ("Every size") and the guest list and account menu beneath it. 1440 first, then 375 (the dock's own default).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round two answered his question on the wired diagonal ("is this the best hashvatar had to offer"): read hashvatar's own source this round rather than only its site, found its real default register is one identity hue at four tonal depths diffused and layered, never several hues as the brief guessed, and reproduced that register in pure CSS as `mesh`, alongside two further readings the brief asked for, `throw` (a moodier two-pool wash) and `lit-seam` (a lit crease on the diagonal's own seam). Every option measured, not asserted, against the generator's own three floors across a thousand deterministic seeds, the numbers on every frame; the measurement caught a real bug in its own first draft (a naive worst-case stop failed the live, shipped diagonal on every seed) and, once fixed, a genuine pre-existing gap shared by all four options including the control (`orb.lit`'s highlight was never held past a loose bound against paper). `mesh` recommended: it clears the letter floor on every one of a thousand seeds against the control's 76%. Round one's seven asks retired from the board, named as ruled in the RULINGS row; the ledger and rulings.md keep their answers.
