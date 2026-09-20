@@ -1,6 +1,6 @@
 ---
 track: buttons-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c75734b9"          # the launch-prep SHA the branch was cut from
 board: body-type       # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -203,30 +203,38 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: `pairs=step-up` was concrete enough to wire outright; the one real ambiguity (icon-sm's target) was resolved by measurement, not escalated — see "Calls his to overrule" below.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md:620-625` (the button line, inside "Six ways the ladder fails SILENTLY"): refined from "Button's four sizes are a round (`buttons-pairs`) and not a lint" (open) to name the shipped rule (`pairs=step-up`, every icon one Tailwind step over its own text, explicit on all eight sizes) and the `icon-sm` bug it fixed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: the brief's whole scope (the pairing, the two ladder-policy exceptions, the board retirement) shipped in this lane; nothing pushed out.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `047d9e0b` (the button rung wired, `pairs=step-up`; `body-type` retires), synced with `launch-prep` at merge commit `d4b23e9c` (launch-prep had moved by two `usher/` housekeeping commits since the cut — `usher/journal/2026-09-20.md`, `usher/kit/spawn-prompt.txt` — neither touching this lane's `owns` or `reads`; clean merge, no conflicts).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `design:rules` ok (182 components, 116 with contracts, 18 policies), specimens ok (140 specimens on 101 entries), `typecheck` ok, `lint` ok (8 known warnings, 0 errors — the baseline, none introduced), `test` ok (3083 passed, 1 skipped, 291 files), `build` ok (255 pages) — full logs in `$S/buttons-wiring/{build.log,lab-smoke.log}` (`$S` = this session's scratchpad, printed at boot); `pnpm lab:smoke --base http://localhost:3131` ok (437 checks, 0 failing, run twice — before and after the sync-merge). `pnpm lab:demo --board body-type` was NOT run: the board retires in this same commit (its sandbox directory is deleted), so there is no board left to demo; `lab:smoke`'s per-board pass already exercises every OTHER board's sessions against the wired `button.tsx` (dozens of lab files compose `Button`) and found nothing.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/components/ui/button.tsx`, `src/lib/type-ladder-policy.test.ts`, `src/app/(dev)/design/sandbox/body-type/{board.tsx,fixtures.ts,spec.ts,surfaces.tsx}` (deleted), `docs/systems/design-system.md` — all owned (7 files) — plus 8 more files across four documented exception groups below, each named in this manifest's own brief text or a natural consequence of it:
+  - `src/components/ui/button.test.tsx` (new): a sibling contract test for the owned `button.tsx`, not literally in `owns` (which names the one file) but the brief's own words ("the `Button` contract test extended with the pairing") require it; no other of the six lanes' manifests claims this path.
+  - `src/components/guest/entry-modal.tsx`, `src/components/guest/password-gate.tsx`: the manifest's own named exception ("BY FILE for the five overrides ... this lane's EXCEPTION lines"). `guest-chrome-wiring` had NOT landed on `launch-prep` as of this lane's boot or its final push (`origin/lp/guest-chrome-wiring` sat exactly at the cut commit `2066b835` throughout, per `git rev-parse`), so the edit applied against its current content rather than after a sync, per the brief's "else listed for the guest lane to apply" fork resolving the other way (this lane wired first). The diff touches only the five buttons' own lines (`size`/`className`), a distinct hunk from anything `guest-shape`'s dock/sheet/mark rewrite is likely to touch; if `guest-chrome-wiring`'s own rewrite happens to land on the SAME lines first, `merge-lane.sh` will flag a real conflict rather than merge silently, and the second lane to land resolves it.
+  - `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/touchpoints.ts`: the manifest's own named exception ("the board's registration lines under the retirement exception"); each touched ONLY on `body-type`'s own lines (one import, one array/map entry, the `SandboxId` union line, the `DESK_ORDER` line, the `body-type` `RULINGS` entry rewritten in place) — verified by reading each diff in full before committing.
+  - `docs/design/library.md`, `src/app/(dev)/design/rules/rules.generated.json`: generated by `pnpm design:rules` (CLAUDE.md: regenerate after a contract or `touchpoints.ts` change); re-ran on the synced tree and diffed clean (no drift) before this Handoff was written.
+- The items, one line each:
+  - `pairs=step-up`: wired whole onto `button.tsx`'s `cva` size table — `xs` 12/14, `sm` 12/14 (text moved off `text-[0.8rem]` onto the ladder as `text-xs`), `default`/`lg` 14/16 (unchanged, now explicit), `cta` 16/18, and the four icon-only sizes made explicit by the height they share with a text size (`icon-xs` 14, `icon-sm` 14, `icon` 16, `icon-lg` 16); the board retires (`src/app/(dev)/design/sandbox/body-type/` deleted, `registry.ts`/`boards.ts`/`touchpoints.ts` updated, `body-type` stays a `RulingId` with its `RULINGS` row rewritten as shipped). Lands as: `docs/systems/design-system.md`'s button line (refined in place, see "System-doc edits") — there is no separate Library "entry" for a `cva` table (the design-rules generator's `rules.generated.json` picks up the new contract test's descriptions on `Button`'s existing row automatically).
+  - The five `text-[15px]`/`h-12` overrides (`body-type` r1's `buttons=ladder` hold): all five now `size="cta"` (44px, `text-base`), the door's own precedent (`enter-event-prompt.tsx`'s `buttonClassName="h-11"`); `type-ladder-policy.test.ts`'s two matching `board` `BODY_EXCEPTIONS` entries deleted in the SAME commit as the fix (the policy pins the count; landing them apart would go red in between, per the Orchestrator's own integration note).
+- Calls his to overrule (none blocked the work; each was the brief's own recommendation or a measured resolution of an open number, not a new decision):
+  - The `cta` icon at 18 (`size-4.5`) and `sm` text at 12 rather than 14 (both named in the brief as "his to overrule" — direct, unavoidable consequences of `pairs=step-up` itself, not a separate choice this lane made).
+  - The five overrides onto `cta` (44px, `text-base`) rather than a smaller step — also named in the brief; the visible change is real (the guest door's three CTAs and the password gate's two buttons grow from 36px/48px hand-set sizes with 15px text to a uniform 44px/16px), so "look at first" below flags it.
+  - **icon-sm's number, MINE to flag**: the Orchestrator's plan prose named `icon-sm` as 16; this lane shipped 14. Re-derived from the approved board's own code (`body-type/surfaces.tsx`'s `iconClass()`, deleted with the board but readable at this lane's cut commit `c75734b9`): `icon-sm` pairs by HEIGHT with `sm` (both 28px), whose text is now 12 (caption tier), so step-up's own rule (`ONE_OVER[12] = size-3.5`, i.e. 14) gives 14, not 16 — and `icon-sm` was the literal probe (`PAIR_PROBES`) Will's approved review measured and judged. 16 was `icon`/`icon-lg`'s pairing (`default`/`lg`'s 14px text, one step over, is 16), not `icon-sm`'s. The plan text itself hedged this exact spot ("`icon-sm` 16 ... or as the lane measures"); this is the lane measuring. Flagged here rather than silently shipped so it is easy to overrule if the 16 was intended after all.
+- The help articles this lane makes stale: none (no help/guide article describes a button's icon or text pixel size).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the guest door's three CTA buttons (SuccessStep's "Open the album", WelcomeStep's "Continue"/"View the album", RoleStep's "Look around", all in `entry-modal.tsx`) and the password gate's "Unlock"/"Open the album" (`password-gate.tsx`) are now visibly bigger (44px, 16px text) than before (36px or 48px hand-set, 15px text) — confirmed locally on the real `/e/<demo-token>` door at 1440 (`getComputedStyle`: height 44px, fontSize 16px, `data-size="cta"`) before the shared browser pane got reassigned to a concurrent lane's dev server mid-session (this machine runs six lanes' browsers at once; a `tabId`-less call can land on whichever tab another lane just fronted). The guest album's own row (`event-experience.tsx`'s Add photos/Invite, `lg`/`sm`, unrelated to the five overrides) was also confirmed live: heights unchanged, `sm`'s text now a clean 12px (was 12.8px) beside its unchanged 14px icon. `password-gate.tsx`'s two buttons were not separately walked live (no password-protected event exists in the disposable test data today, and seeding a password is outside a narrow CSS lane's remit) — they share the exact `size="cta"` mechanism already confirmed on `entry-modal.tsx`, and the contract test covers `cta` in isolation.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `body-type` round two ruled `pairs=step-up` (2026-09-20): every `Button` size's icon now sits one Tailwind icon-step over its own text (12/14, 14/16, 16/18), explicit on all eight sizes in `button.tsx`'s `cva` table so none falls back to the base `size-4` by accident (`icon-sm`'s old silent fallback to 16 was the exact mismatch Will saw). A new contract test (`button.test.tsx`) pins the pairing, the explicit-selector shape and the unmoved heights. The five `text-[15px]`/`h-12` overrides `body-type` r1 sent to round two (`entry-modal.tsx`'s three, `password-gate.tsx`'s two) moved onto `size="cta"`, and `type-ladder-policy.test.ts`'s two matching `board` exceptions retired with them in the same commit. `body-type` retires: its sandbox directory is gone, `registry.ts`/`boards.ts`/`touchpoints.ts` updated, and it stays a `RulingId` with its `RULINGS` row rewritten as shipped.
