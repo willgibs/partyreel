@@ -33,7 +33,8 @@ export const EVENT = {
 /* ── what is true today, in the shipped code ─────────────────────────────── */
 
 /**
- * THE GATE AS BUILT, read out of the tree rather than remembered.
+ * THE GATE AS BUILT, read out of the tree rather than remembered, and the
+ * mechanism every option but `before` assumes.
  *
  * `create_guest` (the LIVE definition, confirmed against `pg_get_functiondef`)
  * is the hard gate, and it is Postgres, not the app:
@@ -44,43 +45,26 @@ export const EVENT = {
  * `v_confirmed` is `auth.users.email_confirmed_at`, read under definer
  * privilege for the route's `getUser()`-verified id. That is the
  * verified-at-join invariant: the address on `guests.email` was proven on the
- * auth server, never sent by the client.
- */
-export const TODAY = {
-  setting: "allow_anonymous_uploads",
-  settingDefault: "false, so accounts are required",
-  step: "One Supabase Auth email: a 6-digit code and a magic link",
-  proof: "verifyOtp — typing the code IS the confirmation",
-  knows: "guests.user_id is set, or it is null. Nothing else.",
-} as const;
-
-/**
- * ★ THE MECHANISM EVERY OPTION BUT `before` ASSUMES, and why it is safe.
+ * auth server, never sent by the client. `events.allow_anonymous_uploads`
+ * defaults FALSE (migration 20260621170000), so accounts are required unless a
+ * host says otherwise, and the account step is one Supabase Auth email holding
+ * a 6-digit code and a magic link, verified in-page by `verifyOtp`.
  *
- * There is no such thing today as a signed-in guest with an unconfirmed
- * address: the only path to a session is the code, and the code IS the
- * confirmation. So "unverified" cannot mean a logged-in-but-unproven auth
- * session — that would need Supabase's Confirm-email turned OFF, which makes
- * every HOST account unprovable too and breaks auth-js's own refusal to link an
- * unverified identity (the anti-takeover rule, auth-accounts.md).
+ * ★ SO THERE IS NO SUCH THING TODAY AS AN UNVERIFIED GUEST. The only path to a
+ * session is the code, and typing the code IS the confirmation. "Unverified"
+ * therefore cannot mean a logged-in-but-unproven auth session: that would need
+ * Supabase's Confirm-email turned OFF, which makes every HOST account
+ * unprovable too and breaks auth-js's own refusal to link an unverified
+ * identity (the anti-takeover rule, auth-accounts.md).
  *
  * It means the other thing, and it costs one nullable column: the guest keeps
  * TODAY's anonymous guest row (`guests.user_id` null, a session token), the
  * address they typed is written beside it as a CLAIM that authorises nothing,
  * and verifying the code later signs them in and runs the claim that already
  * exists (`claimAnonymousUploads`). `guests.email` keeps its verified-at-join
- * meaning untouched. The proposed migration is in the lane's Handoff.
+ * meaning untouched. That is the session lane `collision` draws against the
+ * email lane; the proposed migration is in this lane's Handoff.
  */
-export const LANES = {
-  session: {
-    title: "Bound to the session",
-    line: "The address is a label on this browser's guest row. It authorises nothing.",
-  },
-  email: {
-    title: "Bound to the address",
-    line: "The upload attaches to the account for that address the moment it is typed.",
-  },
-} as const;
 
 /* ── the wall, from Supabase's current rate-limit table ──────────────────── */
 
