@@ -1526,25 +1526,18 @@ export const RULINGS: Ruling[] = [
     title: "Body and label type",
     surface: "shared",
     ruled:
-      'open (Will, 2026-09-18: "everything should be addressed in our design system type ladder" reaches body and label sizes, one question-first board first)',
+      'round one ruled whole (Will, 2026-09-19/20, the fifth batch): six of its seven asks wired at `59345bc8` (`ladder-wiring`): reading=16, working=14, marketing=fluid (16 to 18), caption=10 (the caption step itself stays 12; micro is the new 10 floor), label=12-08, leading=length (2 x size - 8). Round two is open on the button rung alone, his own words: "the download and select buttons felt mismatched between their icon sizes and new font size"',
     shipped: null,
-    why: "The heading ladder stops at 16 and about 920 sites below it pick their own size; seven decisions set the body, caption and label steps that replace them.",
+    why: "Round two asks how a button's icon and height follow its new text step, three pairings drawn on the real Button at every size, measured in the frame.",
     lives: [
       "src/app/theme.css",
       "src/lib/utils.ts",
       "src/lib/type-ladder-policy.test.ts",
+      "src/components/ui/button.tsx",
     ],
     board: {
-      note: "Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame",
-      variants: [
-        "A guest's reading copy",
-        "The app's working body",
-        "Marketing reading copy",
-        "The caption step, and the floor",
-        "The label step",
-        "Buttons on the ladder",
-        "The line-height rule",
-      ],
+      note: "One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box.",
+      variants: ["Icon and height pairing"],
     },
   },
   {
