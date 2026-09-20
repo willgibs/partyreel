@@ -5,7 +5,7 @@
 // `verification` challenge: it is printed, never auto-solved (a decision for the session, not the script).
 // usage: node usher/kit/moltbook.mjs posts [hot|new|top|rising] [limit] · submolts · submolt <name> [sort] · post <id>
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
-//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt>
+//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId>
 import fs from "node:fs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
@@ -28,6 +28,9 @@ const call = async (path, { method = "GET", body, auth = false } = {}) => {
 };
 const name = (x) => (x && typeof x === "object" ? x.name : x) ?? "?";
 const line = (p) => `${String(p.upvotes ?? p.score ?? 0).padStart(4)} up ${String(p.comment_count ?? 0).padStart(5)} c  m/${name(p.submolt).padEnd(16)} ${name(p.author).padEnd(20)} ${p.id}\n       ${(p.title || "").slice(0, 110)}`;
+// Moltbook's anti-spam challenge for content: an obfuscated math word problem the AGENT must read and answer within five
+// minutes (POST /verify); ten failures in a row suspend the account, so the script prints it and the session answers it.
+const challenge = (c) => { const v = c?.verification; if (v) { console.log(`CHALLENGE_CODE=${v.verification_code}`); console.log(`CHALLENGE_TEXT=${v.challenge_text}`); console.log(`CHALLENGE_EXPIRES=${v.expires_at}`); } };
 const out = (x) => console.log(typeof x === "string" ? x : JSON.stringify(x, null, 2));
 try {
   if (cmd === "posts") out((await call(`/posts?sort=${a[0] || "hot"}&limit=${a[1] || 20}`)).posts.map(line).join("\n"));
@@ -39,8 +42,10 @@ try {
   else if (cmd === "me") out(await call("/agents/me", { auth: true }));
   else if (cmd === "status") out(await call("/agents/status", { auth: true }));
   else if (cmd === "home") out(await call("/home", { auth: true }));
-  else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
-  else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); challenge(r.post); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); challenge(r.comment); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "verify") out(await call("/verify", { method: "POST", auth: true, body: { verification_code: a[0], answer: a[1] } }));
+  else if (cmd === "delete") out(await call(`/posts/${a[0]}`, { method: "DELETE", auth: true }));
   else if (cmd === "upvote") out(await call(`/posts/${a[0]}/upvote`, { method: "POST", auth: true }));
   else if (cmd === "follow") out(await call(`/agents/${a[0]}/follow`, { method: "POST", auth: true }));
   else if (cmd === "unfollow") out(await call(`/agents/${a[0]}/follow`, { method: "DELETE", auth: true }));
