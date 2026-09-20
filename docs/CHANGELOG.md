@@ -101,6 +101,25 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   `sign-in-options-and-passwords`, `the-email-code-didnt-arrive`). NOT SEEN RENDERED: the existing-account line and
   its four-second hold, and the passkey row, are Will's (a real second sign-in; the dashboard settings).
 
+- **`admin-wiring` merged at `b81ed49a`** (2026-09-20, Opus; cut `0ad0c32d`, synced at `8e800240`): `admin` r1 wired
+  whole. The portal opens on four figures (Accounts, Active hosts, Uploads, Paid subscribers; the fourth carries no
+  arrow because no history exists to compare against, and "active" means last seen in the fortnight) with the ranked
+  queue beneath; a 44 px bar with the crumb and the live tag, a 232 px rail at `lg` and the dropdown below it, the
+  health band under the bar only on a bad day, and a command palette on the new `ui/command-palette.tsx` primitive (a
+  surface, an account, an action); `ui/table.tsx` with `tone` as a data attribute and four state colours reaching the
+  row (`info` the fourth); one destructive sheet on nine controls, the permanent one typed; Exports joined to NAV. The
+  `admin` board retired, its ledger gone at this record, its fixtures kept as a Library demo of the real rail, band,
+  queue, table, palette and sheet (the only automated eye on a portal nothing can sign into). Eleven files outside its
+  owns, each the gate's own demand and named in its manifest. The `admin_actions` table proposed under Questions and
+  not built. Gate 49 on the merged tree. Calls his to overrule on the alias: the four figures and the arrowless
+  fourth; "active" as last seen; whether a paid-subscriber delta is worth a `tier_events` table (his question, open).
+  Deferred (ROADMAP): the components gallery's duplicate "Surfaces" block (a duplicate React key, pre-existing); the
+  help centre's palette onto the primitive (and the second global ⌘K listener gone); the queue's Reports row costing a
+  full list for one timestamp; the two report verdicts still unconfirmed (admin-triage's lane). NOT SEEN RENDERED: the
+  whole portal is Will's, signed in on the admin host (the bar, the rail at 1440 and the dropdown at 375, ⌘K three
+  ways, the figures against /admin/metrics, the band absent, the sheet on a disposable announcement); the typed account
+  delete never exercised.
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
