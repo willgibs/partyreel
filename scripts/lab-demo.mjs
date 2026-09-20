@@ -77,7 +77,7 @@
  */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -96,6 +96,11 @@ const opt = (name, fallback) =>
  * refuses to guess: pass `--base`, or set `LAB_BASE` once in the shell.
  */
 const rawBase = opt("--base", process.env.LAB_BASE ?? "");
+// `--save-shots <dir>`: keep every option's picture on disk as `<board>.<ask>.<option>-<width>.png` (the Orchestrator's
+// review sheet puts each of Will's verdicts beside the drawing it answered; 2026-09-20). Off by default: the pictures
+// are measured, never stored, unless asked.
+const SAVE_SHOTS = opt("--save-shots", "");
+if (SAVE_SHOTS) mkdirSync(SAVE_SHOTS, { recursive: true });
 if (!rawBase) {
   console.error(
     "lab:demo needs the server to press: --base http://localhost:<your port>\n" +
@@ -769,6 +774,7 @@ try {
           hash: createHash("sha1").update(png).digest("hex"),
           png,
         });
+        if (SAVE_SHOTS) writeFileSync(join(SAVE_SHOTS, `${step}.${id}-${W}.png`), png);
       }
       if (shots.length < 2) {
         rows.push({

@@ -63,3 +63,8 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   verbatim, the deep link to the live step, and the lane's own capture of that option when one exists in the scratchpad
   (a file:// reference; the page is for the machine that holds them). The tags read the CURRENT specs, so a sheet of an old
   paste on boards whose asks a round two replaced shows fewer tags; for the next batch it reads whole.
+
+- `capture.sh <board> <dir> [port]` (2026-09-20): every option of every open step of one board as PNGs named
+  `<board>.<ask>.<option>-<width>.png`, through the lab's own demo runner (`pnpm lab:demo --save-shots <dir>`, the one
+  additive flag the Orchestrator added to `scripts/lab-demo.mjs`) on a dev server the script starts and stops; the
+  pictures feed `review-sheet.mjs --captures <dir>`. `capture-all.sh <dir>` does the whole desk on one server.
