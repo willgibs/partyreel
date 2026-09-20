@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 820 contracts on 115 components · 27 standing boards.**
+**22 laws · 18 policies · 825 contracts on 116 components · 26 standing boards.**
 
 ## What binds you
 
@@ -312,7 +312,7 @@ function. A contract never freezes a look.
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
 | `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets a two-hue backgroundImage on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the SAME colour on two different avatars; a DIFFERENT seed paints a different colour; with no seed, the root paints nothing and the fallback stays today's grey |
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
-| `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
+| `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | size=%s reads %s with an icon of size-%s; size=%s (%s's height) carries an explicit icon of size-%s; size=%s keeps %s; size=%s keeps its box at %s; size=%s carries its own icon selector, not the base's fallback |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
 | `src/components/ui/command-palette.tsx` | a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees | wires the field to the list it controls; activates the first row before a key is pressed, so Enter always does something; walks the list with the arrows and stops at both ends; reaches both ends with Home and End; opens the row that is highlighted, not the one that was first; moves the highlight with the pointer, so the mouse and the keys agree; hands the query to whoever is filtering, and never filters itself |
 | `src/components/ui/confirm-switch.tsx` | the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently | shows the glyph beside the label, unconditionally; applies at once on the edge confirmWhen refuses; asks on the edge confirmWhen names, and applies nothing until confirmed; applies the pending value on Confirm; leaves the value untouched on Cancel |
@@ -460,6 +460,5 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `guest-shape` | guest | Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68 |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
-| `body-type` | shared | One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box. |
 | `toasts` | shared | Five decisions on the real toasts (183 sonner calls today, six kinds), drawn on guest-upload's send, host-curation's bulk verdict, an export mint, a pricing refusal and a plain info, at 375 and 1440: where a toast sits, what it is made of, how long it lives, how a pile of them behaves, and whether one may ever carry a button. |
 

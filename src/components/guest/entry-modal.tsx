@@ -405,7 +405,7 @@ function SuccessStep({
           You&rsquo;re unlocked, the album just didn&rsquo;t open. Give it one
           more tap.
         </p>
-        <Button onClick={onRetry} size="lg" className="w-full text-[15px]">
+        <Button onClick={onRetry} size="cta" className="w-full">
           Open the album
         </Button>
       </div>
@@ -519,7 +519,7 @@ function WelcomeStep({
       </div>
 
       <div className="mt-auto flex flex-col gap-1">
-        <Button onClick={onContinue} size="lg" className="w-full text-[15px]">
+        <Button onClick={onContinue} size="cta" className="w-full">
           {continueLabel ?? (gateNext ? "Continue" : "View the album")}
         </Button>
         {browseAvailable && (
@@ -592,7 +592,7 @@ function RoleStep({
       </div>
 
       <div className="mt-auto flex flex-col gap-2">
-        <Button onClick={onContinue} size="lg" className="w-full text-[15px]">
+        <Button onClick={onContinue} size="cta" className="w-full">
           Look around
         </Button>
         <Button asChild variant="ghost" className="w-full text-muted-foreground">

@@ -135,7 +135,6 @@ export type SandboxId =
   | "guest-shape"
   | "album-motion"
   | "loose-ends"
-  | "body-type"
   | "privacy-hero"
   | "app-shape";
 
@@ -1523,19 +1522,17 @@ export const RULINGS: Ruling[] = [
     title: "Body and label type",
     surface: "shared",
     ruled:
-      'round one ruled whole (Will, 2026-09-19/20, the fifth batch): six of its seven asks wired at `59345bc8` (`ladder-wiring`): reading=16, working=14, marketing=fluid (16 to 18), caption=10 (the caption step itself stays 12; micro is the new 10 floor), label=12-08, leading=length (2 x size - 8). Round two is open on the button rung alone, his own words: "the download and select buttons felt mismatched between their icon sizes and new font size"',
-    shipped: null,
-    why: "Round two asks how a button's icon and height follow its new text step, three pairings drawn on the real Button at every size, measured in the frame.",
+      "whole: round one (Will, 2026-09-19/20, the fifth batch) wired six of seven asks at `59345bc8` (`ladder-wiring`); round two, the button rung alone, ruled `pairs=step-up` at the closing sitting's first batch (2026-09-20) and wired at `buttons-wiring`",
+    shipped:
+      "The six body steps (reading=16, working=14, marketing=fluid 16 to 18, caption=10 with the caption step at 12, label=12 on 0.08em, leading=2x-8) plus the button rung: every Button size's icon one Tailwind icon-step over its own text (12/14, 14/16, 16/18), explicit on all eight sizes so none falls back to the base by accident",
+    why: 'His "mismatched" icon/text pairing becomes a stated rule: every icon sits one Tailwind step over its text, costing the least motion since most sizes already sat there.',
     lives: [
       "src/app/theme.css",
       "src/lib/utils.ts",
       "src/lib/type-ladder-policy.test.ts",
       "src/components/ui/button.tsx",
+      "docs/systems/design-system.md",
     ],
-    board: {
-      note: "One decision: how a button's icon size and height follow its new text step, three pairings (icon equals the text, one Tailwind notch over, or today's icons kept) drawn on the real Button at xs, sm, default, lg, cta and the four icon-only sizes, plus the guest album's raw Download for reference, at 1440 and 375, every number read off the real box.",
-      variants: ["Icon and height pairing"],
-    },
   },
   {
     id: "voice",
@@ -1616,7 +1613,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
-  "body-type",
   "app-shape",
   "guest-shape",
   "guest-verify",
