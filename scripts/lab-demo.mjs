@@ -157,7 +157,14 @@ if (!existsSync(CHROME)) {
 }
 
 const W = 1440;
-const H = 2400;
+/**
+ * The window the PICTURES are taken in: tall enough to hold a whole option
+ * under the step's head without scrolling, because a capture that has to reach
+ * beyond the window is a capture Chrome recomposites (see the clip's note in
+ * `stageShot`). A step's head runs to about 700px, so this holds a 2,300px
+ * option whole.
+ */
+const H = 3000;
 /**
  * The screen a reviewer actually has, for judging how far they must travel.
  * The window above is tall on purpose (a whole step in one capture), so reach
@@ -566,13 +573,20 @@ async function stageShot(ws, id) {
       await nap(120);
       const r = box();
       const top = Math.max(0, r.top);
-      return {
-        x: Math.max(0, r.left),
-        y: top,
-        width: r.width,
-        height: Math.min(r.height, innerHeight - top),
-        beyond: r.height > innerHeight - top,
-      };
+      const room = innerHeight - top;
+      // Inside the window: viewport coordinates, composited, which is what a
+      // reader sees. Taller than the window (a document too short to scroll
+      // the box up): page coordinates and the old flag, because half a
+      // picture would compare two options on a strip they share.
+      return r.height <= room
+        ? { x: Math.max(0, r.left), y: top, width: r.width, height: r.height, beyond: false }
+        : {
+            x: Math.max(0, r.left + scrollX),
+            y: r.top + scrollY,
+            width: r.width,
+            height: Math.min(r.height, 2000),
+            beyond: true,
+          };
     })()`,
   );
   if (!rect || rect.width < 8 || rect.height < 8) return null;
