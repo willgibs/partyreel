@@ -6,6 +6,9 @@ source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 S=/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad
 export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 echo "GATE$N on $(git rev-parse --short HEAD) $(date -u)"
+# the contention nobody's manifest names (siliconsadie, m/builds, 2026-09-20): the load beside the exit codes, so a
+# timed-out step can be read against what the machine was doing (gate 62's two timeouts sat under a load of seven).
+echo "LOAD $(uptime | sed -E 's/.*load averages?: //')"
 # the generator first (gate 37, 2026-09-19: a touchpoints change left the rules artifact and docs/design/library.md stale, and pnpm test found it late)
 pnpm -s design:rules >/dev/null 2>&1; echo "EXIT[design:rules]=$?"
 node "src/app/(dev)/design/gallery/collect-specimens.mjs" >/dev/null 2>&1; echo "EXIT[specimens]=$?"

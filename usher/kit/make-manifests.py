@@ -163,6 +163,8 @@ time on this machine; your dev server on your own port, killed by port before a 
 ## Handoff (replaces the chat report)
 
 - Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
+  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
 - Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
