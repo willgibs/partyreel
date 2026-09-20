@@ -58,9 +58,12 @@ guards `MAX_EVENTS`. **Events have no end date**: deletion is the only lifecycle
   accounts required = `allow_anonymous_uploads:false`). **FREE for any tier + DEFAULT-ON:**
   requiring accounts captures guest emails (the growth loop) and is safer, so it is not Pro-gated and new
   events default to it ON (no `enforce_event_pro_gates` trigger; the column default is
-  `false`). Turning it OFF (allowing anonymous uploads) first opens a **consequence-confirm Dialog** (the
-  delete-confirm pattern; the open is deferred a tick so radix's dismissable-layer doesn't catch the switch's
-  own click and auto-close it); turning it back ON is instant. ENFORCEMENT is the gated gallery (→
+  `false`). Turning it OFF (allowing anonymous uploads) first opens a **consequence-confirm Dialog** via the
+  shared [`ConfirmSwitch`](../../src/components/ui/confirm-switch.tsx) (`app-vocabulary` r1,
+  `confirm-switch=primitive`: one primitive owns the glyph beside the label and the deferred-open dance — the
+  open is deferred a tick so radix's dismissable-layer doesn't catch the switch's own click and auto-close it
+  — for any consequential switch, not hand-rolled per field); turning it back ON is instant. ENFORCEMENT is
+  the gated gallery (→
   [guest-flow.md](guest-flow.md)): `resolveGalleryAccess` teaser-gates an unverified
   guest + `create_guest` checks the email. A live "what your guests will experience" line under the access
   controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
@@ -211,11 +214,20 @@ Share are SHEETS; the album is the hub page itself.
   no animation, because the transition IS the entrance, and falls back to the standard clock under reduced
   motion. It is listed by name in `floating-layer.test.ts`, whose family scan reads `ui/` only.
 - **The album** ([`event-feed/event-gallery.tsx`](../../src/components/app/event-feed/event-gallery.tsx))
-  carries Add photos (which left the deleted command strip), Download all, Select, and the **Deleted
-  filter**: the recovery bin joined the album, so "Deleted" names exactly one thing.
+  carries Add photos (which left the deleted command strip), Download all, the **tile-size cluster**, Select,
+  and the **Deleted filter**: the recovery bin joined the album, so "Deleted" names exactly one thing.
   ★ The bin is fetched **on demand** through `listDeletedMediaAction` (a `getUser()`-gated Server Function),
   never with the page — each item needs its own presign, and the hub must not pay N of them for a drawer a
   host opens once. The bin's items are never in the album's count.
+  ★ **The tile-size cluster** ([`TileSizeControl`](../../src/components/shared/tile-size-control.tsx),
+  `app-vocabulary` r1, `gallery-controls-home=cluster`) sets `--album-column` (three steps, 180/240/300;
+  `masonry.tsx`'s own knob) on the ancestor wrapping the album grid, plus two reserved, non-interactive
+  slots naming Sort and Filter for the day they land. Persisted per device in the **`pr_tile_size` cookie**
+  ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts), read + painted inline by the hub page,
+  `events-view.ts`'s own pattern) rather than localStorage, which the board itself had named: a local
+  preference would repaint the whole album's column width after hydration on every load. His crowding worry
+  over this exact row (download, tile size, sort, filter, select) is a narrow round two
+  (`gallery-controls`), not wired here. The guest album's row is held for `guest-chrome` round two.
 - **The Reel room** holds the BUILDER before the reel's birth and the Studio after it, which DELETED the old
   `redirect('?section=reel')` rather than re-pointing it at a filter that no longer exists; the card reads
   "Create reel" until then. Legacy `?section=` / `?eventTab=` deep links redirect into the rooms
@@ -232,7 +244,11 @@ shell, and `ui/drawer.tsx` is NOT retired (the lab's gallery demos draw it). Thi
   silent prod-hydration regression cause, see [architecture.md](architecture.md)). Rich client UI (the
   sheets, the mini-modal, the QR designer) is safe inside client islands.
 - **`loading.tsx`** draws the hub's own shape (code, title stack, cards row, album) so the retired strip
-  never flashes before the cards arrive.
+  never flashes before the cards arrive — the `"hub"` shape of the one shared
+  [`RouteSkeleton`](../../src/components/shared/route-skeleton.tsx) (`app-vocabulary` r1, `loading=asneeded`:
+  wired to exactly the dashboard, the hub and the Reel Studio, the three routes with a real pre-paint wait;
+  the dashboard's is the `"pulse"` shape and the Studio's `"studio"` shape is its first skeleton, the room
+  itself rather than the app's light chrome).
 
 ## Moderation & curation (host side)
 
@@ -253,12 +269,17 @@ on return. Four states: **pending** (the dense triage grid + an amber `Review ·
 masonry (matches the album) with two modes: **browse** (a tap peeks the media full-bleed — a self-contained
 overlay, so scrolling "All" never selects by accident) and **select** (a tap toggles selection + a
 `[data-check-pop]` checkmark; a video ▶ peeks before you select). The bulk controls are DRY in
-[`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), rendered inline in the room:
-**Approve all** is the FAST primary path (`approveAllPending`, no confirm — most
-moderation is a quick scroll-then-approve); **Select** opens deliberate triage where the bar becomes `Select
-all · N · Hide · Approve · Cancel`. **Turning moderation OFF** (the uploads section inside the
-SETTINGS SHEET) while a queue exists pops a consequence confirm (names the count; reuses the anon opt-in confirm's `setTimeout`-deferred
-open); on save `updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is
+[`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), rendered inline in the room —
+always, select mode included (`FeedSectionHeader`'s action slot never goes empty; it did until
+`app-vocabulary` r1 wired the fix, which had left a host mid-selection with no visible Hide, Approve or
+Cancel): **Approve all** is the FAST primary path (`approveAllPending`, no confirm — most
+moderation is a quick scroll-then-approve); **Select** opens deliberate triage where the header becomes the
+shared [`BulkBar`](../../src/components/app/event-feed/bulk-bar.tsx) (`bulk-toolbar=icon`: All/Clear · N ·
+Hide · Approve · Cancel, icons with instant sliding tooltips — `GalleryBulkBar`'s sibling, one primitive
+behind both). **Turning moderation OFF** (the uploads section inside the
+SETTINGS SHEET) while a queue exists pops a consequence confirm via the shared `ConfirmSwitch` (names the
+count; its own deferred-open dance, the same one the anon-uploads toggle reuses);
+on save `updateEventAction` calls `approveAllPending` — the modal is the host's CONSENT, the server is
 the INVARIANT (live mode never holds pending media; idempotent, `getUser` + RLS-scoped). Optimistic with
 revert-on-failure: acted tiles fade+scale out (`[data-exiting]`) before the list reflows, and clearing the
 LAST pending plays the "all caught up" beat (~2.5s hold). The just-approved
@@ -305,14 +326,20 @@ toasts "Hidden from everyone" from both). The host can also **Like** (a normal l
 `LikesProvider`); the read-only per-event like COUNT badge is distinct from the toggle.
 
 **Album bulk-select (the Gallery Select mode).** The Gallery section carries a multi-select mode
-mirroring Review's: enter via the **Select** button in the section header / floating bar, OR
+mirroring Review's: enter via the **Select** button in the section header, OR
 **long-press a tile** ([`use-long-press.ts`](../../src/lib/shared/use-long-press.ts), ~450ms, seeds that tile;
 threaded through `MasonryColumns` as an opt-in `onTileLongPress`, no-op on the guest / recovery grids). In
 select mode the album swaps to the shared `SelectableMediaGrid` (extracted from the review grid; previews OFF
-for the album, ON for Review) and the floating bar morphs to a bulk cluster
-([`gallery-actions.tsx`](../../src/components/app/event-feed/gallery-actions.tsx)): `All/Clear · N · Add to
-reel · Like · Hide|Show · Delete · Cancel`, each in its state color, the Hide|Show label SMART (shows "Show"
-iff every selected item is hidden), Delete behind a count-named confirm. The selection STATE lives in a thin
+for the album, ON for Review) and the section header's own action slot (never a floating bar; that surface
+retired with `event=hub`, and nothing replaced it there until `app-vocabulary` r1's fix) becomes the shared
+[`BulkBar`](../../src/components/app/event-feed/bulk-bar.tsx)
+([`gallery-actions.tsx`](../../src/components/app/event-feed/gallery-actions.tsx)'s `GalleryBulkBar`,
+`ReviewActions`'s sibling): `All/Clear · N · Add to reel · Like · Hide|Show · Download · Delete · Cancel`,
+icons with instant sliding tooltips (`bulk-toolbar=icon`), each in its state color, the Hide|Show label SMART
+(shows "Show" iff every selected item is hidden), Delete behind a count-named confirm (its tooltip nests the
+dialog trigger, as the lightbox does). The rich tooltip layer mounts behind a hydrated flag (`BulkBar`'s own
+SSR-safe native-`title` fallback until one tick after mount — architecture.md's tile-tooltip hydration
+regression is exactly the failure this dodges). The selection STATE lives in a thin
 `HostSelectionProvider` (mirrors `HostAddProvider`); the gallery grid (`host-media-grid.tsx`, which owns the
 `useOptimistic` items + the reel/likes Sets) REGISTERS its optimistic bulk handlers into it, so the bar calls
 `selection.run(kind)` and it delegates to the grid's handler (the same seam the review bar uses for

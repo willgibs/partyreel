@@ -13,36 +13,26 @@
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
 
-**What Will did.** The sixth batch (build `806695d`) answered the next five boards on the desk and glass round two whole,
+**What Will did.** The sixth batch (build `806695d`) answered the next five boards on the desk and glass round two,
 and a second paste the same hour answered the demo and the pricing page: eight boards, 52 verdicts (34 confirming, 13
-overruling, two `?` each carrying his own answer, three "the ruling stands", and ten answers on questions the desk had
-badged as reached by an earlier ruling, every one of which the desk lane had itself marked "stands"). `guest-shape`: the
-welcome then the gate ("not this sheet design"), the river on every empty guest screen, the dock held for a second round,
-a photograph that grows into its column when it arrives, "A guest can delete any photo they've personally uploaded,
-ever", Save after the first upload, the dialogs on the one sheet. `app-vocabulary`: one skeleton as needed, icons on both
-bars with tooltips that open at once and slide between neighbours ("Desktop should still support hover on cards"), the
-tile-size cluster with room reserved, per device, one ConfirmSwitch; the tile grammar's unification left to the
-Orchestrator's judgment. `seed-avatar`: the diagonal look (with a bug: "the clipping here is wrong"), the whole wheel at
-full colour, the initial always, the account id as the seed, the colour under the photograph, no motion. `admin`: the
-numbers first with the queue beneath, a rail with a palette, a table for data and a pane for prose, colour reaching the
-row, one destructive sheet, the health band, a 44 px tool bar. `app-door`: the code first, one account object worn four
-ways, the tour as today, the product beside the door, an existing account named ("dismissible and provide an action"),
-failures with the ways out as buttons, one press where the device remembers ("if we can use passkeys"). `glass` round
-two: Crystal, the double edge. `demo-event`: a role on arrival, a Demo mark that stays, the turn after an upload, "Start
-your own" in the row and a closing card, the photo pile as the door (better designs asked), one session across two
-screens, one party. `pricing-page`: the plans open on paper, Free and Pro side by side with the Pass beneath, a slider,
-the wall kept, his own answer on the sheet (the tiles and the table dark, the band killed), the accordion at five or six,
-the phone row held until its demo works. Plan mode; his four answers there; three fresh-context reviews folded in.
+overruling, two `?` each carrying his own answer, three "the ruling stands", ten answers on badged asks the desk lane
+had itself marked "stands"), every note verbatim in rulings.md with his framing, his second message and his four
+answers in plan mode (the guest chrome round two first; a guest's self-delete final for the host; the diagonal wired
+now; passkeys behind a flag); three fresh-context reviews folded in at his request. In a line each: the welcome then
+the gate with its shell withheld, the river on every empty guest screen, the dock held, the arrival, "A guest can
+delete any photo they've personally uploaded, ever", Save after upload, the dialogs on one sheet; one skeleton, icons
+with tooltips that open at once and slide, the tile-size cluster, ConfirmSwitch; the diagonal avatar with its clipping
+bug named, the wheel, the initial, the account seed; the admin on numbers with a rail, a palette, tables, colour on the
+row, one destructive sheet, the health band, a 44 px bar; the door on the code, one object worn four ways, the tour as
+today, the product beside /login, an existing account named, failures with buttons, passkeys; Crystal with the double
+edge; the demo's role arrival, its mark, the turn, Start your own, the pile, one session, one party; the pricing page
+on paper, the pair with the Pass beneath, a slider, the wall, his own sheet answer, the accordion, the phone row held.
 
-**The cut.** Eight wiring lanes and six round twos from the two pastes, the desk pass for their reach. Before the cut the
-Orchestrator landed the seam (the grid and the lightbox gained `arrivedIds`, `canDelete`, `prefix` and a lightbox
-`canDelete`, so the guest lane never opens a glass file), the `--info` token pair (the admin's fourth colour), and the
-session-remove RPC (`remove_my_upload_by_session`, SECURITY DEFINER, `service_role` only, a claimed row never touched);
-`globals.css` was released to `glass-wiring` for one fenced block. The six seats: `glass-wiring` :3131, `guest-wiring`
-:3132, `door-wiring` :3133, `admin-wiring` :3134, `vocab-wiring` :3135, `avatar-wiring` :3136; `pricing-wiring` and
-`demo-wiring` on the first seats that free, then `overtaken-2`, the round twos, batch five's four, `help-sync`. No lane
-can sign in on its port: the hub gallery's bars and cluster, the admin portal, the account page's passkey and the owner
-mode's avatars are Will's on the alias, and each lane's bullet below says so.
+**The cut.** Eight wiring lanes and six round twos from the two pastes, the desk pass for their reach; before the cut
+the Orchestrator landed the seam (the grid and the lightbox gained `arrivedIds`, `canDelete`, `prefix` and a lightbox
+`canDelete`, so the guest lane never opens a glass file), the `--info` token pair and the session-remove RPC
+(`remove_my_upload_by_session`, SECURITY DEFINER, `service_role` only, a claimed row never touched); the seats and the
+queue are in `tracks/orchestrator.md`; nothing signed in is seen by a lane, and each bullet says what waits for Will.
 
 - **`guest-wiring` merged at `7f4f2ffe`** (2026-09-20, Opus; cut `0ad0c32d`): `guest-shape` r1's answers in production.
   The locked page draws the river at the empty album's own depth (`GhostRiver`, one home for the ghost fade; the
@@ -56,8 +46,7 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   limiter; "mine" a server read on both paths (`/api/guests/mine`), never a client claim and never in the gallery's
   ETag; every database call in `lib/db/mutations/guest-media.ts`; an eleven-way rolled-back RPC check and both routes
   red-teamed live. Invite and Report onto the responsive Sheet (Download all and Save are other lanes' files: a
-  ROADMAP line). The door's sequence AND shell untouched ("not this sheet design"). Gate 47 on the merged tree; the one
-  red test at its cut was the Orchestrator's (the ledger test predated the `stands` grammar; fixed at `677be39c`).
+  ROADMAP line). The door's sequence AND shell untouched ("not this sheet design"). Gate 47 (the one red at its cut was the ledger test, mine, fixed at `677be39c`).
   Calls his to overrule on the alias: the arrival as white light, not a state colour; only another's photograph
   lights; the anonymous removal device-bound; a failed removal restoring the tile with "Couldn't remove that photo.";
   Report's sheet with the primary first. One help article stale for `help-sync` (`save-an-event-and-find-your-uploads`).
@@ -78,9 +67,8 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   chip as dark glass on paper, the marketing plate onto the tokens (its two measured numbers kept); the `glass`
   board retired, its ledger gone at this record. Gate 48 on the merged tree. Calls his to overrule on the alias: a
   glyph on glass carries its own halo (`glass-mark-lit`), because production floats the pill over the raw
-  photograph where the board drew it over a half-bright album; the phone keeps the desk's blurred ground (measured:
-  16.7 ms p50 and p95 at 375, blurred, flat and at twice the radius under a 6x CPU throttle); the per-surface hover
-  sets. NOT SEEN RENDERED: the host gallery's one-pane row, the bin and the event card's chip are Will's, signed in.
+  photograph where the board drew it over a half-bright album; the phone keeps the desk's blurred ground (measured at 375 under a 6x throttle);
+  the per-surface hover sets. NOT SEEN RENDERED: the host gallery's one-pane row, the bin and the event card's chip are Will's, signed in.
 
 - **`door-wiring` merged at `f7075a73`** (2026-09-20, Opus; cut `0ad0c32d`): `app-door` r1 wired whole. One
   `AccountDoor` worn four ways (/login, the guest gate, Save, a like): one email field and the code first, Google
@@ -92,8 +80,7 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   `door-failure.ts`, the callback emitting the kind, the ways out as buttons. /login is the door with a wall of
   marketing frames beside it. Passkeys wired behind `NEXT_PUBLIC_PASSKEYS` on auth-js's experimental API and DARK
   until Will enables passkeys in the Supabase dashboard with the WebAuthn RP id on the apex (a mismatch is
-  unrecoverable, so the flag ships unset, in `env.ts` and `.env.example` only). Six single-hunk exceptions, each the
-  gate's own demand, listed in its manifest. Not applied: the `PasskeysCard` line on the account page
+  unrecoverable, so the flag ships unset, in `env.ts` and `.env.example` only). Not applied: the `PasskeysCard` line on the account page
   (`avatar-wiring`'s file, unmerged); deferred: the magic-link half of the existing-account line and a Google-only
   host's memory on /login (ROADMAP). Gate 48 on the merged tree. Calls his to overrule: a recovery already on screen
   is not promoted twice (the code-led door shows the line over the ladder it has; the password door promotes all
@@ -109,9 +96,8 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   surface, an account, an action); `ui/table.tsx` with `tone` as a data attribute and four state colours reaching the
   row (`info` the fourth); one destructive sheet on nine controls, the permanent one typed; Exports joined to NAV. The
   `admin` board retired, its ledger gone at this record, its fixtures kept as a Library demo of the real rail, band,
-  queue, table, palette and sheet (the only automated eye on a portal nothing can sign into). Eleven files outside its
-  owns, each the gate's own demand and named in its manifest. The `admin_actions` table proposed under Questions and
-  not built. Gate 49 on the merged tree. Calls his to overrule on the alias: the four figures and the arrowless
+  queue, table, palette and sheet (the only automated eye on a portal nothing can sign into). The `admin_actions` table proposed under
+  Questions and not built. Gate 49 on the merged tree. Calls his to overrule on the alias: the four figures and the arrowless
   fourth; "active" as last seen; whether a paid-subscriber delta is worth a `tier_events` table (his question, open).
   Deferred (ROADMAP): the components gallery's duplicate "Surfaces" block (a duplicate React key, pre-existing); the
   help centre's palette onto the primitive (and the second global ⌘K listener gone); the queue's Reports row costing a
@@ -119,6 +105,67 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   whole portal is Will's, signed in on the admin host (the bar, the rail at 1440 and the dropdown at 375, ⌘K three
   ways, the figures against /admin/metrics, the band absent, the sheet on a disposable announcement); the typed account
   delete never exercised.
+
+- **`avatar-wiring` merged at `2a5c7018`** (2026-09-20, Sonnet; cut `0ad0c32d`, synced at `87cadbcf`): `seed-avatar` r1
+  wired whole. The clipping bug first: the root clips (one `overflow-hidden`, one `rounded-full`) and neither the image
+  nor the fallback carries a radius of its own, pinned by `avatar.test.tsx` and verified live. The generator moved
+  home to `src/lib/avatar/` with `seedFor`, a server-side SHA-256 of `profiles.id`, so one person is one colour on
+  every surface and a client never holds a raw id it does not already have; `Avatar`'s `seed` prop paints the
+  diagonal under the initial and under the photograph (the fallback transparent, the image covering the root once
+  mounted), the whole wheel at full strength, the initial always, no motion; the crowd test on a thousand real UUIDs
+  through the generator and through the production pipeline. Every surface seeded: the user menu, the account form,
+  the guest account menu (through `/api/me/menu`'s hashed `seed`, not a raw id: the lane's call), the guest list's
+  chips and faces row and the owner sections through `ProfileCardItem`, the profile identity row folded onto `Avatar`
+  at a new `xl` size. The Library's Avatar entry enhanced. Three additive exceptions named. Gate 50 on the merged tree.
+  Calls his to overrule: the 80 px fourth size; the transparent fallback ground; the bucket bound at twice the mean;
+  the menu route's hashed seed. Deferred (ROADMAP): the two "Hosted by" bylines still show no colour behind a missing
+  host photo (`seedFor(host_id)` is ready, the guest files' owner places it). One help article stale for `help-sync`
+  (`display-name-and-profile-photo`). The board stays for round two on the look. NOT SEEN RENDERED: a signed-in
+  person's own menus and the owner sections are Will's; `/u/willg` signed out carries the identity row live.
+
+- **`overtaken-2` merged at `ca9bc121`** (2026-09-20, Opus; the desk lane): the judgment pass for the sixth batch and
+  its second paste. All 110 open asks across the twenty standing boards read against the eight ruling boards'
+  answers and drawings; the map from 29 keys to 76 (47 new badges; nine first-pass lines gain a second clause behind
+  `ALSO_REACHED`, the first judgment never rewritten; 68 stands, 8 concedes; heaviest where a whole backdrop was
+  ruled: guest-upload 8 of 8, admin-triage 7 of 8, app-pricing 6, host-curation 6; press-page 0). Two corrections:
+  `media-viewer.holds` and `host-curation.peek` were badged by glass's "every action lives in the lightbox", which his
+  batch narrowed to a phone, and both now say so where they are read (`peek` keeps its concedes word and is flagged
+  as the one judgment worth his eye). The test's blunt rule (a ruling board is never itself reached) replaced by the
+  real invariant (a note never credits its own board), since six of the eight are still on the desk with round twos
+  coming. The retired `admin` board's three entries left the map at the record. The desk reads 66 of 76 overtaken
+  still open. Gate 51 on the tree with `vocab-wiring`. Deferred (ROADMAP): `first-event.first`, `.asks` and `.limit`
+  are reached and unbadged behind the desk queue test's pins (three lines and three entries, the Orchestrator's).
+
+- **`vocab-wiring` merged at `40863a96`** (2026-09-20, Sonnet; cut `0ad0c32d`, synced at `baf0ef15`): `app-vocabulary`
+  r1's four wiring answers. One `RouteSkeleton` with three shapes (the pulse, the hub, the Studio's first; the two
+  `loading.tsx` files became it). One `BulkBar` behind `ReviewActions` and `GalleryBulkBar`: icons with an instant
+  tooltip that slides between neighbours (`floatingCrossSlide` lifted into `floating-layer.ts`; the root
+  `TooltipProvider` at 0, his "immediately"), mounted behind a hydrated flag; the select-mode header slot un-gated so
+  Hide, Approve and Cancel show again. `TileSizeControl` (three steps and two reserved slots) in the hub gallery's
+  header beside Download and Select, the knob persisted per device in a COOKIE (`pr_tile_size`) rather than the
+  ruled localStorage: an honest first paint on the events-view precedent, the intent held, the mechanism his to
+  overrule. `ConfirmSwitch` owns the glyph and the deferred-open dance; the uploads section's two hand-rolled pairs
+  retired into it. Empty states and the tile grammar left to their earlier rulings. Two unowned files touched with
+  why (the hub page and its actions for the cookie; `review-section`'s select gate). Gate 51 on the merged tree.
+  Calls his to overrule: the cookie; the reserved slots' words; the slide's 32 px; the skeleton's three shapes,
+  the Studio's especially; the cluster's order (Download, tile size, Select). Deferred (ROADMAP): the navigation
+  menu's inline cross-slide onto the constant. NOT SEEN RENDERED: the hub gallery's bars, tooltips and cluster,
+  the Studio's skeleton and the settings switches are Will's, signed in.
+
+- **`pricing-wiring` merged at `58f7acbd`** (2026-09-20, Opus; cut `7f4f2ffe`, synced at `1d4d4d1e`): six of
+  `pricing-page` r1's eight answers. The page opens on paper with no dark hero; Free and Pro side by side with Pro's
+  room a real range input whose stops are `plansForTier("pro")` under the cadence toggle; the Event Pass redrawn as a
+  wide ticket beneath (one photograph down its left edge, the pair's `StatRow` imported not copied, a notch punched at
+  each end of the stub rule); the band killed and the matrix unwrapped so the tiles-to-table run is one dark room; the
+  FAQ trimmed to six (the four that settle money plus expiry and stacking; guests-pay and upload-size moved to Help)
+  feeding the accordion and the JSON-LD from one list. `fit` and `phone` untouched (round two's). Gate 51 on the
+  merged tree. THE CALL WORTH HIS FIRST TEN SECONDS: the page stays in the cinema group, so the cinema bar sits over
+  the paper opening rather than the white bar the board drew; bible 16 says a page cannot flip its header from
+  inside and `globals.css` refuses `.dark` inside `.surface-paper`, so the paper group would have cost every dark
+  chapter he asked for in the same answer (the alternative in its manifest). Also his: the Pass as a photographic
+  ticket with `wedding-petals` as its frame; the six that stayed; the slider's labels as labels. Deferred (ROADMAP):
+  the cinema layout's dark `themeColor` over a white first screen on a phone (a group-level answer); `shared-band.tsx`
+  deleted when the board retires. Seen on the alias signed out: `/pricing` (a served check).
 
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 

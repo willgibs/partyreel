@@ -44,6 +44,9 @@
     "switch": [
       "<Row>\n  <Switch defaultChecked aria-label=\"On\" />\n  <Switch aria-label=\"Off\" />\n</Row>"
     ],
+    "confirm-switch": [
+      "<ConfirmSwitchDemo />"
+    ],
     "select": [
       "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
     ],
@@ -152,6 +155,12 @@
     ],
     "floating-add-button": [
       "<FloatingAddDemo />"
+    ],
+    "route-skeleton": [
+      "<RouteSkeletonDemo />"
+    ],
+    "tile-size-control": [
+      "<TileSizeControlDemo />"
     ],
     "admin-shell": [
       "<AdminRailDemo />",

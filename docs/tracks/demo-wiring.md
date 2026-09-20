@@ -1,47 +1,27 @@
 ---
-track: vocab-wiring
+track: demo-wiring
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "c935f072"          # the launch-prep SHA the branch was cut from
-board: app-vocabulary  # wiring; round two on the gallery's controls is another lane
+cut: "2a5c7018"          # the launch-prep SHA the branch was cut from
+board: demo-event      # wiring six of seven; round two on the doors is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(app)/dashboard/loading.tsx
-  - src/app/(app)/dashboard/[eventId]/loading.tsx
-  - src/app/(app)/dashboard/[eventId]/reel/loading.tsx
-  - src/components/shared/route-skeleton.tsx
-  - src/components/shared/route-skeleton.test.tsx
-  - src/components/app/event-feed/review-actions.tsx
-  - src/components/app/event-feed/gallery-actions.tsx
-  - src/components/app/event-feed/event-feed-action-bar.tsx
-  - src/components/app/event-feed/event-gallery.tsx
-  - src/components/app/event-feed/event-hub.test.tsx
-  - src/components/app/event-feed/bulk-bar.tsx
-  - src/components/app/event-feed/bulk-bar.test.tsx
-  - src/components/ui/tooltip.tsx
-  - src/components/shared/action-tooltip.tsx
-  - src/components/shared/tooltip-slide.tsx
-  - src/components/ui/floating-layer.ts
-  - src/components/ui/floating-layer.test.ts
-  - src/components/providers.tsx
-  - src/components/ui/confirm-switch.tsx
-  - src/components/ui/confirm-switch.test.tsx
-  - src/components/app/event-settings/uploads-section.tsx
-  - src/components/shared/tile-size-control.tsx
-  - src/components/shared/tile-size-control.test.tsx
-  - src/lib/shared/use-tile-size.ts
-  - src/lib/shared/tile-size-cookie.ts
-  - docs/systems/host-app.md
+  - src/components/guest/entry-modal.tsx
+  - src/components/guest/event-experience.tsx
+  - src/components/guest/guest-header.tsx
+  - src/components/guest/guest-upload.tsx
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/marketing/system/demo-ticket.tsx
+  - src/components/marketing/sections/home/live-demo.tsx
+  - src/lib/demo.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/app-vocabulary.json
+  - docs/reviews/demo-event.json
   - docs/design/rulings.md
-  - src/components/shared/masonry.tsx
-  - src/components/ui/navigation-menu.tsx
-  - src/app/(marketing)/marketing.css
-  - .claude/skills/transitions-dev/08-page-side-by-side.md
-  - src/lib/dashboard/events-view.ts
-  - src/app/(dev)/design/sandbox/app-vocabulary/
+  - src/lib/guest/use-gallery-doorbell.ts
+  - src/components/guest/live-gallery.tsx
+  - src/app/(dev)/design/sandbox/demo-event/
+  - docs/systems/guest-flow.md
 ---
 
-# lp/vocab-wiring
+# lp/demo-wiring
 
 **Goal.** Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the sixth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -50,44 +30,17 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `806695d1`)
 
-- Owns: `src/app/(app)/dashboard/loading.tsx`, `dashboard/[eventId]/loading.tsx`, a new `dashboard/[eventId]/reel/loading.tsx`,
-  a new `src/components/shared/route-skeleton.tsx`; `src/components/app/event-feed/review-actions.tsx`,
-  `gallery-actions.tsx`, `event-feed-action-bar.tsx`, `event-gallery.tsx`, `event-hub.test.tsx`; `src/components/ui/tooltip.tsx`,
-  `src/components/shared/action-tooltip.tsx`, a new `shared/tooltip-slide.tsx`, `src/components/ui/floating-layer.ts` and
-  its test (a `floatingCrossSlide` constant lifted from the navigation menu's cross-slide, both consumers reading it:
-  bible 15, a surface never spells its own entrance), `src/components/providers.tsx` (the ROOT `TooltipProvider` is
-  `delayDuration 200, skipDelayDuration 300` today, not 0: his "Tooltip should appear immediately on hover" is
-  site-wide, so the root goes to 0 and the lightbox's `ActionTooltip` opens at once too); a new `src/components/ui/confirm-switch.tsx`,
-  `src/components/app/event-settings/uploads-section.tsx` (the `mock-parity` literals stay); a new
-  `src/components/shared/tile-size-control.tsx` and `src/lib/shared/use-tile-size.ts`; `docs/systems/host-app.md`
-  (the gallery and settings lines in place). Reads: `sandbox/app-vocabulary/` (never edits: round two's), `masonry.tsx`
-  (the `--album-column` knob, glass-wiring's file).
-- The skeleton: one `RouteSkeleton` with the three shapes (the pulse, the hub, the Studio matching its real shape);
-  the two `loading.tsx` files become it; the Studio gains its first.
-- The bars: one `BulkBar` behind `ReviewActions` and `GalleryBulkBar` with the verbs as props, every action an icon
-  with a tooltip that opens at once (the root provider at 0; `skipDelayDuration` 600 around each bar so moving across
-  never re-waits) and
-  SLIDES between neighbours: a bar context stamps `data-motion="from-start|from-end"` on the incoming content from the
-  triggers' order, built on the house recipe he named (`.claude/skills/transitions-dev/08-page-side-by-side.md`, "our
-  internal page side by side version", its `--page-slide-*` variables; the navigation menu's cross-slide is the
-  precedent, the constant lifted into `floating-layer.ts`), reduced motion a fade; mounted
-  behind a hydrated flag (the tiles' SSR hydration lesson), Delete's tooltip nesting its dialog trigger as the
-  lightbox does; the desk keeps hover controls on cards (the tile is glass-wiring's; nothing here touches it).
-- The cluster: `TileSizeControl` (three steps, 180/240/300, setting `--album-column`) with two reserved slots naming
-  Sort and Filter, in the hub gallery's header cluster beside Download and Select, persisted per device in a COOKIE
-  the hub page reads and paints inline (an honest first paint, the events-view toggle's precedent; the option's own
-  word was localStorage, which would repaint the album after hydration on every load: his to overrule); the guest
-  album's row mounts the control only when `guest-chrome` round two rules (the guest chrome is held).
-- `ConfirmSwitch`: the glyph and the deferred-open dance once (the `setTimeout(0)` dismissable-layer dodge kept and
-  explained); the two hand-rolled pairs in the uploads section retire into it.
-- Tests (`// @contract-for:`): the skeleton's three shapes; the bar (icons with accessible names, the tooltip's motion
-  attribute from order, reduced motion, the house press feedback on every icon button: `active:scale-90
-  motion-reduce:active:scale-100`, bible 12); the control (three steps, the knob, persistence, the press class);
-  `ConfirmSwitch` (asks on the edge it names, never on the other); `event-hub.test.tsx` green; `lab:smoke` whole;
-  the gate.
-- Red-team on the alias: the hub gallery's bars, cluster and the Studio's skeleton are Will's (signed in); signed out
-  in the pane: nothing of this lane shows.
-- His to overrule: the reserved slots' words; the slide's distance; the skeleton's shapes; the cluster's order.
+- Owns, then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
+`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
+`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
+the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
+retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
+`marketing-content.md`. ALSO, since this lane owns the two files: the "Hosted by" bylines (`event-experience.tsx:271`,
+`entry-modal.tsx:459`) take `seedFor(host_id)` computed server-side (`src/lib/avatar/seed.ts`; never the raw host id on the
+client) and fold onto the one `Avatar` with its `seed` prop (avatar-wiring's deferred line, ROADMAP). The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
+every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
+Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
+mark, an upload's turn card, the pair with the pane and a second tab.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
@@ -253,38 +206,6 @@ vocab-wiring lands). Typecheck and the tests green. (If the seam cannot land cle
 - `phone=swipe` + "I think the demo is broken, so I can't actually see it live. Would like to prove it in the lab
   before passing": NOT wired. The board's `phone` step is repaired in the lab and the ask stays open on the board for
   his eye (round two carries it beside `fit`).
-
-**Lane 7: `pricing-wiring` (Opus, the first seat that frees; the money page):** owns `src/app/(marketing)/(paper)/pricing/`
-(or wherever `pricing/page.tsx` lives: the lane check names it), `src/components/marketing/sections/pricing/`
-(`plan-cards.tsx`, `pass-card.tsx`, `calculator.tsx`, the unlock grid, the shared band retired on disk if the lab
-draws it, the FAQ block), `pricing-faq-data.ts`, the pricing lines of `docs/systems/marketing-content.md`. Reads,
-never edits: `src/lib/constants/tiers.ts` (the sizes and cadence the slider walks: the one source), `marketing-voice.ts`
-(`PRO_LINE`), the checkout doors (their targets unchanged; Stripe stays TEST), `sandbox/pricing-page/` (round two's).
-The chapter rhythm: paper opening, the pair and the Pass, the dark tiles chapter, "Find your plan size" as today, the
-dark table, the accordion, the band. Tests: the FAQ count and the JSON-LD parity, the slider's steps equal `tiers.ts`,
-the cadence toggle above the slider, `marketing-h1-policy`, `content-policy`; the gate. Red-team on the alias signed
-out at 1440 and 375: the whole page, the slider, the dark chapters' transitions, the accordion, the Pass beneath.
-His to overrule: the Pass's new design; the accordion's count; the tiles chapter's copy.
-
-**Lane 8: `demo-wiring` (Sonnet, cut AFTER `guest-wiring` merges, since its items live in that lane's files):** owns,
-then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
-`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
-`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
-the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
-retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
-`marketing-content.md`. The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
-every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
-Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
-mark, an upload's turn card, the pair with the pane and a second tab.
-
-**Round twos from this paste (Sonnet, lab-only, as seats free):** `pricing-fit` (pricing-page round two: `fit`, with
-the Higgsfield research, and `phone` with its demo repaired) and `demo-doors` (demo-event round two on `doors`
-alone). Both boards keep their ids; their RULINGS rows are rewritten by the round-two lanes.
-
-**Their reach on the boards still open (for `overtaken-2`):** `app-pricing.carry`, `pass` and `learn` (the marketing
-page's new shape and the Pass's place); `first-event.limit` (a Free host's upgrade door opens on the paper plans);
-`site-chrome` round two's `foot-after` (the pricing page now closes on the accordion and the band); `help-center.hub`
-(the FAQ data's split); `demo-event`'s doors reach the nav panel `site-chrome` round one landed (the ticket goes).
 
 ## The ownership rules every lane follows this round
 

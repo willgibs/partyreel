@@ -10,8 +10,10 @@ import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { seedFor } from "@/lib/avatar/seed";
 import {
   getPublicProfile,
   getPublicProfileAttendedCoverUrls,
@@ -21,9 +23,10 @@ import {
   isFollowing,
   type PublicProfile,
 } from "@/lib/db/queries/social";
+import { GLASS_MARK } from "@/lib/glass";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
-import { formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 // Covers are presigned per request; the follow state is viewer-specific.
 export const dynamic = "force-dynamic";
@@ -60,10 +63,22 @@ export async function generateMetadata({
  *  slot in the card's own chrome language (the same pill as the date and the
  *  lock below), so the group reads as one grid with a mark on it rather than
  *  two grids sharing a heading. No new prop on EventCard: that card is shared
- *  with the dashboard, and the marker is this page's idea. */
+ *  with the dashboard, and the marker is this page's idea.
+ *
+ *  ★ ONE MATERIAL (glass round two, Crystal, landed 2026-09-20): this was its
+ *  own hand-rolled `bg-black/25 backdrop-blur-sm` pane, the exact duplicate
+ *  `event-card.tsx`'s own top-right pill retired when it moved onto
+ *  `GLASS_MARK` (round two's "one material everywhere" ruling, his own
+ *  words). Landing second past glass-wiring's merge is this lane's cue to
+ *  make the swap rather than leave a second recipe standing. */
 function Marker({ role }: { role: "host" | "guest" }) {
   return (
-    <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 text-[10px] font-medium text-white backdrop-blur-sm">
+    <span
+      className={cn(
+        "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
+        GLASS_MARK,
+      )}
+    >
       {role === "host" ? "Host" : "Guest"}
       <span className="sr-only">
         {role === "host" ? ": hosted this event" : ": added photos here"}
@@ -283,18 +298,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
           style={{ "--arrive-i": 0 } as CSSProperties}
           className="flex flex-wrap items-center gap-5"
         >
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- public avatar URL with a cache-bust marker
-            <img
-              src={avatarUrl}
-              alt=""
-              className="size-20 rounded-full border border-border object-cover"
-            />
-          ) : (
-            <div className="flex size-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-medium text-muted-foreground">
-              {name.slice(0, 1).toUpperCase()}
-            </div>
-          )}
+          {/* `xl` (80px, a fourth size on the Avatar contract) folds this
+              row's own hand-rolled disc into the shared component, so the
+              seeded colour (and the clipping fix, avatar-wiring) reaches it
+              the same way every other avatar surface gets it. */}
+          <Avatar size="xl" seed={seedFor(profile.id)}>
+            <AvatarImage src={avatarUrl ?? undefined} alt="" />
+            <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
             <h1 className="font-heading text-page text-balance">{name}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">

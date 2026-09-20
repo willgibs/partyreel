@@ -161,6 +161,49 @@ export const floatingTransitionEntrance = [
 ].join(" ")
 
 /**
+ * THE CROSS-SLIDE, for a surface whose CONTENT changes while the surface
+ * stays put, the incoming piece arriving from whichever side its trigger sits
+ * relative to the last one (`gallery-controls-home` r1, `bulk-toolbar=icon`,
+ * the bulk bar's sliding tooltip, 2026-09-20). Radix's own `NavigationMenu`
+ * computes this itself from its triggers' order; a bar of icon buttons has no
+ * radix engine underneath it doing that bookkeeping, so the caller stamps its
+ * own `data-motion` (`from-start` | `from-end` on the way in, `to-start` |
+ * `to-end` on the way out) and this module supplies the shared LANGUAGE for
+ * it, the way `floatingEntrance` does for every other panel.
+ *
+ * THE CONSTANT IS LIFTED FROM THE NAVIGATION MENU'S CROSS-SLIDE
+ * (`navigation-menu.tsx`'s `data-[motion=...]` block, the -8 travel and the
+ * 3px blur, both its own numbers already), not re-derived from the house
+ * "page side by side" recipe's literal 8px (`.claude/skills/transitions-dev/
+ * 08-page-side-by-side.md`) — that skill is the PRECEDENT for the shape
+ * (content slides past its neighbour rather than swapping in place), the nav
+ * is the precedent for the NUMBERS, and bible 15 wants one family, not two.
+ * `--ease-emphasis` is the family's own curve, not the skill's cubic-bezier.
+ *
+ * ★ A SECOND CONSUMER READS THIS, THE FIRST STILL SPELLS ITS OWN. The bulk
+ * bar's sliding tooltip (`shared/tooltip-slide.tsx`) is the second reader;
+ * `navigation-menu.tsx` is outside vocab-wiring's `owns` and keeps its inline
+ * classes unchanged this round (identical VALUES, so nothing about the nav
+ * itself moves) — a DRY follow-up moves it onto this constant with no visual
+ * change, once a lane owns that file.
+ *
+ * ★ THE BASELINE IS A FADE, ALWAYS, WHICH IS ALSO REDUCED MOTION'S WHOLE
+ * STORY. The direction and the blur are `motion-safe:` only (the house
+ * idiom, `event-feed-action-bar.tsx`'s own starting-style fade), so
+ * `prefers-reduced-motion: reduce` drops the travel and the blur and keeps
+ * exactly the cross-fade every state already carries — never a translate at
+ * zero distance, which would leave two motion declarations racing instead of
+ * one absent.
+ */
+export const floatingCrossSlide = [
+  "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+  "motion-safe:data-[motion=from-end]:slide-in-from-right-8 motion-safe:data-[motion=from-start]:slide-in-from-left-8",
+  "motion-safe:data-[motion=to-end]:slide-out-to-right-8 motion-safe:data-[motion=to-start]:slide-out-to-left-8",
+  "motion-safe:data-[motion^=from-]:blur-in-[3px] motion-safe:data-[motion^=to-]:blur-out-[3px]",
+  "ease-emphasis",
+].join(" ")
+
+/**
  * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED (bible 12's
  * frequency law; `entrance=by-frequency`, Will 2026-09-17). Every exit is
  * faster than its entrance, which is the house rule the whole site already

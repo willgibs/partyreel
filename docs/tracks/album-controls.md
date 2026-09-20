@@ -1,21 +1,20 @@
 ---
-track: overtaken-2
+track: album-controls
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "f7075a73"          # the launch-prep SHA the branch was cut from
-board: none            # lab infrastructure: the judgment lines for the sixth batch's reach; no board of its own
+cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
+board: app-vocabulary  # round two on the same board id: where the host gallery's controls live
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/overtaken.ts
-  - src/app/(dev)/design/sandbox/overtaken.test.ts
+  - src/app/(dev)/design/sandbox/app-vocabulary/
 reads:                  # single-sources you depend on: never duplicate, never edit
+  - docs/reviews/app-vocabulary.json
   - docs/design/rulings.md
-  - docs/reviews/
-  - src/app/(dev)/design/touchpoints.ts
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/_desk/
-  - src/components/lab/
+  - src/components/app/event-feed/event-gallery.tsx
+  - src/components/shared/tile-size-control.tsx
+  - src/components/app/event-feed/event-cards-row.tsx
+  - src/components/ui/sheet.tsx
 ---
 
-# lp/overtaken-2
+# lp/album-controls
 
 **Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -24,25 +23,23 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- The desk mechanism exists (`overtaken`, merged `f7928597`): a question an earlier ruling reaches carries a badge in
-  its walk, the lane's one line ("stands: <why this option may beat the ruling>" or "concedes: <what the ruling
-  covers>"), and "The ruling stands" beside "Not clear to me"; an answer overrides and is echoed to the overtaking
-  board. This lane runs the JUDGMENT PASS again for the sixth batch and its second paste: every ask in the two reach
-  lists of the Orchestrator's plan ("The reach of these rulings on the boards still open" and "The small paste's
-  reach"), each opened on its board and read against the ruling and the drawings, one line each, never a redraw. The
-  overtaking boards are `guest-shape`, `app-vocabulary`, `seed-avatar`, `admin`, `app-door`, `glass` (round two:
-  Crystal), `demo-event`, `pricing-page`; the rulings are verbatim in `docs/design/rulings.md` ("the sixth batch") and
-  the ledgers; the desk's own listing (`node PartyreelAI/kit/board-card.mjs --desk`, read-only) shows every open ask.
-  The Orchestrator's reading in the plan is a starting list, not the lines: the lane may add an ask it finds reached
-  and drop one it finds untouched, saying why in the Handoff. An ask already badged by the first pass keeps its
-  first entry; a second ruling reaching the same ask appends to its line ("also reached by ...").
-- Owns `src/app/(dev)/design/sandbox/overtaken.ts` and `overtaken.test.ts` only (the mechanism's shell files are
-  nobody's to change; the boards' specs are never edited; `docs/reviews/` is never a lane's). Reads: every affected
-  board's spec and ledger, rulings.md, `touchpoints.ts`, the plan's two reach lists (copied into this manifest).
-- Verify: `overtaken.test.ts` green (every key names a standing board's ask; every line in the two words; the badge
-  in plain words with the date 2026-09-20); `lab:smoke` whole; `lab:demo` on one affected board pressing a badged
-  step and the dock's "The ruling stands"; the desk's counts read on the served page; the gate.
-- Handoff: the count per board, the stands-and-concedes tally, and the asks added or dropped against the plan's list.
+- His note on `gallery-controls-home=cluster` (2026-09-20): "We could likely nest this under a parent menu and add
+  additional view configs as well. However, with download, tile size, sort, filter, and select, it looks like it's
+  starting to get crowded, and we may need to rethink where all of these actions live." The cluster is wired by
+  `vocab-wiring` (the tile-size control with reserved Sort and Filter slots beside Download and Select in the hub
+  gallery's header); this round asks the HOME of the five.
+- A `defineExploration` round two on the SAME board id `app-vocabulary` (`round.n: 2`; the ledger exists), ONE decision
+  `controls-home` with four options drawn on the WIRED hub gallery with fixtures at 1440 and 375: `row` the header
+  cluster as wired, honestly crowded; `view-menu` one "View" menu holding tile size, sort and filter, with Download
+  and Select the only verbs in the row; `sheet` a control sheet on the responsive Sheet at 375 and the row at 1440;
+  `pills` the controls riding the sticky pill row that condenses on scroll, nothing in the header. The recommended
+  option named with its `because`; a cost line each (a menu is one component; the sheet reuses the ruled one; the
+  pills change what condenses). The guest album's row is NOT drawn (guest-shape round two's). Round one's ruled asks
+  named as ruled in the RULINGS row's `ruled`, the row's `variants` set to one.
+- Owns `src/app/(dev)/design/sandbox/app-vocabulary/` and the board's own lines in `registry.ts`, `boards.ts`,
+  `touchpoints.ts` (the RULINGS row rewritten for round two) under the registration exception. Reads
+  `event-gallery.tsx`, `tile-size-control.tsx`, `event-cards-row.tsx` (the sticky pills), `ui/sheet.tsx`, the
+  app-vocabulary ledger, rulings.md; never edits them. `lab:smoke` whole; `lab:demo --board app-vocabulary`; the gate.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

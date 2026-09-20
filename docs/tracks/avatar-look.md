@@ -1,40 +1,44 @@
 ---
-track: pricing-wiring
+track: avatar-look
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "7f4f2ffe"          # the launch-prep SHA the branch was cut from
-board: pricing-page    # wiring six of eight; round two on fit and the phone row is another lane
+cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
+board: seed-avatar     # round two on the same board id: the look
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(marketing)/(cinema)/pricing/
-  - src/components/marketing/sections/pricing/
-  - docs/systems/marketing-content.md
+  - src/app/(dev)/design/sandbox/seed-avatar/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/pricing-page.json
+  - docs/reviews/seed-avatar.json
   - docs/design/rulings.md
-  - src/lib/constants/tiers.ts
-  - src/lib/constants/marketing-voice.ts
-  - src/app/(dev)/design/sandbox/pricing-page/
+  - src/lib/avatar/
+  - src/components/ui/avatar.tsx
+  - src/components/social/guest-list.tsx
 ---
 
-# lp/pricing-wiring
+# lp/avatar-look
 
-**Goal.** Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
-section "the sixth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
+**Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
+section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
 brief follows it. Read the brief end to end before the first edit; where it says "his to overrule", build the recommended
 answer and list it in the Handoff.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `806695d1`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- Owns `src/app/(marketing)/(paper)/pricing/`
-(or wherever `pricing/page.tsx` lives: the lane check names it), `src/components/marketing/sections/pricing/`
-(`plan-cards.tsx`, `pass-card.tsx`, `calculator.tsx`, the unlock grid, the shared band retired on disk if the lab
-draws it, the FAQ block), `pricing-faq-data.ts`, the pricing lines of `docs/systems/marketing-content.md`. Reads,
-never edits: `src/lib/constants/tiers.ts` (the sizes and cadence the slider walks: the one source), `marketing-voice.ts`
-(`PRO_LINE`), the checkout doors (their targets unchanged; Stripe stays TEST), `sandbox/pricing-page/` (round two's).
-The chapter rhythm: paper opening, the pair and the Pass, the dark tiles chapter, "Find your plan size" as today, the
-dark table, the accordion, the band. Tests: the FAQ count and the JSON-LD parity, the slider's steps equal `tiers.ts`,
-the cadence toggle above the slider, `marketing-h1-policy`, `content-policy`; the gate. Red-team on the alias signed
-out at 1440 and 375: the whole page, the slider, the dark chapters' transitions, the accordion, the Pass beneath.
-His to overrule: the Pass's new design; the accordion's count; the tiles chapter's copy.
+- His note on `look=diagonal` (2026-09-20): "This is my favorite of these options, but is this the best that hashvatar
+  had to offer? The preview ones on https://www.hashvatar.com/ and https://github.com/medhychabour/hashvatar felt much
+  more alive and rich." The diagonal is wired (`avatar-wiring`, merged `2a5c7018`: `Avatar` with `seed`, the
+  generator at `src/lib/avatar/gradient.ts`, `seedFor` the hash).
+- A `defineExploration` round two on the SAME board id `seed-avatar` (`round.n: 2`), ONE decision `look` with four
+  options drawn on the WIRED `Avatar` at 24, 32, 40 and 80 with the initial, on the guest list's faces row, the user
+  menu and the profile identity row, at 375 and 1440: `diagonal` as wired; `mesh` hashvatar's own multi-stop mode as
+  it renders on its site (the lane reads hashvatar's source on GitHub and its page with WebFetch, credits it as the
+  generator's header does, and reproduces the register: several hue stops, not two); `throw` two soft radial throws
+  over a deep base; `lit-seam` the diagonal with a lit seam along the ramp. Every option MEASURED against the three
+  floors the generator holds (the letter 4.5:1, the two grounds, the ring) across a thousand real UUIDs, the numbers
+  on the frame; a look that fails a floor says so rather than hiding it. The candidate looks live in the sandbox's own
+  `looks.ts` over `orbFor`'s orb (the production generator is READ, never edited; the winner lands in `lib/avatar` at
+  its wiring). Round one's seven ruled asks named as ruled, the row's `variants` set to one.
+- Owns `src/app/(dev)/design/sandbox/seed-avatar/` and the board's own lines under the registration exception. Reads
+  `src/lib/avatar/`, `ui/avatar.tsx`, `social/guest-list.tsx`, the seed-avatar ledger, rulings.md; never edits them.
+  `lab:smoke` whole; `lab:demo --board seed-avatar`; the gate.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
@@ -140,66 +144,6 @@ brightness); the tiles' three marks and the removed chips (with the rose mark ca
 saves it over a bright photograph); the host's row as one bar; dark glass on paper; the reel's controls in the one
 material (round one's white on the reel is superseded by "one material everywhere", his own words); then `glass`
 retires and the material lands in the Library.
-
-## The seam, landed by the Orchestrator on `launch-prep` BEFORE the cut (additive, about forty lines, announced)
-
-PROGRAM.md makes a change two lanes need the Orchestrator's. `MasonryColumns` gains `arrivedIds?: ReadonlySet<string>`
-(writes `data-arrived` on the tile box), `canDelete?: (item) => boolean` (gating its existing per-item `onDeleteItem`)
-and `prefix?: ReactNode` (one `{prefix}` before the items); `GuestMasonry`, which has no delete today, gains
-`onDeleteItem` and `canDelete` and threads `onDeleteCurrent` into its `MediaLightboxLazy`, plus `arrivedIds` and
-`prefix`; `MediaLightbox` gains `canDelete?` gating its existing `onDeleteCurrent` (the Trash and its confirm dialog
-exist). About thirty-five lines, additive, no behaviour change; one `canDelete` pin added to the lightbox test. The
-glass lane rebuilds under these names (and adopts `openId` on `MasonryColumns`, since the guest album opens by id and
-the shared grid by index: a thin wrapper without it brings back the shifted-photo bug; named in Lane 1's tests); the
-guest lane passes them from `live-gallery.tsx` and never opens a glass file. In the same commit: the `--info` token
-pair, and the `floating-layer.test.ts` portal scan told about the coming `ui/command-palette.tsx` if a listed file may
-be absent (checked against the test's own rule; otherwise admin-wiring adds the row as its one-line exception after
-vocab-wiring lands). Typecheck and the tests green. (If the seam cannot land clean, `guest-wiring` is cut after
-`glass-wiring` merges instead.)
-
-## The small batch, synthesized (demo-event r1 and pricing-page r1, the same build; 15 verdicts: 9 confirm, 5 overrule, one `?` with his answer)
-
-**`demo-event` r1 (seven; six wire, `doors` goes to round two, the welcome's design joins guest-shape round two):**
-- `arrival=role` + "This welcome screen could be redesigned, but the demo welcome feels more correct for this generic
-  guest welcome": the demo's own arrival (whose party this is, that you stand exactly where a guest stands, the one
-  thing to try) stays the first screen behind every demo door; its DESIGN is re-asked in guest-shape round two beside
-  the door's shell (one welcome, drawn for a real event and for the demo).
-- `framing=tag`: a Demo mark beside the wordmark, and the guest header pins to the top so the mark is on every screen.
-- `try=turn`: the same upload, then one card under the album's first row ("that is what your guests would see, and
-  here is how you get one").
-- `next=slot` + "we could also include a closing card below": the blanked Save slot (Save has left the chrome:
-  `account=after`) becomes "Start your own" beside Invite in the first screen, AND a closing card below the album.
-- `doors=pile` (overrules `named`) + "I'd be curious to see better designs of this ... labeling the QR doesn't look
-  very polished in the otherwise text-free visuals": the footer's photo pile becomes the rule for every demo door on
-  the marketing site (one object skinned per place, the nav panel's ticket goes) as the working version; round two on
-  `doors` alone draws better, text-free designs of that one object.
-- `phone=pair`: a code scanned off the laptop opens the same session; what the phone adds appears on the laptop's
-  album a second later and the laptop says where it came from (one broadcast channel, the doorbell's, no stored
-  bytes).
-- `event=one` + his note: one party, curated once; "The app works the same across events".
-
-**`pricing-page` r1 (eight; six wire, `fit` and `phone` go to round two):**
-- `opening=plans` (overrules `fork`): the page opens on paper, the plans the opening, no dark hero chapter above the
-  cards ("a paper hero makes the pro card feel more premium"). His product note is recorded verbatim (one event
-  against many is not Pro's main differentiator; a wedding wants videos and storage) and changes no ruled line: the
-  Pro line already leads with videos.
-- `pair=pro` + his flip: Free and Pro side by side in two columns above (his words over the option's own text, which
-  drew Pro alone), the Event Pass a full-width card beneath, "more beautiful".
-- `size=slider` (overrules `rows`): one slider from the smallest room to the largest, the price, the stats and the
-  button following the thumb; the monthly/yearly toggle stays ABOVE the slider ("more intuitive/natural").
-- `pass=under` (overrules `beside`): the Pass wide beneath the pair, redesigned with the same care as the cards.
-- `fit=wall` + "Would like to see a couple more explorations of this 'Find your plan size' component ... Higgsfield
-  does a good job (explore https://higgsfield.ai/pricing in code and visually)": today's slider and filling wall
-  stays as built (it is the `today` option); round two on `fit` draws two or three designs, one on Higgsfield's split
-  (the configuration left, a designed plan card as the result in a frame right), the lane researching that page.
-- `sheet=?` with his answer, verbatim: keep the tiles and the table, kill the band; the tiles above "Find your plan
-  size" as a dark chapter intro (the hero now paper); the table dark, so no harsh back-to-back chapter transition
-  between Find your plan and the FAQ that follows.
-- `close=eight` (overrules `four`) + "reduce the count row (5-6 total?)": the folded accordion, five or six items,
-  then the closing band; the JSON-LD carries the same items; the FAQ data's split with Help named in the Handoff.
-- `phone=swipe` + "I think the demo is broken, so I can't actually see it live. Would like to prove it in the lab
-  before passing": NOT wired. The board's `phone` step is repaired in the lab and the ask stays open on the board for
-  his eye (round two carries it beside `fit`).
 
 ## The ownership rules every lane follows this round
 

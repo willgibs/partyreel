@@ -89,7 +89,7 @@ export async function OwnerSections() {
             {followingItems.map((item) => {
               const identity = (
                 <>
-                  <Avatar size="sm">
+                  <Avatar size="sm" seed={item.seed}>
                     <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
                     <AvatarFallback className="text-[10px]">
                       {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
