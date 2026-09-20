@@ -4,6 +4,17 @@ import { FILTER_CHIPS, type FilterValue } from "@/lib/dashboard/filters";
 import { cn } from "@/lib/utils";
 
 /**
+ * ★ RETIRED FROM PRODUCTION, KEPT ON DISK (home-wiring, 2026-09-20). The
+ * five-chip inbox this bar drove is gone: `/dashboard` is the pulse now
+ * (`home=pulse`), the personal feeds moved to the profile's owner mode, and
+ * the bin and the saved events became FILTERS of the events list rather than
+ * chips of their own. Nothing in the app renders this any more.
+ *
+ * It stays, with its props intact, because the LAB draws it: the `app-shape`
+ * board's `home.tsx` composes it as the "inbox, as today" option, and a wiring
+ * lane never deletes or reshapes a module the lab imports. Change its props and
+ * that board stops building.
+ *
  * The dashboard filter bar (Phase 5 S2b) — the single-feed replacement for the
  * radix tabs. A controlled segmented control: NOT radix Tabs (one-panel-per-value
  * can't express "All shows three sections", and dropping radix sidesteps the

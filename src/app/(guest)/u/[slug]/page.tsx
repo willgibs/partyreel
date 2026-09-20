@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Sparkles } from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
+import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
@@ -146,6 +147,27 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** The owner mode's wait: three labelled bands, at the bands' size. */
+function OwnerSkeleton() {
+  return (
+    <div className="mt-10 space-y-8" aria-busy>
+      {Array.from({ length: 2 }, (_, band) => (
+        <div key={band} className="space-y-2.5">
+          <Skeleton className="h-3 w-24" />
+          <div className="grid grid-cols-3 gap-[var(--gap-gallery)] sm:grid-cols-6 lg:grid-cols-9">
+            {Array.from({ length: 9 }, (_, i) => (
+              <Skeleton
+                key={i}
+                className="aspect-square w-full rounded-[var(--radius-tile)]"
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -343,9 +365,18 @@ export default async function PublicProfilePage({ params }: PageProps) {
           >
             {/* The label sizes a child span, not the heading tag: the form
                 design-system.md allows for an Inter label inside an h2, and the
-                same one the guest album's own Guests heading uses. */}
+                same one the guest album's own Guests heading uses.
+
+                ★ THE LABEL PAIR, NOT A ONE-OFF (`label=12-08`, Will
+                2026-09-20: "I think the tighter spacing looks better. Leaning
+                towards 12px for now since we're a consumer product"). Written
+                as STOCK CLASSES that equal the ruled step — text-xs IS 12 —
+                because `ladder-wiring` has not landed and Tailwind v4 emits no
+                utility at all for an undeclared token: `text-label` here would
+                silently inherit and nothing in the gate would catch it. The
+                mechanical swap to the step name happens after that lane. */}
             <h2>
-              <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              <span className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
                 Events
               </span>
             </h2>
@@ -353,6 +384,23 @@ export default async function PublicProfilePage({ params }: PageProps) {
               <PartyGrid profile={profile} />
             </Suspense>
           </section>
+        )}
+
+        {/* ★ THE OWNER MODE, AND ★ NOT IN A loading.tsx. The paragraph at
+            PartyGrid above is the law here: a loading FILE would wrap this
+            whole route in Suspense, flush the shell before the page runs, and
+            make a dead handle answer 200 instead of 404 on a public, indexable
+            page. So the owner's three feeds stream behind their OWN in-page
+            boundary, exactly as the card grid does, and the 404 decision stays
+            at the top of the page where the RPC is.
+
+            A visitor's render is byte-identical to what it was: `isSelf` is
+            false, nothing below is constructed, and not one of the three
+            personal queries runs. */}
+        {isSelf && (
+          <Suspense fallback={<OwnerSkeleton />}>
+            <OwnerSections />
+          </Suspense>
         )}
       </main>
 

@@ -1,8 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import {
+  EVENTS_VIEW_COOKIE,
+  EVENTS_VIEW_COOKIE_MAX_AGE,
+  resolveEventsView,
+} from "@/lib/dashboard/events-view";
 import {
   clearEventPassword,
   clearEventSlug,
@@ -200,10 +206,18 @@ export async function deleteEventAction(id: string): Promise<ActionResult> {
   redirect("/dashboard");
 }
 
-// Delete-own from the "Uploads" tab. Mirrors removeMediaAction, but goes through the cross-event
-// remove_my_upload RPC (the caller may own a guest upload in another host's event, where they hold no
-// RLS write). captureError only on 'unknown' (a 'no longer available' refusal is expected, not a bug);
-// the tab lives under /dashboard so revalidate that. Area "media" (no "dashboard" Sentry area exists).
+// Delete-own from the viewer's own uploads gallery. Mirrors removeMediaAction, but goes through the
+// cross-event remove_my_upload RPC (the caller may own a guest upload in another host's event, where
+// they hold no RLS write). captureError only on 'unknown' (a 'no longer available' refusal is
+// expected, not a bug). Area "media" (no "dashboard" Sentry area exists).
+//
+// ★ IT REVALIDATES TWO PATHS NOW, AND THE SECOND ONE IS THE POINT. The gallery
+// MOVED to the profile's owner mode this round (`you=?`, Will 2026-09-20: "Your
+// own photos, likes, connections, etc should be on your profile page"), so a
+// delete performed there was reconciling a route the user was no longer on: the
+// optimistic removal held, then the next real navigation to /u/<handle> brought
+// the deleted item back. The gallery keeps its own optimistic drop; this makes
+// the server agree with it.
 export async function removeMyUploadAction(
   mediaId: string,
 ): Promise<ActionResult> {
@@ -219,5 +233,34 @@ export async function removeMyUploadAction(
   }
 
   revalidatePath("/dashboard");
+  // The handle is not known here and does not need to be: a layout-level
+  // revalidate covers every /u/<slug>, and the only one this user can be
+  // looking at their own uploads on is their own.
+  revalidatePath("/u/[slug]", "page");
   return { ok: true };
+}
+
+/**
+ * THE EVENTS LIST'S VIEW, PERSISTED (`density=cover`, "let's do both").
+ *
+ * A Server Action rather than localStorage, because the view must be known
+ * BEFORE the first byte: a local preference renders cover cards on the server
+ * and swaps to rows after hydration on every load, so the host watches their
+ * whole list re-lay-out each time they open the app. Writing a cookie here
+ * makes Next re-render the page and its layouts server-side (the documented
+ * behaviour of setting a cookie in a Server Function), so the toggle needs no
+ * router.refresh() of its own and the next cold load paints the right view.
+ *
+ * `resolveEventsView` narrows whatever arrives to the two legal values, so a
+ * hand-forged call can only ever set "cards" or "rows" — a preference cookie
+ * is not a trust boundary, but it is still a value this app will read back.
+ */
+export async function setEventsViewAction(view: string): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(EVENTS_VIEW_COOKIE, resolveEventsView(view), {
+    maxAge: EVENTS_VIEW_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    path: "/",
+    httpOnly: false,
+  });
 }

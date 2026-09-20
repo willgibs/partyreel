@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 573 contracts on 72 components · 27 standing boards.**
+**22 laws · 18 policies · 615 contracts on 78 components · 27 standing boards.**
 
 ## What binds you
 
@@ -328,16 +328,20 @@ function. A contract never freezes a look.
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
+| `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
 | `src/components/ui/tooltip.tsx` | the hover and focus label; useless on touch, where a Popover is the honest answer | none |
 
 Contracted but outside the library's directories:
 
+- `src/app/(app)/account/page.tsx` (4 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (10 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
+- `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/app/dashboard/events-section.tsx` (9 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
@@ -382,6 +386,9 @@ Contracted but outside the library's directories:
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
+- `src/lib/dashboard/arrivals.ts` (6 guards)
+- `src/lib/dashboard/events-view.ts` (9 guards)
+- `src/lib/dashboard/next-step.ts` (10 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 - `src/lib/shared/use-scroll-direction.ts` (8 guards)
 

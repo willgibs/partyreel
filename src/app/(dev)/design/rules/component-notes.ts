@@ -52,6 +52,32 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   // ★ The profile wiring's three (2026-09-19): all outside the library's
   // directories, indexed because each carries a contract test. They land at the
   // head with the round's other lanes so three merges stay apart.
+  /* ★ AT THE HEAD, with the round's other wiring lanes (home-wiring,
+     2026-09-20): the host's home became a pulse, the events list gained a
+     second view behind a remembered toggle, and the personal feeds moved to
+     the profile's owner mode. Six lanes merge into this file this round and
+     landing at the top is what keeps them line-disjoint. */
+  "src/lib/dashboard/next-step.ts": {
+    for: "the one thing each event wants next, in a fixed order over real state: the rule that stops the host's home going blank for anybody who is up to date",
+  },
+  "src/lib/dashboard/arrivals.ts": {
+    for: "how wide 'just arrived' has to open to hold twelve photographs, and the caption that admits which window it settled on",
+  },
+  "src/lib/dashboard/events-view.ts": {
+    for: "whether your events draw as cover cards or rows, in what order and through which lens; the view is a cookie because the server has to know it before the first byte",
+  },
+  "src/components/app/dashboard/events-section.tsx": {
+    for: "your events, both ways: the cards by default, the rows for a host with many, the toggle opposite the heading, and the bin and the saved events as lenses rather than a chip row",
+  },
+  "src/app/(guest)/u/[slug]/owner-sections.tsx": {
+    for: "the three feeds only you see on your own profile page: your uploads, your likes, the people you follow. It takes no identity at all, so it can never be pointed at somebody else",
+    unspecimened:
+      "an async Server Component reading three auth.uid() RPCs; there is no signed-in caller in a library build",
+  },
+  "src/app/(app)/account/page.tsx": {
+    for: "the person's account: the Plan card that is billing's only door, then the profile, the handle, connections, password and the way out",
+    unspecimened: "a route, not a component",
+  },
   "src/components/social/guest-list.tsx": {
     for: "who added photographs to an album, on both the host's page and the guest's: names in chips until a party is big, then one row of faces that opens a page of names at a time",
   },
@@ -459,6 +485,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/ui/switch.tsx": {
     for: "the settings toggle, from an event's upload rules to the admin kill switches",
+  },
+  "src/components/ui/toggle-group.tsx": {
+    for: "the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today",
+    unspecimened:
+      "generated for one product surface and mounted there (the dashboard's events heading); it earns a gallery entry when a lane owns the gallery, which none does this round",
   },
   "src/components/ui/tabs.tsx": {
     for: "the tab group, filled or underlined; only the design lab mounts it today",

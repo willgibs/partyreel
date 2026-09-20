@@ -5,6 +5,15 @@ import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { formatEventDate } from "@/lib/utils";
 
 /**
+ * ★ RETIRED FROM PRODUCTION, KEPT ON DISK (home-wiring, 2026-09-20). The bin is
+ * a LENS on the events list now, not a section of its own: "Deleted" is one of
+ * the three values of the list's filter, and it draws the same rows and cards
+ * every other event does (`density=cover`, "let's do both"). Nothing in the app
+ * renders this any more.
+ *
+ * It stays, with its props intact, because the LAB imports it and a wiring lane
+ * never deletes a module a board draws.
+ *
  * The Trash filter of the single feed (Phase 5 S2b) — a VERBATIM lift of the old
  * deleted-events tab. A utility filter (reached only via its chip), so empty is a
  * plain message, NOT a teaser: nothing to onboard here. Server-renderable.

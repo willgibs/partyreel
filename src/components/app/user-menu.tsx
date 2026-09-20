@@ -9,6 +9,7 @@ import {
   Moon,
   Settings,
   Sun,
+  UserRound,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -35,6 +36,12 @@ type UserMenuProps = {
   displayName: string | null;
   /** Presigned avatar URL (server-side), or null to show the initial-letter fallback. */
   avatarUrl: string | null;
+  /**
+   * The claimed handle, or null. It decides where the profile door GOES, not
+   * whether it exists: a host without one is offered the claim card rather
+   * than a dead link (the handle is FREE for everyone, profiles-social.md).
+   */
+  slug?: string | null;
 };
 
 // Theme picker options. Each mode has its own icon; the active one gets a trailing
@@ -99,7 +106,19 @@ export function ThemeSubmenu() {
   );
 }
 
-export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
+export function UserMenu({
+  email,
+  displayName,
+  avatarUrl,
+  slug = null,
+}: UserMenuProps) {
+  // ★ THE HANDLE-LESS DOOR. /u/<slug> does not exist until a handle is claimed,
+  // and claiming it is free, so the door leads to the claim card rather than
+  // disappearing: #public-profile is the id on /account's Public profile card,
+  // the same anchor the after-upload prompt uses. A host who has never thought
+  // about a handle taps "Your profile" and lands on the one box that gives
+  // them one.
+  const profileHref = slug ? `/u/${slug}` : "/account#public-profile";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -130,6 +149,22 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
             is the menu's SUBJECT, so it takes the header: the editable display
             name (when set) over the email, which is always shown because it is
             the "who am I" answer. */}
+        {/* THE TITLE ROW, which is what the identity block always wanted to be
+            (Card, Will 2026-09-17). Who you are signed in as is the menu's
+            SUBJECT, so it takes the header: the editable display name (when
+            set) over the email, which is always shown because it is the
+            "who am I" answer.
+
+            ★ IT IS NOT THE PROFILE DOOR, AND THE REASON IS MECHANICAL. The
+            brief offered the header as that door to buy the second door for
+            zero rows; `DropdownMenuHeader` is a plain <div> with no `asChild`,
+            and `ui/dropdown-menu.tsx` belongs to another lane this round. The
+            workaround — a bare <a> inside the header — is reachable by Tab but
+            NOT by the arrow keys radix gives every real menu item, so the one
+            door a keyboard user would look for would be the one they could not
+            walk to. So the two doors are two rows instead. The w-56 measurement
+            below is horizontal (the submenu clearing a 375 screen) and a row
+            does not touch it. His to overrule. */}
         <DropdownMenuHeader>
           {displayName?.trim() ? (
             <>
@@ -147,8 +182,15 @@ export function UserMenu({ email, displayName, avatarUrl }: UserMenuProps) {
             ours, which is the whole of Card's argument. */}
         <DropdownMenuGroup>
           <DropdownMenuLabel>Your account</DropdownMenuLabel>
-          {/* In-app account settings (email, password / sign-in). Same-tab, unlike the
-              external links below. */}
+          {/* DOOR ONE — the person: their own photographs, their likes, the
+              people they follow, and the page everyone else sees. */}
+          <DropdownMenuItem asChild>
+            <Link href={profileHref}>
+              <UserRound /> Your profile
+            </Link>
+          </DropdownMenuItem>
+          {/* DOOR TWO — the money and the settings: plan, billing, password,
+              sign-in. Same-tab, unlike the external links below. */}
           <DropdownMenuItem asChild>
             <Link href="/account">
               <Settings /> Account

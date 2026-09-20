@@ -28,12 +28,12 @@ import { describe, expect, it } from "vitest";
  * retunes how the edge LOOKS without asking a test. What is held is where the
  * hook may sit, what the rule may be made of, and the one ground it exists on.
  *
- * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL TWELVE. A
+ * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL THIRTEEN. A
  * `@contract-for` line puts this contract on that component's block in the
  * Library, which is right for the seven that live in the Library's own
- * directories. The other five (the guest masonry, the event card, the reel's
- * poster card, the canvas player, the /features/qr hero) are product files the
- * index does not list:
+ * directories. The other six (the guest masonry, the event card, the dashboard
+ * arrivals strip, the reel's poster card, the canvas player, the /features/qr
+ * hero) are product files the index does not list:
  * naming them would pull each one into it, where each then owes a `for` line
  * and the gallery's event-card entry has to drop its `file`. They are bound by
  * exactly the same assertions; they are just not advertised twice.
@@ -54,6 +54,7 @@ const HOSTS: Record<string, Kind> = {
   "src/components/shared/masonry.tsx": "media",
   "src/components/guest/guest-masonry.tsx": "media",
   "src/components/app/event-card.tsx": "media",
+  "src/components/app/dashboard/just-arrived.tsx": "media",
   "src/components/reel/poster-card.tsx": "media",
   "src/lib/reel/engine/player.tsx": "media",
   "src/components/marketing/sections/shared/inline-reel-player.tsx": "media",

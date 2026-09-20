@@ -25,10 +25,29 @@ wording is what has to hold up, not a consent checkbox.
 
 Surfaces: `/u/[slug]` (ONE grid of event cards, hosted and attended together with a Host or Guest
 marker on each, the person's bio under the name row, indexable, on the album's own `GuestHeader` in
-its event-less mode); the Account page (slug claim, bio, attended-event visibility switches,
-Connections card); event settings (`ProfileSocialCard`, both keys persist per flip, LOUD permanent
-consent copy on `show_guest_list`); the host feed's "Guests" section + pill and the guest album's
-post-gallery "Guests" section; the dashboard "Following" chip.
+its event-less mode, plus the OWNER MODE below); the Account page (slug claim, bio, attended-event
+visibility switches, Connections card); event settings (`ProfileSocialCard`, both keys persist per
+flip, LOUD permanent consent copy on `show_guest_list`); the host feed's "Guests" section + pill and
+the guest album's post-gallery "Guests" section.
+
+**The owner mode** (`you=?`, Will 2026-09-20: "Your own photos, likes, connections, etc should be on
+your profile page"). When the viewer IS the person, `/u/[slug]` grows three PRIVATE sections under the
+public grid ([`owner-sections.tsx`](../../src/app/(guest)/u/[slug]/owner-sections.tsx)): your uploads
+(`get_my_uploads`, with the lightbox's delete-own through `remove_my_upload`), your likes
+(`get_my_likes`, where the heart UNLIKES and drops the item), and Connections - **the people you
+follow, never your followers**, since the graph stays owner-private. They left the dashboard, which is
+a hosting surface. The per-event like COUNT remains HOST-ONLY on the event's management gallery and
+appears on no profile.
+- ★ **The gate is the QUERY, not the boolean.** Every read is `auth.uid()`-scoped, and the component
+  **takes no parameters at all**, so there is no id it could be pointed at. If the page's `isSelf`
+  check were ever wrong, the worst it could render is the VIEWER'S OWN media on somebody else's page,
+  never the page owner's. On a public surface anonymous strangers read all day, a gate that can only
+  fail safely is the only kind worth having; [owner-mode.test.ts](../../src/app/(guest)/u/[slug]/owner-mode.test.ts) pins the empty signature.
+- The sections stream behind their **own in-page `<Suspense>`**, never a `loading.tsx` (see the gotcha
+  below - a loading file would make a dead handle answer 200), and a visitor's render is unchanged:
+  nothing is constructed and not one of the three queries runs.
+- `removeMyUploadAction` revalidates `/dashboard` **and** `/u/[slug]`; it used to revalidate only the
+  former, which after the move meant a delete reconciled a route the user was no longer on.
 
 ## Where it lives
 
@@ -98,8 +117,10 @@ post-gallery "Guests" section; the dashboard "Following" chip.
 
 - `getMyAttendedEvents` (the Account hide-toggles list) deliberately ignores `show_guest_list` AND
   visibility: the hide toggle is the guest's key and must be settable BEFORE the host flips theirs.
-- The "Following" dashboard chip is **chip-only** (never stacked into "All" — it's a lens on other
-  people's events, not the user's own media scroll) and a full-fetch, not a paginated feed.
+- The dashboard's "Following" chip and its section are **gone** (the pulse, 2026-09-20): a lens on
+  other people's events was never a hosting job. "Connections" in the profile's owner mode is the
+  surviving half and lists PEOPLE (`getMyFollowing`), not their events; `getFollowedHostEventCards`
+  keeps its home in `queries/social.ts` with no caller, for whoever wants that feed next.
 - `checkProfileSlugAction` requires `getUser()` (no anon RPC for profile-slug availability — keeps it
   off the anonymous enumeration surface; it reveals only what a save's 23505 already would).
 - ★ **`/u/[slug]` must never get a `loading.tsx`.** A loading file wraps the route in Suspense, so
