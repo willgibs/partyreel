@@ -1,6 +1,6 @@
 ---
 track: demo-doors
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "68276391"          # the launch-prep SHA the branch was cut from
 board: demo-event      # round two on the same board id: the door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -216,16 +216,21 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `8d958180`, pushed; synced with launch-prep at `8d958180` (origin/launch-prep had moved 17 commits: type-sync, guest-verify and buttons-pairs landed; none touched `sandbox/demo-event/`, so the merge carried no conflicts)
+- Gates on the synced tree: design:rules ok, specimens ok (140 specimens on 101 entries), typecheck ok, lint ok (8 known), test ok (3053, 1 skipped), build ok (255 pages); `pnpm lab:smoke` ok (442 checks, 0 failing); `pnpm lab:demo --board demo-event` ok (1 step, 0 failing: `demo-event.door`, 4 options, the stage moves by up to 20.10%, proving the board gives the gate its one new step to press)
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md`, `src/app/(dev)/design/touchpoints.ts` (both the registration exception: the regenerated artifact and this board's own RULINGS row) + every file under `src/app/(dev)/design/sandbox/demo-event/` (three round-one files deleted: `arrival.tsx`, `page-parts.tsx`, `scan.tsx`, which served only the six now-ruled asks this round drops)
+- The items, one line each:
+  - `door`: four options built, text-free, drawn at all four places (the home hero, the footer, a feature page's line, the nav panel's pane) at 375 and 1440 — `pile` (the footer's real fan, proposed at the hero and the line where today is bare/words-only), `frame` (one photograph in a mat, the code in its corner; **recommended**), `stage` (the falling engine's own rest frame, sketched rather than the live rAF loop; nothing drawn in the nav pane), `ticket` (a redrawn die-cut stub, no label). None wired: a lab round two, his verdict decides what lands in the Library.
+- Calls his to overrule on the alias, one line each:
+  - "Text-free but the demo's name" was read as: the object itself never carries added words in any option (killing round one's `named` idiom for good); the page's own surrounding copy (the footer's heading, the line's CTA sentence) is untouched furniture, not part of what is judged. If he meant the party's own name may print ON the object instead, that is a different, smaller ask on the winning shape.
+  - `stage` draws the falling engine's own REST FRAME (the same photographs, overlap and tilt a settled stack leaves) rather than mounting the real `AlbumStream` loop, at every place including the home hero: the real engine's geometry is anchored to the hero's own measured height (cards hang off the layer's foot, hundreds of px up) and does not have a smaller version: a nav pane or a line's edge is a different composition, not a scaled one. The cost line in its `means` says what picking it for real would spend.
+  - The nav pane's fourth place draws something for `pile`, `frame` and `ticket` but nothing for `stage` (the clean column, its own honest option): a call made per option rather than uniformly, on the reasoning that a frozen thumbnail of a "falling" idea shows none of what makes it worth picking, so spending nothing there reads truer than a static stand-in.
+  - Research finding, not a build choice: `doors=pile`'s ruling reads as "one object skinned per place", but `demo-wiring`'s own diff touched only `mega-panel.tsx` and `demo-ticket.tsx`. The footer's fan (`FooterDemo`) predates this round entirely; the home hero's plate (`cinema-hero.tsx`'s `DemoQr`) is still bare on its own real photograph corridor, and a feature page's line (`DemoCtaLink`) is still words and a chevron with no image at all. So `pile` in this round's pictures is itself a proposal at the hero and the line, which the board's own captions say plainly rather than silently drawing today as if it already matched the ruling's language.
+- The help articles this lane makes stale: none (a lab-only round; nothing shipped changed).
+- Assets requested from Will: none (every option is built from the twelve marketing stills already in the manifest).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the board's one step (`/design/lab/demo-event`) at 1440, cycling `Which place` under each of the four `door` options; the nav pane specifically (the fourth place, new since round one) contrasting `stage`'s clean column against the other three's new card.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round two on `demo-event`'s doors: round one's other six decisions (arrival, framing, try, next, phone, event) confirmed ruled and wired whole by `demo-wiring`, so this round dropped them and asked the one Will flagged on `doors=pile` ("I'd be curious to see better designs of this... labeling the QR doesn't look very polished in the otherwise text-free visuals"): one decision, `door`, four text-free options (`pile` as wired, `frame`, `stage`, `ticket`; `frame` recommended) drawn at all four places including the nav panel's pane the retired ticket left empty, at 375 and 1440. Found in the research: only the footer ever really built an object before this round; the hero and a feature page's line are proposals in every option here, not today. Gate green on the synced tree (3053 tests, 255 pages, `lab:smoke` 442, `lab:demo` 1 step).
