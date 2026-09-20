@@ -130,7 +130,7 @@ const DRAFT = defineExploration({
       question:
         "Where should Add and Invite live so the most important action is found on landing and reachable at any depth?",
       context:
-        "Save already left this row. Today: a full-width Add over a full-width Invite on landing, then only a floating Add pill once that row scrolls away, Invite gone with it. Drawn on the real 34-photograph album at both ends of a real scroll, landing and 900px down, well past the row at either screen this board judges.",
+        "Save already left this row: Add over Invite on landing, then only the floating Add pill once that row scrolls away, Invite gone with it. Drawn on the real 34-photograph album at both ends of a real scroll, landing and 900px deep.",
       options: [
         {
           id: "column",
@@ -171,7 +171,7 @@ const DRAFT = defineExploration({
       label: "The welcome",
       question: "What shell should the door and its welcome screen wear?",
       context:
-        "The sequence is ruled: welcome, then the gate, on a gated event, exactly as it stands. The shell it rides was named directly, not this sheet design. Drawn on a real gated event (password the knob's default, account the other flavour), an open event, and the demo's own arrival, the same four shells around each.",
+        "The sequence is ruled: welcome, then the gate, exactly as it stands. Only the shell was named directly, not this sheet design. Drawn on a real gated event, an open event, and the demo's own arrival, the same four shells around each.",
       options: [
         {
           id: "today",
@@ -213,7 +213,7 @@ const DRAFT = defineExploration({
       label: "Theirs",
       question: "Where does a guest find their own photographs once the album is big?",
       context:
-        "A guest's own photograph is already removable for ever, on both identities, final for the host too. That answers what a guest can do about it; it says nothing about finding it again. Drawn on a 68-photograph album, ten of them this guest's own, spread from near the top to well past the fold.",
+        "A guest's own photograph is already removable for ever, final for the host too. That answers what a guest can DO; not how to find it again. Drawn on a 68-photograph album, ten of them this guest's own, spread near the top to past the fold.",
       options: [
         {
           id: "none",

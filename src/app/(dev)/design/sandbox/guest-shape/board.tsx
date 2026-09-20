@@ -39,15 +39,30 @@ import {
 
 type Reader = (root: HTMLElement, win: Window) => string | null;
 
-/** Reads one fact out of the frame's own document, watched with THAT
- *  window's ResizeObserver (the subtree lives in the iframe's document) plus
- *  a late pass for photographs still decoding at layout time. */
+/**
+ * Reads one fact out of the frame's own document, watched with THAT window's
+ * ResizeObserver (the subtree lives in the iframe's document) plus a late
+ * pass for photographs still decoding at layout time.
+ *
+ * ★ `deps` RE-ARMS THE WATCH, AND THAT IS NOT ROUND ONE'S OWN COPY
+ * (`profile-page`'s `Measured` improved on it first). A ResizeObserver fires
+ * on a LAYOUT change; `position` on `chrome` and `which`/`step`/`show` on
+ * `welcome`/`theirs` change what is TRUE inside an already-mounted frame
+ * without resizing anything (a scrollTop, a filtered item list), so a probe
+ * armed once at mount would keep reporting the picture it first saw. Found
+ * live on this board: the `column` option at `position=deep` measured
+ * "Invite reachable" because the scroll happened AFTER the one-time read.
+ * Depending on the state that can change the answer makes the effect re-run
+ * exactly when it has to.
+ */
 function Probe({
   read,
+  deps,
   onRead,
   children,
 }: {
   read: Reader;
+  deps: readonly unknown[];
   onRead: (s: string) => void;
   children: ReactNode;
 }) {
@@ -71,12 +86,18 @@ function Probe({
     run();
     const ro = new win.ResizeObserver(run);
     ro.observe(el);
-    const late = win.setTimeout(run, 1400);
+    // Two late passes: the scroll container settles its position a beat
+    // after mount/prop-change (ScrollPage's own 1200ms re-apply), and a
+    // filtered grid's photographs can still be decoding at 1400ms alone.
+    const mid = win.setTimeout(run, 1300);
+    const late = win.setTimeout(run, 1900);
     return () => {
       ro.disconnect();
+      win.clearTimeout(mid);
       win.clearTimeout(late);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
   return <div ref={ref}>{children}</div>;
 }
@@ -88,12 +109,16 @@ function Screen({
   screen,
   caption,
   read,
+  deps,
   children,
 }: {
   id: string;
   screen: ScreenId;
   caption: string;
   read: Reader;
+  /** Every piece of state besides `screen` (already in `id`) that can change
+   *  what `read` finds true, so the probe re-arms when any of it changes. */
+  deps: readonly unknown[];
   children: ReactNode;
 }) {
   const [said, setSaid] = useState<string | null>(null);
@@ -106,7 +131,7 @@ function Screen({
       title={`${w} x ${h}, ${name}`}
       caption={said ? `${caption} ${said}` : caption}
     >
-      <Probe read={read} onRead={setSaid}>
+      <Probe read={read} deps={deps} onRead={setSaid}>
         {children}
       </Probe>
     </Frame>
@@ -152,6 +177,12 @@ function chromeScreen(shape: ChromeShape, s: BoardState) {
       id={`chrome-${shape}`}
       screen={screen}
       read={chromeRead}
+      // Every piece of state `chromeRead`'s answer can depend on: the shape
+      // itself included, because the step swaps one option's tree for
+      // another's AT THE SAME slot (`Screen` never remounts on its own), so
+      // `position` alone left a stale reading the one time shape changed
+      // and position did not.
+      deps={[shape, screen, position]}
       caption={CHROME_CAPTION[shape]}
     >
       <ChromePage shape={shape} screen={screen} position={position} />
@@ -190,6 +221,7 @@ function welcomeScreen(shape: WelcomeShape, s: BoardState) {
       id={`welcome-${shape}`}
       screen={screen}
       read={welcomeRead}
+      deps={[shape, screen, which, step]}
       caption={WELCOME_CAPTION[shape]}
     >
       <Welcome
@@ -249,6 +281,7 @@ function theirsScreen(shape: TheirsShape, s: BoardState) {
       id={`theirs-${shape}`}
       screen={screen}
       read={theirsRead}
+      deps={[shape, screen, show]}
       caption={THEIRS_CAPTION[shape]}
     >
       <TheirsPage shape={shape} screen={screen} show={show} />
