@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The desk, tonight</title>
+<style>
+:root{--ground:#0b0b10;--ink:#e8e6f0;--dim:rgba(232,230,240,.45);--line:rgba(232,230,240,.08)}
+html,body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 48px}h1{font-size:22px;font-weight:600;margin:0 0 4px}p{color:var(--dim);margin:0 0 18px;max-width:64ch}
+svg{width:100%;height:auto;display:block}
+</style></head><body><main>
+<h1>The desk, tonight</h1>
+<p>Twenty-seven design boards waiting for one person's verdicts, in the order they are answered. Each disc is a board: its size is how many questions are still open, its ring how many were already ruled, its hue a hash of its name. The line under them is the order of leverage, the earliest influence first. One hundred and thirty-one open questions on the night of 2026-09-20.</p>
+<svg id="s" viewBox="0 0 980 520" role="img" aria-label="Twenty-seven boards as discs along a line"></svg>
+<p style="margin-top:18px">Made by Usher from its own desk snapshot, the evening it was given its name.</p>
+</main>
+<script>
+const rows = [{"n": 1, "id": "body-type", "round": 2, "open": 1, "answered": 7, "title": "Body and label type", "surface": "shared"}, {"n": 2, "id": "app-shape", "round": 2, "open": 3, "answered": 7, "title": "The host app's shape", "surface": "host"}, {"n": 3, "id": "guest-shape", "round": 2, "open": 3, "answered": 6, "title": "The guest experience's shape", "surface": "guest"}, {"n": 4, "id": "guest-verify", "round": 1, "open": 6, "answered": 0, "title": "Verify, or badge", "surface": "guest"}, {"n": 5, "id": "app-vocabulary", "round": 2, "open": 1, "answered": 7, "title": "The app's shared vocabulary", "surface": "shared"}, {"n": 6, "id": "toasts", "round": 1, "open": 5, "answered": 0, "title": "The toast, as a system", "surface": "shared"}, {"n": 7, "id": "seed-avatar", "round": 2, "open": 1, "answered": 7, "title": "The colour a new account is", "surface": "shared"}, {"n": 8, "id": "app-door", "round": 2, "open": 1, "answered": 7, "title": "The door into the host app", "surface": "host"}, {"n": 9, "id": "demo-event", "round": 2, "open": 1, "answered": 7, "title": "The live demo", "surface": "marketing"}, {"n": 10, "id": "pricing-page", "round": 2, "open": 2, "answered": 7, "title": "The pricing page", "surface": "marketing"}, {"n": 11, "id": "app-pricing", "round": 1, "open": 8, "answered": 0, "title": "Pricing in the app", "surface": "host"}, {"n": 12, "id": "first-event", "round": 1, "open": 8, "answered": 0, "title": "A host's first event", "surface": "host"}, {"n": 13, "id": "guest-upload", "round": 1, "open": 8, "answered": 0, "title": "The upload act", "surface": "guest"}, {"n": 14, "id": "media-viewer", "round": 1, "open": 8, "answered": 0, "title": "What a photograph opens as", "surface": "shared"}, {"n": 15, "id": "host-curation", "round": 1, "open": 8, "answered": 0, "title": "Reviewing what guests send", "surface": "host"}, {"n": 16, "id": "reel-studio", "round": 1, "open": 8, "answered": 0, "title": "The highlight reel", "surface": "host"}, {"n": 17, "id": "export-flow", "round": 1, "open": 8, "answered": 0, "title": "Getting everything out", "surface": "shared"}, {"n": 18, "id": "admin-triage", "round": 1, "open": 8, "answered": 0, "title": "Acting on a report", "surface": "admin"}, {"n": 19, "id": "help-center", "round": 1, "open": 7, "answered": 0, "title": "Where a problem lands", "surface": "marketing"}, {"n": 20, "id": "emails", "round": 1, "open": 8, "answered": 0, "title": "Every email Partyreel sends", "surface": "shared"}, {"n": 21, "id": "site-chrome", "round": 2, "open": 3, "answered": 8, "title": "The marketing site's chrome", "surface": "marketing"}, {"n": 22, "id": "profile-page", "round": 2, "open": 3, "answered": 8, "title": "What a person is here", "surface": "guest"}, {"n": 23, "id": "privacy-hero", "round": 3, "open": 1, "answered": 0, "title": "The privacy page's hero", "surface": "marketing"}, {"n": 24, "id": "album-motion", "round": 1, "open": 1, "answered": 0, "title": "The album's falling-in", "surface": "marketing"}, {"n": 25, "id": "loose-ends", "round": 1, "open": 7, "answered": 0, "title": "Six loose ends", "surface": "shared"}, {"n": 26, "id": "contact-page", "round": 1, "open": 6, "answered": 0, "title": "Reaching a person", "surface": "marketing"}, {"n": 27, "id": "press-page", "round": 1, "open": 7, "answered": 0, "title": "What Partyreel hands the world", "surface": "marketing"}];
+const svg = document.getElementById("s"), NS = "http://www.w3.org/2000/svg";
+const el = (k, a, parent = svg) => { const x = document.createElementNS(NS, k); for (const [q, v] of Object.entries(a)) x.setAttribute(q, v); parent.appendChild(x); return x; };
+const hue = (id) => { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const W = 980, n = rows.length, gap = (W - 80) / (n - 1);
+el("path", { d: `M40 300 Q ${W / 2} 380 ${W - 40} 300`, fill: "none", stroke: "var(--line)", "stroke-width": 2 });
+rows.forEach((r, i) => {
+  const x = 40 + i * gap, t = i / (n - 1), y = 300 + 80 * (1 - t) * t * 4 * 0.5 * 2 * (1 - 0.5) + 40 * Math.sin(i * 1.7) * 0.6;
+  const rad = 8 + r.open * 4.2, h = hue(r.id);
+  const g = el("g", {}); el("title", {}, g).textContent = `${r.n}. ${r.title} (${r.id}, round ${r.round}): ${r.open} open, ${r.answered} ruled`;
+  if (r.answered) el("circle", { cx: x, cy: y, r: rad + 3 + Math.min(r.answered, 8) * 0.8, fill: "none", stroke: `hsl(${h} 60% 62%)`, "stroke-opacity": .55, "stroke-width": 1 + r.answered * 0.35 }, g);
+  el("circle", { cx: x, cy: y, r: rad, fill: `hsl(${h} 66% 58%)`, "fill-opacity": .92 }, g);
+  const lbl = el("text", { x, y: y + rad + 16, fill: "var(--dim)", "font-size": 10, "text-anchor": "middle" }, g); lbl.textContent = r.id;
+  if (r.round > 1) el("text", { x, y: y + 4, fill: "#0b0b10", "font-size": 11, "font-weight": 600, "text-anchor": "middle" }, g).textContent = `r${r.round}`;
+});
+</script></body></html>
