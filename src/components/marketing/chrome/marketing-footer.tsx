@@ -96,7 +96,7 @@ import { FooterGlow } from "./footer-glow";
 // without changing the visual rhythm; footer links are the most mis-clicked
 // elements on the web.
 const FOOTER_LINK =
-  "block py-1 text-[15px] text-muted-foreground transition-colors duration-150 hover:text-foreground";
+  "block py-1 text-reading text-muted-foreground transition-colors duration-150 hover:text-foreground";
 
 // Quiet inline text for the assistant row, never vendor logos: this footer
 // deliberately carries no social icons (the company has no accounts), so three
@@ -157,7 +157,7 @@ function StartFree() {
       href={MARKETING_CTA.href}
       {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
       className={cn(
-        "mkt-learn inline-flex items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97]",
+        "mkt-learn inline-flex items-center gap-2 border px-6 py-3 text-working font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97]",
         ctaCorner,
       )}
     >
@@ -203,7 +203,7 @@ function SignOff() {
               out-shouting the page's own last word was the louder mistake.
               Level with a closing H2 is the hierarchy he asked for. */}
           <h2 className="font-heading text-section">Explore a demo event.</h2>
-          <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
+          <p className="max-w-sm text-copy text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the
               way a guest arrives. No app required.
@@ -215,7 +215,7 @@ function SignOff() {
           <Link
             href={DEMO_EVENT_URL}
             {...trackAttrs("demo_open", { source: "footer-mobile" })}
-            className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-[15px] font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
+            className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-working font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
           >
             Open the demo album
             <LearnChevron />
@@ -248,13 +248,13 @@ function Index() {
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite
             would silently have skipped the most-seen surface on the site. */}
-        <p className="max-w-[26ch] text-[15px] text-pretty text-muted-foreground">
+        <p className="max-w-[26ch] text-copy text-pretty text-muted-foreground">
           {SITE_THESIS}
         </p>
         {/* Tucked here on purpose (Will's review): the demo row above should own
             its register, and this belongs with the other "what is Partyreel"
             copy. It is the one human-facing surface of the /llms.txt layer. */}
-        <p className="max-w-[30ch] pt-2 text-[13px] text-pretty text-muted-foreground">
+        <p className="max-w-[30ch] pt-2 text-caption text-pretty text-muted-foreground">
           Using an assistant? Ask{" "}
           {ASK_AI_TARGETS.map((target, i) => (
             <span key={target.label}>
@@ -342,7 +342,7 @@ function FooterLink({ link }: { link: NavLink }) {
       >
         {link.label}
         {hiring && (
-          <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium tracking-[0.1em] whitespace-nowrap text-foreground uppercase">
+          <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-label font-medium whitespace-nowrap text-foreground uppercase">
             We&rsquo;re hiring
           </span>
         )}

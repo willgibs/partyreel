@@ -77,7 +77,7 @@ export function PricingTeaser() {
                 )}
               >
                 {card.popular && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-background px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-background px-2.5 py-0.5 text-label font-medium whitespace-nowrap text-muted-foreground uppercase">
                     Most popular
                   </span>
                 )}
@@ -85,7 +85,7 @@ export function PricingTeaser() {
                     whole job is the number, a same-weight name competes with
                     the price for first read. This is the register the lab's
                     ratified Pro card uses. */}
-                <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                <p className="text-label font-medium text-muted-foreground uppercase">
                   {card.name}
                 </p>
                 {/* The ratified price register (/pricing, 2026-08-27): money in

@@ -51,7 +51,7 @@ function Column({
       className="flex flex-col gap-5 px-6 py-6 sm:py-7"
       style={{ "--i": 3 + index } as CSSProperties}
     >
-      <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+      <p className="text-label font-medium text-muted-foreground uppercase">
         {name}
       </p>
       <div className="flex flex-col gap-2">
