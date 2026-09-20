@@ -50,8 +50,11 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "What we keep, where it lives, who can see it, and how deletion works.",
     // 1.1 (2026-09-02): account deletion became self-serve and immediate, so
     // the "write to support" choice and the newsletter removal both changed.
-    version: "1.1",
-    lastUpdated: "2026-09-02",
+    // 1.2 (2026-09-20): a guest may now remove their own upload right on the
+    // album, signed in or anonymous by device, final for the host too; it is
+    // no longer "ask the host" for an anonymous upload.
+    version: "1.2",
+    lastUpdated: "2026-09-20",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -68,8 +71,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // cancels an active plan at that moment rather than at period end.
     // 1.2 (2026-09-18): Disclaimers says we may use generative AI for some of
     // our own images and videos.
-    version: "1.2",
-    lastUpdated: "2026-09-18",
+    // 1.3 (2026-09-20): a guest may delete their own upload directly, signed
+    // in or not, without asking the host; that deletion is final either way.
+    version: "1.3",
+    lastUpdated: "2026-09-20",
     status: "pending-review",
     effectiveDate: null,
   },

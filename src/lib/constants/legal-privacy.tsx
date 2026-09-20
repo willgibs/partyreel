@@ -496,7 +496,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         ],
       ),
       p(
-        "When something is permanently deleted, it is removed from primary storage first and then from our database. An upload that a signed-in guest removes from someone else's event cannot be restored by that event's host.",
+        "When something is permanently deleted, it is removed from primary storage first and then from our database. An upload that a guest removes themselves, signed in or not, cannot be restored by that event's host.",
       ),
     ],
   },
@@ -512,12 +512,15 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           uploaded comes back out at the quality it went in, one item at a time
           or the whole album at once.
         </>,
-        // remove_my_upload: dashboard Uploads tab; anonymous uploaders ask the host.
+        // remove_my_upload (signed in, the album or the dashboard's Uploads tab) and
+        // remove_my_upload_by_session (anonymous, the same device and browser only).
         <>
-          <strong className="text-foreground">Delete your uploads.</strong> If
-          you signed in, you can delete your own uploads from the Uploads tab of
-          your dashboard, in any event, at any time. If you uploaded without
-          signing in, ask the host, who can remove the item instantly.
+          <strong className="text-foreground">Delete your uploads.</strong> Open
+          any photo or video you added and remove it, right on the album,
+          whether or not you signed in; without signing in, this works only
+          from the same phone and browser you uploaded from. A signed-in
+          upload is also reachable from the Uploads tab of your dashboard.
+          Either way the removal is final, for the host too.
         </>,
         <>
           <strong className="text-foreground">Delete your events.</strong> Hosts
