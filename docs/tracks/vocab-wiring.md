@@ -373,13 +373,18 @@ time on this machine; your dev server on your own port, killed by port before a 
   shared registry files other lanes also touched (`docs/design/library.md`, the components `gallery-demos.tsx`,
   `specimens.generated.json`, `rules.generated.json`); the generated three were resolved by regenerating on
   the merged tree rather than hand-merging JSON, and the one hand-authored conflict (an import list) kept
-  both sides' names.
-- Gates on the synced tree, each its own exit code: `design:rules` ok (178 components, 94 indexed), the
-  specimen collector ok (140 specimens on 101 entries), `typecheck` ok, `lint` ok (8 known warnings, 0
-  errors), `test` ok (283 files, 2998 passed, 1 skipped — the ledger's pre-existing `stands` failure at the
-  cut is gone post-merge, not this lane's fix), `build` ok (255 pages). `pnpm lab:smoke --base :3135` ok (430
-  checks, 0 failing). `pnpm lab:demo --board app-vocabulary --base :3135` ok (0 open steps to press: this
-  board's asks all draw their options inline rather than through a pressable step sequence).
+  both sides' names. One small commit rides on top of the sync (`230e6023`): the sliding tooltip's
+  from-start/from-end direction, checked live in Chrome for the Handoff below but missing as a real test
+  until this commit added it (`fireEvent.focus`/`.blur`, reliable in jsdom where a hand-dispatched
+  PointerEvent sequence raced Radix's own state machine live) — `design:rules` regenerated for its one new
+  contract title.
+- Gates on the synced tree, each its own exit code, run again after that last commit: `design:rules` ok (178
+  components, 94 indexed, 1268 contracts), the specimen collector ok (140 specimens on 101 entries),
+  `typecheck` ok, `lint` ok (8 known warnings, 0 errors), `test` ok (283 files, 2999 passed, 1 skipped — the
+  ledger's pre-existing `stands` failure at the cut is gone post-merge, not this lane's fix), `build` ok (255
+  pages). `pnpm lab:smoke --base :3135` ok (430 checks, 0 failing). `pnpm lab:demo --board app-vocabulary
+  --base :3135` ok (0 open steps to press: this board's asks all draw their options inline rather than
+  through a pressable step sequence).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = every path this manifest owns, plus:
   - `src/app/(app)/dashboard/[eventId]/actions.ts` and `.../page.tsx` (unowned, unclaimed by any open
     manifest): one small Server Action (`setTileSizeAction`, mirroring `dashboard/actions.ts`'s
