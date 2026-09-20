@@ -1,3 +1,4 @@
+// @contract-for: src/app/(dev)/design/sandbox/overtaken.ts
 import { describe, expect, it } from "vitest";
 
 import { optionLabel, optionMeans } from "@/components/lab/board-spec";
