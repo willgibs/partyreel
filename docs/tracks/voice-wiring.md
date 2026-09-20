@@ -1,6 +1,6 @@
 ---
 track: voice-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "20cc9b5f"          # the launch-prep SHA the branch was cut from
 board: voice           # retires at this lane's merge
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -248,28 +248,113 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Every one below was TAKEN as recommended and built; they are listed again under "Calls his to overrule".
+No new one-way door appeared.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/marketing-content.md`, the brand paragraph: the ACCOUNT RULE in full (never promise "no
+  account"; "No app required." on all 27 production sites; "no app" stays; the test that decides a line;
+  the suggested-host-announcement trap), then the SUBHEAD SHAPE and the EMPTY-STATE VOICE as two short
+  rules with his words.
+- `docs/systems/marketing-content.md`, the SEO section: `SITE_DESCRIPTION` is no longer the hero subhead,
+  why (144 + 30 = 175, cut at ~160), where the copy lives (`SITE_DESCRIPTION_LINE`) and what pins it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The lab and the kit** — ten lab boards still on the desk draw the retired literal "No app, no account."
+  (`app-door/welcome.tsx`, `app-shape/event.tsx`, `app-vocabulary/empty-states.tsx`, `demo-event/arrival.tsx`,
+  `demo-event/doors.tsx`, `first-event/venue.tsx`, `guest-shape/door.tsx`, `help-center/fixtures.ts`,
+  `help-center/who-first.tsx`, `site-chrome/foot.tsx`). None is in this lane's `owns` and Will reads them
+  while reviewing, so he will see a line the same batch ruled away. One sweep lane, or each board's wiring.
+- **Marketing site** — `/features/album`'s h1 is the one of six that wraps to THREE lines at 1440
+  (measured); his ruling was `feature-h1=today`, so nothing moved. The proposal is below.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `be892f18`, pushed; synced with `launch-prep` at `e9e3d25e` (it had moved: the `call:` review
+  grammar and `PartyreelAI/`). Merged, never rebased; clean, no conflicts.
+- **Gates on the synced tree, each on its own exit code:** `design:rules` 0 · specimens 0 (131 on 94
+  entries) · `typecheck` 0 · `lint` 0 (8 known warnings) · `test` 0 (**2,716** passed, 1 skipped) ·
+  `build` 0 (**255** pages) · `pnpm lab:smoke --base http://localhost:3131` 0 (**433 checks, 0 failing**).
+  No `lab:demo`: this is a production lane and its board retires in it.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): 56 paths, every one owned, plus the
+  retirement exception and five single-line exceptions:
+  - `src/app/(dev)/design/{touchpoints.ts, sandbox/registry.ts, (shell)/lab/boards.ts, sandbox/voice/*,
+    rules/rules.generated.json}` — the RETIREMENT exception (the boot prompt's), plus the generated
+    artifact, which had to be regenerated after the merge grew `registry.test.ts`.
+  - `src/components/app/create-event-wizard.tsx` — one line; ladder-wiring's file, named as voice's
+    exception by the brief.
+  - `src/app/(guest)/e/[token]/not-found.tsx` — one line; the ladder's `(guest)/e/` list, same.
+  - `src/lib/constants/about.ts` — one clause; **owned by no manifest**. Its mission story names the
+    account wall as the third failure ("The cloud folder wants an account"), then answered it by
+    promising no account. It cannot: the honest answer is the SIZE of the ask, so it is "no password to
+    invent" now, which keeps the parallel and is true on every event.
+  - `src/components/marketing/sections/home/home-sections.test.ts` — the length pin the brief asks for;
+    owned by no manifest.
+  - `docs/systems/marketing-content.md` — named as owned in the brief's prose but absent from the YAML
+    `owns`, and owned by no other manifest; the two voice facts refined in place.
+- **The items, one line each:**
+  - `absence=named`: "No app, no account." → **"No app required."** verbatim on 27 production sites; the
+    prose variants rewritten in their own sentence; the rule and its head comment land in
+    `marketing-voice.ts` as the Library's voice entry.
+  - `hero-sub`: `SITE_SUBHEAD` is his sentence verbatim; the meta description split off as
+    `SITE_DESCRIPTION_LINE` (144 chars) and pinned under 160.
+  - `feature-h1=today`: nothing moved. Measured at 1440: album **3 lines**, qr 2, curation 2, sharing 2,
+    guests 2, privacy 2. `/features/curation`'s subhead already clarifies the "good part" — no change.
+  - `pro-line=video`: `PRO_LINE` single-sourced into `plan-cards`; the four siblings aligned video-first.
+  - `host-empty=album`: **"Your first album starts here"**, the body's promise gone, the CTA unchanged.
+  - `gate=ask`: his adjusted line verbatim; eyebrow, count and password path unchanged. Verified live.
+  - `empty=starts`: **"The album starts with you"**, the CTA unchanged. Verified live.
+  - `moment=today`: `guest-upload.tsx` untouched.
+  - The board **retires**: `sandbox/voice/` deleted, its four registrations gone, the RULINGS row rewritten
+    as shipped; the Library reads 28 standing boards → 27.
+- **Calls his to overrule on the alias, one line each:**
+  1. `SITE_DESCRIPTION` is its own line now, not the hero subhead: "The whole event, in one album. Partyreel
+     collects your guests’ photos and videos with one easy link, so nobody chases a group chat the next day."
+     (144). The thesis is still interpolated, so a thesis rewrite still propagates.
+  2. The Pro line ships as his "For videos and unlimited events."; two "slightly more engaging" alternates
+     he asked for: **(a)** "Video, and every event after this one." **(b)** "Add video. Host as many events
+     as you like."
+  3. `/features/album` is the ONE h1 that wraps to three lines at 1440 (44 chars in `max-w-3xl` at 80px).
+     Not changed, since `feature-h1=today` ruled nothing moves. Measured replacements that fall to two
+     lines: **(a)** "Every photo, from every guest." (30) **(b)** "Every guest's photos, in one place." (35)
+     **(c)** "Every photo lands in one place." (31). (a) is the recommendation: it keeps the parallel and
+     the site thesis already carries "in one album".
+  4. `/features/curation`'s subhead left as it is: "Review uploads before they appear, or clean up afterward
+     in one pass. Either way, the album stays yours." already clarifies the act his note asked about.
+  5. No phone trim of the hero sentence: measured at 375 it is 4 lines, whole, bottom at 579 with both CTAs
+     above the fold. The lockup does not break.
+  6. `content/blog/best-way-to-share-event-photos.mdx` keeps its comparison table, whose column header is
+     "No account" and whose Partyreel row already reads "No app or password". It is category analysis, not
+     a Partyreel promise, and reordering a column ripples through five rows for a cell that never promises.
+  7. `llms.ts`'s plan TABLE keeps its column order (an events column, then a features column): that is the
+     table's shape, not the line's. Its prose Pro line did move to video-first.
+  8. `save-event-button.tsx` and `likes-provider.tsx` keep "No app, just your email." unchanged: they are
+     the one place the site already said the true thing, and they are now the model for the register.
+- **The help articles this lane makes stale:** none for `help-sync`. Three carried the promise and were
+  rewritten HERE (`print-or-display-your-qr`, `day-of-checklist-for-hosts`, `how-partyreel-works`), plus
+  four blog posts. `require-accounts-to-upload-explained.mdx` was read end to end against the shipped
+  switch and is already true — verified, not assumed, and unchanged.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. (One read-only Supabase query, to
+  find a disposable event with accounts required for the guest-door check.)
+- **Look at first:** the home hero at 1440 and 375 (his sentence whole, and the meta description in a
+  search result / unfurl); then `/pricing`'s Pro line and `/features/album`'s three-line h1 with the
+  proposal above; then the guest door on a disposable event with accounts required and its empty album,
+  where both ruled lines are verified locally but the Orchestrator's alias pass should confirm signed in.
+  NOT exercised locally, and why: the dashboard's empty teaser (a host session localhost cannot reach; the
+  copy is verified by unit test and build only).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). The voice's eight ruled lines reached production and the
+board retired in the same lane. "No app, no account." became "No app required." verbatim on 27 production
+sites, and the prose variants were rewritten in their own sentences under one rule now written in
+`marketing-voice.ts`: a line that PROMISES a guest needs no account goes, a line that describes the
+per-event switch truthfully stays, and the expensive case is the suggested host announcement in help and
+blog. His hero sentence landed whole; at 144 characters it pushed the composed meta description to 175 and
+past the ~160 that gets read, so the meta line split off as its own ruled copy with a pin. The Pro line was
+single-sourced and its four siblings aligned video-first, both empty states took one voice (the album, and
+"starts"), and the gate took his adjusted line. `/features/album` was measured as the one h1 of six that
+wraps to three lines at 1440, with three shorter candidates measured for him rather than changed.
