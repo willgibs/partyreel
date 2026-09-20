@@ -1,6 +1,6 @@
 ---
 track: toasts
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ad967efc"          # the launch-prep SHA the branch was cut from
 board: toasts          # a new board: registers at the head of DESK_ORDER, the Orchestrator moves it after app-vocabulary
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -190,20 +190,53 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: from `toasts` (2026-09-20, the lab): two steps (`material`, `action`) read FROZEN at 0.00% in `lab:demo` though
+  their options draw correctly and differently (verified by hand: `getComputedStyle` on the live page, direct DOM
+  inspection of the action buttons' own count and rects, and a faithful line-for-line replay of `lab-demo.mjs`'s own
+  capture code saving PNGs to disk, all three agreeing); the captured screenshots come back byte-for-byte identical
+  regardless of which option is shown, reproduced even in this session's own interactive (non-headless) browser pane
+  on this same iframe-dense page - the same disease `glass-material`'s finding names for backdrop-filter, here on
+  ordinary CSS-visibility-toggled grid-stacked srcdoc iframes instead; a board whose options differ only inside such a
+  stack cannot trust `lab:demo`'s number and must be judged by hand until the harness is fixed.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `4bbaaec6`; synced with launch-prep at merge commit `87674827` (`origin/launch-prep` moved 51 commits
+  past the `ad967efc` cut before this sync); both pushed with this handoff.
+- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (3049 passed, 1
+  skipped), build ok (255 pages); `pnpm lab:smoke` ok (449 checks, 0 failing); `pnpm lab:demo --board toasts` 3 of 5
+  open steps pass (`where` 96.48%, `life` 0.21%, `stack` 7.43%); `material` and `action` FROZEN at 0.00% - see "Look
+  at first" below, not a design defect.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `sandbox/toasts/`'s five files + `docs/design/library.md`,
+  `(shell)/lab/boards.ts`, `sandbox/registry.ts`, `touchpoints.ts` (the registration exception; each just this board's
+  own new lines, at the head of every list) + this manifest.
+- The five asks, one line each (round one, nothing wired - all five stay pictures for his review, not decisions this
+  lane took): `where`: recommended `top` (the foot is claimed twice already - the guest's floating Add pill, the
+  lightbox's credit line, the host's own fixed bar); `material`: recommended `card` (every floating surface wears the
+  ring and the layer together on purpose); `life`: recommended `persist` (a flat four seconds doesn't know it is
+  holding two words or a sentence with a description; an error that vanishes before it is read repeats itself);
+  `stack`: recommended `expanded` (collapsed's hover has nothing to reach for on the phone this ships for); `action`:
+  recommended `always` (a slot, not a mandate - host-curation's own bulk toast already wants an Undo on success).
+- Calls his to overrule, one line each: `material`'s scene pinned to `.surface-paper` (a fixed light ground) so
+  `ink`'s own contrast is provable regardless of the reviewing dock's theme, rather than drawing a light+dark pair; if
+  a pair would serve him better on this one ask, redraw it.
+- The help articles this lane makes stale: none (round one, nothing wired to production yet).
+- Assets requested from Will: none (the album stills are `MARKETING_IMAGES`, every board's own no-rights-tracking fixture).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `material` and `action` read FROZEN in `lab:demo` (0.00%) though both draw correctly and differently;
+  judge them by hand at `/design/lab/toasts?session=toasts.material` (or `.action`) rather than trusting the number -
+  see the Deferred line above for the full finding. Everything else on this board is a fresh, round-one catalog: his
+  first pass, not a re-review.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). Resumed after the weekly-limit kill: registered the already-built
+board (spec, fixtures, toast-parts, scene, board) at the head of DESK_ORDER, RulingId, SandboxId and the two
+registries; swept the dead `COPY_SUCCESS` export (the real `CopyShareLink` draws its own success toast, never read
+from here); trimmed four over-limit strings under registry.ts's caps. Found and fixed two real bugs `lab:demo` caught:
+`material`'s `ink` forced the exact dark tokens the lab's own dock already defaults to, so ink read identical to card
+(pinned the scene to `.surface-paper`); `stack`'s three modes rendered nothing until a press (seeded a resting batch
+per mode). `material` and `action` still read FROZEN after the fix - verified by hand three ways that both draw
+correctly and that the automated capture returns byte-identical screenshots regardless, the same disease
+`glass-material` named for backdrop-filter, here on grid-stacked nested iframes; not this lane's tool to fix, a Now
+line on the ROADMAP instead. Gate green on the synced tree (3049 tests +1, 255 pages, smoke 449, demo 3 of 5 open).
