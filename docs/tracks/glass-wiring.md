@@ -1,6 +1,6 @@
 ---
 track: glass-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: glass           # retires at this lane's merge
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -350,28 +350,131 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **A RED TEST AT THE CUT, AND IT IS NOT THIS LANE'S.** `src/app/(dev)/design/review/ledger.test.ts`
+  fails on `origin/launch-prep` at `0ad0c32d`, before any lane's first edit (verified in a clean
+  worktree at that SHA): `guest-shape/dialogs: the ledger stores "stands", which is not one of the
+  ask's options`. The sixth batch's record wrote the reserved `stands` answer onto an ask the board
+  does not declare it on, and the grammar only allows it where `sandbox/overtaken.ts` badges the ask.
+  Both files are the Orchestrator's (a record doc and guest-shape's board), so this lane could not
+  fix it; EVERY lane of the batch will hand off with this one failing. Recommended: the Orchestrator
+  either badges `guest-shape.dialogs` in `overtaken.ts` or records the choice as `sheet` with his
+  note, at the merge.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`, new `## The glass material: Crystal, and the one place it lives`
+  between the elevation contract and Motion: the material in numbers, the three utilities, the ground
+  as its own element, the glyph's own light, dark in both themes, the floating layer's refusal
+  standing, the plate's two measured local numbers, and the phone's measured frame cost.
+- `docs/systems/design-system.md`, new `### The album tile: marks, and the desk's one pane` under it:
+  his `tiles` rule verbatim, one tile for every album grid, the per-surface hover set, the explicit
+  columns and why they are what make an arrival local, the open item as an id.
+- `docs/systems/design-system.md`, three lines refined in place: the elevation contract's "no
+  translucent surface" (now: no SURFACE token is, and the glass he banked exists beside them), the
+  reveal-chip paragraph (the hook rides the BAR now, one width), and the glass-LAYER pattern line (a
+  pane that never fades puts the filter on itself).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the centred `PlayBadge` (a video poster in the dashboard's arrivals strip, the events rows,
+  the operator's report and the lightbox's neighbour slot) now wears the material at the mark's blur
+  where it wore a flat 50 percent ink; it reads well on every surface a lane can reach signed out,
+  and the four signed-in ones want Will's eye.
+- Now: `GALLERY_UNIFORM_COLUMNS` (the Reel and Review grids) is still CSS grid, which is right (a
+  uniform grid has nothing to balance) — but it means the Review queue still re-flows on an arrival
+  where the album no longer does. Worth one look when `host-curation` wires.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `b2887f43` (the material, the one tile, the board retired); no sync-merge commit:
+  `origin/launch-prep` had not moved from the cut `0ad0c32d`, checked at the handoff.
+- Gates on the tree, each on its own exit code: `design:rules` 0 · specimens 0 (131 specimens on 94
+  entries) · `typecheck` 0 · `lint` 0 (8 known warnings, the baseline) · `test` **1** — 2,841 passing,
+  1 skipped, and ONE failure that is red at the cut and belongs to the Orchestrator (see Questions) ·
+  `build` 0 (255 pages) · `pnpm lab:smoke --base http://localhost:3131` 0 (403 checks, 0 failing) ·
+  `pnpm lab:demo --board glass` 0 ("found no open step to press": the board retired in this lane).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the `owns` paths, plus four
+  exceptions, each named here. (1) `src/app/(dev)/design/touchpoints.ts`, `sandbox/registry.ts`,
+  `(shell)/lab/boards.ts` — the glass board's OWN registration lines, removed at its retirement (the
+  retirement exception; the RULINGS row rewritten as shipped, `SandboxId` and `DESK_ORDER` entries
+  gone, `RulingId` keeps it as every retired board does). (2) `rules/component-notes.ts` — two `for`
+  lines for `globals.css` and `lib/glass.ts`, which the round's ownership rules require of any file a
+  `@contract-for` puts in the index, inserted as their own hunk at the head so a second lane's lines
+  merge clean. (3) `docs/design/library.md` and `rules/rules.generated.json` — generated by
+  `pnpm design:rules`, which the gate runs. (4) `docs/tracks/glass-wiring.md` — this file.
+- The items, one line each:
+  - `material=crystal` + `edge=double`: the `--glass-*` tokens and `@utility glass` in `globals.css`,
+    named by `lib/glass.ts` and held to it by `glass.test.ts`; blur 42, backdrop 0.68, saturate 2, 4
+    percent black, a 28 percent lip and a 10 percent hairline as inset shadows. Lands in the Library
+    as `src/app/globals.css` + `src/lib/glass.ts`, both with their `for` lines and the `new` badge.
+  - `grades=one`: the lightbox's pill, its attribution capsule (pressable now, the same grade) and its
+    close button are one class between them; a test counts exactly three panes and refuses a second
+    tint or blur on any of them.
+  - `behind=album`: the lightbox's flat `bg-black/90` is gone; the album is blurred at half brightness
+    on `[data-lightbox-ground]`, radix's own Overlay rather than our wrapped one (whose baked
+    `backdrop-blur-xs` would race ours in the same layer). The contract pins the ground separate from
+    the photograph.
+  - `tiles` (his own rule): a tile carries an active like, a play mark and a subtle count, and nothing
+    else; on a phone that is the whole tile, at every surface, measured live (`barsVisible: 0` at 375).
+  - `tile-grammar` (the Orchestrator's call): ONE `MediaTile` for every album grid. `GuestMasonry` is
+    now a thin wrapper that owns only what is the guest's (the in-flight tiles through the seam's
+    `prefix`, the landed check, a hover set with no moderation in it).
+  - `row=bar`: the host's three verbs are one `.glass` pane, and `[data-reveal-chip]` rides the BAR, so
+    one width opens instead of three chips sliding. The bin's two verbs and the guest's two wear the
+    same pane, sized by the surface's own verb count.
+  - `live=land`: `MasonryColumns` left CSS `columns` for explicit column elements, filled OLDEST FIRST
+    into the shortest column, so a prepended photograph is the last one placed and every tile on
+    screen keeps its column. Pinned as a property (23 tiles, 2/3/5/6/8 columns, nothing moves).
+  - `reel=white`, superseded by his own "one material everywhere": the reel's Share AND Download are
+    the one pane now, Download's opaque white gone.
+  - `paper=dark`: the event card's `PILL` and its saved-event glyph are dark glass on the light
+    dashboard, and the border went with them (the material carries its own edges).
+  - The marketing plate (`photo-section.css`) reads the `--glass-*` tokens for blur, saturation and
+    both edges; its brightness and tint stay the section's two MEASURED numbers, with the measurement
+    in place and a note to retune them by measuring rather than by matching.
+  - `openId` on `MasonryColumns`: the shared grid opens by id, so the guest album's thin wrapper
+    cannot bring back the shifted-photo bug.
+- Calls his to overrule on the alias, one line each:
+  - **A glyph on glass carries its own halo** (`glass-mark-lit`), not just the rose mark: the board
+    drew the lightbox's pill over the album ALREADY at half brightness, and production floats it over
+    the raw photograph, where white on a near-white sky is under the floor. The halo is invisible over
+    a dark photograph. If it reads as a shadow, the alternative is a darker tint and every dark
+    photograph pays for it.
+  - **The phone keeps the desk's ground** (no lighter blur in a hand). The brief allowed one "if it
+    fails"; it did not: 16.7ms p50 AND p95 at 375 with the ground blurred, the same flat, and the same
+    at twice the radius under a 6x CPU throttle. A real phone on the alias is the last word.
+  - **The marketing plate keeps its own brightness and tint.** Taking the pill's pair would put a
+    chapter of reading copy under 4.5:1 over the brightest photograph in that pool.
+  - **The per-surface hover sets**: guest = like, save · host = like, save, hide/show · bin = restore,
+    delete forever · the profile feeds = none. The Likes feed also drops the like MARK (every tile in
+    it is liked, so the mark would be wallpaper) and unlikes from the lightbox.
+  - **A hidden host tile keeps only its 30 percent dim on a phone.** The amber Show marker was a
+    persistent chip; `tiles` empties the phone tile, so the dim is the signal and Show is one tap away
+    in the viewer.
+  - **The album's reading order moved with the columns.** It was column-major (newest straight down
+    the left column, "flagged for live review" since Phase 4); the newest photographs now land at the
+    heads of the shortest columns, which is the top row.
+  - **The centred `PlayBadge` joined the material**, where it was a flat 50 percent of the gallery ink.
+  - **The lightbox's Host badge went from `bg-white/15` to `/20`** so it separates inside the pane.
+  - The guest's Add pill stays SOLID: the board's carried `call:add-pill` was never answered and the
+    pill's fate rides `guest-shape` round two. Nothing in this lane touched it.
+- The help articles this lane makes stale: none found. The tile's verbs moved, but no how-to in
+  `content/help` names a tile's icons; `docs/systems/host-app.md`'s "three chips" sentence is
+  `hub-wiring`'s section and is now a desk-only row — one line for `help-sync` or the Orchestrator.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the lightbox at 375 over the BRIGHTEST photograph in the album (the pill, the capsule
+  and the close in Crystal, the album blurred behind, the double edge visible), then a host tile's
+  one-pane row at 1440 signed in, then the bin and the event card's chip on the light dashboard —
+  those three are yours, since no lane can sign in on its own port.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). Crystal landed as the product's one material: the
+`--glass-*` tokens and three utilities in `globals.css`, named by `lib/glass.ts` and held to it by a
+contract, worn by the lightbox's pill, capsule and close, the tiles' marks, the host's row, the reel's
+two controls, the event card's chip and the marketing plate; the lightbox's flat scrim became the
+album blurred at half brightness on its own element. One `MediaTile` now serves every album grid: a
+phone tile carries an active like, a play mark and a count and no controls, the desk's verbs are one
+declared pane per surface, and the grid left CSS columns for explicit ones filled oldest-first, so a
+photograph landing live grows one column and the others hold still. The `glass` board retired.
