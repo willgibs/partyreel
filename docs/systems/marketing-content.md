@@ -198,6 +198,21 @@ for a picture to land".
   with a real code encoding `/demo` rather than a reel; one folded close. The pair is named apart: the
   spine's foot and the mega panel's Resources card link the article as "Read the full how-to", the help
   hub links this page as "See the loop, start to finish".
+- **`/pricing`** — THE MONEY PAGE, and the one (cinema) page with NO dark hero (`pricing-wiring`,
+  2026-09-20, wiring six of `pricing-page` r1's eight answers). Chapters: ONE paper chapter (the
+  words at the chapter step, the Free/Pro pair, the Event Pass beneath), then one unbroken dark room
+  (the four unlock tiles as its opener, the album-fill calculator, the comparison matrix, the folded
+  FAQ, the band). ★ It stays in **(cinema)** although it opens on paper, because bible 16's "a page
+  cannot flip its header from inside" cuts both ways and globals.css refuses `.dark` inside
+  `.surface-paper`: the paper group would buy a white bar and cost every dark chapter below it. The
+  reader therefore meets the cinema bar over a paper chapter. Pro's size is a **slider whose stops are
+  `plansForTier("pro")`** (never a typed range), with the cadence toggle above it; the Pass is a wide
+  **ticket**: one photograph down its left edge, the pair's own `StatRow` (imported from
+  `plan-cards.tsx`, never a second copy) and a dashed stub rule with a punched notch at each end. The
+  FAQ is **six** questions in
+  [`pricing-faq-data.ts`](../../src/components/marketing/sections/pricing/pricing-faq-data.ts), the one
+  list the accordion AND the `FAQPage` JSON-LD read; the guest-pays and upload-size questions moved to
+  Help. `shared-band.tsx` is retired on disk (the lab's `pricing-page` board still draws it).
 - **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0; formal but readable, on a two-register
   contract: every section carries an "In
   short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)

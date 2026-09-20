@@ -36,6 +36,14 @@ import { formatBytes } from "@/lib/utils";
  * inline (the reel tier-section pattern). Divider grammar (Will's note 7):
  * dashed hairlines between rows inside a group, solid rules around group
  * headers, which sit on the whisper-gray band (note 8).
+ *
+ * ★ THE TABLE IS DARK NOW (Will, 2026-09-20, his own answer on `sheet`: "Let's
+ * make the table dark so there's not a harsh back-to-back chapter transition on
+ * the table between the Find Your Plan and FAQ section now following the
+ * table"). It lost its PaperChapter wrapper on the page rather than a line in
+ * here: every surface in this file is a token, so the matrix simply renders in
+ * whatever room it is dropped into. The one thing a token could not follow is
+ * the tooltip, which PORTALS out of the page and has to carry the skin itself.
  */
 
 type CellValue = boolean | string;
@@ -239,8 +247,10 @@ function LabelCell({ row }: { row: MatrixRow }) {
         <TooltipTrigger className="cursor-help text-left font-medium underline decoration-muted-foreground/40 decoration-dotted underline-offset-4">
           {row.label}
         </TooltipTrigger>
-        {/* Portaled → carries the paper skin itself (THE PORTAL RULE). */}
-        <TooltipContent {...portalSkinProps("paper")} side="top">
+        {/* Portaled → carries the skin itself (THE PORTAL RULE). "cinema"
+            since the table's chapter went dark: a portaled surface cannot read
+            the room it was opened from. */}
+        <TooltipContent {...portalSkinProps("cinema")} side="top">
           <span className="max-w-60 text-pretty">{row.tip}</span>
         </TooltipContent>
       </Tooltip>
