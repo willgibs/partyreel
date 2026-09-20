@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import {
   floatingClock,
   floatingEdgeEntrance,
+  floatingEdgeEntranceResponsive,
 } from "@/components/ui/floating-layer"
 import { XIcon } from "lucide-react"
 
@@ -56,10 +57,24 @@ function SheetContent({
   className,
   children,
   side = "right",
+  responsive = false,
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
+  /**
+   * ★ THE ONE PRODUCT SHEET, OPT-IN (`settings=sheet`, Will 2026-09-20: "we
+   * likely want to apply this sheet concept everywhere"). A side panel at a
+   * desk and a bottom sheet in a hand, one surface: `side` is IGNORED and the
+   * contract's `floatingEdgeEntranceResponsive` owns both postures.
+   *
+   * Opt-in rather than the default because two shipped consumers want a fixed
+   * side and are right to: `marketing/chrome/mobile-menu.tsx` is a phone menu
+   * that has no desk posture, and the design shell's panel is furniture. This
+   * is the sheet `guest-shape`'s dialogs, `profile-page`'s quick-look and
+   * `app-pricing`'s object inherit.
+   */
+  responsive?: boolean
   showCloseButton?: boolean
 }) {
   return (
@@ -67,13 +82,16 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
-        data-side={side}
+        // A side of its own, so none of the four fixed-side rules below can
+        // match and fight the responsive constant for the same properties.
+        data-side={responsive ? "responsive" : side}
         className={cn(
           // A sheet is a LAYER (the page keeps living behind it), so it wears
           // shadow-layer in both modes (globals.css). No corner: it is anchored
           // to an edge and its own edge is the viewport's.
           "fixed z-50 flex flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-layer transition data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm",
           floatingEdgeEntrance,
+          responsive && floatingEdgeEntranceResponsive,
           // Rare, and the distance IS the affordance: this came from over
           // there, and it goes back there.
           floatingClock.edge,

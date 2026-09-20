@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 615 contracts on 78 components · 27 standing boards.**
+**22 laws · 18 policies · 642 contracts on 90 components · 27 standing boards.**
 
 ## What binds you
 
@@ -288,6 +288,7 @@ function. A contract never freezes a look.
 | `src/components/shared/app-shell.tsx` | the signed-in app frame | none |
 | `src/components/shared/claim-uploads-on-auth.tsx` | claims a guest's uploads onto the account that just signed in | none |
 | `src/components/shared/container.tsx` | the centered page gutter: the single source of horizontal rhythm | none |
+| `src/components/shared/crumbs.tsx` | the one way back in the host app: a trail in the bar that each route declares for itself. A CONTEXT and not a prop, because a page is the (app) layout's grandchild and cannot hand one up; the cost is that the trail lands at hydration, which a fixed-height bar makes invisible | renders nothing at all until a route claims it; is a breadcrumb landmark whose last step is the page itself; makes every step but the last a walkable link; keeps a way UP in reach at a phone's width, where the full trail cannot fit; is declared by every route inside an event, with a walkable parent |
 | `src/components/shared/empty-state.tsx` | the neutral placeholder for an empty gallery, dashboard or list | none |
 | `src/components/shared/error-digest.tsx` | a crash's correlation code, with the one sentence saying what it is for and a Copy control; only a render crash passes one, because a 404 throws nothing to correlate | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
 | `src/components/shared/floating-add-button.tsx` | the floating Add photos pill, shown only while the header's Add button is off screen | none |
@@ -342,6 +343,17 @@ Contracted but outside the library's directories:
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
+- `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
+- `src/components/app/event-feed/event-gallery.tsx` (10 guards)
+- `src/components/app/event-feed/review-room.tsx` (10 guards)
+- `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/share/event-code-door.tsx` (12 guards)
+- `src/components/app/share/event-code-modal.tsx` (12 guards)
+- `src/components/app/share/event-link-row.tsx` (12 guards)
+- `src/components/app/share/event-share-provider.tsx` (12 guards)
+- `src/components/app/share/event-share-sheet.tsx` (12 guards)
+- `src/components/app/share/event-sheets.tsx` (12 guards)
+- `src/components/app/share/use-copy-link.ts` (12 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)

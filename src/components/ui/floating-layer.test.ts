@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest"
 import {
   floatingClock,
   floatingCorner,
+  floatingEdgeEntranceResponsive,
   floatingRow,
 } from "./floating-layer"
 
@@ -142,14 +143,47 @@ const OUTSIDE: Record<string, string> = {
     "the toaster is a third-party surface we theme through CSS variables; it already reads --radius-float, and its stack motion is the library's",
 }
 
+/**
+ * THE ONE SANCTIONED SURFACE OUTSIDE `ui/` (the hub's QR mini-modal,
+ * hub-wiring 2026-09-20). It is a radix Dialog built in the app layer because
+ * its entrance is a VIEW TRANSITION rather than an animation of its own, which
+ * `ui/dialog.tsx` cannot express for its other callers. Bible 15 still binds
+ * it: it reads the corner, the material, the clock and its (deliberately
+ * empty) entrance from the contract, and the block below proves it.
+ *
+ * ★ IT IS LISTED HERE BECAUSE THE SCAN ABOVE CANNOT SEE IT. "names every
+ * floating primitive in the tree" reads `src/components/ui` only, so an
+ * app-level portal is exactly the tenth panel this file exists to stop — one
+ * that answers the corner and the clock locally where nobody is looking.
+ */
+const SANCTIONED = {
+  path: "src/components/app/share/event-code-modal.tsx",
+  slot: "event-code-modal",
+  /** It spreads no props, so the fence is its first child. */
+  endAt: "<DialogPrimitive.Title",
+  why: "the mini-modal: the view transition IS its entrance, and reduced motion falls back to the standard clock",
+} as const
+
 const read = (file: string) => readFileSync(join(ROOT, UI, file), "utf8")
 
 /** The className block a surface declares, from its slot to the spread. */
-function panelBlock(file: string, slot: string): string {
-  const src = read(file)
+function panelBlock(
+  file: string,
+  slot: string,
+  source?: string,
+  /**
+   * Where the panel's OWN declaration stops. The ui/ surfaces all spread their
+   * props at the end of the opening tag, so `{...props}` is the natural fence.
+   * A surface that does not spread needs one given, or the scan runs on into
+   * the panel's CHILDREN and reads a close button's `rounded-full` as the
+   * panel answering its corner locally.
+   */
+  endAt = "{...props}",
+): string {
+  const src = source ?? read(file)
   const at = src.indexOf(`data-slot="${slot}"`)
   expect(at, `${file} declares no ${slot}`).toBeGreaterThan(-1)
-  const end = src.indexOf("{...props}", at)
+  const end = src.indexOf(endAt, at)
   return src.slice(at, end > at ? end : at + 4000)
 }
 
@@ -253,6 +287,76 @@ describe("bible 15: one floating layer, read from one contract", () => {
       // Bible 12's ceiling for anything that is not a rare delight.
       expect(enter, `${rung} is over the 300ms ceiling`).toBeLessThanOrEqual(300)
     }
+  })
+
+  it("keeps the one responsive sheet in the contract, not in the sheet", () => {
+    // Will, `settings=sheet` (2026-09-20): "we likely want to apply this sheet
+    // concept everywhere". A side panel at a desk and a bottom sheet in a hand
+    // are one surface, so the posture pair lives HERE and the sheet opts in
+    // with a boolean rather than spelling a second set of edges for itself.
+    const sheet = read("sheet.tsx")
+    expect(
+      sheet.includes("floatingEdgeEntranceResponsive"),
+      "the sheet stopped reading the responsive posture from the contract",
+    ).toBe(true)
+    // A side of its own is what keeps it out of a specificity race with the
+    // four fixed sides, so every rule in the constant is scoped to that side.
+    const scoped = floatingEdgeEntranceResponsive
+      .split(" ")
+      .filter((c) => !c.startsWith("data-[side=responsive]:"))
+    expect(
+      scoped,
+      "a responsive-sheet utility that is not scoped to its own side: it will fight one of the four fixed sides",
+    ).toEqual([])
+    // The corner it does take is the family's token, never one of its own.
+    expect(
+      floatingEdgeEntranceResponsive.includes("rounded-t-float"),
+      "the bottom sheet's one non-viewport edge left the shared corner token",
+    ).toBe(true)
+  })
+
+  it("holds the sanctioned no-entrance surface to every other clause", () => {
+    const src = readFileSync(join(ROOT, SANCTIONED.path), "utf8")
+    const block = panelBlock(
+      SANCTIONED.path,
+      SANCTIONED.slot,
+      src,
+      SANCTIONED.endAt,
+    )
+    // The corner, the material and the light: the family's, from one constant.
+    expect(
+      block,
+      `${SANCTIONED.slot} (${SANCTIONED.why}) declares no shared corner`,
+    ).toContain("floatingPanel")
+    // The entrance is EMPTY on purpose, and that emptiness is itself read from
+    // the contract, so it is a decision the family made rather than an omission.
+    expect(
+      block,
+      `${SANCTIONED.slot} declares no entrance from the contract`,
+    ).toContain("floatingTransitionEntrance")
+    expect(
+      /floatingClock\./.test(block),
+      `${SANCTIONED.slot} sets no clock from the contract`,
+    ).toBe(true)
+    // And it answers nothing locally: no corner of its own, no duration of its
+    // own. `max-sm:rounded-none` is prefixed, which is a variant the shared
+    // constant cannot carry and says so where it is written.
+    const local: string[] = []
+    for (const m of block.matchAll(/(?<![\w:-])rounded-[\w[\]./()-]+/g))
+      local.push(m[0])
+    for (const m of block.matchAll(
+      /(?<![\w:-])(?:data-closed:)?duration-(?:\d+|\[\d+m?s\])/g,
+    ))
+      local.push(m[0])
+    expect(
+      local,
+      "the mini-modal answered a corner or a clock locally",
+    ).toEqual([])
+    // No glass, on the same ruling as every other panel.
+    expect(
+      [...block.matchAll(/backdrop-(?:blur|filter)|color-mix/g)].map((m) => m[0]),
+      "translucency on the mini-modal: the Glass exploration owns that change",
+    ).toEqual([])
   })
 
   it("keeps the contract itself free of a second opinion", () => {
