@@ -1,6 +1,6 @@
 ---
 track: home-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "20cc9b5f"          # the launch-prep SHA the branch was cut from
 board: app-shape       # wiring; the board itself is round two's, another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -255,28 +255,130 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **`profiles.events_view` for cross-device persistence.** A migration is the Orchestrator's, so this is a
+  written proposal only: `alter table public.profiles add column events_view text not null default 'cards'
+  check (events_view in ('cards','rows'));` plus the column on the authenticated write allowlist (it is a
+  preference, not an entitlement). **Recommended: do not.** The cookie is per-browser, which is where a
+  layout preference belongs, and it costs no row, no RLS surface and no write path. Revisit if Will asks for
+  the view to follow him from laptop to phone.
+- **No headed `ui/table.tsx` shipped.** He wrote "table"; the rows carry the sort and the filters above the
+  list, which lines up like one without header chrome. **Recommended: leave it.** The admin board favours
+  density and may own the headed table; building a second one here would pre-empt it.
+- **Inline avatar editing in the owner mode.** His note allows the avatar to be changed in two places.
+  **Recommended: the existing "Edit profile" door to `/account` is the whole fix now**; inline editing on the
+  profile is a ROADMAP line, not this lane.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `host-app.md` `## Dashboard landing` — rewritten: the four bands, the next-best-step order, the widening
+  window, the arrival fade as the one host exception, and why `pulse.ts` is not `events.ts`.
+- `host-app.md` `## Events & the create flow` — one bullet added: the two views, the sort, the bin and saved
+  as lenses, and why the view is a cookie rather than localStorage.
+- `host-app.md` `## First-time host welcome` — one paragraph: where a host with no events lands, and why the
+  first band is suppressed at zero events.
+- `auth-accounts.md` "Where it lives" — the Plan card as billing's only front door, and that every fact on it
+  is server-derived.
+- `profiles-social.md` "Surfaces" — the owner mode, the gate-is-the-query argument, the Suspense rule, the
+  revalidation fix; and the stale "Following dashboard chip" gotcha rewritten (the chip is gone;
+  `getFollowedHostEventCards` keeps its home with no caller).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The app and the kit** — `trackAttrs` is INERT on `(app)` surfaces: only the marketing layout mounts the
+  delegated listener (`analytics/events.ts` says so in its own head). This lane added the attributes on its
+  new doors because the round's ownership rules ask every new door to carry them. Either the rule means
+  marketing doors, or `(app)` needs its own listener. Nothing fires today either way.
+- **The lab and the kit** — `ui/toggle-group.tsx` ships `unspecimened` (the `sonner.tsx` precedent): it has
+  one product call site and no Library mount. It earns a gallery entry when a lane owns `design/gallery/`.
+- **Now** — `getFollowedHostEventCards` in `queries/social.ts` now has no caller. Kept (it is a real, tested
+  read) for whoever wants a followed-hosts feed; delete it if nobody does by launch.
+- **Now** — the row view shows date, items and waiting. The board's fixture also drew a guest count and a
+  view count; neither has a cheap honest source (a distinct-uploader count needs an unbounded media scan,
+  and views need analytics), so they were dropped rather than approximated.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head `5bf00a42`, pushed; synced with `launch-prep` at `e9e3d25e` (merge `9d6398ca`, clean, no conflicts;
+  it moved twice during the lane and carries only `PartyreelAI/`, the lab-review grammar and two test files,
+  none of which this lane reads).
+- Gates on the synced tree, each on its own exit code: design:rules ok (0), specimens ok (0), typecheck ok (0),
+  lint ok (0, the 8 known warnings), test ok (0, 2753 passed / 1 skipped), build ok (0, 255 pages);
+  `pnpm lab:smoke --base http://localhost:3133` ok (0, 442 checks, 0 failing). Lab-only demo: n/a (a production lane).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = 36 paths, all owned, **plus four exceptions**:
+  - `src/app/(dev)/design/rules/component-notes.ts` — the round's ownership rules require a `for` line per new
+    component, and the file's own head comment tells lanes to land at the top so the merges stay apart. Seven
+    entries added there.
+  - `src/components/shared/lit-edge-contract.test.ts` — the gate failed until the new arrivals strip was
+    registered in its HOSTS table with its kind. The contract is closed by design; adding a host is the
+    sanctioned way through it.
+  - `src/components/ui/toggle-group.tsx` — owned. Named here only because generating it also wrote
+    `src/components/ui/toggle.tsx` and a `cn` dependency in `package.json`; both were reverted (see below), so
+    neither reaches the diff.
+  - `event-card.tsx`, `event-card-qr.tsx`, `my-uploads-gallery.tsx`, `my-likes-gallery.tsx` — named in the
+    brief as this lane's, omitted from the YAML `owns`, owned by no other lane. In the event **none of them
+    needed an edit**: the card keeps opening `EventShareDialog` by name and the two galleries were composed
+    at their existing paths with their props intact, so they do not appear in the diff at all.
+- The items, one line each:
+  - `home=pulse`: `/dashboard` is four bands. The first is a rule (`next-step.ts`), not a queue, which is the
+    literal answer to his worry; an empty result renders a calm line and the storage line and create door are
+    unconditional. Lands in the Library as **the next-best-step rule** and **the arrivals window**.
+  - `home=pulse` (arrivals): the window widens hour → today → newest until it holds twelve and captions which
+    (`arrivals.ts`); the tiles drop `data-static`, the one host surface where the fade is true.
+  - `density=cover`: cover cards by default, rows behind a toggle opposite the heading, sort on the rows, bin
+    and saved as lenses on one list. Lands as **`events-view.ts`** and **the events section**.
+  - the toggle's persistence: a cookie set by a Server Action, verified by its contract test round-trip.
+  - `you=?`: the three personal feeds moved to `/u/[slug]`'s owner mode; the component takes no parameters, so
+    the gate can only fail safely. Lands as **the owner mode**.
+  - `you=?` (money): a Plan card on `/account`, every fact from the webhook-written profile row.
+  - the menu: two doors, "Your profile" (the claim card when handle-less) and "Account".
+  - the inbox retires: `dashboard-feed.tsx` and `following-section.tsx` deleted (no importer); `filter-chips`
+    and `trash-section` kept on disk with head comments, because the lab draws them.
+- Calls his to overrule on the alias, one line each:
+  - The four bands and their order, and the next-best-step precedence (his list, read as one step per event).
+  - The toggle's cookie and cover-cards-as-default; the row shape and its three-item sort menu.
+  - The bin and saved events as list filters, with the filter shown in BOTH views (it is the only door to the
+    bin, so hiding it in the row view would strand a default-view host).
+  - No headed `ui/table.tsx`.
+  - **The menu's two doors are two ROWS, not a clickable header.** The brief offered the header as the profile
+    door to buy it for zero rows; `DropdownMenuHeader` is a plain `<div>` with no `asChild`, and
+    `ui/dropdown-menu.tsx` is another lane's this round. A bare `<a>` inside it is reachable by Tab but not by
+    the arrow keys radix gives real menu items, so the one door a keyboard user looks for would be the one
+    they could not walk to. The `w-56` measurement is horizontal (the submenu clearing 375) and a row does not
+    touch it.
+  - The handle-less door goes to `/account#public-profile`; connections mean the people you follow.
+  - The Plan card's contents, and its position first on `/account`.
+  - **The row does not wear `data-lit`**, though the board's draft did: the bright edge is closed to media,
+    players and the QR card, and "a card, a menu and a button already have their step and their ring".
+  - `EventsSection` became a client component so the sort and the lens are instant (the FilterChips
+    precedent). Presigned URLs cross as props, as they already do for `MyUploadsGallery`; raw R2 keys never do.
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them):
+  - any article describing the dashboard as tabs/chips, or naming Uploads / Likes / Following / Deleted as
+    chips on `/dashboard` — all four are gone.
+  - any article telling a host to find their own uploads or likes on the dashboard: they are on their profile.
+  - any article routing to a plan through the dashboard storage popover: `/account` has a Plan card now.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none shipped. One migration PROPOSED only
+  (`profiles.events_view`, in Questions above), recommended against.
+- Look at first: **the pulse for a host with nothing waiting** — that is the whole bet of his note, and the
+  band that has to earn it. Then the toggle, flipped and then hard-reloaded (the cookie is the honest first
+  paint, and a flip that does not survive the reload is the one failure that matters). Then `/u/willg` signed
+  in versus signed out, which is the privacy edge.
+- Not verified locally, and why: everything behind the sign-in gate (the pulse, the toggle's persistence, the
+  Plan card, the owner mode signed in). Localhost cannot complete the allow-list-gated sign-in, so those are
+  covered here by the contract tests, the component test's real-DOM toggle round-trip and a green build, and
+  they want the Orchestrator's pass on the alias at 1440 and 375. What WAS verified locally at both widths:
+  `/u/willg` signed out (no private section renders, zero personal queries run, the label pair landed) and
+  `/u/nope` still answering 404, which is the route's standing landmine.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). `home-wiring` wired app-shape r1's four verdicts for the
+host's home: `/dashboard` became a pulse whose first band is a RULE over real state rather than a review queue
+(his worry about the empty surface, answered in `next-step.ts`), whose arrivals band widens its window until it
+holds twelve and says which, and whose storage line and create door are unconditional; the events list gained
+the row view behind a toggle remembered in a cookie set by a Server Action, with the bin and the saved events
+as lenses rather than a chip row; the personal feeds left the home for an owner mode on `/u/[slug]` whose gate
+is the query, not a boolean; `/account` grew the Plan card that is billing's first door; and the user menu grew
+its second. The gate caught three real things on the way: shadcn's generated toggle-group imported `cn` from a
+package it had added to `package.json`, the row had copied `data-lit` onto a card from the sandbox, and the
+arrivals rule's own test proved a half-empty strip under a fresher label was worse than widening.
