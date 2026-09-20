@@ -25,6 +25,19 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* THE GLASS MATERIAL (glass-wiring, 2026-09-20), at the head for the same
+     reason the block below it is: distinct hunks when several lanes add `for`
+     lines in one round. Two files, because the material is CSS and its names
+     are TypeScript, and a contract has to be able to hold them to each other. */
+  "src/app/globals.css": {
+    for: "the product's entry stylesheet, and since the glass ruling the ONE home of the material every surface over a photograph wears: the `--glass-*` tokens and the `glass` / `glass-mark` / `glass-behind` utilities. A Tailwind `@utility` compiles only in the sheet Tailwind is imported from, which is why the material could not live anywhere else",
+    unspecimened:
+      "a stylesheet: the Library renders the material on the surfaces that wear it (the tiles, the lightbox), never as a swatch of nothing",
+  },
+  "src/lib/glass.ts": {
+    for: "the glass material's NAMES: the class every glass surface wears, the token table `globals.css` is held to, and the floating primitives the material may never reach. It owns no pixels on purpose, so a reviewer can read the two rules a className string cannot show",
+    unspecimened: "a pure module: it declares names, not a surface",
+  },
   /* the event page as a HUB (hub-wiring, 2026-09-20): at the head, like the
      block below it, so several lanes adding `for` lines in one round land on
      distinct hunks instead of on each other. */

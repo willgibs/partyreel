@@ -23,34 +23,38 @@ import { SelectableMediaGrid } from "@/components/app/event-feed/selectable-medi
 import { useExportDownload } from "@/components/app/export/use-export-download";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
-import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
+import { useLikeAction } from "@/components/likes/like-button";
 import { useLikes } from "@/components/likes/likes-provider";
 import { useReel } from "@/components/reel/reel-provider";
-import { MasonryColumns } from "@/components/shared/masonry";
+import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
 import { readCssMs } from "@/lib/shared/read-css-ms";
-import { cn } from "@/lib/utils";
 
-// Host moderation grid — the only place media controls live. The grid is the shared
-// MasonryColumns (natural ratios, clamped for moderation ergonomics); the per-tile
-// controls ride in via `renderOverlay` as a HOVER-REVEALED action row painted over the
-// open-lightbox button as SIBLINGS, so tapping a control never opens the lightbox.
-// Per-action COLOR on direct hover (hide=amber, save=blue, like=rose-when-liked). Tile
-// actions use NATIVE `title` tooltips — styled radix tooltips are LIGHTBOX-ONLY (Will,
-// 2026-06-20 redo: tiles already reveal on hover, so a styled tooltip there is
-// near-redundant + ~50 radix Tooltips on the grid was a hydration risk).
-//   The row is THREE chips and closed at three (host-app.md): like, download, hide/show.
-//   Desktop reveals all three on hover; mobile shows like + download (hide moves to the
-//   lightbox). A HIDDEN item is the exception — its amber Show marker PERSISTS (off-hover +
-//   mobile, like the liked heart), 1-tap to show, atop the 30% dim. Add-to-reel and DELETE
-//   are not tile acts: they live in the lightbox, gallery bulk-Select, and (for the reel)
-//   the Studio's Moments picker. See the overlay's own comment for why.
+// Host moderation grid — the host's THREE verbs on the one album tile. The grid is the
+// shared MasonryColumns; the verbs are declared as its per-surface `tileActions`, which
+// the grid draws as ONE glass pane at the tile's top-right (`row=bar`, Will 2026-09-20:
+// "This feels much cleaner and more cohesive"). Per-action COLOR on direct hover
+// (hide=amber, save=blue, like=rose-when-liked); NATIVE `title` tooltips, because styled
+// radix tooltips are LIGHTBOX-ONLY (Will, 2026-06-20 redo: tiles already reveal on hover,
+// so a styled tooltip there is near-redundant + ~50 radix Tooltips on the grid was a
+// hydration risk).
+//   The row is THREE verbs and closed at three (host-app.md): like, download, hide/show.
+//
+//   ★ AND IT IS A DESK ROW NOW, WHOLE (Will, `tiles`, 2026-09-20). A phone tile carries
+//   MARKS only — an active like, a play mark, a subtle count — and every action moves to
+//   the lightbox, so the mobile half of this row is gone rather than trimmed. The hidden
+//   state did not lose its marker: a hidden tile still dims to 30% at every width, which
+//   is the unmistakable signal, and Show is one tap away in the viewer.
+//
+//   ★ What is deliberately NOT here, and must not come back: ADD-TO-REEL and DELETE. A
+//   hover-revealed fan of five on a dense masonry grid is a misclick trap, and those two
+//   are the most consequential. They kept their homes: delete lives in the lightbox and
+//   gallery bulk-Select (hide already covers the urgent "get this off the album now" case,
+//   reversibly); add-to-reel lives in the lightbox, bulk-Select and the Studio's Moments
+//   picker. No per-tile Approve either: pending media lives in the review takeover above
+//   the feed, never in this album grid (the bulk Approve is ApproveAllPendingButton).
 // Moderation is OPTIMISTIC (instant tile + lightbox via useOptimistic; the action runs in
 // the background and reverts + toasts on failure) — no revalidation lag.
-
-// One action-icon: a circular dark chip, white at rest, COLOR on direct hover/state.
-const ACTION_BASE =
-  "flex size-7 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm outline-none transition-[color,opacity,transform] duration-150 ease-emphasis active:scale-90 motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-white/70";
 
 // The optimistic overlay over the server-rendered items: a status flip or a removal,
 // applied instantly so the tile + lightbox reflect the change with no round-trip;
@@ -127,96 +131,6 @@ function useModeration(
   return { setStatus, remove };
 }
 
-function HostTileOverlay({
-  item,
-  setStatus,
-}: {
-  item: GridMedia;
-  setStatus: Moderation["setStatus"];
-}) {
-  const status = item.status ?? "approved";
-
-  return (
-    <>
-      {/* HOST-ONLY like COUNT (read-only curation signal, distinct from the host's own
-          like toggle in the row): bottom-RIGHT, hidden at 0. */}
-      <LikeCountBadge
-        count={item.likeCount}
-        className="absolute right-1.5 bottom-1.5 z-10"
-      />
-
-      {/* THREE chips, and the row is CLOSED at three (host-app.md, Will 2026-08-04): like, download,
-          hide/show. Per-chip margin (NOT gap) so a collapsed hover-reveal chip leaves no residual gap
-          and the persistent chips (liked / hidden marker) pack neatly to the right edge at rest.
-          hide/show is ONE slot (EyeOff approved / persistent amber Eye hidden) so toggling the state
-          swaps the glyph in place and never makes the control jump position.
-
-          ★ What is deliberately NOT here, and must not come back: ADD-TO-REEL and DELETE. Both were
-          row chips until R3.1. A hover-revealed fan of five chips on a dense masonry grid is a
-          MISCLICK trap, and the two most consequential actions sat in it. They did not lose their
-          homes: delete lives in the lightbox + gallery bulk-Select (and hide, which stays here,
-          already covers the urgent "get this off the album now" case reversibly); add-to-reel lives
-          in the lightbox, bulk-Select, and the Studio's Moments picker, which is now the primary
-          selection door. Selection is MODE-based, not per-card iconography: the room you are in
-          carries the meaning.
-          (No per-tile Approve either: pending media lives in the review takeover above the feed,
-          never the album grid this overlay paints - the bulk Approve is ApproveAllPendingButton.) */}
-      <div className="absolute top-1.5 right-1.5 z-10 flex items-center">
-        {/* 1. Like: a host like is a normal like; persists when liked. No-op without a LikesProvider.
-            Note a like is an INPUT SIGNAL to quick-add, never reel membership (they are different
-            questions: "I love this" vs "this belongs in the cut"). */}
-        <LikeButton item={item} variant="row" />
-
-        {/* 2. Download (save the original): mobile-visible, desktop hover-reveal; blue on hover. */}
-        {item.downloadUrl && (
-          <a
-            href={item.downloadUrl}
-            download
-            aria-label="Save"
-            title="Save"
-            data-reveal-chip
-            className={cn(ACTION_BASE, "ml-1 hover:text-save")}
-          >
-            <Download className="size-4" />
-          </a>
-        )}
-
-        {/* 3. Hide / Show - ONE slot so the control never jumps. Approved => Hide (DESKTOP
-            hover-reveal; on mobile it moves to the lightbox, so a mobile tile shows like + download
-            only). Hidden => a PERSISTENT amber Show (off-hover + mobile, like the liked heart): the
-            unmistakable "hidden from guests" state + a 1-tap show atop the 30% dim. The subtle /25
-            fill keeps the outline crisp. This is the row's LAST chip. */}
-        {status === "approved" && (
-          <button
-            type="button"
-            aria-label="Hide"
-            title="Hide"
-            data-reveal-chip
-            className={cn(
-              ACTION_BASE,
-              "ml-1 hidden hover:text-warning md:flex",
-            )}
-            onClick={() => setStatus(item, "hidden")}
-          >
-            <EyeOff className="size-4" />
-          </button>
-        )}
-        {status === "hidden" && (
-          <button
-            type="button"
-            aria-label="Show"
-            title="Show"
-            className={cn(ACTION_BASE, "ml-1 text-warning")}
-            onClick={() => setStatus(item, "approved")}
-          >
-            <Eye className="size-4 fill-warning/25" />
-          </button>
-        )}
-      </div>
-    </>
-  );
-}
-
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 function prefersReducedMotion(): boolean {
   return (
@@ -253,7 +167,48 @@ export function HostMediaGrid({
   const selection = useHostSelection();
   const reel = useReel();
   const likes = useLikes();
+  const likeAction = useLikeAction();
   const { startDownload } = useExportDownload();
+
+  /**
+   * THE HOST'S ROW, DECLARED. Three verbs, in one pane, at the desk only. Hide
+   * and Show are ONE SLOT so toggling the state swaps the glyph in place and the
+   * control never jumps position; a hidden item keeps the amber eye ACTIVE, the
+   * one state in the row that reads off-hover.
+   */
+  const tileActions = (item: GridMedia): readonly TileAction[] => {
+    const out: TileAction[] = [];
+    const like = likeAction(item);
+    if (like) out.push(like);
+    if (item.downloadUrl)
+      out.push({
+        id: "save",
+        label: "Save",
+        icon: Download,
+        tone: "save",
+        href: item.downloadUrl,
+      });
+    const hidden = (item.status ?? "approved") === "hidden";
+    out.push(
+      hidden
+        ? {
+            id: "show",
+            label: "Show",
+            icon: Eye,
+            tone: "warning",
+            active: true,
+            onSelect: () => setStatus(item, "approved"),
+          }
+        : {
+            id: "hide",
+            label: "Hide",
+            icon: EyeOff,
+            tone: "warning",
+            onSelect: () => setStatus(item, "hidden"),
+          },
+    );
+    return out;
+  };
 
   // The optimistic bulk status flip (Hide / Show) — same contract as useModeration.setStatus, batched.
   // applyOptimistic is dispatched BEFORE the await (the supported useOptimistic + async-transition
@@ -421,9 +376,7 @@ export function HostMediaGrid({
       onRemove={remove}
       dimItem={(item) => item.status === "hidden"}
       onTileLongPress={selectable ? enterSelectAt : undefined}
-      renderOverlay={(item) => (
-        <HostTileOverlay item={item} setStatus={setStatus} />
-      )}
+      tileActions={tileActions}
     />
   );
 }

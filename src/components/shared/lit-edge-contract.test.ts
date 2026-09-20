@@ -37,6 +37,13 @@ import { describe, expect, it } from "vitest";
  * naming them would pull each one into it, where each then owes a `for` line
  * and the gallery's event-card entry has to drop its `file`. They are bound by
  * exactly the same assertions; they are just not advertised twice.
+ *
+ * ★ THE GUEST MASONRY IS STILL IN THE TABLE, AND NOW FOR ONE TILE ONLY (the
+ * `glass` wiring, 2026-09-20). Its landed tiles come from `shared/masonry.tsx`
+ * since the two albums became one, so the hook that remains in that file is the
+ * IN-FLIGHT upload's box — which is the whole reason it has to stay: a
+ * photograph must not gain an edge at the moment it finishes uploading, and the
+ * only way to hold that is to bind both boxes to one rule.
  */
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");

@@ -11,13 +11,7 @@
  * 600). Velocity needs CONTROLLED timestamps, so gestures are dispatched as
  * hand-built PointerEvents with a defineProperty'd timeStamp.
  */
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
@@ -27,14 +21,34 @@ import { setReducedMotion } from "../../../vitest.setup";
 import { MediaLightbox } from "./media-lightbox";
 
 const PHOTOS: GridMedia[] = [
-  { id: "p1", type: "photo", url: "https://r2.test/p1.jpg", downloadUrl: "https://r2.test/d1.jpg" },
-  { id: "p2", type: "photo", url: "https://r2.test/p2.jpg", downloadUrl: "https://r2.test/d2.jpg" },
-  { id: "p3", type: "photo", url: "https://r2.test/p3.jpg", downloadUrl: "https://r2.test/d3.jpg" },
+  {
+    id: "p1",
+    type: "photo",
+    url: "https://r2.test/p1.jpg",
+    downloadUrl: "https://r2.test/d1.jpg",
+  },
+  {
+    id: "p2",
+    type: "photo",
+    url: "https://r2.test/p2.jpg",
+    downloadUrl: "https://r2.test/d2.jpg",
+  },
+  {
+    id: "p3",
+    type: "photo",
+    url: "https://r2.test/p3.jpg",
+    downloadUrl: "https://r2.test/d3.jpg",
+  },
 ];
 
 const WITH_VIDEO: GridMedia[] = [
   PHOTOS[0],
-  { id: "v1", type: "video", url: "https://r2.test/v1.mp4", downloadUrl: "https://r2.test/dv1.mp4" },
+  {
+    id: "v1",
+    type: "video",
+    url: "https://r2.test/v1.mp4",
+    downloadUrl: "https://r2.test/dv1.mp4",
+  },
   PHOTOS[2],
 ];
 
@@ -125,7 +139,11 @@ describe("MediaLightbox: gesture gating", () => {
   it("mouse pointers never engage the finger-follow", () => {
     mount();
     firePointer(track(), "pointerdown", { x: 400, t: 0, pointerType: "mouse" });
-    firePointer(track(), "pointermove", { x: 300, t: 50, pointerType: "mouse" });
+    firePointer(track(), "pointermove", {
+      x: 300,
+      t: 50,
+      pointerType: "mouse",
+    });
     expect(track().dataset.dragging).toBeUndefined();
     expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
   });
@@ -455,5 +473,64 @@ describe("canDelete gates the personal Delete per item", () => {
       </TooltipProvider>,
     );
     expect(screen.getByRole("button", { name: /^delete$/i })).toBeTruthy();
+  });
+});
+
+/**
+ * THE GROUND BEHIND A PHOTOGRAPH (`behind=album`, Will 2026-09-20), and the one
+ * way of drawing it that does not defeat itself.
+ *
+ * ★ A BACKDROP FILTER BLURS WHAT IS BEHIND THE ELEMENT IT SITS ON. Put it on an
+ * ancestor of the media and the viewer blurs the photograph it exists to show —
+ * a failure that neither throws nor type-errors and looks plausible in the
+ * source, which is exactly the shape of failure a contract is for. So the pin is
+ * structural: the ground is its OWN element, and the media is not inside it.
+ * Nothing here reads a blur radius or a brightness; those are Will's to retune.
+ */
+describe("the lightbox's ground is separate from the photograph", () => {
+  it("draws the album on its own element, with the media never inside it", () => {
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+        />
+      </TooltipProvider>,
+    );
+    const ground = document.querySelector("[data-lightbox-ground]");
+    expect(ground, "the lightbox must draw a ground of its own").toBeTruthy();
+    expect(ground).toHaveClass("glass-behind");
+
+    // Every photograph in the viewer lives ABOVE the ground, never within it.
+    const media = document.querySelectorAll("[data-lightbox-track] img");
+    expect(media.length).toBeGreaterThan(0);
+    for (const el of media) expect(ground!.contains(el)).toBe(false);
+  });
+
+  it("wears the ONE material on the pill, the capsule and the close", () => {
+    // `grades=one` (Will, 2026-09-20): "This feels more consistent across
+    // surfaces that are close to each other, else it looks weird they're
+    // different." Three surfaces a finger's width apart, one class between them.
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+        />
+      </TooltipProvider>,
+    );
+    const panes = document.querySelectorAll(".glass");
+    // The action pill, the attribution capsule and the close button.
+    expect(panes.length).toBe(3);
+    for (const pane of panes) {
+      // A second recipe is the drift the round retired: no surface may reach
+      // for its own tint or its own blur on top of the material.
+      expect(pane.className).not.toMatch(/\bbg-(black|white)\/\d+/);
+      expect(pane.className).not.toMatch(/backdrop-blur/);
+    }
   });
 });

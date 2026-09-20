@@ -132,7 +132,6 @@ export type SandboxId =
   | "album-motion"
   | "admin"
   | "loose-ends"
-  | "glass"
   | "body-type"
   | "privacy-hero"
   | "app-shape";
@@ -1517,22 +1516,20 @@ export const RULINGS: Ruling[] = [
     title: "Glass",
     surface: "shared",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the fifth batch): six of its seven asks stand and wire after this round (one grade of glass, the album blurred behind the lightbox, his own rule for a mobile card's marks, white on the reel, the host's row as one bar, dark glass on paper). Round two is open on the recipe alone, joined to the reel's white and asked as the ONE material: his ask by name, \"Maybe worth a second round of exploration to clarify, so we can nail our glass from the start\"",
-    shipped: null,
-    why: "Round two asks one material on all six glass surfaces at once, with the active icon's contrast measured for the first time; the wiring lane follows its ruling.",
+      "2026-09-20 (both rounds; round two answered `material=crystal` and `edge=double`, and round one's other six stand)",
+    shipped:
+      "Crystal with the double edge as the ONE material every surface over a photograph wears (the `--glass-*` tokens and the `glass` utility), the album blurred at half brightness behind the lightbox, a tile that carries MARKS and no controls, the host's row as one pane, the reel's controls and the marketing plate on the same tokens, dark glass on paper",
+    why: "He asked for a global rather than separate treatments, so the material has exactly one home and a pane that types its own tint is a red test.",
     lives: [
+      "src/app/globals.css",
+      "src/lib/glass.ts",
+      "src/components/shared/masonry.tsx",
       "src/components/shared/media-lightbox.tsx",
-      "src/components/app/host-media-grid.tsx",
-      "src/components/guest/guest-reel-overlay.tsx",
-      "src/components/ui/floating-layer.ts",
       "src/components/likes/like-button.tsx",
-      "src/components/guest/guest-masonry.tsx",
-      "src/components/shared/floating-add-button.tsx",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/components/shared/backdrop/photo-section.css",
+      "docs/systems/design-system.md",
     ],
-    board: {
-      note: "Round two, two decisions: the ONE material (Frost, Crystal, or the reel's white on Frost's filter) drawn on all six glass surfaces in a single frame per option, and then its edge on whichever body wins; over the darkest, middling and brightest photographs at 375 and 1440, every option drawing an ACTIVE rose mark, every number read off the rendered pane (the mark's contrast, the pill's, the capsule's, and the compositor cost of a phone scroll)",
-      variants: ["The material", "The edge"],
-    },
   },
   {
     id: "body-type",
@@ -1567,8 +1564,8 @@ export const RULINGS: Ruling[] = [
     ruled:
       "2026-09-19 (the fifth batch, voice r1: all eight answered; bible 20 ruled PERMISSIVE and rewritten with it)",
     shipped:
-      "The account rule (never promise \"no account\"; \"No app required.\" everywhere), his hero sentence, the curation h1 kept, the Pro line, the album noun on both empty states, his gate line, today's toast",
-    why: "An absence may be NAMED, a denial of someone else may not, and \"no account\" is never promised: Require accounts to upload defaults on.",
+      'The account rule (never promise "no account"; "No app required." everywhere), his hero sentence, the curation h1 kept, the Pro line, the album noun on both empty states, his gate line, today\'s toast',
+    why: 'An absence may be NAMED, a denial of someone else may not, and "no account" is never promised: Require accounts to upload defaults on.',
     lives: [
       "src/lib/constants/marketing-voice.ts",
       "src/app/(dev)/design/rules/bible.ts",
@@ -1628,7 +1625,6 @@ export const RULINGS: Ruling[] = [
  */
 export const DESK_ORDER: readonly SandboxId[] = [
   "body-type",
-  "glass",
   "app-shape",
   "guest-shape",
   "app-vocabulary",

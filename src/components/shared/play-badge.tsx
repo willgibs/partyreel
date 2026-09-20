@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 
+import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 // The "this is a video" affordance: a centered play button overlaid on a video
@@ -27,11 +28,17 @@ export function PlayBadge({
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-full bg-gallery/50 text-gallery-foreground",
+          // The one material at the mark's blur (the `glass` wiring, 2026-09-20):
+          // this was a flat 50 percent of the gallery ink, which read as a grey
+          // disc over a bright poster frame and as a hole over a dark one.
+          "flex items-center justify-center rounded-full text-white",
+          GLASS_MARK,
           circle,
         )}
       >
-        <Play className={cn(icon, "translate-x-px fill-current")} />
+        <Play
+          className={cn(icon, "translate-x-px fill-current", GLASS_MARK_LIT)}
+        />
       </span>
     </span>
   );

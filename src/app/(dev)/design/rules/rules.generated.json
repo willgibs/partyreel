@@ -701,6 +701,63 @@
       ]
     },
     {
+      "id": "globals.css",
+      "file": "src/app/globals.css",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares every token in globals.css at the value lib/glass.ts names",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 39
+        },
+        {
+          "title": "compiles the material as Tailwind utilities in the ENTRY sheet",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 49
+        },
+        {
+          "title": "builds the pane from the tokens, never from typed numbers",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 66
+        },
+        {
+          "title": "re-points ONE number for a mark, so a mark is the same material",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 83
+        },
+        {
+          "title": "keeps the material dark in both themes (`paper=dark`)",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 95
+        },
+        {
+          "title": "never reaches a floating primitive (bible 15's layer is opaque)",
+          "suite": [
+            "glass is media chrome, never a popover"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 114
+        }
+      ]
+    },
+    {
       "id": "admin-not-found-screen",
       "file": "src/components/admin/admin-not-found-screen.tsx",
       "names": [
@@ -4003,7 +4060,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -4011,7 +4068,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -4019,7 +4076,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -4027,7 +4084,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -4035,7 +4092,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -4043,7 +4100,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -4051,7 +4108,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -4072,7 +4129,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -4080,7 +4137,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -4088,7 +4145,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -4096,7 +4153,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -4104,7 +4161,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -4112,7 +4169,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -4120,7 +4177,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -4142,7 +4199,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -4150,7 +4207,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -4158,7 +4215,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -4166,7 +4223,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -4174,7 +4231,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -4182,7 +4239,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -4190,7 +4247,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -4211,7 +4268,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -4219,7 +4276,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -4227,7 +4284,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -4235,7 +4292,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -4243,7 +4300,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -4251,7 +4308,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -4259,7 +4316,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -4280,7 +4337,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -4288,7 +4345,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -4296,7 +4353,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -4304,7 +4361,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -4312,7 +4369,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -4320,7 +4377,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -4328,7 +4385,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -5043,7 +5100,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -5051,7 +5108,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -5059,7 +5116,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -5067,7 +5124,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -5075,7 +5132,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -5083,7 +5140,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -5091,7 +5148,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
         }
       ]
     },
@@ -8051,7 +8108,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 211
+          "line": 218
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -8059,7 +8116,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 226
+          "line": 233
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -8067,7 +8124,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 241
+          "line": 248
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -8075,7 +8132,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 266
+          "line": 273
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -8083,7 +8140,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 283
+          "line": 290
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -8091,7 +8148,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 305
+          "line": 312
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -8099,7 +8156,111 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 319
+          "line": 326
+        },
+        {
+          "title": "renders no control at all when the surface declares no actions",
+          "suite": [
+            "a tile carries MARKS, and a phone carries nothing else"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "gives a video its play mark and a photograph none",
+          "suite": [
+            "a tile carries MARKS, and a phone carries nothing else"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 62
+        },
+        {
+          "title": "shows the like mark for a count, and nothing at zero",
+          "suite": [
+            "a tile carries MARKS, and a phone carries nothing else"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 70
+        },
+        {
+          "title": "suppresses the like mark where every tile is liked (the Likes feed)",
+          "suite": [
+            "a tile carries MARKS, and a phone carries nothing else"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "draws every action of the set inside a single bar",
+          "suite": [
+            "the desk's hover set is ONE pane, declared per surface"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 94
+        },
+        {
+          "title": "keeps a control's tap off the lightbox",
+          "suite": [
+            "the desk's hover set is ONE pane, declared per surface"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 115
+        },
+        {
+          "title": "renders one overlay per tile, as a sibling of the open-lightbox button",
+          "suite": [
+            "renderOverlay stays the per-surface chrome slot"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 130
+        },
+        {
+          "title": "renderOverlay is optional — a tile renders without it and still opens",
+          "suite": [
+            "renderOverlay stays the per-surface chrome slot"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "seats the prefix before the first tile (the pending uploads' slot)",
+          "suite": [
+            "renderOverlay stays the per-surface chrome slot"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "writes data-arrived on exactly the ids the surface names",
+          "suite": [
+            "the arrival mark rides the tile box"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 175
+        },
+        {
+          "title": "leaves every existing tile where it was when a newer one is prepended",
+          "suite": [
+            "distributeColumns keeps an album still when one lands"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 208
+        },
+        {
+          "title": "balances: no column runs away from the shortest",
+          "suite": [
+            "distributeColumns keeps an album still when one lands"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 227
+        },
+        {
+          "title": "puts a newly landed photograph at the HEAD of the column it joins",
+          "suite": [
+            "distributeColumns keeps an album still when one lands"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 236
         }
       ]
     },
@@ -10757,6 +10918,70 @@
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
           "line": 126
+        }
+      ]
+    },
+    {
+      "id": "glass",
+      "file": "src/lib/glass.ts",
+      "names": [
+        "GLASS",
+        "GLASS_BEHIND",
+        "GLASS_MARK",
+        "GLASS_MARK_LIT",
+        "GLASS_TOKENS",
+        "NOT_GLASS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "declares every token in globals.css at the value lib/glass.ts names",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 39
+        },
+        {
+          "title": "compiles the material as Tailwind utilities in the ENTRY sheet",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 49
+        },
+        {
+          "title": "builds the pane from the tokens, never from typed numbers",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 66
+        },
+        {
+          "title": "re-points ONE number for a mark, so a mark is the same material",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 83
+        },
+        {
+          "title": "keeps the material dark in both themes (`paper=dark`)",
+          "suite": [
+            "the glass material has ONE home"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 95
+        },
+        {
+          "title": "never reaches a floating primitive (bible 15's layer is opaque)",
+          "suite": [
+            "glass is media chrome, never a popover"
+          ],
+          "file": "src/lib/glass.test.ts",
+          "line": 114
         }
       ]
     },

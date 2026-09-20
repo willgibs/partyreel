@@ -37,11 +37,11 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -144,8 +144,26 @@ function AttributionPill({
     (item.eventDateLabel ? `${eventName} · ${item.eventDateLabel}` : eventName);
 
   return (
-    <div className="pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
-      <span className="inline-flex items-center gap-1.5 text-caption font-medium text-white/90">
+    <div
+      className={cn(
+        // ★ ONE GRADE, AND PRESSABLE (`grades=one`, Will 2026-09-20: "This feels
+        // more consistent across surfaces that are close to each other, else it
+        // looks weird they're different... the bottom uploader credit UI may
+        // become clickable soon too"). The capsule wears the SAME material as
+        // the pill above it rather than a quieter one, and carries the press
+        // feedback of a control, so the day it becomes a door to a profile it
+        // changes behaviour and not appearance.
+        "pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full px-3 py-1 text-center",
+        "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
+        GLASS,
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-caption font-medium text-white/90",
+          GLASS_MARK_LIT,
+        )}
+      >
         {hasAttribution &&
           (item.isAnonymous ? (
             <>
@@ -160,7 +178,7 @@ function AttributionPill({
               {item.isHost && (
                 <Badge
                   variant="secondary"
-                  className="bg-white/15 text-white hover:bg-white/15"
+                  className="bg-white/20 text-white hover:bg-white/20"
                 >
                   Host
                 </Badge>
@@ -196,8 +214,7 @@ function AttributionPill({
 // at rest, color on hover/state" rule). Per-action hue appended via cn (twMerge wins).
 // Universal across guest + host (Will, 2026-06-20): the action set differs by role,
 // the color language does not.
-const LIGHTBOX_ACTION =
-  "text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100";
+const LIGHTBOX_ACTION = `text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100 ${GLASS_MARK_LIT}`;
 
 export function MediaLightbox({
   items,
@@ -620,7 +637,22 @@ export function MediaLightbox({
       }}
     >
       <DialogPortal>
-        <DialogOverlay className="bg-black/90" />
+        {/* ★ THE GROUND IS THE ALBUM, BLURRED (`behind=album`, Will 2026-09-20).
+            A flat bg-black/90 made the viewer a NEW SCREEN; the album at half
+            brightness behind a wide blur makes a photograph read as lifted out
+            of the room it is still in. It is its OWN element, and must stay one:
+            a backdrop filter blurs what is behind the element it sits on, so an
+            ancestor of the media would blur the media. The photograph lives in
+            `Content`, a sibling ABOVE this. Radix's own primitive rather than
+            our wrapped `DialogOverlay`, whose baked `backdrop-blur-xs` would sit
+            in the same utilities layer and race this one. */}
+        <DialogPrimitive.Overlay
+          data-lightbox-ground
+          className={cn(
+            "fixed inset-0 z-50 duration-100 ease-emphasis data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+            GLASS_BEHIND,
+          )}
+        />
         <DialogPrimitive.Content
           aria-describedby={undefined}
           className="fixed inset-0 z-50 flex flex-col duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
@@ -637,9 +669,13 @@ export function MediaLightbox({
                 <button
                   type="button"
                   aria-label="Close"
-                  className="absolute top-[calc(0.625rem+env(safe-area-inset-top))] right-2.5 z-20 flex size-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100"
+                  className={cn(
+                    "absolute top-[calc(0.625rem+env(safe-area-inset-top))] right-2.5 z-20 flex size-8 items-center justify-center rounded-full text-white outline-none",
+                    "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                    GLASS,
+                  )}
                 >
-                  <X className="size-4" />
+                  <X className={cn("size-4", GLASS_MARK_LIT)} />
                 </button>
               </DialogPrimitive.Close>
 
@@ -728,9 +764,14 @@ export function MediaLightbox({
                       group (approve-or-hide-or-unhide · remove). Per-action colors;
                       Like LEFTMOST (the ratified B2 layout). The host-only count
                       chip never co-occurs with a guest Like. */}
-                  <div className="pointer-events-auto flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                  <div
+                    className={cn(
+                      "pointer-events-auto flex items-center gap-4 rounded-full px-5 py-2.5",
+                      GLASS,
+                    )}
+                  >
                     {/* enjoy group (guest + host) */}
-                    <LikeButton item={current} variant="lightbox" />
+                    <LikeButton item={current} />
                     <LikeCountBadge count={current.likeCount} />
                     {/* Save hidden when an item carries no download url (the
                         recovery bin presigns INLINE only). Blue on hover. */}
@@ -760,46 +801,48 @@ export function MediaLightbox({
                     )}
                     {/* Personal Uploads delete (unchanged) — never co-occurs with the
                         host curate group (the host grid sets onRemove, not this). */}
-                    {onDeleteCurrent && (canDelete ? canDelete(current) : true) && (
-                      <Dialog>
-                        <ActionTooltip label="Delete">
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              aria-label="Delete"
-                              className={cn(
-                                LIGHTBOX_ACTION,
-                                "hover:text-destructive",
-                              )}
-                            >
-                              <Trash2 className="size-5" />
-                            </button>
-                          </DialogTrigger>
-                        </ActionTooltip>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete this upload?</DialogTitle>
-                            <DialogDescription>
-                              It will be removed from the event right away, and
-                              permanently deleted after a short grace period.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline">Cancel</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="destructive"
-                                onClick={() => onDeleteCurrent(current)}
+                    {onDeleteCurrent &&
+                      (canDelete ? canDelete(current) : true) && (
+                        <Dialog>
+                          <ActionTooltip label="Delete">
+                            <DialogTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label="Delete"
+                                className={cn(
+                                  LIGHTBOX_ACTION,
+                                  "hover:text-destructive",
+                                )}
                               >
-                                Delete
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                                <Trash2 className="size-5" />
+                              </button>
+                            </DialogTrigger>
+                          </ActionTooltip>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete this upload?</DialogTitle>
+                              <DialogDescription>
+                                It will be removed from the event right away,
+                                and permanently deleted after a short grace
+                                period.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => onDeleteCurrent(current)}
+                                >
+                                  Delete
+                                </Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      )}
 
                     {/* curate group (HOST only) — gated so the guest pill is purely
                         the enjoy group. Reads current.status; approve/hide/unhide are
