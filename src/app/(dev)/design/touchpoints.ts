@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "guest-verify"
   | "seed-avatar"
   | "error-pages"
   | "event-type-pages"
@@ -109,6 +110,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "guest-verify"
   | "seed-avatar"
   | "site-chrome"
   | "profile-page"
@@ -1323,6 +1325,36 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
+  // A NEW BOARD (guest-verify, 2026-09-20), registered at the head of
+  // DESK_ORDER under the registration exception and moved after `guest-shape`
+  // at the merge: it changes the door every other guest board draws on.
+  {
+    id: "guest-verify",
+    title: "Verify, or badge",
+    surface: "guest",
+    ruled:
+      "open: his `gate=ask` note (Will, 2026-09-19) asked for 1+ exploratory tracks on skipping email confirmation to upload in favour of a verified/unverified badge, with the shared-network outage as the fear and the unverified-address collision as the safety hole; the ruled gate SENTENCE is wired and untouched",
+    shipped: null,
+    why: "Six decisions on whether a guest must confirm an email before uploading at all, and what the product has to grow if the answer is no.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/auth-accounts.md",
+      "docs/systems/database-security.md",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/auth/account-door.tsx",
+    ],
+    board: {
+      note: "Six decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob: when the address gets proven, what an unproven account shows and to whom, where the photographs land when two people type one address, what rescues a party when the codes stop arriving, what the host's queue says about who sent what, and what day seven does to a photograph nobody ever confirmed",
+      variants: [
+        "The gate",
+        "The badge",
+        "The collision",
+        "The outage",
+        "The host's lens",
+        "The expiry",
+      ],
+    },
+  },
   {
     id: "guest-shape",
     title: "The guest experience's shape",
@@ -1598,6 +1630,11 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
+  // ★ REGISTERED AT THE HEAD (the registration exception): a new board enters
+  // here so lanes stay line-disjoint, and the Orchestrator moves it into its
+  // leverage place at the merge. `guest-verify` belongs after `guest-shape`:
+  // it changes the guest door every guest board draws on.
+  "guest-verify",
   "body-type",
   "app-shape",
   "guest-shape",
