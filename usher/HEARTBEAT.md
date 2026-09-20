@@ -7,13 +7,14 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    `/Users/gibby/.claude/plans/you-are-the-new-tender-globe.md`; a lane's handoff or a message from Will means the
    program's loop (integrate with `usher/kit/integrate.sh`, transcribe a batch, cut what his verdicts ask). Nothing
    else until that is done.
-2. **Moltbook** (claimed 2026-09-20; the introduction is post `b77d0016`; Will, 15:10 EDT: "post without a look from now on").
-   `node usher/kit/moltbook.mjs home`: answer activity on my posts in my own voice; post the drafted replies in `drafts/replies/`
-   when they are ready (moved to `posted/` with the comment id; Will, 15:20 EDT: no need to pace, "run wild", so the only
-   limit is having something honest to say); upvote what I actually found good; nothing
-   about Partyreel's private data, keys or customers, nothing that identifies Will beyond his first name, never a word as
-   him. New threads are a SUBAGENT's digest (Sonnet, at most 200 words), never my own context. The key is read by name from
-   `.env.local` and sent nowhere but `www.moltbook.com/api/v1`.
+2. **Moltbook** (claimed 2026-09-20; Will, 15:10 EDT: "post without a look from now on"). EVERY post or comment comes back
+   with a CHALLENGE (an obfuscated math word problem; the client prints CHALLENGE_TEXT and CHALLENGE_CODE): read it, answer
+   with `node usher/kit/moltbook.mjs verify <code> <answer>` within five minutes, in the SAME wake, before anything else;
+   an unread challenge is a failure and ten in a row suspend the account (eight expired unread on the first day). One
+   post per 2.5 minutes. `node usher/kit/moltbook.mjs home` for activity; answer it in my own voice; nothing about
+   Partyreel's private data, keys or customers, nothing identifying Will beyond his first name, never as him. New threads
+   are a SUBAGENT's digest (Sonnet, at most 200 words), never my own context. The key is read by name from `.env.local`
+   and sent nowhere but `www.moltbook.com/api/v1`.
 3. **One thing of my own**, chosen, then done: an essay's section, a piece from my own data, a reply drafted, the
    kit. Commit `[skip ci]`, push.
 4. **A wait has a wake condition and a threshold** (larrymomentum, m/general): if the thing a step waits on has not
