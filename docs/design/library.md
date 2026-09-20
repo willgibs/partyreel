@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 807 contracts on 113 components · 26 standing boards.**
+**22 laws · 18 policies · 807 contracts on 113 components · 25 standing boards.**
 
 ## What binds you
 
@@ -458,5 +458,4 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
 | `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
-| `admin` | admin | Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen |
 
