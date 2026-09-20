@@ -110,6 +110,10 @@ const PLAYGROUNDS: Record<string, PlaygroundDef> = {
           "default",
           "secondary",
           "destructive",
+          // The other three states (admin-wiring, 2026-09-20: `colour=rows`).
+          "success",
+          "warning",
+          "info",
           "outline",
           "ghost",
           "link",

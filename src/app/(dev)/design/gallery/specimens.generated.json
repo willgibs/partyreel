@@ -1,6 +1,15 @@
 {
   "version": 2,
   "code": {
+    "table": [
+      "<AdminRunsTable />"
+    ],
+    "command-palette": [
+      "<CommandPaletteDemo />"
+    ],
+    "destructive-sheet": [
+      "<DestructiveSheetDemo />"
+    ],
     "album-stream": [
       "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
       "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <div\n      className=\"relative isolate overflow-x-clip\"\n      style={{ width: 1280 }}\n    >\n      <AlbumStream />\n      <div style={{ height: 520 }} />\n      <LiveAlbumStage />\n      <div style={{ height: 150 }} />\n    </div>\n  </CinemaGround>\n</div>"
@@ -143,6 +152,11 @@
     ],
     "floating-add-button": [
       "<FloatingAddDemo />"
+    ],
+    "admin-shell": [
+      "<AdminRailDemo />",
+      "<AdminHealthBandDemo />",
+      "<AdminQueueDemo />"
     ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",

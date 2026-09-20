@@ -17,6 +17,25 @@ const badgeVariants = cva(
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+        // THE OTHER THREE STATES, on the same wash `destructive` already wears
+        // (`colour=rows`, Will 2026-09-20: "the same four"). The portal had ONE
+        // state colour -- red -- so healthy, paused, running and never-run all
+        // shared a grey, which is the thing the admin board's colour decision
+        // set out to fix. Each reads the shipped token pair in globals.css and
+        // invents no hue: a second green here would be the second red the board
+        // deliberately refused.
+        success:
+          "bg-success/10 text-success focus-visible:ring-success/20 dark:bg-success/20 [a]:hover:bg-success/20",
+        // ★ WARNING TAKES ITS FOREGROUND AS INK IN LIGHT MODE, AND THAT IS NOT
+        // A TYPO. `--warning` is a FILL token (oklch(0.8 .14 80)); as ink on a
+        // paper card it lands near 2:1 and is unreadable, which is why the one
+        // shipped consumer that uses it as ink sits on a muted plate. The wash
+        // still carries the hue and `--warning-foreground` is the dark amber
+        // the pair was designed to be read in. In dark the card is dark, the
+        // token is light, and the hue can be the ink like its siblings.
+        warning:
+          "bg-warning/15 text-warning-foreground focus-visible:ring-warning/30 dark:bg-warning/20 dark:text-warning [a]:hover:bg-warning/25",
+        info: "bg-info/10 text-info focus-visible:ring-info/20 dark:bg-info/20 [a]:hover:bg-info/20",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

@@ -6,10 +6,7 @@ import { MfaChallenge } from "@/components/admin/mfa-challenge";
 import { MfaEnroll } from "@/components/admin/mfa-enroll";
 import { Logo } from "@/components/shared/logo";
 import { requireAdmin } from "@/lib/auth/admin-context";
-import { countApplicationsByStatus } from "@/lib/db/queries/applications";
-import { countOpenReports } from "@/lib/db/queries/reports";
-import { countContactByStatus } from "@/lib/db/queries/support";
-import { countUnhealthyJobs } from "@/lib/jobs/health-summary";
+import { readPendingWork } from "@/lib/admin/pending";
 import { PageHeading } from "@/components/shared/page-heading";
 
 // The operations portal segment. Canonical path is /admin on every host; in prod
@@ -63,21 +60,25 @@ export default async function AdminLayout({
     );
   }
 
-  // Pending-work counts for the header alerts bell (the same queries the Overview cards use). Cheap
-  // head-counts; refresh on page-load + post-triage revalidation (no real-time, matching the host bell).
-  // `jobs` is backend health: "the purge sweep has not run in three days" is pending work in exactly
-  // the sense the other three are, and it never throws (an unreadable console resolves to one).
-  const [support, applicants, reports, jobs] = await Promise.all([
-    countContactByStatus("new"),
-    countApplicationsByStatus("new"),
-    countOpenReports(),
-    countUnhealthyJobs(),
-  ]);
+  // Pending work for the bar's bell, the rail's counts and the band under both. Cheap head-counts
+  // plus one heartbeat read; refresh on page-load + post-triage revalidation (no real-time, matching
+  // the host bell). `jobs` is backend health: "the purge sweep has not run in three days" is pending
+  // work in exactly the sense the other three are.
+  //
+  // ★ THE HOME CALLS THIS TOO AND PAYS FOR IT ONCE. `readPendingWork` is wrapped in React's
+  // `cache()`, so a layout and the page inside it share one read per request; without it the rail
+  // and the queue would each make the same four round trips (lib/admin/pending.ts).
+  const { health, ...counts } = await readPendingWork();
 
   return (
     <AdminShell
       email={ctx.email}
-      alerts={{ support, applicants, reports, jobs }}
+      counts={counts}
+      health={health}
+      // Read here because a client component has no env: "production" on the
+      // apex, "preview" on an alias, and unset in dev, which is why the tag is
+      // absent on localhost rather than lying about it.
+      env={process.env.VERCEL_ENV ?? null}
     >
       {children}
       {/* Key-gated, inert otherwise: a board's candidate block on the portal's

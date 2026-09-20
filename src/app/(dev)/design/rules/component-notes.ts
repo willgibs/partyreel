@@ -25,6 +25,39 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
+  // block below it, so several lanes adding `for` lines in one round land on
+  // distinct hunks instead of on each other.
+  "src/components/ui/table.tsx": {
+    for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
+  },
+  "src/components/ui/command-palette.tsx": {
+    for: "a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees",
+  },
+  "src/components/admin/destructive-sheet.tsx": {
+    for: "the ONE panel every destructive act in the portal opens, sized to the damage: it lists what an act touches before it happens, and only a permanent act with something to identify asks you to type. `GuardedSwitch` beside it is the same panel on a kill switch's OFF edge, since turning one back on is free",
+  },
+  "src/components/admin/health-band.tsx": {
+    for: "the backend's health said on whichever admin page you are reading, and absent on a good day. An unreadable heartbeat says so in words and never as a count: a number invented for a failed read is the signal fabricating the answer it exists to find",
+  },
+  "src/components/admin/inbox-pane.tsx": {
+    for: "the list beside the message, for the two admin inboxes whose rows are prose. The selection is a URL (`?id=`), which is what lets the whole pane be server-rendered links with no client component at all",
+  },
+  "src/lib/admin/palette.ts": {
+    for: "what ⌘K can reach in the portal: the surfaces from nav.ts, the acts worth naming, and a small AND-semantics ranker. Every entry is a DESTINATION, so a palette row can never fire a kill switch",
+    unspecimened: "an index and a ranker; the palette that draws them is the specimen",
+  },
+  "src/lib/admin/kpi.ts": {
+    for: "the four figures the portal opens on, reduced from the profile rows: three carry a real fortnight delta and the fourth returns null, because nothing in the database remembers who was paying a fortnight ago",
+    unspecimened: "pure arithmetic and one SVG path string; MetricCard and Sparkline are what a reader looks at",
+  },
+  "src/lib/admin/queue.ts": {
+    for: "what is waiting on the operator, ranked worst first by a written-down severity ladder: an unreadable console, then a failure, then something overdue, then safety, then the inboxes",
+  },
+  "src/lib/admin/tone.ts": {
+    for: "how far a state's colour travels, in one module, so a chip and the row under it can never disagree. The tint reaches a failure and an overdue run and nothing else: four tinted rows is a spreadsheet with a highlighter through it",
+    unspecimened: "two lookup tables; the Table specimen is where they are visible",
+  },
   /* THE GLASS MATERIAL (glass-wiring, 2026-09-20), at the head for the same
      reason the block below it is: distinct hunks when several lanes add `for`
      lines in one round. Two files, because the material is CSS and its names

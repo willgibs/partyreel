@@ -5,6 +5,15 @@ import { AlertTriangle } from "lucide-react";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { healthBadge, runBadge, runRow } from "@/lib/admin/tone";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -56,18 +65,9 @@ const HEALTH_LABEL: Record<JobHealth, string> = {
   never: "No runs yet",
 };
 
-const HEALTH_VARIANT: Record<
-  JobHealth,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  ok: "secondary",
-  running: "secondary",
-  paused: "outline",
-  missed: "destructive",
-  failed: "destructive",
-  attention: "default",
-  never: "outline",
-};
+// HEALTH_VARIANT used to live here, greyscale but for a red failure. The four states now speak in
+// four voices and the map is `lib/admin/tone.ts`, so the chip on this card and the tint on the row
+// below it are one decision (`colour=rows`, Will 2026-09-20).
 
 const HOST_LABEL: Record<string, string> = {
   vercel_cron: "Vercel Cron",
@@ -296,12 +296,14 @@ export default async function JobsPage() {
         const readingAgeMin = readDepthAgeMinutes(def, readingSource);
 
         return (
-          <Card key={def.id}>
+          // The palette jumps to a job's card rather than throwing its switch
+          // (lib/admin/palette.ts), so the id is part of that contract.
+          <Card key={def.id} id={`job-${def.id}`} className="scroll-mt-20">
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="flex items-center gap-2">
                   {def.label}
-                  <Badge variant={HEALTH_VARIANT[health]}>
+                  <Badge variant={healthBadge(health)}>
                     {health === "never"
                       ? (NEVER_LABEL[def.kind] ?? HEALTH_LABEL.never)
                       : HEALTH_LABEL[health]}
@@ -471,63 +473,56 @@ export default async function JobsPage() {
             The last {recent.length || 0} runs across every job, newest first.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="px-6 text-working text-muted-foreground">
               No runs recorded yet.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">Started</th>
-                    <th className="py-2 pr-3 font-medium">Job</th>
-                    <th className="py-2 pr-3 font-medium">Outcome</th>
-                    <th className="py-2 pr-3 font-medium">Trigger</th>
-                    <th className="py-2 pr-3 text-right font-medium">Took</th>
-                    <th className="py-2 font-medium">Note</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((r) => (
-                    <tr key={r.id} className="border-b border-border/50">
-                      <td
-                        className="py-2 pr-3 whitespace-nowrap text-muted-foreground"
-                        suppressHydrationWarning
-                      >
-                        {new Date(r.started_at).toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3">
-                        {JOBS.find((j) => j.id === r.job)?.label ?? r.job}
-                      </td>
-                      <td className="py-2 pr-3">
-                        <span
-                          className={
-                            r.status === "error"
-                              ? "text-destructive"
-                              : r.status === "ok"
-                                ? "text-foreground"
-                                : "text-muted-foreground"
-                          }
-                        >
-                          {RUN_STATUS_LABEL[r.status] ?? r.status}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3 text-muted-foreground">
-                        {r.triggered_by === "manual" ? "Manual" : "Schedule"}
-                      </td>
-                      <td className="py-2 pr-3 text-right text-muted-foreground tabular-nums">
-                        {formatDuration(r.duration_ms)}
-                      </td>
-                      <td className="py-2 text-muted-foreground">
-                        {r.note ?? ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Started</TableHead>
+                  <TableHead>Job</TableHead>
+                  <TableHead>Outcome</TableHead>
+                  <TableHead>Trigger</TableHead>
+                  <TableHead className="text-right">Took</TableHead>
+                  <TableHead>Note</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recent.map((r) => (
+                  // His note on `colour=rows`: "Makes it a bit harder to miss."
+                  // A failed run tints its own row and takes a leading edge, so
+                  // a bad run is found by scrolling rather than by reading.
+                  <TableRow key={r.id} tone={runRow(r.status)}>
+                    <TableCell
+                      className="whitespace-nowrap text-muted-foreground"
+                      suppressHydrationWarning
+                    >
+                      {new Date(r.started_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {JOBS.find((j) => j.id === r.job)?.label ?? r.job}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={runBadge(r.status)}>
+                        {RUN_STATUS_LABEL[r.status] ?? r.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {r.triggered_by === "manual" ? "Manual" : "Schedule"}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground tabular-nums">
+                      {formatDuration(r.duration_ms)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {r.note ?? ""}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
