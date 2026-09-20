@@ -123,12 +123,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
 
   /* ── guest-shape ─────────────────────────────────────────────────────── */
-  "guest-shape.dialogs": {
-    ...APP_SHAPE,
-    ruling:
-      "one responsive sheet everywhere: a side panel at a desk, a bottom sheet in a hand",
-    line: "concedes: apply this sheet concept everywhere names the sheet option, and the guest door already is one.",
-  },
 
   /* ── app-vocabulary ──────────────────────────────────────────────────── */
   "app-vocabulary.empty-states": {
