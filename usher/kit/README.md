@@ -22,7 +22,8 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `spawn-prompt.txt`: the agent spawn prompt with `{track}`, `{port}`, `{model}` placeholders.
 - `batch-reader.mjs` (`< batch.txt`, `--json`, or `--board <id>`): a review paste read beside the boards it answers:
   each verdict's question, the chosen option's label and meaning, confirms or overrules the recommendation, what it
-  lands, his note verbatim; the specs parsed with TypeScript, never imported. The transcript tool judges the paste;
+  lands, his note verbatim, and the lab's deep link to the step (`see: /design/lab/<board>?session=<board>.<ask>`) so the
+  drawing and the sentence are read together; the specs parsed with TypeScript, never imported. The transcript tool judges the paste;
   this says what it means, so lanes are cut from the boards' own words.
 - `test-delta.sh <base-sha>`: the tests at HEAD against the tests at a base commit, by name (`vitest list` on a
   throwaway worktree, sorted, `comm`), for a gate whose count moved with no test file in the diff. Tonight's answer

@@ -208,6 +208,9 @@ for (const b of out.boards) {
     const tag = { confirms: "=", overrules: "!", unclear: "?", stands: "~", none: "0", "unknown-ask": "X", "unknown-option": "X" }[v.reading] ?? " ";
     console.log(`\n  [${tag}] ${v.ask}=${v.choice}  ${v.text}`);
     if (v.question) console.log(wrap(v.question, 100, "      Q: "));
+    // the picture beside the sentence (2026-09-20): the lab's own deep link to the step he answered, so a wiring lane
+    // opens the drawing and reads his note together instead of starting from the ledger's option id.
+    console.log(`      see: /design/lab/${b.board}?session=${b.board}.${v.ask}`);
     if (v.chosen) console.log(`      → ${v.chosen.label}${v.chosen.means ? `\n${wrap(v.chosen.means, 100, "        ")}` : ""}`);
     if (v.reading === "overrules" && v.recommended) console.log(`      (was recommended: ${v.recommended.id}, ${v.recommended.label})`);
     if (v.lands) console.log(`      lands: ${v.lands}`);
