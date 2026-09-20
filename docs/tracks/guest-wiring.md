@@ -1,6 +1,6 @@
 ---
 track: guest-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off       # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: guest-shape     # wiring; round two on the chrome and the welcome is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -362,28 +362,147 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **None that stopped the lane.** Every open call in the brief was taken on its recommended answer and is listed
+  under "Calls his to overrule" below. One thing IS the Orchestrator's rather than Will's, and it is red on the gate:
+  `src/app/(dev)/design/review/ledger.test.ts` fails at the cut with `guest-shape/dialogs: the ledger stores
+  "stands", which is not one of the ask's options: expected [ 'today', 'sheet', 'inline' ] to include 'stands'`.
+  Will answered `dialogs=stands` but the `dialogs` ask in `sandbox/guest-shape/spec.ts` was never badged with the
+  `overtaken` `STANDS` option. Verified pre-existing (the same failure on the pristine cut, `git stash` and re-run);
+  both files are outside this lane (`sandbox/guest-shape/` is a READ, "round two's"). **Recommended:** the
+  `overtaken-2` desk pass badges the ask, or the Orchestrator adds the one option line.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md` "Flow": the action block is a full-width Add over a full-width `[Invite]` row;
+  ★ Save is not in it (`account=after`, with where the offer went); ★ the guest's overlays wear the one responsive
+  Sheet, which of the four are on it and which are not, with the iPhone-keyboard risk on Report.
+- `docs/systems/guest-flow.md` "State follows `visibility`": the `password` bullet now names the ghosted RIVER
+  (`GhostRiver`) instead of the ghost grid, says the frames are stand-ins, and records that `GhostGrid` stays on
+  disk for the board.
+- `docs/systems/guest-flow.md` "Empty state": ★ the fade lives once, in `GhostRiver`, because the locked page draws
+  the same picture.
+- `docs/systems/guest-flow.md` "Live gallery": two new bullets — **The ARRIVAL** (what may and may not glow, where
+  the growth comes from, and that "only that column re-flows" is NOT landed) and **A guest's own photographs,
+  removable ever** (the two identities, "mine" as a server read on both paths, why it is out of the ETag).
+- `docs/systems/guest-flow.md` "Invariants": one new invariant — the own-photograph removal is never a client claim
+  and never a client list (no `anon` grant, no token in a URL, a claimed row untouchable by the session path).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** the arrival's ruled growth — "a new photograph grows into ONE column and only that column re-flows" needs
+  `MasonryColumns`' explicit column assignment (CSS columns are column-major, so any head insert shifts every tile);
+  land it on top of `glass-wiring`. The glow ships meanwhile.
+- **Now:** "Download all" (`ExportDialog`) and Save (`SaveEventButton`) onto the responsive Sheet — the other two of
+  `dialogs=stands`' four. Both are shared with host surfaces, so neither is in this lane's `owns`.
+- **Now:** the responsive Sheet's phone half on a real iPhone — a focused input (Report's textarea) and the home
+  indicator (the constant carries no `env(safe-area-inset-bottom)`, so the sheet's last row sits on the indicator).
+  If either bites, make the phone half vaul-backed once in `ui/sheet.tsx` for every consumer, never a per-dialog
+  exception.
+- **Now:** a component pin for `LiveGallery`'s own-photograph wiring (the routes, the pure arrival ids and the
+  lightbox's `canDelete` are each pinned; the component that joins them is not — it needs `use()` + Suspense +
+  fetch + the Server Function stubbed).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Cut from `origin/launch-prep` at `0ad0c32d` (the seam `c935f072` is in it); the board is Will's sixth batch on
+  build `806695d`. **No sync-merge commit: `origin/launch-prep` had not moved** at the handoff (still `0ad0c32d`).
+  The head is the one plain commit above this manifest's own; the chat line names it.
+- Gates, each on its own exit code, on the unsynced-because-unmoved tree: `design:rules` **0** · specimens **0**
+  (131 specimens on 94 entries) · `typecheck` **0** · `lint` **0** (8 warnings, the baseline) · `test` **1** ·
+  `build` **0** (255 pages) · `pnpm lab:smoke --base http://localhost:3132` **0** (403 checks, 0 failing).
+  No `lab:demo`: this is a production lane, no board.
+  ⚠ **`test` is 1 for ONE failure that was already red at the cut and is outside this lane**:
+  `design/review/ledger.test.ts` on `guest-shape/dialogs` storing `stands` against an ask that never declared it
+  (proved pre-existing by stashing every change and re-running; details under Questions). **2,852 pass, 1 skipped,
+  265 of 266 files green**; every test this lane wrote or touched is green.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `docs/systems/guest-flow.md` · `src/app/(dev)/design/rules/rules.generated.json` ·
+  `src/app/(guest)/e/[token]/actions.ts` · `src/app/(guest)/e/[token]/page.tsx` ·
+  `src/app/api/guests/mine/route.ts` + `route.test.ts` · `src/app/api/guests/remove/route.ts` + `route.test.ts` ·
+  `src/components/guest/event-experience.tsx` · `gallery-empty-state.tsx` · `ghost-grid.tsx` · `guest-share.tsx` ·
+  `live-gallery.css` · `live-gallery.tsx` · `report-dialog.tsx` · `src/lib/db/mutations/guest-media.ts` ·
+  `src/lib/guest/arrival-glow.ts` · `src/lib/guest/reconcile-gallery-items.ts` + `.test.ts` (+ this manifest).
+  **One exception, and it is a gate step's own output:** `src/app/(dev)/design/rules/rules.generated.json`, two lines,
+  the regeneration `pnpm design:rules` demands after `GhostRiver` joined `gallery-empty-state.tsx`'s exports.
+  `src/components/ui/sheet.tsx` was owned and NOT touched: the responsive sheet hub-wiring landed already does
+  everything `dialogs=stands` asks, and the door's `desk` prop the verdict map sketched is unnecessary while the
+  door's shell is withheld.
+- The items, one line each:
+  - `nothing=river`: KEPT. The locked page draws `GhostRiver` at the empty album's depth; `GhostGrid` retired on disk
+    with a head comment naming the board that still imports it. The Library entry is `GhostRiver`, exported from
+    `gallery-empty-state.tsx` as the ONE home of the ghost fade.
+  - `live=land`: KEPT IN PART. The glow lands (`newArrivalIds` → `arrivedIds` → `data-arrived` → `live-gallery.css`,
+    one duration in `lib/guest/arrival-glow.ts` written out as `--arrival-glow-ms` so the sheet and the state cannot
+    drift). The ruled GROWTH into one column does not: CSS columns are column-major and the seam's `prefix` row moves
+    the album exactly as a head insert does, so it buys nothing until the glass lane assigns columns (deferred above).
+    The tile's existing mount entrance is the growth meanwhile; reduced motion is a plain appearance.
+  - `account=after`: KEPT. Save leaves the block above the album; the after-upload card is the one offer, unchanged,
+    still wearing door-wiring's `SaveEventButton`. Invite takes the row's full width (a 2-col grid with one button in
+    it is a row with a hole in it); the demo's blank placeholder goes with it, which is the slot `demo-wiring` fills.
+  - `yours` (his rule): KEPT WHOLE, both identities. Signed in → `removeMyUploadGuestAction` on the existing
+    `remove_my_upload`; anonymous → `POST /api/guests/remove` on the service-role-only
+    `remove_my_upload_by_session` behind the join limiter. "Mine" is a server read on both paths (`listAccountMediaIds`
+    in the page RSC, `POST /api/guests/mine` for a session token), never a client claim and never in the gallery
+    payload or its ETag. Every database call of the lane is in `src/lib/db/mutations/guest-media.ts`.
+  - `dialogs=stands`: KEPT FOR TWO OF FOUR. Invite and Report wear `SheetContent responsive`. The door keeps vaul
+    (his "not this sheet design" withholds the shell); Download all and Save live in other lanes' files (deferred).
+  - `door=today` and `chrome=dock`: NOT WIRED, correctly. The welcome-then-gate sequence already ships
+    (`entry-steps.ts` untouched, `entry-modal`/`entry-shell`/`entry-step-transition` untouched, their tests green);
+    the dock is round two's.
+- Calls his to overrule on the alias, one line each:
+  - The arrival is a WHITE LIGHT, not a state colour: an inset 2px rim plus an inner wash, 2 seconds, up in 200ms and
+    fading the rest. The guest's own landing keeps the green `--success` check, so the two marks stay different things.
+  - An arrival lights for a photograph SOMEBODY ELSE added. A guest's own upload is excluded (it has the check);
+    a held item the host approves later is not excluded, and does glow.
+  - The seed render never glows, a rolled presign never glows, and a tab that slept through the evening lights the
+    whole burst it wakes to rather than nothing.
+  - Invite alone runs the full width of the secondary row (rather than staying half-width with a gap beside it).
+  - The removal is final for the host (his own answer) and SILENT to them: no toast, no trace in the bin, no restore.
+  - The anonymous removal is device-bound, and deliberately so: a shared phone's stale token can never delete a
+    signed-in person's photograph (a claimed guest row is untouchable by the session path).
+  - A failed removal restores the tile and says "Couldn't remove that photo." rather than leaving the gap.
+  - Report's sheet puts the primary FIRST and Cancel under it (a panel's footer stacks; a dialog's row of two does not).
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them):
+  - `content/help/save-an-event-and-find-your-uploads.mdx` — "This is the only place a guest can delete their own
+    upload; the event page itself has no delete" is now false, and so is "If you can't (the upload is anonymous...)".
+    The album itself now carries it, signed in or not.
+  - `content/help/report-a-problem-as-a-guest.mdx` — "if it's your own photo ... and you have an account, you can
+    also delete it yourself from your dashboard" understates it: from the album, and without an account.
+  - `content/help/password-protect-your-event.mdx` — "over a ghosted grid" is now the ghosted flow.
+  - ★ **Two LEGAL lines, not help, and they now UNDERSTATE a right we grant** (the brief named them; neither file is
+    in this lane's `owns`, so both are left for their owner): `src/lib/constants/legal-privacy.tsx:515-520` still
+    says "If you uploaded without signing in, ask the host, who can remove the item instantly" — an anonymous guest
+    removes it themselves now, from the album; and `src/lib/constants/legal-terms.tsx:123` says "A signed-in guest
+    can delete their own uploads from their dashboard" and "A guest who uploaded without signing in can ask the
+    host" — the album carries it either way now, and the "final and the host cannot restore it" sentence beside it
+    is still exactly right for both. The comment pin at `legal-privacy.tsx:514` ("anonymous uploaders ask the host")
+    goes with the line.
+- Assets requested from Will: none. The locked page and the empty album share the nine local `public/guest-ghost`
+  WebPs that already ship.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none**. `remove_my_upload_by_session` was applied by
+  the Orchestrator at the cut and is in the accepted advisor set; `get_advisors` (security) re-run at the handoff
+  confirms it appears in NEITHER 0028 nor 0029 (5 and 31 findings, unchanged), which is the invariant.
+  A rolled-back contract check against the real database passed eleven ways: an unknown token lists nothing, a CLAIMED
+  row is invisible to the anonymous list and `not_found` to the session RPC, another session's photograph is
+  `not_found`, a short token `unauthorized`, the repeat idempotent (`already_removed`), the row left `removed` +
+  `removed_by_uploader` with `purge_at` derived, and the neighbour's photograph untouched.
+- Look at first: **the guest album at 375 and at 1440.** (1) The row under Add photos: Invite alone, no Save — then
+  add a photograph and meet the Save offer where he asked for it. (2) A photograph arriving from a second tab: the
+  white rim rises and fades and the album re-flows around it (the flow of the reflow is the part `glass-wiring`
+  finishes). (3) Invite and Report: a bottom sheet in a hand, a side panel at a desk — ★ **Report's textarea on a real
+  iPhone is the one thing this lane could not test**, so please tap it and watch whether the keyboard covers it.
+  (4) **The locked password page's river is the one surface this lane could not reach**: no password event exists and
+  minting one needs a host session a lane cannot hold, so it wants the alias signed in. (5) The signed-in Remove on
+  your own guest upload, in the lightbox, is yours too: a lane port never reaches OAuth. Signed out, the lightbox
+  correctly shows Close / Next / Like / Save / Share and no Delete (verified locally).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). `guest-wiring` wired five of `guest-shape`'s seven verdicts and
+left the door's shell exactly where his "not this sheet design" put it. The locked page lost its ghost grid for the
+empty album's own flow, at one depth owned once (`GhostRiver`); the arrival became a white rim that rises and fades
+over a photograph somebody else added, held for one number that the sheet and the state both read; Save left the
+block above the album for the offer that waits until a guest has contributed; a guest's own photograph became
+removable for ever, by account or by device session, with "mine" read on the server both ways and never in the
+gallery's ETag; and Invite and Report joined the one responsive Sheet. The ruled growth into a single column, and
+the other two dialogs, are named as follow-ups rather than half-built.
