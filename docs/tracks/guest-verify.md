@@ -1,6 +1,6 @@
 ---
 track: guest-verify
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "af7ec784"          # the launch-prep SHA the branch was cut from
 board: guest-verify    # a new board: registers at the head of DESK_ORDER, the Orchestrator moves it after guest-shape
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -199,28 +199,129 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None open. Every call the brief left to the lane was taken on its recommendation and is listed in the Handoff
+  under "Calls his to overrule". The three that decide what the board MEANS ride the board itself as carried
+  calls (`mechanism`, `badge-audience`, `numbers`), above the first step, so Will meets them where he answers
+  rather than in a doc he may not open.
+- No one-way door was hit: the board proposes and applies nothing. The migration below is written out and run by
+  nobody, and the six answers are Will's to give on the desk.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- None. A lab board changes no shipped behaviour, and all three system docs in `reads` belong to other owners.
+  Two facts the lane PROVED are worth folding into `docs/systems/auth-accounts.md` by whoever wires the ruling
+  (they are not true of the tree until then, so they are not written now): (a) `/auth/v1/verify`, typing the
+  code, is limited BY IP and is the one row Supabase's table marks not customizable, so a venue's single Wi-Fi is
+  one bucket for every phone on it, while `/auth/v1/otp`, sending it, is capped PROJECT-WIDE and shared with
+  every other host; (b) GoTrue creates the `auth.users` row at SEND time, not at confirmation, which is what
+  makes an email-bound claim a real takeover rather than a race.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the lab's pinned stage crushes its own head at 375 when a step has ONE config row. The recommended-option
+  line and the knob row share a line and the label truncates to "the board s... O...", so the phone reviewer
+  cannot read which option the board recommends without scrolling the dock. Reproduced outside this lane on
+  `seed-avatar.look`, so it is the kit (`src/components/lab/`), not a board; `lab:demo` passes it because it
+  measures reach and clipping, not the head. A step with two config rows (this board's `badge`) wraps correctly.
+- Now: read this project's CONFIGURED Supabase Auth rate limits (Dashboard, Authentication -> Rate Limits) and
+  record them beside the defaults in `auth-accounts.md`. The board draws Supabase's documented defaults and says
+  so on the frame; only the send cap can be raised, and knowing the real number is what decides how bad an
+  `outage` actually is at 120 phones.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The board is `31ca8573` and its refinement `8bebbc8b`, pushed on `lp/guest-verify`; synced with
+  `origin/launch-prep` twice, at `104cfb90` (the avatar-look and demo-wiring records) and at `129796d8` (the
+  morning record and the PartyreelAI journal). Every gate below is the second, synced tree.
+- Gates on the synced tree, each on its own exit code: `design:rules` 0 (182 components, 1299 contracts, 18
+  policies), specimens 0 (140 specimens on 101 entries), `typecheck` 0, `lint` 0 (8 known warnings, none this
+  lane's), `test` 0 (290 files, 3055 passed, 1 skipped), `build` 0 (255 pages); `pnpm lab:smoke` 0 (441 checks, 0
+  failing); `pnpm lab:demo --board guest-verify` 0 (6 steps, 0 failing, every step draws its options; tallest and
+  wordiest is `collision` at 1.6 screens and 297 words). Verified by eye at 1440 and 375 with reduced motion
+  emulated, after the sync.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the nine files under
+  `src/app/(dev)/design/sandbox/guest-verify/` and this manifest, plus four exceptions. Three are the board's own
+  registration lines under the registration exception (`touchpoints.ts`: the `RulingId`, the `SandboxId`, the
+  RULINGS row and the head of `DESK_ORDER`; `sandbox/registry.ts`; `(shell)/lab/boards.ts`). The fourth is
+  `docs/design/library.md`, which is `pnpm design:rules`'s own output and carries one new row in the
+  standing-boards table with the count 25 -> 26; no rule, policy or contract moved.
+- `gate`: three phone screens one second after Add, on the same door and the same code, with what an unproven
+  guest may not do drawn identically under all three so the comparison is the gate and not the allowance;
+  recommended `held`, which keeps both halves of his own sentence (the upload is never blocked, nothing unproven
+  reaches the party). A kept `held` lands as the existing `pending` status carrying a second reason, "waiting on
+  a code", auto-approved on confirmation when moderation is off: no new media status is invented.
+- `badge`: his own idea drawn literally, with its cost on the frame (five faces of twenty-three marked in the
+  album's guest list, which reads as "suspect" to the other eighteen), the quietest guest-visible form beside it,
+  and the same fact moved to the host; the gate rides this step's own strip because the mark's job changes with
+  it. Recommended `host`. A kept `host` lands as a state in the host's guest list with a count, and nothing on a
+  guest's screen.
+- `collision`: not a screen but the flow, because all three answers look like an ordinary door to the person
+  standing at it; the two lanes drawn side by side with the second person's screen beside them. Recommended
+  `session`. `email` is a real takeover and the board draws why: GoTrue mints the `auth.users` row at SEND time,
+  so the real Bob's code opens the row a stranger's five photographs already hang off, and `claimAnonymousUploads`
+  never re-stamps an owned row. A kept `session` lands as one nullable claimed-address column and no new
+  mechanism at all.
+- `outage`: the wall measured rather than imagined, under all three options; recommended `window`, the only
+  remedy that is both reachable at the moment it fails and temporary. A kept `window` lands as a time-boxed
+  control on the settings sheet (let everyone in for three hours, closing itself) plus the open-door strip the
+  host and the door both read.
+- `host-lens`: nine real queue items, four of them waiting on a code no tap of the host's can hurry; recommended
+  `split`, the only one that answers "how much of this is mine", which is the question a host opens the queue
+  with. A kept `split` lands as two counted piles in the review room, the second emptying itself.
+- `expiry`: the only question with a data-loss cost, drawn as the pair that decides it (the sentence the guest is
+  told at the upload, and what day seven does to a Free host's two gigabytes); recommended `host`, which invents
+  no policy and applies the answer the host already gave when they set the event up. A kept `host` lands as one
+  branch in the purge cron, on the host's own switch.
+- Calls his to overrule on the alias, one line each:
+  - What an unverified account IS: this browser's anonymous guest row plus ONE nullable claimed-address column
+    that authorises nothing, never an unconfirmed auth session. A real unconfirmed session would mean turning
+    Supabase's Confirm-email off platform-wide, which un-proves every HOST too and breaks auth-js's own refusal
+    to link an unverified identity.
+  - The badge's audience: his note put it "on avatars", and the board recommends host-only, with both
+    guest-visible forms drawn and their cost written on the frame.
+  - The numbers on the `outage` wall are Supabase's documented defaults, labelled as such; the shapes (per IP,
+    project-wide, not customizable) are exact and are the part that decides the answer.
+  - The ruled gate SENTENCE ("For safety, the host has requested you confirm your email. One tap and you're in.")
+    is wired and untouched: this board asks the question underneath it, never the copy.
+  - What an unproven guest may NOT do (download, save the event, appear in the guest list, add more than a
+    handful) is drawn as a cost line under every `gate` option rather than as a seventh decision, per the brief.
+  - `gate=held` rides `pending` rather than a new media status, and `outage=window` rides the settings sheet
+    rather than a new room.
+- The help articles this lane makes stale: none. No production byte changed, so every how-to still tracks the
+  tree. If `gate`, `outage` or `expiry` is ruled, the wiring lane makes `how-guests-join-and-upload`,
+  `require-accounts-to-upload-explained`, `review-uploads-before-they-appear` and
+  `save-an-event-and-find-your-uploads` stale in the same change (a held upload, a time-boxed open door and a
+  deadline are all sentences those four articles state as facts today).
+- Assets requested from Will: none. Every frame draws the product's own components over `MARKETING_IMAGES`.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: one migration, WRITTEN ONLY and applied by
+  nobody, and it is the whole cost of `gate=after|held` with `collision=session`:
+
+      -- the claimed address: a label on an anonymous guest row, authorising nothing.
+      alter table public.guests add column claimed_email text;
+      comment on column public.guests.claimed_email is
+        'Typed by an anonymous guest and NEVER proven. Authorises nothing: only guests.email,
+         written from auth.users under definer privilege, is a verified address.';
+
+  Insert, update and delete on `public.guests` are already revoked from `anon` and `authenticated`
+  (`20260604175656`), and SELECT is COLUMN-locked to five columns for `authenticated`
+  (`20260729180000:328`), so the new column is added and then LEFT OUT of that grant on purpose: nothing but a
+  definer RPC ever reads it, which is the whole point of a label that authorises nothing. `create_guest` would
+  take the address as an argument and write it beside the session token instead of raising; `claim_anonymous_uploads`
+  (`src/lib/guest/claim-uploads.ts`) runs unchanged on confirmation, and it stamps only rows whose `user_id` is
+  still null (`20260609120000`: "an already-owned row is NEVER stolen or re-assigned"), which is what keeps a
+  stranger's uploads off the real Bob. Nothing on `media`, nothing on Supabase
+  Auth, and `guests.email` keeps its verified-at-join meaning exactly.
+- Look at first: `collision` at 1440. It is the security question drawn rather than described, and the only step
+  whose answer the other five rest on. Then `gate` at 375, which is the board's actual question in one screen.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). `guest-verify` answered his `gate=ask` note by name with six
+decisions on the shipped door, album, guest list and review queue, phone first at 375 with 1440 on the knob, every
+frame drawn on the real components and measured out of the laid-out DOM: when the address gets proven (`held`),
+what an unproven account shows and to whom (`host`), where five photographs land when two people type one address
+(`session`, with the email lane drawn as the takeover it is, since GoTrue mints the auth row at send time), what
+rescues a party when the codes stop arriving (`window`, against a wall measured on Supabase's own table where
+typing a code is capped per IP and a venue is one IP), what the host's queue says (`split`), and what day seven
+does to a photograph nobody confirmed (`host`). No production byte: the one nullable column it would cost is
+written out in the Handoff and applied by nobody.
