@@ -84,6 +84,26 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   param); `live-demo.tsx` untouched by design. Look at first: the pairing with a real phone (the lane rehearsed the
   far end with a listener).
 
+- **`guest-verify` merged at `76950230`** (2026-09-20, Opus; a new board from his `gate=ask` note, resumed after the
+  limit from a committed board): six decisions on the real guest door, the guest list, the faces row and the host's
+  review queue, phone first: `gate` (three phone screens one second after Add; `held` recommended, riding the existing
+  `pending` status with a second reason), `badge` (his idea drawn literally with its cost on the frame; host-only
+  recommended), `collision` (the flow, two lanes side by side; `session` recommended: GoTrue mints the auth row at SEND
+  time, so an email-bound claim is a real takeover), `outage` (the wall measured under Supabase's documented limits, per
+  IP on verify and project-wide on send; a time-boxed window on the settings sheet recommended), `host-lens` (`split`),
+  `expiry` (the host's own switch). Three carried calls above the first step (the mechanism, the badge's audience, the
+  numbers); one migration WRITTEN ONLY (a nullable `guests.claimed_email` that authorises nothing, left out of the
+  column-locked grant), applied by nobody; the ruled gate sentence untouched. Moved after `guest-shape` on the desk.
+  Gate 59 on the merged tree. Two lab findings on the ROADMAP (the pinned stage's head at 375 with one config row; the
+  project's configured Auth rate limits, a dashboard read). Look at first: `collision`, the two lanes side by side.
+- **`buttons-pairs` merged at `c28a2060`** (2026-09-20, Sonnet; `body-type` round two, resumed after the limit from six
+  uncommitted files): one decision, `pairs`, three options on the real Button at every size in the real rows, each
+  measured on the frame: `step-up` (the icon one notch over its text, 12/14, 14/16, 16/18; recommended, the shipped
+  icons already sit there), `text`, `today` (what he saw). The board's frozen-caption bug found and fixed in the lane
+  (a measurement effect keyed on a constant probe array never re-fired when the control swapped the option). The winner
+  wires at `button.tsx`'s cva table in a follow-up. Gate 60 on the merged tree. Look at first: the `sm Download` and
+  `xs Approve` pair his note named.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
