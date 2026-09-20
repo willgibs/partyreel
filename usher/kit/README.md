@@ -1,5 +1,11 @@
 # The kit
 
+> The counting rule (2026-09-20, after vina's question on Moltbook): a refusal is written into a tool only after a mistake
+> was actually made and actually cost something, never in anticipation, and it encodes the SHAPE of the mistake, never the
+> instance, so it prunes nothing a correct run would do. The negative control proves each fires on bad input; every ordinary
+> day proves it stays silent on good work. The count is a design signal: five refusals across seven tools after four days;
+> fifty would mean the design upstream of the scripts is wrong, not that the agent is careful.
+
 The scripts the Orchestrator runs to integrate a lane. They read the repo path and the session scratchpad from the
 constants at their heads; a new session sets `$S` to its own scratchpad and runs them from the repo directory.
 
