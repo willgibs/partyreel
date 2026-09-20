@@ -1,433 +1,636 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import {
-  ArrowRight,
-  CalendarPlus,
   Clapperboard,
-  Eye,
-  Images,
+  CalendarPlus,
+  HardDrive,
   ListChecks,
-  Users,
+  PauseCircle,
+  Printer,
 } from "lucide-react";
 
-import { FilterChips } from "@/components/app/dashboard/filter-chips";
-import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { EventCard } from "@/components/app/event-card";
-import { MediaTile } from "@/components/app/media-grid";
+import { EventCardQr } from "@/components/app/event-card-qr";
+import { CopyShareLink } from "@/components/app/copy-share-link";
+import { EventQr } from "@/components/app/event-qr";
+import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
+import { JustArrived } from "@/components/app/dashboard/just-arrived";
+import { NextStepBand } from "@/components/app/dashboard/next-step-band";
+import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Button } from "@/components/ui/button";
+import { HOW_IT_WORKS } from "@/lib/constants/how-it-works";
+import { resolveQrPreset } from "@/lib/constants/qr-presets";
+import { MAX_EVENTS, TIER_NAMES, formatLimit, withinLimit } from "@/lib/constants/tiers";
+import {
+  resolveNextSteps,
+  type NextStep,
+  type NextStepKind,
+} from "@/lib/dashboard/next-step";
 import { cn } from "@/lib/utils";
 
 import {
-  ARRIVALS,
-  EVENTS,
+  BUSY_ARRIVALS,
+  BUSY_ARRIVALS_CAPTION,
+  BUSY_EVENTS,
+  BUSY_SAVED,
+  BUSY_STORAGE,
+  EMPTY_STORAGE,
+  FIRST_EVENT,
+  FIRST_STORAGE,
   type HostEvent,
-  MY_LIKES,
-  MY_UPLOADS,
-  SAVED,
-  STORAGE,
+  JOIN_URL,
+  TODAY,
 } from "./fixtures";
 
 /**
- * THE HOST'S HOME, IN THREE SHAPES, EACH DRAWING AN EVENT THREE WAYS.
+ * THE PULSE, ACROSS THREE HOST STATES — round two's whole job.
  *
- * Two decisions meet on this page and they are asked separately because they
- * are separable: what the home IS (the inbox of everything, her events alone,
- * or a front page that leads with what needs her) and what one event LOOKS
- * like on it (today's cover card, a row, or a wall of its photographs). Every
- * combination draws, because the step hands each preview the board's live
- * state: pick the row and go back to the home question and the home redraws in
- * rows.
+ * Round one asked what the home IS; that is answered and wired (`home=pulse`,
+ * `home-wiring`, 2026-09-20). So every option below is built from the REAL
+ * shipped bands — `NextStepBand`, `JustArrived`, `StorageMeter`,
+ * `EventsEmptyTeaser` — fed this file's fixtures, never a redrawing of them.
+ * The one exception is `busy.collapsed`: a NEW variant `next-step-band.tsx`
+ * does not ship, and that file is production's (`reads`, never `owns`), so it
+ * is drawn here as its own small component over the SAME `NextStep[]`
+ * `resolveNextSteps` produces, restyled just enough to read as the same band.
  *
- * Mobbin, read for the row: Posh's event list puts the cover photograph behind
- * the row rather than beside it, with the counts in their own columns at the
- * right (https://mobbin.com/screens/3fad44f7-7615-425b-accb-68cd6e60007b).
- * Partiful's home is today's shape done well, and the thing it does NOT do is
- * mix your own uploads and likes into the same chips
- * (https://mobbin.com/screens/ec636758-83f4-4b52-9c1d-be60acce7f64).
+ * "Your events" is drawn as a plain grid of the real `EventCard`, never the
+ * real `EventsSection`: that component's view toggle calls the real
+ * `setEventsViewAction` Server Action, which writes `pr_events_view` with
+ * `path: "/"` — a click inside this lab board would silently rewrite the
+ * reviewer's OWN live dashboard preference. `density=cover` is already ruled
+ * and wired; this round never re-asks it, so the toggle has nothing to prove
+ * here and the cards-only grid is the whole of what these three asks need.
  */
 
-export type Home = "inbox" | "events" | "pulse";
-export type Density = "cover" | "row" | "wall";
+/* ── The shared pieces every state's page is built from ──────────────────── */
 
-export const homeOf = (v: string | undefined): Home =>
-  v === "inbox" || v === "events" ? v : "pulse";
-export const densityOf = (v: string | undefined): Density =>
-  v === "cover" || v === "wall" ? v : "row";
-
-/* ── The three ways to draw one event ────────────────────────────────────── */
-
-/** TODAY: the shipped `EventCard`, a 16:10 cover with the chrome over it. */
-function CoverGrid({ phone }: { phone: boolean }) {
+function Head({ used, maxEvents }: { used: number; maxEvents: number | null }) {
+  const atCap = !withinLimit(used, maxEvents);
   return (
-    <div
-      className={cn(
-        "grid gap-4",
-        phone ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3",
-      )}
-    >
-      {EVENTS.map((e) => (
-        <EventCard
-          key={e.id}
-          href={`/dashboard/${e.id}`}
-          name={e.name}
-          coverUrl={e.cover}
-          dateLabel={e.dateLabel}
-          itemsLabel={`${e.items} items`}
-          statusLabel={e.accepting ? "Open" : "Closed"}
-          pendingCount={e.pending}
-        />
-      ))}
-    </div>
-  );
-}
-
-const STAT = "flex items-center gap-1.5 tabular-nums";
-
-/**
- * A ROW: the cover photograph is the row's own ground rather than a card of its
- * own, the four newest sit beside the name so the row still shows the party,
- * and the counts line up in columns you can read down. Eight events fit where
- * three cards do.
- */
-function EventRow({ e, phone }: { e: HostEvent; phone: boolean }) {
-  return (
-    <div
-      data-lit=""
-      className="relative overflow-hidden rounded-xl border border-border bg-card"
-    >
-      {/* The cover, as the row's ground: 12 percent, so the row reads as this
-          party's row and the type on top keeps its contrast. */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- a fixture still, never optimizable in a frame */}
-      <img
-        src={e.cover}
-        alt=""
-        className="absolute inset-0 size-full object-cover opacity-[0.12]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-card via-card/85 to-card/40" />
-      <div
-        className={cn(
-          "relative flex gap-4 p-3",
-          phone ? "flex-col" : "items-center",
-        )}
-      >
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="truncate font-heading text-card-title">
-            {e.name}
-          </span>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>{e.dateLabel}</span>
-            <span className={STAT}>
-              <Images className="size-3" aria-hidden />
-              {e.items}
-            </span>
-            <span className={STAT}>
-              <Users className="size-3" aria-hidden />
-              {e.guests}
-            </span>
-            <span className={STAT}>
-              <Eye className="size-3" aria-hidden />
-              {e.views}
-            </span>
-            <span className={STAT}>
-              <Clapperboard className="size-3" aria-hidden />
-              {e.reelClips ?? "None"}
-            </span>
-          </span>
-        </div>
-        <div className="flex shrink-0 gap-1.5">
-          {e.newest.slice(0, phone ? 5 : 4).map((m) => (
-            <span
-              key={m.id}
-              data-media-tile
-              data-static
-              className="relative size-11 overflow-hidden rounded-[var(--radius-tile)]"
-            >
-              <MediaTile item={m} playBadge="none" />
-            </span>
-          ))}
-        </div>
-        <div className="flex w-44 shrink-0 justify-end">
-          {e.pending > 0 ? (
-            <span className="flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
-              <ListChecks className="size-3.5" aria-hidden />
-              {e.pending} to review
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              {e.needs ?? "Nothing waiting"}
-              <ArrowRight className="size-3.5" aria-hidden />
-            </span>
-          )}
-        </div>
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <PageHeading>Dashboard</PageHeading>
+        <p className="text-sm text-muted-foreground">
+          {used} of {formatLimit(maxEvents)} event{maxEvents === 1 ? "" : "s"}{" "}
+          used
+        </p>
       </div>
+      {atCap ? (
+        <Button disabled>
+          <CalendarPlus /> New event
+        </Button>
+      ) : (
+        <Button asChild>
+          <Link href="/dashboard/new">
+            <CalendarPlus /> New event
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }
 
-function RowList({ phone }: { phone: boolean }) {
+/** `resolveNextSteps`, fed one state's events — never a hand-typed step. */
+function stepsFor(events: HostEvent[], storagePct: number): NextStep[] {
+  return resolveNextSteps({
+    events: events.map((e) => ({
+      id: e.id,
+      name: e.name,
+      pending: e.pending,
+      items: e.items,
+      acceptingUploads: e.accepting,
+      hasReel: e.reelClips !== null,
+      eventDate: e.eventDate,
+    })),
+    storagePct,
+    today: TODAY,
+  });
+}
+
+const FIXTURE_QR_TOKEN = "a".repeat(32);
+const SITE_URL = "https://partyreel.com";
+
+/**
+ * "Your events", cards only (see the file comment on why never
+ * `EventsSection`). Cover cards never show a per-event "needs" label in
+ * production either — only the row view's `EventsRowList` does — so this
+ * takes no `needsByEvent`: the real per-event step already surfaces through
+ * `NextStepBand`'s own chips, keyed by the same event.
+ */
+function EventsGrid({
+  events,
+  savedCard,
+}: {
+  events: HostEvent[];
+  /** The one saved-event card, when this state's board has one. */
+  savedCard?: typeof BUSY_SAVED;
+}) {
   return (
-    <div className="space-y-2">
-      {EVENTS.map((e) => (
-        <EventRow key={e.id} e={e} phone={phone} />
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {events.map((e) => (
+        <li key={e.id}>
+          <EventCard
+            href={`/dashboard/${e.id}`}
+            name={e.name}
+            coverUrl={e.cover}
+            dateLabel={e.dateLabel}
+            itemsLabel={`${e.items} ${e.items === 1 ? "item" : "items"}`}
+            statusLabel={e.accepting ? "Open" : "Closed"}
+            pendingCount={e.pending}
+            qrSlot={
+              <EventCardQr
+                eventId={e.id}
+                eventName={e.name}
+                qrToken={FIXTURE_QR_TOKEN}
+                qrStyle="classic"
+                siteUrl={SITE_URL}
+              />
+            }
+          />
+        </li>
       ))}
-    </div>
+      {savedCard && (
+        <li>
+          <EventCard
+            variant="saved"
+            href={`/e/${FIXTURE_QR_TOKEN}`}
+            name={savedCard.name}
+            coverUrl={savedCard.cover}
+            dateLabel={savedCard.dateLabel}
+            itemsLabel={null}
+            statusLabel={null}
+            byline={`Hosted by ${savedCard.host}`}
+          />
+        </li>
+      )}
+    </ul>
   );
 }
 
 /**
- * A WALL: the event IS its photographs. The name and the counts are a line
- * above a strip of the newest six, so the home reads like the album it is
- * rather than like a filing cabinet.
+ * The same "photographic promise" ghost pack `EventsEmptyTeaser` draws its
+ * cards from (public webp stills). A third independent reference to the
+ * shared asset files, exactly how the dashboard teaser and the guest empty
+ * state (`GUEST_GHOST_FRAMES`) each already keep their own list rather than
+ * import one another's.
  */
-function WallList({ phone }: { phone: boolean }) {
+const GHOST_IMAGES = Array.from(
+  { length: 9 },
+  (_, i) => `/guest-ghost/g0${i + 1}.webp`,
+);
+
+/* ── Empty: Alex Rivera, nothing created yet ─────────────────────────────── */
+
+function EmptyStorageMeter() {
+  return (
+    <StorageMeter
+      storageUsed={EMPTY_STORAGE.used}
+      storageCap={EMPTY_STORAGE.cap}
+      storagePct={EMPTY_STORAGE.pct}
+      standbyBytes={EMPTY_STORAGE.standby}
+      overBudget={false}
+      passExpiry={null}
+      planName={TIER_NAMES.free}
+      hasBilling={false}
+      isEventPass={false}
+    />
+  );
+}
+
+/** TODAY: exactly what zero events renders — the band gated off, the strip
+ *  self-nulling, the storage line and the create door unconditional. */
+function EmptyWizard() {
   return (
     <div className="space-y-6">
-      {EVENTS.map((e) => (
-        <section key={e.id} className="space-y-2">
-          <div className="flex items-baseline gap-3">
-            <h3 className="truncate font-heading text-card-title">{e.name}</h3>
-            <span className="truncate text-xs text-muted-foreground">
-              {e.dateLabel} · {e.items} items · {e.guests} guests
-            </span>
-            {e.pending > 0 && (
-              <span className="ml-auto shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
-                {e.pending} to review
-              </span>
-            )}
-          </div>
-          <div className={cn("grid gap-1.5", phone ? "grid-cols-3" : "grid-cols-6")}>
-            {e.newest.slice(0, phone ? 6 : 6).map((m) => (
-              <span
-                key={m.id}
-                data-media-tile
-                data-static
-                data-lit=""
-                className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)]"
-              >
-                <MediaTile item={m} playBadge="none" />
-              </span>
-            ))}
-          </div>
-        </section>
-      ))}
+      <Head used={0} maxEvents={MAX_EVENTS.free} />
+      <JustArrived tiles={[]} caption="Nothing yet" />
+      <EmptyStorageMeter />
+      <EventsEmptyTeaser />
     </div>
   );
 }
 
-function Events({
-  density,
-  phone,
-}: {
-  density: Density;
-  phone: boolean;
-}) {
-  if (density === "cover") return <CoverGrid phone={phone} />;
-  if (density === "wall") return <WallList phone={phone} />;
-  return <RowList phone={phone} />;
-}
-
-/* ── The personal feeds the inbox mixes in ───────────────────────────────── */
-
-function MiniGallery({ title, items }: { title: string; items: typeof MY_LIKES }) {
+function GhostNextStepBand() {
   return (
-    <section className="space-y-2.5">
-      <h2 className="font-heading text-subsection">{title}</h2>
-      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6 lg:grid-cols-9">
-        {items.map((m) => (
-          <span
-            key={m.id}
-            data-media-tile
-            data-static
-            data-lit=""
-            className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)]"
-          >
-            <MediaTile item={m} playBadge="none" />
-          </span>
-        ))}
+    <section aria-label="What needs you, not yet" className="space-y-1.5">
+      <div aria-hidden className="flex flex-wrap items-center gap-2">
+        <span className="h-9 w-40 rounded-full border border-dashed border-border" />
+        <span className="h-9 w-48 rounded-full border border-dashed border-border" />
+        <span className="h-9 w-32 rounded-full border border-dashed border-border" />
       </div>
+      <p className="text-xs text-muted-foreground">
+        What needs you will show up here once you have an event.
+      </p>
     </section>
   );
 }
 
-function Meter() {
+function GhostJustArrived() {
+  return (
+    <section className="space-y-2.5">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <h2 className="font-heading text-subsection text-muted-foreground">
+          Just arrived
+        </h2>
+        <span className="text-xs text-muted-foreground">
+          will show your newest photos here
+        </span>
+      </div>
+      <ul
+        aria-hidden
+        className="grid grid-cols-4 gap-[var(--gap-gallery)] sm:grid-cols-8 xl:grid-cols-12"
+      >
+        {GHOST_IMAGES.slice(0, 6).map((src) => (
+          <li
+            key={src}
+            className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)] opacity-25 grayscale"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- tiny local decorative asset */}
+            <img src={src} alt="" loading="lazy" className="size-full object-cover" />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** The shape visible before any event is: both bands as faint placeholders. */
+function EmptyGhosts() {
+  return (
+    <div className="space-y-6">
+      <Head used={0} maxEvents={MAX_EVENTS.free} />
+      <GhostNextStepBand />
+      <GhostJustArrived />
+      <EmptyStorageMeter />
+      <EventsEmptyTeaser />
+    </div>
+  );
+}
+
+/** The pulse replaced by one welcome moment: a hero over the host's first
+ *  three steps (derived from `HOW_IT_WORKS`, the SAME three the real
+ *  `/welcome` tutorial tells — never a fourth retelling), ending in the
+ *  create door. */
+function EmptyGuided() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2 text-center">
+        <PageHeading className="text-center">
+          Welcome to Partyreel
+        </PageHeading>
+        <p className="mx-auto max-w-md text-sm text-muted-foreground">
+          Create your first event and your guests start adding photos and
+          videos in seconds, straight from their phones.
+        </p>
+      </div>
+      <ul className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-3">
+        {HOW_IT_WORKS.map((step) => (
+          <li
+            key={step.title}
+            className="space-y-2 rounded-xl border border-border bg-card p-4 text-center"
+          >
+            <step.icon className="mx-auto size-5 text-muted-foreground" aria-hidden />
+            <h2 className="font-heading text-card-title">{step.title}</h2>
+            <p className="text-xs text-muted-foreground">{step.body}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="flex justify-center">
+        <Button asChild size="lg">
+          <Link href="/dashboard/new">
+            <CalendarPlus /> Create your first event
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export type EmptyOption = "wizard" | "ghosts" | "guided";
+export const emptyOf = (v: string | undefined): EmptyOption =>
+  v === "ghosts" || v === "guided" ? v : "wizard";
+
+export function EmptyState({ option }: { option: EmptyOption }) {
+  if (option === "ghosts") return <EmptyGhosts />;
+  if (option === "guided") return <EmptyGuided />;
+  return <EmptyWizard />;
+}
+
+/* ── First: Jordan Kim, one event made minutes ago ───────────────────────── */
+
+/** `MAX_EVENTS.free` is 1: Jordan is at cap the moment the event exists, on
+ *  every option below, exactly as `DashboardPage` would actually render it
+ *  (see fixtures.ts's own note — left to happen, never hidden). */
+function AtCapNotice() {
+  return (
+    <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+      You&rsquo;ve used every event on the {TIER_NAMES.free} plan. Delete one
+      to free a slot, or{" "}
+      <Link
+        href="/pricing"
+        className="font-medium text-foreground underline underline-offset-4"
+      >
+        upgrade for more
+      </Link>
+      .
+    </p>
+  );
+}
+
+function FirstStorageMeter() {
   return (
     <StorageMeter
-      storageUsed={STORAGE.used}
-      storageCap={STORAGE.cap}
-      storagePct={STORAGE.pct}
-      standbyBytes={STORAGE.standby}
+      storageUsed={FIRST_STORAGE.used}
+      storageCap={FIRST_STORAGE.cap}
+      storagePct={FIRST_STORAGE.pct}
+      standbyBytes={FIRST_STORAGE.standby}
       overBudget={false}
       passExpiry={null}
-      planName="Pro"
+      planName={TIER_NAMES.free}
+      hasBilling={false}
+      isEventPass={false}
+    />
+  );
+}
+
+function FirstEventsSection() {
+  return (
+    <section aria-label="Your events" className="space-y-3">
+      <h2 className="font-heading text-subsection">Your events</h2>
+      <EventsGrid events={[FIRST_EVENT]} />
+    </section>
+  );
+}
+
+/** Today's exact composition, unmodified. */
+function FirstPulse() {
+  const steps = stepsFor([FIRST_EVENT], FIRST_STORAGE.pct);
+  return (
+    <div className="space-y-6">
+      <Head used={1} maxEvents={MAX_EVENTS.free} />
+      <NextStepBand steps={steps} />
+      <JustArrived tiles={[]} caption="Nothing yet" />
+      <FirstStorageMeter />
+      <AtCapNotice />
+      <FirstEventsSection />
+    </div>
+  );
+}
+
+/** A share card leads the page: the code, the link and a copy button — the
+ *  one thing not yet done, named first — before the pulse's own bands. */
+function FirstShare() {
+  const steps = stepsFor([FIRST_EVENT], FIRST_STORAGE.pct);
+  const joinUrl = `https://${JOIN_URL}`;
+  return (
+    <div className="space-y-6">
+      <Head used={1} maxEvents={MAX_EVENTS.free} />
+      <section
+        aria-label={`Share ${FIRST_EVENT.name}`}
+        className="space-y-3 rounded-xl border border-border bg-card p-5"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 className="font-heading text-subsection">
+            Share {FIRST_EVENT.name}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Nobody has the code yet.
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+          <EventQr
+            joinUrl={joinUrl}
+            eventName={FIRST_EVENT.name}
+            style={resolveQrPreset(undefined)}
+          />
+          <div className="w-full space-y-2 sm:max-w-xs sm:pt-1">
+            <p className="text-xs font-medium text-muted-foreground">
+              Or send the link
+            </p>
+            <CopyShareLink url={JOIN_URL} />
+          </div>
+        </div>
+      </section>
+      <NextStepBand steps={steps} />
+      <JustArrived tiles={[]} caption="Nothing yet" />
+      <FirstStorageMeter />
+      <AtCapNotice />
+      <FirstEventsSection />
+    </div>
+  );
+}
+
+/** The guest album's own voice, turned on the host: one hero for Jordan's one
+ *  event rather than a pulse built for many. */
+function FirstPromise() {
+  return (
+    <div className="space-y-6">
+      <Head used={1} maxEvents={MAX_EVENTS.free} />
+      <section className="relative overflow-hidden rounded-xl border border-border">
+        <div
+          aria-hidden
+          className="grid grid-cols-3 gap-1 opacity-25 grayscale"
+        >
+          {GHOST_IMAGES.slice(0, 6).map((src) => (
+            // eslint-disable-next-line @next/next/no-img-element -- tiny local decorative asset
+            <img
+              key={src}
+              src={src}
+              alt=""
+              loading="lazy"
+              className="aspect-square w-full object-cover"
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+          <div className="space-y-1.5">
+            <h2 className="font-heading text-subsection text-balance">
+              {FIRST_EVENT.name}&rsquo;s album starts with you
+            </h2>
+            <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+              Share the code and the first photos will land right here.
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <Link href={`/dashboard/${FIRST_EVENT.id}`}>Open the event</Link>
+          </Button>
+        </div>
+      </section>
+      <FirstStorageMeter />
+      <AtCapNotice />
+    </div>
+  );
+}
+
+export type FirstOption = "share" | "promise" | "pulse";
+export const firstOf = (v: string | undefined): FirstOption =>
+  v === "promise" || v === "pulse" ? v : "share";
+
+export function FirstState({ option }: { option: FirstOption }) {
+  if (option === "promise") return <FirstPromise />;
+  if (option === "pulse") return <FirstPulse />;
+  return <FirstShare />;
+}
+
+/* ── Busy: Maya Chen, five events at once ────────────────────────────────── */
+
+const busySteps = stepsFor(BUSY_EVENTS, BUSY_STORAGE.pct);
+
+function BusyStorageMeter() {
+  return (
+    <StorageMeter
+      storageUsed={BUSY_STORAGE.used}
+      storageCap={BUSY_STORAGE.cap}
+      storagePct={BUSY_STORAGE.pct}
+      standbyBytes={BUSY_STORAGE.standby}
+      overBudget={false}
+      passExpiry={null}
+      planName={TIER_NAMES.pro}
       hasBilling
       isEventPass={false}
     />
   );
 }
 
-function NewEvent() {
+function BusyEventsSection() {
   return (
-    <Button>
-      <CalendarPlus /> New event
-    </Button>
-  );
-}
-
-/* ── What needs her, which only the front page draws ─────────────────────── */
-
-function NeedsYou() {
-  const waiting = EVENTS.filter((e) => e.pending > 0);
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {waiting.map((e) => (
-        <span
-          key={e.id}
-          className="flex items-center gap-2 rounded-full bg-warning/15 px-3 py-1.5 text-sm font-medium text-warning"
-        >
-          <ListChecks className="size-4" aria-hidden />
-          {e.pending} waiting on {e.name}
-        </span>
-      ))}
-      <span className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground">
-        <Clapperboard className="size-4" aria-hidden />
-        Rooftop Summer Party has no reel yet
-      </span>
-      <span className="flex items-center gap-2 rounded-full border border-warning/40 px-3 py-1.5 text-sm text-warning">
-        {STORAGE.pct}% of your storage used
-      </span>
-    </div>
-  );
-}
-
-function JustArrived({ phone }: { phone: boolean }) {
-  return (
-    <section className="space-y-2.5">
-      <div className="flex items-baseline gap-2">
-        <h2 className="font-heading text-subsection">Just arrived</h2>
-        <span className="text-xs text-muted-foreground">
-          12 in the last hour, across your events
-        </span>
-      </div>
-      <div
-        className={cn(
-          "grid gap-1.5",
-          phone ? "grid-cols-4" : "grid-cols-8 xl:grid-cols-12",
-        )}
-      >
-        {ARRIVALS.slice(0, phone ? 8 : 12).map((m) => (
-          <span
-            key={m.id}
-            data-media-tile
-            data-static
-            data-lit=""
-            className="relative aspect-square overflow-hidden rounded-[var(--radius-tile)]"
-          >
-            <MediaTile item={m} playBadge="none" />
-          </span>
-        ))}
-      </div>
+    <section aria-label="Your events" className="space-y-3">
+      <h2 className="font-heading text-subsection">Your events</h2>
+      <EventsGrid events={BUSY_EVENTS} savedCard={BUSY_SAVED} />
     </section>
   );
 }
 
-/* ── The three homes ─────────────────────────────────────────────────────── */
-
-function Head({
-  title,
-  sub,
-  action,
-}: {
-  title: string;
-  sub: string;
-  action?: ReactNode;
-}) {
+/** As ruled, unmodified: every chip the real precedence produces. */
+function BusyRuled() {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <PageHeading>{title}</PageHeading>
-        <p className="text-sm text-muted-foreground">{sub}</p>
-      </div>
-      {action}
+    <div className="space-y-6">
+      <Head used={BUSY_EVENTS.length} maxEvents={MAX_EVENTS.pro} />
+      <NextStepBand steps={busySteps} />
+      <JustArrived tiles={BUSY_ARRIVALS} caption={BUSY_ARRIVALS_CAPTION} />
+      <BusyStorageMeter />
+      <BusyEventsSection />
     </div>
   );
 }
 
-export function HostHome({
-  home,
-  density,
-  size,
-}: {
-  home: Home;
-  density: Density;
-  size: "laptop" | "phone";
-}) {
-  const phone = size === "phone";
+const STEP_ICONS: Record<NextStepKind, typeof ListChecks> = {
+  review: ListChecks,
+  paused: PauseCircle,
+  reel: Clapperboard,
+  print: Printer,
+  storage: HardDrive,
+};
 
-  // TODAY: one continuous feed switched by six chips, mixing her three events
-  // with a friend's saved event, her own uploads, her likes, the hosts she
-  // follows and a bin, under a page called Dashboard.
-  if (home === "inbox") {
-    return (
-      <div className="space-y-6">
-        <Head
-          title="Dashboard"
-          sub="3 of unlimited events used"
-          action={<NewEvent />}
-        />
-        <Meter />
-        <FilterChips active="all" onChange={() => {}} trashCount={1} />
-        <div className="space-y-8">
-          <section className="space-y-2.5">
-            <h2 className="font-heading text-subsection">Your events</h2>
-            <Events density={density} phone={phone} />
-            <p className="pt-1 text-xs text-muted-foreground">
-              Saved: {SAVED.name}, hosted by {SAVED.host}
-            </p>
-          </section>
-          <MiniGallery title="Your uploads" items={MY_UPLOADS} />
-          <MiniGallery title="Your likes" items={MY_LIKES} />
-        </div>
-      </div>
-    );
-  }
+// The same tone language `next-step-band.tsx` uses (amber only where it
+// matters), restyled locally rather than imported: that file's TONES map is
+// not exported, and this is a proposed variant of it, not a copy fed back in.
+const STEP_TONES: Record<NextStep["tone"], string> = {
+  waiting: "border-transparent bg-warning/15 text-warning",
+  warning: "border-warning/40 text-warning",
+  quiet: "border-border text-muted-foreground",
+};
 
-  // HER EVENTS, AND NOTHING ELSE. Uploads, likes, the hosts she follows, the
-  // events she saved and the bin all move under You, where the rest of her own
-  // account already lives.
-  if (home === "events") {
-    return (
-      <div className="space-y-6">
-        <Head
-          title="Events"
-          sub="Three you host, one you saved"
-          action={<NewEvent />}
-        />
-        <Events density={density} phone={phone} />
-        <p className="text-xs text-muted-foreground">
-          Your uploads, your likes, the hosts you follow and anything deleted
-          live under You.
-        </p>
-      </div>
-    );
-  }
+const TONE_RANK: Record<NextStep["tone"], number> = {
+  waiting: 0,
+  warning: 1,
+  quiet: 2,
+};
 
-  // A FRONT PAGE: what needs her, then what just arrived, then her events. The
-  // same three events underneath, in whichever density was picked.
+function StepChip({ step }: { step: NextStep }) {
+  const Icon = STEP_ICONS[step.kind];
+  return (
+    <Link
+      href={step.href}
+      className={cn(
+        "flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium",
+        STEP_TONES[step.tone],
+      )}
+    >
+      <Icon className="size-4 shrink-0" aria-hidden />
+      {step.label}
+    </Link>
+  );
+}
+
+/**
+ * `busy.collapsed`: the top three steps by tone (waiting, then warning, then
+ * quiet), the rest behind one chip that expands in place. A lab-only variant
+ * — `next-step-band.tsx` is production's and out of this lane's `owns` — built
+ * on the SAME `NextStep[]` the shipped band reads, never a duplicate of the
+ * rule that produced them.
+ */
+function CollapsedNextStepBand({ steps }: { steps: NextStep[] }) {
+  const [expanded, setExpanded] = useState(false);
+  if (steps.length === 0) return <NextStepBand steps={steps} />;
+
+  const ranked = [...steps].sort(
+    (a, b) => TONE_RANK[a.tone] - TONE_RANK[b.tone],
+  );
+  const head = ranked.slice(0, 3);
+  const rest = ranked.slice(3);
+  const shown = expanded ? ranked : head;
+
+  return (
+    <section aria-label="What needs you">
+      <ul className="flex flex-wrap items-center gap-2">
+        {shown.map((step) => (
+          <li key={`${step.kind}-${step.eventId ?? "account"}`}>
+            <StepChip step={step} />
+          </li>
+        ))}
+        {!expanded && rest.length > 0 && (
+          <li>
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-dashed border-border px-3.5 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-emphasis hover:text-foreground"
+            >
+              +{rest.length} more
+            </button>
+          </li>
+        )}
+      </ul>
+    </section>
+  );
+}
+
+/** The band collapsed to three, the events list untouched beneath it. */
+function BusyCollapsed() {
   return (
     <div className="space-y-6">
-      <Head
-        title="Saturday evening"
-        sub="Two events live right now"
-        action={<NewEvent />}
-      />
-      <NeedsYou />
-      <JustArrived phone={phone} />
-      <section className="space-y-2.5">
-        <h2 className="font-heading text-subsection">Your events</h2>
-        <Events density={density} phone={phone} />
-      </section>
+      <Head used={BUSY_EVENTS.length} maxEvents={MAX_EVENTS.pro} />
+      <CollapsedNextStepBand steps={busySteps} />
+      <JustArrived tiles={BUSY_ARRIVALS} caption={BUSY_ARRIVALS_CAPTION} />
+      <BusyStorageMeter />
+      <BusyEventsSection />
     </div>
   );
+}
+
+/** Your events leads the page; the next-step band and Just arrived follow. */
+function BusyEventsFirst() {
+  return (
+    <div className="space-y-6">
+      <Head used={BUSY_EVENTS.length} maxEvents={MAX_EVENTS.pro} />
+      <BusyEventsSection />
+      <NextStepBand steps={busySteps} />
+      <JustArrived tiles={BUSY_ARRIVALS} caption={BUSY_ARRIVALS_CAPTION} />
+      <BusyStorageMeter />
+    </div>
+  );
+}
+
+export type BusyOption = "ruled" | "collapsed" | "events-first";
+export const busyOf = (v: string | undefined): BusyOption =>
+  v === "ruled" || v === "events-first" ? v : "collapsed";
+
+export function BusyState({ option }: { option: BusyOption }) {
+  if (option === "ruled") return <BusyRuled />;
+  if (option === "events-first") return <BusyEventsFirst />;
+  return <BusyCollapsed />;
 }
