@@ -47,6 +47,7 @@ type Spec = {
   }[];
   catalog: boolean;
   items: string[] | null;
+  calls: string[];
 };
 type Entry = {
   kind: "board" | "library";
@@ -54,6 +55,7 @@ type Entry = {
   round: number;
   answers: { ask: string; choice: string | null; note?: string }[];
   items: { item: string; verdict: string; note?: string }[];
+  calls: { call: string; answer: string; note?: string }[];
   entries: { entry: string; verdict: string; note?: string }[];
   notes: { text: string }[];
   line: number;
@@ -113,6 +115,7 @@ const readLedger = (board: string) =>
       }[];
       notes: { on: string | null; text: string }[];
       items: { item: string; verdict: string; note?: string; by: string }[];
+      calls: { call: string; answer: string; note?: string; by: string }[];
     }[];
   };
 const readLibrary = () =>
@@ -655,6 +658,149 @@ describe("the ledgers", () => {
       lab.run(`review ${BOARD} r${ROUND}: default=always`, { root }),
     ).toThrowError(/not a ledger/);
     writeFileSync(ledgerFile(BOARD), good);
+  });
+});
+
+/**
+ * THE CARRIED CALLS (lab-tides, 2026-09-19; landed by the Orchestrator at the
+ * merge). `call:<id>=yes|no "a note"` answers a call a lane carried on its
+ * own recommendation (`BoardSpec.carried`), riding an ordinary board line
+ * beside an ask or an item. It is modelled on `item:` at every point: checked
+ * before the ask clause so a colon inside the id is never swallowed,
+ * validated against the spec (the fixture's own two calls, `base` and
+ * `layers`, from `sample-spec.ts`), and written to the ledger as its own
+ * `calls` array beside `answers` and `items`.
+ */
+describe("the carried calls", () => {
+  it("reads the fixture's carried ids off disk", () => {
+    const spec = lab.readSpec(BOARD, readFileSync(SPEC_FILE, "utf8"));
+    expect(spec.calls).toEqual(SAMPLE_BOARD.carried!.map((c) => c.id));
+  });
+
+  it("reports no carried calls for a spec that declares none", () => {
+    const source = `
+      export const B = defineBoard({
+        id: "no-calls",
+        round: { n: 1, date: "2026-09-16", changed: "x" },
+        sections: [{ id: "one", title: "One", lede: "l" }],
+      });
+    `;
+    expect(lab.readSpec("no-calls", source).calls).toEqual([]);
+  });
+
+  it("parses a call: clause beside an ask, checked before the ask clause", () => {
+    const entry = lab.parseLine(
+      `review ${BOARD} r${ROUND}: grain=five; call:base=no "keep it"`,
+    ) as Entry;
+    expect(entry.answers.map((a) => a.ask)).toEqual(["grain"]);
+    expect(entry.calls.map((c) => [c.call, c.answer, c.note])).toEqual([
+      ["base", "no", "keep it"],
+    ]);
+  });
+
+  it('refuses a word that is not "yes" or "no"', () => {
+    expect(() =>
+      lab.parseLine(`review ${BOARD} r${ROUND}: call:base=maybe`),
+    ).toThrowError(/"maybe" is not an answer to a carried call \(yes, no\)/);
+  });
+
+  it("validates a call's id against the spec's carried list", () => {
+    const specs = lab.readSpecs(root);
+    const refusal = lab.validate(
+      [lab.parseLine(`review ${BOARD} r${ROUND}: call:nope=yes`) as Entry],
+      specs,
+    )[0];
+    expect(refusal.message).toContain("is not a call");
+    expect(refusal.message).toContain("base, layers");
+  });
+
+  it("refuses the same call id answered twice on one line", () => {
+    const specs = lab.readSpecs(root);
+    const refusal = lab.validate(
+      [
+        lab.parseLine(
+          `review ${BOARD} r${ROUND}: call:base=no; call:base=yes`,
+        ) as Entry,
+      ],
+      specs,
+    )[0];
+    expect(refusal.message).toContain("answered twice");
+  });
+
+  it("records a call in the ledger, and overwrites it in the round", () => {
+    const first = lab.run(
+      `review ${BOARD} r${ROUND}: call:base=no "keep it"`,
+      { root, at: "2026-09-19T21:00:00Z" },
+    );
+    expect(first.ok).toBe(true);
+    expect(first.summary.find((r) => r[1] === "call:base")).toEqual([
+      `${BOARD} r${ROUND}`,
+      "call:base",
+      "no",
+      "new",
+    ]);
+    const round = readLedger(BOARD).rounds.find((r) => Number(r.n) === ROUND)!;
+    expect(round.calls).toEqual([
+      {
+        call: "base",
+        answer: "no",
+        note: "keep it",
+        by: "Will",
+        at: "2026-09-19T21:00:00Z",
+      },
+    ]);
+
+    lab.run(`review ${BOARD} r${ROUND}: call:base=yes`, {
+      root,
+      at: "2026-09-19T21:05:00Z",
+    });
+    const again = readLedger(BOARD).rounds.find(
+      (r) => Number(r.n) === ROUND,
+    )!.calls;
+    expect(again.filter((c) => c.call === "base")).toHaveLength(1);
+    expect(again[0]).toMatchObject({ answer: "yes" });
+    // The replacement drops the old note with the old answer, as an item's does.
+    expect(again[0].note).toBeUndefined();
+  });
+
+  it("treats a repeated call answer as an unchanged no-op", () => {
+    const line = `review ${BOARD} r${ROUND}: call:layers=no "a round of its own"`;
+    const first = lab.run(line, { root, at: "2026-09-19T21:10:00Z" });
+    expect(first.summary.find((r) => r[1] === "call:layers")?.[3]).toBe("new");
+    const again = lab.run(line, { root, at: "2026-09-19T21:15:00Z" });
+    expect(again.summary.find((r) => r[1] === "call:layers")?.[3]).toBe(
+      "unchanged",
+    );
+    // Not re-stamped: a re-send is not a new decision.
+    const round = readLedger(BOARD).rounds.find((r) => Number(r.n) === ROUND)!;
+    expect(round.calls.find((c) => c.call === "layers")).toMatchObject({
+      answer: "no",
+      note: "a round of its own",
+    });
+  });
+
+  it("accepts a call the fixture no longer declares, when it only repeats the ledger", () => {
+    const ledger = readLedger(BOARD);
+    ledger.rounds
+      .find((r) => Number(r.n) === ROUND)!
+      .calls.push({ call: "withdrawn-call", answer: "yes", by: "Will" });
+    writeFileSync(ledgerFile(BOARD), `${JSON.stringify(ledger, null, 2)}\n`);
+
+    const echo = lab.run(`review ${BOARD} r${ROUND}: call:withdrawn-call=yes`, {
+      root,
+      at: "2026-09-19T21:20:00Z",
+    });
+    expect(echo.ok).toBe(true);
+    expect(echo.summary.find((r) => r[1] === "call:withdrawn-call")?.[3]).toBe(
+      "unchanged",
+    );
+
+    const fresh = lab.run(`review ${BOARD} r${ROUND}: call:withdrawn-call=no`, {
+      root,
+      at: "2026-09-19T21:25:00Z",
+    });
+    expect(fresh.ok).toBe(false);
+    expect(fresh.errors[0].message).toContain("is not a call");
   });
 });
 
