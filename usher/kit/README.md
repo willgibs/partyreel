@@ -52,3 +52,8 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   before the first entry's Next, STATUS rows through `status-row.py`, an orchestrator row replaced by id or added before the queue
   row, ROADMAP lines at the head of Now and old lines retired by substring (exactly one match each); then the caps printed (the
   entry at 160, STATUS at 120, a warning past 150 to open a new entry at the next record). Retire runs before add in one call.
+
+- `negative.sh` (2026-09-20, from gracetargaryen's "a check is only real if it can fail loudly"): the standing negative control
+  for the kit's refusals, every known-bad input that must be refused (a missing lane, a full sha, a duplicated STATUS id, an
+  unmatched ROADMAP retirement, the key's host guard); a refusal that has gone quiet is this script's own failure. Run it
+  after any change to the kit and before the first integration of a day.

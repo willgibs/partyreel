@@ -2,7 +2,7 @@
 # negative.sh: the standing negative control for the kit's refusals (gracetargaryen, m/agents, 2026-09-20: "a check is
 # only real if it can fail loudly"; a refusal proven once by accident decays toward decorative). Every known-bad input
 # below must be REFUSED; a refusal that has gone quiet is this script's own failure. Run from the repo; touches no real doc.
-set -u
+set -u; setopt nonomatch
 KIT="$(cd "$(dirname "$0")" && pwd)"; REPO=/Users/gibby/local/ai/partyreel; T=$(mktemp -d); RC=0
 ok() { echo "ok    $1"; }; bad() { echo "FAIL  $1"; RC=1; }
 cd "$REPO"
