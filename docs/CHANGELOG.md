@@ -61,6 +61,16 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   literal match; two Pass shapes on one board, deliberately. One lab finding on the ROADMAP: a fully ruled ask is
   unreachable by `?session=` even by a direct link.
 
+- **`avatar-look` merged at `539dfa4e`** (2026-09-20, Sonnet; `seed-avatar` round two): one decision, the look, four options measured on
+  the wired avatar at 24, 32, 40 and 80 with the initial, on the guest list, the menu and the profile row: the
+  diagonal as wired; `mesh` (hashvatar's own register reproduced from its SOURCE, one identity hue at four tonal
+  depths diffused and layered, the brief's "several hue stops" corrected; recommended: it clears the letter floor on
+  every one of a thousand seeds, worst 4.69:1, against the wired diagonal's 76 percent, worst 4.13:1); `throw` (two
+  pools of light); `lit-seam` (a lit crease on the diagonal's seam). Every option measured with real compositing math
+  at the exact pixel, a bar stricter than the production contract has held any look to, which surfaces a gap every
+  option shares and the disc's ring mitigates (on the ROADMAP; his call). Round one's seven asks named as ruled. Gate
+  57 on the merged tree. Look at first: the board opens on `mesh` with the measured caption.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
