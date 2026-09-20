@@ -1,6 +1,6 @@
 ---
 track: buttons-pairs
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "af7ec784"          # the launch-prep SHA the branch was cut from
 board: body-type       # round two on the same board id, the buttons rung alone
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -177,24 +177,28 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (a lab round: no production byte shipped; `button.tsx` untouched, the `pairs` winner wires at its cva table in a follow-up)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: from `buttons-pairs` (2026-09-20, the lab): a board-page measurement effect keyed only on a module-constant probe array (`[probes]`) freezes its caption the instant the board's own control swaps which option is drawn without remounting the tree (`BoardSection` hands a single unkeyed child to `evidence()`, so React updates props in place rather than remounting) — the stepped review never shows it, since `StageViews` mounts every option once in its own keyed div and never swaps a live one. Fixed here with a per-swap change token (the frame's own id) added to the deps; the same shape (a stable-reference dependency beside board-state-driven content) could recur in any board built this way, and `measure.ts`'s hooks read the tuner store's own subscription rather than this pattern, so nothing there catches it either. Worth a shared note in the kit or a `measure.ts` helper that makes the token opt-out rather than opt-in.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Board commit `41770ef9`, pushed; synced with launch-prep at merge `556c3d6b` (it had moved 27 commits: the sixth batch's further landings — `vocab-wiring`, `pricing-fit`, `avatar-look`, `demo-wiring`, `demo-doors` — and the morning's resume record, `37f9345b`, Will's own words on this exact resumption; `touchpoints.ts` merged clean, no conflicts, `docs/design/library.md` regenerated and byte-identical after)
+- Resumed exactly where the dead session (killed by the weekly limit, 07:30 EDT) left it: its six uncommitted files were a coherent, complete round-two board (spec, fixtures, board, surfaces, the touchpoints.ts registration, library.md), committed whole first (`c1facebc`); its own diagnosed bug — the measurement effect's `[probes]` dependency never re-firing on a board-page swap — fixed second (`41770ef9`), verified live rather than taken on faith (below)
+- Gates on the synced tree: design:rules ok (no diff), specimens ok (no diff), typecheck ok, lint ok (8 known, none in this lane's files), test ok (3053 passed, 1 skipped, 290 files), build ok (255 pages); `pnpm lab:smoke --base :3134` ok (434 checks, 0 failing, `body-type` 172 words against a 1200 budget); `pnpm lab:demo --board body-type --base :3134` ok (1 step, 0 failing: `pairs` options differ by up to 0.65%, consistent with "height never moves")
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/body-type/{board,fixtures,spec,surfaces}.{ts,tsx}` (owned) plus `src/app/(dev)/design/touchpoints.ts` and `docs/design/library.md` (the registration exception: round two's single-decision entry and its generated line) — nothing else
+- The items, one line each:
+  - `pairs`: recommended `step-up` (icon one Tailwind notch over its text: 12/14, 14/16, 16/18; moves the least, since sm/default/lg/cta's shipped icons already sit at these numbers, turning his "mismatched" pairing into a stated rule); `text` (icon equals the text, the flattest reading) and `today` (only the text moves, literally what he saw) drawn as real contenders on the same real `<Button>` at every size plus the guest's raw Download, 1440 and 375; height never moves under any option (each size's own shipped `h-*`, measured not assumed); the winner wires at `button.tsx`'s cva table in a follow-up (`ladder-wiring`'s successor or a small lane)
+- Calls his to overrule:
+  - the caption measures five probes (`sm Download`, `xs Approve`, `default Share`, `cta`, `icon-sm`) rather than every button on the frame (the guest's `lg` block, review's Hide, the other three icon-only sizes are drawn and visible but not printed); one representative pair per tier was judged enough to read the pattern without a wall of numbers
+  - the fix itself is not a design call (a frozen caption is a bug, not a reading), listed here only so its verification is not taken on faith: switching `pairs` on the plain board page now re-measures and updates every time (confirmed live, all three options, both widths; exact numbers in the Handoff's gates line)
+- The help articles this lane makes stale: none (a lab round; no production copy or component changed)
+- Assets requested from Will: none
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Look at first: the `sm Download` / `xs Approve` pair his note named directly (both now read cleanly at every pairing); the fact that the caption changes at all when you press between the three options on the board page, which is the whole bug
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `body-type` round two on the button rung: resumed after the weekly-limit kill, the prior session's uncommitted board (spec, fixtures, board, surfaces) committed whole (`c1facebc`), then its own diagnosed bug fixed (`41770ef9`) — `MeasuredButtons`' measurement effect depended only on `[probes]`, a module constant, so it never re-ran when the board page's own control swapped `pairs` without remounting the tree, and the three options' shared box height meant the ResizeObserver never rescued it either; a per-swap change token (the frame's own id, unique per pairing and width) now forces a re-read. Three pairings (`text`, `step-up` recommended, `today`) drawn on the real Button at xs/sm/default/lg/cta and the four icon-only sizes, plus the guest's raw Download, at 1440 and 375, every number measured in the frame; height never moves under any option. Gate green on the synced tree (3053 tests, 255 pages, smoke 434, demo 1/1, 0 failing). The winner wires at `button.tsx`'s cva table in a follow-up.
