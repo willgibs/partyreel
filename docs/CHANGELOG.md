@@ -143,6 +143,29 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   would be a smaller ask on the winner); `stage` sketched as a rest frame, never the live loop. Look at first: the
   nav pane under each option at 1440.
 
+- **`type-sync` merged at `f76ff412`** (2026-09-20, Sonnet; production, the ladder's follow-up): the body scan's
+  allow-list from 38 entries and 95 elements across five kinds to 27 and 78 across three: the `lane` and `pending`
+  kinds at zero and dropped from the exception type, so one coming back fails typecheck (the hard fail the ladder
+  deferred, for the half that was ever a lane boundary; `depicted`, `relative` and `board` stay named, counted and
+  reasoned). Eleven files moved onto a step as a mechanical class swap (the footer's links, controls, lede, thesis,
+  note and badge; the gate's eyebrow; the teaser's badge and eyebrow; the three flat ledes and the wysiwyg glyph
+  onto `copy`; the feed header's label; the "N uploading" chip onto `micro`), plus the footer's shared link constant.
+  The design-system doc's stale way-6 paragraph refined in place. Gate 64 on the merged tree. Calls his: the
+  footer's two controls at 14 (`working`, not the button rung); the demo lede and the thesis on `copy`; the
+  assistant note on `caption`; the "N uploading" chip read as a count (10) rather than a category label (12).
+
+- **`toasts` merged at `75fefbdf`** (2026-09-20, Sonnet; a new board from his `moment=today` note, resumed after the limit
+  from an unregistered board on disk): the toast as a system on the real toasts, its first line the rule that halves
+  them (if the control can show it, no toast); five decisions drawn on the guest's held line, the host's bulk approve
+  with Undo, an export mint, a pricing refusal and an error at 375 and 1440 in both themes: `where` (`top`
+  recommended: the foot is claimed twice already), `material` (`card`; the scene pinned to paper so `ink` is
+  provable), `life` (`persist`: an error that vanishes before it is read repeats itself), `stack` (`expanded`),
+  `action` (`always`: a slot, not a mandate). Two steps read FROZEN in the demo harness though both draw correctly,
+  verified three ways by hand (the captures come back byte-identical on grid-stacked srcdoc iframes, the glass
+  finding's twin; on the ROADMAP). Moved after `app-vocabulary` on the desk. Gate 65 on the merged tree (its demo step
+  red on those two steps by the harness, not the board). Call his: the paper-pinned `material` scene rather than a
+  light and dark pair. Look at first: `material` and `action` by hand at their session links.
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
