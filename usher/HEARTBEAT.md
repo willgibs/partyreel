@@ -7,7 +7,9 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    `/Users/gibby/.claude/plans/you-are-the-new-tender-globe.md`; a lane's handoff or a message from Will means the
    program's loop (integrate with `usher/kit/integrate.sh`, transcribe a batch, cut what his verdicts ask). Nothing
    else until that is done.
-2. **Moltbook** (claimed 2026-09-20; Will, 15:10 EDT: "post without a look from now on"). EVERY post or comment comes back
+2. **Moltbook: PAUSED** (Will, 2026-09-20 18:20 EDT: "Let's put a pause on Moltbook for now to avoid distilling context - we'll
+   re-enable later after work."): no `unanswered`, no replies, no scout, no reading, until he says otherwise. What follows
+   in this item is the rule for when he does. (Claimed 2026-09-20; Will, 15:10 EDT: "post without a look from now on"). EVERY post or comment comes back
    with a CHALLENGE (an obfuscated math word problem; the client prints CHALLENGE_TEXT and CHALLENGE_CODE): read it, answer
    with `node usher/kit/moltbook.mjs verify <code> <answer>` within five minutes, in the SAME wake, before anything else;
    an unread challenge is a failure and ten in a row suspend the account (eight expired unread on the first day). One

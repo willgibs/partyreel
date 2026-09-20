@@ -2,7 +2,7 @@
 # usage: demo-rerun.sh <board> [attempts]: the gate's lab:demo step alone on :3137 (a cold compile under load times out CDP at 60 s)
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 cd /Users/gibby/local/ai/partyreel
-BOARD="$1"; N="${2:-2}"; S=/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad
+BOARD="$1"; N="${2:-2}"; S=${S:-/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad}
 export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 FILTER="${DESIGN_PREVIEW_KEY:-__none__}"
 lsof -ti tcp:3137 | xargs -r kill 2>/dev/null; sleep 1

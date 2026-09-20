@@ -5,7 +5,7 @@ TRACK="$1"; HSHA="$2"; MSG="$3"
 cd /Users/gibby/local/ai/partyreel
 trap 'echo "STEP FAILED"; exit 1' ERR
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-S=/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad
+S=${S:-/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad}
 [ -n "$TRACK" ] && [ -n "$HSHA" ] && [ -f "$MSG" ] || { echo "usage: merge-lane.sh <track> <sha> <msgfile>"; exit 1; }
 [ -z "$(git status --porcelain)" ] || { echo "tree not clean"; git status --short; exit 1; }
 git fetch -q origin
