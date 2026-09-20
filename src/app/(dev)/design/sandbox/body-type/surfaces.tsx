@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type ComponentType,
   type ReactNode,
   useEffect,
   useLayoutEffect,
@@ -9,62 +10,120 @@ import {
 } from "react";
 import {
   Bell,
-  CalendarPlus,
+  Check,
   Download,
   ImageUp,
   ListChecks,
-  Lock,
+  Maximize2,
   QrCode,
   Settings,
+  X,
 } from "lucide-react";
 
-import { EventCard } from "@/components/app/event-card";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { Frame, useLabPrefs } from "@/components/lab";
-import { Container } from "@/components/shared/container";
-import { Logo } from "@/components/shared/logo";
-import { PageHeading } from "@/components/shared/page-heading";
-import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-import { EVENT, EVENTS, MARKETING, RUNS } from "./fixtures";
+import { EVENT } from "./fixtures";
 
 /**
- * THE SURFACES THE BODY LADDER GOVERNS, DRAWN AT A REAL VIEWPORT.
+ * THE PAIRING, DRAWN ON THE REAL BUTTON, round two.
  *
- * Every picture on this board is a real product surface inside a `Frame`, which
- * is the only 1:1 viewport the lab has: a fluid step is a `vw` clamp and `vw`
- * is the BROWSER's width, so a 375 column drawn as a div on a 1440 page would
- * report the desktop end while the caption said phone (traps.ts,
- * `vw-in-a-narrow-div`). Where the real component is importable it IS the
- * component (`EventCard`, `FeedSectionHeader`, `Eyebrow`, `Button`, `Card`);
- * where it reaches for a session, a provider or the network the markup is
- * copied byte for byte with its production classNames intact, because those
- * classNames are what the candidate is written against.
+ * ★ HEIGHT NEVER MOVES (measured, not assumed). All three options change a
+ * size's TEXT (onto the caption/working/reading steps, round one's own
+ * mapping: xs+sm caption, default+lg working, cta reading) and, for two of
+ * them, its ICON; height stays each size's OWN shipped `h-*`/`size-*` because
+ * every icon this round ever proposes — even step-up's biggest, cta's 18px —
+ * still fits its current box with room on every side. So `size={...}` alone
+ * gives every row its real height, corner and padding, unedited; the only
+ * className this file ever adds is the text step and, where an option says
+ * so, the icon's own `size-*`. Nothing here touches button.tsx.
  *
- * ★ THE CANDIDATE IS APPLIED FROM OUTSIDE, AND IT IS THE PASTE A RULING WOULD
- * LAND. `Frame`'s `css` goes into an adopted stylesheet constructed in the
- * frame's own realm, which is ordered after every author sheet, so an unlayered
- * rule aimed at a production class (`[class~="text-sm"]`) beats the Tailwind
- * utility without a specificity war and without editing one production byte.
- * The option named "as today" passes an EMPTY candidate, so it is the site as
- * built and its numbers are what the site actually does.
+ * ★ THE THREE OPTIONS, AS NUMBERS (text/icon, px). `text`: 12/12, 14/14,
+ * 16/16 — the icon IS the text. `step-up`: 12/14, 14/16, 16/18 — the icon is
+ * always one Tailwind icon-step over (a constant +2px). `today`: the icon
+ * button.tsx already ships (xs 12, sm 14, default/lg/cta 16) under the NEW
+ * text — which is exactly the mismatch he saw: sm's new 12px text beside its
+ * old, untouched 14px icon.
  *
- * ★ AND EVERY NUMBER UNDER A FRAME IS READ OFF THE ELEMENT. `Measured` runs
- * `getComputedStyle` inside the frame's own document, so the caption cannot
- * drift from the picture. If the words above a frame and the caption under it
- * disagree, the caption is the truth (the rule gallery-width paid for).
+ * ★ A COINCIDENCE WORTH SAYING OUT LOUD. sm, default, lg and cta's TODAY icon
+ * (14, 16, 16, 16) already equals step-up's formula at three of those four
+ * (sm's 14 IS one notch over 12; default and lg's 16 IS one notch over 14).
+ * Only xs (flush at 12/12 today) and cta (flush at 16/16 today) actually MOVE
+ * under step-up. So step-up and today draw sm's Download identically — not a
+ * bug, the proof that step-up reaches his "mismatched" pairing by a stated
+ * rule rather than by button.tsx's own inheritance accident — and diverge
+ * everywhere else.
  */
+export type Pairing = "text" | "step-up" | "today";
 
-/* ── the two widths ──────────────────────────────────────────────────────── */
+type Tier = "caption" | "working" | "reading";
+type NamedSize =
+  | "xs"
+  | "sm"
+  | "default"
+  | "lg"
+  | "cta"
+  | "icon"
+  | "icon-xs"
+  | "icon-sm"
+  | "icon-lg";
+
+const TIER_OF: Record<NamedSize, Tier> = {
+  xs: "caption",
+  sm: "caption",
+  default: "working",
+  lg: "working",
+  cta: "reading",
+  "icon-xs": "caption",
+  "icon-sm": "caption",
+  icon: "working",
+  "icon-lg": "working",
+};
+
+/** The step every size's TEXT wears in all three options (round one, ruled). */
+const TIER_TEXT: Record<Tier, { cls: string; px: number }> = {
+  caption: { cls: "text-caption", px: 12 },
+  working: { cls: "text-working", px: 14 },
+  reading: { cls: "text-reading", px: 16 },
+};
+
+/** `text`: the icon at the same Tailwind step as the text (12/14/16 -> size-3/3.5/4). */
+const AT_STEP: Record<number, string> = {
+  12: "size-3",
+  14: "size-3.5",
+  16: "size-4",
+};
+/** `step-up`: the icon one Tailwind icon-step over (12->14->16->18). */
+const ONE_OVER: Record<number, string> = {
+  12: "size-3.5",
+  14: "size-4",
+  16: "size-4.5",
+};
+/** `today`: exactly what button.tsx ships now (read off it, never edited). */
+const TODAY_ICON: Record<NamedSize, string> = {
+  xs: "size-3",
+  sm: "size-3.5",
+  default: "size-4",
+  lg: "size-4",
+  cta: "size-4",
+  icon: "size-4",
+  "icon-xs": "size-3",
+  "icon-sm": "size-4",
+  "icon-lg": "size-4",
+};
+
+function textClass(size: NamedSize): string {
+  return TIER_TEXT[TIER_OF[size]].cls;
+}
+function iconClass(size: NamedSize, pairing: Pairing): string {
+  if (pairing === "today") return TODAY_ICON[size];
+  const px = TIER_TEXT[TIER_OF[size]].px;
+  return pairing === "text" ? AT_STEP[px] : ONE_OVER[px];
+}
+
+/* ── the two widths, exactly as round one declared them ──────────────────── */
 
 export const WIDTHS = {
   "1440": { w: 1440, h: 900, name: "a desktop" },
@@ -74,105 +133,36 @@ export type WidthId = keyof typeof WIDTHS;
 export const widthOf = (v: string | undefined): WidthId =>
   v === "375" ? "375" : "1440";
 
-/* ── the line-height rule, which every other decision is drawn wearing ───── */
+/* ── the measurement: text, icon, height and gap, read off the real box ──── */
 
-export type LeadingRule = "length" | "ratio" | "two";
-export const leadingOf = (v: string | undefined): LeadingRule =>
-  v === "ratio" ? "ratio" : v === "two" ? "two" : "length";
-
-/** Which half of the ladder a step is on: it is what the two-ratio rule splits. */
-export type Kind = "reading" | "working";
-
-/**
- * A step's line height in px under the rule in play.
- *
- * ★ `length` IS NOT A FORMULA WE INVENTED. Tailwind's own body pairs, which
- * this site already wears at 366 + 243 + 25 sites, are 12 on 16, 14 on 20, 16
- * on 24 and 18 on 28, and every one of them is `2 x size - 8`. So the length
- * rule reproduces what we ship byte for byte at every RUNG, lands each of those
- * pairs on the 4px grid, and puts a half-rung (11, 13, 15, 17) on 14, 18, 22
- * and 26, which are even but off it. That difference is itself evidence: the
- * ladder's rungs are the sizes whose leading lands on the grid. Floored at 14,
- * because 2 x 10 - 8 is 12 and a badge on 1.2 is set solid.
- *
- * `ratio`: 1.5 exactly. Measured in the frame, this is ALREADY what an
- * arbitrary size does: Tailwind's preflight sets a unitless 1.5 on <html>, so
- * `text-[15px]` computes to 22.5 and `text-[11px]` to 16.5 with nothing written.
- * `two`: 1.6 on reading copy and 1.4 on working copy and captions.
- */
-export function leadingPx(size: number, kind: Kind, rule: LeadingRule): number {
-  if (rule === "ratio") return Math.round(size * 15) / 10;
-  if (rule === "two")
-    return Math.round(size * (kind === "reading" ? 16 : 14)) / 10;
-  return Math.max(14, 2 * size - 8);
-}
-
-/* ── writing a candidate ─────────────────────────────────────────────────── */
-
-/** A production class as a selector the candidate can aim at. */
-export const cls = (name: string) => `[class~="${name}"]`;
-
-/** One rule: a size in px and the leading the picked rule gives it. */
-export function step(
-  selector: string,
-  size: number,
-  kind: Kind,
-  rule: LeadingRule,
-  extra = "",
-): string {
-  return `${selector}{font-size:${size / 16}rem;line-height:${leadingPx(size, kind, rule) / 16}rem;${extra}}`;
-}
-
-/**
- * A fluid step: the clamp through (375, phone) and (1440, desktop) that the
- * heading ladder's own `fluid()` writes, so a marketing body step is built the
- * same way its headings are.
- */
-export function fluid(
-  selector: string,
-  phone: number,
-  desktop: number,
-  kind: Kind,
-  rule: LeadingRule,
-): string {
-  const span = (a: number, b: number) => {
-    const slope = (b - a) / (1440 - 375);
-    const intercept = (a - slope * 375) / 16;
-    return `clamp(${(a / 16).toFixed(4)}rem, ${intercept.toFixed(4)}rem + ${(slope * 100).toFixed(4)}vw, ${(b / 16).toFixed(4)}rem)`;
-  };
-  return `${selector}{font-size:${span(phone, desktop)};line-height:${span(leadingPx(phone, kind, rule), leadingPx(desktop, kind, rule))}}`;
-}
-
-/* ── the measurement ─────────────────────────────────────────────────────── */
-
-export type Probe = {
+export type ButtonProbe = {
   label: string;
   sel: string;
-  /** Also print the computed letter-spacing: the label step is a PAIR. */
-  track?: boolean;
+  /** No visible label beside the icon: an icon-only button has no gap to
+   *  speak of (one flex child, no `gap-*` in its own cva row) and its
+   *  inherited font-size is ambient page context, never a step this ask
+   *  sets, so neither is worth printing. */
+  iconOnly?: boolean;
 };
 
+/** A number, or "–" for one this box genuinely has none of (an icon-only
+ *  button's gap: one flex child, nothing to space it from). */
+const px = (n: number) =>
+  Number.isFinite(n) ? (Math.round(n * 10) / 10).toString() : "–";
+
 /**
- * Reads the computed size and leading off real elements INSIDE the frame.
- *
- * ★ THE STYLE IS READ THROUGH THE FRAME'S OWN WINDOW. The subtree is portalled
- * into the iframe's document, so `getComputedStyle` has to come from that
- * document's view or it answers about a node in another realm.
- *
- * ★ AND IT RE-READS AFTER THE CANDIDATE LANDS. The sheet is adopted on a rAF
- * and again at the frame's settle (500ms), and a font-size change resizes the
- * box, so a `ResizeObserver` catches most of it; the three delayed reads cover
- * the case where a box is fixed and only the glyphs inside it moved.
+ * Reads text size, icon size, box height and the flex gap off a real
+ * `data-slot="button"` element inside the frame's own window (the same
+ * reason `type-ladder-policy.test.ts`'s scan and round one's `Measured` both
+ * insist on the computed value rather than the class name: a className is
+ * what was WRITTEN, this is what RENDERS).
  */
-function Measured({
+function MeasuredButtons({
   probes,
-  css,
   onMeasure,
   children,
 }: {
-  probes: readonly Probe[];
-  /** The candidate in play: a change re-reads. */
-  css: string;
+  probes: readonly ButtonProbe[];
   onMeasure: (text: string) => void;
   children: ReactNode;
 }) {
@@ -186,27 +176,28 @@ function Measured({
     const el = ref.current;
     const win = el?.ownerDocument.defaultView;
     if (!el || !win) return;
-    const round = (n: number) => (Math.round(n * 10) / 10).toString();
     const read = () => {
       const parts: string[] = [];
       for (const p of probes) {
-        const node = el.querySelector(p.sel);
+        const node = el.querySelector<HTMLElement>(p.sel);
         if (!node) continue;
         const s = win.getComputedStyle(node);
-        const size = parseFloat(s.fontSize);
-        const lh = parseFloat(s.lineHeight);
-        // Tracking comes back in px, and the pair he is answering is in em,
-        // so it is divided back by the size it was resolved against.
-        const track = parseFloat(s.letterSpacing);
-        const em = Number.isNaN(track) ? 0 : track / size;
-        parts.push(
-          `${p.label} ${round(size)}/${Number.isNaN(lh) ? "normal" : round(lh)}${
-            p.track ? ` +${em.toFixed(3)}em` : ""
-          }`,
-        );
+        const height = node.getBoundingClientRect().height;
+        const svg = node.querySelector("svg");
+        const icon = svg ? svg.getBoundingClientRect().width : Number.NaN;
+        const iconBit = `icon ${px(icon)} · h ${px(height)}`;
+        if (p.iconOnly) {
+          parts.push(`${p.label} ${iconBit}`);
+        } else {
+          const text = parseFloat(s.fontSize);
+          const gap = parseFloat(s.columnGap);
+          parts.push(
+            `${p.label} text ${px(text)} · ${iconBit} · gap ${px(gap)}`,
+          );
+        }
       }
       if (parts.length > 0)
-        report.current(`${parts.join(" · ")} px, measured in the frame`);
+        report.current(`${parts.join(" · ")}, measured in the frame`);
     };
     read();
     const timers = [160, 700, 1500].map((ms) => win.setTimeout(read, ms));
@@ -216,20 +207,13 @@ function Measured({
       timers.forEach((t) => win.clearTimeout(t));
       ro.disconnect();
     };
-  }, [probes, css]);
+  }, [probes]);
 
   return <div ref={ref}>{children}</div>;
 }
 
-/* ── the frame, fitted the way the lab is ────────────────────────────────── */
+/* ── the frame, fitted the way the lab is (round one's Fit, unchanged) ───── */
 
-/**
- * The lab's Fit preference, kept by a frame. A `Stage` answers it by itself; a
- * bare `Frame` does not, so a 1440 window would stay 1:1 under Fit and the
- * stage head's scale button would seem dead. Zooming a frame is honest: `zoom`
- * on an iframe's ancestor scales the picture and leaves the frame's own
- * viewport alone (measured on gallery-width).
- */
 function Fit({ w, children }: { w: number; children: ReactNode }) {
   const { fit } = useLabPrefs();
   const zoomed = fit === "zoom";
@@ -258,43 +242,22 @@ function Fit({ w, children }: { w: number; children: ReactNode }) {
   );
 }
 
-/** One surface at one width, wearing one candidate, with its numbers read off it. */
-export function TypeFrame({
+/** One pairing option, at one width, with its numbers read off it. */
+function PairFrame({
   id,
   width,
   title,
-  css,
   probes,
-  short,
-  tall,
   children,
 }: {
   id: string;
   width: WidthId;
   title: string;
-  css: string;
-  probes: readonly Probe[];
-  /**
-   * How much of the window the tile shows. The WIDTH is what has to be real (a
-   * `vw` clamp reads it, and so does every breakpoint); the height only decides
-   * how much of the page is in the tile. `short` is for a composed surface that
-   * is not a page and would otherwise leave a third of a 900px window empty;
-   * `tall` is for the one decision drawn on TWO stacked surfaces, where 900 put
-   * the admin's table under the fold and half the evidence went with it
-   * (caught on the first capture, 2026-09-18).
-   */
-  short?: boolean;
-  tall?: boolean;
+  probes: readonly ButtonProbe[];
   children: ReactNode;
 }) {
   const { w, h: full } = WIDTHS[width];
-  // `tall` is a desktop affordance only: a 1100px phone viewport is not a
-  // window anyone has, and at 375 the two surfaces cannot share a screen anyway.
-  const h = short
-    ? Math.min(full, 620)
-    : tall && width === "1440"
-      ? 1100
-      : full;
+  const h = Math.min(full, 620);
   const [caption, setCaption] = useState("measuring");
   return (
     <Fit w={w}>
@@ -302,611 +265,311 @@ export function TypeFrame({
         id={`${id}-${width}`}
         w={w}
         h={h}
-        css={css}
         title={`${title}, ${WIDTHS[width].name}`}
         caption={caption}
       >
-        <Measured probes={probes} css={css} onMeasure={setCaption}>
+        <MeasuredButtons probes={probes} onMeasure={setCaption}>
           {children}
-        </Measured>
+        </MeasuredButtons>
       </Frame>
     </Fit>
   );
 }
 
-/* ── the guest's event page ──────────────────────────────────────────────── */
+/* ── the rows, each the real <Button> in the place it ships ──────────────── */
 
-/**
- * THE GUEST'S EVENT PAGE, first screen, as `event-experience.tsx` lays it out
- * inside its `max-w-2xl px-5 py-8` column, with `guest-header.tsx` above it as
- * a signed-out visitor meets it (the shipped header reads the session and asks
- * the network who is looking). The description is the one long thing a guest
- * reads and it keeps its production `text-[15px]`; the locked page's line
- * carries the same class, which is why one step answers both.
- */
-export function GuestPage() {
+type ButtonSize =
+  | "xs"
+  | "sm"
+  | "default"
+  | "lg"
+  | "cta"
+  | "icon"
+  | "icon-xs"
+  | "icon-sm"
+  | "icon-lg";
+
+/** A labelled action: the real Button, wearing this option's text and icon.
+ *  `probe` is a bare `data-probe` marker (never `data-size` alone: a frame
+ *  holds more than one button of the same size, and `data-probe` is what lets
+ *  a selector name ONE of them without depending on DOM order). */
+function PairedButton({
+  pairing,
+  size,
+  variant = "outline",
+  icon: Icon,
+  className,
+  probe,
+  children,
+}: {
+  pairing: Pairing;
+  size: ButtonSize;
+  variant?: "default" | "outline" | "secondary";
+  /** Left out where production carries no icon (Save/Invite): the row still
+   *  wears the option's TEXT step, just nothing to measure an icon on. */
+  icon?: ComponentType<{ className?: string }>;
+  className?: string;
+  probe?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex min-h-full flex-col bg-background text-foreground">
-      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
-        <Logo />
-        <div className="flex h-8 items-center">
-          <Button variant="ghost" size="sm">
-            Start for free
-          </Button>
-        </div>
-      </header>
-      <div className="mx-auto w-full max-w-2xl px-5 py-8">
-        <header>
-          <h1 className="font-heading text-page text-balance">{EVENT.name}</h1>
-          <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="text-faint">Hosted by</span>
-              <span className="font-medium text-foreground">{EVENT.host}</span>
-            </span>
-            <span aria-hidden className="text-faint">
-              ·
-            </span>
-            <span>{formatEventDate(EVENT.date)}</span>
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {EVENT.photos} photos &amp; videos from {EVENT.guests} guests
-          </p>
-          <p
-            data-bt="guest-description"
-            className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground"
-          >
-            {EVENT.description}
-          </p>
-        </header>
-        {/* The action block as event-experience.tsx ships it: the primary Add
-            at size lg, the two seconds at the default size forced to h-9. */}
-        <div className="mt-4">
-          <Button type="button" size="lg" className="w-full">
-            <ImageUp /> Add photos
-          </Button>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <Button variant="outline" className="h-9 w-full">
-              Save
-            </Button>
-            <Button variant="outline" className="h-9 w-full">
-              Invite
-            </Button>
-          </div>
-        </div>
-        {/* The locked page's line and the entry sheet's row, both on the same
-            step as the description (event-experience.tsx, entry-modal.tsx). */}
-        <div className="mt-8 space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-          <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            You&rsquo;re invited
-          </p>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Lock className="size-4" aria-hidden />
-            {/* One string, not an expression beside JSX text: the space
-                between the two was being eaten in the compiled output and the
-                tile read "128photos" (caught on the first capture). */}
-            <p className="text-[15px]">{`${EVENT.photos} photos & videos inside`}</p>
-          </div>
-          <p className="text-[15px] text-muted-foreground">
-            Enter the password the host gave you and the album opens.
-            We&rsquo;ll remember this device.
-          </p>
-        </div>
-      </div>
-    </div>
+    <Button
+      type="button"
+      variant={variant}
+      size={size}
+      data-probe={probe}
+      className={cn(textClass(size), className)}
+    >
+      {Icon ? <Icon className={iconClass(size, pairing)} /> : null}
+      {children}
+    </Button>
   );
 }
 
-/* ── the host's dashboard ────────────────────────────────────────────────── */
+/** An icon-only action: the four icon sizes, none of them carrying text. */
+function PairedIconButton({
+  pairing,
+  size,
+  icon: Icon,
+  label,
+  probe,
+}: {
+  pairing: Pairing;
+  size: "icon" | "icon-xs" | "icon-sm" | "icon-lg";
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  probe: string;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size={size}
+      aria-label={label}
+      data-probe={probe}
+    >
+      <Icon className={iconClass(size, pairing)} />
+    </Button>
+  );
+}
 
 /**
- * THE HOST'S DASHBOARD as `(app)/dashboard/page.tsx` lays it out inside
- * `AppShell`: the header, the page heading and its stat line, the New event
- * action, the over-limit notice, the storage meter's two lines and the events
- * section under its 11px label, with the real `EventCard` in the grid.
+ * EVERY BUTTON SIZE, IN THE PLACE IT SHIPS, wearing one pairing option: the
+ * guest's `lg` block, the marketing/pricing `cta`, the host's `default`
+ * command strip, the Gallery header's `sm` pair (`GalleryDownloadAllButton`,
+ * `GallerySelectButton` — same label, same icon, same variant, reconstructed
+ * because both read a provider or a network this lab cannot mount), a review
+ * tile's `xs` pair, the four icon-only sizes together, and — unchanged, for
+ * comparison — the guest album's own hand-rolled Download (`live-gallery.tsx`,
+ * not a `<Button>` at all, so no option here touches it).
  */
-export function Dashboard({
+export function ButtonPairSurfaces({
   width,
-  stacked,
+  pairing,
 }: {
   width: WidthId;
-  stacked?: boolean;
+  pairing: Pairing;
 }) {
-  const phone = width === "375";
-  return (
-    <div
-      className={cn(
-        "flex flex-col bg-background text-foreground",
-        // ★ `min-h-full` RESOLVES AGAINST THE FRAME'S VIEWPORT. Stacked under
-        // another surface it claims the whole window and pushes the one below
-        // it out of the tile, silently: the admin table was in the DOM and
-        // measured correctly while nothing of it was on screen.
-        !stacked && "min-h-full",
-      )}
-    >
-      <header className="border-b bg-background/80">
-        <Container className="flex h-14 items-center justify-between gap-4">
-          <Logo />
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell />
-            </Button>
-            <span className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
-              M
-            </span>
-          </div>
-        </Container>
-      </header>
-      <main className="flex-1 py-8">
-        <Container className="space-y-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <PageHeading>Dashboard</PageHeading>
-              <p data-bt="app-stat" className="text-sm text-muted-foreground">
-                3 of 5 events used
-              </p>
-            </div>
-            <Button>
-              <CalendarPlus /> New event
-            </Button>
-          </div>
-
-          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
-            <p className="font-medium text-foreground">
-              You&rsquo;re over your storage limit
-            </p>
-            <p data-bt="app-notice" className="mt-1 text-muted-foreground">
-              Upgrade or remove media by 2 October. After that we&rsquo;ll
-              automatically reduce your storage, largest files first.
-            </p>
-          </div>
-
-          <div className="space-y-1.5 rounded-lg border border-border px-3 py-2.5">
-            <div className="flex items-center gap-3">
-              <span className="shrink-0 text-xs font-medium text-muted-foreground">
-                Storage
-              </span>
-              <span className="h-1.5 flex-1 rounded-full bg-muted">
-                <span className="block h-full w-2/3 rounded-full bg-foreground/70" />
-              </span>
-              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                68 GB of 100 GB
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Pro plan, renews 1 October.
-            </p>
-          </div>
-
-          <section aria-label="Your events">
-            <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-              Your events
-            </h2>
-            <div
-              className={`mt-2.5 grid gap-4 ${phone ? "grid-cols-1" : "grid-cols-3"}`}
-            >
-              {EVENTS.map((e) => (
-                <EventCard
-                  key={e.name}
-                  href="#"
-                  name={e.name}
-                  coverUrl={e.cover}
-                  dateLabel={e.date}
-                  itemsLabel={e.items}
-                  statusLabel={e.status}
-                  pendingCount={e.pending}
-                />
-              ))}
-            </div>
-          </section>
-        </Container>
-      </main>
-    </div>
-  );
-}
-
-/* ── the admin's table ───────────────────────────────────────────────────── */
-
-/**
- * THE ADMIN JOBS TABLE as `admin/jobs/page.tsx` ships it: a `Card` whose body
- * is `text-sm`, a `text-xs` head row, and a meta column of dates and durations.
- * The densest reading surface in the product, and the one that decides whether
- * "host and admin on 14" survives.
- */
-export function AdminTable({ stacked }: { stacked?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "bg-background px-8 py-8 text-foreground",
-        !stacked && "min-h-full",
-      )}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent runs</CardTitle>
-          <CardDescription data-bt="admin-lede">
-            The last {RUNS.length} runs across every job, newest first.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table data-bt="admin-table" className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="py-2 pr-3 font-medium">Started</th>
-                  <th className="py-2 pr-3 font-medium">Job</th>
-                  <th className="py-2 pr-3 font-medium">Outcome</th>
-                  <th className="py-2 pr-3 font-medium">Trigger</th>
-                  <th className="py-2 pr-3 text-right font-medium">Took</th>
-                  <th className="py-2 font-medium">Note</th>
-                </tr>
-              </thead>
-              <tbody>
-                {RUNS.map((r) => (
-                  <tr key={r.started} className="border-b border-border/50">
-                    <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
-                      {r.started}
-                    </td>
-                    <td className="py-2 pr-3">{r.job}</td>
-                    <td className="py-2 pr-3">
-                      <span
-                        className={
-                          r.outcome === "Failed"
-                            ? "text-destructive"
-                            : "text-foreground"
-                        }
-                      >
-                        {r.outcome}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3 text-muted-foreground">
-                      {r.trigger}
-                    </td>
-                    <td className="py-2 pr-3 text-right text-muted-foreground tabular-nums">
-                      {r.took}
-                    </td>
-                    <td className="py-2 text-muted-foreground">{r.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-/** The dashboard over the admin table: one frame holds both surfaces the app's
- *  working step has to serve, so they are judged together. */
-export function AppSurfaces({ width }: { width: WidthId }) {
-  return (
-    <div className="bg-background">
-      <Dashboard width={width} stacked />
-      <AdminTable stacked />
-    </div>
-  );
-}
-
-/* ── a marketing feature section ─────────────────────────────────────────── */
-
-/**
- * A FEATURE SECTION as `SectionShell` composes it: the eyebrow, the heading on
- * the ladder's `section` step, and the lede under it, which sets NO size of its
- * own and so takes the document's 16. The paragraph below is the body a feature
- * page writes at `text-[15px] leading-7`.
- *
- * The shell's own `Reveal` island is left out (`reveal="none"` is its own
- * answer): a reveal target's resting state is opacity 0, and a board that
- * freezes motion would draw an empty section (traps.ts, `blanket-rest`).
- */
-export function MarketingSection({ stacked }: { stacked?: boolean }) {
-  return (
-    <div
-      className={cn(
-        "bg-background py-16 text-foreground",
-        !stacked && "min-h-full",
-      )}
-    >
-      <Container>
-        <div className="mx-auto flex max-w-2xl flex-col gap-3 text-center">
-          <Eyebrow>{MARKETING.eyebrow}</Eyebrow>
-          <h2 className="font-heading text-section text-balance">
-            {MARKETING.heading}
-          </h2>
-          <p data-bt="mkt-lede" className="text-pretty text-muted-foreground">
-            {MARKETING.lede}
-          </p>
-        </div>
-        <div className="mx-auto mt-10 max-w-2xl">
-          <p
-            data-bt="mkt-body"
-            className="text-[15px] leading-7 text-pretty text-muted-foreground"
-          >
-            {MARKETING.body}
-          </p>
-        </div>
-      </Container>
-    </div>
-  );
-}
-
-/**
- * READING COPY OVER WORKING COPY, in one frame: the line-height rule is the one
- * decision that treats them differently (the two-ratio option), so it is the
- * one picture that has to hold a marketing paragraph and a dense table at once.
- */
-export function LeadingSurfaces() {
-  return (
-    <div className="bg-background">
-      <MarketingSection stacked />
-      <AdminTable stacked />
-    </div>
-  );
-}
-
-/* ── the small end: captions, counters, badges, labels ───────────────────── */
-
-/**
- * WHERE THE SMALLEST TYPE IN THE PRODUCT LIVES: the event card's overlay pills
- * (10px on a photograph), a feed header's 11px label and its 10px count, and a
- * table's 12px meta. All three are the shipped components, so the floor is
- * judged where it is actually set.
- */
-export function SmallSurfaces({ width }: { width: WidthId }) {
-  const phone = width === "375";
-  return (
-    <div className="min-h-full bg-background px-6 py-8 text-foreground">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <div className={`grid gap-4 ${phone ? "grid-cols-1" : "grid-cols-3"}`}>
-          {EVENTS.map((e) => (
-            <EventCard
-              key={e.name}
-              href="#"
-              name={e.name}
-              coverUrl={e.cover}
-              dateLabel={e.date}
-              itemsLabel={e.items}
-              statusLabel={e.status}
-              pendingCount={e.pending}
-            />
-          ))}
-        </div>
-
-        <div className="space-y-2.5">
-          <FeedSectionHeader
-            label="Gallery"
-            count={128}
-            action={
-              <div className="flex items-center gap-1.5">
-                <Button variant="outline" size="sm">
-                  <Download /> Download
-                </Button>
-                <Button variant="outline" size="sm">
-                  <ListChecks /> Select
-                </Button>
-              </div>
-            }
-          />
-          <FeedSectionHeader label="Review" count={6} amber />
-        </div>
-
-        <div className="rounded-lg border border-border p-4">
-          <table className="w-full text-sm">
-            <thead>
-              {/* The head row is the caption-sized part of a table; the cells
-                  under it are the app's working step, and stay there. */}
-              <tr
-                data-bt="table-head"
-                className="border-b border-border text-left text-xs text-muted-foreground"
-              >
-                <th className="py-2 pr-3 font-medium">Started</th>
-                <th className="py-2 pr-3 font-medium">Job</th>
-                <th className="py-2 pr-3 text-right font-medium">Took</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RUNS.slice(0, 3).map((r) => (
-                <tr key={r.started} className="border-b border-border/50">
-                  <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
-                    {r.started}
-                  </td>
-                  <td className="py-2 pr-3">{r.job}</td>
-                  <td className="py-2 pr-3 text-right text-muted-foreground tabular-nums">
-                    {r.took}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * EVERY UPPERCASE LABEL THE SITE SETS, in the places it sets them: the
- * marketing `Eyebrow` (12 on 0.14em, 31 sites share that pair), a blog and a
- * help chip on the same one, the dashboard's section labels and the shipped
- * `FeedSectionHeader` (11 on `tracking-wide`, 0.025em, 21 sites), the guest
- * entry sheet's row and the pricing teaser's badge (10 on 0.14em).
- *
- * ★ TEN OF THEM, NOT TWO, BECAUSE A PAIR IS JUDGED ACROSS THE SITE. One
- * eyebrow beside one app label looks like a taste question; ten of them at the
- * sizes and trackings they actually wear is the sweep the answer commits to.
- */
-export function LabelSurfaces({ width }: { width: WidthId }) {
-  const phone = width === "375";
-  return (
-    <div className="min-h-full bg-background px-6 py-10 text-foreground">
-      <div className="mx-auto max-w-4xl space-y-8">
-        <div className="flex flex-col gap-3 text-center">
-          <Eyebrow data-bt="eyebrow">{MARKETING.eyebrow}</Eyebrow>
-          <h2 className="font-heading text-section text-balance">
-            {MARKETING.heading}
-          </h2>
-          <p className="text-pretty text-muted-foreground">{MARKETING.lede}</p>
-        </div>
-
-        <div className={`grid gap-4 ${phone ? "grid-cols-1" : "grid-cols-2"}`}>
-          {/* The marketing pair, at the three sites that share it. */}
-          <div className="space-y-4 rounded-lg border border-border p-4">
-            <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-              On this page
-            </p>
-            <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-              Getting started
-            </p>
-            <span className="inline-flex text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-              Four minute read
-            </span>
-            <span className="inline-flex rounded-full border bg-background px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-              Most popular
-            </span>
-          </div>
-
-          {/* The app pair, at the sites that share it. */}
-          <div className="space-y-4 rounded-lg border border-border p-4">
-            <h2
-              data-bt="app-label"
-              className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
-            >
-              Your events
-            </h2>
-            <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-              Your uploads
-            </h2>
-            <FeedSectionHeader label="Gallery" count={128} />
-            <FeedSectionHeader label="Review" count={6} amber />
-          </div>
-        </div>
-
-        <div className="space-y-3 rounded-lg border border-border p-4">
-          <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            You&rsquo;re invited
-          </p>
-          <p className="text-[15px] text-muted-foreground">
-            Enter the password the host gave you and the album opens.
-          </p>
-          <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            Private album
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── the buttons ─────────────────────────────────────────────────────────── */
-
-/**
- * EVERY BUTTON SIZE IN THE PLACE IT SHIPS: the guest's full-width `cta` over
- * its two `lg` seconds, the host's command strip on the default size, a feed
- * header's `sm` pair, and an `xs` chip. The sizes are the real component's, so
- * a candidate that moves `text-sm` moves the buttons too unless it says not to,
- * which is the whole question.
- */
-export function ButtonSurfaces({ width }: { width: WidthId }) {
   const phone = width === "375";
   return (
     <div className="min-h-full bg-background px-6 py-8 text-foreground">
       <div
         className={`mx-auto grid max-w-5xl gap-6 ${phone ? "" : "grid-cols-2"}`}
       >
-        {/* The guest's action block, under the words it follows. */}
+        {/* The guest's action block: lg. */}
         <div className="rounded-lg border border-border p-4">
           <h1 className="font-heading text-subsection">{EVENT.name}</h1>
-          <p className="mt-1 text-[15px] text-muted-foreground">
+          <p className="mt-1 text-reading text-muted-foreground">
             {EVENT.photos} photos and videos from {EVENT.guests} guests
           </p>
           <div className="mt-4">
-            <Button type="button" size="lg" className="w-full">
-              <ImageUp /> Add photos
-            </Button>
+            <PairedButton
+              pairing={pairing}
+              size="lg"
+              variant="default"
+              icon={ImageUp}
+              className="w-full"
+            >
+              Add photos
+            </PairedButton>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <Button variant="outline" className="h-9 w-full">
+              <PairedButton pairing={pairing} size="lg">
                 Save
-              </Button>
-              <Button variant="outline" className="h-9 w-full">
+              </PairedButton>
+              <PairedButton pairing={pairing} size="lg">
                 Invite
-              </Button>
+              </PairedButton>
             </div>
           </div>
         </div>
 
-        {/* The 44px cta: a pricing or contact submit, and the marketing header's. */}
+        {/* The 44px cta: a pricing or contact submit. */}
         <div className="rounded-lg border border-border p-4">
-          <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <p className="text-label text-muted-foreground uppercase">
             Free forever
           </p>
-          <p className="mt-2 text-[15px] text-muted-foreground">
-            One event, fifty photographs, no card. Upgrade whenever you need the
-            room.
+          <p className="mt-2 text-reading text-muted-foreground">
+            One event, fifty photographs, no card. Upgrade whenever you need
+            the room.
           </p>
-          <Button type="button" size="cta" className="mt-4 w-full">
+          <Button
+            type="button"
+            size="cta"
+            data-probe="cta"
+            className={cn(textClass("cta"), "mt-4 w-full")}
+          >
+            <QrCode className={iconClass("cta", pairing)} />
             Start for free
           </Button>
         </div>
 
-        {/* The host's command strip, on the default size. */}
+        {/* The host's command strip: default. */}
         <div className="rounded-lg border border-border p-4">
-          <h2 className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+          <h2 className="text-label text-muted-foreground uppercase">
             The host&rsquo;s event page
           </h2>
           <div
             className={`mt-3 flex gap-2 ${phone ? "flex-col" : "flex-row items-center"}`}
           >
-            <Button className={phone ? "" : "flex-1"}>
-              <QrCode /> Share
-            </Button>
+            <PairedButton
+              pairing={pairing}
+              size="default"
+              variant="default"
+              icon={QrCode}
+              className={phone ? "" : "flex-1"}
+              probe="default-share"
+            >
+              Share
+            </PairedButton>
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1">
-                <ImageUp /> Add photos
-              </Button>
-              <Button variant="outline">
-                <Settings /> Settings
-              </Button>
+              <PairedButton
+                pairing={pairing}
+                size="default"
+                icon={ImageUp}
+                className="flex-1"
+              >
+                Add photos
+              </PairedButton>
+              <PairedButton pairing={pairing} size="default" icon={Settings}>
+                Settings
+              </PairedButton>
             </div>
           </div>
         </div>
 
-        {/* The feed header's sm pair, and the xs pair on a review tile. */}
+        {/* The Gallery header's sm pair (the named mismatch), the guest
+            album's raw Download beside it for comparison, and a review
+            tile's xs pair. */}
         <div className="space-y-3 rounded-lg border border-border p-4">
           <FeedSectionHeader
             label="Gallery"
             count={128}
             action={
               <div className="flex items-center gap-1.5">
-                <Button variant="outline" size="sm">
-                  <Download /> Download
-                </Button>
-                <Button variant="outline" size="sm">
-                  <ListChecks /> Select
-                </Button>
+                <PairedButton
+                  pairing={pairing}
+                  size="sm"
+                  icon={Download}
+                  probe="sm-download"
+                >
+                  Download
+                </PairedButton>
+                <PairedButton pairing={pairing} size="sm" icon={ListChecks}>
+                  Select
+                </PairedButton>
               </div>
             }
           />
+          {/* live-gallery.tsx's own markup, byte for byte: not a <Button>,
+              so no pairing option ever touches it. */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
+            >
+              <Download className="size-4" /> Download all
+            </button>
+          </div>
           <div className="relative overflow-hidden rounded-xl">
-            {/* eslint-disable-next-line @next/next/no-img-element -- a local still */}
-            <img
-              src={EVENTS[1].cover}
-              alt=""
-              className="block aspect-[16/10] w-full object-cover"
+            {/* A plain toned box stands in for a photograph: the review
+                chips' backdrop is context, never the evidence. */}
+            <div
+              aria-hidden
+              className="aspect-[16/10] w-full bg-gradient-to-br from-muted to-muted-foreground/20"
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-gradient-to-t from-black/70 to-transparent p-2.5">
-              <Button variant="secondary" size="xs">
+              <PairedButton
+                pairing={pairing}
+                size="xs"
+                variant="secondary"
+                icon={Check}
+                probe="xs-approve"
+              >
                 Approve
-              </Button>
-              <Button variant="secondary" size="xs">
+              </PairedButton>
+              <PairedButton
+                pairing={pairing}
+                size="xs"
+                variant="secondary"
+                icon={X}
+              >
                 Hide
-              </Button>
-              <span className="text-[10px] font-medium text-white/80">
+              </PairedButton>
+              <span className="text-micro font-medium text-white/80">
                 Waiting for review
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* The four icon-only sizes, together. */}
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-label text-muted-foreground uppercase">
+            Icon-only, every size
+          </h2>
+          <div className="mt-3 flex items-center gap-3">
+            <PairedIconButton
+              pairing={pairing}
+              size="icon-xs"
+              icon={X}
+              label="Remove filter (icon-xs)"
+              probe="icon-xs"
+            />
+            <PairedIconButton
+              pairing={pairing}
+              size="icon-sm"
+              icon={Settings}
+              label="Settings (icon-sm)"
+              probe="icon-sm"
+            />
+            <PairedIconButton
+              pairing={pairing}
+              size="icon"
+              icon={Bell}
+              label="Notifications (icon)"
+              probe="icon"
+            />
+            <PairedIconButton
+              pairing={pairing}
+              size="icon-lg"
+              icon={Maximize2}
+              label="Expand (icon-lg)"
+              probe="icon-lg"
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+/** What each option's frame measures: the flagship sm mismatch, xs, default, cta and one icon-only. */
+export const PAIR_PROBES: readonly ButtonProbe[] = [
+  { label: "sm Download", sel: '[data-probe="sm-download"]' },
+  { label: "xs Approve", sel: '[data-probe="xs-approve"]' },
+  { label: "default Share", sel: '[data-probe="default-share"]' },
+  { label: "cta", sel: '[data-probe="cta"]' },
+  { label: "icon-sm", sel: '[data-probe="icon-sm"]', iconOnly: true },
+];
+
+export { PairFrame };
