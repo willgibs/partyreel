@@ -25,6 +25,53 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  /* the event page as a HUB (hub-wiring, 2026-09-20): at the head, like the
+     block below it, so several lanes adding `for` lines in one round land on
+     distinct hunks instead of on each other. */
+  "src/components/shared/crumbs.tsx": {
+    for: "the one way back in the host app: a trail in the bar that each route declares for itself. A CONTEXT and not a prop, because a page is the (app) layout's grandchild and cannot hand one up; the cost is that the trail lands at hydration, which a fixed-height bar makes invisible",
+    unspecimened:
+      "three parts of one mechanism (a provider, a setter that renders nothing, and a bar that is empty until a route claims it), none of which draws anything on its own",
+  },
+  "src/components/app/share/event-share-provider.tsx": {
+    for: "the hub's single island: which sheet the URL has open, whether the code's mini-modal is up, and which of the three codes owns the view transition. The sheets ride history so Back closes them; the mini-modal deliberately does not",
+    unspecimened: "state and history plumbing; it renders only its children",
+  },
+  "src/components/app/share/event-code-door.tsx": {
+    for: "the live, scannable code at the left of the event's title (a real QR at rest, not a glyph that opens one), and the source of the morph into the mini-modal. A paused event dims it and says so, which is where the retired 'accepting uploads' chip went",
+  },
+  "src/components/app/share/event-code-modal.tsx": {
+    for: "the code, bigger: the whole screen and white in a hand, because a host holds the phone up and someone else's camera reads it. The one sanctioned surface in the floating family with no entrance of its own, since the view transition IS its entrance",
+  },
+  "src/components/app/share/event-link-row.tsx": {
+    for: "the subtle event link under the metadata: it SHOWS the slug when there is one and always COPIES the permanent link, because a printed code outlives a slug. Confirms in place, never with a toast",
+  },
+  "src/components/app/share/event-share-sheet.tsx": {
+    for: "the one sharing surface: the code and its downloads, the designer, the link, and the custom-link claim that used to live on the settings route. Anything future about getting people to an album belongs here",
+  },
+  "src/components/app/share/event-sheets.tsx": {
+    for: "the hub's three floating surfaces mounted once, as siblings of the album rather than inside it, so radix can portal them and the album stays mounted and scrolled behind",
+    unspecimened:
+      "a mounting point for three surfaces that each have their own entry",
+  },
+  "src/components/app/share/use-copy-link.ts": {
+    for: "copying the event link, once, for the three controls that do it: the permanent url, an in-place confirmation rather than a toast, and a failure arm that does not claim a copy the clipboard refused",
+    unspecimened: "a hook",
+  },
+  "src/components/app/event-feed/event-cards-row.tsx": {
+    for: "the row of doors under the event's header (Review, Reel, Guests, then Settings), sticky and condensing as the album scrolls. Links in a group and never tabs, since three of them are rooms you go to; the QR pill at its end exists only while the header's code is off screen",
+  },
+  "src/components/app/event-feed/event-gallery.tsx": {
+    for: "the album as the hub's subject, with the controls that used to be spread across a command strip and a section header: Add photos, Download all, Select, and the Deleted filter the bin folded into. The bin is fetched only when asked, never with the page",
+  },
+  "src/components/app/event-feed/review-room.tsx": {
+    for: "the Review room's client boundary: the triage machine, owned by a room instead of shared with a floating bar, handed to the section that draws it",
+    unspecimened:
+      "a thin owner around review-section, which is the specimen worth drawing",
+  },
+  "src/components/app/event-settings/event-settings-sheet.tsx": {
+    for: "the event's settings over the album that they govern, so a change to who can see this is judged against the photographs it applies to. The form is imported whole; what changed is the frame and a close that confirms while dirty",
+  },
   /* the marketing chrome's two moving parts (chrome-wiring, 2026-09-19): at
      the head for the same reason as the block below, so three lanes adding
      `for` lines in one round do not land on each other. */

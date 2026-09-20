@@ -632,6 +632,1118 @@
       ]
     },
     {
+      "id": "event-cards-row",
+      "file": "src/components/app/event-feed/event-cards-row.tsx",
+      "names": [
+        "EventCardsRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-gallery",
+      "file": "src/components/app/event-feed/event-gallery.tsx",
+      "names": [
+        "EventGallery"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "review-room",
+      "file": "src/components/app/event-feed/review-room.tsx",
+      "names": [
+        "ReviewRoom"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-settings-sheet",
+      "file": "src/components/app/event-settings/event-settings-sheet.tsx",
+      "names": [
+        "EventSettingsSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "ends on Settings, which is the card the album replaced",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "is a group of links and never a tablist",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "scrolls sideways and fades only the edge that has something past it",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "condenses in place, without remounting the row",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "shows the QR pill only while the header's code is off screen",
+          "suite": [
+            "the cards row"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "never counts the bin's items in the album's count",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "loads the bin only when the filter is chosen, and only once",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "re-verifies the caller inside the bin's action, not only in RLS",
+          "suite": [
+            "the album, and the bin as its filter"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "opens over the album from a deep link, and keeps the form single-sourced",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 162
+        },
+        {
+          "title": "confirms before discarding unsaved edits, whichever way it is closed",
+          "suite": [
+            "the settings sheet"
+          ],
+          "file": "src/components/app/event-feed/event-hub.test.tsx",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "id": "event-code-door",
+      "file": "src/components/app/share/event-code-door.tsx",
+      "names": [
+        "EventCodeDoor"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-code-modal",
+      "file": "src/components/app/share/event-code-modal.tsx",
+      "names": [
+        "EventCodeModal"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-link-row",
+      "file": "src/components/app/share/event-link-row.tsx",
+      "names": [
+        "EventLinkRow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-share-provider",
+      "file": "src/components/app/share/event-share-provider.tsx",
+      "names": [
+        "CODE_MORPH_NAME",
+        "EventShareProvider"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-share-sheet",
+      "file": "src/components/app/share/event-share-sheet.tsx",
+      "names": [
+        "EventShareSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "event-sheets",
+      "file": "src/components/app/share/event-sheets.tsx",
+      "names": [
+        "EventSheets"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
+      "id": "use-copy-link",
+      "file": "src/components/app/share/use-copy-link.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 160
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 213
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 233
+        }
+      ]
+    },
+    {
       "id": "claim-handle-prompt",
       "file": "src/components/guest/claim-handle-prompt.tsx",
       "names": [
@@ -5781,6 +6893,59 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "crumbs",
+      "file": "src/components/shared/crumbs.tsx",
+      "names": [
+        "CrumbsBar",
+        "CrumbsProvider",
+        "SetCrumbs"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders nothing at all until a route claims it",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "is a breadcrumb landmark whose last step is the page itself",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "makes every step but the last a walkable link",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "keeps a way UP in reach at a phone's width, where the full trail cannot fit",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 93
+        },
+        {
+          "title": "is declared by every route inside an event, with a walkable parent",
+          "suite": [
+            "the trail in the bar"
+          ],
+          "file": "src/components/shared/crumbs.test.tsx",
+          "line": 108
+        }
+      ]
     },
     {
       "id": "empty-state",

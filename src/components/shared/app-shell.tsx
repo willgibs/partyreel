@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Container } from "@/components/shared/container";
+import { CrumbsBar, CrumbsProvider } from "@/components/shared/crumbs";
 import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
 
@@ -31,28 +32,43 @@ type AppShellProps = {
  */
 const WIDE_WHEN_ASKED = "group-has-[[data-app-wide]]/shell:max-w-none";
 
-/** Chrome for the authenticated host app (the `(app)` route group). */
+/**
+ * Chrome for the authenticated host app (the `(app)` route group).
+ *
+ * ★ THE TRAIL LIVES HERE, NOT IN THE LAYOUT (`nav=crumbs`, Will 2026-09-20).
+ * `CrumbsProvider` wraps the whole subtree and `CrumbsBar` sits between the
+ * wordmark and the header's actions; a route declares its own steps with
+ * `<SetCrumbs>` (crumbs.tsx explains why a context rather than a prop). The bar
+ * renders NOTHING until a route claims it, so every page that has not adopted
+ * the trail — and the lab's own shell specimen — looks exactly as it did.
+ */
 export function AppShell({ children, headerActions }: AppShellProps) {
   return (
-    <div className="group/shell flex min-h-full flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-        <Container
-          className={cn(
-            "flex h-14 items-center justify-between gap-4",
-            WIDE_WHEN_ASKED,
-          )}
-        >
-          <Link href="/dashboard" aria-label="Partyreel dashboard">
-            <Logo />
-          </Link>
-          {headerActions && (
-            <div className="flex items-center gap-2">{headerActions}</div>
-          )}
-        </Container>
-      </header>
-      <main className="flex-1 py-8">
-        <Container className={WIDE_WHEN_ASKED}>{children}</Container>
-      </main>
-    </div>
+    <CrumbsProvider>
+      <div className="group/shell flex min-h-full flex-col">
+        <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+          <Container
+            className={cn("flex h-14 items-center gap-4", WIDE_WHEN_ASKED)}
+          >
+            <Link
+              href="/dashboard"
+              aria-label="Partyreel dashboard"
+              className="shrink-0"
+            >
+              <Logo />
+            </Link>
+            <CrumbsBar />
+            {headerActions && (
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                {headerActions}
+              </div>
+            )}
+          </Container>
+        </header>
+        <main className="flex-1 py-8">
+          <Container className={WIDE_WHEN_ASKED}>{children}</Container>
+        </main>
+      </div>
+    </CrumbsProvider>
   );
 }

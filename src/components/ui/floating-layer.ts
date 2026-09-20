@@ -107,6 +107,60 @@ export const floatingEdgeEntrance = [
 ].join(" ")
 
 /**
+ * THE ONE RESPONSIVE SHEET (`settings=sheet`, Will 2026-09-20: "we likely want
+ * to apply this sheet concept everywhere"). A side panel at a desk and a bottom
+ * sheet in a hand are the SAME surface answering the same question about reach
+ * — a thumb is at the bottom of a phone, a cursor is at the side of a laptop —
+ * so they are one entrance here rather than two sheets in the product.
+ *
+ * ★ OPT-IN, AND NAME-SCOPED UNDER A SIDE OF ITS OWN. A sheet that opts in emits
+ * `data-side="responsive"`, which NONE of the four fixed-side rules above
+ * match, so this constant owns its position and its entrance outright at both
+ * widths with no specificity race. The default `side` is untouched, which is
+ * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing,
+ * and `drawer.tsx` is NOT retired: the lab's gallery demos draw it and vaul's
+ * drag is a different affordance from a panel that arrives on a curve.
+ *
+ * ★ THE CORNER IS THE FAMILY'S TOKEN, not one of its own. A bottom sheet's top
+ * edge is the only edge of it that is not the viewport's, so that edge — and
+ * only that edge — takes `--radius-float` through the same token `floatingCorner`
+ * reads. A radius typed here would be the tenth className nobody can hold.
+ */
+export const floatingEdgeEntranceResponsive = [
+  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-0 data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[85svh] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:max-sm:rounded-t-float",
+  "data-[side=responsive]:sm:inset-y-0 data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-full data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
+  "data-[side=responsive]:max-sm:data-open:slide-in-from-bottom-10 data-[side=responsive]:max-sm:data-closed:slide-out-to-bottom-10",
+  "data-[side=responsive]:sm:data-open:slide-in-from-right-10 data-[side=responsive]:sm:data-closed:slide-out-to-right-10",
+].join(" ")
+
+/**
+ * THE SANCTIONED "NO ENTRANCE, THE TRANSITION IS THE ENTRANCE" CASE — the hub's
+ * QR mini-modal (`share=room` with his note: "clicking it opens a view
+ * transition animation-style mini-modal").
+ *
+ * ★ THIS IS A HOLE IN BIBLE 15, CUT DELIBERATELY AND EXACTLY ONCE. Every other
+ * surface in the family arrives by animating ITSELF. This one arrives because
+ * the header's small code and the modal's big code are THE SAME OBJECT
+ * continuing across a state change: the View Transitions API tweens between the
+ * two boxes, and an `animate-in` declared here would run a fade underneath that
+ * tween and read as a double entrance. So the entrance is empty on purpose —
+ * and the surface still reads its corner, its material and its clock from the
+ * contract like everything else, which is what keeps it inside the family.
+ *
+ * ★ REDUCED MOTION FALLS BACK TO THE STANDARD CLOCK, which is why this is a
+ * constant rather than simply an omission. A view transition is never STARTED
+ * under `prefers-reduced-motion` (the morph-delegate's own guard), so without
+ * these the modal would appear with no animation at all — which is precisely
+ * the `select` bug this module was written to stop.
+ */
+export const floatingTransitionEntrance = [
+  "motion-reduce:ease-emphasis",
+  "motion-reduce:data-open:animate-in motion-reduce:data-open:fade-in-0",
+  "motion-reduce:data-closed:animate-out motion-reduce:data-closed:fade-out-0",
+].join(" ")
+
+/**
  * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED (bible 12's
  * frequency law; `entrance=by-frequency`, Will 2026-09-17). Every exit is
  * faster than its entrance, which is the house rule the whole site already
