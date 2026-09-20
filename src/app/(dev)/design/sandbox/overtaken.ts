@@ -139,14 +139,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // answer left orphaned). Round two's `controls-home` is too new for
   // anything to have overtaken it yet.
 
-  /* ── seed-avatar ─────────────────────────────────────────────────────── */
-  "seed-avatar.after-upload": {
-    ...APP_SHAPE,
-    ruling:
-      "the avatar may be changed on the profile page and on the account page",
-    line: "stands: a photograph can land from two surfaces now, and waiting underneath is the one answer that covers both.",
-  },
-
   /* ── admin ───────────────────────────────────────────────────────────── */
 
   /* ── app-door ────────────────────────────────────────────────────────────

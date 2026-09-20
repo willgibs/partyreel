@@ -1,46 +1,57 @@
 ---
-track: demo-wiring
+track: type-sync
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "2a5c7018"          # the launch-prep SHA the branch was cut from
-board: demo-event      # wiring six of seven; round two on the doors is another lane
+cut: "a2025ba0"          # the launch-prep SHA the branch was cut from
+board: none            # production follow-up: the ladder's body scan closes and the step names land; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/components/guest/entry-modal.tsx
-  - src/components/guest/event-experience.tsx
-  - src/components/guest/guest-header.tsx
-  - src/components/guest/guest-upload.tsx
+  - src/lib/type-ladder-policy.test.ts
   - src/components/marketing/chrome/marketing-footer.tsx
-  - src/components/marketing/system/demo-ticket.tsx
-  - src/components/marketing/sections/home/live-demo.tsx
-  - src/lib/demo.ts
+  - src/components/guest/enter-event-prompt.tsx
+  - src/components/marketing/sections/home/pricing-teaser.tsx
+  - src/components/marketing/sections/features/album/how-much-fits.tsx
+  - src/components/marketing/sections/home/no-app.tsx
+  - src/components/marketing/sections/events/event-statement.tsx
+  - src/components/marketing/sections/features/qr/qr-hero.tsx
+  - src/components/marketing/sections/reel/reel-hero.tsx
+  - src/components/marketing/sections/reel/wysiwyg-section.tsx
+  - src/components/app/
+  - src/app/(app)/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/demo-event.json
+  - src/app/theme.css
+  - docs/systems/design-system.md
+  - docs/reviews/body-type.json
   - docs/design/rulings.md
-  - src/lib/guest/use-gallery-doorbell.ts
-  - src/components/guest/live-gallery.tsx
-  - src/app/(dev)/design/sandbox/demo-event/
-  - docs/systems/guest-flow.md
+  - src/lib/utils.ts
 ---
 
-# lp/demo-wiring
+# lp/type-sync
 
-**Goal.** Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
-section "the sixth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
+**Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
+section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
 brief follows it. Read the brief end to end before the first edit; where it says "his to overrule", build the recommended
 answer and list it in the Handoff.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `806695d1`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- Owns, then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
-`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
-`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
-the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
-retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
-`marketing-content.md`. ALSO, since this lane owns the two files: the "Hosted by" bylines (`event-experience.tsx:271`,
-`entry-modal.tsx:459`) take `seedFor(host_id)` computed server-side (`src/lib/avatar/seed.ts`; never the raw host id on the
-client) and fold onto the one `Avatar` with its `seed` prop (avatar-wiring's deferred line, ROADMAP). The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
-every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
-Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
-mark, an upload's turn card, the pair with the pane and a second tab.
+- The ladder landed six body steps as tokens beside the heading steps (`ladder-wiring`, merged `59345bc8`: `reading`
+  16/24, `working` 14/20, `copy` a clamp, `caption` 12/16, `micro` 10/12, `label` 12/16 on 0.08em) with the policy's
+  body scan as a COUNT-PINNED ALLOW-LIST that only shrinks (`src/lib/type-ladder-policy.test.ts`), because four lanes
+  were open and the app-shape lanes built on stock classes that EQUAL a step rather than the announced names. Those
+  lanes are on the tree. This lane finishes the ladder: (1) run the scan in its report mode and, for every entry
+  still in the allow-list (the off-step sizes and the `pending` entries the app lanes were to remove), move the
+  element onto a ladder step in the file it names (the step's own utility where the token exists, `text-working`,
+  `text-caption`, `text-label` with its tracking; the stock class equal to a step is also on the ladder); (2) swap
+  the stock classes on BODY copy in the files the app-shape lanes touched onto the step names where a name exists,
+  a mechanical swap with no visual change (a size that equals a step stays that size); (3) shrink the allow-list to
+  nothing and flip the body scan to a hard failure, the one-line follow-up the ladder's Handoff named; (4) leave
+  depicted type (the picture components the policy exempts) and `ui/button.tsx` alone (the button rung is
+  `buttons-pairs`' round; its sizes wait for his answer). Every move is a single class change; nothing is redesigned.
+- Owns `src/lib/type-ladder-policy.test.ts` and EXACTLY the files the allow-list names at the cut (the Orchestrator
+  lists them by file in the manifest from the test's own entries; never a prefix another open lane sits under). Reads
+  `src/app/theme.css` (the tokens; never edited), `docs/systems/design-system.md`'s type section, the body-type
+  ledger, rulings.md. `two-faces-policy` and the contract tests of every touched component green; the gate.
+- Handoff: the count of entries before and after (zero), the files moved, the swap's file list, and any element that
+  could not take a step without a redesign (left on the allow-list with why, if any: then the flip waits).
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
@@ -146,66 +157,6 @@ brightness); the tiles' three marks and the removed chips (with the rose mark ca
 saves it over a bright photograph); the host's row as one bar; dark glass on paper; the reel's controls in the one
 material (round one's white on the reel is superseded by "one material everywhere", his own words); then `glass`
 retires and the material lands in the Library.
-
-## The seam, landed by the Orchestrator on `launch-prep` BEFORE the cut (additive, about forty lines, announced)
-
-PROGRAM.md makes a change two lanes need the Orchestrator's. `MasonryColumns` gains `arrivedIds?: ReadonlySet<string>`
-(writes `data-arrived` on the tile box), `canDelete?: (item) => boolean` (gating its existing per-item `onDeleteItem`)
-and `prefix?: ReactNode` (one `{prefix}` before the items); `GuestMasonry`, which has no delete today, gains
-`onDeleteItem` and `canDelete` and threads `onDeleteCurrent` into its `MediaLightboxLazy`, plus `arrivedIds` and
-`prefix`; `MediaLightbox` gains `canDelete?` gating its existing `onDeleteCurrent` (the Trash and its confirm dialog
-exist). About thirty-five lines, additive, no behaviour change; one `canDelete` pin added to the lightbox test. The
-glass lane rebuilds under these names (and adopts `openId` on `MasonryColumns`, since the guest album opens by id and
-the shared grid by index: a thin wrapper without it brings back the shifted-photo bug; named in Lane 1's tests); the
-guest lane passes them from `live-gallery.tsx` and never opens a glass file. In the same commit: the `--info` token
-pair, and the `floating-layer.test.ts` portal scan told about the coming `ui/command-palette.tsx` if a listed file may
-be absent (checked against the test's own rule; otherwise admin-wiring adds the row as its one-line exception after
-vocab-wiring lands). Typecheck and the tests green. (If the seam cannot land clean, `guest-wiring` is cut after
-`glass-wiring` merges instead.)
-
-## The small batch, synthesized (demo-event r1 and pricing-page r1, the same build; 15 verdicts: 9 confirm, 5 overrule, one `?` with his answer)
-
-**`demo-event` r1 (seven; six wire, `doors` goes to round two, the welcome's design joins guest-shape round two):**
-- `arrival=role` + "This welcome screen could be redesigned, but the demo welcome feels more correct for this generic
-  guest welcome": the demo's own arrival (whose party this is, that you stand exactly where a guest stands, the one
-  thing to try) stays the first screen behind every demo door; its DESIGN is re-asked in guest-shape round two beside
-  the door's shell (one welcome, drawn for a real event and for the demo).
-- `framing=tag`: a Demo mark beside the wordmark, and the guest header pins to the top so the mark is on every screen.
-- `try=turn`: the same upload, then one card under the album's first row ("that is what your guests would see, and
-  here is how you get one").
-- `next=slot` + "we could also include a closing card below": the blanked Save slot (Save has left the chrome:
-  `account=after`) becomes "Start your own" beside Invite in the first screen, AND a closing card below the album.
-- `doors=pile` (overrules `named`) + "I'd be curious to see better designs of this ... labeling the QR doesn't look
-  very polished in the otherwise text-free visuals": the footer's photo pile becomes the rule for every demo door on
-  the marketing site (one object skinned per place, the nav panel's ticket goes) as the working version; round two on
-  `doors` alone draws better, text-free designs of that one object.
-- `phone=pair`: a code scanned off the laptop opens the same session; what the phone adds appears on the laptop's
-  album a second later and the laptop says where it came from (one broadcast channel, the doorbell's, no stored
-  bytes).
-- `event=one` + his note: one party, curated once; "The app works the same across events".
-
-**`pricing-page` r1 (eight; six wire, `fit` and `phone` go to round two):**
-- `opening=plans` (overrules `fork`): the page opens on paper, the plans the opening, no dark hero chapter above the
-  cards ("a paper hero makes the pro card feel more premium"). His product note is recorded verbatim (one event
-  against many is not Pro's main differentiator; a wedding wants videos and storage) and changes no ruled line: the
-  Pro line already leads with videos.
-- `pair=pro` + his flip: Free and Pro side by side in two columns above (his words over the option's own text, which
-  drew Pro alone), the Event Pass a full-width card beneath, "more beautiful".
-- `size=slider` (overrules `rows`): one slider from the smallest room to the largest, the price, the stats and the
-  button following the thumb; the monthly/yearly toggle stays ABOVE the slider ("more intuitive/natural").
-- `pass=under` (overrules `beside`): the Pass wide beneath the pair, redesigned with the same care as the cards.
-- `fit=wall` + "Would like to see a couple more explorations of this 'Find your plan size' component ... Higgsfield
-  does a good job (explore https://higgsfield.ai/pricing in code and visually)": today's slider and filling wall
-  stays as built (it is the `today` option); round two on `fit` draws two or three designs, one on Higgsfield's split
-  (the configuration left, a designed plan card as the result in a frame right), the lane researching that page.
-- `sheet=?` with his answer, verbatim: keep the tiles and the table, kill the band; the tiles above "Find your plan
-  size" as a dark chapter intro (the hero now paper); the table dark, so no harsh back-to-back chapter transition
-  between Find your plan and the FAQ that follows.
-- `close=eight` (overrules `four`) + "reduce the count row (5-6 total?)": the folded accordion, five or six items,
-  then the closing band; the JSON-LD carries the same items; the FAQ data's split with Help named in the Handoff.
-- `phone=swipe` + "I think the demo is broken, so I can't actually see it live. Would like to prove it in the lab
-  before passing": NOT wired. The board's `phone` step is repaired in the lab and the ask stays open on the board for
-  his eye (round two carries it beside `fit`).
 
 ## The ownership rules every lane follows this round
 

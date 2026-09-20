@@ -6,8 +6,6 @@ import {
   PRIYA,
 } from "@/app/(dev)/design/sandbox/profile-page/fixtures";
 
-import type { PaletteMode } from "./gradient";
-
 /**
  * ONE CAST, BORROWED WHOLE.
  *
@@ -99,10 +97,3 @@ export const EVENT = {
   dateLabel: "14 June 2026",
   guests: CAST.length,
 } as const;
-
-/** The three wheels, named for a caption. */
-export const PALETTE_NAME: Record<PaletteMode, string> = {
-  wheel: "the whole wheel",
-  curated: "twelve chosen hues",
-  warm: "one warm arc",
-};

@@ -1,6 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
+import { GUEST_VERIFY } from "./guest-verify/spec";
 import { SEED_AVATAR } from "./seed-avatar/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -54,6 +55,7 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
+  GUEST_VERIFY,
   SEED_AVATAR,
   BODY_TYPE,
   APP_SHAPE,

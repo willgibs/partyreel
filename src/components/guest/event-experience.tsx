@@ -1,9 +1,19 @@
 "use client";
 
-import { Suspense, lazy, useCallback, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ImageUp, Lock } from "lucide-react";
+import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 
+import { initial } from "@/components/app/user-menu";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import { FloatingAddButton } from "@/components/shared/floating-add-button";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
@@ -12,6 +22,7 @@ import { GuestReelCard } from "@/components/guest/guest-reel-card";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
+  TurnCard,
   type GuestUploadHandle,
   type UploadedItem,
 } from "@/components/guest/guest-upload";
@@ -23,15 +34,27 @@ import {
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { SetNameStep } from "@/components/shared/set-name-step";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import {
+  DEMO_PAIR_EVENT,
+  DEMO_PAIR_PARAM,
+  fileToPairThumbnail,
+  newPairId,
+  pairChannelName,
+  pairThumbnailToFile,
+  pickAboveAlbumState,
+  type DemoPairArrival,
+} from "@/lib/demo";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
-import { formatEventDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { cn, formatEventDate } from "@/lib/utils";
 
 /**
  * THE PAGE'S TWO BOXES (Will, 2026-09-19).
@@ -55,6 +78,11 @@ import { formatEventDate } from "@/lib/utils";
  */
 const COLUMN = "w-full max-w-2xl px-5";
 const BLEED = "px-5";
+
+// Stable no-op subscribe for `phonePairId`'s useSyncExternalStore read below
+// (entry-modal.tsx's own hydration flag uses the identical shape — it wants a
+// stable subscribe, never a resubscribe every render).
+const subscribeNoop = () => () => {};
 
 // Code split (Phase 3): the entry-modal tree (welcome/password/account steps)
 // only matters pre-gate; React.lazy (NOT next/dynamic - the modal is a
@@ -81,6 +109,7 @@ export function EventExperience({
   access,
   needsName,
   hostAvatarUrl,
+  hostSeed,
   isOwner,
   guestListSlot,
   guestReel,
@@ -105,9 +134,13 @@ export function EventExperience({
   /** Signed-in uploader without a public display name — show the required name step before the
    *  upload panel (their uploads are attributed). Phase 1. */
   needsName: boolean;
-  /** Presigned host avatar URL for the "Hosted by" byline; null = no avatar (no photo shown,
-   *  never an initials fallback in this guest context). Phase 3. */
+  /** Presigned host avatar URL for the "Hosted by" byline, or null (no photo — the seeded
+   *  initial fallback below carries it). Phase 3. */
   hostAvatarUrl: string | null;
+  /** `seedFor(host_id)`, computed server-side (page.tsx via `getHostAvatarSeed`) — never the
+   *  raw host id itself. Null exactly where `hostAvatarUrl` is (docs/design/rulings.md, the
+   *  sixth batch, `seed=account`). */
+  hostSeed?: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
   isOwner: boolean;
   /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
@@ -182,7 +215,10 @@ export function EventExperience({
       for (const u of queued) handle.notifyUploaded(u);
     }
   }, []);
-  const handleUploaded = useCallback((u: UploadedItem) => {
+  // The one place a tile reaches the gallery, whichever door it came through:
+  // this tab's own (real or simulated) upload, or a paired phone's broadcast
+  // (below) landing on a laptop that never touched its file picker at all.
+  const deliverToGallery = useCallback((u: UploadedItem) => {
     const handle = galleryRef.current;
     if (handle) {
       handle.notifyUploaded(u);
@@ -190,6 +226,139 @@ export function EventExperience({
       pendingUploads.current.push(u);
     }
   }, []);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     `phone=pair` (Will, the sixth batch, 2026-09-20): "What the phone adds
+     appears on the laptop's album a second later and the laptop says where
+     it came from. One broadcast channel, no stored bytes." lib/demo.ts is
+     the single source for the channel naming + the two data-URL <-> File
+     conversions; everything below is the wiring.
+
+     ★ TWO ROLES, NEVER BOTH. A tab that loaded with `?pair=<id>` in its URL
+     (it was scanned off another screen) is THE PHONE: it never listens, it
+     only broadcasts its own uploads outward. Every other demo tab mints its
+     OWN id and folds it into the link its own Invite sheet shows (`shareUrl`
+     below) — THE LAPTOP, which listens on that id and never broadcasts. The
+     id is unguessable and never persisted, so a listener's channel can only
+     ever hear this one visitor's own second screen, never a stranger's.
+     ──────────────────────────────────────────────────────────────────────── */
+  // THE LAPTOP'S id: crypto.randomUUID() is safe in both environments (Node
+  // 22 has it globally), so a lazy initializer mints it directly — no effect,
+  // no react-hooks/set-state-in-effect. The server's own copy is simply
+  // discarded (this is browser-only behaviour end to end): nothing renders
+  // it into HTML before a visitor opens the Invite sheet, well after
+  // hydration, so the server and client minting different values is never a
+  // mismatch React can see.
+  const [ownPairId] = useState<string | null>(() =>
+    isDemo ? newPairId() : null,
+  );
+  // THE PHONE's id, read off `?pair=<id>` — `window` genuinely does not exist
+  // during SSR (unlike crypto above), so this DOES need the hydration-safe
+  // read: useSyncExternalStore's server snapshot (null) matches the first
+  // client render exactly, same idiom as entry-modal.tsx's `hydrated` flag
+  // and user-menu.tsx's `mounted` one. Not next/navigation's useSearchParams,
+  // which would ask this whole shell to grow a Suspense boundary for one
+  // demo delight nothing else here needs.
+  const phonePairId = useSyncExternalStore(
+    subscribeNoop,
+    () =>
+      isDemo
+        ? new URLSearchParams(window.location.search).get(DEMO_PAIR_PARAM)
+        : null,
+    () => null,
+  );
+  // "It's on your laptop already" (the phone's own line) once its first
+  // paired upload has actually gone out; "that one just came from your
+  // phone" (the laptop's line) once at least one has arrived.
+  const [pairedAsPhone, setPairedAsPhone] = useState(false);
+  const [pairedArrivals, setPairedArrivals] = useState(0);
+
+  // THE LAPTOP'S HALF: listen on its own id for as long as it holds one.
+  useEffect(() => {
+    if (!isDemo || !ownPairId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(pairChannelName(ownPairId))
+      .on("broadcast", { event: DEMO_PAIR_EVENT }, ({ payload }) => {
+        const arrival = payload as DemoPairArrival;
+        setPairedArrivals((n) => n + 1);
+        if (!arrival.dataUrl) return; // a video: the line alone says it arrived
+        void pairThumbnailToFile(arrival.dataUrl)
+          .then((file) => {
+            deliverToGallery({
+              mediaId: crypto.randomUUID(),
+              queueId: `pair-${crypto.randomUUID()}`,
+              file,
+              kind: arrival.kind,
+              status: "approved",
+            });
+          })
+          .catch(() => {
+            // The status line already said one arrived; a decode failure
+            // costs only the tile, never the (already true) fact of it.
+          });
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [isDemo, ownPairId, deliverToGallery]);
+
+  const handleUploaded = useCallback(
+    (u: UploadedItem) => {
+      deliverToGallery(u);
+      // THE PHONE'S HALF: this tab's own upload also travels to whichever
+      // screen showed the code it scanned. REST, not the websocket send — no
+      // subscribe/teardown dance for a message this tab sends at most a
+      // handful of times a visit (Realtime broadcast docs, "REST calls are
+      // only available from 2.37.0 onwards"; the client here is 2.106).
+      if (isDemo && phonePairId && u.status === "approved") {
+        void (async () => {
+          const supabase = createClient();
+          const channel = supabase.channel(pairChannelName(phonePairId));
+          try {
+            const dataUrl = await fileToPairThumbnail(u.file);
+            await channel.httpSend(DEMO_PAIR_EVENT, {
+              dataUrl: dataUrl ?? undefined,
+              kind: u.kind,
+            } satisfies DemoPairArrival);
+            setPairedAsPhone(true);
+          } catch {
+            // Best-effort delight: the upload itself already succeeded
+            // either way (GuestUpload's own toast/tile owns that feedback).
+          } finally {
+            await supabase.removeChannel(channel);
+          }
+        })();
+      }
+    },
+    [deliverToGallery, isDemo, phonePairId],
+  );
+
+  // The demo's OWN share link carries its pairing id (a plain event never
+  // does: shareUrl === joinUrl). GuestShare takes whatever string it is
+  // handed and never re-derives it, so this is the entire integration.
+  const shareUrl =
+    isDemo && ownPairId ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}` : joinUrl;
+
+  // `try=turn`: the same upload, then one card. Paired, the two lines above
+  // say more (the SAME moment, worded for a second screen); unpaired, the
+  // plain turn card owns it. One slot, never stacked.
+  const demoUploaded = isDemo && queue.some((it) => it.status === "done");
+  const aboveAlbumState = pickAboveAlbumState({
+    isDemo,
+    pairedAsPhone,
+    pairedArrivals,
+    demoUploaded,
+  });
+  const aboveAlbum =
+    aboveAlbumState === "paired-phone" ? (
+      <PairedPhoneLine />
+    ) : aboveAlbumState === "paired-laptop" ? (
+      <PairedLaptopLine />
+    ) : aboveAlbumState === "turn" ? (
+      <TurnCard />
+    ) : null;
 
   return (
     <div
@@ -215,18 +384,19 @@ export function EventExperience({
           hostName={event.host_display_name}
           eventDate={event.event_date}
           hostAvatarUrl={hostAvatarUrl}
+          hostSeed={hostSeed}
           onHoldingChange={setHoldCurtain}
         />
       </Suspense>
       {/* THE WORDS. One box, on the left line, holding everything above the
           album; the album is its own box below (see COLUMN / BLEED). */}
       <div className={COLUMN}>
-        {isDemo && (
-          <div className="mb-6 rounded-lg border border-border bg-muted/40 px-3 py-2 text-center text-working text-muted-foreground">
-            You&rsquo;re trying a live demo. Photos you add here aren&rsquo;t
-            saved.
-          </div>
-        )}
+        {/* The old in-page banner ("You're trying a live demo...") is gone
+            (`framing=tag`, docs/design/rulings.md, the sixth batch,
+            2026-09-20): a Demo mark now sits beside the wordmark in
+            guest-header.tsx, pinned to the top, so it never scrolls away —
+            the whole reason the banner needed re-saying itself was that it
+            did. */}
         {/* THE KEEPSAKE HERO: uploads are closed, so the reel opens the page (ruled
           promotion). Above the header on purpose - the album's first statement is
           now "here is the film of your night", and the event name lives on the
@@ -275,14 +445,15 @@ export function EventExperience({
                   {event.host_display_name?.trim() && (
                     <span className="flex items-center gap-1.5">
                       <span className="text-faint">Hosted by</span>
-                      {hostAvatarUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
-                        <img
-                          src={hostAvatarUrl}
-                          alt=""
-                          className="size-5 rounded-full object-cover"
-                        />
-                      )}
+                      {/* Seeded now, photo or not (`the-crowd=full`,
+                          docs/design/rulings.md the sixth batch) — this byline
+                          used to render nothing at all without an avatar. */}
+                      <Avatar seed={hostSeed ?? undefined} size="sm">
+                        <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
+                        <AvatarFallback>
+                          {initial(null, event.host_display_name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className="font-medium text-foreground">
                         {event.host_display_name}
                       </span>
@@ -381,7 +552,15 @@ export function EventExperience({
               width: a 2-col grid with one button in it is a row with a hole in
               it. Where a guest's actions finally LIVE is `chrome` round two —
               his "warrants a second round" — which draws this block with Save
-              already gone. */}
+              already gone.
+
+              ★ THE DEMO FILLS THE SAME HOLE DIFFERENTLY (`next=slot`, the
+              sixth batch, 2026-09-20): a real guest has nothing to put there
+              (Save already left for everyone), but a demo VISITOR does — the
+              conversion object the empty slot always was, on the same row as
+              Invite rather than replacing it (this lane's own visitor is a
+              prospective host, not a guest choosing whether to keep an
+              album). */}
             <div
               className="mt-4"
               ref={sentinelRef}
@@ -398,9 +577,16 @@ export function EventExperience({
                   <ImageUp /> Add photos
                 </Button>
               )}
-              <div className="mt-2 grid grid-cols-1 gap-2">
+              <div
+                className={cn("mt-2 grid gap-2", isDemo ? "grid-cols-2" : "grid-cols-1")}
+              >
+                {isDemo && (
+                  <Button size="sm" className="h-9 w-full" asChild>
+                    <Link href="/">Start your own</Link>
+                  </Button>
+                )}
                 <GuestShare
-                  joinUrl={joinUrl}
+                  joinUrl={shareUrl}
                   qrStyle={event.qr_style}
                   eventName={event.name}
                   triggerClassName="h-9 w-full"
@@ -473,6 +659,14 @@ export function EventExperience({
           {/* THE ALBUM, and nothing else, leaves the column (`width=full`). It
               is a sibling of the words box now, not a block inside it, which is
               the whole structural change on this page. */}
+          {/* `try=turn` / `phone=pair`: one card directly above the album's
+              first tile — the photograph a visitor just added IS that tile
+              (the album is newest first), so whatever is said here is said
+              right beside it. It keeps the ALBUM's own box (BLEED), not the
+              words' column, so it lines up with the photographs under it;
+              the album itself is one CSS multi-column box and nothing can be
+              put in the middle of one. */}
+          {aboveAlbum && <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>}
           {/* The gallery streams in (the presign-heavy payload): the skeleton holds
               its layout slot. key={access} makes an access flip (teaser -> full
               after sign-in via router.refresh(), a transition - old UI holds) a
@@ -536,8 +730,76 @@ export function EventExperience({
               <ReportDialog qrToken={qrToken} />
             </footer>
           )}
+          {/* `next=foot`: the closing card in the slot a real event gives the
+              report footer (hidden here — nothing to report in a demo) and,
+              once uploads are ever closed, the reel. Below the whole album on
+              purpose: the ask belongs after a visitor has actually seen what
+              they came to see. */}
+          {isDemo && (
+            <div className={COLUMN}>
+              <ClosingCard contributorCount={stats.contributorCount} />
+            </div>
+          )}
         </>
       )}
+    </div>
+  );
+}
+
+/** `next=foot`: "Yours would look like this" — the demo's second, patient
+ *  conversion object, real numbers standing in for the fixture's. */
+function ClosingCard({ contributorCount }: { contributorCount: number }) {
+  return (
+    <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-6 py-8 text-center">
+      <p className="font-heading text-subsection text-balance">
+        Yours would look like this
+      </p>
+      <p className="max-w-sm text-reading text-pretty text-muted-foreground">
+        One code
+        {contributorCount > 0
+          ? `, ${contributorCount} ${contributorCount === 1 ? "guest" : "guests"},`
+          : ","}{" "}
+        and every photo in one place. Free to start, nothing to install.
+      </p>
+      <Button size="lg" className="mt-1" asChild>
+        <Link href="/">Start your own</Link>
+      </Button>
+    </div>
+  );
+}
+
+/** `phone=pair`'s SENDING half, on the screen that scanned the code: the
+ *  reassurance a "turn card" already gives every other demo upload, worded
+ *  for the fact that this one travelled somewhere else. */
+function PairedPhoneLine() {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5">
+      <Laptop className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+      <p className="text-reading text-pretty">
+        It&rsquo;s on your laptop already.
+        <span className="text-muted-foreground">
+          {" "}
+          That is what your guests do all night, from their own phones.
+        </span>
+      </p>
+    </div>
+  );
+}
+
+/** `phone=pair`'s RECEIVING half, on the screen that showed the code: where
+ *  the photograph at the top of the album — the one this tab never touched a
+ *  file picker for — actually came from. */
+function PairedLaptopLine() {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+      <Smartphone className="size-4 shrink-0 text-muted-foreground" />
+      <p className="text-reading">
+        That one just came from your phone.
+        <span className="text-muted-foreground">
+          {" "}
+          Your guests&rsquo; photos arrive the same way.
+        </span>
+      </p>
     </div>
   );
 }

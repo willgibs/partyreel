@@ -45,18 +45,21 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/lib/admin/palette.ts": {
     for: "what ⌘K can reach in the portal: the surfaces from nav.ts, the acts worth naming, and a small AND-semantics ranker. Every entry is a DESTINATION, so a palette row can never fire a kill switch",
-    unspecimened: "an index and a ranker; the palette that draws them is the specimen",
+    unspecimened:
+      "an index and a ranker; the palette that draws them is the specimen",
   },
   "src/lib/admin/kpi.ts": {
     for: "the four figures the portal opens on, reduced from the profile rows: three carry a real fortnight delta and the fourth returns null, because nothing in the database remembers who was paying a fortnight ago",
-    unspecimened: "pure arithmetic and one SVG path string; MetricCard and Sparkline are what a reader looks at",
+    unspecimened:
+      "pure arithmetic and one SVG path string; MetricCard and Sparkline are what a reader looks at",
   },
   "src/lib/admin/queue.ts": {
     for: "what is waiting on the operator, ranked worst first by a written-down severity ladder: an unreadable console, then a failure, then something overdue, then safety, then the inboxes",
   },
   "src/lib/admin/tone.ts": {
     for: "how far a state's colour travels, in one module, so a chip and the row under it can never disagree. The tint reaches a failure and an overdue run and nothing else: four tinted rows is a spreadsheet with a highlighter through it",
-    unspecimened: "two lookup tables; the Table specimen is where they are visible",
+    unspecimened:
+      "two lookup tables; the Table specimen is where they are visible",
   },
   /* THE GLASS MATERIAL (glass-wiring, 2026-09-20), at the head for the same
      reason the block below it is: distinct hunks when several lanes add `for`
@@ -225,6 +228,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the twelve photographs the QR door pours, in launch order with their crops: the slot a generated set lands in, never the pictures",
   },
 
+  // demo-wiring (2026-09-20): its own new contract (the Demo mark) pulled the
+  // real guest header into the index for the first time.
+  "src/components/guest/guest-header.tsx": {
+    for: "the guest event page's one header: the wordmark, an auth-aware CTA/account-menu swap, and (`isDemo`) the Demo mark that pins it to the top of the screen for the whole visit",
+  },
+
   /* the two session-less failure chromes (errors-wiring, 2026-09-19): outside
      the library's directories, here because the failure contract names them. */
   "src/components/guest/guest-bar.tsx": {
@@ -375,7 +384,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
   },
   "src/components/marketing/system/demo-ticket.tsx": {
-    for: "the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel",
+    for: "RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone",
   },
   "src/components/marketing/system/eyebrow.tsx": {
     for: "the section eyebrow atom: Inter, uppercase, tracked",
@@ -708,6 +717,9 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/app/(dev)/design/sandbox/overtaken.ts": {
     for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
+  },
+  "src/app/(dev)/design/sandbox/seed-avatar/looks.ts": {
+    for: "Round two's three candidate looks over the wired orb (hashvatar's own register reproduced from its source, two further readings), each measured against the generator's own three contrast floors across a thousand real UUIDs.",
   },
   "src/lib/avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",

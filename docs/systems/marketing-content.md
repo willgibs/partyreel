@@ -786,6 +786,15 @@ reader, it stays `undefined` in prod. [`demo.ts`](../../src/lib/demo.ts) is the 
 become real links; unset → no demo anywhere (decorative QR, no CTA). The guest-page demo-mode behavior is in
 [guest-flow.md](guest-flow.md).
 
+**`doors=pile`** (`docs/design/rulings.md` the sixth batch, 2026-09-20: the footer's fanning photo pile,
+[`footer-demo.tsx`](../../src/components/marketing/chrome/footer-demo.tsx), is the rule every demo door works
+toward; a labelled QR ticket does not). The Features nav mega-panel's featured pane
+([`mega-panel.tsx`](../../src/components/marketing/chrome/mega-panel.tsx)) no longer carries
+[`demo-ticket.tsx`](../../src/components/marketing/system/demo-ticket.tsx) — that panel simply falls back to
+its plain one-column list, and the ticket component stays on disk unused outside the Library's own specimen.
+Round two on `doors` (queued) draws the hero's and a feature page's doors in the pile's own idiom; today they
+are unchanged (the hero's real matrix, `DemoCtaLink`'s text line).
+
 ## See also
 
 [host-app.md](host-app.md) (the in-app QR designer / how-it-works single-source) · [notifications-analytics-growth.md](notifications-analytics-growth.md) (guest email capture / OG-driven growth).

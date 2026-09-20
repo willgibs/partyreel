@@ -550,6 +550,96 @@
       ]
     },
     {
+      "id": "looks",
+      "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.ts",
+      "names": [
+        "LOOK_STATS",
+        "SAMPLE_SEEDS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is the same thousand every time this module loads",
+          "suite": [
+            "the seeds are fixed"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 30
+        },
+        {
+          "title": "emits a background image with no undefined or NaN, for any seed",
+          "suite": [
+            "every look paints"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 46
+        },
+        {
+          "title": "returns the identical paint for the identical seed",
+          "suite": [
+            "every look paints"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 56
+        },
+        {
+          "title": "interpolates every gradient layer in oklab, never sRGB",
+          "suite": [
+            "every look paints"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 63
+        },
+        {
+          "title": "names at least one colour to measure the disc against, and a finite letter reading",
+          "suite": [
+            "every look paints"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 72
+        },
+        {
+          "title": "holds a stat for every look, each a real percentage over the full thousand",
+          "suite": [
+            "the stats are real, not decorative"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 85
+        },
+        {
+          "title": "finds the same lit-pole gap the production contract already accepts at a looser bound",
+          "suite": [
+            "the stats are real, not decorative"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 117
+        },
+        {
+          "title": "holds the control's letter reading close to the production contract's own body/ink promise",
+          "suite": [
+            "the stats are real, not decorative"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 123
+        },
+        {
+          "title": "writes a caption naming all four floors for every look",
+          "suite": [
+            "the stats are real, not decorative"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 133
+        },
+        {
+          "title": "prints LOOK_STATS for the spec's own drafting",
+          "suite": [],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
+          "line": 146
+        }
+      ]
+    },
+    {
       "id": "owner-sections",
       "file": "src/app/(guest)/u/[slug]/owner-sections.tsx",
       "names": [
@@ -2622,6 +2712,41 @@
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
           "line": 257
+        }
+      ]
+    },
+    {
+      "id": "guest-header",
+      "file": "src/components/guest/guest-header.tsx",
+      "names": [
+        "GuestHeader"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "never appears for a real event",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 29
+        },
+        {
+          "title": "appears beside the wordmark for the demo",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 34
+        },
+        {
+          "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 39
         }
       ]
     },
