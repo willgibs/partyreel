@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 817 contracts on 114 components · 25 standing boards.**
+**22 laws · 18 policies · 820 contracts on 115 components · 25 standing boards.**
 
 ## What binds you
 
@@ -270,7 +270,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/conveyor.tsx` | the marquee shell: renders its children twice, and owns the loop-pause contract | none |
 | `src/components/marketing/system/cta-band.tsx` | the closing conversion band, with the credit line that ends a page | none |
 | `src/components/marketing/system/demo-cta-link.tsx` | the recurring live-demo link, gated on a configured demo event so it is never dead | none |
-| `src/components/marketing/system/demo-ticket.tsx` | the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel | none |
+| `src/components/marketing/system/demo-ticket.tsx` | RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone | none |
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
@@ -369,6 +369,7 @@ Contracted but outside the library's directories:
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
+- `src/components/guest/guest-header.tsx` (3 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
 - `src/components/lab/board-page.tsx` (16 guards)

@@ -5,11 +5,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
-import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,9 +27,18 @@ import { cn } from "@/lib/utils";
  * at all).
  *
  * Every interactive element is a NavigationMenuLink (close-on-select + the
- * roving focus contract) EXCEPT the DemoTicket, whose root is already a Link
- * to the demo event; the controlled root's pathname-close covers in-app
- * navigations, and the demo is a full-page exit anyway.
+ * roving focus contract): the controlled root's pathname-close covers every
+ * in-app navigation here now.
+ *
+ * ★ THE FEATURES PANEL LOST ITS DEMO TICKET (`doors=pile`, the sixth batch,
+ * 2026-09-20: "the nav's ticket goes"; one object skinned per place, and a
+ * ticket labelling a QR was the one door that read as unpolished). `Features`
+ * simply carries no `FEATURED` entry now, which `MegaPanel` above already
+ * handles: `featured` reads `undefined` off the map and the grid falls back
+ * to its plain one-column list (the same branch a fourth nav group with no
+ * card would take; no group had exercised it before). `DemoTicket`
+ * (`system/demo-ticket.tsx`) stays on disk for the Library's own specimen;
+ * nothing in the shipped site imports it now.
  */
 export function MegaPanel({ group }: { group: NavGroup }) {
   const featured = FEATURED[group.label];
@@ -121,13 +128,10 @@ function ItemLink({ link }: { link: NavLink }) {
   );
 }
 
-/** The featured right panes, keyed by group label (see the header comment). */
+/** The featured right panes, keyed by group label (see the header comment).
+ *  `Features` carries none (see the star above) — an absent key here is the
+ *  same as an explicit `null`, both read as "no featured pane". */
 const FEATURED: Record<string, ReactNode> = {
-  Features: DEMO_EVENT_URL ? (
-    <div className="flex flex-col justify-center">
-      <DemoTicket layout="column" />
-    </div>
-  ) : null,
   Events: (
     <FeaturedCard
       href="/events"
