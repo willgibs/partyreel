@@ -1,6 +1,6 @@
 ---
 track: guest-shape-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f7075a73"          # the launch-prep SHA the branch was cut from
 board: guest-shape     # round two on the same board id: the chrome, the welcome, where a guest finds theirs
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -220,28 +220,43 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none yet (the board's own three asks carry every open call; see "Calls his to overrule" below for the ones this lane took building it)
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none yet (a lab-only round; nothing wired, `docs/systems/guest-flow.md` untouched)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: `ui/sheet.tsx` never gained the `desk="center"` prop rulings.md named for the door (still side-panel-only at a desk, `sm:right-0`); `welcome` measured the shipped posture honestly rather than an unbuilt one and picked `card` partly because of it. Worth a line if a later consumer wants a centred desk posture besides a side panel.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `e8b299b6`, pushed; synced with launch-prep twice as it moved under the lane (first at `1c8f7eca`, finally at `9e4b694d`, both stable merges with zero conflicts each time: `git diff --stat <merge-base> origin/launch-prep` touched nothing in `reads`, `owns` or the registration files either sync, only `docs/design/library.md`, regenerated fresh after both).
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok · specimens ok · `pnpm typecheck` ok · `pnpm lint` ok (8 known warnings, the baseline, none new) · `pnpm test` 3024 passed, 1 skipped, **1 known-failing, not this lane's to fix** (below) · `pnpm build` ok, 255 pages · `pnpm lab:smoke --base :3133` ok, 435 checks, 0 failing (`guest-shape` itself: 355 words against a 1200 budget) · `pnpm lab:demo --board guest-shape --base :3133` ok, 3 steps, 0 failing, every step draws its options.
+- **The one test failure is cross-lane, outside `owns`, and left exactly as found**: `overtaken.test.ts` fails `guest-shape.dialogs: guest-shape declares no ask "dialogs" in round 2`, because `overtaken-2`'s own `sandbox/overtaken.ts` (cut from the same base commit, still an open lane at handoff, `lp/overtaken-2`) carries a badge naming round one's `dialogs` ask, which this round correctly drops with the rest of round one's seven (the `profile-page` precedent: a round replaces its questions rather than accreting them). Per the ownership rules, a second lane's edit in another lane's file rides the lane-check exception only after syncing past that file's OWNER's merge, and `overtaken-2` has not merged; this lane made no edit to `overtaken.ts`. Whichever of `guest-shape-r2` and `overtaken-2` integrates second will need the one-line reconciliation (drop or re-point the `guest-shape.dialogs` entry).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = every file under `owns` (including four round-one files this round deletes: `account.tsx`, `dialogs.tsx`, `door.tsx`, `yours.tsx`) + `touchpoints.ts` (the registration exception: the `guest-shape` RULINGS row rewritten for round two, `ruled`/`why`/`board.note`/`board.variants`) + `docs/design/library.md` (exception: `pnpm design:rules` regenerates it after any `touchpoints.ts` edit, per CLAUDE.md). Nothing else; `registry.ts` and `boards.ts` needed no line changes (the board id and component export are unchanged from round one).
+- The items, one line each:
+  - `chrome`: recommended `both` (the row on landing, a dock once it scrolls away); a kept one becomes the guest album's action-block pattern, replacing the shipped column + floating pill.
+  - `welcome`: recommended `card` (a compact float, the album or its locked backdrop visible behind); a kept one becomes the door's shell on `entry-shell.tsx`, replacing the vaul-quoted drawer/dialog, and the demo's own arrival wears the same shell.
+  - `theirs`: recommended `mark` (a subtle badge on a guest's own tiles, tap to filter); a kept one becomes a new prop on the shared grid (`shared/masonry.tsx`'s `renderOverlay`, already public) plus the "Yours" filter state, no new surface.
+- Calls his to overrule, one line each (the brief's "take the recommended answer, list every call"):
+  - `welcome`'s recommendation is `card`, not `sheet`, even though `sheet` reuses the primitive `dialogs=stands` just promoted to every other guest surface: the real `sheet` posture at a desk is a right-edge panel (`ui/sheet.tsx`'s own `sm:right-0`, no `desk` prop exists to centre it, see Deferred), which is the exact "a door is not a side panel" shape his note flagged, so recommending it back felt like recommending the same problem in new clothes. `sheet` is still drawn as it really is, not an invented centred version, so the choice is his to make on equal evidence.
+  - `chrome`'s recommendation is `both`, not the plainer always-docked `dock`, reading his own words as praising two different traits (the row's first-look actionability, the dock's permanence) rather than one that subsumes the other; `dock` alone is the simpler object if he reads it differently.
+  - `theirs`'s recommendation is `mark`, the option easiest to miss on a first glance (a badge, not a labelled control), because it is the only one that answers "which of the 68 is mine, wherever it falls" without a tap, for the cost of zero new chrome; `chip` is the safer, more legible alternative.
+  - `theirs`'s big-album fixture (68 photographs, ten a guest's own) is invented for this board only (the shipped album has no size that makes the question real); the ten are spread by a fixed, arbitrary index list, not a searched order like the small album's.
+- The help articles this lane makes stale: none (lab-only; nothing shipped changes what a help article describes).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `chrome`, `position=Scrolled deep into the album`, cycling all four options: it is the one frame where `column` (today) visibly loses Invite while `both`/`dock`/`header` all keep it, which is his own criterion made a picture rather than a sentence.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round two of `guest-shape` answered the two he flagged by name and the
+plan's third, all three on the wired album and the demo's own arrival: `chrome`, where Add and Invite live, `both`
+recommended (his own two-part criterion read as two traits, not one subsuming the other); `welcome`, the door's shell,
+`card` recommended over reusing the just-unified responsive Sheet, whose real desk posture is the side panel his note
+flagged; `theirs`, where a guest finds their own photographs at scale, `mark` recommended, reusing the shared grid's
+own `renderOverlay`. Round one's seven now-ruled asks and the four files that only answered them retired with it. One
+test stays red on the integrated tree: `overtaken.test.ts`'s `guest-shape.dialogs` badge is `overtaken-2`'s file to
+fix, not this lane's; resolved at whichever of the two integrates second.
