@@ -18,3 +18,6 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   each verdict's question, the chosen option's label and meaning, confirms or overrules the recommendation, what it
   lands, his note verbatim; the specs parsed with TypeScript, never imported. The transcript tool judges the paste;
   this says what it means, so lanes are cut from the boards' own words.
+- `test-delta.sh <base-sha>`: the tests at HEAD against the tests at a base commit, by name (`vitest list` on a
+  throwaway worktree, sorted, `comm`), for a gate whose count moved with no test file in the diff. Tonight's answer
+  was the deleted manifest's own two generated tests.
