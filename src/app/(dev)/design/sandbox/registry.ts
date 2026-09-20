@@ -25,7 +25,6 @@ import { ALBUM_MOTION } from "./album-motion/spec";
 import { DEMO_EVENT } from "./demo-event/spec";
 import { APP_SHAPE } from "./app-shape/spec";
 import { BODY_TYPE } from "./body-type/spec";
-import { GUEST_SHAPE } from "./guest-shape/spec";
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 
@@ -61,7 +60,6 @@ const REGISTERED: readonly BoardSpec[] = [
   SEED_AVATAR,
   BODY_TYPE,
   APP_SHAPE,
-  GUEST_SHAPE,
   APP_VOCABULARY,
   APP_DOOR,
   DEMO_EVENT,

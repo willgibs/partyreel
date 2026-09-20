@@ -77,7 +77,6 @@ export type RulingId =
   | "app-pricing"
   | "app-vocabulary"
   | "demo-event"
-  | "guest-shape"
   | "album-motion"
   | "app-shape"
   | "cursor-backdrop"
@@ -132,7 +131,6 @@ export type SandboxId =
   | "contact-page"
   | "app-vocabulary"
   | "demo-event"
-  | "guest-shape"
   | "album-motion"
   | "loose-ends"
   | "body-type"
@@ -1325,26 +1323,6 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
-  {
-    id: "guest-shape",
-    title: "The guest experience's shape",
-    surface: "guest",
-    ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch): door=today (the welcome-then-gate sequence, not the sheet design), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after, dialogs=stands; `guest-wiring` wires five of seven; round two open on the chrome (his \"warrants a second round\"), the welcome's shell on a real gate and the demo's own arrival, and where a guest finds their own photographs at scale",
-    shipped: null,
-    why: "Round two: where Add and Invite live so the top action is found landing and reachable deep, the door's shell, and where a guest finds their own photographs at scale.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/app/(guest)/e/[token]/page.tsx",
-      "src/components/guest/event-experience.tsx",
-      "src/components/guest/entry-shell.tsx",
-      "src/components/guest/gallery-empty-state.tsx",
-    ],
-    board: {
-      note: "Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68",
-      variants: ["The chrome", "The welcome", "Theirs"],
-    },
-  },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
   // (full-quality, the plate, the band with its rail, the slide, the rhythm as
   // a soft ruling, the phone at four or five scroll steps) and added the
@@ -1573,7 +1551,7 @@ export const RULINGS: Ruling[] = [
     title: "The toast, as a system",
     surface: "shared",
     ruled:
-      "open (Will, 2026-09-19, the fifth batch, `moment=today`: \"This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I'd like to redesign our toasts.\")",
+      'open (Will, 2026-09-19, the fifth batch, `moment=today`: "This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I\'d like to redesign our toasts.")',
     shipped: null,
     why: "Six boards already decided a toast's words; this asks the system underneath: if the control can show it, no toast halves the count before anything else is asked.",
     lives: [
@@ -1618,7 +1596,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // after `app-vocabulary`: a part under both shapes).
   "body-type",
   "app-shape",
-  "guest-shape",
   "guest-verify",
   "app-vocabulary",
   "toasts",

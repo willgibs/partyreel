@@ -160,6 +160,82 @@ export type TileAction = {
 };
 
 /**
+ * THE FOURTH MARK: THIS ONE IS YOURS (`theirs=mark`, Will 2026-09-20). A guest
+ * can already remove any photograph they uploaded, for ever (`yours`, wired);
+ * what no surface said was WHICH of 68 tiles are theirs, so the answer rides
+ * the tile rather than a new control above the album — his own note on the
+ * option he did not take: "rather than just adding more and more configs here".
+ *
+ * ★ IT TAKES THE TOP-LEFT CORNER, AND THAT IS THE ONLY CORNER FREE AT EVERY
+ * WIDTH. The play mark and the like mark own the two bottom corners, and the
+ * desk's hover row owns the top right (`row=bar`, one pane). The board drew
+ * this mark top-right on a PHONE, where there is no hover row at all; on a
+ * laptop that corner is the bar's, so the mark moves to the corner nobody else
+ * claims rather than living under a pane that opens over it. (A guest's own
+ * just-landed check shares this corner for about two seconds after an upload
+ * and paints over it, which is the right order: the news wins, then the mark.)
+ *
+ * ★ THE GLYPH CARRIES ITS OWN LIGHT, like every other mark on a photograph:
+ * `GLASS_MARK` is the material at the marks' cheaper blur and `GLASS_MARK_LIT`
+ * is the dark halo that keeps a white glyph legible over a bright sky, which no
+ * pane can do for it (`lib/glass.ts`).
+ */
+function MineMark({
+  onSelect,
+  selected,
+}: {
+  onSelect?: () => void;
+  selected?: boolean;
+}) {
+  const body = (
+    <span
+      aria-hidden
+      className={cn("size-1.5 rounded-full bg-white", GLASS_MARK_LIT)}
+    />
+  );
+  const box = cn(
+    "absolute top-1.5 left-1.5 z-10 flex size-5 items-center justify-center rounded-full",
+    GLASS_MARK,
+  );
+  // No handler = a marker, not a control: a surface that cannot filter must not
+  // hand a screen reader a button that does nothing.
+  if (!onSelect)
+    return (
+      <span
+        data-tile-mark="mine"
+        aria-hidden
+        className={cn("pointer-events-none", box)}
+      >
+        {body}
+      </span>
+    );
+  const label = selected
+    ? "Showing only your photos. Show the whole album."
+    : "Yours. Show only your photos.";
+  return (
+    <button
+      type="button"
+      data-tile-mark="mine"
+      aria-label={label}
+      aria-pressed={selected ?? false}
+      title={label}
+      onClick={(e) => {
+        // The tile underneath opens the lightbox; this one does not.
+        e.stopPropagation();
+        onSelect();
+      }}
+      className={cn(
+        box,
+        "cursor-pointer transition-transform duration-150 ease-emphasis outline-none",
+        "focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+      )}
+    >
+      {body}
+    </button>
+  );
+}
+
+/**
  * ONE COLOUR LANGUAGE FOR EVERY SURFACE'S ROW (Will, 2026-06-20: the action SET
  * differs by role, the colour language does not). Monochrome at rest, the hue on
  * direct hover, and the hue KEPT with a soft fill when the verb is a state you
@@ -335,6 +411,9 @@ export function MasonryColumns<T extends GridMedia>({
   arrivedIds,
   canDelete,
   prefix,
+  mineIds,
+  onSelectMine,
+  mineSelected,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
@@ -350,6 +429,18 @@ export function MasonryColumns<T extends GridMedia>({
   arrivedIds?: ReadonlySet<string>;
   canDelete?: (item: GridMedia) => boolean;
   prefix?: ReactNode;
+  /**
+   * THIS VIEWER'S OWN PHOTOGRAPHS (`theirs=mark`, Will 2026-09-20): the tiles
+   * that wear the fourth mark, and `data-mine` on the tile box so a surface can
+   * style or count them without re-deriving the set. Omitted everywhere except
+   * a guest album — a host looking at their own event would be marking all of
+   * it, which says nothing.
+   */
+  mineIds?: ReadonlySet<string>;
+  /** The mark's tap. Omitted = a marker with no control in it. */
+  onSelectMine?: () => void;
+  /** The Yours filter is already on: the mark carries the state and clears it. */
+  mineSelected?: boolean;
   stagger?: boolean;
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
@@ -432,6 +523,7 @@ export function MasonryColumns<T extends GridMedia>({
       key={item.id}
       data-media-tile
       data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
+      data-mine={mineIds?.has(item.id) ? "" : undefined}
       // The bright edge (globals.css, [data-lit]): this div owns the tile
       // radius and clips the photo, so the hook sits here and nowhere
       // above it. No value: a tile has no border for the light to land on.
@@ -474,9 +566,15 @@ export function MasonryColumns<T extends GridMedia>({
         <MediaTile item={item} playBadge="none" />
       </button>
 
-      {/* THE THREE MARKS — state, never controls, and the whole of a phone tile. */}
+      {/* THE MARKS — state, never controls, and the whole of a phone tile. The
+          fourth ("yours") is the one exception his own ruling asked for: it is
+          a mark that the guest album also makes tappable, because the filter it
+          opens is the answer to "where are mine" at 68 photographs. */}
       {item.type === "video" && <CornerPlayBadge />}
       {!hideLikeMark && <TileLikeMark item={item} count={item.likeCount} />}
+      {mineIds?.has(item.id) && (
+        <MineMark onSelect={onSelectMine} selected={mineSelected} />
+      )}
 
       {/* The desk's hover row, as one pane. A sibling of the open button, so a
           control's tap is captured by the control and never opens the lightbox. */}
