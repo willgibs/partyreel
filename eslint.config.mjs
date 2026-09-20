@@ -106,7 +106,7 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // The Orchestrator's own folder (Will, 2026-09-20): notes, an atlas and its kit; never app source.
-    "PartyreelAI/**",
+    "usher/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

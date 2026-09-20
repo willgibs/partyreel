@@ -64,11 +64,12 @@ missing=[i for i in ids if 'id: "%s"'%i not in tp]
 print("desk boards:",len(ids),"RULINGS rows missing:",missing)
 sys.exit(1 if missing else 0)
 PY2
-set +e
-pnpm typecheck >/dev/null 2>&1; TC=$?
-pnpm -s vitest run "src/app/(dev)/design/sandbox/registry.test.ts" "src/app/(dev)/design/touchpoints.test.ts" >"$S/$TRACK-registry-tests.log" 2>&1; RT=$?
-set -e
+# a killed dev server leaves a truncated .next/dev/types/validator.ts that the typecheck reads (2026-09-20): clear it first;
+# and `cmd || VAR=$?` keeps zsh's ERR trap quiet so the RED line below prints the reason instead of a bare STEP FAILED.
+rm -rf .next/dev
+TC=0; pnpm typecheck >"$S/$TRACK-typecheck.log" 2>&1 || TC=$?
+RT=0; pnpm -s vitest run "src/app/(dev)/design/sandbox/registry.test.ts" "src/app/(dev)/design/touchpoints.test.ts" >"$S/$TRACK-registry-tests.log" 2>&1 || RT=$?
 echo "typecheck $TC registry-tests $RT"
-[ "$TC" = 0 ] && [ "$RT" = 0 ] || { echo "RED before commit; merge left staged"; tail -30 "$S/$TRACK-registry-tests.log"; exit 1; }
+[ "$TC" = 0 ] && [ "$RT" = 0 ] || { echo "RED before commit; merge left staged"; grep -E "error TS" "$S/$TRACK-typecheck.log" | head -5; tail -30 "$S/$TRACK-registry-tests.log"; exit 1; }
 git commit -q -F "$MSG"
 echo "MERGED $(git rev-parse --short HEAD)"; git status --short | wc -l

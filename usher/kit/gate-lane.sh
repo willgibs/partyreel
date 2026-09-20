@@ -19,6 +19,8 @@ echo "dev ready after ${i}x2s"
 for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:3137/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
 echo "lab ready after ${j}x2s"
 pnpm -s lab:smoke --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tee "$S/gate$N-smoke.log" | tail -8; echo "EXIT[lab:smoke]=${pipestatus[1]}"
-perl -e 'alarm 300; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:3137 2>&1 | grep -v "$DESIGN_PREVIEW_KEY" | tee "$S/gate$N-demo.log" | tail -14; echo "EXIT[lab:demo $BOARD]=${pipestatus[1]}"
+# a cold frame compile under load stalls CDP past its 60 s (gate 62, 2026-09-20: two TIMED OUT steps, green on the warm re-run):
+# one retry on the warm server; both logs kept; the exit is the last attempt's.
+DEMO=1; for a in 1 2; do perl -e 'alarm 420; exec @ARGV' pnpm -s lab:demo --board "$BOARD" --base http://localhost:3137 2>&1 | grep -v -- "$DESIGN_PREVIEW_KEY" | tee "$S/gate$N-demo-$a.log" | tail -14; DEMO=${pipestatus[1]}; [ "$DEMO" = 0 ] && break; echo "lab:demo attempt $a red; retrying warm"; done; cp "$S/gate$N-demo-$a.log" "$S/gate$N-demo.log"; echo "EXIT[lab:demo $BOARD]=$DEMO"
 lsof -ti tcp:3137 | xargs -r kill 2>/dev/null
 echo "GATE$N DONE $(date -u)"

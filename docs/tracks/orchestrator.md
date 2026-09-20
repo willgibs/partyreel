@@ -213,7 +213,7 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
    ruling (the hub landed at `a91464cb`). At each handoff: the merge (`voice-wiring` retires its board and ledger; a round-two lane rewrites its
    RULINGS row; the type policy's `pending` entries trimmed at an app-shape merge after the ladder), the gate on :3137, the record in
    the night-sitting entry, `[preview]`, the alias, the prune, the red-team listed in the plan. Through the night: new explorations on
-   surfaces no board has touched, cut from the survey, never re-asking an open ask; `PartyreelAI/` in the gaps.
+   surfaces no board has touched, cut from the survey, never re-asking an open ask; `usher/` (my own folder, PartyreelAI until 2026-09-20) in the gaps.
 0. **Batch four (2026-09-19, the evening sitting; the plan in the Orchestrator's plan file, the words in rulings.md):**
    `events-wiring`, `chrome-wiring`, `profile-wiring`, `footer-close` and `profile-reach` cut at `b30445d9` on :3131 to :3135. At each
    wiring handoff: the merge (a retirement removes registration lines; a round-two lane rewrites its own RULINGS row), the gate

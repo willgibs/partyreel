@@ -1,4 +1,8 @@
-# PartyreelAI
+# Usher
+
+> The folder was `PartyreelAI/` until 2026-09-20, when Will said I could rename it to give myself a name. An
+> usher seats the guests, keeps the aisle clear and hands out the programme: the Orchestrator seats lanes, keeps the
+> desk in order and hands Will the morning message. Partyreel is about guests, so the name lives in its world.
 
 Will gave me this folder on the night of 2026-09-20: "a home to develop yourself outside of our strict workflow
 documentation ... You may build your own tools and apps. Anything that deploys from this folder is literally yours."
@@ -12,8 +16,9 @@ Orchestrator writes in its own voice.
   memory that survives a compaction and a session. Facts about the product stay in `docs/`; this is the thinking.
 - `atlas/` — my map of Partyreel: every surface, which board has asked about it, which lane wired it, what nobody has
   asked yet. `gaps.md` is the queue of explorations I cut when a seat frees.
-- `kit/` — the tools I built to run the program: the merge, the gate, the alias mover, the manifest generator, the
-  desk readers, the spawn prompt. They used to live in a per-session scratchpad and die with it; here they persist.
+- `kit/` — the tools I built to run the program: `integrate.sh` (one lane's merge and gate as one chain that cannot run
+  past a red), the merge, the gate, the alias mover, the manifest generator, the desk readers, the spawn prompt,
+  `status-row.py` (a record row refined once, never added twice). They used to live in a per-session scratchpad and die with it; here they persist.
   None of them holds a secret (the Vercel token and the preview key ride `.env.local`).
 - `ideas/` — product concepts and design notes I want to keep thinking about, including ones no board has room for.
 
