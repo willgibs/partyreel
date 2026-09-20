@@ -2,6 +2,49 @@
   "version": 3,
   "components": [
     {
+      "id": "page",
+      "file": "src/app/(app)/account/page.tsx",
+      "names": [
+        "AccountPage"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "derives the tier from the server-side profile row",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 29
+        },
+        {
+          "title": "takes every plan fact from that row, never from a param or a prop",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 34
+        },
+        {
+          "title": "keeps ?reset as this page's only search param",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 49
+        },
+        {
+          "title": "single-sources every limit from tiers.ts",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 55
+        }
+      ]
+    },
+    {
       "id": "copy-so-far",
       "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx",
       "names": [
@@ -501,6 +544,49 @@
       ]
     },
     {
+      "id": "owner-sections",
+      "file": "src/app/(guest)/u/[slug]/owner-sections.tsx",
+      "names": [
+        "OwnerSections"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "takes no identity at all",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 29
+        },
+        {
+          "title": "reads only auth.uid()-scoped sources",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 38
+        },
+        {
+          "title": "renders only for the person themselves",
+          "suite": [
+            "the owner mode cannot be pointed at somebody else"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 56
+        },
+        {
+          "title": "has no loading.tsx, ever",
+          "suite": [
+            "the route's 404 still decides before anything streams"
+          ],
+          "file": "src/app/(guest)/u/[slug]/owner-mode.test.ts",
+          "line": 67
+        }
+      ]
+    },
+    {
       "id": "admin-not-found-screen",
       "file": "src/components/admin/admin-not-found-screen.tsx",
       "names": [
@@ -628,6 +714,89 @@
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
           "line": 257
+        }
+      ]
+    },
+    {
+      "id": "events-section",
+      "file": "src/components/app/dashboard/events-section.tsx",
+      "names": [
+        "EventsSection"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "paints cards when the cookie said cards",
+          "suite": [
+            "the view the server chose"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "paints rows when the cookie said rows, without being told twice",
+          "suite": [
+            "the view the server chose"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 110
+        },
+        {
+          "title": "persists the choice through the Server Action",
+          "suite": [
+            "flipping the view"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "persists the way back too",
+          "suite": [
+            "flipping the view"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "reorders the list by what is waiting",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 132
+        },
+        {
+          "title": "offers the order with the rows, where he expects it",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 148
+        },
+        {
+          "title": "keeps the bin out of the live list",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 155
+        },
+        {
+          "title": "reaches the bin from the DEFAULT view, not only from the rows",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "offers the create hero only to a host with nothing at all",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 169
         }
       ]
     },
@@ -2544,7 +2713,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2552,7 +2721,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2560,7 +2729,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2568,7 +2737,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2576,7 +2745,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2584,7 +2753,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2592,7 +2761,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2613,7 +2782,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2621,7 +2790,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2629,7 +2798,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2637,7 +2806,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2645,7 +2814,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2653,7 +2822,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2661,7 +2830,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2683,7 +2852,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2691,7 +2860,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2699,7 +2868,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2707,7 +2876,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2715,7 +2884,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2723,7 +2892,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2731,7 +2900,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2752,7 +2921,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2760,7 +2929,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2768,7 +2937,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2776,7 +2945,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2784,7 +2953,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2792,7 +2961,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2800,7 +2969,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -2821,7 +2990,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -2829,7 +2998,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -2837,7 +3006,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -2845,7 +3014,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -2853,7 +3022,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -2861,7 +3030,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -2869,7 +3038,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -3584,7 +3753,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -3592,7 +3761,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -3600,7 +3769,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -3608,7 +3777,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -3616,7 +3785,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -3624,7 +3793,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -3632,7 +3801,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -6539,7 +6708,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 210
+          "line": 211
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6547,7 +6716,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 225
+          "line": 226
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6555,7 +6724,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 240
+          "line": 241
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6563,7 +6732,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 265
+          "line": 266
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6571,7 +6740,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 282
+          "line": 283
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6579,7 +6748,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 304
+          "line": 305
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6587,7 +6756,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 318
+          "line": 319
         }
       ]
     },
@@ -8950,6 +9119,17 @@
       "contracts": []
     },
     {
+      "id": "toggle-group",
+      "file": "src/components/ui/toggle-group.tsx",
+      "names": [
+        "ToggleGroup",
+        "ToggleGroupItem"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": []
+    },
+    {
       "id": "tooltip",
       "file": "src/components/ui/tooltip.tsx",
       "names": [
@@ -8997,6 +9177,243 @@
           ],
           "file": "src/lib/constants/feature-pages.test.ts",
           "line": 28
+        }
+      ]
+    },
+    {
+      "id": "arrivals",
+      "file": "src/lib/dashboard/arrivals.ts",
+      "names": [
+        "ARRIVALS_TARGET"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "stays on the last hour when the hour holds twelve",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 25
+        },
+        {
+          "title": "widens to today when the hour is short",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 33
+        },
+        {
+          "title": "takes the widest window when nothing fills the strip, and dates it",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 47
+        },
+        {
+          "title": "widens past today only when today is genuinely empty",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 57
+        },
+        {
+          "title": "says which window it settled on, including how stale the newest is",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 64
+        },
+        {
+          "title": "never claims freshness it cannot back up",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 75
+        }
+      ]
+    },
+    {
+      "id": "events-view",
+      "file": "src/lib/dashboard/events-view.ts",
+      "names": [
+        "DEFAULT_EVENTS_VIEW",
+        "EVENTS_FILTER_OPTIONS",
+        "EVENTS_SORT_OPTIONS",
+        "EVENTS_VIEW_COOKIE",
+        "EVENTS_VIEW_COOKIE_MAX_AGE"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "defaults to the cover cards",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 50
+        },
+        {
+          "title": "honours a stored choice and refuses anything else",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 57
+        },
+        {
+          "title": "narrows the order and the lens the same way",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 66
+        },
+        {
+          "title": "keeps the bin out of the live list",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 83
+        },
+        {
+          "title": "shows exactly one kind when asked for one",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 87
+        },
+        {
+          "title": "sorts newest first by the row's own recency key",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 94
+        },
+        {
+          "title": "sorts by what is waiting, and stays stable where nothing is",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 105
+        },
+        {
+          "title": "sorts names the way a person reads them, accents included",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 118
+        },
+        {
+          "title": "never mutates the list it was handed",
+          "suite": [
+            "the order"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "id": "next-step",
+      "file": "src/lib/dashboard/next-step.ts",
+      "names": [
+        "STORAGE_STEP_PCT"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers nothing for an event that wants nothing",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 42
+        },
+        {
+          "title": "puts a waiting queue first, above every other claim on the host",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 46
+        },
+        {
+          "title": "falls to paused uploads once the queue is clear",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 60
+        },
+        {
+          "title": "offers the reel only for a live album that has something to cut",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 68
+        },
+        {
+          "title": "offers the code the day before, and not on the day or after",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 79
+        },
+        {
+          "title": "crosses a year boundary without losing a day",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 87
+        },
+        {
+          "title": "links the reel step at the reel, not at the event",
+          "suite": [
+            "the next best step, per event"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 95
+        },
+        {
+          "title": "gives each event exactly one step, in the order it was handed them",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 107
+        },
+        {
+          "title": "adds the storage step last, and only over the threshold",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 112
+        },
+        {
+          "title": "returns an empty band for a settled host rather than inventing work",
+          "suite": [
+            "the band as a whole"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 126
         }
       ]
     },

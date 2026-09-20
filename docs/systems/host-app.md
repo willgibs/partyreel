@@ -6,28 +6,28 @@
 
 ## Dashboard landing
 
-[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, four tabs
-deep-linkable via `?filter=` (the legacy `?tab=` still translated; [`filter-chips.tsx`](../../src/components/app/dashboard/filter-chips.tsx)
-syncs the URL with `history.replaceState` so switching stays instant, no server round-trip):
-- **Events** — hosted + saved events MERGED into one list, interleaved by recency (hosted by `created_at`,
-  saved by `saved_at`, so a just-created OR just-saved event lands top) + icon-differentiated (a calendar
-  glyph vs a bookmark) on the shared `EventCard`. Saved cards keep their visibility masking + unsave (→
-  [notifications-analytics-growth.md](notifications-analytics-growth.md)).
-- **Uploads** — the host's OWN media across ALL events (host uploads + guest uploads), via the authenticated
-  `get_my_uploads` RPC (UNION of host-arm + guest-arm; `is_host_upload` + event/type/date make it filter-ready
-  for a future cross-gallery filter; presigned server-side; ≤200 with a truncation footer). Reuses `MediaGrid`
-  + the lightbox (view + per-item download + **delete-own** via a confirm-gated Trash control → the
-  `remove_my_upload` RPC; optimistic removal) + a gated event-context caption per item →
-  [uploads-and-r2.md](uploads-and-r2.md). A guest's self-deletion stays private to the host → [lifecycle-recovery.md](lifecycle-recovery.md).
-- **Likes** — every photo/video the viewer has LIKED across all events (newest-liked first), via the
-  authenticated `get_my_likes` RPC (it re-applies the like access predicate, so a now-inaccessible like drops
-  out + never leaks its key). Reuses `MediaGrid` + the lightbox; here the heart (tile or lightbox) UNLIKES and
-  drops the item. "Like" = a favorite collected from ANY gallery (distinct from Save = an event bookmark);
-  anonymous guests get the like button + the same create-account flow as Save. The per-event like COUNT is
-  HOST-ONLY, a subtle "♥ N" badge on the event-detail management gallery (`get_event_like_counts`,
-  host-gated), never on a guest surface; it also seeds the future sort/filter. → [database-security.md](database-security.md), [guest-flow.md](guest-flow.md).
-- **Trash** — the soft-deleted EVENTS recovery bin →
-  [lifecycle-recovery.md](lifecycle-recovery.md).
+[`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home and, since 2026-09-20
+(`home=pulse`), a PULSE rather than an inbox: "what needs you, then what just arrived". The five-chip
+filter bar is gone, and so are the personal feeds it mixed in - your uploads, your likes and the hosts
+you follow moved to the profile's owner mode (→ [profiles-social.md](profiles-social.md)), because your
+own likes were never a hosting job. Four bands, in this order:
+- **What needs you** — one NEXT BEST STEP per event from a pure rule
+  ([`next-step.ts`](../../src/lib/dashboard/next-step.ts)), first match wins: a queue waiting, uploads
+  paused, a live album with items but no reel, an event dated tomorrow. Plus the storage step over 85%.
+  ★ **It must never render as a void.** Will approved the pulse while warning that the old inbox existed
+  so the app would not feel "limited and empty... until more things start to happen". A band wired
+  straight to the review queue is blank for every host who is up to date, so the rule is what ships and
+  an empty result renders a calm line, not nothing. `home-states` (app-shape round two) inherits this.
+- **Just arrived** — the newest photographs, in a window that WIDENS until it holds twelve (the last
+  hour, then today, then the newest across events) and a caption that says which it settled on
+  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)). ★ These tiles are the ONE host surface that
+  keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just arrived, so the
+  animation is the only thing on the page reporting what changed. Reads + presigns live in
+  [`pulse.ts`](../../src/lib/db/queries/pulse.ts), a separate file from `events.ts` on purpose - the
+  event SETTINGS page shares `getEventCardStats`, and growing that module ties two surfaces together.
+- **The storage line** — the ambient `StorageMeter`, now UNCONDITIONAL (it used to need 1+ events). A
+  host with no events still has a plan and a shelf. The over-cap grace banner stays its own top alert.
+- **Your events** — hosted + saved, interleaved by recency, in either of two views (below).
 
 ## Events & the create flow
 
@@ -66,6 +66,17 @@ guards `MAX_EVENTS`. **Events have no end date**: deletion is the only lifecycle
   controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
+- **The events list draws two ways, and the choice is a COOKIE** (`density=cover`, Will 2026-09-20:
+  "let's do both"). Cover cards by default; a row view (the cover behind at 12%, the counts in columns,
+  the newest few beside the name) behind a toggle aligned right opposite "Your events", with a sort menu
+  (Newest · Most waiting · Name) that rides with the rows. The bin and the saved events are FILTERS of
+  this one list, never a chip row, and the filter shows in BOTH views - it is the only door to the bin,
+  so hiding it in the row view would strand a default-view host. "Deleted" names one thing.
+  ★ **The view is a cookie set by a Server Action, not localStorage, and that is load-bearing**: the
+  server has to know the view before the first byte or every cold load paints cards and swaps to rows
+  after hydration. Setting a cookie in a Server Function also re-renders the page server-side, so the
+  toggle needs no `router.refresh()`. Cross-device persistence would want a `profiles.events_view`
+  column; that is an open migration proposal, not shipped.
 
 ## QR designer
 
@@ -116,6 +127,10 @@ the `/dashboard` guard bounces the host straight back. The `/welcome` route itse
 `welcomed_at` (no loop). `welcomed_at` is on the `profiles` host-writable allowlist. The "how it works"
 story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
 marketing page — edit it once).
+A host arriving from the wizard lands on the pulse with no events yet, where the events band renders the
+create-first hero (`events-empty-teaser.tsx`) rather than the four bands: the "what needs you" band is
+suppressed at zero events, because a rule with nothing to rule on is the empty surface the pulse exists
+to avoid. The storage line and the create door still render, so the page is never bare.
 
 ## The event page
 

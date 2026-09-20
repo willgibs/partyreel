@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
-import { DashboardFeed } from "@/components/app/dashboard/dashboard-feed";
-import { EmptySectionTeaser } from "@/components/app/dashboard/empty-section-teaser";
 import { EventsSection } from "@/components/app/dashboard/events-section";
-import { FeedSection } from "@/components/app/dashboard/feed-section";
-import { FollowingSection } from "@/components/app/dashboard/following-section";
+import { JustArrived } from "@/components/app/dashboard/just-arrived";
+import { NextStepBand } from "@/components/app/dashboard/next-step-band";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
-import { TrashSection } from "@/components/app/dashboard/trash-section";
 import { UpgradedToast } from "@/app/(app)/dashboard/upgraded-toast";
-import { MyLikesGallery } from "@/components/app/my-likes-gallery";
-import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { Button } from "@/components/ui/button";
+import { trackAttrs } from "@/lib/analytics/events";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
@@ -23,74 +20,77 @@ import {
   toBillingTier,
   withinLimit,
 } from "@/lib/constants/tiers";
-import { resolveInitialFilter } from "@/lib/dashboard/filters";
-import { resolveDashboardLayout } from "@/lib/dashboard/layout";
+import {
+  EVENTS_VIEW_COOKIE,
+  resolveEventsView,
+  type EventListRow,
+} from "@/lib/dashboard/events-view";
+import { resolveNextSteps } from "@/lib/dashboard/next-step";
 import {
   getEventCardStats,
   getEventCoverUrls,
   listEvents,
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
-import { getMyLikeCards } from "@/lib/db/queries/my-likes";
-import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
+import { getEventsWithReels, getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSavedEventCards } from "@/lib/db/queries/saved-events";
-import { getFollowedHostEventCards } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
+import { formatEventDate } from "@/lib/utils";
 import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
 import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
+/**
+ * THE HOST'S HOME, AS A PULSE (`home=pulse`, Will 2026-09-20).
+ *
+ * "What needs you, then what just arrived": the steps first, then the
+ * photographs of the last hour, then the storage line, then your events. The
+ * five-chip inbox is gone and so are the personal feeds — your uploads, your
+ * likes and the people you follow now live in the profile's owner mode, where
+ * everything else about the PERSON rather than the PARTY already lives
+ * (`you=?`, his own answer in the note).
+ *
+ * ★ THE BAND ORDER IS ANSWERING A WORRY, NOT A TASTE. He approved this shape
+ * while warning that the old inbox existed to stop the app feeling "limited
+ * and empty... until more things start to happen (which creates a very boring
+ * and bland initial host experience sometimes)". So band one is a RULE over
+ * real state that always has something to say, the arrivals band WIDENS its
+ * window rather than going blank, and the storage line and the create door are
+ * unconditional. Nothing on this page is allowed to render as a void.
+ * `home-states` (app-shape round two) draws the three host states properly and
+ * inherits these rules rather than re-inventing them.
+ */
 export default async function DashboardPage({
   searchParams,
 }: {
-  // The feed is deep-linkable via ?filter= (all|events|uploads|likes|trash);
-  // legacy ?tab= bookmarks still resolve (see resolveInitialFilter).
   // `upgraded=1` is where Stripe Checkout lands a buyer (the route's success_url).
-  searchParams: Promise<{ tab?: string; filter?: string; upgraded?: string }>;
+  // The legacy ?tab= / ?filter= deep links are gone with the chips they drove;
+  // an old bookmark simply lands on the pulse, which is the page they wanted.
+  searchParams: Promise<{ upgraded?: string }>;
 }) {
-  const { tab, filter, upgraded } = await searchParams;
+  const { upgraded } = await searchParams;
   // Exactly "1", the only value the checkout route sends: a hand-typed ?upgraded=x
   // must never manufacture a payment confirmation.
   const justUpgraded = upgraded === "1";
-  // Where the toast sends the buyer once it has spoken, so the flag can't survive a
-  // reload or a copied URL. Keeps any feed deep-link the buyer already had.
-  const feedParams = new URLSearchParams();
-  if (tab) feedParams.set("tab", tab);
-  if (filter) feedParams.set("filter", filter);
-  const dashboardUrl = feedParams.size
-    ? `/dashboard?${feedParams.toString()}`
-    : "/dashboard";
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here. Kept
   // BLOCKING (no Suspense) - dashboard streaming is deferred post-launch (S1).
-  const [
-    events,
-    profile,
-    savedCards,
-    deletedEvents,
-    storage,
-    uploads,
-    likes,
-    siteUrl,
-    followedCards,
-  ] = await Promise.all([
-    listEvents(),
-    getProfile(),
-    getSavedEventCards(),
-    listRecentlyDeletedEvents(),
-    getHostStorageSummary(),
-    getMyUploadCards(),
-    getMyLikeCards(),
-    getSiteUrl(),
-    // Following chip (profiles+social): events published by followed hosts.
-    // [] pre-apply (the graceful seam) and for a host following no one.
-    getFollowedHostEventCards(),
-  ]);
+  const [events, profile, savedCards, deletedEvents, storage, siteUrl, jar] =
+    await Promise.all([
+      listEvents(),
+      getProfile(),
+      getSavedEventCards(),
+      listRecentlyDeletedEvents(),
+      getHostStorageSummary(),
+      getSiteUrl(),
+      cookies(),
+    ]);
 
   // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
   // account must set a public display name (Phase 1) before reaching the dashboard. Runs BEFORE
@@ -102,13 +102,29 @@ export default async function DashboardPage({
     redirect("/welcome");
   }
 
-  // Cover art for the owned AND recently-deleted cards + per-event stats (approved/pending), both
-  // keyed by event id. One presign batch (a deleted event's media stay non-removed, so it still
-  // resolves a cover); stats drive the V3 card's item pill + amber review chip. Keys never reach
-  // the browser — presigned here. In parallel.
-  const [coverUrls, eventStats] = await Promise.all([
+  // ONE clock reading for the whole render, taken HERE rather than inside any
+  // component: a Date read during render is impure (react-hooks purity), and
+  // two readings could straddle midnight and disagree about what "today" is.
+  // Local parts, not UTC — `events.event_date` is a date-only column the whole
+  // app already treats as the host's own calendar day (see formatEventDate).
+  const clock = new Date();
+  const now = clock.getTime();
+  const startOfToday = new Date(
+    clock.getFullYear(),
+    clock.getMonth(),
+    clock.getDate(),
+  ).getTime();
+  const today = `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, "0")}-${String(clock.getDate()).padStart(2, "0")}`;
+
+  const eventIds = events.map((e) => e.id);
+  // Cover art for the owned AND recently-deleted cards, per-event stats, which
+  // events already have a reel, and the pulse's own strips. Keys never reach
+  // the browser — everything is presigned server-side. In parallel.
+  const [coverUrls, eventStats, reeledIds, pulse] = await Promise.all([
     getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
-    getEventCardStats(events.map((e) => e.id)),
+    getEventCardStats(eventIds),
+    getEventsWithReels(eventIds),
+    getPulse(eventIds, now, startOfToday),
   ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
@@ -124,10 +140,7 @@ export default async function DashboardPage({
   // Storage gauge (storage-cap model): ACTIVE bytes vs the effective cap (explicit override else
   // the tier default). Active bytes = non-removed media in non-deleted events — what the cap is
   // enforced against, so deleting visibly frees room. The StorageMeter owns the display.
-  const storageCap = effectiveStorageCap(
-    tier,
-    profile?.storage_cap_bytes ?? null,
-  );
+  const storageCap = effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null);
   const storageUsed = storage.activeBytes;
   const standbyBytes = storage.standbyBytes;
   const overBudget = overStandbyBudget(standbyBytes, storageCap);
@@ -154,53 +167,91 @@ export default async function DashboardPage({
       })
     : null;
 
-  // The single-feed layout gates (pure + unit-tested, the four canonical states): meter visibility
-  // (1+ events OR standby bytes to report), chip visibility (anything to navigate), and the
-  // teaser-vs-gallery emptiness per section.
-  const layout = resolveDashboardLayout({
-    events: used,
-    saved: savedCards.length,
-    uploads: uploads.items.length,
-    likes: likes.items.length,
-    deleted: deletedEvents.length,
-    standbyBytes,
+  // Band one: the rule, over the state above.
+  const steps = resolveNextSteps({
+    events: events.map((e) => ({
+      id: e.id,
+      name: e.name,
+      pending: eventStats.get(e.id)?.pending ?? 0,
+      items: eventStats.get(e.id)?.approved ?? 0,
+      acceptingUploads: e.accepting_uploads,
+      hasReel: reeledIds.has(e.id),
+      eventDate: e.event_date,
+    })),
+    storagePct,
+    today,
   });
+  // The same rule phrases the row view's trailing column, so the home never
+  // tells a host two different things about one event.
+  const needsByEvent = new Map(
+    steps
+      .filter((s) => s.eventId)
+      .map((s) => [s.eventId as string, s.short] as const),
+  );
 
-  // The four section slots, rendered server-side (presigned URLs never cross as client data) and
-  // handed to the client feed. Events owns its own card-grid-or-create-hero; uploads/likes show the
-  // gallery when populated (it owns becoming-empty on client-only unlike) else the slim teaser.
-  const eventsSection = (
-    <EventsSection
-      events={events}
-      savedCards={savedCards}
-      coverUrls={coverUrls}
-      eventStats={eventStats}
-      siteUrl={siteUrl}
-    />
-  );
-  const uploadsSection = layout.uploadsEmpty ? (
-    <EmptySectionTeaser
-      heading="Your uploads"
-      blurb="Photos and videos you add to any event, yours or a friend's, collect here."
-    />
-  ) : (
-    <FeedSection heading="Your uploads">
-      <MyUploadsGallery items={uploads.items} truncated={uploads.truncated} />
-    </FeedSection>
-  );
-  const likesSection = layout.likesEmpty ? (
-    <EmptySectionTeaser
-      heading="Your likes"
-      blurb="Tap the heart on any photo or video and it lands here, across every event."
-    />
-  ) : (
-    <FeedSection heading="Your likes">
-      <MyLikesGallery items={likes.items} truncated={likes.truncated} />
-    </FeedSection>
-  );
-  const trashSection = (
-    <TrashSection deletedEvents={deletedEvents} coverUrls={coverUrls} />
-  );
+  // One list, three kinds; the section's lens decides which are shown.
+  const rows: EventListRow[] = [
+    ...events.map((event): EventListRow => {
+      const stats = eventStats.get(event.id);
+      return {
+        id: event.id,
+        kind: "hosted",
+        name: event.name,
+        href: `/dashboard/${event.id}`,
+        coverUrl: coverUrls.get(event.id) ?? null,
+        dateLabel: event.event_date
+          ? formatEventDate(event.event_date)
+          : "No date set",
+        sortDate: event.created_at,
+        items: stats?.approved ?? 0,
+        guests: null,
+        pending: stats?.pending ?? 0,
+        statusLabel: event.accepting_uploads ? "Open" : "Closed",
+        byline: null,
+        needs: needsByEvent.get(event.id) ?? null,
+        qr: { token: event.qr_token, style: event.qr_style },
+      };
+    }),
+    ...savedCards.map(
+      (card): EventListRow => ({
+        id: card.eventId,
+        kind: "saved",
+        name: card.name,
+        href: card.href,
+        coverUrl: card.coverUrl,
+        dateLabel: card.dateLabel,
+        sortDate: card.savedAt,
+        items: 0,
+        guests: null,
+        pending: 0,
+        statusLabel:
+          card.accessible && card.passwordProtected ? "Password" : null,
+        byline: card.byline,
+        needs: null,
+        qr: null,
+      }),
+    ),
+    ...deletedEvents.map(
+      (event): EventListRow => ({
+        id: event.id,
+        kind: "deleted",
+        name: event.name,
+        href: null,
+        coverUrl: coverUrls.get(event.id) ?? null,
+        dateLabel: event.event_date
+          ? formatEventDate(event.event_date)
+          : "No date set",
+        sortDate: event.deleted_at ?? event.created_at,
+        items: 0,
+        guests: null,
+        pending: 0,
+        statusLabel: binCountdownLabel(event.countdownDays),
+        byline: null,
+        needs: null,
+        qr: null,
+      }),
+    ),
+  ];
 
   return (
     <div className="space-y-6">
@@ -211,7 +262,7 @@ export default async function DashboardPage({
           // actually see. `tier` is read fresh above on every dashboard render.
           applied={tier !== "free"}
           planName={planName}
-          nextUrl={dashboardUrl}
+          nextUrl="/dashboard"
         />
       )}
 
@@ -223,13 +274,21 @@ export default async function DashboardPage({
             {maxEvents === 1 ? "" : "s"} used
           </p>
         </div>
+        {/* The create door is UNCONDITIONAL on this page (disabled at cap, never
+            absent): it is half of what stops a quiet home reading as an empty one. */}
         {atCap ? (
           <Button disabled>
             <CalendarPlus /> New event
           </Button>
         ) : (
           <Button asChild>
-            <Link href="/dashboard/new">
+            <Link
+              href="/dashboard/new"
+              {...trackAttrs("cta_click", {
+                cta: "new-event",
+                location: "dashboard",
+              })}
+            >
               <CalendarPlus /> New event
             </Link>
           </Button>
@@ -257,21 +316,26 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Ambient storage meter — hosting telemetry: shown with an event OR standby bytes to report
-          (so a host who deleted every event still sees their Trash-budget status). */}
-      {layout.showMeter && (
-        <StorageMeter
-          storageUsed={storageUsed}
-          storageCap={storageCap}
-          storagePct={storagePct}
-          standbyBytes={standbyBytes}
-          overBudget={overBudget}
-          passExpiry={passExpiry}
-          planName={planName}
-          hasBilling={hasBilling}
-          isEventPass={tier === "event_pass"}
-        />
-      )}
+      {/* BAND 1 — what needs you. Never empty: it says so calmly instead. */}
+      {used > 0 && <NextStepBand steps={steps} />}
+
+      {/* BAND 2 — what just arrived, in whichever window holds twelve. */}
+      <JustArrived tiles={pulse.arrivals} caption={pulse.caption} />
+
+      {/* BAND 3 — the storage line, always. It was gated on having an event;
+          the pulse promises it unconditionally, and a host with no events
+          still has a plan and a shelf. */}
+      <StorageMeter
+        storageUsed={storageUsed}
+        storageCap={storageCap}
+        storagePct={storagePct}
+        standbyBytes={standbyBytes}
+        overBudget={overBudget}
+        passExpiry={passExpiry}
+        planName={planName}
+        hasBilling={hasBilling}
+        isEventPass={tier === "event_pass"}
+      />
 
       {atCap && (
         <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
@@ -287,15 +351,12 @@ export default async function DashboardPage({
         </p>
       )}
 
-      <DashboardFeed
-        initialFilter={resolveInitialFilter(tab, filter)}
-        trashCount={deletedEvents.length}
-        showChips={layout.showChips}
-        eventsSection={eventsSection}
-        followingSection={<FollowingSection cards={followedCards} />}
-        uploadsSection={uploadsSection}
-        likesSection={likesSection}
-        trashSection={trashSection}
+      {/* BAND 4 — your events, cover cards or rows, the choice remembered. */}
+      <EventsSection
+        rows={rows}
+        newestByEvent={pulse.newestByEvent}
+        initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
+        siteUrl={siteUrl}
       />
     </div>
   );

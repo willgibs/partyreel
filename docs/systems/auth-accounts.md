@@ -18,8 +18,17 @@ one `profiles` row per signup.
 - Sign-in UI: [`password-sign-in.tsx`](../../src/components/auth/password-sign-in.tsx) (host `/login`, leads
   with password) wraps the shared [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) (code +
   magic-link OTP, reused by the guest prompt too); [`login-form.tsx`](../../src/components/auth/login-form.tsx).
-- Account page: `/account` — password set/change, [`display-name-form.tsx`](../../src/components/app/display-name-form.tsx),
+- Account page: `/account` — the **Plan card** (first on the page), password set/change,
+  [`display-name-form.tsx`](../../src/components/app/display-name-form.tsx),
   [`account-avatar-form.tsx`](../../src/components/app/account-avatar-form.tsx) + [`avatar-cropper.tsx`](../../src/components/app/avatar-cropper.tsx).
+  **The Plan card is billing's only front door** (`you=?`, Will 2026-09-20: "plans, billing, etc should
+  live under an account page"). Until 2026-09-20 the sole path to a plan anywhere in the app was a
+  popover on the dashboard's storage strip. It shows the tier, the storage line, the event cap
+  ("3 of 3 used" — the upgrade trigger), an Event Pass's expiry, and Manage billing / Renew.
+  ★ **Every fact on it is server-derived**: `tier`, `storage_cap_bytes`, `event_slots` and
+  `tier_expires_at` are webhook-written columns read through the RLS-scoped profile row, and the page's
+  only search param stays `?reset`. A Plan card is exactly where trusting the client would be cheapest
+  and worst → [billing-caps.md](billing-caps.md); [plan-card.test.ts](../../src/app/(app)/account/plan-card.test.ts) pins the read path.
 - Password length single-source: `MIN_PASSWORD_LENGTH` in [`validation/auth.ts`](../../src/lib/validation/auth.ts).
 - Deletion: the request in [`db/mutations/account.ts`](../../src/lib/db/mutations/account.ts), the hard delete in
   [`lifecycle/account-deletion.ts`](../../src/lib/lifecycle/account-deletion.ts) (`purgeAccount` /

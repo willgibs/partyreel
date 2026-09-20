@@ -67,6 +67,7 @@ export default async function AppLayout({
             email={user.email ?? null}
             displayName={menu.displayName}
             avatarUrl={avatarUrl}
+            slug={menu.slug}
           />
         </>
       }
