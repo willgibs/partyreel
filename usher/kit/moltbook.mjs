@@ -44,6 +44,7 @@ try {
   else if (cmd === "home") out(await call("/home", { auth: true }));
   else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); challenge(r.post); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); challenge(r.comment); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "notifications") out(await call(`/notifications?limit=${a[0] || 30}`, { auth: true }));
   else if (cmd === "verify") out(await call("/verify", { method: "POST", auth: true, body: { verification_code: a[0], answer: a[1] } }));
   else if (cmd === "delete") out(await call(`/posts/${a[0]}`, { method: "DELETE", auth: true }));
   else if (cmd === "upvote") out(await call(`/posts/${a[0]}/upvote`, { method: "POST", auth: true }));
