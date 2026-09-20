@@ -1,6 +1,6 @@
 ---
 track: door-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: app-door        # wiring; round two on the welcome tour is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -360,28 +360,187 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **Passkeys need two Supabase dashboard settings before the flag can go on anywhere** (Will's, routed as
+  the brief said): Auth → Sign In / Providers → **enable passkeys**, and the WebAuthn **Relying Party id
+  must equal the apex** (`partyreel.com`). ★ An RP-id mismatch is not "broken", it is unrecoverable: a
+  passkey registered against the wrong id is a credential the door can never see again. Until he does both,
+  `NEXT_PUBLIC_PASSKEYS` stays unset and every passkey affordance is absent, which is why the lane ships
+  green with the whole surface dark. Recommended: leave it off until he has set both, then add
+  `NEXT_PUBLIC_PASSKEYS=1` to `.env.local` and the Vercel env (NON-sensitive) and re-red-team /login and
+  /account signed in.
+- No new one-way-door decision was hit. Everything else is under "Calls his to overrule" below.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/auth-accounts.md` "What it does": the credential order rewritten (the code leads, Google
+  beside, the password a quiet second door, passkeys behind a flag).
+- Same file, "Where it lives": the sign-in UI bullet replaced by the ONE door worn four ways (`DOOR_WEAR`,
+  `chrome`, `consent` and the gate's one exception), plus what sits inside it.
+- Same file, "Gotchas", the ownership bullet refined in place: creating an account IS the code path, so no
+  password is written at the door at all, and "forgot" finishes in the door.
+- Same file, three NEW gotchas in place: the server-decided existing-account line with the gate's hold; the
+  one failure table with `suppress`; passkeys behind the flag with the RP-id landmine, the one-press never
+  being an auto sign-in, and the remembered address being `/login`-only.
+- Same file, the dashboard-lockstep bullet gains the two passkey settings; the generic-refusal bullet now
+  names `door-failure.ts` and its test; the OTP bullet now says `<AccountDoor>` decides what a code leads to.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** `<PasskeysCard />` is built and unmounted. Its one-line insertion into
+  `src/app/(app)/account/page.tsx` (under the Password card) is this lane's stated exception and was NOT
+  applied: `origin/launch-prep` had not moved at handoff, so `avatar-wiring`, which owns that page, has not
+  landed. One line, after its merge.
+- **Now:** the magic-LINK half of `existing=tell`. The code path names the account; the callback route
+  cannot, because the line needs a surface inside the host app (a one-line banner on `/dashboard`), which
+  is `home-wiring`'s file. `checkExistingAccount` is already the shared server rule, so it is one call and
+  one banner.
+- **Now:** a Google-only host is never remembered on `/login`. The door writes the device memory where it
+  KNOWS the address (a verified code, a password sign-in, a hinted Google press); an un-hinted Google press
+  redirects before we have one, so `return=tap`'s Google half only lights up for a host already remembered
+  by another path. The passkey is the real answer here and it is wired.
+- **Pre-existing, not this lane:** `src/app/(dev)/design/review/ledger.test.ts` fails at `origin/launch-prep`
+  itself (`guest-shape/dialogs` stores `stands`, which is not one of that ask's options). Verified by running
+  it in the primary checkout at `0ad0c32d` before any edit. Both `docs/reviews/` and the board spec are
+  outside this lane.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The BOARD commit is `e7962ba9` (the whole lane; the manifest rides one plain commit on top). No sync
+  merge: `origin/launch-prep` had **not moved** from the cut `0ad0c32d` at handoff (`git fetch` +
+  `git rev-list --count HEAD..origin/launch-prep` = 0).
+- Gates on that tree, each on its own exit code: `pnpm design:rules` **0**, `node
+  "src/app/(dev)/design/gallery/collect-specimens.mjs"` **0** (131 specimens on 94 entries), `pnpm typecheck`
+  **0**, `pnpm lint` **0** (8 known warnings, 0 errors), `pnpm test` **1** — 2,862 passing, **one failure,
+  pre-existing at the cut** (`review/ledger.test.ts`, `guest-shape/dialogs` stores `stands`; it fails
+  identically in the primary checkout at `0ad0c32d`, verified before the first edit), `pnpm build` **0**
+  (255 pages). `pnpm lab:smoke --base http://localhost:3133` **0** (406 checks, 0 failing);
+  `pnpm lab:demo --board app-door --base http://localhost:3133` **0** (0 open steps: the board is answered
+  whole). Dev server killed by port before every build, test run and this handoff.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+
+  ```
+  .env.example                                     (exception)
+  content/help/you-cant-sign-in.mdx                (exception)
+  docs/design/library.md                           (generated by pnpm design:rules)
+  docs/systems/auth-accounts.md                    owned
+  src/app/(app)/account/passkeys-card.tsx          owned
+  src/app/(auth)/actions.ts                        owned
+  src/app/(auth)/auth/callback/route.ts            owned
+  src/app/(auth)/login/page.tsx                    owned
+  src/app/(dev)/design/rules/component-notes.ts    (exception: registration)
+  src/app/(dev)/design/rules/rules.generated.json  (generated by pnpm design:rules)
+  src/components/auth/account-door.tsx             owned (new)
+  src/components/auth/account-door.test.tsx        owned (new, the contract)
+  src/components/auth/email-sign-in.tsx            owned
+  src/components/auth/failure-paths.tsx            owned (new)
+  src/components/auth/login-form.tsx               owned
+  src/components/auth/password-sign-in.tsx         owned
+  src/components/guest/enter-event-prompt.tsx      owned
+  src/components/guest/save-event-button.tsx       owned
+  src/components/likes/likes-provider.tsx          owned
+  src/components/shared/legal-consent-line.test.tsx (exception)
+  src/lib/auth/door-failure.ts / .test.ts          owned (new, by name)
+  src/lib/auth/remembered-email.ts / .test.ts      owned (new, by name)
+  src/lib/env.ts                                   owned
+  src/lib/supabase/client.ts                       owned
+  src/lib/type-ladder-policy.test.ts               (exception)
+  docs/tracks/door-wiring.md                       this file
+  ```
+
+  **Exceptions, and why each one was the gate refusing rather than a choice** (each applied to another
+  lane's file, each a single hunk):
+  - `.env.example` — `env-example-parity.test.ts` refuses a var `env.ts` reads that the example never
+    mentions. Two comment lines and `NEXT_PUBLIC_PASSKEYS=`.
+  - `content/help/you-cant-sign-in.mdx` — `help-ui-labels.test.ts` refuses a `<UiLabel>` that is no longer
+    a shipped string; the sentence it quoted was deleted by `failure=paths`. One line, re-quoting the new
+    line and its button. `content/help/` is `voice-wiring`'s: it merged (`32861973`), and this is the one
+    edit the gate would not let me defer to `help-sync`.
+  - `src/components/shared/legal-consent-line.test.tsx` — its "both consumers use the component" pin names
+    `(auth)/login/page.tsx`; the line moved INTO the door that page wraps. One line, repointed at
+    `account-door.tsx`.
+  - `src/lib/type-ladder-policy.test.ts` — the `enter-event-prompt.tsx` body exception's `count: 2` is now
+    1: its second off-ladder element was the gate's own password button, which left with the password form
+    into `<AccountDoor>`. The allow-list only shrinks, which is the file's own stated direction; the `why`
+    line says which lane moved it.
+  - `src/app/(dev)/design/rules/component-notes.ts` — the registration exception: three `for` lines for
+    `account-door.tsx`, `door-failure.ts` and `remembered-email.ts` (`gallery.test.ts` fails without them).
+    Placed mid-file beside the guest block, not at the head, so a second lane inserting at the head lands
+    on a distinct hunk.
+  - `rules.generated.json` + `docs/design/library.md` — artifacts of `pnpm design:rules`, which is a gate
+    step; regenerate at integration if another lane's contracts land first.
+- The items, one line each:
+  - `lead=code`: wired. One email field on every surface; Google beside it; the password is a quiet "Have
+    a password? Use it instead" that swaps in `SignIn` only. Lands in the Library as **AccountDoor**.
+  - `surfaces=one`: wired. `<AccountDoor wear=...>` on /login, the guest gate, Save and a like; `DOOR_WEAR`
+    is the one table of the four headings and reason lines. Save and Likes gain the Terms line they never
+    had; the gate is the one `consent={false}`, because its welcome step carries it. `PasswordAuth` and
+    `CreateAccount` retired; the hand-copied Google glyph in `login-form.tsx:38-59` deleted for the shared
+    `google-icon.tsx`. The admin's second factor is untouched, as ruled.
+  - `welcome=tour`: nothing wired, as the brief says. `welcome-flow.tsx` and `(app)/welcome/` are byte-identical;
+    round two redraws the tour.
+  - `page=beside`: wired. Two columns at `lg` (the door left at `max-w-sm`, three independent columns of
+    `MARKETING_IMAGES` frames right through `next/image`), a 120px four-frame band above the card under `lg`.
+  - `existing=tell`: wired. `checkExistingAccount` (a Server Function) decides it from the caller's OWN
+    `profiles` row after a verified code; the line names the address, Continue dismisses, "Not you? Sign
+    out and use another email" signs out client-side and resets the door with the field cleared. The gate
+    HOLDS its `claimAnonymousUploads` + `router.refresh()` for four seconds or until a choice.
+  - `failure=paths`: wired. `door-failure.ts` (six kinds, one line, three actions) + `failure-paths.tsx`;
+    the callback route emits the kind. Lands in the Library as **door-failure**.
+  - `return=tap`: FLAGGED in the code and wired behind `NEXT_PUBLIC_PASSKEYS` on auth-js 2.106's
+    `auth.experimental.passkey` (present in the installed SDK; checked in `node_modules`, not from memory).
+    A one-press button from a device hint + feature detection, an offer once after a code sign-in, a
+    Passkeys card for /account, a hinted Google press through the chooser, and `remembered-email.ts`
+    prefilling `/login` alone. Lands in the Library as **remembered-email**.
+- Calls his to overrule on the alias, one line each:
+  - **A recovery already on screen is not promoted twice.** The board's own capture says drawing the three
+    recoveries over a form that already carries two shows each twice, forty pixels apart, and reads as a
+    bug. So the password door promotes all three, and the code-led door shows the line over the ladder it
+    already has (`suppress`). If he wants three buttons literally everywhere, it is one prop.
+  - **The four wears' reason lines**: /login and the gate keep their shipped (and ruled) words; Save and
+    Likes keep their dialog sentences, now sourced from `DOOR_WEAR`.
+  - **The create-intent scope of the existing-account line**: the gate, Save, a like, and `/login?intent=create`
+    (the marketing "Start free" door). Never on a plain sign-in.
+  - **The failure table's three buttons per kind**, and their wording; the four-second hold.
+  - **"Forgot password" now finishes inside the door** (verify a code, then set the new one) instead of
+    sending the host to `/account?reset=1`. `/account?reset=1` still works for other entries.
+  - **The mosaic's frames**: nine `MARKETING_IMAGES` ids, rolled twice down three independent columns.
+    Stand-ins; the Higgsfield swap replaces them with no change here.
+  - **The passkey hint's placement**: a one-press button ABOVE the email field on `/login`, with the masked
+    address under it.
+  - **`/login` no longer draws its heading in a `CardHeader`** (the door owns heading, reason and consent),
+    so the card is one `CardContent`.
+- The help articles this lane makes stale (a `help-sync` lane rewrites them):
+  - `content/help/you-cant-sign-in.mdx` — PARTLY fixed here because the gate refused otherwise (one label).
+    Still stale in substance: it describes a password-led `/login` with "Create account" as a link, and
+    knows nothing of the code lead, the three-button failures or passkeys.
+  - `content/help/sign-in-options-and-passwords.mdx` — the most stale of the three. "New here? Tap Create
+    account ... then tap Pick a password" describes a flow that no longer exists (there is no Create
+    account link and no password step; the code IS the signup), and its framing "three ways in" now misses
+    passkeys. Its `<UiLabel>Create account</UiLabel>` only still passes the label test because the string
+    survives in a lab spec's prose, which is exactly the kind of accidental green `help-sync` should close.
+  - `content/help/the-email-code-didnt-arrive.mdx` — the resend and rate-limit wording it describes is now
+    a countdown button inside the failure block.
+  - Any article naming the Save or Like dialog: both now carry the Terms line and the account door.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **one env var, not yet set anywhere.**
+  `NEXT_PUBLIC_PASSKEYS` (public, `"1"` or unset) is in `src/lib/env.ts` and `.env.example`; it is
+  deliberately NOT in `.env.local` or the Vercel project env, because the two Supabase dashboard settings
+  under Questions must be true first. No migration, no Worker, no Stripe.
+- Look at first: **`/login` signed out at 1440** (the door left, the wall right) **and at 375** (the band
+  above the card), then `/login?error=expired_link` at both, then the guest gate on a gated event (Google
+  is new there), then the Save dialog's new Terms line. Verified locally at both widths on :3133, including
+  a real refused password sign-in against Supabase (the generic line with its three buttons) and the gate
+  on the disposable `Test Wedding`. NOT exercisable from a lane, and his on the alias: the existing-account
+  line and the four-second hold (they need a real second sign-in), the passkey row and card (the dashboard
+  flag), and a Google round trip (OAuth never reaches a lane port).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). `door-wiring` wired `app-door` round one whole: every
+place the product asks for an account is now one `<AccountDoor>` worn four ways, leading with a single
+email field, Google beside it and a password on a quiet link, with one Terms line (which Save and Likes
+never had) and one failure table behind six kinds and three real buttons each. An address that already had
+an account is named after the code from a SERVER read of the caller's own row, dismissible, and the guest
+gate holds its photograph claim for four seconds so "Not you?" can never leave the wrong account owning a
+guest's pictures. `/login` became the door with the product beside it. Passkeys shipped behind
+`NEXT_PUBLIC_PASSKEYS`, flagged in one sentence and dark until two Supabase dashboard settings are true.
