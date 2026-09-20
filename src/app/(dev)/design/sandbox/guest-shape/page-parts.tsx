@@ -1,49 +1,33 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { Bookmark, Flag, ImageUp, Lock, QrCode } from "lucide-react";
+import { type ReactNode, useEffect, useRef } from "react";
+import { Download, LayoutGrid, ListFilter } from "lucide-react";
 
-import {
-  GalleryEmptyState,
-  GUEST_GHOST_FRAMES,
-} from "@/components/guest/gallery-empty-state";
-import { GhostGrid } from "@/components/guest/ghost-grid";
-import { GuestMasonry } from "@/components/guest/guest-masonry";
+import { ExportDialog } from "@/components/app/export/export-dialog";
 import { Logo } from "@/components/shared/logo";
-import { River } from "@/components/shared/river/river";
 import { Button } from "@/components/ui/button";
 import { cn, formatEventDate } from "@/lib/utils";
 
-import { ARRIVAL, EVENT, FIXTURES, type FixtureId } from "./fixtures";
+import { EVENT } from "./fixtures";
 
 /**
- * THE GUEST PAGE, IN PARTS, SO ONE PART AT A TIME CAN MOVE.
+ * THE GUEST PAGE'S GROUND, ROUND TWO. Round one's page-parts drew seven
+ * switches (`door`, `nothing`, `chrome`, `live`, `dialogs`, `yours`,
+ * `account`); every one of them is now ruled and wired (docs/systems/guest-flow.md),
+ * so this file keeps only what is still true of the SHIPPED page and reusable
+ * as the ground `chrome.tsx`, `welcome.tsx` and `theirs.tsx` draw their three
+ * open questions on top of. The retired switches, and the files that only
+ * existed to answer them (`door.tsx`, `dialogs.tsx`, `account.tsx`,
+ * `yours.tsx`), are gone with round one's asks (the `profile-page` precedent:
+ * a round replaces its questions rather than accreting them).
  *
- * Every picture on this board is this page at a real screen, with exactly one
- * axis changed, which is what makes seven questions one board rather than seven
- * boards in a coat: the album is judged under the chrome that was picked, the
- * live signal on the header that was picked, the door over the page it covers.
- *
- * ★ WHAT IS THE SHIPPED COMPONENT AND WHAT IS QUOTED. The album (`GuestMasonry`),
- * the empty album (`GalleryEmptyState` and its river), the locked backdrop
- * (`GhostGrid`), the wordmark (`Logo`), every button (`Button`) and both gate
- * bodies (`PasswordGate`, `EnterEventPrompt`, in door.tsx) are imported and
- * wrapped, never edited. Three things are QUOTED from their shipped source with
- * their classNames copied, and each has a reason that is a landmine rather than
- * a preference:
- *
- *  1. `guest-header.tsx` resolves the visitor's Supabase session on mount, so
- *     in a lab frame it would draw whatever the author happens to be signed in
- *     as, and fetch `/api/me/menu` for every frame on the stage.
- *  2. `event-experience.tsx` is the page's own shell: it wants a gallery
- *     PROMISE, four imperative handles and a router, and the thing this board
- *     asks about is the shape it composes, not the composition it ships.
- *  3. `entry-shell.tsx`, `GuestShare`, `SaveEventButton` and `ReportDialog` all
- *     portal to `document.body`, which inside a frame is the BOARD's body: the
- *     surface would leave the picture entirely (door.tsx, dialogs.tsx).
- *
- * Nothing quoted carries a rule of its own: the tokens, the type steps, the
- * corners and the material are all read from the real sheet the frame copies.
+ * ★ WHAT IS THE SHIPPED COMPONENT AND WHAT IS QUOTED, still true of every
+ * piece below: `GuestMasonry`, `Logo`, `Button` and `ExportDialog` are
+ * imported and used exactly as shipped; `guest-header.tsx` (session-resolving,
+ * so it would draw whatever the author is signed in as inside a lab frame) and
+ * the tile-size control (still `app-vocabulary`'s own board, ruled `cluster`
+ * but not yet wired) are QUOTED — the top bar's own markup, and a static
+ * reproduction of the ruled cluster shape.
  */
 
 /* ── the screens ─────────────────────────────────────────────────────────── */
@@ -59,34 +43,46 @@ export const screenOf = (v: string | undefined): ScreenId =>
   v === "1440" ? "1440" : "375";
 
 /** The gutter both blocks keep, the shipped one (BLEED). */
-const GUTTER = "px-5";
+export const GUTTER = "px-5";
 
 /**
- * ★ THE WORDS KEEP THE COLUMN, THE PHOTOGRAPHS DO NOT. `gallery-wiring` landed
- * the rule on 2026-09-19 as two constants in `event-experience.tsx`: COLUMN is
- * `w-full max-w-2xl px-5`, 632px of measure pinned LEFT so its first letter
- * lands on the same 20px line as the logo above it and the album's first
- * column below it; BLEED is the gutter alone, and the window decides the rest.
- * These are those two, quoted, so no option here is secretly re-deciding a
- * width that was answered on 2026-09-18.
+ * ★ THE WORDS KEEP THE COLUMN, THE PHOTOGRAPHS DO NOT (`gallery-wiring`,
+ * 2026-09-19, quoted unchanged from round one): COLUMN is `w-full max-w-2xl
+ * px-5`, 632px of measure pinned LEFT so its first letter lands on the same
+ * 20px line as the logo above it and the album's first column below it; BLEED
+ * is the gutter alone, and the window decides the rest.
  */
-const READABLE = "max-w-2xl";
+export const READABLE = "max-w-2xl";
 
 /* ── the top bar ─────────────────────────────────────────────────────────── */
 
 /**
  * `guest-header.tsx`, quoted: the wordmark, and the one Partyreel sentence a
- * host's event carries. Held constant across every option on this board, so no
- * decision here is secretly a decision about the growth hook.
+ * host's event carries. `sticky`/`right` are `chrome`'s own knobs (the
+ * `header` shape pins this bar and swaps its right slot for Add); every other
+ * option leaves both at their shipped defaults.
  */
-export function TopBar() {
+export function TopBar({
+  sticky = false,
+  right,
+}: {
+  sticky?: boolean;
+  right?: ReactNode;
+}) {
   return (
-    <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
+    <header
+      className={cn(
+        "flex items-center justify-between gap-2 border-b border-border/60 bg-background px-5 py-3",
+        sticky && "sticky top-0 z-30",
+      )}
+    >
       <Logo />
       <div className="flex h-8 items-center">
-        <Button variant="ghost" size="sm">
-          Start for free
-        </Button>
+        {right ?? (
+          <Button variant="ghost" size="sm">
+            Start for free
+          </Button>
+        )}
       </div>
     </header>
   );
@@ -94,400 +90,175 @@ export function TopBar() {
 
 /* ── the event block ─────────────────────────────────────────────────────── */
 
-export type LiveShape = "none" | "line" | "land";
-
-/**
- * The left-editorial header: the name, the byline, the count, the description.
- * A LOCKED page carries the name and nothing else, which is not a style choice:
- * the server hands the page a redacted event, so the host's name and the date
- * are not in the payload to draw.
- */
+/** The left-editorial header: the name, the byline, the count, the description.
+ *  Every surface this round draws is a full, open album, so the redacted-locked
+ *  reading round one's `EventBlock` carried lives in `welcome.tsx` now, on the
+ *  one shell that still meets a locked page. */
 export function EventBlock({
-  fixture,
-  live = "none",
+  count,
   className,
 }: {
-  fixture: FixtureId;
-  live?: LiveShape;
+  count: number;
   className?: string;
 }) {
-  const f = FIXTURES[fixture];
-  const count = live === "land" ? f.count + 1 : f.count;
   return (
     <header className={className}>
       <h1 className="font-heading text-page text-balance">{EVENT.name}</h1>
-      {!f.redacted && (
-        <>
-          <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="text-faint">Hosted by</span>
-              <span className="font-medium text-foreground">{EVENT.host}</span>
-            </span>
-            <span aria-hidden className="text-faint">
-              ·
-            </span>
-            <span>{formatEventDate(EVENT.date)}</span>
-          </p>
-          <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              {count} photos &amp; videos from {EVENT.guests} guests
-            </span>
-            {/* THE LIVE SIGNAL. Nothing is rendered today: the doorbell's
-                `live` only chooses the poll's cadence, so an album that
-                updates in under a second never says it can. */}
-            {live === "line" && (
-              <span className="flex items-center gap-1.5 text-faint">
-                <span
-                  aria-hidden
-                  className="size-1.5 rounded-full bg-success"
-                />
-                3 in the last hour
-              </span>
-            )}
-          </p>
-          <p className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground">
-            {EVENT.description}
-          </p>
-        </>
-      )}
+      <p className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="text-faint">Hosted by</span>
+          <span className="font-medium text-foreground">{EVENT.host}</span>
+        </span>
+        <span aria-hidden className="text-faint">
+          ·
+        </span>
+        <span>{formatEventDate(EVENT.date)}</span>
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {count} photos &amp; videos from {EVENT.guests} guests
+      </p>
+      <p className="mt-2 max-w-prose text-[15px] text-pretty text-muted-foreground">
+        {EVENT.description}
+      </p>
     </header>
   );
 }
 
-/* ── the actions ─────────────────────────────────────────────────────────── */
+/* ── the gallery's own control row ───────────────────────────────────────── */
 
-export type ChromeShape = "column" | "bar" | "dock";
-
-export const chromeOf = (v: string | undefined): ChromeShape =>
-  v === "bar" ? "bar" : v === "column" ? "column" : "dock";
-
-/** The three actions, in whichever furniture the shape asks for. */
-function AddButton({ className }: { className?: string }) {
+/** A tile-size glyph: N small squares standing in for N columns (`app-vocabulary`,
+ *  quoted). */
+function SizeGlyph({ n }: { n: 1 | 2 | 3 }) {
   return (
-    <Button type="button" size="lg" className={className}>
-      <ImageUp /> Add photos
-    </Button>
-  );
-}
-
-function SaveButton({ className }: { className?: string }) {
-  return (
-    <Button type="button" variant="outline" className={cn("h-9", className)}>
-      <Bookmark /> Save
-    </Button>
-  );
-}
-
-function InviteButton({ className }: { className?: string }) {
-  return (
-    <Button type="button" variant="outline" className={cn("h-9", className)}>
-      <QrCode /> Invite
-    </Button>
-  );
-}
-
-/** The column's action block, as shipped: a full-width Add over Save + Invite. */
-export function ActionColumn() {
-  return (
-    <div data-gs-actions className="mt-4">
-      <AddButton className="w-full" />
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <SaveButton className="w-full" />
-        <InviteButton className="w-full" />
-      </div>
-    </div>
-  );
-}
-
-/**
- * The bar's row: the three actions on one line.
- *
- * ★ A PHONE GETS ITS OWN ANSWER, NOT THE COLUMN'S. The first pass let 375 fall
- * back to `ActionColumn`, and `lab:demo` reported the two options as the same
- * picture at the board's default screen, which is exactly the "clicking the
- * configs did not change anything" failure the demo exists to catch. A row at
- * a phone is three equal buttons on one line: no full-width primary, and the
- * album starts a row higher.
- */
-export function ActionRow({ screen }: { screen: ScreenId }) {
-  if (screen === "375")
-    return (
-      <div data-gs-actions className="mt-4 flex items-center gap-2">
-        <SaveButton className="flex-1" />
-        <InviteButton className="flex-1" />
-        <AddButton className="h-9 flex-[1.4]" />
-      </div>
-    );
-  return (
-    <div data-gs-actions className="flex shrink-0 items-center gap-2">
-      <SaveButton />
-      <InviteButton />
-      <AddButton className="h-9" />
-    </div>
-  );
-}
-
-/**
- * The dock: one bar at the foot of the screen, at every width and every scroll
- * position, holding the three actions the page has.
- */
-export function ActionDock({ screen }: { screen: ScreenId }) {
-  return (
-    <div
-      data-gs-dock
-      data-gs-actions
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/85 px-5 py-3 backdrop-blur-sm"
+    <span
+      aria-hidden
+      className="grid size-3.5 grid-cols-2 gap-px"
+      style={n === 1 ? { gridTemplateColumns: "1fr" } : undefined}
     >
-      <div
-        className={cn(
-          "flex items-center gap-2",
-          screen === "1440" && "justify-end",
-        )}
-      >
-        <SaveButton className={screen === "375" ? "flex-1" : undefined} />
-        <InviteButton className={screen === "375" ? "flex-1" : undefined} />
-        <AddButton className={cn("h-9", screen === "375" && "flex-[2]")} />
-      </div>
-    </div>
-  );
-}
-
-/* ── the album ───────────────────────────────────────────────────────────── */
-
-export type NothingShape = "two" | "river" | "words";
-
-export const nothingOf = (v: string | undefined): NothingShape =>
-  v === "two" ? "two" : v === "words" ? "words" : "river";
-
-/**
- * The album at whatever the fixture holds. The width rule is the SHIPPED
- * component's own since `gallery-wiring` landed (`GALLERY_COLUMNS`: two
- * columns at a phone, a 220px column floor from 640 up), and a frame is a real
- * viewport, so the breakpoint resolves at the screen being judged. The board
- * carried an override for one day and no longer needs one.
- *
- * ★ `land` IS ONE MORE PHOTOGRAPH, not a filter over the same ones. The
- * question is what a guest sees when somebody else's phone reaches this page
- * while they are on it, and the honest picture of that is an album with a tile
- * in it that was not there a second ago: the layout re-flows, and the newest
- * tile grows into its column (guest-shape.css). Drawn from the album's own
- * twelfth still so the new tile is not a repeat of the one beside it.
- */
-export function Album({
-  fixture,
-  live = "none",
-}: {
-  fixture: FixtureId;
-  live?: LiveShape;
-}) {
-  const f = FIXTURES[fixture];
-  const items = live === "land" ? [ARRIVAL, ...f.items] : f.items;
-  return (
-    <div data-gs-landing={live === "land" ? "" : undefined}>
-      <GuestMasonry items={items} />
-    </div>
+      {Array.from({ length: n * n }, (_, i) => (
+        <span key={i} className="rounded-[1.5px] bg-current" />
+      ))}
+    </span>
   );
 }
 
 /**
- * THE TWO LANGUAGES FOR "PHOTOGRAPHS ARE COMING", and the one that replaces
- * them. `GhostGrid` is nine empty squares; `GalleryEmptyState` is the river
- * under a title and a CTA, ghosted on its wrapper (Will, `guest-photos=ghost`).
- *
- * ★ THE RIVER LEAKS NOTHING BEHIND A LOCK. Its nine frames are the local
- * `/guest-ghost` WebPs, never the event's media, so a locked page carries the
- * name and the count exactly as it does today.
+ * THE TILE-SIZE CONTROL'S GUEST MOUNT (`app-vocabulary`, `gallery-controls-home=cluster`,
+ * ruled 2026-09-20, not yet wired): the segmented size control plus the
+ * reserved Sort/Filter pills, in the gallery's own row beside Download all.
+ * The shape is ruled and not this board's question, so it is reproduced
+ * static and minimal — `chrome` needs it PRESENT, in every option, above the
+ * album it sits over; `theirs` hangs its own filter beside it via `after`.
  */
-export function Nothing({
-  where,
-  shape,
-  count,
+export function ControlsRow({
+  albumKey,
+  after,
 }: {
-  where: "locked" | "empty";
-  shape: NothingShape;
-  count: number;
+  albumKey: string;
+  after?: ReactNode;
 }) {
-  if (where === "locked") {
-    const line = (
-      <div className="flex items-center justify-center gap-2 text-muted-foreground">
-        <Lock className="size-4" aria-hidden />
-        <p className="text-[15px]">{count} photos &amp; videos inside</p>
-      </div>
-    );
-    if (shape === "words")
-      return (
-        <div data-gs-nothing className="mt-8 space-y-4">
-          {line}
-        </div>
-      );
-    if (shape === "river")
-      return (
-        <div data-gs-nothing className="mt-8 space-y-4">
-          {line}
-          {/* ★ THE RULED DEPTH, ON BOTH SCREENS. The first pass drew the lock's
-              river a stop fainter than the empty album's on the theory that a
-              locked page should not promise as loudly. At 25 percent it was
-              invisible: `lab:demo` measured the whole option at 1.35 percent
-              different from drawing no picture at all, which makes it the
-              `words` option with a river's cost. So both wear the values Will
-              ruled for the empty album (40 percent at 85 percent grayscale)
-              and the lock line above carries the restraint instead. */}
-          <div className="opacity-40 grayscale-[85%]">
-            <River frames={GUEST_GHOST_FRAMES} />
-          </div>
-        </div>
-      );
-    return (
-      <div data-gs-nothing className="mt-8 space-y-4">
-        {line}
-        <GhostGrid />
-      </div>
-    );
-  }
-
-  if (shape === "words")
-    return (
-      <div
-        data-gs-nothing
-        className="mt-10 flex flex-col items-center gap-4 text-center"
-      >
-        <p className="font-heading text-subsection text-balance">
-          This is where it all lands
-        </p>
-        <Button size="lg">Be the first to add a photo</Button>
-      </div>
-    );
-  if (shape === "two")
-    return (
-      <div
-        data-gs-nothing
-        className="mt-8 flex flex-col items-center gap-4 text-center"
-      >
-        <GhostGrid />
-        <p className="font-heading text-subsection text-balance">
-          This is where it all lands
-        </p>
-        <Button size="lg">Be the first to add a photo</Button>
-      </div>
-    );
   return (
-    <div data-gs-nothing className="mt-8">
-      <GalleryEmptyState onAddFirst={() => {}} />
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div
+          role="group"
+          aria-label="Tile size"
+          className="flex items-center gap-0.5 rounded-md border border-border p-0.5"
+        >
+          {([3, 2, 1] as const).map((n, i) => (
+            <span
+              key={n}
+              className={cn(
+                "flex size-6 items-center justify-center rounded-[3px]",
+                i === 0 ? "bg-secondary" : "text-muted-foreground",
+              )}
+            >
+              <SizeGlyph n={n} />
+            </span>
+          ))}
+        </div>
+        <span aria-hidden className="h-4 w-px bg-border" />
+        <span className="flex items-center gap-1 rounded-full border border-dashed border-border/70 px-2 py-1 text-[10px] text-muted-foreground/70">
+          <ListFilter className="size-3" aria-hidden /> Sort
+        </span>
+        <span className="flex items-center gap-1 rounded-full border border-dashed border-border/70 px-2 py-1 text-[10px] text-muted-foreground/70">
+          <LayoutGrid className="size-3" aria-hidden /> Filter
+        </span>
+        {after}
+      </div>
+      <ExportDialog scope="guest" albumKey={albumKey}>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
+        >
+          <Download className="size-4" /> Download all
+        </button>
+      </ExportDialog>
     </div>
   );
 }
 
-/** The teaser's own boundary: nine photographs and the button that asks. */
-export function TeaserFoot({ count }: { count: number }) {
-  return (
-    <div className="mt-5 flex justify-center">
-      <Button>See all {count} photos</Button>
-    </div>
-  );
-}
+/* ── the foot ─────────────────────────────────────────────────────────────── */
 
-/** The report footer, as shipped: the one thing at the foot of the page. */
+/** The report footer, as shipped: the one thing at the foot of a full album. */
 export function ReportFoot() {
   return (
-    <footer className="mt-8 flex justify-center border-t border-border/60 pt-5">
+    <footer className="mt-8 flex justify-center border-t border-border/60 pt-5 pb-4">
       <button
         type="button"
         className="flex items-center gap-1.5 text-xs text-muted-foreground"
       >
-        <Flag className="size-3" aria-hidden /> Report this album
+        Report this album
       </button>
     </footer>
   );
 }
 
-/* ── the whole page ──────────────────────────────────────────────────────── */
+/* ── the real scroll container ───────────────────────────────────────────── */
 
 /**
- * THE PAGE. `chrome` decides where the actions sit, `nothing` what an album
- * with no photographs says, `live` whether the album admits it is filling.
- * `overlay` is whatever door is standing over it.
+ * ★ A REAL SCROLL CONTAINER, NOT A PAGE PUSHED UP BY A MARGIN (the `demo-event`
+ * precedent, its own page-parts.tsx). `chrome` is a question about what
+ * survives a scroll — found on landing, reachable deep in the album — so the
+ * frame's whole height is an overflow-y-auto box and `scrollTo` drives its
+ * real scrollTop: a `sticky` header sticks, a `fixed` dock pins to the FRAME's
+ * own viewport, and the measurement reads true.
  */
-export function GuestPage({
-  screen,
-  fixture,
-  chrome = "column",
-  nothing = "river",
-  live = "none",
-  overlay,
-  underActions,
-  aboveAlbum,
-  dim = false,
+export function ScrollPage({
+  scrollTo = 0,
+  children,
 }: {
-  screen: ScreenId;
-  fixture: FixtureId;
-  chrome?: ChromeShape;
-  nothing?: NothingShape;
-  live?: LiveShape;
-  /** A surface floating over the page: a door, a dialog, the viewer. */
-  overlay?: ReactNode;
-  /** A panel that opens IN the page, under the button that asked for it. */
-  underActions?: ReactNode;
-  /** A strip the album carries above its photographs. */
-  aboveAlbum?: ReactNode;
-  dim?: boolean;
+  scrollTo?: number;
+  children: ReactNode;
 }) {
-  const f = FIXTURES[fixture];
-  const wide = screen === "1440";
-  const empty = f.access === "full" && f.items.length === 0;
-  const locked = f.access === "none";
+  const box = useRef<HTMLDivElement | null>(null);
+  // Applied after layout AND once more after the photographs decode, because a
+  // column of images that has not resolved its heights is shorter than the
+  // page it will be and clamps the scroll short.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.scrollTop = scrollTo;
+    const win = el.ownerDocument.defaultView;
+    const late = win?.setTimeout(() => {
+      el.scrollTop = scrollTo;
+    }, 1200);
+    return () => {
+      if (late !== undefined) win?.clearTimeout(late);
+    };
+  }, [scrollTo]);
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
-      <TopBar />
-      <div className="min-h-0 flex-1">
-        {/* The words keep a readable column and the album runs wide, which is
-            the shape gallery-wiring landed: both start on the same left line. */}
-        <div
-          className={cn(
-            "py-8",
-            wide ? "px-5" : GUTTER,
-            chrome === "dock" && "pb-24",
-          )}
-        >
-          {locked ? (
-            <div className={wide ? READABLE : undefined}>
-              <EventBlock fixture={fixture} />
-              <Nothing where="locked" shape={nothing} count={f.count} />
-            </div>
-          ) : (
-            <>
-              {chrome === "bar" && wide ? (
-                <div className="flex items-start justify-between gap-6">
-                  <EventBlock fixture={fixture} live={live} />
-                  <ActionRow screen={screen} />
-                </div>
-              ) : (
-                <div className={wide ? READABLE : undefined}>
-                  <EventBlock fixture={fixture} live={live} />
-                  {chrome === "column" && <ActionColumn />}
-                  {chrome === "bar" && <ActionRow screen={screen} />}
-                </div>
-              )}
-              <div className={wide ? READABLE : undefined}>{underActions}</div>
-              <div className="mt-7">
-                {aboveAlbum}
-                {empty ? (
-                  <Nothing where="empty" shape={nothing} count={0} />
-                ) : (
-                  <>
-                    <Album fixture={fixture} live={live} />
-                    {f.access === "teaser" && <TeaserFoot count={f.count} />}
-                  </>
-                )}
-              </div>
-              {!empty && f.access === "full" && <ReportFoot />}
-            </>
-          )}
-        </div>
+    <div className="relative h-screen bg-background text-foreground">
+      <div data-gs-scroll ref={box} className="h-full overflow-y-auto">
+        {children}
       </div>
-      {chrome === "dock" && !locked && <ActionDock screen={screen} />}
-      {dim && <div className="gs-scrim" />}
-      {overlay}
     </div>
   );
+}
+
+/** A page drawn behind an open shell: the real backdrop, so what is judged is
+ *  the shell against the page it covers rather than against nothing. */
+export function Scrim() {
+  return <div className="gs-scrim" />;
 }

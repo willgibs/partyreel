@@ -123,42 +123,17 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
 
   /* ── guest-shape ─────────────────────────────────────────────────────── */
-  "guest-shape.dialogs": {
-    ...APP_SHAPE,
-    ruling:
-      "one responsive sheet everywhere: a side panel at a desk, a bottom sheet in a hand",
-    line: "concedes: apply this sheet concept everywhere names the sheet option, and the guest door already is one.",
-  },
 
   /* ── app-vocabulary ──────────────────────────────────────────────────── */
-  "app-vocabulary.empty-states": {
-    ...APP_SHAPE,
-    ruling:
-      "the dashboard is a pulse and the personal feeds move to the profile",
-    line: "stands: the pulse deletes the feed's empty rows but not the zero-events hero, which is the tier this ask exists to keep.",
-  },
-  "app-vocabulary.loading": {
-    ...APP_SHAPE,
-    ruling: "the dashboard is a pulse, the event a hub, settings a sheet",
-    line: "stands: the ruling moves which routes wait before first paint, and as-needed is the only option that survives a moved list.",
-  },
-  "app-vocabulary.tile-grammar": {
-    ...GLASS,
-    ruling:
-      "a media tile carries only state: an active like, a play mark, a subtle count",
-    line: "stands: the rule empties both overlays on a phone and leaves the desk's two button rows still worth merging into one.",
-  },
-  "app-vocabulary.bulk-toolbar": {
-    ...GLASS,
-    ruling:
-      "every action on a photograph lives in the lightbox, never on the tile",
-    line: "stands: the icon case rested on learning the glyphs from the tile, and the tiles rule takes that teacher away.",
-  },
-  "app-vocabulary.gallery-controls-home": {
-    ...GLASS,
-    ruling: "one glass bar holds the host's controls in a single pane",
-    line: "stands: the bar rules the pane, never what sits in it, so reserving Sort and Filter is still the cheaper seam.",
-  },
+  // Round one's seven asks (empty-states, loading, tile-grammar,
+  // bulk-toolbar, gallery-controls-home, gallery-controls-persistence,
+  // confirm-switch) are ruled and gone from the board (album-controls,
+  // 2026-09-20, the `profile-page` precedent: a round drops its questions
+  // rather than accreting them). The five badges that named them are gone
+  // with the asks they pointed at (the first test's own contract: a badge
+  // pointing at a question nobody is asking any more is worse than an
+  // answer left orphaned). Round two's `controls-home` is too new for
+  // anything to have overtaken it yet.
 
   /* ── seed-avatar ─────────────────────────────────────────────────────── */
   "seed-avatar.after-upload": {
@@ -170,23 +145,17 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
 
   /* ── admin ───────────────────────────────────────────────────────────── */
 
-  /* ── app-door ────────────────────────────────────────────────────────── */
-  "app-door.surfaces": {
-    ...APP_SHAPE,
-    ruling:
-      "the personal lives on the profile page and money on the account page",
-    line: "stands: this asks how many sign-in surfaces there are, not how many account pages, so the You ruling passes it by.",
-  },
-  "app-door.welcome": {
-    ...APP_SHAPE,
-    ruling: "the dashboard opens on what needs you, then what just arrived",
-    line: "stands: the pulse gives the dashboard a designed empty state, which is where name-and-straight-in always wanted the tour.",
-  },
-  "app-door.page": {
-    ...APP_SHAPE,
-    ruling: "one responsive sheet is the product's overlay everywhere",
-    line: "stands: the sheet is ruled vocabulary and free to build, so the photographs beside the door must earn their column against it.",
-  },
+  /* ── app-door ────────────────────────────────────────────────────────────
+   * Round one's `surfaces`, `welcome` and `page` were badged here (all
+   * "stands"); round two replaces round one's seven asks with one, `tour`
+   * ("a round replaces its questions rather than accreting them", spec.ts),
+   * so all three questions this section badged are gone from the board's own
+   * walk. The ledger keeps his "stands" answers for ever
+   * (docs/reviews/app-door.json once transcribed); this file only holds a
+   * badge on a QUESTION STILL ASKED, and none of the three still is
+   * (overtaken.test.ts, "the one failure this exists to catch"). Removed by
+   * `welcome-tour`, the lane that retired the asks, rather than left dangling
+   * for whichever lane happened to run the suite next. */
 
   /* ── app-pricing ─────────────────────────────────────────────────────── */
   "app-pricing.object": {

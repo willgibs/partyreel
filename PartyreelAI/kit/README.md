@@ -27,3 +27,7 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `wave6-check.mjs` (pattern): the served alias against a wave's ruled lines through the HTML, no key. And a rule the
   night taught: the built-in pane is one browser every running lane may also drive, so never CLICK in it while lanes
   run (a click meant for the alias landed on a lane's localhost page); navigate and read, or fetch.
+- Two rules from the small hours: when a lane's Handoff claims a retirement, read `merge-lane.sh`'s "desk boards: N"
+  line against the expectation (a retiring board drops the count by one; if it does not, retire it by hand: registry,
+  boards, DESK_ORDER, the SandboxId union only, the RULINGS row shipped, the sandbox removed, the ledger gone); and a
+  chain that commits after tests gates on vitest's own exit code, never on a grep of its output.
