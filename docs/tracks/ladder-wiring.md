@@ -1,6 +1,6 @@
 ---
 track: ladder-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "20cc9b5f"          # the launch-prep SHA the branch was cut from
 board: body-type       # six rungs wired here; the buttons rung is round two's, another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -263,28 +263,99 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None escalated: every open call was taken on the brief's recommendation and is listed under "Calls his to
+  overrule" below. One manifest discrepancy worth a line at the record: `docs/systems/design-system.md` sits in
+  this manifest's `reads` while the brief's Owns paragraph names it ("the type section in place"). I followed the
+  brief and refined the type section only; the convention (docs/systems files never sit in `owns`) is the one the
+  Orchestrator confirmed mid-lane.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`, the **Type** section, refined in place, nothing appended:
+  - the ladder's opening line reads "sixteen steps, one set" and names the two halves (ten heading, six body);
+    the order law's sentence gains "and the body steps' own order with the FLOOR at the bottom".
+  - a new block, **THE BODY HALF**, under the heading table: the count it replaces (372 `text-sm`, 244 `text-xs`,
+    98 `text-[11px]`, 76 `text-[10px]`, 26 `text-[15px]`, 20 `text-[9px]`, 80 hand-set trackings), the face (Inter),
+    the leading rule (`2 x size - 8`), a six-row table of what wears what, and the three rules the body half adds
+    (`copy` never inside a `card-title` block; an uppercase label carries no tracking of its own; `working`'s name
+    is its origin, not a fence, and the admin may break away for density).
+  - "Five ways the ladder fails SILENTLY" becomes six, with the body scan written out: resolve to a number, pass on
+    10/12/14/16 or a declared step, the allow-list that only shrinks and its five kinds, the `pending` red, and the
+    blind spot both scans share (a class string that never reaches a JSX attribute).
+  - the TWO FACES paragraph: `Caption` is "on the caption step".
+- The component index's three additions (`table.tsx`, `toggle-group.tsx` and the sheet's size) are **not** in this
+  lane's diff: they belong to `home-wiring` and `hub-wiring`, and the Orchestrator adds them at their merge.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The design system** — flip the body scan to a hard fail (`BODY_EXCEPTIONS` to `{}`) once the allow-list is empty:
+  one line, after the app-shape lanes merge and the `pending` entries go red.
+- **The design system** — a `type-sync` follow-up (Sonnet) sweeps the 21 `lane` sites the boundary kept this lane out
+  of: voice-wiring's eleven files after its merge, and the four unowned marketing ledes still on a flat `text-lg`
+  (`event-statement`, `qr-hero`, `reel-hero`, `wysiwyg-section`) which are exactly what `copy` is for.
+- **The design system** — the mechanical rename of the 76 surviving `text-[10px]` to `text-micro`: they are ON the
+  step and pass the scan, so this is naming, not sizing, and it rides any lane that opens those files.
+- **The design system** — `src/components/admin/` is owned by no manifest; the `admin` board's wiring should claim it
+  (three of its sizes sit in this lane's allow-list under `board`).
+- **The lab and the kit** — `rules.generated.json` was 36 contract line numbers stale on `launch-prep`; the gate's own
+  `pnpm design:rules` corrects it in whichever lane runs next, which makes every lane's diff touch a file it does not
+  own. A post-merge regeneration by the Orchestrator would stop that recurring.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Work head `d693dc81`, with this manifest committed alone on top of it; pushed. Cut at `e271729a`; **synced**: `origin/launch-prep` had moved to `e9e3d25e` (the `call:`
+  grammar and PartyreelAI), merged at `4aa4edfc`, clean, no conflicts.
+- **Gates on the synced tree**, each on its own exit code: `pnpm design:rules` **0** · specimen collector **0**
+  (artifact unchanged: no `gallery-demos.tsx` was touched) · `pnpm typecheck` **0** · `pnpm lint` **0**
+  (8 problems, 0 errors, 8 warnings = the baseline) · `pnpm test` **0** (**2722 passed**, 1 skipped) ·
+  `pnpm build` **0** (126 routes) · `pnpm lab:smoke --base http://localhost:3132` **0** (435 checks, 0 failing).
+  Dev server on **:3132** only, killed by port before each build, the test run and this handoff.
+- **Lane check** — `git diff --name-only origin/launch-prep...HEAD` = **64 files, 60 of them owned outright**. The
+  four outside `owns`, each declared:
+  - `docs/systems/design-system.md` — the type section refined in place (the brief's Owns paragraph names it).
+  - `docs/design/library.md` and `src/app/(dev)/design/rules/rules.generated.json` — **regenerated by
+    `pnpm design:rules`, which is a gate step**. Mine in them is 4 lines (the policy's own `@policy` / `@refuses`
+    header, which had to change to stop lying about what the file refuses) + 36 contract line numbers the merge
+    moved, which were already stale on `launch-prep`. Drop the 36 with one `git checkout` if you would rather own
+    them at the record.
+  - `src/app/(dev)/design/(shell)/library/foundations/page.tsx` — **three blurb strings**, no logic: they said "one
+    ten-step ladder" and "Ten steps, one set", which the page now contradicts on screen.
+- **The items, one line each** (the board's seven; six wired, one round two's):
+  - `reading=16`: every guest-facing sentence on `--text-reading` (16/24). The 26 `text-[15px]` are gone. Lands as the Library's **Reading** rung.
+  - `working=14`: `--text-working` (14/20) for the app, the admin and marketing's own UI chrome. Lands as **Working**.
+  - `marketing=fluid`: `--text-copy`, `clamp(1rem, 0.956rem + 0.19vw, 1.125rem)` with a clamped leading byte-identical to `--text-page` — both printed by the retired board's own `fluid()`, recovered from `41dcd591^`. Lands as **Copy**.
+  - `caption=10` read as TWO rungs, per his note: `--text-caption` 12/16 for the labels he named, `--text-micro` 10/12 as **the floor**. Lands as **Caption** and **Micro**.
+  - `label=12-08`: `--text-label` 12/16 on 0.08em; the Eyebrow atom wears it and the 38 hand-set `tracking-[0.14em]` (plus the 0.16/0.24/0.1em strays on labels) are **deleted**, not paired, because a tracking utility beats a step silently. Lands as **Label**.
+  - `leading=length`: every rung on `2 x size - 8` (12/16/20/24/28), pinned by a new test that reads it off the tokens at both ends.
+  - `buttons=ladder` "more work required": **untouched**. `ui/button.tsx` and the five `text-[15px]` Button overrides sit in the allow-list under `board` for `buttons-pairs`.
+  - The policy: a sixth silent-failure way, a **count-pinned allow-list that only shrinks** (five kinds, 101 survivors named and reasoned), plus two new laws read off the tokens (the body order with micro on the floor; the leading rule).
+  - The sweep: the scan found **213** off-ladder sentences; **112 moved** in this lane's own files; 101 are named in the allow-list, 78 of them for a reason that is not fixable here (drawn in a picture, sized in em, another lane's, another board's).
+- **Calls his to overrule on the alias**, one line each:
+  - **The six names** — `copy` / `reading` / `working` / `caption` / `label` / `micro`. The board deliberately did not ask (its spec: "a decision whose options look identical is a paragraph pretending to be a step"), so these are the brief's and mine.
+  - **`label` is a step in theme.css, not an `@utility` in globals.css** — so **globals.css was not touched at all**. Reason, measured and already written in the tree: Tailwind v4 emits a custom `@utility` in the font-* position, *ahead* of the size utilities, so any `text-sm` on the same element would beat it; and tailwind-merge cannot see an `@utility`, so `cn()` would keep both. Those are two of the five ways this policy exists to stop.
+  - **The trackings** — 0 / 0 / 0 / +0.005em / +0.08em / +0.01em. They follow the retired board's OPTICS table where it reaches (12 -> +0.005) and its written law below it. **The two 16px steps take 0, not `card-title`'s -0.006em**, because that value is Urbanist's correction at 16 and these steps are read in Inter.
+  - **`copy` never goes inside a `card-title` block** — it reaches 18 at 1440 and `card-title` is a flat 16, so an FAQ answer on `copy` would outrank its own question. Those blocks keep `reading`. It is the same order law that made 17 the wrong answer for `reading`. Written into design-system.md.
+  - **The 11px mass split by ROLE, not arithmetic**, straight from his note: a label to 12 (`caption` / `label`), metadata over a photograph to 10 (`micro`). 98 sites, judged one at a time.
+  - **The sub-floor rises** — 7/8/9px in real UI went to the floor at 10; 7/8/9px inside a picture stayed and is named `depicted`. **Eleven small overlay chips grew from 8 or 9px to 12** because they are uppercase word-labels and his label ruling is 12: the reel's vertical style rail (`style-rail.tsx`, `[writing-mode:vertical-rl]`), the studio's "The studio" and sheet labels, the moments picker's "Suggested" strip, the poster card's "REEL" badge. **These are the likeliest to want overruling**, and the reel studio needs a host session so I could not put eyes on them in situ — the rest measured clean.
+  - **`working`'s name is its origin, not a fence** — a blog rail row and a dashboard row are the same job at 14, so marketing's own UI chrome takes `working` rather than inventing a second 14.
+  - **Two hero subs moved to `subhead`** (`blog/[slug]`, `careers/[slug]`): they were a flat `text-lg` with a `sm:text-xl` ramp, and `subhead` is the step his own `the-ladder=reading` ruling tuned to 20 -> 22.
+  - **A price numeral took `subsection`** (`calculator.tsx`): `text-section` is the documented home for a stat numeral but runs 24 -> 52, far too loud for a recommendation chip; `subsection` (18 -> 20) is the rung it already wore.
+  - **The admin was mapped where equal and nowhere else** — its `text-sm` / `text-xs` were already on the ladder, its two uppercase labels took `text-label`, and **its three health numerals were left alone** on his own words ("our internal admin portal favors information density and can break away from this if helpful"). It holds no 13px today. The `admin` board gets the rest.
+  - **Every hand-set `leading-*` beside a new step was deleted** (`leading-7`, `leading-8`, `leading-relaxed`, `leading-[1.7]`, `leading-4`, `leading-none`), because a leading utility beats the step. That is the rhythm change most likely to read as "something moved" on a paragraph.
+- **Measured** (computed style, headless Chrome over CDP, both widths, every swept page): `copy` **16.01/24.02 at 375 and 18/28 at 1440** (the 0.0085px is `fluid()`'s 2dp rounding, shared with `page`, `subsection` and `subhead` — not new) · `reading` **16/24** on the guest album at 375 · `working` **14/20** · `caption` **12/16/0.005em** · `label` **12/16/0.96px = 0.08em** · `micro` **10/12/0.01em**. **No horizontal overflow and no clipped element** on `/`, `/about`, `/help`, `/press`, `/pricing`, `/how-it-works`, the four feature pages, `/blog`, `/careers`, `/reel`, `/events`, `/terms` and the guest album, at 1440 and at 375. The Library draws sixteen rungs with the body six in Inter and the `label` row in caps, every number read back off the live token.
+- **The help articles this lane makes stale: none.** The sweep changed sizes and not one word of copy; no help article describes a type size.
+- Assets requested from Will: **none**.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none**.
+- **Look at first**: the eleven small uppercase chips that grew to 12 (the reel studio's rail and sheet labels above all, which need a host session), then a marketing paragraph's new rhythm where a `leading-*` was removed (`/about`'s two columns are the clearest), then `/design/library/foundations#ladder` for the whole ladder in one screen.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). Six of `body-type` r1's seven rungs became tokens beside the
+heading ladder in `theme.css`, printed by the same `fluid()` that printed the headings: `copy` 16 -> 18, `reading`
+16, `working` 14, `caption` 12, `label` 12 on 0.08em, `micro` 10 and the floor, every leading `2 x size - 8`.
+`label` landed as a STEP rather than an `@utility` because Tailwind emits an `@utility` ahead of the size utilities
+and tailwind-merge cannot see one, so `globals.css` went untouched. `type-ladder-policy` gained a sixth silent-
+failure way (the body scan: every size resolved to a number, passing only on a rung or a declared step, and an
+uppercase label carrying no tracking but 0.08em) as a count-pinned allow-list that only shrinks, plus two laws read
+off the tokens. The sweep moved 112 of the scan's 213 sites; the Library draws sixteen rungs with the body six in
+Inter, and `design-system.md`'s type section carries the table and the three rules the body half adds.
