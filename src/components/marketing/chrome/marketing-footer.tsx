@@ -209,8 +209,7 @@ function SignOff() {
               way a guest arrives. No app required.
             </span>
             <span className="sm:hidden">
-              A real event album, exactly the way a guest arrives. No app, no
-              account.
+              A real event album, exactly the way a guest arrives. No app required.
             </span>
           </p>
           <Link

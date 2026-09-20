@@ -6,7 +6,7 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
 - `merge-lane.sh <track> <handoff-sha> <msgfile>`: the `--no-ff` merge with the three registry files and the
   library resolved, the manifest deleted, the artifact regenerated, typecheck and the registry tests before the commit.
 - `gate-lane.sh <N> <board>`: design:rules, the specimen collector, lint, test, build, `lab:smoke`, `lab:demo`, each on
-  its own exit code, on :3137; `GATE<N> DONE` at the end for a wait loop.
+  its own exit code, on :3137; `GATE<N> DONE` at the end for a wait loop; it waits up to four minutes for the built server to answer (a big build once needed more than 90 s, and the smoke ran against nothing).
 - `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): finds or creates the launch-prep deployment for a `[preview]`
   commit, waits for READY, assigns the alias, reads the served stamp. `vercel-lib.mjs` is its client (the token from
   `.env.local`).
