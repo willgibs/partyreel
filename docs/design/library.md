@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 642 contracts on 90 components · 27 standing boards.**
+**22 laws · 18 policies · 656 contracts on 92 components · 27 standing boards.**
 
 ## What binds you
 
@@ -307,7 +307,7 @@ function. A contract never freezes a look.
 | `src/components/shared/route-error.tsx` | the route error boundary: the reporting effect, the digest and the per-surface help line around the shared dead-end screen | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
 | `src/components/shared/set-name-step.tsx` | the one required add-your-name step, reused at every gate that asks for one | none |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
-| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list | none |
+| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets a two-hue backgroundImage on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the SAME colour on two different avatars; a DIFFERENT seed paints a different colour; with no seed, the root paints nothing and the fallback stays today's grey |
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
 | `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
@@ -339,7 +339,6 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (10 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
-- `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts` (13 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
@@ -397,6 +396,8 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail.tsx` (17 guards)
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
+- `src/lib/avatar/gradient.ts` (13 guards)
+- `src/lib/avatar/seed.ts` (5 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)

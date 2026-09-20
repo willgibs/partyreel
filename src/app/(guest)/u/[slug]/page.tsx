@@ -10,8 +10,10 @@ import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
 import { ProfileActionsMenu } from "@/components/social/profile-actions-menu";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { seedFor } from "@/lib/avatar/seed";
 import {
   getPublicProfile,
   getPublicProfileAttendedCoverUrls,
@@ -283,18 +285,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
           style={{ "--arrive-i": 0 } as CSSProperties}
           className="flex flex-wrap items-center gap-5"
         >
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- public avatar URL with a cache-bust marker
-            <img
-              src={avatarUrl}
-              alt=""
-              className="size-20 rounded-full border border-border object-cover"
-            />
-          ) : (
-            <div className="flex size-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-medium text-muted-foreground">
-              {name.slice(0, 1).toUpperCase()}
-            </div>
-          )}
+          {/* `xl` (80px, a fourth size on the Avatar contract) folds this
+              row's own hand-rolled disc into the shared component, so the
+              seeded colour (and the clipping fix, avatar-wiring) reaches it
+              the same way every other avatar surface gets it. */}
+          <Avatar size="xl" seed={seedFor(profile.id)}>
+            <AvatarImage src={avatarUrl ?? undefined} alt="" />
+            <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
             <h1 className="font-heading text-page text-balance">{name}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
