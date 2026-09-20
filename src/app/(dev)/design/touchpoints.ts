@@ -1603,14 +1603,14 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  // ★ REGISTERED AT THE HEAD (the registration exception): a new board enters
-  // here so lanes stay line-disjoint, and the Orchestrator moves it into its
-  // leverage place at the merge. `guest-verify` belongs after `guest-shape`:
-  // it changes the guest door every guest board draws on.
-  "guest-verify",
+  // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
+  // stay line-disjoint, and the Orchestrator moves it into its leverage place
+  // at the merge (`guest-verify` went after `guest-shape` at its merge: it
+  // changes the guest door every guest board draws on).
   "body-type",
   "app-shape",
   "guest-shape",
+  "guest-verify",
   "app-vocabulary",
   "seed-avatar",
   "app-door",
