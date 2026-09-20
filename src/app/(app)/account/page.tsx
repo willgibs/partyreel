@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
+import { PasskeysCard } from "./passkeys-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
@@ -405,6 +406,8 @@ export default async function AccountPage({
           />
         </CardContent>
       </Card>
+      {/* door-wiring's one line (2026-09-20), placed by the Orchestrator once avatar-wiring, which owned this page, had landed: the passkey row under the Password card. */}
+      <PasskeysCard />
 
       <Card>
         <CardHeader>

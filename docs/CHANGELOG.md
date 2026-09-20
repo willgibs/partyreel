@@ -120,6 +120,23 @@ mode's avatars are Will's on the alias, and each lane's bullet below says so.
   ways, the figures against /admin/metrics, the band absent, the sheet on a disposable announcement); the typed account
   delete never exercised.
 
+- **`avatar-wiring` merged at `2a5c7018`** (2026-09-20, Sonnet; cut `0ad0c32d`, synced at `87cadbcf`): `seed-avatar` r1
+  wired whole. The clipping bug first: the root clips (one `overflow-hidden`, one `rounded-full`) and neither the image
+  nor the fallback carries a radius of its own, pinned by `avatar.test.tsx` and verified live. The generator moved
+  home to `src/lib/avatar/` with `seedFor`, a server-side SHA-256 of `profiles.id`, so one person is one colour on
+  every surface and a client never holds a raw id it does not already have; `Avatar`'s `seed` prop paints the
+  diagonal under the initial and under the photograph (the fallback transparent, the image covering the root once
+  mounted), the whole wheel at full strength, the initial always, no motion; the crowd test on a thousand real UUIDs
+  through the generator and through the production pipeline. Every surface seeded: the user menu, the account form,
+  the guest account menu (through `/api/me/menu`'s hashed `seed`, not a raw id: the lane's call), the guest list's
+  chips and faces row and the owner sections through `ProfileCardItem`, the profile identity row folded onto `Avatar`
+  at a new `xl` size. The Library's Avatar entry enhanced. Three additive exceptions named. Gate 50 on the merged tree.
+  Calls his to overrule: the 80 px fourth size; the transparent fallback ground; the bucket bound at twice the mean;
+  the menu route's hashed seed. Deferred (ROADMAP): the two "Hosted by" bylines still show no colour behind a missing
+  host photo (`seedFor(host_id)` is ready, the guest files' owner places it). One help article stale for `help-sync`
+  (`display-name-and-profile-photo`). The board stays for round two on the look. NOT SEEN RENDERED: a signed-in
+  person's own menus and the owner sections are Will's; `/u/willg` signed out carries the identity row live.
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
