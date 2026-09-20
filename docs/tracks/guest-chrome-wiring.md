@@ -1,6 +1,6 @@
 ---
 track: guest-chrome-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c75734b9"          # the launch-prep SHA the branch was cut from
 board: guest-shape     # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -220,30 +220,148 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none raised. Every call the brief left open was taken on its recommended answer and is listed under
+  "Calls his to overrule" below; nothing here was a one-way door.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, "Flow (top to bottom, contiguous)": the action-block paragraph now ends in
+  the dock rather than the floating pill (the sentinel, the scrim, the safe area, `inert` not unmounted, the
+  reserved height, and the pill's retirement with the three lab surfaces that keep it on disk).
+- `docs/systems/guest-flow.md`, same section, the responsive-Sheet ★: the door is ON the one Sheet from 640
+  up now; the sentence that said it was not is gone.
+- `docs/systems/guest-flow.md`, "The ARRIVAL": the shell paragraph names the right-edge panel and why the
+  phone half stays vaul; the welcome bullet says the `55svh` rule stays drawer-scoped.
+- `docs/systems/guest-flow.md`, "Live gallery: the hybrid doorbell": one new bullet under the removal one,
+  for the fourth mark, its corner, the Yours filter's line and the rule that it cannot stay live empty.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
-
+- Now: `content/help/` still describes the guest album's chrome as "a floating Add button appears as you
+  scroll" wherever it does; `help-sync` rewrites it (see "help articles" below).
+- Now: the ROADMAP's own guest-upload line ("the hold-for-approval toast and the floating Add pill both sit
+  at the foot of a phone and the toast covers the pill") now reads against the DOCK, which is taller than
+  the pill was; the stacking rule is still owed and is bigger. It belongs with `toasts` (recommended `top`,
+  unruled), which would dissolve it outright.
+- Next: `yours-filter.ts` sits in `src/components/guest/` because this lane does not own `src/lib/guest/`;
+  move it beside `merge-gallery-items` and `reconcile-gallery-items` when a lane owns that directory.
+- Next: the Yours filter's mount inside the View menu (`controls-home=view-menu`, his `theirs` note: "combine
+  this new filter with the tile size filter ... rather than just adding more and more configs"). Blocked at
+  cut time: `shared/view-menu.tsx` is `controls-home-wiring`'s and did not exist on this tree. A small
+  follow-up mounts the menu on the guest row with Yours and tile size in it (`--album-column` on the guest
+  grid's wrapper, as the host does); the "Showing yours · Show all" line stays as the state's receipt.
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The BOARD commit is `206cb7bf` (the whole wiring and the board's retirement); the SYNC-MERGE is `b162d563`
+  (`origin/launch-prep` had moved to `436ef3d3`, two `usher/` commits only, nothing this lane reads or owns).
+  The head is in the chat line, not here.
+- Gates on the synced tree (`b162d563`), each on its own exit code: `pnpm design:rules` 0 · the specimen
+  collector 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (the 8 known warnings,
+  unchanged) · `pnpm test` 0 (3078 passing, 1 skipped, 293 files) · `pnpm build` 0 (255 static pages, 130
+  routes) · `pnpm lab:smoke --base http://localhost:3134` 440 checks / 0 failing (442 before the retirement:
+  the two the board itself owned) · `pnpm lab:demo --board guest-shape --base http://localhost:3134` reported
+  "0 steps, 0 failing", run BEFORE the retirement, because this board declared no step to press.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: everything under `src/components/guest/`,
+  `src/components/shared/masonry.tsx` + `masonry.test.tsx`, `src/components/shared/floating-add-button.tsx`,
+  `src/app/(dev)/design/sandbox/guest-shape/` (deleted) and `docs/systems/guest-flow.md` is owned. Six files
+  outside the `owns` list, with why:
+  - `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts` and
+    `src/app/(dev)/design/touchpoints.ts`: the RETIREMENT exception, this board's lines only. Two lines in
+    each registry; in touchpoints its `SandboxId` member (it appears in two unions), its `TOUCHPOINTS` entry
+    and its `DESK_ORDER` row. WARNING: `body-type`, `app-shape` and `guest-shape` are ADJACENT rows in
+    `DESK_ORDER` and three lanes retire them this round, so expect a real git conflict there at the second
+    and third merges; the resolution is "keep every deletion", nothing more.
+  - `src/app/(dev)/design/rules/component-notes.ts`: the ownership rule ("every new component gets its `for`
+    line"). Three added (`guest-action-dock.tsx`, `entry-shell.tsx`, `yours-filter.ts`), placed in the GUEST
+    block rather than at the head so the four lanes adding lines this round stay line-disjoint; plus one
+    retuned, `floating-add-button.tsx`'s, which now says it is retired from the product and why it is on disk.
+  - `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md`: both generated by
+    `pnpm design:rules`, never hand-edited.
+- The items, one line each:
+  - `chrome=both`: the row is untouched, and `guest/guest-action-dock.tsx` (new, contract-tested) takes its
+    place at the foot on the row's own sentinel. A `role="group"` of Add beside Invite, a gradient scrim
+    instead of a hairline, `env(safe-area-inset-bottom)`, and `inert` while hidden so the bar travels rather
+    than appears. It carries exactly what the row carries (`onAdd` omitted means no Add; nothing to dock
+    renders null). The pill's mount is gone from `event-experience.tsx`; `shared/floating-add-button.tsx`
+    keeps its props and gains a head comment naming the three surfaces still drawing it (`guest-upload`,
+    `toasts`, the Library's interactive demo). The page root reserves the dock's height while it is MOUNTED,
+    never only while it is visible. Lands in the Library as **GuestActionDock**.
+  - `welcome=sheet`: `entry-shell.tsx`'s desk half is `SheetContent responsive` now (the same primitive
+    Invite, Report and the settings sheet wear), a full-height right-edge panel with the album blurred beside
+    it; the phone half stays vaul and took the Sheet's `max-h-[85svh]` with `overflow-y-auto`. The
+    dismissability table, the step machine, the success hold and the 55svh welcome presence are untouched;
+    `entry-modal.test.tsx` is green unchanged and now exercises the Sheet branch. Lands in the Library as
+    **EntryShell**, its first `for` line.
+  - `theirs=mark`: `shared/masonry.tsx` gained `mineIds` / `onSelectMine` / `mineSelected`, writes `data-mine`
+    on the tile box and renders a fourth mark beside the like mark in `GLASS_MARK` + `GLASS_MARK_LIT` (the
+    play mark's exact recipe). `GALLERY_COLUMNS`, `MasonryColumns`, `distributeColumns` and every existing
+    prop are untouched, so the lab and the four host grids that import them are unaffected and their pins are
+    green. The tap toggles a Yours filter in `live-gallery.tsx` under a "Showing yours · Show all" line with
+    the count, on the same server-read own-uploads set `canDelete` already gates Remove with.
+    `guest/yours-filter.ts` is the pure half and lands in the Library as **yours-filter**.
+  - The board: `guest-shape` retired. The directory is deleted, the three registries are clean, and
+    `/design/lab` renders with no guest-shape link (measured in the browser).
+- Calls his to overrule on the alias, one line each:
+  - **The mark's corner.** The board drew it top-RIGHT on a phone, where nothing else sits; I put it top-LEFT
+    at every width, because from `md` up the top right is the desk hover row's own pane (`row=bar`) and that
+    pane opens over the mark. The two bottom corners are the play and like marks'. A guest's roughly 2.5s
+    just-landed check shares the top left and paints over it, which is the right order: the news, then the mark.
+  - **The mark's glyph** is the board's white dot, unchanged: deliberately quiet, which is the risk his own
+    overrule line named and he chose `mark` anyway. The aria-label and the desk `title` carry the meaning.
+  - **The dock's scrim** is a 40px gradient into the page's paper rather than the board's `border-t` +
+    `bg-background/85 backdrop-blur-sm`: a hairline across a full-bleed album reads as a crop, and glass is
+    media chrome, never page chrome (bible 15, `lib/glass.ts`).
+  - **The dock at a desk** right-aligns its pair (`sm:justify-end`) inside a full-width bar, exactly as the
+    board drew it at 1440: the bar runs the window, only the buttons sit where a cursor already is.
+  - **"Showing yours" is a LINE, not a chip** (his `theirs` note), and the mark is a TOGGLE, so tapping a
+    marked tile again clears the filter and the mark is never a one-way door with a link as its only exit.
+  - **The door's content sits at the desk panel's top**, the way Invite, Report and the settings sheet all do,
+    rather than the board wrapper's bottom-pinned CTA: a 900px panel with one button at the very bottom
+    separates it from the words it answers, and the consent line would be marooned under it.
+  - **The dock's button rung is `size="lg"` (h-9)**, the rung the shipped row already uses (Add is `lg`, the
+    Invite trigger is forced to `h-9`), so `buttons-wiring`'s retune reaches the dock with everything else.
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them):
+  - Any guest how-to describing the floating Add pill ("a floating Add photos button appears as you scroll"):
+    it is a dock now, and it carries Invite beside Add.
+  - Any article describing the welcome or the gate as a centred box on a laptop: it is a panel from the right
+    edge, with the album blurred beside it.
+  - Any article about removing your own photograph: it can be FOUND now, by the mark on your own tiles and the
+    Yours filter, rather than only by scrolling until you recognise it.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. No SQL, no schema and no RPC: the
+  own-uploads set is the one `yours` already shipped (`listAccountMediaIds` and `POST /api/guests/mine`), read
+  twice instead of once.
+- Verified locally at 375 and 1440, signed out, on the disposable open event `Gallery width (disposable)` (30
+  photographs): the row on landing at both widths; the dock arriving on a real scroll with both actions and
+  the scrim (measured at the top of the page: `data-hidden`, `inert`, `opacity: 0`, `translate: 0px 16px`, and
+  all four cleared at scrollY 1200); the door's phone posture (a bottom sheet with the album blurred above it)
+  and its DESK posture (a full-height right-edge panel, the album blurred to its left); `/design/lab` with the
+  board gone. ONE REAL BUG FOUND AND FIXED IN THE BROWSER: the dock's first transition named `transform`, and
+  Tailwind v4's translate utilities set the STANDALONE `translate` property, so the bar teleported instead of
+  travelling (computed `transform: none`, `translate: 0px 16px`). It is `transition-[translate,opacity]` now,
+  with the travel `motion-safe:` only so reduced motion keeps the cross-fade and drops the distance.
+  NOT exercised locally, and why: the gated door's two steps (every event in the test data is `open`, and the
+  one-boolean DB flip that would have made an account gate was refused by the sandbox), and the mark and its
+  filter against a REAL own upload (localhost cannot upload). The mark's material and placement were checked
+  over the real photographs at both widths by injecting the exact element (the source's own class string) onto
+  four tiles; the wiring's behaviour is pinned in `masonry.test.tsx` and `yours-filter.test.ts`. Both belong to
+  the alias pass.
+- The mark's contrast: no new measurement was taken, and none is owed. It is the SHIPPED white-glyph recipe,
+  `GLASS_MARK` + `glass-mark-lit`, byte for byte the `CornerPlayBadge`'s; the 4.4:1 failure the glass round
+  measured was the rose `--like` colour, and this mark carries no colour of its own.
+- Look at first: on a phone, land on the album and scroll until the row leaves. The dock should ARRIVE rather
+  than appear, and Invite should be as reachable as Add at the bottom of a long album. Then the door at a
+  laptop: a panel from the right edge with the album blurred beside it, not a box in the middle of the screen.
+  Then, signed in as a guest who has uploaded, the small disc on your own tiles and what a tap on it does.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). `guest-shape` round two wired whole and the board retired.
+`chrome=both`: the full-width row under the event's name stands, and a new `GuestActionDock` takes its place
+at the foot on the row's own IntersectionObserver sentinel, carrying Add beside Invite over a gradient scrim
+inside the safe area, inert rather than unmounted so it travels; the floating Add pill lost its only product
+mount and stayed on disk for three lab surfaces. `welcome=sheet`: the door's desk half became the one
+responsive Sheet as a right-edge panel with the album blurred beside it, the phone half kept vaul for the
+keyboard and took the Sheet's 85svh ceiling, and the dismissability table never moved. `theirs=mark`: the one
+grid gained a fourth mark on a guest's own tiles whose tap toggles a pure Yours filter under a
+"Showing yours · Show all" line, on the same server-read set the lightbox's Remove already gates.
