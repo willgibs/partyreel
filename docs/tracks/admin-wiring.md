@@ -1,6 +1,6 @@
 ---
 track: admin-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c935f072"          # the launch-prep SHA the branch was cut from
 board: admin           # retires at this lane's merge (the fixtures survive as a Library demo)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -386,27 +386,144 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The `admin_actions` table the brief asked this lane to propose and not build.** Recommended shape:
+  `id`, `at`, `actor` (the operator's `auth.users` id), `action` (an enum: `account_delete`,
+  `media_remove`, `media_restore`, `announcement_delete`, `hold_release`, `job_pause`, `job_run`,
+  `flag_toggle`), `subject_kind` + `subject_id` (never a join, so a row outlives what it names),
+  `detail` (free-form jsonb, the sheet's own `touches[]` at the moment of the act), `reversible` (bool).
+  Posture: `forensic_audit_log`'s exactly (deny-all RLS, service-role only, written inside
+  `requireAdminAction` at the one place each act already funnels through, never from a client, and it
+  outlives the row it concerns). The one open product question is RETENTION: the board's `arm` option
+  drew "kept for 90 days" and a 90-day cut on an operator log is a deletion job nobody asked for, so
+  the recommendation is to keep it forever and revisit when there is a team rather than one operator.
+  Nothing in this lane reads or writes it; it is a migration for a later round.
+- **Will's own answer, asked on the board and not yet given: is a paid-subscriber delta worth a
+  column?** The home's fourth figure has no history to compare against because the Stripe webhook
+  writes only the current `tier`. Recommended: leave it as a share ("25% of accounts") until there is
+  revenue worth trending, then have the webhook append to a tiny `tier_events` table rather than
+  reconstruct from Stripe on every page load.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/admin-observability.md`, "What binds the admin's design": the heading now names both
+  dates, and Will's seven verdicts are listed as the rules that bind every surface, with the star line
+  that there is NO operator audit table (the `arm` option he did not pick).
+- `docs/systems/admin-observability.md`, "## Surfaces": the dropdown-plus-bell paragraph is replaced by
+  the shell as built (bar, band, rail, the `lg` split, the full bleed), three star lines (one cached
+  read per request and `serverNow()`; an unreadable heartbeat is never a count; the palette jumps and
+  never acts), and the destructive-sheet adoption list. The Support / Applicants bullet gains the pane
+  and its `?id=`; a new Overview bullet carries the four figures and the queue with the star line on
+  the missing delta; the Metrics bullet names the `getPlatformDbMetrics()` split.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now**: the components gallery draws TWO "Surfaces" blocks (`album-stream` and friends at the head,
+  the original block further down), which is a duplicate React key on every load of
+  `/design/library/components`: one of the two is dropped silently. Pre-existing at this lane's cut and
+  outside it (both head entries are other lanes'); the fix is one section name.
+- **Now**: `docs/tracks/guest-shape-r2.md` fails `docs.test.ts` at `origin/launch-prep` 3e42e12d: a
+  heading containing angle brackets renders as an HTML tag, so the rendered id and `headingsOf`'s
+  disagree. One heading, the Orchestrator's own manifest.
+- **The admin**: the help centre's palette (`marketing/help/help-palette.tsx`, 549 lines) predates
+  `ui/command-palette.tsx` and still owns its own combobox and keyboard model; a follow-up folds it onto
+  the primitive, which also removes the second global ⌘K listener in the tree.
+- **The admin**: the queue's Reports row costs a full `listReports("open")` for one timestamp (the
+  presign is local, so it is cheap, but an `oldestOpenReportAt()` head-read in `queries/reports.ts`
+  would be honest); the same for the two inbox lists.
+- **The admin**: `/admin/reports` keeps its own sectioned shape and the two report verdicts are still
+  bare destructive buttons with no confirmation at all (`report-review.tsx:113`,
+  `person-report-list.tsx:104`). Deliberately untouched here (admin-triage's lane) and named so the
+  sheet reaches them.
+- **The admin**: a fortnight of paid-subscriber history (see Questions) and the `admin_actions` table.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `5d4d09dc` (the whole lane); synced with `origin/launch-prep` at `3e42e12d` in merge
+  commit `8e800240` (it had moved a long way: glass-wiring, guest-wiring and door-wiring all merged).
+  Three conflicts, all resolved by hand: `ledger.test.ts` taken WHOLE from launch-prep (the
+  Orchestrator had already landed the `stands` fix at `677be39c`, which this lane had found red at the
+  cut and fixed the same way); `component-notes.ts` kept BOTH head blocks, glass-wiring's and this
+  lane's; the two generated artifacts taken from launch-prep and regenerated.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` ok, the specimen collector
+  ok (137 specimens on 98 entries), `pnpm typecheck` ok, `pnpm lint` ok (8 known warnings, 0 errors),
+  `pnpm test` 2971 passing with ONE failure that is not this lane's, `pnpm build` ok (255 pages).
+  `pnpm lab:smoke --base http://localhost:3134` ok, 416 checks, 0 failing. `pnpm lab:demo --board admin`
+  exits 0 with "no open step to press": the board is ruled whole, so it has no waiting step left.
+- ★ THE ONE RED IS PRE-EXISTING AND IS THE ORCHESTRATOR'S. `src/app/(dev)/design/_data/docs.test.ts`
+  fails on `docs/tracks/guest-shape-r2.md`, which arrived with `3e42e12d`; proved by running that test
+  against a clean checkout of `origin/launch-prep` in this worktree. A heading of that manifest carries
+  angle-bracket text, so the renderer eats it as an HTML tag and the predicted id does not match. Every
+  other test in the suite is green.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: 63 files, all owned but for the eleven
+  below, each with why:
+  - `src/lib/type-ladder-policy.test.ts`: ONE entry deleted. `admin-shell.tsx`'s `text-[10px]` operator
+    badge is gone (the brief's own line), so its `board` exception counted 1 against 0 and went red.
+    The list "only shrinks" and the file asks for exactly this deletion.
+  - `src/app/(dev)/design/rules/component-notes.ts`: nine `for` lines at the head, which is the round's
+    own ownership rule ("every new component gets its `for` line in `rules/component-notes.ts`").
+  - `src/app/(dev)/design/rules/rules.generated.json`, `docs/design/library.md`,
+    `src/app/(dev)/design/gallery/specimens.generated.json`: generated by the gate's own commands.
+  - `src/app/(dev)/design/gallery/playgrounds.tsx` and
+    `(shell)/library/components/gallery-demos.tsx`: `badge.tsx` was RELEASED for the additive variants
+    and `gallery.test.ts` refuses a cva axis the gallery and its playground do not both declare, so the
+    three new names had to land in all three places or the gate stayed red.
+  - `(shell)/library/components/interactive-demos.tsx`,
+    `(shell)/library/compositions/gallery-demos.tsx`,
+    `(shell)/library/compositions/composition-demos.tsx`: the Library demo the brief demands ("the
+    board's fixtures survive as a Library demo... so `lab:smoke` keeps proving the portal nobody can
+    sign into"). The manifest named the demo and not the family files it has to live in.
+  - `src/components/admin/{destructive-sheet,health-band,inbox-pane}.test.tsx`: three new test files
+    beside their components. The brief asks for these jsdom contracts by name; the manifest listed each
+    component and not its test.
+- The items, one line each:
+  - `home=kpi`: wired. Four figures with a fortnight delta, a server-drawn 14-day signup sparkline, and
+    the ranked queue beneath; the nine-card grid is gone. Lands in the Library as `admin-shell`'s third
+    specimen (the queue).
+  - `nav=rail-palette`: wired. A 232px rail at `lg` with pending counts and a Search row; the dropdown
+    below `lg`; `ui/command-palette.tsx` as a primitive and `admin-palette.tsx` on it. Lands in the
+    Library as `command-palette` and as `admin-shell`'s first specimen.
+  - `density=hybrid`: wired. `ui/table.tsx` for accounts, exports, jobs, reels and both forensics
+    tables; `inbox-pane.tsx` for Support and Applicants; Reports untouched. Lands as `table`.
+  - `colour=rows`: wired. `badge` gains `success`, `warning` and `info`; `lib/admin/tone.ts` is the one
+    map; a failure or an overdue run tints its row and takes a 2px leading edge on the first cell
+    (measured in both modes: 6 percent wash on a failure, 8 percent on a warning).
+  - `destructive=sheet`: wired on nine controls (delete account typed, remove media, delete
+    announcement, release hold, the two kill switches, job pause, Run now, plus `GuardedSwitch` as the
+    shared OFF-edge wear). Lands as `destructive-sheet`.
+  - `health=portal`: wired. `health-band.tsx` under the bar on every page, absent on a good day, plus
+    the chip in the bar. Lands as `admin-shell`'s second specimen.
+  - `chrome=devtool`: wired. A 44px bar with the crumb, the live tag, the chip and the initial; the
+    `text-[10px]` Ops chip retired. NOT in the Library demo, on purpose: its operator menu holds a real
+    `signOutAction` form and a gallery page does not get to end the visitor's session.
+- Calls his to overrule on the alias, one line each:
+  - The four figures are Accounts, Active hosts, Uploads and Paid subscribers, and the fourth carries no
+    arrow at all (no history exists to compare against; a plausible one would be invented).
+  - "Active hosts" means LAST SEEN in the fortnight, because `last_active_at` is one timestamp.
+  - Exports joined NAV under Operations (it was reachable only from the card grid the home retired), and
+    `nav.test.ts` now fails on any admin page the nav cannot reach.
+  - The rail is 232px, at `lg` and up only; below that the dropdown is the nav, not a fallback.
+  - The palette's Actions group is six static jumps to a surface anchor, and the palette never acts.
+  - The inbox pane is Support and Applicants only; Reports keeps its sections.
+  - `info` (blue) is the fourth state colour, on a running job.
+  - Deleting an announcement is `permanent` and asks for NO typing: the only act that types is the one
+    with a specific wrong thing to get wrong (an account's address).
+  - Run now on the purge sweep is `reversible` in the sheet, because it does tonight's work now rather
+    than anything extra.
+  - The Library demo leaves the bar out (the sign-out form, above).
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them): none. Every
+  surface changed is operator-internal and behind AAL2; `content/help/` describes the host and guest
+  product only (checked with `git grep -il "admin\|operator" content/help`: no how-to describes the
+  portal).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none applied and none needed. One
+  migration is PROPOSED under Questions (`admin_actions`) and deliberately not built.
+- Look at first: `/admin` signed in on the alias. The bar at 44 with the crumb and the live tag, the
+  rail at 1440 and the dropdown at 375, ⌘K for a surface then an account then an action, the home's four
+  figures against `/admin/metrics`, the band absent on a good day, the sheet on a disposable announcement
+  and on a pause of downloads. The typed account delete is NOT to be exercised. This lane could not sign
+  in (no credential is ever typed on a lane port), so everything above is unit and jsdom tested plus the
+  Library demo at `/design/library/compositions` and `/design/library/components`, which is the only
+  automated eye there is on a portal nothing can open.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
