@@ -23,9 +23,10 @@ import {
   isFollowing,
   type PublicProfile,
 } from "@/lib/db/queries/social";
+import { GLASS_MARK } from "@/lib/glass";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
-import { formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 // Covers are presigned per request; the follow state is viewer-specific.
 export const dynamic = "force-dynamic";
@@ -62,10 +63,22 @@ export async function generateMetadata({
  *  slot in the card's own chrome language (the same pill as the date and the
  *  lock below), so the group reads as one grid with a mark on it rather than
  *  two grids sharing a heading. No new prop on EventCard: that card is shared
- *  with the dashboard, and the marker is this page's idea. */
+ *  with the dashboard, and the marker is this page's idea.
+ *
+ *  ★ ONE MATERIAL (glass round two, Crystal, landed 2026-09-20): this was its
+ *  own hand-rolled `bg-black/25 backdrop-blur-sm` pane, the exact duplicate
+ *  `event-card.tsx`'s own top-right pill retired when it moved onto
+ *  `GLASS_MARK` (round two's "one material everywhere" ruling, his own
+ *  words). Landing second past glass-wiring's merge is this lane's cue to
+ *  make the swap rather than leave a second recipe standing. */
 function Marker({ role }: { role: "host" | "guest" }) {
   return (
-    <span className="flex h-5 items-center rounded-full border border-white/30 bg-black/25 px-2 text-[10px] font-medium text-white backdrop-blur-sm">
+    <span
+      className={cn(
+        "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
+        GLASS_MARK,
+      )}
+    >
       {role === "host" ? "Host" : "Guest"}
       <span className="sr-only">
         {role === "host" ? ": hosted this event" : ": added photos here"}
