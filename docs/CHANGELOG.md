@@ -44,6 +44,26 @@ session-remove RPC (`remove_my_upload_by_session`, SECURITY DEFINER, `service_ro
 can sign in on its port: the hub gallery's bars and cluster, the admin portal, the account page's passkey and the owner
 mode's avatars are Will's on the alias, and each lane's bullet below says so.
 
+- **`guest-wiring` merged at `7f4f2ffe`** (2026-09-20, Opus; cut `0ad0c32d`): `guest-shape` r1's answers in production.
+  The locked page draws the river at the empty album's own depth (`GhostRiver`, one home for the ghost fade; the
+  ghost grid retired on disk for the board that draws it). A photograph somebody else adds lights a white inset rim
+  that rises in 200 ms and fades over two seconds (pure `newArrivalIds`, one duration shared by sheet and state; the
+  seed render, a rolled presign and the guest's own upload, which keeps its green check, never light); the ruled
+  growth into ONE column did not land: CSS columns are column-major, so it waits for `glass-wiring`'s explicit
+  columns (a ROADMAP line, deferred rather than half-built). Save left the block above the album and Invite takes the
+  row. A guest's own photograph is removable ever under both identities: signed in through a Server Function on
+  `remove_my_upload`, anonymous through `POST /api/guests/remove` on the service-role-only session RPC behind the join
+  limiter; "mine" a server read on both paths (`/api/guests/mine`), never a client claim and never in the gallery's
+  ETag; every database call in `lib/db/mutations/guest-media.ts`; an eleven-way rolled-back RPC check and both routes
+  red-teamed live. Invite and Report onto the responsive Sheet (Download all and Save are other lanes' files: a
+  ROADMAP line). The door's sequence AND shell untouched ("not this sheet design"). Gate 47 on the merged tree; the one
+  red test at its cut was the Orchestrator's (the ledger test predated the `stands` grammar; fixed at `677be39c`).
+  Calls his to overrule on the alias: the arrival as white light, not a state colour; only another's photograph
+  lights; the anonymous removal device-bound; a failed removal restoring the tile with "Couldn't remove that photo.";
+  Report's sheet with the primary first. One help article stale for `help-sync` (`save-an-event-and-find-your-uploads`).
+  NOT SEEN RENDERED: the locked page's river (no password event exists), the signed-in Remove, and Report's textarea
+  on a real iPhone (the Sheet's phone half has never held a focused input) are Will's on the alias.
+
 **Next.** The handoffs, in the program's order; his eye on the alias; the night's explorations once he sleeps.
 
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
