@@ -62,6 +62,27 @@
         }
       ],
       "items": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "material",
+          "choice": "crystal",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "edge",
+          "choice": "double",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

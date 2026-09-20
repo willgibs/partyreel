@@ -13,7 +13,7 @@ owns:
   # board under it.runIf), so a retirement never needs them released again.
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
-  - src/app/globals.css
+  # - src/app/globals.css   RELEASED to glass-wiring for its fenced block (the --glass-* tokens, @utility glass; 2026-09-20), back at its merge
   - src/app/theme.css
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here
@@ -162,6 +162,13 @@ retired `type-phone`; both agents were told so by message.
 | `overtaken` | cut after `lab-tides` merges: the desk mechanism his ruling asks for (badge, one agent line, "the ruling stands", overrides echoed) and the judgment lines for the ~25 asks his rulings reach | done: merged `f7928597` (2026-09-20, handed off `bb64f398`, zero conflicts), the `stands` grammar landed at `7f0ca050`, gate 43 on the merged tree | Opus, :3136 | nothing; the desk badges 29 asks |
 | `guest-verify`, `buttons-pairs`, `toasts`, `home-states` | his asks by name (batch five): the badge over email confirmation, the button rung, the toast system, the home across host states | queued in that order | Opus / Sonnet | cut as seats free |
 | `seed-avatar` | cut at `8225bc35` (Will, 2026-09-19 late, by name): round one of the seeded default avatar, a deterministic gradient orb until a photo replaces it, our own generator learned from hashvatar's gradient mode; on the real avatar surfaces with the profile-page cast | done: merged `a80fe1e1` (2026-09-19, handed off `04f1f3c8`, zero conflicts); its id moved after `app-vocabulary` and the generator's contract published at the record; on the desk | Opus, :3131 | Will's sitting (seven decisions; four calls his in the CHANGELOG) |
+| `glass-wiring` | cut at the sixth batch's record (2026-09-20): Crystal with the double edge as the `--glass-*` tokens and one utility, one `MediaTile` for every album grid (explicit column assignment), the lightbox's blurred backdrop, the host's row as one pane, dark on paper, the reel's controls; `glass` retires | open | Opus, :3131 | the handoff; lands FIRST of the tile-touching lanes |
+| `guest-wiring` | cut at the record: the door's sequence kept and its shell untouched, the river on the locked page, the arrival through the seam, Save after upload, a guest's own photographs removable (the session RPC applied at the cut), the four dialogs on the sheet | open | Opus, :3132 | the handoff; syncs past glass-wiring before its two exceptions |
+| `door-wiring` | cut at the record: one account object worn four ways, the code first, the product beside /login, an existing account named under a create intent, failures with buttons, passkeys behind a flag | open | Opus, :3133 | the handoff; Will enables passkeys in the Supabase dashboard before the flag turns on |
+| `admin-wiring` | cut at the record: the numbers first with the queue beneath, a rail with a palette, tables and inbox panes, colour reaching the row, one destructive sheet, the health band, the 44 px bar; `admin` retires, its fixtures a Library demo | open | Opus, :3134 | the handoff; the signed-in pass is Will's |
+| `vocab-wiring` | cut at the record: one route skeleton, icons on both bars with instant sliding tooltips, the tile-size cluster in a cookie, one ConfirmSwitch, the root tooltip delay to 0 | open | Sonnet, :3135 | the handoff |
+| `avatar-wiring` | cut at the record: the disc clipped and the children un-rounded, the generator moved home, the diagonal on every avatar seeded by a hash of the account id, the raw images folded onto the one Avatar | open | Sonnet, :3136 | the handoff; lands before the bylines swap |
+| `pricing-wiring`, `overtaken-2`, `demo-wiring`, the round twos (`guest-shape`, `album-controls`, `avatar-look`, `welcome-tour`, `pricing-fit`, `demo-doors`), batch five's four, `help-sync`, the two follow-ups | the queue after this wave, in that order (the plan file's "The queue after wave one") | queued | Opus / Sonnet | cut as seats free; `demo-wiring` after `guest-wiring` merges |
 
 **The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Every board is cut (`profile-page` took the first freed seat, :3133; `how-it-works` the second, :3136; `export-flow` the third, :3132; `site-chrome` the fourth, :3135; `event-type-pages` the fifth, :3131; `error-pages` the sixth, :3134); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. CLOSED 2026-09-19 10:40 UTC: every lane integrated and recorded with `[preview]` on each record, twelve boards on the desk, every seat free, nothing asked of Will; the alias rebuilt onto the closing record `5910d489` at 10:58 UTC, seven deployments pruned, the wired surfaces red-teamed signed out (clean).
 
@@ -174,6 +181,18 @@ round two of `voice` and `glass` from his notes. `gallery-width` integrated at `
 
 ## Next, in order (batch nine's plan T4 to T6; the plan's words live in rulings.md 2026-09-18 and ROADMAP)
 
+0. **Batch six (2026-09-20, the small hours; the plan in the Orchestrator's plan file, his words in rulings.md):** six lanes
+   cut at the record on :3131 to :3136 on top of the seam (the grid and the lightbox gained `arrivedIds`, `canDelete`, `prefix`
+   and a lightbox `canDelete`; the `--info` token pair; the session-remove RPC applied). SEQUENCING: `glass-wiring` lands first
+   of the tile-touching lanes; `guest-wiring` syncs past it before its two exceptions in `guest-masonry.tsx`; the tile-size
+   control's guest mount waits for guest-shape round two; `door-wiring`'s account object reaches the gate through the stable
+   `EnterEventPrompt` export; `avatar-wiring` lands before the bylines swap; whichever of glass and avatar lands second moves
+   the profile page's paper chip. SHARED FILES: a `for` line in `rules/component-notes.ts` is inserted beside its neighbours
+   and the Orchestrator regenerates after every merge; the type-ladder table's counts for a rewritten file are listed in the
+   Handoff and trimmed at the merge; a migration is proposed as SQL, applied only by the Orchestrator. At each handoff: the
+   merge (a retirement removes its lines and ledger; a round-two lane rewrites its RULINGS row), gate 47 onward on :3137, the
+   record in the small-hours entry, `[preview]`, the alias, the prune, the red-team listed in the plan; the signed-in surfaces
+   are Will's. Then the queue above, in order.
 0. **Batch five (2026-09-20, the night sitting; the plan in the Orchestrator's plan file, his words in rulings.md):**
    `voice-wiring`, `ladder-wiring`, `home-wiring`, `hub-wiring`, `glass-material` cut at the record on :3131 to :3135; `overtaken` on :3136
    the hour `lab-tides` merges; `guest-verify`, `buttons-pairs`, `toasts`, `home-states` as seats free; `glass-wiring` at glass round two's

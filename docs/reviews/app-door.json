@@ -1,0 +1,61 @@
+{
+  "board": "app-door",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "lead",
+          "choice": "code",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "surfaces",
+          "choice": "one",
+          "note": "This doesn't necessarily have to override anything or be a strict selection, just that any login components that feel similar could be unified into one object worn 4ways.",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "welcome",
+          "choice": "tour",
+          "note": "This is more introductory than immediately creating an event. That way, event creation can feel more focused within its own wizard and prompted as the primary CTA at the end of the tour (but skippable, as in preview). However, this welcome tour could use a huge redesign to feel more alive.",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "page",
+          "choice": "beside",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "existing",
+          "choice": "tell",
+          "note": "With the streamlined magic link email login, it may feel easy to confuse \"create account\" and \"login\" screens. This makes that mistake seamless, but still flags it just in case. However, it should be dismissible and provide an action if it was a mistake.",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "failure",
+          "choice": "paths",
+          "note": "This could use a visual redesign, but is the best selection of these with keeping the failure on the screen and offering helpful actions",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "ask": "return",
+          "choice": "tap",
+          "note": "If this is a bad idea, please flag it. However, the UI feels way cooler than pre-filling the email, and if we can use passkeys to avoid an email link every time, that'd be nice.",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

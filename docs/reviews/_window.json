@@ -109,6 +109,66 @@
           "text": "Build up from the ground up, shaping along the way rather than just selecting one of these for the sake of it.",
           "by": "Will",
           "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-vocabulary.loading=asneeded, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by app-vocabulary.bulk-toolbar=icon, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by app-vocabulary.gallery-controls-home=cluster, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by seed-avatar.after-upload=under, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.home=kpi, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.density=hybrid, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.chrome=devtool, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.surfaces=one, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.welcome=tour, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.page=beside, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
         }
       ]
     }

@@ -143,8 +143,8 @@ function reading(spec, v) {
   const rec = d.options.find((o) => o.id === d.recommended);
   if (v.choice === "?") return { kind: "unclear", d, rec, text: "not clear to him; the note may carry his own answer" };
   if (v.choice === "stands") return { kind: "stands", d, rec, text: "left to the earlier ruling" };
-  if (v.choice === "none") return { kind: "none", d, rec, text: "none of the options; the note says what to try" };
   const o = d.options.find((x) => x.id === v.choice);
+  if (!o && v.choice === "none") return { kind: "none", d, rec, text: "none of the options; the note says what to try" };
   if (!o) return { kind: "unknown-option", d, rec, text: `"${v.choice}" is not one of ${d.options.map((x) => x.id).join(", ")}` };
   const same = o.id === d.recommended;
   const today = d.today && o.id === d.today;
