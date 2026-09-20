@@ -1,6 +1,6 @@
 ---
 track: album-controls
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
 board: app-vocabulary  # round two on the same board id: where the host gallery's controls live
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -209,7 +209,7 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none (lab-only; no production byte moved, so `docs/systems/host-app.md` is untouched)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -217,16 +217,73 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head is the tip of `origin/lp/album-controls` (this commit, the manifest alone); the board work landed at
+  `195f0596`; `launch-prep` had not moved since the cut (`58f7acbd`), so no sync-merge was needed.
+- Gates on the synced tree, each on its own exit code: `design:rules` 0 (`docs/design/library.md` and
+  `rules.generated.json` regenerated, confirmed byte-stable on a second run) · specimens 0 (140 specimens, 101
+  entries, unchanged) · `typecheck` 0 · `lint` 0 (8 known warnings, 0 errors) · `test` 0 (287 files, 3025 tests,
+  1 skipped) · `build` 0 (255 pages) · `lab:smoke` 0 (433 checks, 0 failing; the board reads 181 of its
+  1,200-word budget) · `lab:demo --board app-vocabulary` 0 (1 step, 0 failing, the step draws its options).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `docs/design/library.md` ·
+  `src/app/(dev)/design/rules/rules.generated.json` ·
+  `src/app/(dev)/design/sandbox/app-vocabulary/{board.tsx,controls-home.tsx(new),spec.ts,bulk-toolbar.tsx(deleted),confirm-switch.tsx(deleted),empty-states.tsx(deleted),gallery-controls.tsx(deleted),loading-surfaces.tsx(deleted),tile-grammar.tsx(deleted)}`
+  · `src/app/(dev)/design/touchpoints.ts` · `src/app/(dev)/design/sandbox/overtaken.ts` ·
+  `src/app/(dev)/design/sandbox/overtaken.test.ts` · this file. Owned paths, one registration exception (the
+  `app-vocabulary` RULINGS row, `ruled`/`why`/`lives`/`board.note`/`board.variants` rewritten for round two;
+  `registry.ts`/`boards.ts` needed no edit, the board's id and file never changed) and two generated files;
+  ONE further exception, outside the registration line, and why: round one's seven asks are gone from `spec.ts`
+  (the `profile-page` precedent), which orphaned five `overtaken.ts` badges pointing at asks nobody stands to
+  ask any more (`app-vocabulary.empty-states`, `.loading`, `.tile-grammar`, `.bulk-toolbar`,
+  `.gallery-controls-home`); `overtaken.test.ts`'s own contract refuses exactly that ("a badge that lies is
+  worse than an answer left orphaned"), so the five retired with the asks they named and the file's hardcoded
+  `overtakenOn("app-vocabulary")` count moved from 5 to 0 to match. `fixtures.ts` is NOT in the diff: left
+  untouched because `host-curation/fixtures.ts` imports five of its exports verbatim (a typecheck failure
+  caught this on the first pass; restored before the gate ran green).
+- **The one decision, `controls-home`**: where should the host gallery's crowded controls (download, tile
+  size, sort, filter, select) live? Four options, every one the real, wired Album header
+  (`event-gallery.tsx`) with real production leaf components imported and never edited, at 1440 and 375:
+  1. `row`: every control stays inline, exactly as `vocab-wiring` shipped it. Wraps to THREE lines at 375
+     (measured: 102px tall, Add photos + Download / the tile-size cluster / Select + Deleted).
+  2. `view-menu`: tile size, Sort and Filter move behind one "View" button (drawn open, on the shipped
+     floating-layer tokens, since a real DropdownMenu's Portal would leave this frame); Download and Select
+     stay the row's two verbs. Wraps to only TWO lines at 375 (62px). **Recommended**: his own first
+     instinct named it ("nest this under a parent menu"), and it is the only option that behaves identically
+     at both widths, so a host never has to relearn where tile size lives by device.
+  3. `sheet`: the view controls (the tile-size cluster, Sort and Filter baked in, plus Download and Select,
+     my own reading of "a control sheet") move into the ruled responsive Sheet, drawn open on its own tokens
+     at 375 (a real Sheet's Portal has the same frame problem); the row is untouched at 1440, where there is
+     room, so this option is byte-identical to `row` at that width by design. Its own compact row (Add,
+     Controls, Deleted) still wraps to two lines at 375, tighter than `row`'s three but not one, since the
+     header's own label eats into the same 335px.
+  4. `pills`: every control (Add photos and Deleted included, "nothing in the header" taken literally) rides
+     down into a reconstruction of the sticky cards row (`event-cards-row.tsx`'s own two shapes, copied
+     rather than imported: the shipped component has no slot for these controls, so drawing it live is new
+     composition either way). Drawn at rest AND stuck, both states, since a lab frame cannot reliably
+     exercise a real scroll-driven IntersectionObserver for an automated capture. Overflows horizontally at
+     375 at rest (measured: 1273px of content in 335px, a 3.8x scroll).
+- One `lab:demo` note, not a defect: `row` and `sheet` draw the same picture at the board's default width
+  (1440), because that is `sheet`'s own point, stated in its own `means` copy: the row is untouched at 1440,
+  and the option only diverges at 375. Confirmed by eye and by DOM inspection (both iframes' `innerText` are
+  identical at 1440; `sheet`'s iframe gains "Album controls / Sort / Filter / Download / Select" only at 375).
+- The help articles this lane makes stale: none (a lab round changes no shipped page).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `view-menu` against `row` at 375, side by side (three wrapped lines against two): the
+  clearest, cheapest-to-build case for the recommendation. Then `sheet` at 375 for the open bottom sheet's own
+  material, and whether a compact three-button row that still wraps once is worth the extra surface. `pills`
+  last: the most invasive option (it touches a second shipped component's condensing contract, not just this
+  one's header), drawn at rest and stuck so its true width cost (1273px of content) is visible without
+  scrolling a small frame by hand.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Round two of `app-vocabulary` answered the one piece his own
+crowding note left open ("we may need to rethink where all of these actions live"), replacing round one's seven
+ruled asks rather than accreting them (`round.n: 2`): where the host gallery's five crowded controls (download,
+tile size, sort, filter, select) live, drawn on the WIRED Album header at 1440 and 375 with real production
+leaf components imported, never edited. Four options: the row as wired (wraps to three lines at 375), a View
+menu (recommended: answers his own first instinct, holds at both widths, wraps to two), a responsive Sheet
+(phone only, the row untouched at 1440 by design), and the sticky cards row absorbing every control including
+Add photos and Deleted (drawn at rest and stuck, overflows to a 3.8x scroll at 375). Round one's six now-dead
+showcase files retired; the RULINGS row rewritten for round two; five stale `overtaken.ts` badges pointing at
+round one's retired asks retired with them, its test's hardcoded count corrected to match.
