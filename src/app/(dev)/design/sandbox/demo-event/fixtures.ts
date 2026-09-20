@@ -4,13 +4,22 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 /**
  * THE DEMO EVENT, AS THE THING A PROSPECTIVE HOST OPENS.
  *
+ * ★ KEPT WHOLE FOR A CROSS-BOARD READER, ROUND TWO. This round's own board
+ * only needs `DEMO_URL` (see `doors.tsx`); round one's masonry (`PARTIES`,
+ * `ADDED`, the searched tile order) served six questions now ruled and wired
+ * whole by `demo-wiring`. It stays here, unchanged, because `guest-shape`'s
+ * own round two quotes `DEMO` and the `Party` type (`welcome.tsx`, "the demo's
+ * own arrival") to draw its four shells on the demo's real words: a lane never
+ * breaks a module another standing board imports, and this board owns this
+ * file's directory. Trim it once `guest-shape` retires.
+ *
  * Every picture on this board is one party, so what moves between options is
  * the SHAPE of the demo and never its contents. The party is a wedding with 33
  * photographs from 23 guests, which is the demo Will described rather than the
  * one that is live: "the existing demo content will be completely replaced
  * prior to launch to feel more full and real" (docs/design/rulings.md,
- * 2026-09-19). The `event` decision asks whether it stays one party at all, so
- * two more are declared below at the same shape.
+ * 2026-09-19). The `event` decision asked whether it stayed one party at all,
+ * so two more are declared below at the same shape.
  *
  * ★ THE DEMO EVENT IS A REAL ROW AND THIS IS NOT IT. The live demo is a
  * curated event behind `NEXT_PUBLIC_DEMO_QR_TOKEN`; nothing on this board
@@ -81,7 +90,8 @@ const tiles = (prefix: string, offset: number): GridMedia[] =>
     } satisfies GridMedia;
   });
 
-/** Which party the demo is. One today; the `event` decision asks about three. */
+/** Which party the demo is. One today; round one's `event` question asked
+ *  about three. */
 export type PartyId = "wedding" | "birthday" | "office";
 
 export type Party = {
@@ -99,13 +109,11 @@ export type Party = {
 };
 
 /**
- * ★ THE THREE PARTIES ARE ONE SET OF STILLS, OFFSET, AND THAT IS THE POINT OF
- * THE ASSET ASK. The repo holds twelve photographs and most of them are
- * weddings, so a birthday drawn from a different slice of the same twelve is a
- * stand-in and nothing more; each party names its own COVER so at least the
- * card a visitor chooses from is plausible. What the board judges is whether
- * three parties should EXIST, not what a birthday looks like, and the cost of
- * answering yes is three curated shoots rather than one.
+ * ★ THE THREE PARTIES ARE ONE SET OF STILLS, OFFSET, AND THAT WAS THE POINT OF
+ * ROUND ONE'S ASSET ASK. The repo holds twelve photographs and most of them
+ * are weddings, so a birthday drawn from a different slice of the same twelve
+ * is a stand-in and nothing more; each party names its own COVER so at least
+ * the card a visitor chose from was plausible.
  */
 export const PARTIES: Record<PartyId, Party> = {
   wedding: {
@@ -144,7 +152,8 @@ export const PARTIES: Record<PartyId, Party> = {
 export const partyOf = (v: string | undefined): PartyId =>
   v === "birthday" ? "birthday" : v === "office" ? "office" : "wedding";
 
-/** The party the demo is today, and the one every decision but `event` draws. */
+/** The party the demo is today, and the one `guest-shape`'s own round two
+ *  quotes for its demo-arrival shell. */
 export const DEMO: Party = PARTIES.wedding;
 
 /**
@@ -152,7 +161,7 @@ export const DEMO: Party = PARTIES.wedding;
  * object URL ramps for about 480ms, always answers "approved", and nothing is
  * written (`use-upload-queue.ts`, `simulateUpload`). This is that tile,
  * declared as a phone's 3:4 portrait on a still the album's first screen does
- * not already hold, so it reads as new rather than as a repeat re-entering.
+ * not already hold, so it read as new rather than as a repeat re-entering.
  */
 export const ADDED: GridMedia = {
   id: "de-added",
