@@ -1,6 +1,6 @@
 ---
 track: type-sync
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a2025ba0"          # the launch-prep SHA the branch was cut from
 board: none            # production follow-up: the ladder's body scan closes and the step names land; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -217,28 +217,130 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None escalated: nothing in this lane was a genuinely new one-way-door decision. Every judgment call (a
+  role read where the size actually moved, not just a tracking swap) was decided from the brief's own
+  words or from an existing precedent already wired elsewhere, and is listed under the Handoff's "Calls
+  his to overrule" rather than escalated here.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`, the type section's "way 6" paragraph (the one under "Six ways the
+  ladder fails SILENTLY"), refined in place, nothing appended: it named `lane` and `pending` as live,
+  shrinking allow-list kinds and promised a one-line flip to `{}` once the list emptied; both are now
+  stale (this lane closed the two kinds instead of emptying the whole list, since `depicted` / `relative`
+  / `board` are structural and were never going to reach zero). The paragraph now says `type-sync`
+  (2026-09-20) closed `lane` and `pending`, that `BodyException.kind` dropped both names so one coming
+  back fails typecheck, and that the three structural kinds remain named, counted and reasoned rather
+  than emptied on a deadline.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- No new lines. Two of `ladder-wiring`'s own five ROADMAP lines (the design system bucket) are now DONE
+  and ready to retire at the record: "flip the body scan to a hard fail... once the allow-list is empty"
+  (line 182) and "a `type-sync` follow-up (Sonnet) sweeps the... `lane` sites... and the four unowned
+  marketing ledes" (line 183) — both this lane's work, detailed in the Handoff below. The other three (the
+  76 `text-[10px]` -> `text-micro` rename, `src/components/admin/` unowned, `rules.generated.json`
+  regeneration) are untouched by this lane; checked directly against the synced tree, all seven `board`-kind
+  entries (the admin's three, plus export-flow's, site-chrome's and buttons-pairs' own) still sit in
+  `BODY_EXCEPTIONS` exactly as `ladder-wiring` left them, so line 185's premise still reads true.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commits (stable): `19a59ef7` (the sweep: 12 files, the lane and pending entries moved onto a step)
+  and `b639bad0` (`docs/systems/design-system.md`'s stale paragraph refined in place). Both pushed. Synced:
+  `origin/launch-prep` had moved (help-sync, home-states and demo-doors landed since the cut) — merged
+  (never rebased) at `a577edd2`, clean, no conflicts, zero file overlap between the incoming commits and
+  this lane's twelve owned files (checked by diff before merging, not just hoped).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` **0** (no artifact drift:
+  `rules.generated.json` and `docs/design/library.md` both byte-identical) · specimen collector **0**
+  (`specimens.generated.json` unchanged) · `pnpm typecheck` **0** · `pnpm lint` **0** (8 problems, 0 errors,
+  8 warnings = the known baseline) · `pnpm test` **0** (**3047 passed**, 1 skipped, 290 files) · `pnpm build`
+  **0** (255 pages) · `pnpm lab:smoke --base http://localhost:3133` **0** (442 checks, 0 failing). Dev
+  server on **:3133** only, killed by port before the build, the test run and this handoff.
+- Lane check — `git diff --name-only origin/launch-prep...HEAD` = **13 files**: the twelve this manifest
+  owns outright, plus **one exception**: `docs/systems/design-system.md` (the type section's own stale
+  paragraph, refined in place — the "System-doc edits" section above; the convention that a systems doc
+  is never in a lane's frontmatter `owns` but can still be refined in place is `ladder-wiring`'s own
+  precedent, confirmed by the Orchestrator on that lane).
+- **The count, before and after**: `BODY_EXCEPTIONS` held **38 entries / 95 elements** at the cut across
+  five kinds; it holds **27 entries / 78 elements** now, across **three**. `lane` (9 entries, 15 elements)
+  and `pending` (2 entries, 2 elements) are both zero, and `BodyException.kind` dropped both names from its
+  union, so a `lane` or `pending` entry coming back fails typecheck rather than passing a review unnoticed
+  — the hard fail `ladder-wiring`'s Handoff deferred, for the half that was ever a lane boundary rather than
+  a structural exception. `depicted` (15/58), `relative` (5/7) and `board` (7/13) are untouched, exactly as
+  cut.
+- **The eleven files moved, one line each** (a mechanical class swap; nothing redesigned):
+  - `marketing-footer.tsx` (6 elements): the two footer-nav-link constants onto `text-reading` (one counted,
+    `FOOTER_LINK` itself is not — see the bonus fix below); the "Start free" CTA and the "Open the demo
+    album" link onto `text-working` (a control, matching `DemoCtaLink`'s own `text-sm` = `working`
+    precedent); the "Scan the code..." lede and the `SITE_THESIS` paragraph onto `text-copy` (a marketing
+    paragraph); the assistant-row note onto `text-caption` (a hint); the "We're hiring" badge onto
+    `text-label`, growing 10 -> 12 like the ladder's own eleven small chips did.
+  - `enter-event-prompt.tsx` (1): the gate's uppercase eyebrow onto `text-label` (12 stays 12; only the
+    hand `tracking-[0.14em]` goes, for the step's own 0.08em).
+  - `pricing-teaser.tsx` (2): the "Most popular" badge and the plan-name eyebrow onto `text-label`; the
+    badge also gained `whitespace-nowrap` (see "look at first").
+  - `how-much-fits.tsx` (1): the plan-name eyebrow onto `text-label`.
+  - `no-app.tsx` (1): the ledger row's body sentence onto `text-copy`, its hand `leading-7` dropped (the
+    step carries its own).
+  - `event-statement.tsx`, `qr-hero.tsx`, `reel-hero.tsx` (1 each): the flat `text-lg` lede onto `text-copy`.
+  - `wysiwyg-section.tsx` (1): the aria-hidden "=" glyph's flat `text-lg` onto `text-copy`, per
+    `ladder-wiring`'s own Handoff naming this exact file "exactly what `copy` is for" alongside the three
+    ledes above.
+  - `feed-section-header.tsx` (1): the section label onto `text-label`, its `tracking-wide` dropped.
+  - `event-feed-action-bar.tsx` (1): the "N uploading" chip onto `text-micro` (a count, matching the sibling
+    count-pill in `feed-section-header.tsx`'s own file family) — the closest call in the lane; see below.
+  - A twelfth file, not counted: `FOOTER_LINK`'s own `text-[15px]` (used at the nav links, invisible to the
+    scan because it rides a shared constant rather than an inlined literal) moved to `text-reading` too, for
+    consistency with the sibling link text in the same file the scan did flag. Left alone, it would have
+    been the one nav link still on a stale one-off beside three just corrected.
+- **Calls his to overrule**, one line each (every size that actually MOVED, not the tracking-only swaps,
+  which are his own already-ruled `label=12-08`):
+  - The footer's "Start free" and "Open the demo album" (15 -> 14, `working`): neither is a `<Button>`
+    (the button rung waits for `buttons-pairs`), so the call was role, not the button round; `working` reads
+    as "marketing's own UI chrome: a control", matching `DemoCtaLink`'s existing `text-sm`.
+  - The footer's demo lede (17 -> copy) and `SITE_THESIS` (15 -> copy): both are marketing sentences, not
+    controls, so `copy` over `working`/`reading`.
+  - The footer's assistant note (13 -> 12, `caption`): a hint under the brand block, not a label or a lede.
+  - `event-feed-action-bar.tsx`'s "N uploading" chip (11 -> 10, `micro`): read as a count/pip (the sibling
+    pattern in `feed-section-header.tsx`, and it opens with a number). The other honest reading is
+    `caption` (12): Will's own body-type note named "started/job/took category label" at 12, and this chip
+    is arguably a job-status label wearing a number, not bare metadata — `job-controls.tsx`'s status label
+    already sits on `caption`. Genuinely the closest call in the lane; flip it to `text-caption` if `micro`
+    reads too quiet once he sees it live.
+  - `pricing-teaser.tsx`'s "Most popular" badge gained `whitespace-nowrap`: at 12px/0.08em the words wrapped
+    inside the pill (screenshotted, then fixed) where the old 10px/0.14em never had to; a one-utility
+    consequence of the size the role calls for, not a redesign.
+- **Not visually confirmed locally, and why**: `enter-event-prompt.tsx`'s gate eyebrow and both
+  `event-feed/*` app-prefix fixes are host-signed-in surfaces (a gated event's account step, the event
+  feed's action bar) and this lane's dev server cannot reach OAuth on its port (the ownership rules' own
+  note); the one local disposable gated event ("Test Wedding") is owned by `willg97@gmail.com`, and this
+  browser session is already authenticated as him, so `resolveGalleryAccess`'s owner check shows the full
+  album before the account gate ever renders. The change itself is size-neutral (12 stays 12, only the
+  tracking moves) and identical in shape to three other `text-label` swaps confirmed live in this same pass
+  (the footer's badge, the pricing cards' badge and eyebrow, `how-much-fits`' eyebrow) — worth a ten-second
+  human look on the alias signed out, not a redraw.
+- Visually spot-checked at 1440 and 375 (this dev server, not the alias): home (the ledger, the pricing
+  cards, the footer's demo invitation and brand block), `/about`'s footer (the "We're hiring" badge), `/reel`
+  (the hero lede, the "=" glyph), `/features/qr` (the hero lede), `/events/weddings` (the statement
+  paragraph). No overflow, no clipped element, no unintended wrap once the badge fix landed.
+- The help articles this lane makes stale: **none.** Every change is a class name; no word of copy moved.
+- Assets requested from Will: **none**.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none**.
+- **Look at first**: `pricing-teaser.tsx`'s "Most popular" badge (confirm the `whitespace-nowrap` fix reads
+  right at every card width, not just 1440/375), then the two host-signed-in surfaces named above (the gate
+  eyebrow, the "N uploading" chip's `micro` vs. `caption` call), then `docs/systems/design-system.md`'s
+  refined paragraph for tone.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Closed the body ladder's transitional allow-list: every
+`lane` entry (nine files, mostly voice-wiring's own leftover copy the ladder's own sweep could not touch)
+and `pending` entry (`feed-section-header.tsx`, `event-feed-action-bar.tsx`) moved onto the step its role
+called for, a mechanical class swap with the size itself shifting only where the role called for it (small
+uppercase badges growing a rung to `label`, four flat-18 marketing ledes landing on the fluid `copy` clamp).
+`BodyException.kind` dropped `lane` and `pending` from its union, so either kind returning is a typecheck
+failure rather than a silent allow-list widen; `depicted`, `relative` and `board` are untouched, still
+named and counted. `docs/systems/design-system.md`'s stale paragraph on the mechanism refined in place.
+Gate green on the synced tree (3047 tests, 255 pages, lab:smoke 442); two of `ladder-wiring`'s own five
+ROADMAP lines retire.
