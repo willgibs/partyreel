@@ -132,7 +132,11 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: { [key]: { choice: "eleven", note: "" } }, items: {}, notes: {} },
+      {
+        answers: { [key]: { choice: "eleven", note: "" } },
+        items: {},
+        notes: {},
+      },
     );
     expect(out.message).toBe(
       'review light r6: cadence=eleven "on second thoughts"',
@@ -248,9 +252,17 @@ describe("composeSoFar", () => {
 
   it("sends a note again the moment its words change", () => {
     const out = composeSoFar(
-      { answers: {}, items: {}, notes: { light: "the footer keeps its seam, slower" } },
+      {
+        answers: {},
+        items: {},
+        notes: { light: "the footer keeps its seam, slower" },
+      },
       roundOf,
-      { answers: {}, items: {}, notes: { light: ["the footer keeps its seam"] } },
+      {
+        answers: {},
+        items: {},
+        notes: { light: ["the footer keeps its seam"] },
+      },
     );
     expect(out.message).toBe(
       'review light r6: note: "the footer keeps its seam, slower"',

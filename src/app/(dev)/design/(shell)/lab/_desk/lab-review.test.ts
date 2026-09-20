@@ -826,9 +826,8 @@ describe("a stale re-send", () => {
   it("does not record the same board note twice", () => {
     const line = `review ${BOARD} r${ROUND}: note: "one remark, once"`;
     lab.run(line, { root, at: "2026-09-19T16:00:00Z" });
-    const before = readLedger(BOARD).rounds.find(
-      (r) => Number(r.n) === ROUND,
-    )!.notes.length;
+    const before = readLedger(BOARD).rounds.find((r) => Number(r.n) === ROUND)!
+      .notes.length;
     const again = lab.run(line, { root, at: "2026-09-19T16:05:00Z" });
     expect(again.summary[0][3]).toBe("unchanged");
     expect(

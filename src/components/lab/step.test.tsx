@@ -308,9 +308,9 @@ describe("a step puts the preview on the page and the answer in a dock", () => {
     const board = fakeBoard();
     const { container } = step("light.register", board);
     expect(board.state.register).toBe("identity");
-    expect(
-      container.querySelector("[data-lab-stage-label]"),
-    ).toHaveTextContent("Identity: the page reads as a lit room");
+    expect(container.querySelector("[data-lab-stage-label]")).toHaveTextContent(
+      "Identity: the page reads as a lit room",
+    );
     // Only the shown option is visible and live; the other is inert.
     expect(
       container.querySelector('[data-lab-view][data-option="accent"]'),
@@ -528,7 +528,9 @@ describe("a step, as a form", () => {
 
   it("holds Next until a question marked unclear says what was unclear", async () => {
     step("light.depth", fakeBoard());
-    await userEvent.click(screen.getByRole("button", { name: "Not clear to me" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Not clear to me" }),
+    );
     expect(getReviewStore().answers[holdId("light", 5, "depth")].choice).toBe(
       "?",
     );
@@ -622,13 +624,17 @@ describe("a step, staged behind another", () => {
     expect(
       screen.getByText(/not in the walk yet: it waits on an earlier answer/),
     ).toBeInTheDocument();
-    expect(screen.getByText("Where should the aurora land?")).toBeInTheDocument();
+    expect(
+      screen.getByText("Where should the aurora land?"),
+    ).toBeInTheDocument();
   });
 
   it("says a step is moot when the question it waited on went the other way", () => {
     setReviewStore({
       ...EMPTY_REVIEW,
-      answers: { [holdId("light", 5, "register")]: { choice: "accent", note: "" } },
+      answers: {
+        [holdId("light", 5, "register")]: { choice: "accent", note: "" },
+      },
     });
     step("light.landing", fakeBoard());
     expect(

@@ -155,7 +155,8 @@ export const SAMPLE_BOARD = defineBoard({
         {
           id: "as-data",
           label: "The asks as data",
-          means: "One declaration, read by the desk, the session and the ledger.",
+          means:
+            "One declaration, read by the desk, the session and the ledger.",
           state: { shape: "as-data" },
         },
         {
@@ -167,7 +168,8 @@ export const SAMPLE_BOARD = defineBoard({
         {
           id: "as-a-form",
           label: "The asks as a form",
-          means: "Every decision becomes a field and the review is a questionnaire.",
+          means:
+            "Every decision becomes a field and the review is a questionnaire.",
           state: { shape: "as-a-form" },
         },
         {
@@ -182,7 +184,8 @@ export const SAMPLE_BOARD = defineBoard({
         "The board declares its asks once and three surfaces read the one declaration.",
       evidence: "walk",
       control: "shape",
-      lands: "how every board declares what it is asking, and what the desk reads.",
+      lands:
+        "how every board declares what it is asking, and what the desk reads.",
     },
     {
       id: "notes",

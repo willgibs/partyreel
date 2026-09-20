@@ -331,7 +331,9 @@ function send(ws, method, params = {}) {
 async function connect() {
   for (let i = 0; i < 80; i++) {
     try {
-      const list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+      const list = await (
+        await fetch(`http://127.0.0.1:${port}/json/list`)
+      ).json();
       const page = list.find((t) => t.type === "page");
       if (page) {
         const ws = new WebSocket(page.webSocketDebuggerUrl);
@@ -712,7 +714,10 @@ try {
       await evaluate(ws, "window.scrollTo(0, 0)");
       await sleep(150);
       const dockTop = await evaluate(ws, "window.__labDemo.dock()");
-      await evaluate(ws, "window.scrollTo(0, document.documentElement.scrollHeight)");
+      await evaluate(
+        ws,
+        "window.scrollTo(0, document.documentElement.scrollHeight)",
+      );
       await sleep(250);
       const dockFoot = await evaluate(ws, "window.__labDemo.dock()");
       if (!dockTop || !dockFoot)
@@ -730,7 +735,10 @@ try {
         const said = await evaluate(ws, "window.__labDemo.label()");
         if (!said || !said.includes(want))
           layout.push(`UNLABELLED: showing "${want}", the head says "${said}"`);
-        const cut = await evaluate(ws, `window.__labDemo.clipped(${JSON.stringify(id)})`);
+        const cut = await evaluate(
+          ws,
+          `window.__labDemo.clipped(${JSON.stringify(id)})`,
+        );
         if (cut) layout.push(`CLIPPED: "${want}": ${cut}`);
       }
 
@@ -763,7 +771,12 @@ try {
         });
       }
       if (shots.length < 2) {
-        rows.push({ step, geo, verdict: "skip", note: "the stage could not be captured" });
+        rows.push({
+          step,
+          geo,
+          verdict: "skip",
+          note: "the stage could not be captured",
+        });
         continue;
       }
       const decoded = shots.map((s) => decodePng(s.png));
@@ -774,7 +787,9 @@ try {
       for (let a = 0; a < shots.length; a++)
         for (let b = a + 1; b < shots.length; b++) {
           const d =
-            shots[a].hash === shots[b].hash ? 0 : differ(decoded[a], decoded[b]);
+            shots[a].hash === shots[b].hash
+              ? 0
+              : differ(decoded[a], decoded[b]);
           max = Math.max(max, d);
           if (d < threshold) same.push(`${shots[a].label} = ${shots[b].label}`);
           if (verbose)
@@ -787,7 +802,9 @@ try {
       if (!ok && !unpainted) {
         // Still pictures that match may be a question about motion: read what
         // each option declares, with motion allowed.
-        await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_MOVING });
+        await send(ws, "Emulation.setEmulatedMedia", {
+          features: MEDIA_MOVING,
+        });
         await go(ws, url);
         await evaluate(ws, PAGE_LIB);
         const motions = [];
@@ -795,15 +812,22 @@ try {
           const id = await evaluate(ws, `window.__labDemo.show(${i})`);
           await stageShot(ws, id);
           motions.push(
-            await evaluate(ws, `window.__labDemo.motion(${JSON.stringify(id)})`),
+            await evaluate(
+              ws,
+              `window.__labDemo.motion(${JSON.stringify(id)})`,
+            ),
           );
         }
         await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
         if (new Set(motions).size > 1) {
           ok = true;
-          how = "the options differ in motion only (the animations the stage declares)";
+          how =
+            "the options differ in motion only (the animations the stage declares)";
         }
-        if (verbose) motions.forEach((m, i) => console.log(`  ${step}: motion ${i}: ${m}`));
+        if (verbose)
+          motions.forEach((m, i) =>
+            console.log(`  ${step}: motion ${i}: ${m}`),
+          );
       }
       const broken = layout.length > 0;
       // UNPAINTED is not a failure: the board may be perfect and this renderer
@@ -816,7 +840,13 @@ try {
         geo,
         layout,
         unpainted,
-        verdict: broken ? first : unpainted ? "UNPAINTED" : ok ? "ok" : "FROZEN",
+        verdict: broken
+          ? first
+          : unpainted
+            ? "UNPAINTED"
+            : ok
+              ? "ok"
+              : "FROZEN",
         note: unpainted
           ? `${shots.length} options, every capture one flat colour: this browser did not paint the stage (a composited layer), so judge it by eye`
           : `${shots.length} options, ${how}${
@@ -825,7 +855,6 @@ try {
                 : ""
             }`,
       });
-  
     } catch (error) {
       // A stalled call or a dead page: record it, drop the rest of this
       // board, put the tab somewhere harmless, and walk on.
@@ -845,7 +874,7 @@ try {
         // The page is gone; the next board's navigate will say so.
       }
     }
-}
+  }
   ws.close();
 } finally {
   chrome.kill("SIGKILL");

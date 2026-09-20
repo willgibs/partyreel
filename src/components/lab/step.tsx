@@ -35,7 +35,12 @@ import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 import type { BoardState, Control } from "./board-spec";
 import { ControlKnobs } from "./board-state";
 import { CatalogTiles } from "./catalog";
-import { type LabFit, type LabSidebar, setLabPref, useLabPrefs } from "./lab-prefs";
+import {
+  type LabFit,
+  type LabSidebar,
+  setLabPref,
+  useLabPrefs,
+} from "./lab-prefs";
 import { useDesignKey } from "./walk";
 
 /**
@@ -639,9 +644,7 @@ function Spine({
         <span
           className="block h-px bg-foreground transition-[width] duration-200 ease-out motion-reduce:transition-none"
           style={{
-            width: blocked
-              ? 0
-              : `${Math.round((n / Math.max(of, 1)) * 100)}%`,
+            width: blocked ? 0 : `${Math.round((n / Math.max(of, 1)) * 100)}%`,
           }}
         />
       </span>
@@ -661,7 +664,7 @@ function Head({ step }: { step: SessionStep }) {
   const aside = step.kind === "ask" && Boolean(step.lands || step.look);
   return (
     <header className="lab-step-head" data-aside={aside ? "" : undefined}>
-      <div className="min-w-0 max-w-3xl">
+      <div className="max-w-3xl min-w-0">
         <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
           {step.kind === "items" ? headingFor(step) : step.question}
         </h1>
@@ -769,7 +772,10 @@ function AskBody({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {strip && <ConfigStrip step={step} board={board} />}
           {tools && (
-            <span data-lab-board-tools="" className="flex flex-wrap items-center gap-1.5">
+            <span
+              data-lab-board-tools=""
+              className="flex flex-wrap items-center gap-1.5"
+            >
               {tools}
             </span>
           )}
@@ -858,7 +864,9 @@ function StageViews({
     room !== null &&
     !room.phone &&
     room.width >= options.length * PHONE_W + (options.length - 1) * SIDE_GAP;
-  const mode: Arrange = room?.phone ? "flip" : (arrange ?? (fits ? "side" : "flip"));
+  const mode: Arrange = room?.phone
+    ? "flip"
+    : (arrange ?? (fits ? "side" : "flip"));
   // `g` swaps at any width but a phone's; the button is offered only where
   // side by side draws every option at its true size, or to leave it.
   const canSide = !room?.phone;
@@ -1072,7 +1080,10 @@ function StageHead({
         {/* The board's own cluster, on the one bar that stays on screen while
             the stage scrolls. A board that declares none adds nothing. */}
         {board.tools && (
-          <span data-lab-board-tools="" className="flex flex-wrap items-center gap-1.5">
+          <span
+            data-lab-board-tools=""
+            className="flex flex-wrap items-center gap-1.5"
+          >
             {board.tools}
           </span>
         )}
@@ -1417,11 +1428,7 @@ function Dock({
   return (
     <div data-lab-dock="" className="lab-dock">
       {step.kind === "ask" && pictured.length > 0 && (
-        <div
-          className="lab-dock-options"
-          role="group"
-          aria-label="The options"
-        >
+        <div className="lab-dock-options" role="group" aria-label="The options">
           {pictured.map((option) => {
             const i = step.options.indexOf(option);
             const on = shown === option.id;
@@ -1526,29 +1533,29 @@ function Dock({
       <div className="lab-dock-way">
         <Way dir="back" onGo={back} />
         {live && (
-            <button
-              type="button"
-              data-dir-press
-              data-lab-pick=""
-              aria-pressed={picked}
-              onClick={() => onChoose(live.id)}
-              className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
-                picked
-                  ? "border border-border text-muted-foreground hover:text-foreground"
-                  : "border border-transparent bg-foreground text-background hover:opacity-90",
-              )}
-            >
-              {picked ? (
-                <>
-                  <Check className="size-3" aria-hidden />
-                  Picked
-                </>
-              ) : (
-                `Pick ${step.kind === "ask" ? step.options.indexOf(live) + 1 : 1}`
-              )}
-            </button>
-          )}
+          <button
+            type="button"
+            data-dir-press
+            data-lab-pick=""
+            aria-pressed={picked}
+            onClick={() => onChoose(live.id)}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 motion-reduce:transition-none",
+              picked
+                ? "border border-border text-muted-foreground hover:text-foreground"
+                : "border border-transparent bg-foreground text-background hover:opacity-90",
+            )}
+          >
+            {picked ? (
+              <>
+                <Check className="size-3" aria-hidden />
+                Picked
+              </>
+            ) : (
+              `Pick ${step.kind === "ask" ? step.options.indexOf(live) + 1 : 1}`
+            )}
+          </button>
+        )}
         <Way dir="next" onGo={next} filled={filled} />
       </div>
     </div>

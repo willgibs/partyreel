@@ -156,10 +156,7 @@ export function markSent(keys: readonly string[], build?: string | null): void {
 }
 
 /** What the store knows about an entry's last paste, if it went in one. */
-export function sentOf(
-  store: ReviewStore,
-  key: string,
-): Sent | undefined {
+export function sentOf(store: ReviewStore, key: string): Sent | undefined {
   return store.sent?.[key];
 }
 

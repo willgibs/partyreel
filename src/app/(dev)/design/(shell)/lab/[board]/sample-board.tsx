@@ -92,9 +92,7 @@ function Room() {
       <table className="w-full border-collapse text-left text-[11px]">
         <tbody>
           <tr>
-            <th className="border-b border-border py-1 font-medium">
-              A table
-            </th>
+            <th className="border-b border-border py-1 font-medium">A table</th>
             <td className="border-b border-border py-1">
               These cells wear the room&apos;s colour in standards mode, and the
               browser&apos;s black in quirks.

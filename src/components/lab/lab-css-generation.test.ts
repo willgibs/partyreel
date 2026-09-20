@@ -14,9 +14,7 @@ const css = () => readFileSync(join(process.cwd(), DESIGN_CSS), "utf8");
 
 describe("the lab stylesheet's generation", () => {
   it("is the same number in design.css and in the chrome", () => {
-    const m = /\.lab-shell\s*\{[^}]*--lab-css-generation:\s*(\d+)/.exec(
-      css(),
-    );
+    const m = /\.lab-shell\s*\{[^}]*--lab-css-generation:\s*(\d+)/.exec(css());
     expect(
       m,
       "design.css declares --lab-css-generation on .lab-shell",

@@ -690,7 +690,8 @@ export function buildDrift(text, root) {
   if (!build) return null;
   const head = treeHead(root);
   if (!head) return `composed on build ${build}`;
-  if (head.startsWith(build)) return `composed on build ${build}, the tree's own`;
+  if (head.startsWith(build))
+    return `composed on build ${build}, the tree's own`;
   let behind = null;
   try {
     behind = execFileSync(
@@ -795,7 +796,12 @@ function refuseDuplicates(rows, key, what, push) {
  * injected so the reader stays testable and so a caller that does not care
  * (nothing today) gets the strict reading it always had.
  */
-export function validate(entries, specs, library = null, ledgerOf = () => null) {
+export function validate(
+  entries,
+  specs,
+  library = null,
+  ledgerOf = () => null,
+) {
   const errors = [];
   const at = (line, column, message) =>
     errors.push(new ReviewError(message, { line, column }));

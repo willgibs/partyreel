@@ -167,10 +167,14 @@ describe("the review store's writers", () => {
       [itemHoldId("light", 5, "ember"), boardNoteHoldId("light")],
       "abc1234",
     );
-    expect(getReviewStore().sent[itemHoldId("light", 5, "ember")]).toBeDefined();
+    expect(
+      getReviewStore().sent[itemHoldId("light", 5, "ember")],
+    ).toBeDefined();
     expect(getReviewStore().sent[boardNoteHoldId("light")]).toBeDefined();
     setBoardNote("light", "on reflection, no");
     expect(getReviewStore().sent[boardNoteHoldId("light")]).toBeUndefined();
-    expect(getReviewStore().sent[itemHoldId("light", 5, "ember")]).toBeDefined();
+    expect(
+      getReviewStore().sent[itemHoldId("light", 5, "ember")],
+    ).toBeDefined();
   });
 });

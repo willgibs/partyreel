@@ -60,7 +60,9 @@ export function CopySoFar({
   const everything = all.answers + all.items + all.notes;
   if (everything === 0) return null;
   const parts = [
-    fresh.answers ? `${fresh.answers} answer${fresh.answers === 1 ? "" : "s"}` : "",
+    fresh.answers
+      ? `${fresh.answers} answer${fresh.answers === 1 ? "" : "s"}`
+      : "",
     fresh.items ? `${fresh.items} verdict${fresh.items === 1 ? "" : "s"}` : "",
     fresh.notes ? `${fresh.notes} note${fresh.notes === 1 ? "" : "s"}` : "",
   ].filter(Boolean);
@@ -83,7 +85,9 @@ export function CopySoFar({
       {everything > held && (
         <CopyButton
           text={all.message}
-          label={held > 0 ? "Copy everything" : `Copy everything (${everything})`}
+          label={
+            held > 0 ? "Copy everything" : `Copy everything (${everything})`
+          }
           done="Copied: paste it in chat"
           onCopy={() => markSent(all.included, build)}
           className={cn(

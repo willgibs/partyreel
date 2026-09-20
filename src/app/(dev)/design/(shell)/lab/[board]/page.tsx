@@ -133,42 +133,42 @@ export default async function BoardPage({
             cannot survive a record card, a badge row and a meta table above it:
             the spine says which board this is and links the whole thing. */}
         {review ? null : (
-        <PageHeader
-          title={ruling.title}
-          // A board on the template answers in its own first block (the kit's
-          // Answer: the question, the verdict, the asks as pills), so the
-          // header must not say it first: two statements of the same question,
-          // one above the other, is the density the template exists to end.
-          description={spec ? undefined : `${board.note}.`}
-          badges={
-            <>
-              <Tag>{SURFACE_LABEL[ruling.surface]}</Tag>
-              {ruling.shipped ? (
-                <Tag badge="shipped">Shipped: {ruling.shipped}</Tag>
-              ) : (
-                <Tag badge="exploring" />
-              )}
-              {entry.legacy && <Tag badge="legacy">legacy layout</Tag>}
-            </>
-          }
-          meta={[
-            ["Ruled", ruling.ruled],
-            [
-              "Track",
-              <span key="tracks" className="inline-flex flex-wrap gap-x-2">
-                {(board.tracks ?? [ruling.id]).map((t) =>
-                  tracks.has(t) ? (
-                    <Ref key={t} to={{ kind: "track", name: t }} quiet>
-                      {t}
-                    </Ref>
-                  ) : (
-                    <span key={t}>no manifest (a standing board)</span>
-                  ),
+          <PageHeader
+            title={ruling.title}
+            // A board on the template answers in its own first block (the kit's
+            // Answer: the question, the verdict, the asks as pills), so the
+            // header must not say it first: two statements of the same question,
+            // one above the other, is the density the template exists to end.
+            description={spec ? undefined : `${board.note}.`}
+            badges={
+              <>
+                <Tag>{SURFACE_LABEL[ruling.surface]}</Tag>
+                {ruling.shipped ? (
+                  <Tag badge="shipped">Shipped: {ruling.shipped}</Tag>
+                ) : (
+                  <Tag badge="exploring" />
                 )}
-              </span>,
-            ],
-          ]}
-        />
+                {entry.legacy && <Tag badge="legacy">legacy layout</Tag>}
+              </>
+            }
+            meta={[
+              ["Ruled", ruling.ruled],
+              [
+                "Track",
+                <span key="tracks" className="inline-flex flex-wrap gap-x-2">
+                  {(board.tracks ?? [ruling.id]).map((t) =>
+                    tracks.has(t) ? (
+                      <Ref key={t} to={{ kind: "track", name: t }} quiet>
+                        {t}
+                      </Ref>
+                    ) : (
+                      <span key={t}>no manifest (a standing board)</span>
+                    ),
+                  )}
+                </span>,
+              ],
+            ]}
+          />
         )}
         {!review && !spec && (
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">

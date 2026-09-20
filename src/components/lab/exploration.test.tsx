@@ -37,7 +37,10 @@ const ask = (over: Partial<Decision> & Pick<Decision, "id">): Decision => ({
   ...over,
 });
 
-const board = (asks: Decision[], carried?: Parameters<typeof defineExploration>[0]["carried"]) =>
+const board = (
+  asks: Decision[],
+  carried?: Parameters<typeof defineExploration>[0]["carried"],
+) =>
   defineExploration({
     id: "fixture",
     title: "A fixture exploration",
@@ -126,10 +129,10 @@ describe("the calls a lane carried", () => {
     render(<CarriedCalls calls={CALLS} />);
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getByText(CALLS[0].question)).toBeInTheDocument();
     expect(
-      within(rows[0]).getByText(CALLS[0].question),
+      within(rows[0]).getByText(/It refuses, and says why/),
     ).toBeInTheDocument();
-    expect(within(rows[0]).getByText(/It refuses, and says why/)).toBeInTheDocument();
     expect(
       within(rows[1]).getByText(/it changes how every standing board draws/),
     ).toBeInTheDocument();

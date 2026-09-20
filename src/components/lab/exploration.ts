@@ -79,7 +79,11 @@ export type Decision = {
   /** What the thing is and where it lives, for someone who has not read anything. */
   readonly context: string;
   /** Two or more. Each one is drawn; there is no shape here where it is not. */
-  readonly options: readonly [DecisionOption, DecisionOption, ...DecisionOption[]];
+  readonly options: readonly [
+    DecisionOption,
+    DecisionOption,
+    ...DecisionOption[],
+  ];
   /** The id of one of `options`. */
   readonly recommended: string;
   /**
@@ -130,7 +134,11 @@ export type Decision = {
 export type ExplorationInput = {
   readonly id: string;
   readonly title: string;
-  readonly round: { readonly n: number; readonly date: string; readonly changed: string };
+  readonly round: {
+    readonly n: number;
+    readonly date: string;
+    readonly changed: string;
+  };
   readonly history?: BoardSpec["history"];
   /** How the exploration got here, if it needs saying at all. */
   readonly context?: string;
