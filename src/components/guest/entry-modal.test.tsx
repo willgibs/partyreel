@@ -125,11 +125,10 @@ describe("flow wiring", () => {
     expect(screen.queryByText(/You(’|')re invited/)).toBeNull();
   });
 
-  it("owner and demo never see the surface", () => {
+  it("the owner never sees the surface, gate or no", () => {
     renderModal({ gateSteps: ["password"], isOwner: true });
     expect(screen.queryByText(/invited/)).toBeNull();
-    renderModal({ gateSteps: ["password"], isDemo: true });
-    expect(screen.queryByText(/invited/)).toBeNull();
+    expect(screen.queryByText(/A live demo/)).toBeNull();
   });
 
   it("a public event's welcome dismisses to the album (no gate behind)", () => {
@@ -140,6 +139,50 @@ describe("flow wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: "View the album" }));
     expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
     expect(screen.queryByText(/invited/)).toBeNull();
+  });
+});
+
+// `arrival=role` (docs/design/rulings.md, the sixth batch, 2026-09-20): the
+// demo is no longer the one visitor entry-steps.ts skips. It is a guest like
+// any other (gateSteps is always [] for it in production — resolveGalleryAccess
+// resolves `full` — so this is the true production shape, not a stand-in).
+describe("the demo's own arrival (arrival=role)", () => {
+  it("sees a surface of its own, never the guest's invitation copy", () => {
+    renderModal({ gateSteps: [], isDemo: true, eventName: "Nora & Sam's Wedding" });
+    expect(
+      screen.getByText("You’re a guest at Nora & Sam's Wedding"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/You(’|')re invited to/)).toBeNull();
+  });
+
+  it("names the host in its own words when one is set", () => {
+    renderModal({ gateSteps: [], isDemo: true, hostName: "Nora" });
+    expect(screen.getByText(/exactly as Nora’s guests see it/)).toBeInTheDocument();
+  });
+
+  it("degrades to a hostless line when the event has no host name", () => {
+    renderModal({ gateSteps: [], isDemo: true, hostName: null });
+    expect(
+      screen.getByText(/exactly as the host’s guests see it/),
+    ).toBeInTheDocument();
+  });
+
+  it('"Look around" dismisses it to the album, exactly like a real welcome', () => {
+    renderModal({ gateSteps: [], isDemo: true });
+    fireEvent.click(screen.getByRole("button", { name: "Look around" }));
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBe("1");
+    expect(screen.queryByText(/A live demo/)).toBeNull();
+  });
+
+  it('offers "Start your own" as a real link out, never a dead end', () => {
+    renderModal({ gateSteps: [], isDemo: true });
+    const link = screen.getByRole("link", { name: "Start your own" });
+    expect(link).toHaveAttribute("href", "/");
+  });
+
+  it("never shows the legal consent line (looking around agrees to nothing)", () => {
+    renderModal({ gateSteps: [], isDemo: true });
+    expect(screen.queryByText(/Terms/)).toBeNull();
   });
 });
 

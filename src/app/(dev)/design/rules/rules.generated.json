@@ -2534,6 +2534,41 @@
       ]
     },
     {
+      "id": "guest-header",
+      "file": "src/components/guest/guest-header.tsx",
+      "names": [
+        "GuestHeader"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "never appears for a real event",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 29
+        },
+        {
+          "title": "appears beside the wordmark for the demo",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 34
+        },
+        {
+          "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 39
+        }
+      ]
+    },
+    {
       "id": "apply",
       "file": "src/components/lab/apply.tsx",
       "names": [

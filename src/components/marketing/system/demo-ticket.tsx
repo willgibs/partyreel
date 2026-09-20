@@ -11,13 +11,24 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
 /**
- * THE DEMO TICKET (Will's checkpoint ask; PROMOTED to system/ in the expansion round: the hero AND the Features mega-panel both render it): points at the REAL demo
- * event with both a scannable QR and a clickable route, folded into one small
+ * THE DEMO TICKET — RETIRED (`doors=pile`, docs/design/rulings.md the sixth
+ * batch, 2026-09-20: "I'd be curious to see better designs of this... labeling
+ * the QR [this ticket] doesn't look very polished in the otherwise text-free
+ * visuals"; his verdict makes the footer's photo pile the rule for every demo
+ * door and "the nav's ticket goes"). The Features mega-panel that drew it
+ * (`chrome/mega-panel.tsx`) no longer does; nothing in the shipped site
+ * imports this component now. Left on disk, unchanged, ONLY for the Library's
+ * own specimen (`(dev)/design/(shell)/library/marketing/gallery-demos.tsx`) —
+ * a wiring lane never deletes a module the lab still imports. Do not wire
+ * this back in; if a future round wants a demo door in the nav again, it
+ * should wear the pile (`marketing-footer.tsx`'s `FooterDemo`), not this.
+ *
+ * What it was, for the specimen reading it: points at the REAL demo event
+ * with both a scannable QR and a clickable route, folded into one small
  * glass artifact so the CTA stack stays calm. Desktop: scan with a phone OR
  * tap; mobile: the QR reads as the product's core symbol (scannability is a
  * bonus, the tap is the path) — same component, one size, per his "design
- * item" note. It REPLACES the hero's text-only DemoCtaLink (net addition is
- * the QR itself); DemoCtaLink stays everywhere else.
+ * item" note.
  *
  * The QR is ink-on-white on a real white plate (scanners need contrast + a
  * quiet zone; the ConferenceBadge/LiveQr precedent) at 92px — roughly 3px per

@@ -220,6 +220,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the twelve photographs the QR door pours, in launch order with their crops: the slot a generated set lands in, never the pictures",
   },
 
+  // demo-wiring (2026-09-20): its own new contract (the Demo mark) pulled the
+  // real guest header into the index for the first time.
+  "src/components/guest/guest-header.tsx": {
+    for: "the guest event page's one header: the wordmark, an auth-aware CTA/account-menu swap, and (`isDemo`) the Demo mark that pins it to the top of the screen for the whole visit",
+  },
+
   /* the two session-less failure chromes (errors-wiring, 2026-09-19): outside
      the library's directories, here because the failure contract names them. */
   "src/components/guest/guest-bar.tsx": {
@@ -363,7 +369,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
   },
   "src/components/marketing/system/demo-ticket.tsx": {
-    for: "the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel",
+    for: "RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone",
   },
   "src/components/marketing/system/eyebrow.tsx": {
     for: "the section eyebrow atom: Inter, uppercase, tracked",

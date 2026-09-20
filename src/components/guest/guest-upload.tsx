@@ -2,10 +2,13 @@
 
 import { useEffect, useImperativeHandle, useRef } from "react";
 import type { Ref } from "react";
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
+import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
   useUploadQueue,
@@ -139,6 +142,37 @@ export function GuestUpload({
           }
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * `try=turn` (Will, the sixth batch, 2026-09-20): "The same upload, then one
+ * card... that is what your guests would see, and here is how you get one."
+ * The sentence the demo's simulated upload used to end without — the demo's
+ * ONE piece of proof, and the moment a visitor is likeliest to become a host,
+ * for the cost of one card. Rendered by event-experience.tsx directly above
+ * the album's first tile (the photograph the visitor just added, the album
+ * being newest-first), never here in the upload panel's own column: see its
+ * own comment for why the position is the point.
+ */
+export function TurnCard() {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <Sparkles className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        <div>
+          <p className="text-reading font-medium">
+            That is what your guests would see.
+          </p>
+          <p className="mt-0.5 text-working text-muted-foreground">
+            On your own event it would be in the album for good.
+          </p>
+        </div>
+      </div>
+      <Button className="shrink-0" asChild>
+        <Link href="/">Start your own</Link>
+      </Button>
     </div>
   );
 }

@@ -11,7 +11,7 @@ describe("gateStepsForAccess", () => {
 });
 
 describe("computeEntry", () => {
-  const base = { isOwner: false, isDemo: false };
+  const base = { isOwner: false };
 
   it("public, first visit -> [welcome] + auto-open", () => {
     expect(
@@ -55,19 +55,24 @@ describe("computeEntry", () => {
         gateSteps: ["account"],
         welcomeSeen: false,
         isOwner: true,
-        isDemo: false,
       }),
     ).toEqual({ steps: [], autoOpen: false });
   });
 
-  it("demo -> []", () => {
-    expect(
-      computeEntry({
-        gateSteps: [],
-        welcomeSeen: false,
-        isOwner: false,
-        isDemo: true,
-      }),
-    ).toEqual({ steps: [], autoOpen: false });
+  // The demo carries no `isDemo` flag here at all (`arrival=role`, the sixth
+  // batch, 2026-09-20): it always resolves `full` access, so `gateSteps` is
+  // already `[]` from `gateStepsForAccess`, and it falls through the SAME
+  // welcome-then-nothing path as any public event with no gate. The copy
+  // swap (a role, not an invitation) is entry-modal.tsx's own `isDemo` read.
+  it("demo (full access, so no gateSteps), first visit -> [welcome] + auto-open", () => {
+    expect(computeEntry({ ...base, gateSteps: [], welcomeSeen: false })).toEqual(
+      { steps: ["welcome"], autoOpen: true },
+    );
+  });
+
+  it("demo, return visit -> [] closed (the role screen stays seen, like a welcome)", () => {
+    expect(computeEntry({ ...base, gateSteps: [], welcomeSeen: true })).toEqual(
+      { steps: [], autoOpen: false },
+    );
   });
 });
