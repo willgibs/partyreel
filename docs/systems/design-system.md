@@ -609,10 +609,14 @@ Six ways the ladder fails SILENTLY, all held by
   or 16 or on a declared step name; an uppercase label passes only with no tracking or `tracking-[0.08em]`.
   An arbitrary size is the silent half twice over: it also carries no leading, so `text-[15px]` inherited
   the preflight's 1.5 and computed at 22.5. The body scan found 213 and the sweep took 112 of them.
-  ★ It is an ALLOW-LIST THAT ONLY SHRINKS, not a hard fail, while other lanes are open: each survivor is
-  named, counted and reasoned (`depicted`, `relative`, `lane`, `pending`, `board`), a `pending` entry goes
-  red when its element is rebuilt (delete the entry, never widen it), and the flip to a hard fail is one
-  line once the list is empty. ★ Neither scan sees a class string that never reaches a JSX attribute: a
+  ★ It shipped as an ALLOW-LIST THAT ONLY SHRINKS, not a hard fail, while other lanes were open: each
+  survivor named, counted and reasoned (`depicted`, `relative`, `lane`, `pending`, `board`). `type-sync`
+  (2026-09-20) closed the two boundary kinds: every `lane` entry (another manifest's file, the night the
+  ladder landed) and `pending` entry (an app-shape lane mid-rebuild) moved onto its step, and
+  `BodyException.kind` dropped both names, so one coming back fails typecheck rather than review.
+  `depicted`, `relative` and `board` remain: a picture, an `em` and a board still on the desk are
+  structural, not a boundary in time, so they stay named, counted and reasoned rather than emptied on a
+  deadline. ★ Neither scan sees a class string that never reaches a JSX attribute: a
   size inside a `cva` table or a const map is invisible, which is why Button's four sizes are a round
   (`buttons-pairs`) and not a lint.
 
