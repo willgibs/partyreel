@@ -156,13 +156,30 @@ const px = (n: number) =>
  * reason `type-ladder-policy.test.ts`'s scan and round one's `Measured` both
  * insist on the computed value rather than the class name: a className is
  * what was WRITTEN, this is what RENDERS).
+ *
+ * ★ `token` MUST CHANGE ACROSS A SWAP, EVEN THOUGH `probes` NEVER DOES. On the
+ * plain board page (never the stepped review, which mounts every option in
+ * its own keyed div) switching `pairs` from one option to another re-renders
+ * this SAME mounted tree with new classes rather than remounting it: React
+ * keys on type and position, and `BoardSection` hands the evidence back as a
+ * single unkeyed child. `PAIR_PROBES` is a module constant, so `[probes]`
+ * alone never re-fires this effect on that swap, and since the three options
+ * share one box height by construction (the file head's note), the
+ * ResizeObserver never fires either: the caption froze on whichever option
+ * was live in the first 1.5s after mount. `token` (the frame's own id, unique
+ * per pairing and width) forces the effect to tear down and re-run `read()`
+ * the moment either one changes.
  */
 function MeasuredButtons({
   probes,
+  token,
   onMeasure,
   children,
 }: {
   probes: readonly ButtonProbe[];
+  /** Changes whenever the drawn content does, even when `probes` itself is a
+   *  stable reference (see the WHY above). */
+  token: string;
   onMeasure: (text: string) => void;
   children: ReactNode;
 }) {
@@ -207,7 +224,9 @@ function MeasuredButtons({
       timers.forEach((t) => win.clearTimeout(t));
       ro.disconnect();
     };
-  }, [probes]);
+    // `token` is read for its CHANGES only, never inside `read()` itself: see
+    // the WHY above the component.
+  }, [probes, token]);
 
   return <div ref={ref}>{children}</div>;
 }
@@ -259,16 +278,19 @@ function PairFrame({
   const { w, h: full } = WIDTHS[width];
   const h = Math.min(full, 620);
   const [caption, setCaption] = useState("measuring");
+  // Unique per pairing AND width, so it doubles as MeasuredButtons' change
+  // token: the one thing guaranteed to differ whenever the drawn content does.
+  const frameId = `${id}-${width}`;
   return (
     <Fit w={w}>
       <Frame
-        id={`${id}-${width}`}
+        id={frameId}
         w={w}
         h={h}
         title={`${title}, ${WIDTHS[width].name}`}
         caption={caption}
       >
-        <MeasuredButtons probes={probes} onMeasure={setCaption}>
+        <MeasuredButtons probes={probes} token={frameId} onMeasure={setCaption}>
           {children}
         </MeasuredButtons>
       </Frame>
