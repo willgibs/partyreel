@@ -47,3 +47,8 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   returns byte-identical captures for options that differ only inside stacked `srcdoc` iframes (`toasts.material`,
   `toasts.action`, after glass's backdrop-filter), so those steps read FROZEN while drawing correctly; a red demo step
   that the Handoff names and proves by hand is not a bar, and one it does not is.
+
+- `record.py <record.json>` (2026-09-20): one lane's record applied to the four record docs through one door: the CHANGELOG bullet
+  before the first entry's Next, STATUS rows through `status-row.py`, an orchestrator row replaced by id or added before the queue
+  row, ROADMAP lines at the head of Now and old lines retired by substring (exactly one match each); then the caps printed (the
+  entry at 160, STATUS at 120, a warning past 150 to open a new entry at the next record). Retire runs before add in one call.
