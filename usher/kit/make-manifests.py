@@ -188,6 +188,25 @@ READS.update({"avatar-mesh-wiring":['src/components/ui/avatar.tsx', 'src/compone
 BOARD.update({"avatar-mesh-wiring":"seed-avatar     # wired by this lane; the board retires unless his verdicts keep it open","buttons-wiring":"body-type       # wired by this lane; the board retires unless his verdicts keep it open","pricing-split-wiring":"pricing-page    # wired by this lane; the board retires unless his verdicts keep it open","demo-frame-wiring":"demo-event      # wired by this lane; the board retires unless his verdicts keep it open","home-states-wiring":"app-shape       # wired by this lane; the board retires unless his verdicts keep it open","guest-chrome-wiring":"guest-shape     # wired by this lane; the board retires unless his verdicts keep it open","welcome-film-wiring":"app-door        # wired by this lane; the board retires unless his verdicts keep it open","controls-home-wiring":"app-vocabulary  # wired by this lane; the board retires unless his verdicts keep it open"})
 LANE_SECTION.update({"avatar-mesh-wiring":r"Lane 38: `avatar-mesh-wiring`","buttons-wiring":r"Lane 39: `buttons-wiring`","pricing-split-wiring":r"Lane 40: `pricing-split-wiring`","demo-frame-wiring":r"Lane 41: `demo-frame-wiring`","home-states-wiring":r"Lane 42: `home-states-wiring`","guest-chrome-wiring":r"Lane 43: `guest-chrome-wiring`","welcome-film-wiring":r"Lane 44: `welcome-film-wiring`","controls-home-wiring":r"Lane 45: `controls-home-wiring`"})
 
+# the closing sitting's first batch (2026-09-20 18:20 EDT): the verdicts' deltas on the drafted owns, and two new lanes
+QUEUE.update({"overtaken-3","guest-verify-r2"})
+OWNS.update({
+"guest-chrome-wiring":["src/components/guest/","src/components/shared/masonry.tsx","src/components/shared/masonry.test.tsx","src/components/shared/floating-add-button.tsx","src/app/(dev)/design/sandbox/guest-shape/","docs/systems/guest-flow.md"],
+"controls-home-wiring":["src/components/app/event-feed/event-gallery.tsx","src/components/shared/tile-size-control.tsx","src/components/shared/view-menu.tsx","src/lib/shared/use-tile-size.ts","src/lib/shared/tile-size-cookie.ts","src/app/(dev)/design/sandbox/app-vocabulary/"],
+"home-states-wiring":["src/components/app/dashboard/","src/app/(app)/dashboard/page.tsx","src/lib/dashboard/","src/app/(dev)/design/sandbox/app-shape/","docs/systems/host-app.md"],
+"overtaken-3":["src/app/(dev)/design/sandbox/overtaken.ts","src/app/(dev)/design/sandbox/overtaken.test.ts"],
+"guest-verify-r2":["src/app/(dev)/design/sandbox/guest-verify/"],
+})
+READS.update({
+"guest-chrome-wiring":["src/lib/guest/","src/app/api/guests/mine/route.ts","src/components/ui/sheet.tsx","src/components/ui/dialog.tsx","src/components/app/media-grid.tsx","docs/reviews/guest-shape.json","docs/design/rulings.md"],
+"controls-home-wiring":["src/components/ui/dropdown-menu.tsx","src/components/app/dashboard/events-section.tsx","src/components/app/event-feed/event-cards-row.tsx","src/components/ui/floating-layer.ts","docs/reviews/app-vocabulary.json","docs/design/rulings.md"],
+"home-states-wiring":["docs/reviews/app-shape.json","docs/design/rulings.md"],
+"overtaken-3":["docs/design/rulings.md","docs/reviews/","src/app/(dev)/design/touchpoints.ts","src/app/(dev)/design/sandbox/registry.ts","src/app/(dev)/design/(shell)/lab/_desk/","src/components/lab/"],
+"guest-verify-r2":["docs/systems/guest-flow.md","docs/systems/auth-accounts.md","docs/systems/database-security.md","docs/systems/billing-caps.md","src/lib/constants/tiers.ts","supabase/migrations/","src/components/auth/account-door.tsx","src/components/auth/email-sign-in.tsx","src/lib/auth/door-failure.ts","src/lib/auth/remembered-email.ts","src/components/guest/enter-event-prompt.tsx","src/components/guest/entry-modal.tsx","src/components/guest/save-account-prompt.tsx","src/lib/guest/","src/lib/media/uploader-identity.ts","src/components/social/guest-list.tsx","src/components/shared/media-lightbox.tsx","docs/reviews/guest-verify.json","docs/design/rulings.md"],
+})
+BOARD.update({"overtaken-3":"none            # lab infrastructure: the judgment lines for the closing sitting's first batch; no board of its own","guest-verify-r2":"guest-verify    # round two on the same board id: the identity shape whole; round one's four rulings held"})
+LANE_SECTION.update({"overtaken-3":r"Lane 46: `overtaken-3`","guest-verify-r2":r"Lane 47: `guest-verify` round two"})
+
 SIXTH={"glass-wiring","guest-wiring","door-wiring","admin-wiring","vocab-wiring","avatar-wiring"}
 OWNS.update({
 "pricing-wiring":["src/app/(marketing)/(cinema)/pricing/","src/components/marketing/sections/pricing/","docs/systems/marketing-content.md"],
