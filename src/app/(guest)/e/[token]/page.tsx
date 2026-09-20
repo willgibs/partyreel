@@ -18,7 +18,7 @@ import { recordLinkHit } from "@/lib/db/mutations/analytics";
 import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
-  getHostAvatarUrl,
+  getHostAvatarSeed,
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
@@ -114,6 +114,10 @@ export default async function GuestEventPage({
   // Missing / deleted resolves to not_found — a 404 (don't leak existence).
   if (!result.ok) notFound();
   const event = result.data;
+  // Hoisted above the private-event return (Phase 4.5 read it further down,
+  // after the auth block below): a pure check of the qr_token alone, and
+  // GuestHeader now wants it on EVERY branch (the Demo mark, `framing=tag`).
+  const isDemo = isDemoToken(event.qr_token);
 
   // Record-on-view: count this QR/join-link visit (aggregate, no PII). Bot-filtered
   // at ingest and deferred via after() so it never blocks the guest. Success path
@@ -142,7 +146,7 @@ export default async function GuestEventPage({
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={event.qr_token} eventId={event.id} />
+        <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
           <NotFoundScreen
             icon={Lock}
@@ -178,7 +182,6 @@ export default async function GuestEventPage({
   // now run getUser() for EVERY non-private event (not just the accepting-uploads path): the gate must
   // know whether the viewer is signed in. For the anonymous majority it's a cheap local null, and the
   // owner select runs ONLY when signed in. Authorize with getUser(), never getSession().
-  const isDemo = isDemoToken(event.qr_token);
   let isAuthed = false;
   let isOwner = false;
   let userId: string | null = null;
@@ -249,12 +252,16 @@ export default async function GuestEventPage({
         }
       : event;
 
-  // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
-  // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
-  // (Phase 3), so this is a no-op for nameless-host events.
-  const hostAvatarUrl = shellEvent.host_display_name?.trim()
-    ? await getHostAvatarUrl(event.id)
+  // Host avatar + seed for the "Hosted by" byline: a server-side admin read so host_id stays off the
+  // client (only the presigned URL and the one-way hash are passed down — `seedFor`,
+  // docs/design/rulings.md the sixth batch). Gated on a set name, since the byline hides without one
+  // (Phase 3), so this is a no-op for nameless-host events (an event with no set host name has no
+  // byline to colour either).
+  const hostAvatar = shellEvent.host_display_name?.trim()
+    ? await getHostAvatarSeed(event.id)
     : null;
+  const hostAvatarUrl = hostAvatar?.avatarUrl ?? null;
+  const hostSeed = hostAvatar?.seed ?? null;
 
   // The named Guests section (profiles-social.md): ONLY at full access (a teaser viewer
   // hasn't finished the gate; a locked page reveals name + count only), never in
@@ -306,7 +313,7 @@ export default async function GuestEventPage({
           qr_token. Mismatched keys meant sign-out on a slug URL removed a key
           that was never written, leaving the previous guest's upload
           capability live on a shared phone. */}
-      <GuestHeader qrToken={event.qr_token} eventId={event.id} />
+      <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
       <EventExperience
         event={shellEvent}
         qrToken={event.qr_token}
@@ -317,6 +324,7 @@ export default async function GuestEventPage({
         access={access}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
+        hostSeed={hostSeed}
         isOwner={isOwner}
         guestListSlot={guestListSlot}
         guestReel={guestReel}

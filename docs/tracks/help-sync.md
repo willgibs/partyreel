@@ -1,20 +1,24 @@
 ---
-track: album-controls
+track: help-sync
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
-board: app-vocabulary  # round two on the same board id: where the host gallery's controls live
+cut: "2b1369ed"          # the launch-prep SHA the branch was cut from
+board: none            # production follow-up: the help articles the wiring lanes made stale; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/app-vocabulary/
+  - content/help/
+  - src/components/marketing/legal/legal-privacy.tsx
+  - src/components/marketing/legal/legal-terms.tsx
+  - src/lib/content/help.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/app-vocabulary.json
   - docs/design/rulings.md
-  - src/components/app/event-feed/event-gallery.tsx
-  - src/components/shared/tile-size-control.tsx
-  - src/components/app/event-feed/event-cards-row.tsx
-  - src/components/ui/sheet.tsx
+  - docs/systems/guest-flow.md
+  - docs/systems/auth-accounts.md
+  - docs/systems/host-app.md
+  - src/components/auth/
+  - src/components/guest/
+  - src/app/(app)/dashboard/[eventId]/
 ---
 
-# lp/album-controls
+# lp/help-sync
 
 **Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -23,23 +27,29 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- His note on `gallery-controls-home=cluster` (2026-09-20): "We could likely nest this under a parent menu and add
-  additional view configs as well. However, with download, tile size, sort, filter, and select, it looks like it's
-  starting to get crowded, and we may need to rethink where all of these actions live." The cluster is wired by
-  `vocab-wiring` (the tile-size control with reserved Sort and Filter slots beside Download and Select in the hub
-  gallery's header); this round asks the HOME of the five.
-- A `defineExploration` round two on the SAME board id `app-vocabulary` (`round.n: 2`; the ledger exists), ONE decision
-  `controls-home` with four options drawn on the WIRED hub gallery with fixtures at 1440 and 375: `row` the header
-  cluster as wired, honestly crowded; `view-menu` one "View" menu holding tile size, sort and filter, with Download
-  and Select the only verbs in the row; `sheet` a control sheet on the responsive Sheet at 375 and the row at 1440;
-  `pills` the controls riding the sticky pill row that condenses on scroll, nothing in the header. The recommended
-  option named with its `because`; a cost line each (a menu is one component; the sheet reuses the ruled one; the
-  pills change what condenses). The guest album's row is NOT drawn (guest-shape round two's). Round one's ruled asks
-  named as ruled in the RULINGS row's `ruled`, the row's `variants` set to one.
-- Owns `src/app/(dev)/design/sandbox/app-vocabulary/` and the board's own lines in `registry.ts`, `boards.ts`,
-  `touchpoints.ts` (the RULINGS row rewritten for round two) under the registration exception. Reads
-  `event-gallery.tsx`, `tile-size-control.tsx`, `event-cards-row.tsx` (the sticky pills), `ui/sheet.tsx`, the
-  app-vocabulary ledger, rulings.md; never edits them. `lab:smoke` whole; `lab:demo --board app-vocabulary`; the gate.
+- The rule (CLAUDE.md, the memory): help how-tos track shipped reality; only marketing pages present as-if-complete.
+  The wiring lanes of the fifth and sixth batches listed the articles they made stale in their Handoffs; this lane
+  rewrites them against the tree as it is now, reading each surface's code before its article, never inventing a
+  step the product does not have. The list, from the Handoffs: `content/help/save-an-event-and-find-your-uploads.mdx`
+  (a guest can now remove their own upload on the album itself, signed in or not; the dashboard's Uploads tab is no
+  longer the only place), `you-cant-sign-in.mdx` (the code-led /login, the three-button failures, passkeys behind a
+  flag: describe the door as it is, passkeys only if the flag is on), `sign-in-options-and-passwords.mdx` (no Create
+  account link and no password step: the code IS the signup; a password is a quiet link and an account-page setting;
+  its `<UiLabel>Create account</UiLabel>` goes), `the-email-code-didnt-arrive.mdx` (the resend cooldown and the
+  rate-limit wording as shipped in `door-failure.ts`), `display-name-and-profile-photo.mdx` (removing a photo reveals
+  the seeded colour, not a plain initial), `your-event-page-explained.mdx` and any article routing a host to
+  `/settings` (the hub: the cards row, the settings and share sheets, the crumbs; `hub-wiring`'s Handoff),
+  `how-partyreel-works.mdx` (six steps, not five: the `how-it-works` board's finding), and the two legal lines that
+  still say an anonymous uploader asks the host to remove a photograph (`legal-privacy.tsx:515-520`,
+  `legal-terms.tsx:123`: the guest can remove it themselves on the album). Every rewrite keeps the article's slug,
+  frontmatter shape and `<UiLabel>` labels that the label test checks against the tree (`pnpm test` runs it).
+- Owns `content/help/` (the articles named and any other whose how-to the lane finds false against the tree, each
+  named in the Handoff with the surface it read), `src/components/marketing/legal/legal-privacy.tsx` and
+  `legal-terms.tsx` (the two lines only), `src/lib/content/help.ts` only if an article's metadata must change. Reads
+  the wired surfaces (never edits), `docs/systems/guest-flow.md`, `auth-accounts.md`, `host-app.md`, the Handoffs in
+  git (`git show <handoff-sha>:docs/tracks/<track>.md`). The gate; `content-policy`, `no-em-dash-policy` and the
+  help label test green; `lab:smoke` whole.
+- Handoff: every article touched with the surface it now describes; every article read and left alone with why.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

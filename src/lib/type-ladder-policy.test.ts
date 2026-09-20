@@ -374,11 +374,6 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 6,
     why: "voice-wiring owns the footer this round (it is rewriting every line in it)",
   },
-  "src/components/guest/entry-modal.tsx": {
-    kind: "lane",
-    count: 4,
-    why: "voice-wiring owns the entry modal (his gate line); two of the four are button text as well",
-  },
   "src/components/guest/enter-event-prompt.tsx": {
     kind: "lane",
     count: 1,
@@ -462,6 +457,17 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
   "src/components/guest/password-gate.tsx": {
     kind: "board",
     count: 2,
+    why: 'button text, which `body-type` r1 sent to round two: "not a direct selection, more work required" (`buttons-pairs`)',
+  },
+  // demo-wiring (2026-09-20) swept the rest of entry-modal.tsx clean while
+  // wiring `arrival=role` (the eyebrows onto `text-label`, the byline onto
+  // `text-working`): what is left is three primary-CTA buttons sharing one
+  // size the ladder does not host yet (SuccessStep's retry, WelcomeStep's
+  // "Continue"/"View the album", RoleStep's "Look around" — the demo's own
+  // arrival, same sheet, same reason).
+  "src/components/guest/entry-modal.tsx": {
+    kind: "board",
+    count: 3,
     why: 'button text, which `body-type` r1 sent to round two: "not a direct selection, more work required" (`buttons-pairs`)',
   },
 };

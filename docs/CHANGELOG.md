@@ -42,6 +42,48 @@ closes. Every lane here is lab-only unless its bullet says otherwise; nothing si
   of the twelve are bright app panels); `stage`'s three beats on the create, share and fill copy; `one` folding the
   name step's reason into one promise line.
 
+- **`album-controls` merged at `ad967efc`** (2026-09-20, Sonnet; `app-vocabulary` round two): one decision, where the
+  host gallery's five controls live, four options drawn on the real wired Album header with the production leaf
+  components at 1440 and 375: the row as shipped (three wrapped lines at 375), a View menu holding tile size, Sort and
+  Filter beside the two verbs (recommended: his own first instinct, two lines at 375, the same at both widths), the
+  view controls in the responsive Sheet at 375 only, and every control riding the sticky cards row with nothing left
+  in the header (drawn at rest and stuck). Round one's seven asks replaced and named as ruled; five orphaned badges on
+  them retired from the overtaken map with the count corrected. Gate 55 on the merged tree. Look at first: `view-menu`
+  against `row` at 375, side by side.
+
+- **`pricing-fit` merged at `3cf43bde`** (2026-09-20, Sonnet; `pricing-page` round two): `fit`, three options on the wired page at 1440
+  and 375: the wall as today, `split` (Higgsfield's configurator-left and designed-plan-card-right shape, read live
+  from its page and built fresh with Partyreel's own controls, copy and photographs; recommended), `inline` (the whole
+  block gone, drawn as a real contender). `phone`, re-asked with its demo REPAIRED and proven end to end by `lab:demo`
+  (his "I think the demo is broken, so I can't actually see it live"): `stack` as today, `swipe` (recommended; its
+  row reshapes the Pass into a compact card so three peers share one height), `tabs`. Round one's six asks named as
+  ruled. Gate 56 on the merged tree. Calls his: `split`'s execution is the lane's reading of the reference, not a
+  literal match; two Pass shapes on one board, deliberately. One lab finding on the ROADMAP: a fully ruled ask is
+  unreachable by `?session=` even by a direct link.
+
+- **`avatar-look` merged at `539dfa4e`** (2026-09-20, Sonnet; `seed-avatar` round two): one decision, the look, four options measured on
+  the wired avatar at 24, 32, 40 and 80 with the initial, on the guest list, the menu and the profile row: the
+  diagonal as wired; `mesh` (hashvatar's own register reproduced from its SOURCE, one identity hue at four tonal
+  depths diffused and layered, the brief's "several hue stops" corrected; recommended: it clears the letter floor on
+  every one of a thousand seeds, worst 4.69:1, against the wired diagonal's 76 percent, worst 4.13:1); `throw` (two
+  pools of light); `lit-seam` (a lit crease on the diagonal's seam). Every option measured with real compositing math
+  at the exact pixel, a bar stricter than the production contract has held any look to, which surfaces a gap every
+  option shares and the disc's ring mitigates (on the ROADMAP; his call). Round one's seven asks named as ruled. Gate
+  57 on the merged tree. Look at first: the board opens on `mesh` with the measured caption.
+
+- **`demo-wiring` merged at `0521613a`** (2026-09-20, Sonnet; `demo-event` round one wired whole): the demo's own
+  arrival screen on the guest welcome's exact shell (`computeEntry` no longer special-cases the demo, the pin the
+  board's own header flagged); a Demo mark beside the wordmark with the header pinned for the whole visit; a turn
+  card above the album's first tile once an upload lands; "Start your own" beside Invite in the demo's action row
+  and a closing card below the album; the footer's photo pile confirmed as the doors rule and the nav panel's ticket
+  retired (its featured pane empty until `demo-doors` draws the door); the phone pair on one ephemeral Realtime
+  broadcast channel per pairing keyed into the demo's own Invite link (a downscaled JPEG thumbnail over REST, no new
+  table, never the shared gallery channel), proven end to end against the real project with a raw listener; the two
+  "Hosted by" bylines fold onto the seeded Avatar (avatar-wiring's deferred line closed). Gate 58 on the merged tree.
+  Calls his: the demo's two-column row against a real guest's one; the pairing's shape (per-visitor channel, a URL
+  param); `live-demo.tsx` untouched by design. Look at first: the pairing with a real phone (the lane rehearsed the
+  far end with a listener).
+
 **Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
 
 ## 2026-09-20 — The small hours: the sixth batch and its wiring (`806695d1` onward)
