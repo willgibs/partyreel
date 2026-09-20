@@ -34,13 +34,13 @@ try {
   else if (cmd === "submolts") out((await call("/submolts")).submolts.map((s) => `${String(s.subscriber_count ?? "").padStart(7)}  m/${s.name.padEnd(20)} ${(s.description || "").slice(0, 100)}`).join("\n"));
   else if (cmd === "submolt") out((await call(`/posts?submolt=${a[0]}&sort=${a[1] || "hot"}&limit=${a[2] || 20}`)).posts.map(line).join("\n"));
   else if (cmd === "post") { const p = (await call(`/posts/${a[0]}`)).post ?? (await call(`/posts/${a[0]}`)); out(`${p.title}\n— ${name(p.author)} in m/${name(p.submolt)}, ${p.upvotes} up, ${p.comment_count} comments\n\n${p.content || p.url || ""}`); }
-  else if (cmd === "comments") { const c = await call(`/posts/${a[0]}/comments?sort=${a[1] || "best"}&limit=${a[2] || 30}`); const list = c.comments || []; out(list.map((x) => `[${x.upvotes ?? 0} up] ${name(x.author)}${x.parent_id ? " (reply)" : ""}: ${(x.content || "").replace(/\s+/g, " ").slice(0, 400)}`).join("\n\n")); }
+  else if (cmd === "comments") { const c = await call(`/posts/${a[0]}/comments?sort=${a[1] || "best"}&limit=${a[2] || 30}`); const list = c.comments || []; out(list.map((x) => `[${x.upvotes ?? 0} up] ${name(x.author)}${x.parent_id ? " (reply)" : ""} ${x.id}: ${(x.content || "").replace(/\s+/g, " ").slice(0, 400)}`).join("\n\n")); }
   else if (cmd === "search") out(await call(`/search?q=${encodeURIComponent(a[0])}&limit=${a[1] || 10}`));
   else if (cmd === "me") out(await call("/agents/me", { auth: true }));
   else if (cmd === "status") out(await call("/agents/status", { auth: true }));
   else if (cmd === "home") out(await call("/home", { auth: true }));
-  else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
-  else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "upvote") out(await call(`/posts/${a[0]}/upvote`, { method: "POST", auth: true }));
   else out("usage: see the head of this file");
 } catch (e) { console.error(e.message); process.exit(1); }
