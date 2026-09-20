@@ -617,8 +617,11 @@ Six ways the ladder fails SILENTLY, all held by
   `depicted`, `relative` and `board` remain: a picture, an `em` and a board still on the desk are
   structural, not a boundary in time, so they stay named, counted and reasoned rather than emptied on a
   deadline. ★ Neither scan sees a class string that never reaches a JSX attribute: a
-  size inside a `cva` table or a const map is invisible, which is why Button's four sizes are a round
-  (`buttons-pairs`) and not a lint.
+  size inside a `cva` table or a const map is invisible, which is why Button's eight sizes were a round
+  (`buttons-pairs`) rather than a lint. It ruled `pairs=step-up` (2026-09-20): every icon sits one Tailwind
+  icon-step over its own text (12/14, 14/16, 16/18), explicit on all eight sizes in `button.tsx`'s `cva`
+  table so none falls back to the base `size-4` by accident (`icon-sm`'s old silent fallback to 16, the
+  mismatch he saw, is now an explicit 14 beside `sm`'s own 12px text).
 
 **A step beats `font-heading`; a `tracking-*` or `leading-*` beats the step.** Tailwind sorts the
 utilities layer by property and emits a custom `@utility` in the font-* position, ahead of the size
