@@ -1,6 +1,6 @@
 ---
 track: overtaken-2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f7075a73"          # the launch-prep SHA the branch was cut from
 board: none            # lab infrastructure: the judgment lines for the sixth batch's reach; no board of its own
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -208,28 +208,101 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Nothing was asked mid-lane. The calls taken, each the brief's own recommended answer or the honest reading of it:
+
+- **The plan's two reach lists were not in the manifest** ("copied into this manifest" carried the verdict map, not
+  the lists). Taken: derive the reach from scratch rather than guess at the plan. Every open ask on every standing
+  board was dumped from its own spec beside its ledger (110 of them, across twenty boards) and read against the
+  batch's rulings. That is a superset of any starting list, so nothing the plan named can have been missed; what the
+  plan may have named and this lane did not badge is listed below under "dropped".
+- **A board still cannot overtake its own question**, so his three notes that answer an ask on the board he is
+  walking are NOT badges: `guest-shape.yours` (the self-delete rule, already wired by `guest-wiring`),
+  `pricing-page.sheet` (keep the tiles and the table, kill the band) and `app-shape.you` (the profile page and the
+  account page) each read `?` on the desk while his note holds the answer. They are the transcriber's to land, not a
+  lane's: `docs/reviews/` is never ours. `app-shape.you` IS badged, but by `app-door`'s later ruling, not by its own.
+- **The test's blunt rule was replaced by the real one.** It refused any badge on a board that had ever ruled, which
+  held only while the fifth batch's four had every ask answered; six of the sixth batch's eight are still on the desk
+  with round twos coming. It now refuses `note.by === board` and credits any of the eleven ruled boards.
+- **`host-curation.peek` keeps its `concedes:` word** and gains the correction behind it, per the brief ("an ask
+  already badged keeps its first entry"). Worth his eye: the concession primes the dock's "The ruling stands", and
+  the appended clause says the desk half of that question is open again. Same shape on `media-viewer.holds`, which is
+  a `stands:` line and so primes nothing.
+- **`first-event` is left at four badges** although three more of its asks are reached (below). `_desk/queue.test.ts`
+  pins first-event's count at four in three assertions and uses `first-event.asks` as its negative control; that file
+  is the mechanism's shell, nobody's to change, and three lines is past a single-line exception.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: this lane owns two files in the sandbox and no system fact.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The lab** · `first-event.first`, `.asks` and `.limit` are reached and unbadged: `_desk/queue.test.ts` pins
+  first-event at four overtaken (`toHaveLength(4)` twice at its lines 368 to 370, and the `overtakenOpen` array at
+  406 becomes `["first", "hand", "landing"]`). Three lines and three map entries, in one stroke, by whoever owns that
+  file. The strongest of the three is `first-event.first`: `guest-shape`'s `live=land` builds the arrival on the
+  guest's side, which is the machinery that ask is asking the host's page to buy.
+- **The lab** · when `admin` retires at `admin-wiring`'s merge, its three entries (`admin.home`, `.chrome`,
+  `.density`) leave the map with it; `overtaken.test.ts` fails loudly if they do not. The seven badges `admin`'s
+  rulings put on `admin-triage` survive it, exactly as `glass`'s do.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `7159f98d`; sync merge `6da97c6d` (launch-prep had moved 16 commits, merged, never rebased; the one
+  conflict was `docs/design/library.md`, a generated artifact, resolved by regenerating both artifacts on the merged
+  tree so they differ from `origin/launch-prep` by this lane's delta alone).
+- Gates on the synced tree, each on its own exit code: `design:rules` ok (0), specimens ok (0, 137 specimens on 98
+  entries), `typecheck` ok (0), `lint` ok (0, the 8 known warnings), `test` ok (0: 2,989 passed, 1 skipped, 281
+  files), `build` ok (0, 255 pages); `pnpm lab:smoke --base http://localhost:3131` ok (424 checks, 0 failing);
+  `pnpm lab:demo --board admin-triage --base http://localhost:3131` ok (8 steps, 0 failing, seven of them badged).
+  Read on the served desk: "66 of 76 overtaken, still open". Port 3131 killed before the build, the test run and this.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/overtaken.ts`,
+  `overtaken.test.ts` (both owned), plus two regenerated artifacts as the gate's own demand and nothing else:
+  `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md` (one new export, one new contract
+  line, the test titles and their line numbers; CLAUDE.md requires `design:rules` after a contract changes). This
+  file is committed alone on top.
+- The map: 29 keys to **76**. **47 new** asks badged, **9** of the first pass's lines gain a second clause behind
+  `ALSO_REACHED`, **68 stands to 8 concedes**. Per board (total, of which new): app-shape 1/1 · guest-shape 1/0 ·
+  app-vocabulary 5/0 · seed-avatar 1/0 · admin 3/0 · app-door 3/0 · app-pricing 6/5 · first-event 4/0 ·
+  guest-upload 8/6 · media-viewer 5/3 · host-curation 6/4 · reel-studio 5/3 · export-flow 4/3 · admin-triage 7/7 ·
+  help-center 3/3 · emails 3/3 · site-chrome 1/1 · profile-page 3/1 · privacy-hero 1/1 · album-motion 1/1 ·
+  loose-ends 4/4 · contact-page 1/1 · press-page 0/0.
+- The nine second clauses: `app-pricing.doors`, `first-event.landing`, `first-event.empty`, `guest-upload.landing`,
+  `media-viewer.holds`, `host-curation.peek`, `export-flow.object`, `profile-page.quick-look`, `profile-page.way-back`.
+- Added against any starting list, because the lane found them reached and the plan's reading was a starting list:
+  every `admin-triage` badge (seven: `admin` ruled the portal's whole shell one board over and then retires),
+  `contact-page.page` and `loose-ends.faq-look` (the small paste's pricing answers rule the paper-to-cinema seam and
+  the FAQ's look), `site-chrome.foot-after` (he took the footer's pile for the demo's doors and called the reuse
+  unpolished in the same breath), `privacy-hero.concept` (Crystal names what "frosted" means), `album-motion.fall`
+  (the product's own arrival now settles rather than passing under), `emails.code` and `emails.guest`, and
+  `app-shape.you`.
+- Dropped as untouched, having read them: `press-page` whole (7 asks: the batch never reached the kit, the words or
+  the masthead), `app-pricing.back` and `.learn`, `first-event.venue`, `export-flow.chips`, `.hollow`, `.cap`,
+  `.phone`, `media-viewer.next`, `.closeup`, `.link`, `host-curation.verb`, `.keys`, `reel-studio.styles`, `.wait`,
+  `.guests`, `admin-triage.reason`, `help-center.who-first`, `.hub`, `.article`, `.dead-end`, `emails.brand`,
+  `.sender`, `.foot`, `.moments`, `.dark`, `site-chrome.foot-alone`, `.foot-phone`, `contact-page` less `page`,
+  `loose-ends.hero-tablet`, `.phone-cycle`, `.review-photo`.
+- Calls his to overrule on the alias, one line each: none of this ships to a visitor; it is the lab desk. The one
+  judgment worth his eye before he walks is `host-curation.peek` above (a concession whose ruling he has since
+  narrowed).
+- The help articles this lane makes stale: none.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- The `for` line this lane would owe if its contract were ever published: `overtaken.ts` is already indexed and
+  already carries one; nothing new is asked of `rules/component-notes.ts`.
+- Look at first: `/design/lab` (the counts, "66 of 76 overtaken, still open"), then
+  `/design/lab/host-curation?session=host-curation.peek` for a line carrying a second ruling, then
+  `/design/lab/admin-triage?session=admin-triage.look` for a board the batch reached almost whole.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-20). The judgment pass ran again for the sixth batch and its second
+paste: every open ask on every standing board (110, across twenty boards) opened on its board and read against the
+eight boards' rulings and the drawings, one line each, never a redraw. The map went from 29 keys to 76: 47 newly
+badged, nine of the first pass's lines gaining a second clause behind `ALSO_REACHED` rather than being rewritten (his
+own contract, one level up), 68 standing to 8 conceding. The reach is heaviest where the batch ruled a whole backdrop
+(guest-upload 8 of 8, admin-triage 7 of 8, app-pricing 6, host-curation 6) and empty where it never went (press-page
+0). Two of the first pass's lines were corrected rather than extended: `media-viewer.holds` and `host-curation.peek`
+were badged by glass's "every action lives in the lightbox", and he narrowed that rule to a phone in this batch. The
+test kept the invariant that matters (a board never overtakes its own question) and dropped the incidental one (a
+ruling board is never itself reached), which had held only while the fifth batch's four were fully answered.
