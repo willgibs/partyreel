@@ -5,7 +5,7 @@
 > what shipped (→ [`CHANGELOG.md`](CHANGELOG.md), two rounds deep), how systems work (→ [`systems/`](systems)),
 > what might be next (→ [`ROADMAP.md`](ROADMAP.md)). GROWS BY: being replaced at every round close.
 
-**Updated:** 2026-09-19
+**Updated:** 2026-09-20
 
 ## The era
 
@@ -19,24 +19,23 @@ the marketing site and the app is elevated platform-wide; nothing is protected, 
 the guest pages are explicitly open to be reconceived from the ground up ("closer to a Frankenstein's monster";
 his words in `design/rulings.md`).
 
-## The current round: the evening sitting (opened 2026-09-19 at `b30445d9`; the morning sitting and the overnight round before it)
+## The current round: the night sitting (opened 2026-09-20 at the fifth batch's record; the evening sitting before it)
 
-Will's eighth and ninth batches finished the sitting the stepped review opened: both ladders answered,
-wired and their boards retired; the album hero and river-visual answered, their wiring waiting on four new
-boards; and the lab rebuilt around his note that he could not see what he was answering. His steer binds
-from here: the end goal is the product, fast iterative rounds beat slow meticulous ones, and a relative
-note ("a bit more calm") is answered against a reference he already likes, never a cap and a test (the
-album hero's round three went "too boring" that way).
+The fifth batch answered the four boards at the head of the desk (the voice, the body ladder, the glass, the host
+app's shape); ten lanes wire and re-ask them; his ruling on the questions those answers reach on other boards is
+that nothing is killed or redrawn (badged in place, an agent's line, a trash, an answer overriding: `overtaken`).
+Through the night the Orchestrator runs the six seats on surfaces no board has explored (his instruction, verbatim
+in `design/rulings.md`). His steer binds: the end goal is the product; fast iterative rounds beat slow meticulous ones.
 
 | track | returns | state |
 | --- | --- | --- |
 | `heroes` | `privacy-hero` (the field as two spirals, faster, a trail) and `album-page` (round four at the home hero's pace, subtle, the live album beneath at 896 with its bottom faded, a pool of light) | `album-page` wired and retired at `2ca47448` (`album-wiring`: the live album under the host's header, the halo, the floor with a photograph section beneath); `album-motion` on the desk with three variations of the fall on the wired hero; `privacy-hero` round three on the desk at `6c99e128` (a breathing aperture, a grid where tiles take turns clearing, sealed cards that lift) |
-| `voice` | round one of the voice derived from won lines: eight real lines in the places they are read, three or four close candidates each, bible 20's question first | integrated at `e0b92af6`; on the desk; its question (does the first win bind the other seven) is Will's |
-| `glass` | round one of Glass on the app's chrome over photographs: four recipes in numbers, one grade or two, the lightbox's backdrop, the chips over tiles at a phone, the reel's controls, the host's row, the light ground on its own step; every cost measured | integrated at `30aaf705`; on the desk; round two (marketing, the aurora marriage) is cut from his notes |
+| `voice` | the eight lines derived from won lines | answered whole (batch five: `absence=named` with "No app required.", his hero sentence, the curation h1 kept, "For videos and unlimited events.", the album noun on both empty states, his gate line, today's toast); bible 20 rewritten; `voice-wiring` (Opus, :3131) wiring it, the board retires at its merge |
+| `glass` | round one on the app's chrome over photographs; round two on the ONE material | answered whole (Frost, one grade, the album behind, his tiles rule, white on the reel, the row as a bar, dark on paper); round two `glass-material` (Opus, :3135) measuring Frost, Crystal and White on every glass surface; the wiring waits for it (his answer) |
 | `admin` | the admin portal's shape, round one: the operator's home, the navigation, density, colour for state, destructive actions, the health strip, on the real components with fixtures; an on-brand devtool per Will's ruling | integrated at `d6305818`; on the desk (seven steps at 1440 by 900; the questions closed by the Orchestrator, in the CHANGELOG) |
 | `loose-ends` | six ROADMAP lines as seven decisions on their real surfaces: the admin chart cast in both modes, one FAQ look, the hero at a 900 px tablet, the album's three ambient pieces | integrated at `b83b7c3d`; on the desk; one question his (the reading of the two ambient pieces that had nothing to vary); a real chart-token bug found, on the ROADMAP's Now list |
-| `body-type` | the body and label ladder as seven decisions, every number measured in the frame: a guest's reading copy, the app's body, marketing copy fixed or fluid, the caption floor, the label pair, buttons, line height | integrated at `130236c2`; on the desk; two questions his (the four names; one size for caption and label) |
-| `app-shape` | round one of the host app's shape: the home, the event's draw, the event's page, the navigation and the way back, sharing, settings, You, the phone; eight decisions on the shipped components | integrated at `aa338766`; on the desk; four questions carried on their recommendations (in the CHANGELOG) |
+| `body-type` | the body and label ladder; round two on the button rung | six rungs answered (16 / 14 / fluid / 12 with the floor at 10 / 12 on 0.08em / 2 x size - 8); `ladder-wiring` (Opus, :3132) wiring them; `buttons` "more work required": round two `buttons-pairs` queued |
+| `app-shape` | round one of the host app's shape; round two on the home across host states | answered whole (the pulse, cover cards and a row/table behind a toggle, the hub with the gallery beneath and a live QR door, crumbs with the cards going sticky, sharing and settings as sheets, the profile for the personal and the account for money, one shape on a phone); `home-wiring` (Opus, :3133) and `hub-wiring` (Opus, :3134) wiring it; round two `home-states` queued |
 | `guest-shape` | round one of the guest experience's shape: the door after the scan, how an empty album speaks, what sits above an album that runs to the window, the Live signal, the guest dialogs, a guest's own photograph, the account's voices; seven decisions on the shipped guest components over one wedding in four access states, phone first | integrated at `beee6325`; on the desk; three questions carried on their recommendations (in the CHANGELOG) |
 | `app-vocabulary` | the parts under both shapes: nothing-here-yet, loading, one tile grammar, the bulk toolbar, the gallery's tile-size control and how it persists, the confirm switch; seven decisions on the real components at 1440 and 375 | integrated at `e442fc55`; on the desk; one question carried on its recommendation (the controls ask split in two, staged) |
 | `contact-page` | how someone reaches a person at Partyreel: whether a form is required, the receipt, urgency, the topic, the page against the cinema rhythm, what stands beside the form; six decisions on the real desk | integrated at `a8afce0c`; on the desk; three findings on the ROADMAP |
@@ -58,12 +57,13 @@ album hero's round three went "too boring" that way).
 | `export-flow` | getting everything out, for a host and for a guest: what download means, the wait, stuck, hollow, the cap, the object, the teaser's chips, the phone; on the real dialog's shell and body over fixture summaries | integrated at `afde9ca3`; on the desk; five calls carried on their recommendations (in the CHANGELOG); seven ROADMAP lines |
 | `site-chrome` | the marketing chrome; round two on the footer against the closing CTA | round one wired at `6c76a08c` (`chrome-wiring`, 2026-09-19: the bar hides going down and returns coming up, a Dashboard hint from the cookie prefix, Start free above the demo check at every width, both nav doors to `/how-it-works`); on the alias for Will's eye, seven calls his to overrule (CHANGELOG); round two on the desk at `2aa1dc5e` (`footer-close`: `foot-after`, `foot-alone`, `foot-phone`) |
 | `event-identity`, `event-type-pages` | the event pages' identity and the direct picks | wired and retired at `6abab6a1` (`events-wiring`, 2026-09-19: one lit object per type carrying the demo's real code, the statement, the photograph turn into one paper chapter, the photograph as the card at two sizes, the river door with the reel beside it, the hero subhead on a 20 to 22 clamp site-wide, the phone half-and-half; conferences and trips on named stand-ins until ASSETS rows 24 and 25 land); on the alias for Will's eye, nine calls his to overrule (CHANGELOG) |
+| `overtaken` (cut after `lab-tides`), `guest-verify`, `buttons-pairs`, `toasts`, `home-states` | the desk mechanism his ruling asks for (a question an earlier ruling reaches: badged in place, one agent line, "the ruling stands" beside "not clear to me", an answer overriding), then the four lab boards his notes asked for by name | queued in that order as seats free; `glass-wiring` after glass round two rules and the hub lands |
 | `seed-avatar` | the colour a new account is: our own generator in hashvatar's gradient register (zero dependencies, no canvas, a thousand seeds held to three contrast floors) on every real avatar surface with `profile-page`'s twenty-four guests; seven decisions, the shape, the crowd, the wheel, the initial, the seed, after a photograph, motion | integrated at `a80fe1e1` (2026-09-19, lab-only); on the desk after `app-vocabulary`; four calls his in the CHANGELOG |
 
-## The previous round: the wind-down (2026-09-17, `257a690d` to `00e82dba`)
+## The previous round: the evening sitting (2026-09-19, `b30445d9` to `69a9a177`)
 
-Picks became working versions the same day (Graphite, the streaming hero, ladder B, the Aurora, the shadows and the bright
-edge, the publish bloom, floating surfaces, the v1 wordmark); the lab gained `defineExploration` and `lab:demo`. Its record is in git (`git show 449d9b52:docs/CHANGELOG.md`, "The wind-down").
+The fourth batch's five lanes wired the profile (the handle free), the chrome (the bar hiding on scroll) and the event pages
+(one lit object per type), `seed-avatar` opened on his ask by name, and the desk took its leverage order. Its record is the CHANGELOG's second entry.
 
 ## Live state
 
@@ -102,7 +102,7 @@ crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-His sitting continues on the desk, twenty-eight boards with open asks in the desk's own order, which is by leverage since 2026-09-19 (the earlier influence first; his rule, verbatim in `design/rulings.md`): `voice`, `body-type`, `glass`, `app-shape`, `guest-shape`, `app-vocabulary`, `seed-avatar` (round one: the colour a new account is), `admin`, `app-door`, `demo-event`, `pricing-page`, `app-pricing`, `first-event`, `guest-upload`, `media-viewer`, `host-curation`, `reel-studio`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome` round two (the footer), `profile-page` round two (View all, the quick-look, the way back), privacy-hero round three, `album-motion`, `loose-ends`, `contact-page`, `press-page`. One lane still runs (`lab-tides`). On the alias for his eye: the profile and the guest list, the chrome, the events hub and the four type pages (batch four's wiring, the calls his to overrule in the CHANGELOG), and before them `/how-it-works` with the home's stepper and every failure page. The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
+His sitting continues on the desk, twenty-four boards with open asks in the desk's own order, which is by leverage since 2026-09-19 (the earlier influence first; his rule, verbatim in `design/rulings.md`): `guest-shape`, `app-vocabulary`, `seed-avatar` (round one: the colour a new account is), `admin`, `app-door`, `demo-event`, `pricing-page`, `app-pricing`, `first-event`, `guest-upload`, `media-viewer`, `host-curation`, `reel-studio`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome` round two (the footer), `profile-page` round two (View all, the quick-look, the way back), privacy-hero round three, `album-motion`, `loose-ends`, `contact-page`, `press-page`. Six seats run through the night (`voice-wiring`, `ladder-wiring`, `home-wiring`, `hub-wiring`, `glass-material`, then `overtaken` on `lab-tides`' seat, then the queued four and the night's explorations). Until `overtaken` lands, a question an earlier ruling reaches is answered as drawn and the wiring lane translates. On the alias for his eye: the profile and the guest list, the chrome, the events hub and the four type pages (batch four's wiring, the calls his to overrule in the CHANGELOG), and before them `/how-it-works` with the home's stepper and every failure page. The overnight round's red-team is complete: the signed-in half (the host event page at 1440 and 375, the guest album as
 the host at 1280 / 1512 / 1920 / 375, the dashboard) ran in his Chrome session on 2026-09-19 and was clean. Calls his to overrule from earlier lanes: the home's live
 demo as the paper chapter's opener and the album heading at `lg`; the ghost's fade; type inside a picture counts as
 depicted; the album at 896. Assets open: rows 15, 16, 19 and 23 to 25 (26 withdrawn: `door` won). The launch-gated tasks are the ROADMAP's Launch checkpoint.

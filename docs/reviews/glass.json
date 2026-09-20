@@ -1,0 +1,67 @@
+{
+  "board": "glass",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-20",
+      "answers": [
+        {
+          "ask": "recipe",
+          "choice": "frost",
+          "note": "It was between this and Crystal. This one because it's a bit darker and keeps an active icon a bit more visible, but I also liked the Crystal's double edge for more contrast in any situation. Maybe worth a second round of exploration to clarify, so we can nail our glass from the start.",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "grades",
+          "choice": "one",
+          "note": "This feels more consistent across surfaces that are close to each other, else it looks weird they're different. With our guest/profile work, the bottom uploader credit UI may become clickable soon too.",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "behind",
+          "choice": "album",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "tiles",
+          "choice": null,
+          "note": "The question is clear to me, I just have an alternative answer. Having icons visible on every image card on mobile is going to get way too crowded and overwhelming immediately. Aside from an active like icon (not unliked to perform the action), a video play icon (to denote video from picture), or a like count (design to be more subtle))(eg. the state-based UI), let's handle all actions and controls (like, download, etc) in the lightbox controls. That keeps the experience much cleaner, with select allowing multi-item handling the same way these would anyway.",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "reel",
+          "choice": "white",
+          "note": "This class feels much more like an actual class than the \"recipe, as everywhere else\". May be worth exploring making this the standard - I don't want to have separate glass treatments and would prefer to find a global that works everywhere, but for this reel demo the white glass looks better. It probably would have looked better on the mobile media card icon background glass as well in the previous question.",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "row",
+          "choice": "bar",
+          "note": "This feels much cleaner and more cohesive.",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        },
+        {
+          "ask": "paper",
+          "choice": "dark",
+          "by": "Will",
+          "at": "2026-09-20T02:21:40Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "tiles=? is answered in his note: on a mobile image card nothing but an active like mark, a video play mark and a subtle like count; every action (like, download, select) lives in the lightbox's controls; a standing rule for media-viewer, app-vocabulary, guest-shape and host-curation; wired with the glass material.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-20T02:27:17Z"
+        }
+      ],
+      "items": []
+    }
+  ]
+}

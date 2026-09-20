@@ -4,7 +4,7 @@
 > BELONGS HERE: the `events` model + create wizard, QR designer, custom slug, first-time welcome, event settings, host curation/moderation, the host-upload UI entry. · NOT HERE: the upload pipeline + R2 (→ [uploads-and-r2.md](uploads-and-r2.md)), the guest experience (→ [guest-flow.md](guest-flow.md)), caps/billing (→ [billing-caps.md](billing-caps.md)), operator-side moderation/reports (→ [admin-observability.md](admin-observability.md)).
 > GROWS BY: integrate-in-place.
 
-## Dashboard landing (All · Events · Following · Uploads · Likes · Deleted)
+## Dashboard landing
 
 [`/dashboard`](../../src/app/(app)/dashboard/page.tsx) is the host home, four tabs
 deep-linkable via `?filter=` (the legacy `?tab=` still translated; [`filter-chips.tsx`](../../src/components/app/dashboard/filter-chips.tsx)
@@ -117,7 +117,7 @@ the `/dashboard` guard bounces the host straight back. The `/welcome` route itse
 story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
 marketing page — edit it once).
 
-## The event page (media-forward stacked feed)
+## The event page
 
 [`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) mirrors the guest experience: the
 gallery IS the page under a minimal editorial header. Composition (top → bottom): an **editorial status-row

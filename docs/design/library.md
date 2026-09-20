@@ -160,11 +160,11 @@ It reads as an AI tell; recast with a comma, a colon, parentheses or two sentenc
 
 <small>enforced by `src/lib/no-em-dash-policy.test.ts`, `src/lib/content-policy.test.ts` · `/design/library/rules/no-em-dashes`</small>
 
-**20. Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.**
+**20. Say what we are, and name what a guest is spared: an absence a guest is wary of may be named ("No app required."); a sentence shaped as a denial of someone else ("we're not cloud storage") may not. Never promise "no account": a host may require one. The two fences that are product truth stand (no human-response or human-moderation promise, no automation absolutes).**
 
-Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.
+Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy. Ruled permissive 2026-09-19 (voice r1, absence=named): "That rule is a little harsh. No app is a big benefit we're allowed to mention. The rule was meant to be avoid 'we're not cloud storage, we're not vsco, etc'. However, since many events will likely require guests accounts, let's change 'No app, no account.' to 'No app required.'"
 
-<small>**under exploration: voice** · enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
+<small>enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
 
 **21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the `voice` board establishes the voice one won line at a time, and no copy is pinned by a test meanwhile.**
 

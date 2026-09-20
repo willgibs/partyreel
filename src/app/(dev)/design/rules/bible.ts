@@ -303,12 +303,12 @@ export const BIBLE: BibleRule[] = [
     n: 20,
     group: "copy",
     statement:
-      "Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.",
-    why: "Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.",
+      "Say what we are, and name what a guest is spared: an absence a guest is wary of may be named (\"No app required.\"); a sentence shaped as a denial of someone else (\"we're not cloud storage\") may not. Never promise \"no account\": a host may require one. The two fences that are product truth stand (no human-response or human-moderation promise, no automation absolutes).",
+    why: "Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy. Ruled permissive 2026-09-19 (voice r1, absence=named): \"That rule is a little harsh. No app is a big benefit we're allowed to mention. The rule was meant to be avoid 'we're not cloud storage, we're not vsco, etc'. However, since many events will likely require guests accounts, let's change 'No app, no account.' to 'No app required.'\"",
     enforcedBy: ["src/lib/content-policy.test.ts"],
     ruledBy: "Will",
     ruledOn: REVIEWED,
-    status: "under exploration: voice",
+    status: "ruled",
   },
   {
     id: "copy-is-open",

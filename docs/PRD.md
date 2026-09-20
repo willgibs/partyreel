@@ -7,7 +7,7 @@ what exists today trust [SYSTEMS.md](SYSTEMS.md); the product has shipped well p
 
 Capture **every** photo and video from an event, not just the handful that trickle into a group chat
 the next day. The host runs the event; the **guests** are the camera crew. Friction is the enemy:
-guests contribute with **no app and no account**, just a tap on a QR code and a display name. The
+guests contribute with **no app required**, just a tap on a QR code and a display name (an account when the host asks for one). The
 product is its own growth engine: every QR code and every shared album is an ad, and a guest who loved
 how easy it was becomes the next host. **North-star metric: a host creates a second event.**
 
