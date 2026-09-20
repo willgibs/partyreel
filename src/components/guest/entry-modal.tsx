@@ -7,14 +7,17 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ChevronLeft, Images } from "lucide-react";
+import { Camera, Check, ChevronLeft, ImageUp, Images, QrCode } from "lucide-react";
 
+import { initial } from "@/components/app/user-menu";
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { computeEntry, type GateStep } from "@/lib/guest/entry-steps";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
@@ -62,6 +65,13 @@ export const EntryModal = forwardRef<
     hostName?: string | null;
     eventDate?: string | null;
     hostAvatarUrl?: string | null;
+    /** `seedFor(host_id)`, computed server-side (page.tsx via
+     *  `getHostAvatarSeed`) — never the raw host id itself. Paints the
+     *  byline's Avatar the same colour that host wears everywhere else
+     *  (docs/design/rulings.md, the sixth batch, `seed=account`). Null exactly
+     *  where `hostAvatarUrl` is: a locked page's redacted shellEvent, or no
+     *  host on the event at all. */
+    hostSeed?: string | null;
     /** The success-hold signal for the page's REVEAL CURTAIN: the freshly
      *  mounted header/gallery wait at their pre-entrance state while the
      *  beat holds, then rise AS the sheet exits (event-experience). */
@@ -78,6 +88,7 @@ export const EntryModal = forwardRef<
     hostName,
     eventDate,
     hostAvatarUrl,
+    hostSeed,
     onHoldingChange,
   },
   ref,
@@ -100,7 +111,6 @@ export const EntryModal = forwardRef<
     gateSteps,
     welcomeSeen: seen,
     isOwner,
-    isDemo,
   });
   const current = steps[0] ?? null;
   // The arrival beat holds ONLY the auto-open (Act 1 settles, then Act 2
@@ -241,11 +251,13 @@ export const EntryModal = forwardRef<
       title={
         holding
           ? "You're in"
-          : isReviewing || current === "welcome"
-            ? `Welcome to ${eventName}`
-            : current === "password"
-              ? `${eventName} is private`
-              : "See all the photos"
+          : current === "welcome" && !isReviewing && isDemo
+            ? "You're trying a live demo"
+            : isReviewing || current === "welcome"
+              ? `Welcome to ${eventName}`
+              : current === "password"
+                ? `${eventName} is private`
+                : "See all the photos"
       }
       // ALBUM, NOT GALLERY (Will, 2026-09-17, the `noun=album` pick): the site,
       // the app and the reel all say album, so the guest's phone says it too.
@@ -256,11 +268,13 @@ export const EntryModal = forwardRef<
       description={
         holding
           ? "Opening the album."
-          : isReviewing || current === "welcome"
-            ? "A shared album for the whole event."
-            : current === "password"
-              ? "Enter the event password to view it."
-              : "Create a free account to see the full album and add your own photos."
+          : current === "welcome" && !isReviewing && isDemo
+            ? "A real album, running exactly as a guest would see it."
+            : isReviewing || current === "welcome"
+              ? "A shared album for the whole event."
+              : current === "password"
+                ? "Enter the event password to view it."
+                : "Create a free account to see the full album and add your own photos."
       }
     >
       <EntryStepTransition stepKey={displayKey} direction={direction}>
@@ -278,6 +292,7 @@ export const EntryModal = forwardRef<
               hostName={hostName}
               eventDate={eventDate}
               hostAvatarUrl={hostAvatarUrl}
+              hostSeed={hostSeed}
               mediaTotal={mediaTotal}
               gateNext
               browseAvailable={false}
@@ -308,12 +323,20 @@ export const EntryModal = forwardRef<
                 <ChevronLeft className="size-5" />
               </button>
             )}
-          {displayKey === "welcome" && (
+          {displayKey === "welcome" && isDemo && (
+            <RoleStep
+              eventName={eventName}
+              hostName={hostName}
+              onContinue={continueFromWelcome}
+            />
+          )}
+          {displayKey === "welcome" && !isDemo && (
             <WelcomeStep
               eventName={eventName}
               hostName={hostName}
               eventDate={eventDate}
               hostAvatarUrl={hostAvatarUrl}
+              hostSeed={hostSeed}
               mediaTotal={mediaTotal}
               gateNext={steps.length > 1}
               // "Just browsing" only when a BROWSABLE teaser sits behind (an
@@ -413,6 +436,7 @@ function WelcomeStep({
   hostName,
   eventDate,
   hostAvatarUrl,
+  hostSeed,
   mediaTotal,
   gateNext,
   browseAvailable,
@@ -424,6 +448,7 @@ function WelcomeStep({
   hostName?: string | null;
   eventDate?: string | null;
   hostAvatarUrl?: string | null;
+  hostSeed?: string | null;
   mediaTotal?: number;
   gateNext: boolean;
   /** A browsable teaser exists behind the next gate (account gates only). */
@@ -445,24 +470,25 @@ function WelcomeStep({
     // mt-auto pins it to the sheet's foot when the minimum height engages.
     <div data-welcome-step className="flex flex-col gap-5">
       <div className="flex flex-col">
-        <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <p className="text-label font-medium text-muted-foreground uppercase">
           You&rsquo;re invited to
         </p>
         <p className="mt-1.5 font-heading text-page text-balance">
           {eventName}
         </p>
         {hasByline && (
-          <p className="mt-2 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+          <p className="mt-2 flex items-center gap-1.5 text-working text-muted-foreground">
             {host && (
               <>
-                {hostAvatarUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, short-lived
-                  <img
-                    src={hostAvatarUrl}
-                    alt=""
-                    className="size-5 rounded-full object-cover"
-                  />
-                )}
+                {/* Every host wears their seeded colour here now, photo or not
+                    (`the-crowd=full`, docs/design/rulings.md the sixth
+                    batch) — the raw <img> used to skip entirely without an
+                    avatar; the fallback initial means this byline is never
+                    bare again. */}
+                <Avatar seed={hostSeed ?? undefined} size="sm">
+                  <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{initial(null, host)}</AvatarFallback>
+                </Avatar>
                 <span>
                   Hosted by{" "}
                   <span className="font-medium text-foreground">{host}</span>
@@ -509,6 +535,69 @@ function WelcomeStep({
             legal round's ruling); links open in a new tab so the sheet the
             guest is standing in survives the tap. */}
         <LegalConsentLine newTab className="mt-2 text-center" />
+      </div>
+    </div>
+  );
+}
+
+// THE DEMO'S OWN ARRIVAL (Will, `arrival=role`, the sixth batch, 2026-09-20:
+// "the demo welcome feels more correct for this generic guest welcome").
+// `computeEntry` no longer special-cases the demo (entry-steps.ts) — it is
+// the SAME "welcome" step every guest gets, wearing different words, so its
+// DESIGN stays exactly WelcomeStep's (guest-shape round two redraws both
+// together; see spec.ts's own note that this board never touches it). Three
+// things a visitor here needs and the ordinary welcome's copy does not give
+// them: what this is (a real album, standing in for theirs), where they are
+// standing (in a guest's shoes, at somebody's party), and the one thing to
+// try. The two reading rows deliberately MIRROR WelcomeStep's own two
+// promises rather than inventing a second voice — the same measure, the same
+// order, said to a prospective HOST instead of a guest (bible 4 still holds
+// behind it: this sheet is the only place on the page that speaks as
+// Partyreel). No LegalConsentLine here — looking around a demo agrees to
+// nothing (the `PartyDoor` precedent in the board's own sandbox).
+function RoleStep({
+  eventName,
+  hostName,
+  onContinue,
+}: {
+  eventName: string;
+  hostName?: string | null;
+  onContinue: () => void;
+}) {
+  const host = hostName?.trim();
+  return (
+    <div data-welcome-step className="flex flex-col gap-5">
+      <div className="flex flex-col">
+        <p className="text-label font-medium text-muted-foreground uppercase">
+          A live demo
+        </p>
+        <p className="mt-1.5 font-heading text-page text-balance">
+          You&rsquo;re a guest at {eventName}
+        </p>
+        <p className="mt-2 text-working text-muted-foreground">
+          This is a real album, exactly as{" "}
+          {host ? `${host}’s` : "the host’s"} guests see it.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3.5">
+        <p className="flex items-start gap-3 text-base leading-relaxed">
+          <ImageUp className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+          Add a photo the way a guest would. Nothing you add is saved.
+        </p>
+        <p className="flex items-start gap-3 text-base leading-relaxed">
+          <QrCode className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+          One code did all of this. Yours takes about a minute.
+        </p>
+      </div>
+
+      <div className="mt-auto flex flex-col gap-2">
+        <Button onClick={onContinue} size="lg" className="w-full text-[15px]">
+          Look around
+        </Button>
+        <Button asChild variant="ghost" className="w-full text-muted-foreground">
+          <Link href="/">Start your own</Link>
+        </Button>
       </div>
     </div>
   );

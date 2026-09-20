@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 807 contracts on 113 components · 25 standing boards.**
+**22 laws · 18 policies · 820 contracts on 115 components · 25 standing boards.**
 
 ## What binds you
 
@@ -270,7 +270,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/conveyor.tsx` | the marquee shell: renders its children twice, and owns the loop-pause contract | none |
 | `src/components/marketing/system/cta-band.tsx` | the closing conversion band, with the credit line that ends a page | none |
 | `src/components/marketing/system/demo-cta-link.tsx` | the recurring live-demo link, gated on a configured demo event so it is never dead | none |
-| `src/components/marketing/system/demo-ticket.tsx` | the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel | none |
+| `src/components/marketing/system/demo-ticket.tsx` | RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone | none |
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
@@ -345,6 +345,7 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (11 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
+- `src/app/(dev)/design/sandbox/seed-avatar/looks.ts` (10 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/app/globals.css` (6 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
@@ -368,6 +369,7 @@ Contracted but outside the library's directories:
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
+- `src/components/guest/guest-header.tsx` (3 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
 - `src/components/lab/board-page.tsx` (16 guards)
@@ -434,7 +436,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | board | surface | the question |
 | --- | --- | --- |
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
-| `seed-avatar` | shared | Our own zero-dependency generator in hashvatar's gradient register (no canvas, server-renderable, a contract test holding a thousand seeds to three contrast floors), drawn on every real avatar surface with a wedding's twenty-four guests, phone first at 375 with 1440 on the knob |
+| `seed-avatar` | shared | Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
 | `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
@@ -446,14 +448,14 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `app-door` | host | Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all |
-| `pricing-page` | marketing | Eight decisions on the real components at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout; three of them staged behind the plan row, and every frame captioned with its measured height and how far down its first price lands |
+| `pricing-page` | marketing | Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed |
 | `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |
 | `demo-event` | marketing | Seven decisions on the shipped demo over one wedding, LAPTOP first at 1440 and also at 375 (the inverse of guest-shape: everyone who opens the demo followed a link that said 'try the live demo'): the first seconds, how it keeps admitting it is a demo, what the one simulated upload is for, where the way out sits, what a door promises before it is opened, what a code scanned off the laptop does, and how many parties the demo is |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
-| `app-vocabulary` | shared | Seven decisions, no page: how many treatments answer nothing-here-yet, whether a route's loading skeleton is a shared primitive or none, one tile grammar for the host grid, the bin, the review queue and the personal feeds, words or icons on the bulk toolbar, where the gallery's tile-size control lives and how it persists, and the visual cue on a switch that asks before it flips; every option on the real components at 1440 and 375 |
+| `app-vocabulary` | shared | One decision on the real, wired Album header: where the crowded five (download, tile size, sort, filter, select) live now that the cluster is honestly crowded; four placements drawn at 1440 and 375, Add photos and Deleted untouched. |
 | `guest-shape` | guest | Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68 |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |

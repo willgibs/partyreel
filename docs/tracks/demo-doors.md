@@ -1,19 +1,20 @@
 ---
-track: avatar-look
+track: demo-doors
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "58f7acbd"          # the launch-prep SHA the branch was cut from
-board: seed-avatar     # round two on the same board id: the look
+cut: "68276391"          # the launch-prep SHA the branch was cut from
+board: demo-event      # round two on the same board id: the door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/seed-avatar/
+  - src/app/(dev)/design/sandbox/demo-event/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/seed-avatar.json
+  - docs/reviews/demo-event.json
   - docs/design/rulings.md
-  - src/lib/avatar/
-  - src/components/ui/avatar.tsx
-  - src/components/social/guest-list.tsx
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/marketing/system/demo-ticket.tsx
+  - src/components/marketing/sections/home/live-demo.tsx
+  - src/components/shared/album-stream/
 ---
 
-# lp/avatar-look
+# lp/demo-doors
 
 **Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -22,23 +23,22 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- His note on `look=diagonal` (2026-09-20): "This is my favorite of these options, but is this the best that hashvatar
-  had to offer? The preview ones on https://www.hashvatar.com/ and https://github.com/medhychabour/hashvatar felt much
-  more alive and rich." The diagonal is wired (`avatar-wiring`, merged `2a5c7018`: `Avatar` with `seed`, the
-  generator at `src/lib/avatar/gradient.ts`, `seedFor` the hash).
-- A `defineExploration` round two on the SAME board id `seed-avatar` (`round.n: 2`), ONE decision `look` with four
-  options drawn on the WIRED `Avatar` at 24, 32, 40 and 80 with the initial, on the guest list's faces row, the user
-  menu and the profile identity row, at 375 and 1440: `diagonal` as wired; `mesh` hashvatar's own multi-stop mode as
-  it renders on its site (the lane reads hashvatar's source on GitHub and its page with WebFetch, credits it as the
-  generator's header does, and reproduces the register: several hue stops, not two); `throw` two soft radial throws
-  over a deep base; `lit-seam` the diagonal with a lit seam along the ramp. Every option MEASURED against the three
-  floors the generator holds (the letter 4.5:1, the two grounds, the ring) across a thousand real UUIDs, the numbers
-  on the frame; a look that fails a floor says so rather than hiding it. The candidate looks live in the sandbox's own
-  `looks.ts` over `orbFor`'s orb (the production generator is READ, never edited; the winner lands in `lib/avatar` at
-  its wiring). Round one's seven ruled asks named as ruled, the row's `variants` set to one.
-- Owns `src/app/(dev)/design/sandbox/seed-avatar/` and the board's own lines under the registration exception. Reads
-  `src/lib/avatar/`, `ui/avatar.tsx`, `social/guest-list.tsx`, the seed-avatar ledger, rulings.md; never edits them.
-  `lab:smoke` whole; `lab:demo --board seed-avatar`; the gate.
+- His note on `doors=pile` (2026-09-20): "I'd be curious to see better designs of this. Looks like we're just reusing
+  what's in the footer. However, labeling the QR (option 2) doesn't look very polished in the otherwise text-free
+  visuals." The pile is wired as the rule by `demo-wiring` (one object skinned per place; the nav's ticket gone).
+- A `defineExploration` round two on the SAME board id `demo-event` (`round.n: 2`), ONE decision `door` with four
+  options, each the ONE object drawn in its three places (the home, a feature page, the footer) at 375 and 1440, all
+  text-free but the demo's name: `pile` as wired; `frame` one photograph in a frame with the live code in its corner;
+  `stage` the album's own falling engine (the shipped variant) as the door, the code over it; `ticket` the retired nav
+  ticket redrawn as a single object for every place. The recommended option named; a cost line each (the engine costs
+  a frame budget on the home; a photograph needs the fixtures the site holds). Round one's six ruled asks named as
+  ruled, the row's `variants` set to one.
+- Owns `src/app/(dev)/design/sandbox/demo-event/` and the board's own lines under the registration exception. Reads
+  the wired demo door pieces (`marketing-footer.tsx`, `demo-ticket.tsx`, `live-demo.tsx`), `album-stream/`, the
+  demo-event ledger, rulings.md; never edits them. `lab:smoke` whole; `lab:demo --board demo-event`; the gate.
+- ALSO (from `demo-wiring`'s Handoff, 2026-09-20): the Features nav mega-panel's featured pane is EMPTY since the
+  ticket retired (the panel's own no-card fallback); it is the object's fourth place: every option says what, if
+  anything, stands there (the same object at a fourth size, or nothing and the pane stays a clean column), drawn.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

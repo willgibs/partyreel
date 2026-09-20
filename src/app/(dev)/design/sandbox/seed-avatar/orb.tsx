@@ -1,13 +1,16 @@
 import type { CSSProperties } from "react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-import { background, css, type Look, orbFor, type PaletteMode } from "./gradient";
+import {
+  background,
+  css,
+  type Look,
+  orbFor,
+  type PaletteMode,
+} from "./gradient";
+import { paintRich, type RichLook } from "./looks";
 
 /**
  * THE ORB, DRAWN ON THE REAL `Avatar`.
@@ -40,8 +43,15 @@ export type AfterUpload = "replace" | "rim" | "under";
 /** How much of a crowd is coloured. The `the-crowd` decision. */
 export type CrowdMode = "full" | "quiet" | "soft";
 
+/** Round two's three candidates never reach `orbFor`'s own `PaletteMode`
+ *  bisection or `background()` — they paint over the SAME orb `looks.ts` reads. */
+const RICH_ONLY: ReadonlySet<RichLook> = new Set(["mesh", "throw", "lit-seam"]);
+
 export type OrbOptions = {
-  look?: Look;
+  /** `Look` is the production generator's four (round one); `RichLook` adds
+   *  round two's `mesh` | `throw` | `lit-seam` (its own `diagonal` id paints
+   *  identically to `Look`'s, so either name reaches the same pixels). */
+  look?: Look | RichLook;
   palette?: PaletteMode;
   letter?: LetterMode;
   after?: AfterUpload;
@@ -64,7 +74,7 @@ export const initialOf = (name: string | null): string =>
  */
 export function paintFor(
   seed: string,
-  { look = "orb", palette = "wheel", muted = false }: OrbOptions = {},
+  { look = "diagonal", palette = "wheel", muted = false }: OrbOptions = {},
 ): { style: CSSProperties; ink: string } {
   const orb = orbFor(seed, palette);
   const quiet = muted
@@ -75,7 +85,16 @@ export function paintFor(
         deep: { ...orb.deep, c: orb.deep.c * 0.42 },
       }
     : orb;
-  const value = background(quiet, look);
+  if (RICH_ONLY.has(look as RichLook)) {
+    const { image, blend } = paintRich(quiet, look as RichLook);
+    return {
+      style: blend
+        ? { backgroundImage: image, backgroundBlendMode: blend }
+        : { backgroundImage: image },
+      ink: css(orb.ink),
+    };
+  }
+  const value = background(quiet, look as Look);
   return {
     style: value.startsWith("oklch(")
       ? { background: value }
@@ -124,12 +143,17 @@ export function SeedAvatar({
   const { letter = "always", after = "replace", drift } = options;
   const { style, ink } = paintFor(seed, options);
   const onRoot = Boolean(photo) && after !== "replace";
-  const text = size === "sm" ? "text-[10px]" : size === "lg" ? "text-base" : "text-sm";
+  const text =
+    size === "sm" ? "text-[10px]" : size === "lg" ? "text-base" : "text-sm";
 
   return (
     <Avatar
       size={size}
-      className={cn(onRoot && driftClass(drift), after === "rim" && photo && "p-[2px]", className)}
+      className={cn(
+        onRoot && driftClass(drift),
+        after === "rim" && photo && "p-[2px]",
+        className,
+      )}
       style={onRoot ? style : undefined}
     >
       {photo ? <AvatarImage src={photo} alt="" /> : null}
@@ -179,7 +203,10 @@ export function BigOrb({
         src={photo}
         alt=""
         style={{ width: px, height: px }}
-        className={cn("rounded-full border border-border object-cover", className)}
+        className={cn(
+          "rounded-full border border-border object-cover",
+          className,
+        )}
       />
     );
   }
