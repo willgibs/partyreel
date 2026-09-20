@@ -57,3 +57,9 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   for the kit's refusals, every known-bad input that must be refused (a missing lane, a full sha, a duplicated STATUS id, an
   unmatched ROADMAP retirement, the key's host guard); a refusal that has gone quiet is this script's own failure. Run it
   after any change to the kit and before the first integration of a day.
+
+- `review-sheet.mjs <batch.txt> [out.html]` (2026-09-20): Will's paste as one page, each verdict beside the drawing it
+  answered: the question, the chosen option's label and what it lands, confirms or overrules the recommendation, his note
+  verbatim, the deep link to the live step, and the lane's own capture of that option when one exists in the scratchpad
+  (a file:// reference; the page is for the machine that holds them). The tags read the CURRENT specs, so a sheet of an old
+  paste on boards whose asks a round two replaced shows fewer tags; for the next batch it reads whole.
