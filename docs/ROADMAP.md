@@ -157,6 +157,7 @@ The app:
 - Bulk Restore-all and Empty-bin for the recovery bins; immediate hard-purge for egregious content in `/admin/albums`.
 - File-picker upload e2e reconfirm on a real device; the arrival choreography fine-tune on a real gated event, one round after the V1 phases.
 
+- From `overtaken` (2026-09-20, the lab): `.lab-dock`'s one-row grid at 1280 and up gives the note column its 14rem floor whenever a board's option row is long (the note field ran to 26 px beside two dashed answers); the row wraps now and the column patch is in the lane's Handoff (git, `bb64f398`).
 - From `ladder-wiring` (2026-09-20): flip the body scan to a hard fail (`BODY_EXCEPTIONS` to `{}`) once the allow-list is empty, one line after the app-shape lanes merge and the `pending` entries go red.
 - From `ladder-wiring` (2026-09-20): a `type-sync` follow-up (Sonnet) sweeps the 21 `lane` sites the boundary kept it out of: voice-wiring's eleven files, and the four unowned marketing ledes still on a flat `text-lg` (`event-statement`, `qr-hero`, `reel-hero`, `wysiwyg-section`), which are exactly what `copy` is for.
 - From `ladder-wiring` (2026-09-20): the mechanical rename of the 76 surviving `text-[10px]` to `text-micro` (on the step, passing the scan: naming, not sizing) rides any lane that opens those files.

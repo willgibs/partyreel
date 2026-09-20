@@ -92,8 +92,24 @@ rule); then his night instruction: the seats run all night on unexplored surface
   `components/admin/` owned by no manifest, the stale contract line numbers in the generated artifact). Gate 42 green
   on the merged tree.
 
-**Next.** The other four lanes' handoffs, the waiting four, the night's explorations; his eye on the alias in the
-morning.
+- **`overtaken` merged at `f7928597`** (2026-09-20, Opus; cut `20cc9b5f`; the lab itself): the mechanism Will's ruling
+  asked for, smaller than it sounded because the ledger already treats any non-null choice as answered. A question an
+  earlier ruling reached stays in its board's walk with a badge in plain words and the date ("Ruled since app-shape r1,
+  19 Sep: sharing is a sheet", plus "'as today' here means before that ruling" where an option says so), the lane's one
+  line under it, and a third dashed answer in the dock beside "Not clear to me": "The ruling stands". That press
+  composes `<ask>=stands "the earlier ruling stands"`, a RESERVED VALUE on the ask (never a new clause), accepted only
+  where `sandbox/overtaken.ts` names the ask, owing a note as `?` does, stored as `{ choice: "stands" }` so the desk,
+  the walk and "Copy so far" count it answered; answering with a real option is an override and the new ruling, echoed
+  into `_window.json` at the overtaking board so the lane that wired the earlier ruling reads it. The map is one typed
+  file with a test that joins every key to a real ask in its board's current round (a reworded or retired question
+  fails the gate rather than leaving a badge that lies); the desk's count says "N overtaken". The judgment pass: 29
+  asks on 13 boards, 23 stand and 6 concede (the four his notes answered outright plus `first-event.style` and
+  `reel-studio.door`). The grammar landed by the Orchestrator at the merge as proposed (`7f0ca050`), with the README
+  paragraph and the map's contract published. One ROADMAP line (the dock's one-row grid squeezing the note column).
+  Gate 43 green on the merged tree.
+
+**Next.** The other three lanes' handoffs (`home-wiring` handed off), the waiting four, the night's explorations; his
+eye on the alias in the morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
 
