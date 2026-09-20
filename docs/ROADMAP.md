@@ -157,6 +157,9 @@ The app:
 - Bulk Restore-all and Empty-bin for the recovery bins; immediate hard-purge for egregious content in `/admin/albums`.
 - File-picker upload e2e reconfirm on a real device; the arrival choreography fine-tune on a real gated event, one round after the V1 phases.
 
+- From `hub-wiring` (2026-09-20): the share sheet holds the code, its downloads, the designer, the link and the slug claim; his "all current and any future sharing functionality" also names posters and an invite, which the product does not ship yet (no poster generator, no invite-by-email): sections for them, when they exist.
+- From `hub-wiring` (2026-09-20): the hub's header at 375 is unmeasured against his "immediately visible at the top of the page" (the lane had no signed-in view); if the cards row does not clear the fold, the header compresses (the code to ~96, the metadata folding) before anything is cut.
+- From `hub-wiring` (2026-09-20): `event-feed.tsx` and `event-feed-action-bar.tsx` are lab-only now with no lab importer of their own; a later lane gives them a head comment naming the board that draws them, or deletes them with it.
 - From `home-wiring` (2026-09-20): `trackAttrs` is INERT on `(app)` surfaces (only the marketing layout mounts the delegated listener, `analytics/events.ts` says so); the new doors carry the attributes anyway; either the rule means marketing doors or `(app)` needs its own listener.
 - From `home-wiring` (2026-09-20): `ui/toggle-group.tsx` ships unspecimened (one product call site, no Library mount); it earns a gallery entry when a lane owns `design/gallery/`.
 - From `home-wiring` (2026-09-20): `getFollowedHostEventCards` (`queries/social.ts`) has no caller since the Following chip went; kept as a real, tested read for a followed-hosts feed; delete it if nobody wants it by launch. The row view shows date, items and waiting; the board's guest and view counts were dropped (an unbounded scan, and no analytics).

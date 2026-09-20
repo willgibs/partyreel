@@ -14,28 +14,21 @@
 ## 2026-09-20 — The night sitting: the fifth batch and its wiring (`69a9a177` onward)
 
 **What Will did.** The fifth batch (build `69a9a17`) answered the four boards at the head of the desk whole: 30 verdicts,
-three `?` each with his own answer in the note. `voice`: bible 20 ruled permissive ("No app is a big benefit we're allowed
-to mention"; the rule was against "we're not cloud storage, we're not vsco") and the line becomes "No app required."
-since events may require accounts; his hero sentence ("Your guests took the best photos and videos at your event.
-Partyreel collects them with one easy link. No more chasing group chats the next day."); the curation h1 kept ("I do not
-like three-line headings on desktop"); "For videos and unlimited events."; "Your first album starts here" and "The album
-starts with you" (one voice on both empty surfaces); his gate line ("For safety, the host has requested you confirm your
-email. One tap and you're in.") with a big ask by name, "1+ exploratory tracks" on skipping email confirmation for a
-verified/unverified badge; today's upload toast, with "I'd like to redesign our toasts". `body-type`: 16 / 14 (the admin
-may go denser) / fluid / 10 as the floor with 12 kept for the labels he named / 12 on 0.08em / `leading=length`;
-`buttons=ladder` "not a direct selection, more work required". `glass`: Frost ("maybe worth a second round ... so we can
-nail our glass from the start"), one grade, the album behind, his tiles rule (nothing on a mobile card but an active
-like, a play mark and a subtle count; every action in the lightbox), white on the reel ("may be worth exploring making
-this the standard"), the row as a bar, dark on paper. `app-shape`: the pulse ("worth more dashboard explorations ...
-across all host states"), cover cards AND a row/table behind a toggle, the hub with the gallery beneath and a clickable
-QR left of the title, crumbs with the cards going sticky, sharing as a comprehensive sheet with a view-transition
-mini-modal off the QR and a subtle copy link under the metadata, settings as a sheet, the personal on the profile page
-and money on the account page, one shape on a phone. In plan mode: the glass wiring waits for round two; the questions
-his rulings reach on ten other boards are neither killed nor redrawn (his two paragraphs in rulings.md: badged in place,
-an agent's line, a trash, an answer overriding); the button rung goes to a lab round two. Ten lanes cut at the record
-(five now, `overtaken` after `lab-tides`, four as seats free); the four ledgers of retired boards deleted (the README's
-rule); then his night instruction: the seats run all night on unexplored surfaces and the Orchestrator gets
-`PartyreelAI/`, a folder of its own.
+three `?` each with his own answer in the note (his words verbatim in rulings.md). `voice`: bible 20 ruled permissive
+and the line becomes "No app required."; his hero sentence; the curation h1 kept; "For videos and unlimited events.";
+the album noun on both empty states; his gate line, with "1+ exploratory tracks" asked on skipping email confirmation
+for a badge; today's toast, with "redesign our toasts". `body-type`: 16 / 14 / fluid / 10 as the floor with 12 kept
+for labels / 12 on 0.08em / `leading=length`; `buttons` "more work required". `glass`: Frost with a second round asked
+("nail our glass from the start"), one grade, the album behind, his tiles rule (nothing on a mobile card but an active
+like, a play mark and a subtle count; every action in the lightbox), white on the reel ("worth exploring making this
+the standard"), the row as a bar, dark on paper. `app-shape`: the pulse (more dashboard explorations asked across host
+states), cover cards AND a row/table behind a toggle, the hub with the gallery beneath and a clickable QR by the title,
+crumbs with the cards going sticky, sharing as a sheet with a view-transition mini-modal and a subtle copy link,
+settings as a sheet, the personal on the profile and money on the account, one shape on a phone. In plan mode: the
+glass wiring waits for round two; the questions his rulings reach on ten other boards are neither killed nor redrawn
+(badged in place, an agent's line, a trash, an answer overriding); the button rung goes to a lab round two. Ten lanes
+cut at the record; the four ledgers of retired boards deleted; then his night instruction: the seats run all night on
+unexplored surfaces and the Orchestrator gets `PartyreelAI/`, a folder of its own.
 
 - **`lab-tides` merged at `75d6d2e2`** (2026-09-20, Opus; cut `11f03ef9`; the lab itself, Will's standing ask): ten
   lab-workflow findings in one lane without changing the shape of a round. `lab:demo` and `lab:smoke` refuse a missing
@@ -130,8 +123,35 @@ rule); then his night instruction: the seats run all night on unexplored surface
   teaser's old title that `voice-wiring` had ruled away (now a door check), one is named below. Gate 44 on the
   merged tree, with those two tests green after the fix.
 
-**Next.** `hub-wiring`'s merge (handed off `a2f77b4f`) and `glass-material`'s handoff, the waiting four, the night's
-explorations; his eye on the alias in the morning.
+- **`hub-wiring` merged at `a91464cb`** (2026-09-20, Opus; cut `20cc9b5f`): `app-shape` r1's event, navigation, sharing,
+  settings and phone answers in production. The event page is a hub: one header object (a live ~112 px `StyledQr` at
+  the left of the title, metadata and a subtle link that shows the pretty URL, copies the permanent one and confirms
+  in place with a 90 ms pop and an `aria-live` line, no toast; the two header chips retired into the code's own
+  "Paused" state and the Settings card's value line), a cards row (Review, Reel, Guests, Settings last, each with its
+  value line), the album beneath with the bin as a lazily fetched Deleted filter (a `getUser()`-gated Server
+  Function; the empty album's door to sharing is a control of the gallery's own). The code opens a mini-modal on the
+  native View Transitions API (240 ms on `--ease-emphasis`, name-scoped in `share/share.css`; whole-screen and white
+  in a hand with `navigator.share` third). Crumbs in the bar (`CrumbsProvider` inside `AppShell`, the trail landing
+  at hydration on a fixed-height bar; cut to the parent step at 375); Review, Reel and Guests as rooms with crumbs,
+  the Reel room holding the builder before birth (the `?section=reel` redirect deleted, not re-pointed). Sharing and
+  settings as two URL-backed sheets (`?room=`, the marker inside the state Next merges so Back closes the sheet and
+  never reloads; `/settings` redirecting) on ONE responsive Sheet, opt-in by prop, the sheet `guest-shape`,
+  `profile-page` and `app-pricing` inherit; `EventShareDialog` kept as a nine-prop wrapper. The cards row condenses
+  into the sticky pill row with a QR pill only while the header's code is off screen; the phone's edge gradients are
+  masks. `host-app.md`'s five sections refined in place (the share surface has its home now). Calls his to overrule on
+  the alias: the trail in the bar at hydration; the QR pill as Share's place in the sticky row; the Reel room pre-birth;
+  the lazy Deleted filter; the cards' order and value lines; the mini-modal's contents; the sheet's width; no
+  guest-side select. Deferred: the share sheet's posters and invite (nothing to hold yet); the hub header at 375
+  against "immediately visible at the top of the page" (unmeasured: the code compresses to ~96 before anything is
+  cut); `event-feed.tsx` and its action bar now lab-only. Two help articles made stale for `help-sync`
+  (`your-event-page-explained`, and any routing a host to `/settings`). NOT SEEN RENDERED: the local signed-in pass
+  could not run (Google OAuth will not redirect to a lane's port; no password ever typed), so the hub, the morph, the
+  sticky row, the sheets and the crumbs await the alias signed in, which is Will's; the four things to look at first
+  are in its Handoff (the 375 fold, one element carrying the view-transition name, the sheet's Back, a fresh-tab
+  `?room=settings`). Gate 45 green on the merged tree.
+
+**Next.** `glass-material`'s handoff, the waiting four, the night's explorations; his eye on the alias, signed in, in
+the morning.
 
 ## 2026-09-19 — The evening sitting: the fourth batch and its wiring (`b30445d9` onward)
 
