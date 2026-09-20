@@ -227,7 +227,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 50
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -235,7 +235,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 62
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -243,7 +243,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 67
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -251,7 +251,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 86
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -259,7 +259,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 156
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -267,7 +267,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 208
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -275,7 +275,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 286
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -283,7 +283,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -291,7 +291,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -299,7 +299,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -307,7 +307,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -315,7 +315,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -323,7 +323,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -331,7 +331,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 561
         },
         {
           "title": "names every standing board exactly once",
@@ -339,7 +339,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 608
         },
         {
           "title": "is the order BOARDS exports",
@@ -347,7 +347,124 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 616
+          "line": 612
+        }
+      ]
+    },
+    {
+      "id": "gradient",
+      "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts",
+      "names": [
+        "FLOOR",
+        "GROUND",
+        "RING"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "gives the same numbers for the same string, every time",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 42
+        },
+        {
+          "title": "sends neighbouring strings nowhere near each other",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 49
+        },
+        {
+          "title": "returns an identical orb on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 57
+        },
+        {
+          "title": "returns an identical background string on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 63
+        },
+        {
+          "title": "gives two different accounts two different colours",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 71
+        },
+        {
+          "title": "fills every one of twelve 30 degree buckets",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 80
+        },
+        {
+          "title": "keeps the curated set to its twelve, and the warm arc to its arc",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 90
+        },
+        {
+          "title": "reads under the initial at 24, 32 and 40px",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 101
+        },
+        {
+          "title": "separates from the page on paper and on ink",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 114
+        },
+        {
+          "title": "never matches the ring drawn over it",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 129
+        },
+        {
+          "title": "keeps the lit pole and the shadow inside the disc's own range",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 136
+        },
+        {
+          "title": "is one CSS value a server component can hand to a style attribute",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 150
+        },
+        {
+          "title": "interpolates in oklab wherever it ramps between two colours",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
+          "line": 158
         }
       ]
     },
@@ -893,7 +1010,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 50
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -901,7 +1018,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 62
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -909,7 +1026,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 67
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -917,7 +1034,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 86
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -925,7 +1042,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 156
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -933,7 +1050,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 208
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -941,7 +1058,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 286
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -949,7 +1066,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -957,7 +1074,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -965,7 +1082,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -973,7 +1090,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -981,7 +1098,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -989,7 +1106,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -997,7 +1114,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 561
         },
         {
           "title": "names every standing board exactly once",
@@ -1005,7 +1122,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 608
         },
         {
           "title": "is the order BOARDS exports",
@@ -1013,7 +1130,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 616
+          "line": 612
         }
       ]
     },
@@ -1037,7 +1154,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 50
+          "line": 46
         },
         {
           "title": "finds a board by id and nothing by a missing one",
@@ -1045,7 +1162,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 62
+          "line": 58
         },
         {
           "title": "keeps every spec free of React, CSS and its own board",
@@ -1053,7 +1170,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 67
+          "line": 63
         },
         {
           "title": "holds every string inside its limit",
@@ -1061,7 +1178,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 86
+          "line": 82
         },
         {
           "title": "points every ask, note and walk step at a section that exists",
@@ -1069,7 +1186,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 156
+          "line": 152
         },
         {
           "title": "declares every state a note or a walk step asks for",
@@ -1077,7 +1194,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 208
+          "line": 204
         },
         {
           "title": "registers every board that has a spec, and only those",
@@ -1085,7 +1202,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 286
+          "line": 282
         },
         {
           "title": "has a review on the record before a board opens a second round",
@@ -1093,7 +1210,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 325
+          "line": 321
         },
         {
           "title": "makes an ask that cannot be drawn say what to look at instead",
@@ -1101,7 +1218,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 370
+          "line": 366
         },
         {
           "title": "wires every catalog to a section, a pick and two compare controls",
@@ -1109,7 +1226,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 400
+          "line": 396
         },
         {
           "title": "stages an ask only after an earlier ask or a card of its own catalog",
@@ -1117,7 +1234,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 499
+          "line": 495
         },
         {
           "title": "computes one anchor everywhere",
@@ -1125,7 +1242,7 @@
             "the board registry"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 533
+          "line": 529
         },
         {
           "title": "lists only standing boards as still on the string form",
@@ -1133,7 +1250,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 555
+          "line": 551
         },
         {
           "title": "{b.id} asks every question in plain words",
@@ -1141,7 +1258,7 @@
             "the asks, in plain words"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 565
+          "line": 561
         },
         {
           "title": "names every standing board exactly once",
@@ -1149,7 +1266,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 612
+          "line": 608
         },
         {
           "title": "is the order BOARDS exports",
@@ -1157,7 +1274,7 @@
             "the desk's order"
           ],
           "file": "src/app/(dev)/design/sandbox/registry.test.ts",
-          "line": 616
+          "line": 612
         }
       ]
     },

@@ -113,7 +113,31 @@ lanes cut at `b30445d9`: `events-wiring`, `chrome-wiring` and `profile-wiring` (
   reaches a signed-out guest). No saved captures this round (the lane's capture script hit two bugs it fixed and one
   it could not; every option was read by eye at both screens instead). On the desk.
 
-**Next.** His eye on the alias (the profile, the chrome, the event pages) and his sitting on `site-chrome` round two and `profile-page` round two and the other twenty-five boards; `lab-tides` still running.
+- **`seed-avatar` merged at `a80fe1e1`** (2026-09-19, Opus; cut `8225bc35`; lab-only): round one of the seeded default
+  avatar, his ask by name the same evening ("I like the gradient over dither for our purposes"). hashvatar's gradient mode
+  pulled apart from its source (FNV-1a into mulberry32, one OKLCH hue per identity, six blurred polygons composited on a
+  canvas, a rAF loop, no light source at all) and rebuilt as ours: one pure function from a string to a CSS
+  `background-image`, zero dependencies, no canvas, renderable in a Server Component so the guest list can draw it,
+  credited to hashvatar (MIT) in the file; the lightness fitted by bisection into the window where a near-white initial
+  clears 4.5:1 and the disc 3:1 on paper AND ink, the chroma gamut-clamped at the real hue and lightness, the light placed
+  in the upper third, no motion by default; thirteen contract tests hold a thousand seeds to determinism, a filled wheel
+  and the floors (the contract published on the library page at the record). Seven decisions drawn on every real avatar
+  surface with `profile-page`'s twenty-four guests and today's grey in the same frame, phone first: `look` (recommended the
+  lit sphere, the only shape still an object at 24 px), `the-crowd` (every guest in full colour; 19 distinct colours
+  across 24 discs against today's one), `palette` (the whole wheel; twelve hues over twenty-four guests repeat as a
+  pattern), `letter` (the initial at every size), `seed` (the account id; a colour that moves when a typo is fixed is not
+  an identity colour), `after-upload` (the orb waiting underneath the photograph, the only option reaching the two
+  surfaces that show an empty disc during a presign), `motion` (never). Four calls his: two of the brief's options recut
+  (`look`'s "orb with the initial" was the `letter` question asked twice, so it became `flat`; `palette`'s album-sampled
+  set coupled a person's colour to an event, so it became one warm arc; a sampled palette would be a second round);
+  `the-crowd` asked as a decision rather than shown as a proof; the 64 px account control and the 80 px identity row sit
+  outside the `Avatar` contract's three sizes (the wiring lane hands them `background()` directly rather than growing a
+  fourth size); the chip's initial already renders at 12 px, not the 10 `guest-list.tsx` asks for (the wiring lane decides
+  once in `avatar.tsx`). Look at first: `the-crowd` at 375, then `look` at 24 px. Its id sits after `app-vocabulary` on
+  the desk. Gate 39 green on the final tree (design:rules, the specimens, lint with the 8 known warnings, 2665
+  tests, build 255 pages, `lab:smoke` 460 checks whole, `lab:demo` 7 steps on `seed-avatar` with 0 failing).
+
+**Next.** His eye on the alias (the profile, the chrome, the event pages) and his sitting on `site-chrome` round two, `profile-page` round two, `seed-avatar` and the other twenty-five boards; `lab-tides` still running.
 
 ## 2026-09-19 — The morning sitting: the third batch on the overnight desk (`22438704` onward)
 

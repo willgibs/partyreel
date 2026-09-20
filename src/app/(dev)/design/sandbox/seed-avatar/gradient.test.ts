@@ -1,11 +1,4 @@
-// ★ PENDING, NOT ABANDONED, exactly as `sandbox/registry.test.ts` was before it:
-// strip "-pending" below to publish this contract on the library page. The
-// collector indexes every file a live `@contract-for` names, and an indexed file
-// owes a `for` line in `rules/component-notes.ts` (gallery.test.ts fails without
-// one). That file belongs to the lab-rules lane, not this one, so the two-line
-// patch is asked for in this track's Handoff instead of taken. THE TESTS BELOW RUN
-// EITHER WAY: the marker publishes a contract, it does not create one.
-// @contract-for-pending: src/app/(dev)/design/sandbox/seed-avatar/gradient.ts
+// @contract-for: src/app/(dev)/design/sandbox/seed-avatar/gradient.ts
 
 import { describe, expect, it } from "vitest";
 
