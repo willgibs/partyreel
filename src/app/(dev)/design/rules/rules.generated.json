@@ -541,123 +541,6 @@
       ]
     },
     {
-      "id": "gradient",
-      "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.ts",
-      "names": [
-        "FLOOR",
-        "GROUND",
-        "RING"
-      ],
-      "specimens": [],
-      "indexed": false,
-      "contracts": [
-        {
-          "title": "gives the same numbers for the same string, every time",
-          "suite": [
-            "the seed, hashed"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 42
-        },
-        {
-          "title": "sends neighbouring strings nowhere near each other",
-          "suite": [
-            "the seed, hashed"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 49
-        },
-        {
-          "title": "returns an identical orb on every call",
-          "suite": [
-            "the same seed gives the same colours"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 57
-        },
-        {
-          "title": "returns an identical background string on every call",
-          "suite": [
-            "the same seed gives the same colours"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 63
-        },
-        {
-          "title": "gives two different accounts two different colours",
-          "suite": [
-            "the same seed gives the same colours"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 71
-        },
-        {
-          "title": "fills every one of twelve 30 degree buckets",
-          "suite": [
-            "a thousand seeds spread across the wheel"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 80
-        },
-        {
-          "title": "keeps the curated set to its twelve, and the warm arc to its arc",
-          "suite": [
-            "a thousand seeds spread across the wheel"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 90
-        },
-        {
-          "title": "reads under the initial at 24, 32 and 40px",
-          "suite": [
-            "every colour clears its floor"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 101
-        },
-        {
-          "title": "separates from the page on paper and on ink",
-          "suite": [
-            "every colour clears its floor"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 114
-        },
-        {
-          "title": "never matches the ring drawn over it",
-          "suite": [
-            "every colour clears its floor"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 129
-        },
-        {
-          "title": "keeps the lit pole and the shadow inside the disc's own range",
-          "suite": [
-            "every colour clears its floor"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 136
-        },
-        {
-          "title": "is one CSS value a server component can hand to a style attribute",
-          "suite": [
-            "the background it emits"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 150
-        },
-        {
-          "title": "interpolates in oklab wherever it ramps between two colours",
-          "suite": [
-            "the background it emits"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/gradient.test.ts",
-          "line": 158
-        }
-      ]
-    },
-    {
       "id": "owner-sections",
       "file": "src/app/(guest)/u/[slug]/owner-sections.tsx",
       "names": [
@@ -885,6 +768,180 @@
           ],
           "file": "src/components/shared/failure-grammar.test.tsx",
           "line": 257
+        }
+      ]
+    },
+    {
+      "id": "destructive-sheet",
+      "file": "src/components/admin/destructive-sheet.tsx",
+      "names": [
+        "DestructiveSheet",
+        "GuardedSwitch"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "lists every line it was given, and never a summary of them",
+          "suite": [
+            "it says what the act touches"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "asks for nothing on a reversible one, and is pressable at once",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "asks for nothing on a permanent act with nothing to identify",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "refuses to confirm until the identifier matches",
+          "suite": [
+            "only a permanent act makes you type"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "runs once, and is handed what was actually typed",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "runs once on a reversible act too",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 107
+        },
+        {
+          "title": "leaves Cancel doing nothing but closing",
+          "suite": [
+            "the confirmation itself"
+          ],
+          "file": "src/components/admin/destructive-sheet.test.tsx",
+          "line": 114
+        }
+      ]
+    },
+    {
+      "id": "health-band",
+      "file": "src/components/admin/health-band.tsx",
+      "names": [
+        "HealthBand"
+      ],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws nothing at all",
+          "suite": [
+            "a good day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 32
+        },
+        {
+          "title": "still draws nothing when a job is paused on purpose",
+          "suite": [
+            "a good day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "names the jobs while there are few enough to name",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "counts them once naming them would be a paragraph",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "mentions a paused job beside the fault, without counting it as one",
+          "suite": [
+            "a bad day"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "says what happened, and puts no number on it",
+          "suite": [
+            "an unreadable heartbeat"
+          ],
+          "file": "src/components/admin/health-band.test.tsx",
+          "line": 106
+        }
+      ]
+    },
+    {
+      "id": "inbox-pane",
+      "file": "src/components/admin/inbox-pane.tsx",
+      "names": [
+        "InboxPane"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "makes every row a link that carries its own id",
+          "suite": [
+            "the selection is a URL"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 38
+        },
+        {
+          "title": "marks the chosen row, and only that one",
+          "suite": [
+            "the selection is a URL"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "says the list is empty when there is nothing at all",
+          "suite": [
+            "the two empty cases are different sentences"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "draws the reading pane when a message is given, and the prompt otherwise",
+          "suite": [
+            "the two empty cases are different sentences"
+          ],
+          "file": "src/components/admin/inbox-pane.test.tsx",
+          "line": 79
         }
       ]
     },
@@ -10303,7 +10360,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 31
+          "line": 35
         },
         {
           "title": "condenses to ONE button past the threshold, and the button carries the count",
@@ -10311,7 +10368,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 39
+          "line": 43
         },
         {
           "title": "opens IN PLACE, one page at a time, never the whole list at once",
@@ -10319,7 +10376,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 48
+          "line": 52
         },
         {
           "title": "links a guest WITH a handle and leaves one without unlinked",
@@ -10327,7 +10384,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 65
+          "line": 69
         },
         {
           "title": "says so when the host's key is on and nobody has added a photo yet",
@@ -10335,7 +10392,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 81
+          "line": 85
         }
       ]
     },
@@ -10397,7 +10454,80 @@
         "/design/library/components"
       ],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "carries rounded-full and overflow-hidden at size=%s",
+          "suite": [
+            "the disc clips once, on the root"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 49
+        },
+        {
+          "title": "the xl size is 80px (size-20), the fourth size on the contract",
+          "suite": [
+            "the disc clips once, on the root"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 60
+        },
+        {
+          "title": "AvatarFallback never sets its own rounded-full",
+          "suite": [
+            "the children carry no rounding of their own"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 71
+        },
+        {
+          "title": "AvatarImage never sets its own rounded-full, and covers the disc with no gap",
+          "suite": [
+            "the children carry no rounding of their own"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "sets a two-hue backgroundImage on the root",
+          "suite": [
+            "a seed paints the root and threads through to the fallback"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "drops bg-muted for a transparent ground, and colours the initial",
+          "suite": [
+            "a seed paints the root and threads through to the fallback"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 111
+        },
+        {
+          "title": "the SAME seed paints the SAME colour on two different avatars",
+          "suite": [
+            "a seed paints the root and threads through to the fallback"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 123
+        },
+        {
+          "title": "a DIFFERENT seed paints a different colour",
+          "suite": [
+            "a seed paints the root and threads through to the fallback"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 139
+        },
+        {
+          "title": "with no seed, the root paints nothing and the fallback stays today's grey",
+          "suite": [
+            "a seed paints the root and threads through to the fallback"
+          ],
+          "file": "src/components/ui/avatar.test.tsx",
+          "line": 155
+        }
+      ]
     },
     {
       "id": "badge",
@@ -10442,6 +10572,82 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "command-palette",
+      "file": "src/components/ui/command-palette.tsx",
+      "names": [
+        "CommandPalette",
+        "CommandPaletteContent",
+        "CommandPaletteEmpty",
+        "CommandPaletteFooter",
+        "CommandPaletteGroup",
+        "CommandPaletteInput",
+        "CommandPaletteItem",
+        "CommandPaletteList"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "wires the field to the list it controls",
+          "suite": [
+            "the palette is a combobox over a listbox"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "activates the first row before a key is pressed, so Enter always does something",
+          "suite": [
+            "the palette is a combobox over a listbox"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 67
+        },
+        {
+          "title": "walks the list with the arrows and stops at both ends",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "reaches both ends with Home and End",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 90
+        },
+        {
+          "title": "opens the row that is highlighted, not the one that was first",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "moves the highlight with the pointer, so the mouse and the keys agree",
+          "suite": [
+            "five keys and nothing else"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 108
+        },
+        {
+          "title": "hands the query to whoever is filtering, and never filters itself",
+          "suite": [
+            "what the field holds"
+          ],
+          "file": "src/components/ui/command-palette.test.tsx",
+          "line": 117
+        }
+      ]
     },
     {
       "id": "dialog",
@@ -10737,6 +10943,66 @@
       "contracts": []
     },
     {
+      "id": "table",
+      "file": "src/components/ui/table.tsx",
+      "names": [
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ],
+      "specimens": [
+        "/design/library/components"
+      ],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "writes the tone as data, so a stylesheet and a test can both read it",
+          "suite": [
+            "a row says what state it is in"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "carries no attribute at all when it has no tone",
+          "suite": [
+            "a row says what state it is in"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "scopes every tone to its own data value, so one class string serves four",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "puts the leading edge on the row's first child, not on the row",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 80
+        },
+        {
+          "title": "offers the pressable row as an opt-in",
+          "suite": [
+            "the tone rules are shared, not copied"
+          ],
+          "file": "src/components/ui/table.test.tsx",
+          "line": 87
+        }
+      ]
+    },
+    {
       "id": "tabs",
       "file": "src/components/ui/tabs.tsx",
       "names": [
@@ -10788,6 +11054,325 @@
       ],
       "indexed": true,
       "contracts": []
+    },
+    {
+      "id": "kpi",
+      "file": "src/lib/admin/kpi.ts",
+      "names": [
+        "FORTNIGHT_DAYS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "leaves the operator out of every one of them",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 46
+        },
+        {
+          "title": "counts a fortnight against the fortnight before it",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 52
+        },
+        {
+          "title": "reads 'active' as last seen, and says so",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 64
+        },
+        {
+          "title": "takes uploads whole and by fortnight from the counts it is handed",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 74
+        },
+        {
+          "title": "gives paid subscribers NO delta, because nothing remembers last fortnight",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 80
+        },
+        {
+          "title": "says something true about an empty platform rather than dividing by zero",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 95
+        },
+        {
+          "title": "draws one point per day, in order",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 103
+        },
+        {
+          "title": "puts the highest count at the top of the box and the lowest at the bottom",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 110
+        },
+        {
+          "title": "draws a flat fortnight flat instead of dividing by zero",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 117
+        },
+        {
+          "title": "draws nothing for no days at all",
+          "suite": [
+            "the sparkline"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 125
+        }
+      ]
+    },
+    {
+      "id": "palette",
+      "file": "src/lib/admin/palette.ts",
+      "names": [
+        "PALETTE_ACTIONS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "offers every surface the nav knows, and invents none",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 25
+        },
+        {
+          "title": "points every action at a real surface, with an anchor to land on",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 30
+        },
+        {
+          "title": "makes every action a DESTINATION and never a call",
+          "suite": [
+            "the index"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 39
+        },
+        {
+          "title": "shows the whole list, unfiltered, before anything is typed",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 53
+        },
+        {
+          "title": "narrows on a second word rather than widening (AND, not OR)",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 58
+        },
+        {
+          "title": "puts a label that STARTS with the term above one that merely contains it",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 65
+        },
+        {
+          "title": "finds a word inside a label, so a term need not be its first",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 71
+        },
+        {
+          "title": "matches a keyword nobody sees, for the words an operator actually uses",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 77
+        },
+        {
+          "title": "returns nothing rather than everything when a term matches nothing",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 83
+        },
+        {
+          "title": "keeps the list stable while somebody types",
+          "suite": [
+            "the ranker"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 87
+        },
+        {
+          "title": "drops the whitespace a real query is full of",
+          "suite": [
+            "tokenize"
+          ],
+          "file": "src/lib/admin/palette.test.ts",
+          "line": 97
+        }
+      ]
+    },
+    {
+      "id": "queue",
+      "file": "src/lib/admin/queue.ts",
+      "names": [],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "puts an unreadable console above everything, and never gives it a number",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 38
+        },
+        {
+          "title": "orders a failure, then an overdue job, then safety, then the inboxes",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 52
+        },
+        {
+          "title": "tints a failure and leaves an inbox alone",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 78
+        },
+        {
+          "title": "is empty on a good day, rather than a list of zeroes",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 93
+        },
+        {
+          "title": "names a report by its kind and its age, and says nothing about its content",
+          "suite": [
+            "the ladder"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 97
+        },
+        {
+          "title": "rounds down at every step, and steps up at the whole unit",
+          "suite": [
+            "how long it has waited"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 110
+        },
+        {
+          "title": "says nothing at all about a row nothing dates",
+          "suite": [
+            "how long it has waited"
+          ],
+          "file": "src/lib/admin/queue.test.ts",
+          "line": 120
+        }
+      ]
+    },
+    {
+      "id": "tone",
+      "file": "src/lib/admin/tone.ts",
+      "names": [
+        "HEALTH_BADGE",
+        "HEALTH_ROW",
+        "RUN_BADGE",
+        "RUN_ROW"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "covers every health the catalog can return",
+          "suite": [
+            "every state has a voice"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 19
+        },
+        {
+          "title": "speaks the four the board ruled, and keeps paused out of them",
+          "suite": [
+            "every state has a voice"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 37
+        },
+        {
+          "title": "reaches the row only where finding it by scrolling is the point",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 52
+        },
+        {
+          "title": "tints a failed RUN and nothing else in the run table",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 62
+        },
+        {
+          "title": "gives a run's outcome a chip, and an unknown status a quiet one",
+          "suite": [
+            "the tint is rare, on purpose"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 69
+        },
+        {
+          "title": "never gives a row a tone its chip does not have",
+          "suite": [
+            "the chip and the row read one module"
+          ],
+          "file": "src/lib/admin/tone.test.ts",
+          "line": 79
+        }
+      ]
     },
     {
       "id": "door-failure",
@@ -10982,6 +11567,172 @@
           ],
           "file": "src/lib/auth/remembered-email.test.ts",
           "line": 146
+        }
+      ]
+    },
+    {
+      "id": "gradient",
+      "file": "src/lib/avatar/gradient.ts",
+      "names": [
+        "FLOOR",
+        "GROUND",
+        "RING"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "gives the same numbers for the same string, every time",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 48
+        },
+        {
+          "title": "sends neighbouring strings nowhere near each other",
+          "suite": [
+            "the seed, hashed"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 55
+        },
+        {
+          "title": "returns an identical orb on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 63
+        },
+        {
+          "title": "returns an identical background string on every call",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 69
+        },
+        {
+          "title": "gives two different accounts two different colours",
+          "suite": [
+            "the same seed gives the same colours"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 77
+        },
+        {
+          "title": "fills every one of twelve 30 degree buckets, and never concentrates in one or two",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 86
+        },
+        {
+          "title": "keeps the curated set to its twelve, and the warm arc to its arc",
+          "suite": [
+            "a thousand seeds spread across the wheel"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 105
+        },
+        {
+          "title": "reads under the initial at 24, 32 and 40px",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 116
+        },
+        {
+          "title": "separates from the page on paper and on ink",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 129
+        },
+        {
+          "title": "never matches the ring drawn over it",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 144
+        },
+        {
+          "title": "keeps the lit pole and the shadow inside the disc's own range",
+          "suite": [
+            "every colour clears its floor"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 151
+        },
+        {
+          "title": "is one CSS value a server component can hand to a style attribute",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 165
+        },
+        {
+          "title": "interpolates in oklab wherever it ramps between two colours",
+          "suite": [
+            "the background it emits"
+          ],
+          "file": "src/lib/avatar/gradient.test.ts",
+          "line": 173
+        }
+      ]
+    },
+    {
+      "id": "seed",
+      "file": "src/lib/avatar/seed.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is deterministic: the same id hashes the same way every time",
+          "suite": [
+            "seedFor"
+          ],
+          "file": "src/lib/avatar/seed.test.ts",
+          "line": 23
+        },
+        {
+          "title": "gives every id its own hash",
+          "suite": [
+            "seedFor"
+          ],
+          "file": "src/lib/avatar/seed.test.ts",
+          "line": 28
+        },
+        {
+          "title": "is a sha-256 hex digest: 64 lowercase hex characters",
+          "suite": [
+            "seedFor"
+          ],
+          "file": "src/lib/avatar/seed.test.ts",
+          "line": 34
+        },
+        {
+          "title": "never returns or contains the id it was given",
+          "suite": [
+            "seedFor"
+          ],
+          "file": "src/lib/avatar/seed.test.ts",
+          "line": 38
+        },
+        {
+          "title": "fills every 30 degree bucket and never concentrates in one or two",
+          "suite": [
+            "a thousand real accounts, seeded through seedFor"
+          ],
+          "file": "src/lib/avatar/seed.test.ts",
+          "line": 56
         }
       ]
     },

@@ -88,6 +88,14 @@ appears on no profile.
   expanding in place 24 at a time; because the row says the count, both callers drop the count from
   their own heading above the threshold (the album's pill, the feed's `guestsCountInList`). HOW View
   all opens is round two's (`profile-reach`); the in-place paging is the interim.
+- **Every `ProfileCardItem` carries a colour, not just an avatar URL.** `withAvatarUrls`
+  ([`lib/social/cards.ts`](../../src/lib/social/cards.ts)) hydrates `seed: seedFor(card.id)`
+  (`src/lib/avatar/seed.ts`, a server-side SHA-256) alongside `avatarUrl`, so the guest list's chips
+  and faces row, the profile owner mode's Connections, and the account page's Following/Blocked rows
+  all paint the same deterministic per-person colour a Server Component just passes to `Avatar`'s
+  `seed` prop — never the raw id (avatar-wiring, 2026-09-20). The generator and its contract live in
+  `src/lib/avatar/`; the fuller avatar-system writeup (upload, storage, the "Hosted by" byline) is
+  [auth-accounts.md](auth-accounts.md)'s, still owed a line for this.
 - **The attended arm's covers re-prove their own scope.** `getPublicProfileAttendedCoverUrls` takes
   ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's
   `profile_hidden_events` again before presigning: a presign turns an id into someone else's

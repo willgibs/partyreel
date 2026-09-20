@@ -1,67 +1,27 @@
 ---
-track: admin-wiring
+track: demo-wiring
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "c935f072"          # the launch-prep SHA the branch was cut from
-board: admin           # retires at this lane's merge (the fixtures survive as a Library demo)
+cut: "2a5c7018"          # the launch-prep SHA the branch was cut from
+board: demo-event      # wiring six of seven; round two on the doors is another lane
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/admin/page.tsx
-  - src/app/admin/layout.tsx
-  - src/app/admin/error.tsx
-  - src/app/admin/not-found.tsx
-  - src/app/admin/accounts/
-  - src/app/admin/albums/
-  - src/app/admin/applicants/
-  - src/app/admin/announcements/
-  - src/app/admin/exports/
-  - src/app/admin/forensics/
-  - src/app/admin/jobs/
-  - src/app/admin/metrics/
-  - src/app/admin/reels/
-  - src/app/admin/security/
-  - src/app/admin/support/
-  - src/components/admin/admin-shell.tsx
-  - src/components/admin/admin-nav.tsx
-  - src/components/admin/operator-alerts.tsx
-  - src/components/admin/applicants-list.tsx
-  - src/components/admin/announcement-compose.tsx
-  - src/components/admin/announcement-list.tsx
-  - src/components/admin/moderation-grid.tsx
-  - src/components/admin/admin-bar.tsx
-  - src/components/admin/admin-rail.tsx
-  - src/components/admin/health-band.tsx
-  - src/components/admin/admin-palette.tsx
-  - src/components/admin/inbox-pane.tsx
-  - src/components/admin/destructive-sheet.tsx
-  - src/components/admin/queue-list.tsx
-  - src/components/admin/sparkline.tsx
-  - src/components/admin/metric-card.tsx
-  - src/components/admin/metrics-charts.tsx
-  - src/components/admin/metrics-charts.lazy.tsx
-  - src/components/admin/support-list.tsx
-  - src/lib/admin/
-  - src/lib/jobs/health-summary.ts
-  - src/lib/db/queries/metrics.ts
-  - src/components/ui/table.tsx
-  - src/components/ui/table.test.tsx
-  - src/components/ui/command-palette.tsx
-  - src/components/ui/command-palette.test.tsx
-  - src/components/ui/badge.tsx
-  - src/app/(dev)/design/sandbox/admin/
-  - docs/systems/admin-observability.md
+  - src/components/guest/entry-modal.tsx
+  - src/components/guest/event-experience.tsx
+  - src/components/guest/guest-header.tsx
+  - src/components/guest/guest-upload.tsx
+  - src/components/marketing/chrome/marketing-footer.tsx
+  - src/components/marketing/system/demo-ticket.tsx
+  - src/components/marketing/sections/home/live-demo.tsx
+  - src/lib/demo.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/reviews/admin.json
+  - docs/reviews/demo-event.json
   - docs/design/rulings.md
-  - src/app/admin/reports/
-  - src/components/app/report-review.tsx
-  - src/components/admin/triage-status-control.tsx
-  - src/lib/moderation/
-  - src/components/ui/sheet.tsx
-  - src/app/(dev)/design/sandbox/help-center/
-  - src/lib/content/help-search-rank.ts
-  - src/app/(dev)/design/sandbox/admin-triage/spec.ts
+  - src/lib/guest/use-gallery-doorbell.ts
+  - src/components/guest/live-gallery.tsx
+  - src/app/(dev)/design/sandbox/demo-event/
+  - docs/systems/guest-flow.md
 ---
 
-# lp/admin-wiring
+# lp/demo-wiring
 
 **Goal.** Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the sixth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -70,65 +30,17 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `806695d1`)
 
-- Owns, EXPLICITLY (the manifest test treats a prefix as covering everything under it, so no `src/app/admin/` or
-  `src/components/admin/` prefix): `src/app/admin/page.tsx`, `layout.tsx`, `error.tsx`, `not-found.tsx`, and the
-  folders `accounts/`, `albums/`, `applicants/`, `announcements/`, `exports/`, `forensics/`, `jobs/`, `metrics/`,
-  `reels/`, `security/`, `support/` (never `reports/`, admin-triage's); in `src/components/admin/` the files
-  `admin-shell.tsx`, `admin-nav.tsx`, `operator-alerts.tsx`, `applicants-list.tsx`, `announcement-compose.tsx`,
-  `announcement-list.tsx`, `moderation-grid.tsx` (its Remove onto the sheet; its tile untouched) and the new
-  `admin-bar.tsx`, `admin-rail.tsx`, `health-band.tsx`, `admin-palette.tsx`, `inbox-pane.tsx`, `destructive-sheet.tsx`,
-  `queue-list.tsx`, `sparkline.tsx` (never `triage-status-control.tsx`, `triage-filter.tsx`, `mfa-*.tsx`);
-  `src/lib/admin/` (new `palette.ts`, `pending.ts`), `src/lib/jobs/health-summary.ts` (a
-  `readJobHealth()` beside the wrapper), `src/lib/db/queries/metrics.ts` (the split), the new `src/components/ui/table.tsx`
-  and `src/components/ui/command-palette.tsx`, `src/components/ui/badge.tsx` (RELEASED for two additive variants,
-  `success` and `warning`), `src/app/(dev)/design/sandbox/admin/` and its registration lines (the SPEC retires at handoff; the board's fixtures survive as a Library demo rendering the production bar, rail, band and sheet credential-free, so `lab:smoke` and `lab:demo` keep proving the portal nobody can sign into on a lane's port), the
-  "What binds" and "## Surfaces" sections of `docs/systems/admin-observability.md` (the second describes the dropdown and the bell this lane replaces). HANDS OFF: `src/app/admin/reports/**`,
-  `src/components/app/report-review.tsx`, `triage-status-control.tsx`, `src/lib/moderation/` (admin-triage's lives),
-  the MFA gate (`layout.tsx:37-63` renders outside the shell on purpose: no rail before AAL2). `OperatorAlerts` and
-  `nav.ts`'s exports survive (the admin-triage board imports them).
-- NO audit table: "write it down" was the `arm` option he did not pick, and the ROADMAP defers the operator log to
-  that grammar; nothing is applied at the cut. The lane PROPOSES an `admin_actions` table in its Handoff as a
-  Question (the columns, the `forensic_audit_log` posture, who writes it) and builds nothing on it.
-- The shell: `admin-bar.tsx` (h-11: the logo, a crumb from NAV and the pathname, a live tag from `VERCEL_ENV`, the
-  health chip, an initial opening a menu with the email and sign-out; the `text-[10px]` Ops badge replaced by a ladder
-  step), `admin-rail.tsx` (a 232 px column at `lg` from `navGroups()`, counts on Support, Applicants, Reports and Jobs,
-  a "Search ⌘K" row at the top; below `lg` the existing dropdown stays), `health-band.tsx` under the bar, rendered only
-  when a job is unhealthy or the heartbeat unreadable (never "1 job" for an unreadable read), the pending counts read
-  once through React `cache()` for the layout and the home.
-- The home: `getPlatformMetrics()` (`queries/metrics.ts:64`) SPLIT into its database half (exported; the profiles
-  slice with tier, `created_at`, `last_active_at`, the link stats, the media counts, `signupTrend`) and its Stripe
-  half, so the home reads the first and `/admin/metrics` both (no new query file): four figures with their fortnight
-  delta (Accounts, Active hosts, Uploads, Paid subscribers) on the existing `MetricCard`, one inline-SVG signup
-  sparkline (`buildSignupTrend(rows, now, 14)` reused), and beneath them THE SAME QUEUE the board's console drew (a
-  ranked list, worst first: kind, what, how long it has waited, the action; a report's row named by kind and age
-  only, its anatomy admin-triage's); the nine-card grid goes; Exports joins NAV under Operations.
-- The palette: `ui/command-palette.tsx` (Root/Input/List/Group/Item/Footer on the raw Radix Dialog, the combobox
-  and keyboard model of the lab's help-centre palette (`sandbox/help-center/`; no production help palette exists)
-  rebuilt as a primitive, skin-agnostic), `admin-palette.tsx` on it with an index of surfaces (NAV), actions (static jumps to a surface anchor) and
-  accounts through a new AAL2-gated `searchAccountsForPaletteAction(q)` (limit 8); the palette jumps, never acts.
-- Density: `ui/table.tsx` (shadcn, hand-checked) with `TableRow tone` emitting `data-tone` (a tint on the row, the
-  leading edge as an inset shadow on the first cell; `tableRowVariants` exported so the inbox list shares it) for
-  accounts, exports, jobs, reels and forensics rows; `inbox-pane.tsx` (the list beside the message, `?id=` honoured,
-  stacked below `lg`) for Support and Applicants; Reports stays sectioned (admin-triage's "one language" ask).
-- Colour: "the same four" reaching the row: `badge.tsx` gains `success`, `warning` and `info` (a running job, blue:
-  the board's fourth; the `--info` token pair lands with the seam); the jobs page maps ok to success, running to
-  info, missed and attention to warning; the row tone carries a failed run's tint and edge.
-- The destructive sheet: `destructive-sheet.tsx` on `Sheet responsive` (`title`, `verb`, `touches[]`, `severity:
-  reversible | permanent`, `confirmText` typed only when permanent, `onConfirm`): adopted by delete account (typed;
-  the server still verifies), remove media, delete announcement, release hold (replacing the arm-then-confirm), the
-  two kill switches and job pause on their OFF edge, run-now for the purge sweep; the two report verdicts are left to
-  admin-triage and named in the Handoff.
-- Tests (`// @contract-for:`): the palette index, the KPI deltas and sparkline path, the tone maps, the audit names,
-  the health reducer, `nav.test.ts` extended (every admin page has an entry); jsdom: the table's `data-tone`, the
-  palette's combobox aria and keys, the sheet (every touch listed; confirm disabled until typed only when permanent;
-  one `onConfirm`), the inbox pane. `lab:smoke` proves the admin-triage board still draws.
-- Verification: the lane cannot sign in as the admin (no credential is ever typed): unit and jsdom tests plus the
-  fixtures carry it; the Orchestrator red-teams the admin host's alias signed out (the redirect) and lists the
-  signed-in pass for Will (the bar at 44, the rail at 1440 and the dropdown at 375, ⌘K for a surface, an account and
-  an action, the home's figures against `/admin/metrics`, the band absent on a good day, the sheet on a disposable
-  announcement and a pause of downloads, the audit rows; the typed account delete never exercised).
-- His to overrule: the four figures; Exports in NAV; the rail at 232 px (the board's number); the palette's static
-  actions; the inbox pane for Support and Applicants only; the `info` fourth colour.
+- Owns, then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
+`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
+`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
+the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
+retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
+`marketing-content.md`. ALSO, since this lane owns the two files: the "Hosted by" bylines (`event-experience.tsx:271`,
+`entry-modal.tsx:459`) take `seedFor(host_id)` computed server-side (`src/lib/avatar/seed.ts`; never the raw host id on the
+client) and fold onto the one `Avatar` with its `seed` prop (avatar-wiring's deferred line, ROADMAP). The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
+every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
+Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
+mark, an upload's turn card, the pair with the pane and a second tab.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
@@ -294,38 +206,6 @@ vocab-wiring lands). Typecheck and the tests green. (If the seam cannot land cle
 - `phone=swipe` + "I think the demo is broken, so I can't actually see it live. Would like to prove it in the lab
   before passing": NOT wired. The board's `phone` step is repaired in the lab and the ask stays open on the board for
   his eye (round two carries it beside `fit`).
-
-**Lane 7: `pricing-wiring` (Opus, the first seat that frees; the money page):** owns `src/app/(marketing)/(paper)/pricing/`
-(or wherever `pricing/page.tsx` lives: the lane check names it), `src/components/marketing/sections/pricing/`
-(`plan-cards.tsx`, `pass-card.tsx`, `calculator.tsx`, the unlock grid, the shared band retired on disk if the lab
-draws it, the FAQ block), `pricing-faq-data.ts`, the pricing lines of `docs/systems/marketing-content.md`. Reads,
-never edits: `src/lib/constants/tiers.ts` (the sizes and cadence the slider walks: the one source), `marketing-voice.ts`
-(`PRO_LINE`), the checkout doors (their targets unchanged; Stripe stays TEST), `sandbox/pricing-page/` (round two's).
-The chapter rhythm: paper opening, the pair and the Pass, the dark tiles chapter, "Find your plan size" as today, the
-dark table, the accordion, the band. Tests: the FAQ count and the JSON-LD parity, the slider's steps equal `tiers.ts`,
-the cadence toggle above the slider, `marketing-h1-policy`, `content-policy`; the gate. Red-team on the alias signed
-out at 1440 and 375: the whole page, the slider, the dark chapters' transitions, the accordion, the Pass beneath.
-His to overrule: the Pass's new design; the accordion's count; the tiles chapter's copy.
-
-**Lane 8: `demo-wiring` (Sonnet, cut AFTER `guest-wiring` merges, since its items live in that lane's files):** owns,
-then, `entry-modal.tsx` (the demo variant of the welcome step's copy, its design untouched until round two),
-`event-experience.tsx` (the action row's "Start your own" and the closing card, the pair's "added from a phone" line),
-`guest-header.tsx` (sticky, the Demo mark; avatar-wiring's before, free by then), `guest-upload.tsx` (the turn card),
-the marketing demo doors (`marketing-footer.tsx`'s pile as the rule, `demo-ticket.tsx`, the nav panel's ticket
-retired on disk, `live-demo.tsx`), `src/lib/demo/` if it exists, the demo lines of `guest-flow.md` and
-`marketing-content.md`. The public demo event's DATA is never touched (the standing rule). Tests: the demo mark on
-every guest screen of the demo, the turn card only in the demo, the pair's channel (the doorbell's, no new table).
-Red-team on the alias signed out at 375 and 1440: the demo door from the home and a feature page, the arrival, the
-mark, an upload's turn card, the pair with the pane and a second tab.
-
-**Round twos from this paste (Sonnet, lab-only, as seats free):** `pricing-fit` (pricing-page round two: `fit`, with
-the Higgsfield research, and `phone` with its demo repaired) and `demo-doors` (demo-event round two on `doors`
-alone). Both boards keep their ids; their RULINGS rows are rewritten by the round-two lanes.
-
-**Their reach on the boards still open (for `overtaken-2`):** `app-pricing.carry`, `pass` and `learn` (the marketing
-page's new shape and the Pass's place); `first-event.limit` (a Free host's upgrade door opens on the paper plans);
-`site-chrome` round two's `foot-after` (the pricing page now closes on the accordion and the band); `help-center.hub`
-(the FAQ data's split); `demo-event`'s doors reach the nav panel `site-chrome` round one landed (the ticket goes).
 
 ## The ownership rules every lane follows this round
 

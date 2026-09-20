@@ -15,6 +15,8 @@ type MenuData = {
   displayName: string | null;
   avatarUrl: string | null;
   ownsThisEvent: boolean;
+  /** seedFor(user.id), from /api/me/menu — null in phase 1 (see below). */
+  seed: string | null;
 };
 
 // The guest event-page header. Auth-aware: a LOGGED-OUT visitor sees the quiet "Start for free"
@@ -64,11 +66,15 @@ export function GuestHeader({
       if (!active || !session) return;
       // Phase 1: show the menu immediately with the email from the JWT (avatar = initials),
       // so the menu appears as soon as the local session is known — no wait on the network.
+      // seed stays null here (not avatarUrl either): seedFor is a server-side SHA-256
+      // (src/lib/avatar/seed.ts, node:crypto has no browser build), so the colour can only
+      // arrive with phase 2 — exactly the same beat the photo already waits for.
       setMenu({
         email: session.user.email ?? null,
         displayName: null,
         avatarUrl: null,
         ownsThisEvent: false,
+        seed: null,
       });
       // Phase 2: enrich with display name + presigned avatar + ownership (logged-in only).
       try {
@@ -88,6 +94,7 @@ export function GuestHeader({
           email?: string | null;
           displayName?: string | null;
           avatarUrl?: string | null;
+          seed?: string | null;
           ownsThisEvent?: boolean;
         };
         if (!active || !body.ok) return;
@@ -95,6 +102,7 @@ export function GuestHeader({
           email: body.email ?? session.user.email ?? null,
           displayName: body.displayName ?? null,
           avatarUrl: body.avatarUrl ?? null,
+          seed: body.seed ?? null,
           ownsThisEvent: Boolean(body.ownsThisEvent),
         });
       } catch {
@@ -133,6 +141,7 @@ export function GuestHeader({
             email={menu.email}
             displayName={menu.displayName}
             avatarUrl={menu.avatarUrl}
+            seed={menu.seed}
             // Both false and "" on an event-less page, and the menu reads the
             // id only behind the ownership flag, so the "Manage event" row is
             // absent rather than pointed at nothing.

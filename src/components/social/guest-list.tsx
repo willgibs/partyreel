@@ -61,9 +61,13 @@ const PAGE = 24;
 const CHIP =
   "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
 
+// item.seed is seedFor(item.id), hydrated onto every ProfileCardItem by
+// withAvatarUrls (lib/social/cards.ts) — one colour per person, the same
+// place avatarUrl is resolved, so a guest list of two dozen strangers is
+// two dozen distinct hues rather than one repeated grey disc.
 function Face({ item }: { item: ProfileCardItem }) {
   return (
-    <Avatar size="sm">
+    <Avatar size="sm" seed={item.seed}>
       <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
       <AvatarFallback className="text-[10px]">
         {(item.displayName ?? "?").slice(0, 1).toUpperCase()}

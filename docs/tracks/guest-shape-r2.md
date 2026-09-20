@@ -56,8 +56,6 @@ answer and list it in the Handoff.
   `floating-add-button.tsx`), the demo's welcome, `sandbox/demo-event/`, the guest-shape and demo-event ledgers,
   rulings.md; never edits them. `lab:smoke` whole; `lab:demo --board guest-shape` pressing every step; the gate.
 
-# The night's explorations, second (2026-09-20, after the sixth batch; each brief checked against every open ask; cut with `python3 $S/make-manifests.py <sha> <track>`, Lanes 21 to 28)
-
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
 **`guest-shape` r1 (seven; five wire now, `chrome` goes to round two, `dialogs` follows the sheet ruling):**

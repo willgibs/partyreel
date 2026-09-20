@@ -1,50 +1,38 @@
 "use client";
 
-import { useState, useTransition } from "react";
-
-import { toast } from "sonner";
-
-import { Switch } from "@/components/ui/switch";
+import { GuardedSwitch } from "@/components/admin/destructive-sheet";
 
 import { toggleExportsAction } from "./actions";
 
-// The "Download all" kill-switch. Optimistic toggle → the server action flips ops_flags.export_enabled;
-// reverts + toasts on failure. Off pauses ALL new exports platform-wide within ~2 min (no Worker redeploy).
+// The "Download all" kill-switch. Off pauses ALL new exports platform-wide within ~2 min (no Worker
+// redeploy), which is why the OFF edge now opens the portal's one destructive sheet and says what it
+// touches before it happens (`destructive=sheet`, 2026-09-20); ON is a plain tap.
 export function ExportKillSwitch({ enabled }: { enabled: boolean }) {
-  const [on, setOn] = useState(enabled);
-  const [pending, startTransition] = useTransition();
-
-  function onChange(next: boolean) {
-    setOn(next);
-    startTransition(async () => {
-      const res = await toggleExportsAction(next);
-      if (!res.ok) {
-        setOn(!next);
-        toast.error(res.message ?? "Couldn't update the setting.");
-        return;
-      }
-      toast.success(next ? "Downloads enabled." : "Downloads paused.");
-    });
-  }
-
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        {/* Stable feature-name label; the switch carries the state (see the reels twin for the
-            double-negative WHY). */}
-        <p className="text-sm font-medium">Album downloads</p>
-        <p className="text-xs text-muted-foreground">
-          {on
-            ? "On. Hosts and guests can download albums."
-            : "Paused. New downloads are blocked across the platform."}
-        </p>
-      </div>
-      <Switch
-        checked={on}
-        onCheckedChange={onChange}
-        disabled={pending}
-        aria-label="Toggle downloads"
-      />
-    </div>
+    <GuardedSwitch
+      enabled={enabled}
+      // Stable feature-name label; the switch carries the state (see the reels twin for the
+      // double-negative WHY).
+      label="Album downloads"
+      description={
+        enabled
+          ? "On. Hosts and guests can download albums."
+          : "Paused. New downloads are blocked across the platform."
+      }
+      ariaLabel="Toggle downloads"
+      sheet={{
+        title: "Pause album downloads?",
+        lede: "Every new download is refused until you turn this back on. Downloads already in progress finish.",
+        verb: "Pause downloads",
+        touches: [
+          "Every host and every guest, on every event",
+          "Downloads already running are not interrupted",
+          "Nobody is told: a paused download reads as a refusal",
+        ],
+      }}
+      onToggle={toggleExportsAction}
+      onMessage="Downloads enabled."
+      offMessage="Downloads paused."
+    />
   );
 }

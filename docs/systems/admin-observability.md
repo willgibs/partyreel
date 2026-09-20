@@ -4,14 +4,35 @@
 > BELONGS HERE: the `admin.partyreel.com` perimeter, the `requireAdmin` seam + MFA, every admin surface, the reports/safety queue, Sentry wiring. · NOT HERE: host-side moderation (→ [host-app.md](host-app.md)), the cap/Stripe internals the Accounts/Metrics pages read (→ [billing-caps.md](billing-caps.md)), backup health that P8 will surface (→ [durability-backups.md](durability-backups.md)).
 > GROWS BY: integrate-in-place.
 
-## What binds the admin's design (Will, 2026-09-18)
+## What binds the admin's design (Will, 2026-09-18 and 2026-09-20)
 
 The portal carries the platform's FOUNDATIONAL identity and is otherwise free: the wordmark
 (`src/lib/brand/wordmark.ts`, `Logo`), the faces with their weights and spacing, the achromatic Graphite
 base. Beyond that it is "an on-brand devtool, not a separate brand identity": real colour is wanted here
 (charts, state), density, tables and its own chrome are its to choose, and bible 1 and 2 bind the product,
 not the portal past that foundation. The security seam (`requireAdmin`, the host guard, AAL2) is never a
-design variable. The `admin` board (round one, 2026-09-18) asks the shape; its picks land here as they wire.
+design variable.
+
+The `admin` board asked the SHAPE as seven decisions and Will ruled all seven on 2026-09-20. The answers
+bind every surface here:
+
+- **The home opens on the numbers, with the queue beneath** (`home=kpi`): four figures and a fortnight's
+  trend, then everything waiting on the operator, worst first. The nine badged cards are gone.
+- **A rail, plus a command palette** (`nav=rail-palette`): 232px at `lg` from `navGroups()`, with pending
+  counts; the dropdown survives below `lg`. ⌘K reaches a surface, an action or an account.
+- **Hybrid density** (`density=hybrid`): a table for data (`ui/table.tsx`), a list beside the message for
+  the two prose inboxes (`inbox-pane.tsx`). Reports stays sectioned, in admin-triage's own language.
+- **A state's colour reaches the row** (`colour=rows`, his note: "Makes it a bit harder to miss"): four
+  states, four voices, and a failed or overdue run tints its own row with a leading edge. The map is
+  `src/lib/admin/tone.ts` so a chip and the row under it cannot disagree.
+- **One destructive sheet, sized to the damage** (`destructive=sheet`): every destructive act opens the
+  same panel and lists what it touches; only a permanent act with something to identify makes you type.
+- **The band under the bar on every page** (`health=portal`), absent on a good day.
+- **A 44px tool bar** (`chrome=devtool`): a breadcrumb, a live tag, the health chip and an initial.
+
+★ NO OPERATOR AUDIT TABLE. "Write it down" was the `arm` option Will did NOT pick, and nothing records
+an operator's own actions today beyond their effect (the forensic trail is its own thing, and covers
+holds and evidence only). An `admin_actions` table is a ROADMAP proposal, not a shipped fact.
 
 ## What it does
 
@@ -88,15 +109,48 @@ swap point for a future `staff_members`+roles model (solo admin now, team later)
 
 ## Surfaces
 
-Reached via a single header dropdown ([`admin-nav.tsx`](../../src/components/admin/admin-nav.tsx),
-`usePathname` active-section) + a header operator-alerts bell
-([`operator-alerts.tsx`](../../src/components/admin/operator-alerts.tsx) surfaces pending support /
-applicants / open reports from the existing count queries). Triage writes go through `requireAdminAction` +
-the service-role admin client (the deny-all tables); shared `TriageStatusControl` + `TriageFilter`.
+**The shell** ([`admin-shell.tsx`](../../src/components/admin/admin-shell.tsx)) is a 44px tool bar
+([`admin-bar.tsx`](../../src/components/admin/admin-bar.tsx): the wordmark, a breadcrumb from `NAV` and
+the pathname, a live tag from `VERCEL_ENV`, the health chip, the alerts bell and an initial opening the
+operator menu with the address and sign-out), a health band under it
+([`health-band.tsx`](../../src/components/admin/health-band.tsx), rendered only when a job needs a look
+or the heartbeat is unreadable), and a 232px rail at `lg`
+([`admin-rail.tsx`](../../src/components/admin/admin-rail.tsx), `navGroups()` with pending counts on
+Support, Applicants, Reports and Jobs). Below `lg` the rail is not drawn and the original dropdown
+([`admin-nav.tsx`](../../src/components/admin/admin-nav.tsx)) is the nav. The rail goes full bleed: the
+product's centred `Container` is wrong beside a fixed rail.
+
+★ **Every pending number is ONE read per request.** The layout and the home both want them, and a layout
+cannot hand anything to a page, so [`lib/admin/pending.ts`](../../src/lib/admin/pending.ts) wraps the
+four counts plus the heartbeat in React's `cache()`. `serverNow()` beside it is the one clock read a page
+may take: `Date.now()` in a component body is impure and `react-hooks/purity` refuses it.
+
+★ **An unreadable heartbeat is never rendered as a count.** [`readJobHealth()`](../../src/lib/jobs/health-summary.ts)
+returns `readable: false` and the band says so in words; `countUnhealthyJobs()` still answers 1, because a
+BELL has nowhere to put a sentence and a silent bell would be the worse lie.
+
+**The command palette** ([`admin-palette.tsx`](../../src/components/admin/admin-palette.tsx) on the new
+primitive [`ui/command-palette.tsx`](../../src/components/ui/command-palette.tsx)) indexes the surfaces
+from `nav.ts`, a short list of actions, and accounts through an AAL2-gated action
+([`palette-actions.ts`](../../src/lib/admin/palette-actions.ts), limit 8). ★ **It jumps and never acts**:
+"Pause the purge sweep" scrolls the jobs console to that job's card (`#job-<id>`), where the switch and
+its sheet live. A palette that fired a kill switch would be the portal's cheapest click on its most
+expensive act.
+
+**Destructive acts** all open [`destructive-sheet.tsx`](../../src/components/admin/destructive-sheet.tsx)
+on the product's one responsive Sheet: delete account (typed; the server still re-verifies the
+confirmation against the row), remove media, delete announcement, release legal hold (the arm-then-confirm
+is retired), the exports and reel kill switches and a job pause on their OFF edge (`GuardedSwitch`), and
+Run now on the purge sweep. The two report verdicts are admin-triage's and are unchanged.
+
+Triage writes go through `requireAdminAction` + the service-role admin client (the deny-all tables);
+shared `TriageStatusControl` + `TriageFilter`.
 
 - **Support / Applicants** — triage `contact_submissions` / `job_applications` (status
   `new`/`in_progress`/`closed`, single-sourced in [`triage.ts`](../../src/lib/constants/triage.ts) + a DB
-  CHECK; reply-from-inbox `mailto`; `handled_by`/`handled_at`; Overview count badges).
+  CHECK; reply-from-inbox `mailto`; `handled_by`/`handled_at`; rail counts). Both draw the shared
+  `InboxPane`: a list beside the message, with the chosen row in the URL as `?id=` (linkable, survives a
+  triage write's revalidate, and needs no client state).
 - **Reports** — the review queue (dismiss/action on open reports + an Open/All history filter, resolved rows read-only).
 - **Accounts (P4, READ-ONLY)** — host browser (search by email/name) + tier + subscription/Event-Pass state
   + ACTIVE storage vs effective cap + the raw `storage_used_bytes` + counts + a test/live-aware Stripe
@@ -108,9 +162,16 @@ the service-role admin client (the deny-all tables); shared `TriageStatusControl
   direct soft-remove + restore within the grace. Cross-host media reads via service-role
   ([`queries/moderation.ts`](../../src/lib/db/queries/moderation.ts)); render via the shared
   `toGridItems`/`MediaTile`/`MediaLightbox` path. No migration, no new RPC, no new grants.
+- **Overview** — the four figures with their fortnight delta ([`lib/admin/kpi.ts`](../../src/lib/admin/kpi.ts),
+  pure), a server-drawn signup sparkline, and the ranked queue
+  ([`lib/admin/queue.ts`](../../src/lib/admin/queue.ts)). ★ **Paid subscribers carries no delta**: the
+  Stripe webhook is the sole writer of `tier` and writes no history, so `null` is the honest answer and a
+  plausible arrow would be a fabrication.
 - **Metrics (P6)** — platform KPIs (accounts / content / engagement / growth) + live Stripe revenue +
   `recharts` charts. A migration-free service-role aggregator
-  ([`queries/metrics.ts`](../../src/lib/db/queries/metrics.ts)) feeds pure reducers
+  ([`queries/metrics.ts`](../../src/lib/db/queries/metrics.ts), SPLIT into `getPlatformDbMetrics()` for
+  everything Postgres can answer and `getPlatformMetrics()` for that plus revenue, so the home never waits
+  on Stripe) feeds pure reducers
   ([`metrics/aggregate.ts`](../../src/lib/metrics/aggregate.ts)); revenue is read LIVE from Stripe
   (`getPlatformRevenue`, [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts), pure `computeMrrCents`).
   Charts ([`metrics-charts.tsx`](../../src/components/admin/metrics-charts.tsx)) seed `ResponsiveContainer`
