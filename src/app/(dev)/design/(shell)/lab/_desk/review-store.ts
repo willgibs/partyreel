@@ -2,6 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 
+import { STANDS, STANDS_NOTE } from "@/app/(dev)/design/sandbox/overtaken";
+
 import { boardNoteHoldId, holdId, itemHoldId } from "./step-id";
 
 /**
@@ -193,6 +195,32 @@ export function toggleAnswer(
   answers[key] = { choice, note: now?.note ?? "" };
   setReviewStore({ ...store, answers, sent });
   return true;
+}
+
+/**
+ * "THE EARLIER RULING STANDS" (Will, 2026-09-19), which is the trash he asked
+ * for, drawn as the answer it actually is.
+ *
+ * ★ IT IS AN ORDINARY ANSWER WITH A SEEDED NOTE. The reserved word is the
+ * choice, so everything that counts an answer (the desk, the walk's numbering,
+ * "Copy so far", `stepDone`) counts this one without learning a third state;
+ * a second press clears it, like every other pick. The note is seeded because
+ * the grammar refuses a bare reserved word for the reason it refuses a bare
+ * `?`: a ledger row nobody can read back has to be reconstructed from memory.
+ * Words already typed are kept, because they are the expensive half.
+ */
+export function standAnswer(
+  board: string,
+  round: number,
+  ask: string,
+): boolean {
+  load();
+  const key = holdId(board, round, ask);
+  const now = store.answers[key];
+  const set = toggleAnswer(board, round, ask, STANDS);
+  if (set && !(now?.note ?? "").trim())
+    setAnswerNote(board, round, ask, STANDS_NOTE);
+  return set;
 }
 
 export function setAnswerNote(

@@ -20,6 +20,7 @@ import {
   windowNotesFor,
 } from "@/app/(dev)/design/review/ledger";
 import { COMPONENTS, componentTitle } from "@/app/(dev)/design/rules/rules";
+import { badgeText } from "@/app/(dev)/design/sandbox/overtaken";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
@@ -167,6 +168,9 @@ export default async function DeskPage({
                 // until the walk itself answers what it waits on.
                 staged: Boolean(ask.after),
                 moot: false,
+                // The dry run reads no ledger, so nothing has become of
+                // anything: a fixture board is never overtaken.
+                outcome: "open" as const,
               })),
             },
           ],
@@ -211,6 +215,11 @@ export default async function DeskPage({
       n + r.asks.filter((a) => a.answer && a.answer.choice === null).length,
     0,
   );
+  // ★ A COUNT HAS TO SAY WHAT IT COUNTS (Will, 2026-09-19). A question a later
+  // ruling reached is not answered and must never be counted as one; it is not
+  // dead either. So it gets its own figure, named, and the rows say which.
+  const overtakenNow = rows.reduce((n, r) => n + r.overtakenOpen.length, 0);
+  const overtakenAll = rows.reduce((n, r) => n + r.overtaken.length, 0);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
@@ -238,6 +247,7 @@ export default async function DeskPage({
           ["items to rule", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
+          ["overtaken, still open", `${overtakenNow} of ${overtakenAll}`],
           ["standing boards", rows.length],
           ["tracks in flight", live.length],
         ]}
@@ -284,6 +294,17 @@ export default async function DeskPage({
                         : step.question}
                     </span>
                     <HeldBadge step={step} />
+                    {/* An earlier ruling reached this question. It is still in
+                        the queue and still answerable: the row says so rather
+                        than quietly counting it as done (Will, 2026-09-19). */}
+                    {step.kind === "ask" && step.overtaken && (
+                      <span
+                        className="shrink-0"
+                        title={`${step.overtaken.badge}. ${step.overtaken.line}`}
+                      >
+                        <Tag tone="quiet">overtaken</Tag>
+                      </span>
+                    )}
                     {staged ? (
                       <Tag>{afterLabel(step, specOf)}</Tag>
                     ) : step.kind === "items" ? (
@@ -304,7 +325,9 @@ export default async function DeskPage({
             <p className="text-sm">
               {withSpec.length === 0
                 ? "No board carries a spec yet, so nothing is queued here."
-                : "Every question is answered and every catalog is ruled on this round."}
+                : overtakenAll > 0
+                  ? `Every question is answered and every catalog is ruled on this round. ${overtakenAll} of them an earlier ruling had already reached.`
+                  : "Every question is answered and every catalog is ruled on this round."}
             </p>
             <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-muted-foreground">
               {withSpec.length === 0
@@ -552,7 +575,9 @@ function BoardCard({
                 title={
                   a.answer && a.answer.choice === null
                     ? `Not clear to you: ${a.answer.note ?? ""}`
-                    : undefined
+                    : a.overtaken
+                      ? `${badgeText(a.overtaken)}. ${a.overtaken.line}`
+                      : undefined
                 }
                 className={
                   a.answer?.choice
@@ -560,15 +585,35 @@ function BoardCard({
                     : "inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-[11px] transition-colors duration-150 hover:bg-muted/60"
                 }
               >
-                {a.ask.question}
-                {a.answer?.choice && (
-                  <span className="font-medium text-foreground">
-                    {optionLabel(
-                      a.ask.options.find(
-                        (o) => optionId(o) === a.answer?.choice,
-                      ) ?? a.answer.choice,
-                    )}
+                {a.overtaken && (
+                  <span aria-hidden className="text-muted-foreground/60">
+                    &bull;
                   </span>
+                )}
+                {a.ask.question}
+                {/* ★ `stands` IS NOT ONE OF THE ASK'S OPTIONS, and must never
+                    be printed as one: an answer that reads as a pick would say
+                    he chose a design when what he said is that the earlier
+                    ruling holds (Will, 2026-09-19). */}
+                {a.outcome === "stood" ? (
+                  <span className="font-medium text-foreground">
+                    the earlier ruling stands
+                  </span>
+                ) : (
+                  a.answer?.choice && (
+                    <span className="font-medium text-foreground">
+                      {optionLabel(
+                        a.ask.options.find(
+                          (o) => optionId(o) === a.answer?.choice,
+                        ) ?? a.answer.choice,
+                      )}
+                      {a.outcome === "overrode" && (
+                        <span className="ml-1 font-normal text-muted-foreground">
+                          overriding {a.overtaken?.by}
+                        </span>
+                      )}
+                    </span>
+                  )
                 )}
                 {a.answer && a.answer.choice === null && (
                   <span className="font-medium text-foreground">
@@ -619,6 +664,12 @@ function BoardCard({
             {answered} of {row.asks.length} answered
             {row.items.length > 0
               ? `, ${row.items.length - row.openItems.length} of ${row.items.length} ruled`
+              : ""}
+            {/* Named, never folded into "answered": these are the questions an
+                earlier ruling reached, which is the one thing his ruling asks
+                the desk never to say silently. */}
+            {row.overtaken.length > 0
+              ? `, ${row.overtaken.length} overtaken by an earlier ruling`
               : ""}
           </span>
         )}
