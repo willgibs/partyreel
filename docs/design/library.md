@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 661 contracts on 92 components · 26 standing boards.**
+**22 laws · 18 policies · 699 contracts on 95 components · 26 standing boards.**
 
 ## What binds you
 
@@ -355,6 +355,7 @@ Contracted but outside the library's directories:
 - `src/components/app/share/event-share-sheet.tsx` (12 guards)
 - `src/components/app/share/event-sheets.tsx` (12 guards)
 - `src/components/app/share/use-copy-link.ts` (12 guards)
+- `src/components/auth/account-door.tsx` (16 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
@@ -398,6 +399,8 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail.tsx` (17 guards)
 - `src/components/social/guest-list.tsx` (5 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
+- `src/lib/auth/door-failure.ts` (13 guards)
+- `src/lib/auth/remembered-email.ts` (9 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)

@@ -34,7 +34,7 @@ describe("LegalConsentLine", () => {
 
   it("both consumers use the component, not a copy", () => {
     for (const rel of [
-      "src/app/(auth)/login/page.tsx",
+      "src/components/auth/account-door.tsx",
       "src/components/guest/entry-modal.tsx",
     ]) {
       const src = readFileSync(join(process.cwd(), rel), "utf8");

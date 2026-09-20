@@ -148,6 +148,18 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
   },
 
+  /* the door into an account (door-wiring, 2026-09-20): one object worn four
+     ways, and the two pure modules underneath it. */
+  "src/components/auth/account-door.tsx": {
+    for: "every place the product asks for an account, worn four ways (/login, the guest gate, Save, a like): one email field, Google beside it, a password on a quiet link, one Terms line and one failure table. A place passes the REASON it is asking and nothing else moves",
+  },
+  "src/lib/auth/door-failure.ts": {
+    for: "how the door fails: a kind, one short sentence and three real ways out, shared by the /login page, the callback route's error and the code screen. The password refusal stays generic on purpose, because naming which of three things went wrong is an account-enumeration leak",
+  },
+  "src/lib/auth/remembered-email.ts": {
+    for: "what one DEVICE remembers about the last host through the door: an address, the method that worked, and whether a passkey was saved here. A hint and never an authorization, read on /login alone so a phone passed around a party never shows the last guest's address",
+  },
+
   "src/components/shared/album-stream/album-stream.tsx": {
     for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
   },
