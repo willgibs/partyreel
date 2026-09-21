@@ -221,6 +221,27 @@ READS.update({"guest-view-menu":["src/components/shared/view-menu.tsx","src/lib/
 BOARD.update({"guest-view-menu":"none            # a production follow-up of guest-chrome-wiring (guest-shape retired at fd42c759); no board"})
 LANE_SECTION.update({"guest-view-menu":r"Lane 49: `guest-view-menu`"})
 
+# the closing sitting's second batch (2026-09-20 ~22:45 EDT): the owns deltas on four drafted lanes, and two new lanes
+QUEUE.update({"app-pricing-wiring","overtaken-4"})
+OWNS.update({
+"avatar-mesh-wiring":["src/lib/avatar/","src/components/ui/avatar.tsx","src/app/(dev)/design/sandbox/seed-avatar/","docs/systems/auth-accounts.md"],
+"pricing-split-wiring":["src/components/marketing/sections/pricing/","src/app/(marketing)/(cinema)/pricing/page.tsx","src/app/(dev)/design/sandbox/pricing-page/","docs/systems/marketing-content.md"],
+"demo-frame-wiring":["src/components/marketing/system/demo-ticket.tsx","src/components/marketing/sections/home/cinema-hero.tsx","src/components/marketing/chrome/marketing-footer.tsx","src/components/marketing/chrome/mega-panel.tsx","src/components/marketing/system/demo-cta-link.tsx","src/components/marketing/chrome/footer-demo.tsx","src/app/(dev)/design/sandbox/demo-event/"],
+"welcome-film-wiring":["src/components/app/welcome-flow.tsx","src/components/app/welcome-flow.css","src/app/(app)/welcome/","src/app/(dev)/design/sandbox/app-door/","docs/systems/host-app.md"],
+"app-pricing-wiring":["src/components/app/pricing/","src/components/app/user-menu.tsx","src/components/app/checkout-button.tsx","src/components/app/manage-billing-button.tsx","src/app/(app)/dashboard/upgraded-toast.tsx","src/app/(app)/dashboard/page.tsx","src/app/(app)/account/page.tsx","src/app/(app)/account/plan-card.test.ts","src/components/app/event-settings/event-password-control.tsx","src/components/app/event-settings/event-settings-form.tsx","src/components/app/event-settings/visibility-section.tsx","src/components/app/event-settings/uploads-section.tsx","src/components/app/event-slug-control.tsx","src/components/app/event-share-sheet.tsx","src/components/app/create-event-wizard.tsx","src/components/app/restore-event-button.tsx","src/components/app/recently-deleted-grid.tsx","src/components/app/dashboard/storage-meter.tsx","src/app/api/stripe/checkout/route.ts","src/app/(dev)/design/sandbox/app-pricing/","docs/systems/billing-caps.md"],
+"overtaken-4":["src/app/(dev)/design/sandbox/overtaken.ts","src/app/(dev)/design/sandbox/overtaken.test.ts"],
+})
+READS.update({
+"avatar-mesh-wiring":["src/components/social/guest-list.tsx","docs/reviews/seed-avatar.json","docs/design/rulings.md"],
+"pricing-split-wiring":["src/lib/constants/tiers.ts","src/lib/constants/marketing-voice.ts","docs/reviews/pricing-page.json","docs/design/rulings.md"],
+"demo-frame-wiring":["src/components/marketing/sections/home/live-demo.tsx","src/components/marketing/sections/home/hero-stream.ts","src/components/shared/album-stream/","docs/reviews/demo-event.json","docs/design/rulings.md"],
+"welcome-film-wiring":["src/lib/constants/how-it-works.ts","src/components/marketing/sections/how-it-works/","src/app/(app)/actions.ts","docs/reviews/app-door.json","docs/design/rulings.md"],
+"app-pricing-wiring":["src/lib/constants/tiers.ts","src/lib/constants/marketing-voice.ts","src/components/ui/sheet.tsx","src/components/ui/dialog.tsx","src/components/ui/tooltip.tsx","src/lib/stripe/","src/app/(dev)/design/sandbox/overtaken.ts","docs/reviews/app-pricing.json","docs/design/rulings.md"],
+"overtaken-4":["docs/design/rulings.md","docs/reviews/","src/app/(dev)/design/touchpoints.ts","src/app/(dev)/design/sandbox/registry.ts","src/app/(dev)/design/(shell)/lab/_desk/","src/components/lab/"],
+})
+BOARD.update({"app-pricing-wiring":"app-pricing     # wired by this lane; the board retires (its eight asks ruled whole)","overtaken-4":"none            # lab infrastructure: the judgment lines for the closing sitting's second batch; no board of its own"})
+LANE_SECTION.update({"app-pricing-wiring":r"Lane 50: `app-pricing-wiring`","overtaken-4":r"Lane 51: `overtaken-4`"})
+
 SIXTH={"glass-wiring","guest-wiring","door-wiring","admin-wiring","vocab-wiring","avatar-wiring"}
 OWNS.update({
 "pricing-wiring":["src/app/(marketing)/(cinema)/pricing/","src/components/marketing/sections/pricing/","docs/systems/marketing-content.md"],
