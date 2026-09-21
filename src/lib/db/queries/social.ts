@@ -9,7 +9,8 @@
  *     there is NO path to anyone else's graph.
  *   - Blocks are private to the blocker; the blocked side can never read them.
  *   - The event guest list renders ONLY when the HOST enabled show_guest_list
- *     (the profiles-social.md host key); anonymous uploads never appear (user_id IS NULL).
+ *     (the profiles-social.md host key); a nameless upload never appears, and a named guest who
+ *     proved no email is listed as a plain name with the mark, never as a profile card.
  */
 import "server-only";
 
@@ -24,6 +25,7 @@ import {
 import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -578,14 +580,35 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
 export type GuestListEntry = SocialProfileCard;
 
 /**
+ * A NAMED GUEST WHO NEVER PROVED AN EMAIL (Will, `unproven=shown-marked` + "Listed, with the
+ * mark", 2026-09-21). There is no profile behind them, so there is no card, no handle and no
+ * avatar to hydrate — only the name they typed at the door, and the `id` is their GUEST ROW's,
+ * never a user id. The `kind` tag is what lets a caller split the union; a profile entry carries
+ * no tag, so `"kind" in entry` is the discriminator and the two existing callers are untouched.
+ */
+export type UnverifiedGuestListEntry = {
+  kind: "unverified";
+  id: string;
+  displayName: string;
+};
+
+export type GuestListItem = GuestListEntry | UnverifiedGuestListEntry;
+
+/**
  * The named "Guests (N)" list for an event: ALL signed-in uploaders with at
  * least one APPROVED media (approved = what the album shows; mirrors the
  * attended-events arm of get_public_profile, so the two surfaces always agree).
- * Anonymous uploads (guests.user_id IS NULL) never appear.
+ *
+ * ★ `includeUnverified` (the identity reshape, 2026-09-21) appends the guests who typed a name at
+ * the door and never proved an email, AFTER the profile cards, one entry per GUEST ROW. One per
+ * row and not per person on purpose: without an account there is nothing to de-duplicate BY, and
+ * two people who both typed "Sam" are two people (Will's to overrule). It is OFF by default so the
+ * host hub and every `withAvatarUrls` caller keep the narrow type they already have; the guest
+ * album opts in, and splits the union before hydration (lib/social/cards.ts).
  *
  * Returns null when the host has NOT enabled show_guest_list, so callers can't
  * accidentally render a list the host key doesn't authorize; [] means "on, but
- * no signed-in uploaders yet".
+ * no named uploaders yet".
  *
  * WHY the admin client: this is server-side composition for BOTH surfaces (the
  * host event page after getUser() ownership, and the guest /e/ page after the
@@ -599,7 +622,16 @@ export type GuestListEntry = SocialProfileCard;
  */
 export async function getEventGuestList(
   eventId: string,
-): Promise<GuestListEntry[] | null> {
+): Promise<GuestListEntry[] | null>;
+export async function getEventGuestList(
+  eventId: string,
+  options: { includeUnverified: true },
+): Promise<GuestListItem[] | null>;
+export async function getEventGuestList(
+  eventId: string,
+  options?: { includeUnverified?: boolean },
+): Promise<GuestListItem[] | null> {
+  const includeUnverified = options?.includeUnverified ?? false;
   const admin = createAdminClient();
 
   const { data: event, error: eventError } = await admin
@@ -614,14 +646,14 @@ export async function getEventGuestList(
     return null;
   }
 
-  // Explicit id-list joins (no embeds): signed-in guest rows -> approved media
-  // presence -> profile cards. media stays admin-read with explicit columns
-  // (never select("*") on media: the hold columns are host-invisible, trust-safety-forensics.md).
+  // Explicit id-list joins (no embeds): guest rows -> approved media presence -> profile cards.
+  // media stays admin-read with explicit columns (never select("*") on media: the hold columns are
+  // host-invisible, trust-safety-forensics.md). ★ `verified_at` and `display_name` are NOT granted
+  // to `authenticated` (QA #41), which is why this whole read is on the admin client.
   const { data: guests, error: guestsError } = await admin
     .from("guests")
-    .select("id, user_id")
-    .eq("event_id", eventId)
-    .not("user_id", "is", null);
+    .select("id, user_id, display_name, verified_at")
+    .eq("event_id", eventId);
   if (guestsError) throw guestsError;
   if (!guests || guests.length === 0) return [];
 
@@ -636,18 +668,23 @@ export async function getEventGuestList(
   if (mediaError) throw mediaError;
 
   const approvedGuestIds = new Set((approved ?? []).map((m) => m.guest_id));
-  // De-dupe by user: the same account can hold several guest rows (per-device
-  // sessions); the list names PEOPLE, not sessions.
+  const contributed = guests.filter((g) => approvedGuestIds.has(g.id));
+
+  // ★ VERIFIED KEYS ON `verified_at`, NEVER ON `user_id` (wave 0's finding): an unconfirmed
+  // sign-up carries a user id and a typed name, and listing it as a profile card would present an
+  // unproven person as a proven one on the host's own album.
+  // De-dupe by user: the same account can hold several guest rows (per-device sessions); the
+  // profile half of the list names PEOPLE, not sessions.
   const userIds = [
     ...new Set(
-      guests
-        .filter((g) => approvedGuestIds.has(g.id))
+      contributed
+        .filter((g) => g.verified_at !== null && g.user_id !== null)
         .map((g) => g.user_id as string),
     ),
   ];
 
   const cards = await getProfileCards(userIds);
-  return userIds
+  const profiles: GuestListItem[] = userIds
     .flatMap((id) => {
       const card = cards.get(id);
       return card ? [card] : [];
@@ -657,6 +694,81 @@ export async function getEventGuestList(
         sensitivity: "base",
       }),
     );
+
+  if (!includeUnverified) return profiles;
+
+  // Appended AFTER the cards, sorted among themselves: the people with a profile lead the list,
+  // and the named-but-unproven follow, each carrying the mark their entry renders. A nameless row
+  // (minted before the reshape) has nothing to list and never appears.
+  const unverified: UnverifiedGuestListEntry[] = contributed
+    .filter(
+      (g) =>
+        g.verified_at === null &&
+        g.display_name !== null &&
+        g.display_name.trim() !== "",
+    )
+    .map((g) => ({
+      kind: "unverified" as const,
+      id: g.id,
+      displayName: (g.display_name as string).trim(),
+    }))
+    .sort((a, b) =>
+      a.displayName.localeCompare(b.displayName, undefined, {
+        sensitivity: "base",
+      }),
+    );
+
+  return [...profiles, ...unverified];
+}
+
+// ── The host's card (the follow moment after a guest's first upload) ───────────────────
+
+export type HostCard = {
+  id: string;
+  slug: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
+/**
+ * The host of an event, as a card a GUEST may see: id, handle, name, avatar, and nothing else.
+ *
+ * It backs the capture flow's follow moment (Will, `collision=offer`, 2026-09-21: keep the photos
+ * and the event on a profile, then follow the host and the guests). The field list IS the
+ * allow-list — the host's email, tier, storage and counts are all one `select("*")` away on this
+ * same row, so it names its four columns and returns a hand-built object rather than a DB row.
+ * Every field here is already public on /u/[slug] and on the "Hosted by" byline.
+ *
+ * Admin-read for the same reason getEventGuestList is: `profiles` is own-row RLS, so a guest's
+ * client cannot read the host's card, and the event id the caller passes must already have cleared
+ * that surface's access gate. Returns null for a deleted event or a host with no row.
+ */
+export async function getHostCard(eventId: string): Promise<HostCard | null> {
+  const admin = createAdminClient();
+
+  const { data: event, error: eventError } = await admin
+    .from("events")
+    .select("host_id")
+    .eq("id", eventId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (eventError) throw eventError;
+  if (!event?.host_id) return null;
+
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("id, slug, display_name, avatar_updated_at")
+    .eq("id", event.host_id)
+    .maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile) return null;
+
+  return {
+    id: profile.id,
+    slug: profile.slug,
+    displayName: profile.display_name,
+    avatarUrl: await getAvatarUrl(profile.id, profile.avatar_updated_at),
+  };
 }
 
 /** The host's own view of the two social keys, for the event settings card.

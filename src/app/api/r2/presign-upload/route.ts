@@ -1,5 +1,6 @@
 import { getUploadContext } from "@/lib/db/mutations/guest";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
+import { captureWarning } from "@/lib/observability/sentry";
 import {
   runPresignPipeline,
   type PresignStrategy,
@@ -68,6 +69,30 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           status: 403,
           code: "uploads_closed",
           message: "This event isn't accepting uploads right now.",
+        },
+      };
+    }
+    // ★ THE IDENTITY GATE, RE-CHECKED PER REQUEST (the identity reshape, 2026-09-21). A session
+    // token minted while the event was name-only would otherwise upload forever after the host
+    // flipped Require verified emails ON; create_media refuses it anyway, but only after the file
+    // has already gone to R2, so the honest place to say so is here, before the bytes move. Read
+    // from the CONTEXT (the RPC's own view of the event and this guest's standing), never from
+    // anything the client sent. Sits under accepting_uploads on purpose: when uploads are closed
+    // for everybody, "uploads are closed" is the truer sentence than "prove an email".
+    if (ctx.data.require_verified_email && !ctx.data.guest_verified) {
+      // R1.14: a flip's fallout must be VISIBLE. This is the signal that says a real party started
+      // refusing real guests, and it is the difference between noticing within the hour and
+      // hearing about it from the host.
+      captureWarning("security", "upload_refused_unverified", {
+        event_id: ctx.data.event_id,
+        stage: "presign",
+      });
+      return {
+        ok: false,
+        refusal: {
+          status: 403,
+          code: "verification_required",
+          message: "Confirm your email to add photos to this event.",
         },
       };
     }

@@ -1,6 +1,6 @@
 ---
 track: verified-email-server
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "bc28580b"          # the launch-prep SHA the branch was cut from
 board: none            # the identity reshape, wave 1: the route, the identity, the queries; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -145,30 +145,121 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+None stopped the lane. Every open point was taken on the brief's recommended answer and is listed under
+"Calls his to overrule" below, with the three that are genuinely product-shaped marked there.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md` "Joining + identity" REWRITTEN in place (this lane's exception line; the
+  guest lane owns the file): the switch and its legacy twin, the join's three 422s and why the route owns
+  them, the `verified_at`-never-`user_id` rule and the one precedence rule, the rename door, the per-upload
+  re-check, and the guest list's two halves. The old "Guest display names were REMOVED (cut 2b);
+  `create_guest` is 2-arg" line and the `allow_anonymous_uploads` paragraph are DELETED, not appended to.
+- Same file, THREE more lines outside that block (flagged in the lane check): the `open` bullet under
+  "State follows visibility" and the `full` / `teaser` bullets under "Gallery access" now name
+  `require_verified_email`, because `resolveGalleryAccess` is this lane's module and its key changed. They
+  would have been false the moment this lane landed.
+- `docs/systems/database-security.md` needed NOTHING: wave 0 already recorded `set_guest_display_name` in
+  the server-mediated inventory and `sync_event_verified_email_flags` in the trigger-only list.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Trust & safety: the rename route accepts a `qr_token` that does not match the session's event. Nothing is
+  gained by it (the RPC renames the token's OWN row and nothing else, verified live), but it lets a caller
+  choose its own per-(IP, event) limiter scope; the breadth ceiling is what catches token rotation today. A
+  one-read check of the guest row's event id would close it if the rename ever gets busier.
+- Cleanup: `events.allow_anonymous_uploads` and the `events_sync_verified_email_flags` twin-keeper retire
+  together once `main` is past the reshape, and that change must re-point `get_public_profile`'s QA #36
+  attended-arm clause in the same breath (it is still written on the legacy flag). `validation/event.ts`
+  and `mutations/events.ts` drop their legacy arm with it.
+- Trust & safety: `upload_forensics.guest_display_name` is captured but no ADMIN SURFACE renders it yet
+  (the export route's `select("*")` carries it into a lawful-process record, which is the case that
+  mattered). A per-media identity row on /admin/forensics is the follow-up.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `912880e4` (the whole lane, one commit); synced with `origin/launch-prep` at merge commit
+  `7e504bb6` (it had moved six commits: `reshape-studio-export` plus the usher journal, none of it in my
+  `reads`, no conflicts). No board: this lane is the route, the identity and the queries.
+- **Gates on the synced tree**, each on its own exit code: `pnpm design:rules` 0 (no artifact churn) ·
+  `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 · `pnpm typecheck` 0 · `pnpm lint` 0
+  (10 warnings, the 2026-09-21 baseline exactly; none in a file this lane touched) · `pnpm test` 0
+  (321 files, 3370 passed / 1 skipped) · `pnpm build` 0 (255 static pages, and `ƒ /api/guests/name` in the
+  route table) · `pnpm lab:smoke --base http://localhost:3131` 0 (417 checks, 0 failing). Logs in the
+  lane's scratch as `s-*.log`. Port 3131 killed before each build, each test run and this handoff.
+- **Lane check** `git diff --name-only origin/launch-prep...HEAD` = 36 files, every one under `owns`
+  EXCEPT three, each listed with why:
+  - `src/lib/errors/codes.ts` + `src/lib/errors/codes.test.ts` (no lane owns them this round): the error
+    taxonomy is COMPILER-ENFORCED — `codes.test.ts` holds `IsSubtype` assertions per result union and per
+    route, so a new code that is not in `ErrorCode` + `FALLBACK_MESSAGES` fails `pnpm typecheck`, not
+    review. `email_required` is REPLACED by `verification_required` (its only two callers were mine) and
+    `name_required` / `name_invalid` added, with their copy; the mirrors for the join, presign, complete
+    and the new name route follow. There was no version of this lane that did not touch that file.
+  - `docs/systems/guest-flow.md`: my brief's own exception line for the "Joining + identity" block, plus
+    three lines elsewhere in the file (see System-doc edits above). The guest lane owns the file and should
+    sync past this merge before its own edits.
+- **The items, one line each** (no board, so these are the surfaces):
+  - `POST /api/guests`: takes `{qr_token, display_name?}`, answers 422 `verification_required` |
+    `name_required` | `name_invalid`, mints with the name, returns `{display_name, verified}` from the
+    MINT (never echoed from the request, so a verified joiner who sent a name gets null + true back).
+  - `POST /api/guests/name`: new, over `set_guest_display_name`, own limiter kind `rename`
+    (breadth 15/60min, per-(IP, event) 60/15min — six times tighter than join and still venue-sized; the
+    number is a tunable, reasoned in the file).
+  - presign + complete: 403 `verification_required` read from `get_upload_context`, each with a
+    `captureWarning("security", "upload_refused_unverified", {event_id, stage})` so a flip's fallout is
+    visible (R1.14); `mapCheckViolation` splits the DB's "not accepting uploads without a verified email"
+    back out ABOVE the `not accepting` branch it was deliberately worded to match on `main`.
+  - `resolveUploaderIdentity`: the one precedence rule, host → `verified_at` → typed name → "A guest",
+    with `isAnonymous` narrowed to that last case so the lab's fixtures still compile.
+  - `GridMedia.isVerified` through both builders and the ETag (`g1` → `g2`, so a client cannot 304 past a
+    mark appearing); `getEventGuestList(id, {includeUnverified})` + the union split in `social/cards.ts`;
+    `getHostCard(eventId)` for the follow moment; `upload_forensics.guest_display_name` at capture;
+    `require_verified_email` on `GuestEvent`, `resolveGalleryAccess`, `createEvent` (default true) and the
+    seed script.
+- **Verified LIVE against the real project on :3131** (disposable data, all removed; the throwaway event
+  `38290e85` restored to `require_verified_email=false` / `allow_anonymous_uploads=true`):
+  every 422 and 403 above by hand; a typed name cannot buy past the switch; an injected `email` on the join
+  is stripped (the minted row's `email` was null); a posted `guest_id` and a foreign `qr_token` both rename
+  only the caller's OWN row; a presigned URL that outlived a flip is refused at COMPLETE with no `media`
+  and no `upload_forensics` row written; a real completed upload recorded `guest_display_name`, and a later
+  rename did NOT rewrite it; the gallery poll returned `isVerified:false` with a name, no email anywhere in
+  the payload, ETag `"g2-…"`, and a re-poll 304'd. The guest page loads clean at 1440 and 375.
+- **Calls his to overrule on the alias**, one line each:
+  - ★ The rename door refuses a VERIFIED guest with 403 `unauthorized` and the RPC's sentence ("Your name
+    comes from your account.") rather than a fourth error code. The status is right; the word is generic.
+  - ★ The `rename` limiter at 60 per (IP, event) per 15 minutes. Sized so thirty people on one venue WiFi
+    fixing a typo are never blocked; tighten it if he would rather risk the party than the spammer.
+  - ★ On a name-only event a CONFIRMED visitor is asked for NO name (their profile name is the identity,
+    and `create_guest` nulls a typed one beside a confirmed account). A guest who wanted a different name
+    for this party cannot have one.
+  - The legacy label "A guest" for nameless pre-reshape rows (his, already flagged at the ruling).
+  - The guest list lists unverified names ONE PER GUEST ROW, so two people who both typed "Sam" are two
+    entries (his, already flagged); a nameless legacy row is listed by neither half.
+  - `createEvent` now sends ONLY `require_verified_email`; `updateEvent` sends the new flag alone when it
+    is present and falls back to the legacy twin, so the host lane's form works before AND after its rename.
+- **The help articles this lane makes stale** (a `help-sync` lane rewrites them; `content/help/` belongs to
+  `voice-wiring`): any article describing "Require guest accounts", anonymous uploads, or what a guest needs
+  before uploading. The host lane's sweep for the word is the authority on the list; this lane changed the
+  behaviour those articles describe, not the articles.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: **none**. Wave 0 wrote the schema; this lane
+  codes against it and wrote no SQL.
+- **Look at first**: `src/lib/media/uploader-identity.ts` (the one precedence rule, and the `verified_at`
+  never `user_id` comment that every other file in this lane defers to), then
+  `src/lib/db/mutations/guest.ts`'s `mapCheckViolation` (the branch ORDER is the whole behaviour of a
+  switch flipped mid-party), then `src/app/api/guests/route.ts`.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). Wave 1's server half of the identity reshape: `POST
+/api/guests` took the name a guest types at the door and answered 422 `verification_required` /
+`name_required` / `name_invalid`, because the database deliberately still accepts a nameless mint and
+profanity cannot be checked in SQL; `POST /api/guests/name` named or renamed a row over
+`set_guest_display_name` behind its own `rename` limiter; presign and complete both re-read the gate from
+`get_upload_context` and refused 403 with a warning, so a switch flipped mid-party stopped the next upload
+visibly rather than silently. `resolveUploaderIdentity` became the one precedence rule keyed on
+`guests.verified_at`, never a user id, with `isAnonymous` narrowed to a nameless pre-reshape row;
+`isVerified` reached the guest and host tiles and the gallery ETag (`g1` → `g2`); `getEventGuestList` grew
+an opt-in union that splits before hydration; `getHostCard` landed for the follow moment; the forensic row
+began recording the typed name. Verified live on the project, every refusal by hand, with the test data
+removed after.

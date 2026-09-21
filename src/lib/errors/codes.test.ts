@@ -12,6 +12,7 @@ import type { ActionResult as DashboardActionResult } from "@/app/(app)/dashboar
 import type {
   CreateGuestResult,
   CreateMediaResult,
+  SetGuestDisplayNameResult,
   UploadContextResult,
 } from "@/lib/db/mutations/guest";
 import type {
@@ -41,6 +42,9 @@ type Expect<T extends true> = T;
 type _guest = Expect<IsSubtype<CodeOf<CreateGuestResult>, ErrorCode>>;
 type _guestCtx = Expect<IsSubtype<CodeOf<UploadContextResult>, ErrorCode>>;
 type _media = Expect<IsSubtype<CodeOf<CreateMediaResult>, ErrorCode>>;
+type _guestName2 = Expect<
+  IsSubtype<CodeOf<SetGuestDisplayNameResult>, ErrorCode>
+>;
 type _hostCtx = Expect<IsSubtype<CodeOf<HostUploadContextResult>, ErrorCode>>;
 type _hostMedia = Expect<IsSubtype<CodeOf<CreateHostMediaResult>, ErrorCode>>;
 type _mutation = Expect<IsSubtype<CodeOf<MutationResult<unknown>>, ErrorCode>>;
@@ -74,6 +78,7 @@ type GuestPresignCode =
   | "uploads_closed"
   | "video_not_allowed"
   | "cap_reached"
+  | "verification_required" // the identity reshape: the switch flipped under a live session
   | "too_large";
 type HostPresignCode =
   | "unauthorized"
@@ -90,7 +95,21 @@ type GuestRouteCode =
   // unlock_required for a password event without the cookie/ownership proof).
   | "not_found"
   | "unauthorized"
-  | "unlock_required";
+  | "unlock_required"
+  // The identity reshape: the door asks for a proved email or a typed name, and says which.
+  | "verification_required"
+  | "name_required"
+  | "name_invalid";
+// POST /api/guests/name — the identity reshape's rename door.
+type GuestNameRouteCode =
+  | "bad_request"
+  | "rate_limited"
+  | "not_found"
+  | "unauthorized" // a verified guest's name is their profile's; there is no second one to set
+  | "invalid_session"
+  | "name_required"
+  | "name_invalid"
+  | "unknown";
 type UnlockRouteCode =
   | "bad_request"
   | "rate_limited"
@@ -120,12 +139,14 @@ type CompleteUploadCode =
 type GuestCompleteUploadCode =
   | CompleteUploadCode
   | "unauthorized"
-  | "unlock_required";
+  | "unlock_required"
+  | "verification_required";
 type HostCompleteUploadCode = CompleteUploadCode | "unauthorized";
 type _avatar = Expect<IsSubtype<AvatarRouteCode, ErrorCode>>;
 type _presign = Expect<IsSubtype<GuestPresignCode, ErrorCode>>;
 type _hostPresign = Expect<IsSubtype<HostPresignCode, ErrorCode>>;
 type _guests = Expect<IsSubtype<GuestRouteCode, ErrorCode>>;
+type _guestName = Expect<IsSubtype<GuestNameRouteCode, ErrorCode>>;
 type _unlock = Expect<IsSubtype<UnlockRouteCode, ErrorCode>>;
 type _captureEmail = Expect<IsSubtype<CaptureEmailCode, ErrorCode>>;
 type _gallery = Expect<IsSubtype<GalleryRouteCode, ErrorCode>>;
@@ -140,6 +161,7 @@ export type _TaxonomyAssertions = [
   _guest,
   _guestCtx,
   _media,
+  _guestName2,
   _hostCtx,
   _hostMedia,
   _mutation,
@@ -151,6 +173,7 @@ export type _TaxonomyAssertions = [
   _presign,
   _hostPresign,
   _guests,
+  _guestName,
   _unlock,
   _captureEmail,
   _gallery,

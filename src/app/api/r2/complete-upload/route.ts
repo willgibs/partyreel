@@ -1,5 +1,6 @@
 import { createMedia, getUploadContext } from "@/lib/db/mutations/guest";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
+import { captureWarning } from "@/lib/observability/sentry";
 import {
   runCompletePipeline,
   type CompleteStrategy,
@@ -40,6 +41,22 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
           message: "This event is locked. Enter the event password to upload.",
         };
       }
+      // The identity gate, re-checked at COMPLETION too (the identity reshape, 2026-09-21): a
+      // presigned URL outlives a switch flip by up to 2h, and this is the write that counts. The
+      // bytes an already-issued URL landed become a swept orphan, never album content. create_media
+      // refuses this as well (mapCheckViolation splits its wording back into the same code), so
+      // this arm is the one that can name the event in the warning.
+      if (ctx.data.require_verified_email && !ctx.data.guest_verified) {
+        captureWarning("security", "upload_refused_unverified", {
+          event_id: ctx.data.event_id,
+          stage: "complete",
+        });
+        return {
+          ok: false as const,
+          code: "verification_required",
+          message: "Confirm your email to add photos to this event.",
+        };
+      }
     }
     return createMedia({
       sessionToken: parsed.session_token,
@@ -58,7 +75,8 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
       ? 401
       : code === "uploads_closed" ||
           code === "unlock_required" ||
-          code === "unauthorized"
+          code === "unauthorized" ||
+          code === "verification_required"
         ? 403
         : code === "cap_reached"
           ? 409
