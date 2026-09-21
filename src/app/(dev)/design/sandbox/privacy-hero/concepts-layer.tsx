@@ -17,11 +17,13 @@ import {
   SEAL,
   sealCards,
   sealStepMs,
+  SWEEP,
 } from "./concepts";
 import { photoOf } from "./field-layer";
 
 /**
- * THE THREE CONCEPTS' COMPONENTS (privacy-hero round three, 2026-09-19): one
+ * THE FOUR CONCEPTS' COMPONENTS (privacy-hero round three, 2026-09-19;
+ * `SweepConcept` added by the overtaken audit's reshape, 2026-09-21): one
  * per `ConceptId`, each a `PageHero` `backdrop`. Pure CSS drives every
  * picture (`concepts.css`); React's only job is to hand each element its own
  * position and timing as custom properties, which is also why none of these
@@ -32,7 +34,9 @@ import { photoOf } from "./field-layer";
  *
  * ★ EVERY POSITION IS THE ONE `concepts.test.ts` CHECKS. `accessTiles` and
  * `sealCards` are pure functions of `mode`; nothing in here invents a
- * coordinate `concepts.ts` does not already own.
+ * coordinate `concepts.ts` does not already own. `SweepConcept` reuses
+ * `accessTiles` outright (`SWEEP.sizePx` is `ACCESS.sizePx`), because the
+ * grid is not what it changes.
  */
 
 function px(n: number) {
@@ -102,6 +106,44 @@ export function AccessConcept({ mode }: { mode: Mode }) {
             sizes={px(size)}
             className="object-cover"
           />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The access grid, cleared by the product's own sweep (new, the overtaken
+ *  audit's reshape): the same tiles `AccessConcept` draws, each carrying its
+ *  own light band so a turn reads as a hand-over rather than a crossfade. */
+export function SweepConcept({ mode }: { mode: Mode }) {
+  const tiles = accessTiles(mode);
+  const size = SWEEP.sizePx[mode];
+
+  return (
+    <div className="cpt-layer" aria-hidden>
+      {tiles.map((t, i) => (
+        <div
+          key={i}
+          className="swp-tile"
+          style={
+            {
+              "--swp-x": px(t.x),
+              "--swp-y": px(t.y),
+              "--swp-size": px(size),
+              "--swp-i": i,
+              "--swp-cycle": `${SWEEP.cycleMs}ms`,
+              "--swp-step": `${SWEEP.stepMs}ms`,
+            } as CSSProperties
+          }
+        >
+          <Image
+            src={photoOf(i).src}
+            alt=""
+            fill
+            sizes={px(size)}
+            className="object-cover"
+          />
+          <span className="swp-band" />
         </div>
       ))}
     </div>

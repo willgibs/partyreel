@@ -50,6 +50,20 @@ import { defineExploration } from "@/components/lab/exploration";
  * option here: no public counts, the follow graph stays owner-private, and a
  * "way back" is a link to an event the viewer already reached (their own
  * recent navigation), never a new grant to anyone who has not been there.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `view-all`'s bespoke "centred
+ * modal" is renamed `centred` and re-argued against a real precedent (the
+ * shipped welcome-to-Pro dialog, app-pricing r1) rather than "as drawn";
+ * `inline` moves to the back of the array as the cheap fourth it always was.
+ * `quick-look`'s bespoke "popover at 1440" is gone: `app-shape r1` ruled both
+ * the responsive Sheet and a mini-modal into existence, so the option set is
+ * now those two real objects (`sheet`, renamed `mini-modal`), and the
+ * recommendation flips to the Sheet now that its real desk shape (a
+ * right-edge panel, never full-width) already answers the objection that
+ * used to favour a split. `way-back` keeps its three options; its context
+ * folds in where the crumb trail actually lives (the host's own bar, not a
+ * guest's), the guest's own second-round chrome, and the account menu's
+ * standing-row precedent.
  */
 
 /**
@@ -112,9 +126,9 @@ const DRAFT = defineExploration({
   title: "What a person is here",
   round: {
     n: 2,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "Round one's eight decisions are ruled and `profile-wiring` wires them; this round drops them and asks the three he left open: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable.",
+      "view-all reordered around the Sheet's real desk shape (a right-edge panel); modal renamed centred, inline the cheap fourth. quick-look narrowed to the app's two real objects, now recommending the Sheet over the mini-modal. way-back folds in the host crumb, the chrome, the menu's standing row.",
   },
   context:
     "Maya hosts, Priya only attends, Noor has nothing yet: round one's cast. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. `view-all` adds a 240-name fixture, a quarter of the thousand Will imagined, so a group's cost is measured rather than described. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
@@ -125,25 +139,13 @@ const DRAFT = defineExploration({
       label: "View all",
       question: "How should the full guest list open from the faces row?",
       context:
-        "Round one's faces row is ruled; `profile-wiring` ships a tap as an in-place expansion for now. Every option here is that same tap, at 24 names (an ordinary wedding) and 240 (Will's own edge case, a quarter of his imagined thousand).",
+        "Round one's faces row is ruled; profile-wiring ships an in-place tap. The sheet is the shipped primitive since (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres at a laptop (app-pricing r1).",
       options: [
-        {
-          id: "inline",
-          label: "Expand in place, in groups",
-          means:
-            "The row becomes the list, 24 names at a time with Back and Next. The album keeps growing under it. The interim profile-wiring ships.",
-        },
         {
           id: "sheet",
           label: "A sheet over the album",
           means:
-            "The list rises from the foot and scrolls in its own capped region. The album and the row underneath never resize, at 24 or 240.",
-        },
-        {
-          id: "modal",
-          label: "The centred modal, as drawn",
-          means:
-            "The same dialog list=faces already opens, unchanged: centred, capped, scrolling within itself.",
+            "The one responsive Sheet the app ships now (bottom in a hand, a right-edge panel at a desk): its own capped scroll, the row and album beneath never resizing.",
         },
         {
           id: "page",
@@ -151,12 +153,24 @@ const DRAFT = defineExploration({
           means:
             "A real destination: a heading, a count, ordinary document flow. The only option allowed to be long, because a page is meant to scroll.",
         },
+        {
+          id: "centred",
+          label: "The centred list",
+          means:
+            "A capped, centred dialog like the one the app already celebrates Pro in: scrolling within itself, closer to a decision moment than a browse.",
+        },
+        {
+          id: "inline",
+          label: "Expand in place, in groups",
+          means:
+            "The row becomes the list, 24 at a time with Back and Next. The album keeps growing under it: the cheap fourth, free of a new surface.",
+        },
       ],
       recommended: "sheet",
       because:
-        "It is the only option that keeps the album's own height untouched at any scale, 24 or 240 alike, with no pagination clicks, and it reads as how a phone already shows a list of people rather than a document.",
+        "It is now the product's own dialog primitive (guest-shape r1, app-shape r1), not just this board's favourite: it keeps the album's own height untouched at 24 or 240 alike, with no pagination clicks, and it reads as how a phone already shows a list of people.",
       overrule:
-        "If a new surface is more than one row deserves, the in-place groups profile-wiring already ships are the free answer, just paginated.",
+        "A centred list is real again too (Pro's own modal centres at a laptop): a decision moment beats a browse there; inline is the free answer already shipped.",
       lands:
         "Whether View all opens a new surface at all, and whether the guest list ever gets a page of its own.",
       tile: "phone",
@@ -167,19 +181,19 @@ const DRAFT = defineExploration({
       label: "Quick-look",
       question: "What should a name in the guest list open first?",
       context:
-        "Round one ruled that a click opens a small look first: a mini so ten taps down a list cost nothing, the full profile a click away. What that mini is, and whether it changes shape at a desk, is this round's question.",
+        "Round one ruled a click opens a small look first. Both halves of the old split are ruled, shipped objects now (app-shape r1: the Sheet, a mini-modal for the QR); every guest has a face of their own (seed-avatar r1). Which object is a look?",
       options: [
         {
           id: "sheet",
-          label: "A bottom sheet, on both screens",
+          label: "The one Sheet, both screens",
           means:
-            "The face, the name, the line and the parties as small covers, plus Open full profile. The same sheet at 375 and 1440.",
+            "The face, the name, the line and small covers, plus Open full profile, in the app's own Sheet: a bottom sheet in a hand, a right-edge panel at a desk.",
         },
         {
-          id: "adaptive",
-          label: "A popover at 1440, the sheet at 375",
+          id: "mini-modal",
+          label: "The mini-modal, both screens",
           means:
-            "The same card, anchored beside the name at a desk; the full-width sheet only at a phone.",
+            "The same card, in the small centred dialog the app already opens the QR in: capped, anchored to nothing, closer to a peek than a page.",
         },
         {
           id: "none",
@@ -188,11 +202,11 @@ const DRAFT = defineExploration({
             "The name is a plain link to /u/<slug>. Ten taps down a list is ten full page loads, and ten trips back.",
         },
       ],
-      recommended: "adaptive",
+      recommended: "sheet",
       because:
-        "A phone wants the sheet's thumb reach, but a full-width sheet at a desk hides the whole list behind one small card; a popover keeps the rest of the names in view, closer to a look than a modal is.",
+        "Both halves are real now (app-shape r1): the Sheet already narrows to a right-edge panel at a desk, never full-width, so it keeps the rest of the names in view without a second component; the mini-modal stays the QR's own idiom.",
       overrule:
-        "If one component beats a split by screen, the sheet everywhere is the simpler build and still answers what he asked for.",
+        "If a look should read as a peek rather than a panel, the mini-modal is the closer cousin: the same small, centred, capped object the QR already opens.",
       lands: "Whether quick-look is one component or two, and whether a tap ever skips it.",
       tile: "phone",
       configs: [SCREEN, WHO],
@@ -202,7 +216,7 @@ const DRAFT = defineExploration({
       label: "Way back",
       question: "How should a profile keep the scanned event reachable?",
       context:
-        "Click ten names down a guest list and the album is ten navigations behind. Will's words: it would be easy to get far away from the original event and risk not getting back. Drawn on Priya's profile, arrived from Maya's wedding.",
+        "Click ten names down a list and the album is ten navigations behind. A crumb trail rides the host's bar (app-shape r1); the guest's chrome had a second round (guest-shape r2); the menu carries a standing row too (app-pricing r1).",
       options: [
         {
           id: "pill",
@@ -214,7 +228,7 @@ const DRAFT = defineExploration({
           id: "menu",
           label: "One more row in the account menu",
           means:
-            "The signed-in menu names the event. A signed-out visitor, who has no menu at all, gets nothing extra.",
+            "The signed-in menu names the event. A signed-out visitor, who has no account menu at all, gets nothing extra here.",
         },
         {
           id: "none",
@@ -226,7 +240,7 @@ const DRAFT = defineExploration({
       because:
         "It is the only option that works for a signed-out guest too, which most people at a party are; it costs one line, and naming the host's event under the header is bible 4's own ask, not a new one.",
       overrule:
-        "If the chrome should stay this quiet, the account menu keeps it to one row for whoever is signed in, and the rest keep the browser's back.",
+        "If the chrome should stay quiet, the account menu keeps it to one row for whoever is signed in; a signed-out guest keeps only the browser's own back.",
       lands:
         "Whether a profile carries any memory of where a visit began, and whether a signed-out guest gets a way back at all.",
       tile: "phone",

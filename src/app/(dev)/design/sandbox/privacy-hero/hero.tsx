@@ -12,7 +12,12 @@ import { featurePage } from "@/lib/constants/feature-pages";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import type { ConceptId } from "./concepts";
-import { AccessConcept, ApertureConcept, SealConcept } from "./concepts-layer";
+import {
+  AccessConcept,
+  ApertureConcept,
+  SealConcept,
+  SweepConcept,
+} from "./concepts-layer";
 
 /**
  * THE PRIVACY PAGE'S FIRST SCREEN, ROUND THREE: A NEW BACKDROP, THE SAME
@@ -39,6 +44,7 @@ const BACKDROP: Record<ConceptId, (mode: Mode) => ReactNode> = {
   aperture: (mode) => <ApertureConcept mode={mode} />,
   access: (mode) => <AccessConcept mode={mode} />,
   seal: (mode) => <SealConcept mode={mode} />,
+  sweep: (mode) => <SweepConcept mode={mode} />,
 };
 
 export function PrivacyHero({ spec }: { spec: HeroSpec }) {

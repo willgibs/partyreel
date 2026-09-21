@@ -20,15 +20,25 @@ import { defineExploration } from "@/components/lab/exploration";
  * build script; the killed sitewide "media kit" (an unrelated project); brand-guidelines
  * plates (clear space, minimum size, misuse), cut from the page by the 2026-08-28 ruling
  * and not reopened here.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES TWO OF SEVEN.
+ * `the-sheet`'s `brand-in-use` gains a second addendum, the app's own
+ * printed stock (`lib/qr/stock.ts`, first-event r1): real table cards, a
+ * sign, a poster, at real millimetre sizes, not a hypothetical "real
+ * screen" alone. `the-arc` names pricing-page's own re-cut chapter order
+ * (overview, then the table, then the questions, r2) as the precedent its
+ * recommendation now stands on. Neither recommendation changed; `who-for`,
+ * `the-words`, `the-facts`, `a-human` and `the-close` stand: no badge named
+ * them.
  */
 export const PRESS_PAGE = defineExploration({
   id: "press-page",
   title: "What Partyreel hands the world",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: seven decisions on the real page pieces, from who the page is for to how it closes, each drawn at 1440 and 375.",
+      "The overtaken audit's reshape touches two of seven: the-sheet's brand-in-use now holds the app's own printed stock too (first-event r1, real objects at real mm); the-arc names pricing-page's own re-cut order (r2) as this one's precedent. The other five stand unbadged.",
   },
   context:
     "Will's stacking steer (2026-09-19): /press is unprotected, open to relitigate from the ground up. Seven decisions on PageHero, PressSection, PressSheet and the copy buttons. Not in this round: any production byte, the kit's build script, or the killed sitewide media kit.",
@@ -75,7 +85,7 @@ export const PRESS_PAGE = defineExploration({
       label: "What the sheet shows",
       question: "What should the asset sheet show?",
       context:
-        "PressSheet draws eight numbered plates: two marks, the bare mark, the app icon, the share card, a QR, the ink hex, and the type. Every mark file is still the retired Aperture glyph, a stand-in for the v1 icon Will has not delivered yet.",
+        "PressSheet draws eight plates: two marks, the icon, the share card, a QR, ink, type. Every mark is the retired Aperture glyph, a stand-in for the v1 icon. The app prints its own stock now (first-event r1): table cards, a sign, a poster.",
       options: [
         {
           id: "eight-plates",
@@ -92,14 +102,14 @@ export const PRESS_PAGE = defineExploration({
           id: "brand-in-use",
           label: "The brand in use",
           means:
-            "The same eight plates, plus an addendum showing the mark on a real screen.",
+            "The same eight plates, plus the mark over a real guest album and on the app's own printed stock (table cards, a sign, a poster): two addenda now.",
         },
       ],
       recommended: "eight-plates",
       because:
         "The placeholder marks are a delivery gap, not a design one; pulling plates now fixes the wrong problem and leaves the sheet thinner until the icon lands anyway.",
       overrule:
-        "If a half-finished sheet undersells the kit more than a full one with known stand-ins, marks-only.",
+        "If a half-finished sheet undersells the kit more than a full one, marks-only; brand-in-use is fullest now, holding real print objects too.",
       lands: "press-sheet.tsx's Frame list; PRESS_KIT's shape stays whatever wins.",
     },
 
@@ -240,7 +250,7 @@ export const PRESS_PAGE = defineExploration({
       label: "How the page reads",
       question: "How should the page read, top to bottom?",
       context:
-        "Today: masthead, then Assets, Words, and the Fact sheet in that order, then the close. Asked in the world where /press stays one page.",
+        "Today: masthead, then Assets, Words, the Fact sheet, then the close. pricing-page has since proven the same arc: overview first, the detail table next, the questions last (pricing-page r2).",
       options: [
         {
           id: "today-order",
@@ -261,7 +271,7 @@ export const PRESS_PAGE = defineExploration({
       ],
       recommended: "today-order",
       because:
-        "The sheet is the one thing every reader meets in five seconds, and a reporter on a deadline still reaches the facts inside one scroll; trading that first impression for density nobody asked for is a real cost.",
+        "The sheet is the one thing every reader meets in five seconds, and a reporter on a deadline still reaches the facts inside one scroll; pricing-page just re-cut its own chapters the same way (r2), this order's own precedent now.",
       overrule:
         "If a deadline reporter's first need is the checkable claims rather than the art, facts-words-first.",
       lands: "page.tsx's PressSection order.",

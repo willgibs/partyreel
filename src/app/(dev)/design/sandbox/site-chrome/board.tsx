@@ -42,7 +42,7 @@ const AFTER_H: Record<FootAfter, { d: number; p: number }> = {
 
 const AFTER_NOTE: Record<FootAfter, string> = {
   today:
-    "The same pile, heading and copy, directly under the close above it.",
+    "The framed photograph, its corner code, heading and copy, directly under the close above it.",
   quiet: "One slim row, a small code and a line: no section of its own.",
   merged:
     "One ink background, no seam; the close's own demo line is the only one.",
@@ -106,7 +106,8 @@ const PHONE_H = 1900;
 const PHONE_NOTE: Record<FootPhone, string> = {
   hidden:
     "As today: no code (nobody can scan their own screen), a link instead.",
-  small: "The code stays, small, even though it is only decoration here.",
+  small:
+    "The code stays, small: decoration now by ruling (first-event r1), not just a guess.",
   none: "No demo mention at all on this width: straight into the index.",
 };
 
@@ -120,7 +121,7 @@ function footPhoneScreen(mode: FootPhone) {
       note={PHONE_NOTE[mode]}
     >
       <CtaCloseGround />
-      <BoardFooter register="today" phone pileMode={mode} />
+      <BoardFooter register="today" phone frameMode={mode} />
     </PhoneScene>
   );
 }

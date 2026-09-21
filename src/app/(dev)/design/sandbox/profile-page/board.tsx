@@ -45,7 +45,7 @@ const who = (s: BoardState) => PEOPLE[whoOf(s.who as string)];
 
 function viewAll(
   s: BoardState,
-  option: "inline" | "sheet" | "modal" | "page",
+  option: "inline" | "sheet" | "centred" | "page",
 ) {
   const items = s.count === "small" ? GUESTS : GUESTS_BIG;
   if (option === "page") {
@@ -78,7 +78,7 @@ function viewAll(
 
 /* ── quick-look ───────────────────────────────────────────────────────────── */
 
-function quickLook(s: BoardState, option: "sheet" | "adaptive" | "none") {
+function quickLook(s: BoardState, option: "sheet" | "mini-modal" | "none") {
   return (
     <Scene
       id={`quick-look-${option}`}
@@ -121,11 +121,11 @@ function wayBack(s: BoardState, option: "pill" | "menu" | "none") {
 const PREVIEWS: PreviewsFor<typeof PROFILE_PAGE> = {
   "view-all.inline": (s) => viewAll(s, "inline"),
   "view-all.sheet": (s) => viewAll(s, "sheet"),
-  "view-all.modal": (s) => viewAll(s, "modal"),
+  "view-all.centred": (s) => viewAll(s, "centred"),
   "view-all.page": (s) => viewAll(s, "page"),
 
   "quick-look.sheet": (s) => quickLook(s, "sheet"),
-  "quick-look.adaptive": (s) => quickLook(s, "adaptive"),
+  "quick-look.mini-modal": (s) => quickLook(s, "mini-modal"),
   "quick-look.none": (s) => quickLook(s, "none"),
 
   "way-back.pill": (s) => wayBack(s, "pill"),

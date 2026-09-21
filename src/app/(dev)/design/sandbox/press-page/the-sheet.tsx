@@ -3,11 +3,13 @@
 import Image from "next/image";
 
 import { BrowserFrame } from "@/components/marketing/frames";
+import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { PressSheet } from "@/components/marketing/press/press-sheet";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { PRESS_KIT } from "@/lib/constants/press";
+import { PRINT_STOCK, STOCK_IDS } from "@/lib/qr/stock";
 
 import { FixtureNote } from "./shared";
 
@@ -18,6 +20,16 @@ import { FixtureNote } from "./shared";
  * same real kit files and plate-ground rule (a plate is the artwork's own
  * ground, literal colour, never a theme utility), never edits to
  * press-sheet.tsx itself.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `brand-in-use` gains a
+ * second addendum: the app now prints its own stock (`venue=sheet`,
+ * first-event r1, `lib/qr/stock.ts`), three real pieces at real millimetre
+ * sizes rather than a hypothetical. `PRINT_STOCK` is imported for its
+ * numbers, never redrawn by hand; the swatches below are a small, scaled
+ * illustration of the real shape (aspect-ratio held, `mmToPx` at full scale
+ * would print a poster on the screen), not the production `PrintStock`
+ * component itself, which lays out at real print size for an actual sheet
+ * and has no reason to run inside a press-kit card.
  */
 
 function findAsset(id: string) {
@@ -49,6 +61,36 @@ function MarksOnly() {
   );
 }
 
+/** One printed piece, scaled to a small swatch: the real aspect ratio
+ *  (`faceMm`), a code sized to the same share of the face the real stock
+ *  gives it, the label and spec `PRINT_STOCK` already carries. */
+function StockSwatch({ stockId }: { stockId: (typeof STOCK_IDS)[number] }) {
+  const piece = PRINT_STOCK[stockId];
+  const ratio = piece.faceMm.w / piece.faceMm.h;
+  const codeShare = piece.codeMm / Math.min(piece.faceMm.w, piece.faceMm.h);
+  return (
+    <li className="flex flex-col items-center gap-2">
+      <div
+        className="relative flex w-full items-center justify-center overflow-hidden rounded-md border bg-white"
+        style={{ aspectRatio: ratio }}
+      >
+        <span
+          className="relative block"
+          style={{ width: `${Math.round(codeShare * 100)}%` }}
+        >
+          <FooterQr value="https://partyreel.com/e/demo" size={64} />
+        </span>
+      </div>
+      <div className="text-center">
+        <p className="text-xs font-medium">{piece.label}</p>
+        <p className="text-[11px] text-muted-foreground">
+          {Math.round(piece.faceMm.w)} × {piece.faceMm.h}mm · {piece.spec}
+        </p>
+      </div>
+    </li>
+  );
+}
+
 function BrandInUse() {
   const shots = ["wedding-golden", "party-dj", "reception-table", "festival-lights"];
   return (
@@ -77,9 +119,20 @@ function BrandInUse() {
           </div>
         </BrowserFrame>
       </div>
+      <div className="rounded-tile border p-4">
+        <p className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-[0.14em]">
+          On the printed stock
+        </p>
+        <ul className="mx-auto grid max-w-sm grid-cols-3 gap-3">
+          {STOCK_IDS.map((id) => (
+            <StockSwatch key={id} stockId={id} />
+          ))}
+        </ul>
+      </div>
       <FixtureNote className="mx-auto max-w-md text-center">
-        A ninth plate showing the mark over a real guest album, so a reporter
-        sees the brand on the thing rather than only on a swatch.
+        Two addenda beyond the eight plates: the mark over a real guest
+        album, and the mark on the app&apos;s own printed stock (first-event
+        r1), real objects rather than a swatch alone.
       </FixtureNote>
     </div>
   );

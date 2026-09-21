@@ -24,7 +24,7 @@ import type { ScreenId } from "./scene";
 
 /* ── view-all: how the full list opens from the faces row ───────────────── */
 
-export type ViewAllOption = "inline" | "sheet" | "modal" | "page";
+export type ViewAllOption = "inline" | "sheet" | "centred" | "page";
 
 const GROUP_SIZE = 24;
 
@@ -116,8 +116,13 @@ function ViewAllSheet({ items }: { items: Chip[] }) {
   );
 }
 
-/** (c) The centred modal round one drew, unchanged: `NamesSheet`. */
-function ViewAllModal({ items }: { items: Chip[] }) {
+/**
+ * (c) The centred list, on round one's own `NamesSheet`: capped, scrolling
+ * within itself, the same object the app already celebrates Pro in
+ * (`welcome-to-pro.tsx`, app-pricing r1) rather than a bespoke modal drawn
+ * for this board alone.
+ */
+function ViewAllCentred({ items }: { items: Chip[] }) {
   return (
     <>
       <FacesRow items={items} onOpen={() => {}} />
@@ -172,7 +177,7 @@ export function ViewAllShowcase({
       <Section label="Guests" count={items.length}>
         {option === "inline" && <ViewAllInline items={items} />}
         {option === "sheet" && <ViewAllSheet items={items} />}
-        {option === "modal" && <ViewAllModal items={items} />}
+        {option === "centred" && <ViewAllCentred items={items} />}
       </Section>
       <div className="mt-8">
         <Foot />
@@ -183,7 +188,7 @@ export function ViewAllShowcase({
 
 /* ── quick-look: what a name opens first ─────────────────────────────────── */
 
-export type QuickLookOption = "sheet" | "adaptive" | "none";
+export type QuickLookOption = "sheet" | "mini-modal" | "none";
 
 /** The parties as small covers, plus the overflow line: the one place this
  *  round draws round one's `made-of=covers` at a size smaller than a grid
@@ -231,18 +236,35 @@ function QuickLookBody({ person }: { person: Person }) {
   );
 }
 
-/** The bottom sheet: the same card at 375 and, under "sheet", at 1440 too. A
- *  centred column inside an edge-to-edge panel, because the shipped `Sheet`'s
- *  own bottom side is edge-to-edge at every width (`sheet.tsx`): the panel can
- *  span the window without the READING measure doing the same. */
-function QuickLookSheet({ person }: { person: Person }) {
+/** The app's own responsive Sheet (app-shape r1): a bottom sheet in a hand, a
+ *  right-edge panel at a desk, one component rather than a split by screen.
+ *  The phone side is a centred column inside an edge-to-edge panel, because
+ *  the shipped `Sheet`'s own bottom side is edge-to-edge at every width
+ *  (`sheet.tsx`); the desk side narrows to a column pinned to the right edge,
+ *  never full width, which is what keeps the rest of the list in view. */
+function QuickLookSheet({
+  person,
+  screen,
+}: {
+  person: Person;
+  screen: ScreenId;
+}) {
+  const desk = screen === "1440";
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col justify-end bg-black/50">
+    <div
+      className={`fixed inset-0 z-[60] flex bg-black/50 ${desk ? "justify-end" : "flex-col justify-end"}`}
+    >
       <div
         data-pp-card
-        className={`max-h-[80vh] overflow-y-auto rounded-t-2xl p-6 ${floatingPanel}`}
+        className={
+          desk
+            ? `h-full w-full max-w-sm overflow-y-auto rounded-l-2xl p-6 ${floatingPanel}`
+            : `max-h-[80vh] overflow-y-auto rounded-t-2xl p-6 ${floatingPanel}`
+        }
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+        {!desk && (
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+        )}
         <div className="mx-auto w-full max-w-md">
           <QuickLookBody person={person} />
         </div>
@@ -251,10 +273,10 @@ function QuickLookSheet({ person }: { person: Person }) {
   );
 }
 
-/** The one chip a tap marks, so an anchored popover has something to anchor
- *  beside: `GuestList` renders its own `<ul>` and takes no per-chip slot, so
- *  this repeats its chip markup for one row rather than editing the shipped
- *  component (the same move `OwnChip` made in round one). */
+/** The one chip a tap marks, so the mini-modal has something to sit under in
+ *  the showcase: `GuestList` renders its own `<ul>` and takes no per-chip
+ *  slot, so this repeats its chip markup for one row rather than editing the
+ *  shipped component (the same move `OwnChip` made in round one). */
 function ClickedChip({ chip }: { chip: Chip }) {
   return (
     <span className="flex h-8 items-center gap-2 rounded-full border border-ring/50 bg-muted/60 py-1 pr-3 pl-1 text-sm ring-2 ring-ring/30">
@@ -269,9 +291,11 @@ function ClickedChip({ chip }: { chip: Chip }) {
   );
 }
 
-/** The popover: anchored beside the name that opened it, a peek that leaves
- *  the rest of the list in view, "adaptive"'s 1440 half. */
-function QuickLookPopover({ person }: { person: Person }) {
+/** The mini-modal: the same small, centred, capped dialog the QR already
+ *  opens in (app-shape r1's `share=room`), reused for a look at a person
+ *  rather than a code. Identical at both screens, unlike the Sheet, because
+ *  the QR's own mini-modal never adapted by width either. */
+function QuickLookMiniModal({ person }: { person: Person }) {
   const chip: Chip = {
     id: person.id,
     displayName: person.name,
@@ -280,15 +304,17 @@ function QuickLookPopover({ person }: { person: Person }) {
     avatarUrl: person.avatar,
   };
   return (
-    <div className="relative inline-block">
+    <>
       <ClickedChip chip={chip} />
-      <div
-        data-pp-card
-        className={`absolute top-full left-0 z-50 mt-2 w-80 p-4 ${floatingPanel}`}
-      >
-        <QuickLookBody person={person} />
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+        <div
+          data-pp-card
+          className={`w-full max-w-sm overflow-y-auto rounded-2xl p-6 ${floatingPanel}`}
+        >
+          <QuickLookBody person={person} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -313,19 +339,18 @@ export function QuickLookShowcase({
       />
     );
   }
-  const popover = option === "adaptive" && screen === "1440";
   return (
     <>
       <Head option="guest" signedIn />
       <AlbumHead />
       <Album count={2} />
       <Section label="Guests" count={GUESTS.length}>
-        {popover ? (
-          <QuickLookPopover person={person} />
+        {option === "mini-modal" ? (
+          <QuickLookMiniModal person={person} />
         ) : (
           <>
             <FacesRow items={GUESTS} onOpen={() => {}} />
-            <QuickLookSheet person={person} />
+            <QuickLookSheet person={person} screen={screen} />
           </>
         )}
       </Section>

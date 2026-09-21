@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ListChecks, Radio, ShieldCheck } from "lucide-react";
+import { Check, Clock, ListChecks, Radio, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
@@ -16,6 +16,14 @@ import { cn } from "@/lib/utils";
  * plates) is a prop instead of a module constant, which production has no
  * room for. Everything else — the segmented control, the travelling
  * `Traveller`, the three plates, the toast — is unchanged.
+ *
+ * ★ THE QUEUE PLATE'S FRAME, REDRAWN (the overtaken audit's reshape,
+ * 2026-09-21). The real tile a waiting photograph wears now exists
+ * (`WaitingTile`, `guest/upload/stack-tile.tsx`, guest-upload r1): dimmed,
+ * a glassy clock badge, "Waiting for the host". At this plate's 56px this
+ * plainly has no room for the caption, but the dim and the badge are cheap
+ * and make the mini queue box a miniature of the real tile rather than a
+ * bespoke placeholder invented before it existed.
  */
 
 type Mode = "live" | "review";
@@ -188,11 +196,24 @@ export function ReviewPhoto({ photo }: { photo: string }) {
                       className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                     />
                     {!approved && (
-                      <Traveller
-                        key="queue"
-                        photo={photo}
-                        className="absolute inset-0"
-                      />
+                      <>
+                        <Traveller
+                          key="queue"
+                          photo={photo}
+                          dim
+                          className="absolute inset-0"
+                        />
+                        {/* The real waiting tile's own mark, at this size
+                            (guest-upload r1, stack-tile.tsx's WaitingTile):
+                            dimmed, a small clock badge, no room here for its
+                            caption too. */}
+                        <span
+                          aria-hidden
+                          className="absolute top-1 left-1 flex size-3.5 items-center justify-center rounded-full bg-black/55"
+                        >
+                          <Clock className="size-2 text-white" />
+                        </span>
+                      </>
                     )}
                   </span>
                   <span className="flex flex-wrap items-center justify-center gap-1.5">

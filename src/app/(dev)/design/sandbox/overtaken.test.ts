@@ -340,11 +340,13 @@ describe("the overtaken map", () => {
     // The sixth batch ruled the portal's whole shell, one board over.
     expect(overtakenOn("admin-triage")).toBe(8);
     // The desk's last board, reached for the first time by the closing
-    // sitting's second batch and again by its third; it was the example of a
-    // board nothing had reached, which is why the zero case moved to a made-up
-    // id. The retired boards above are the real zeros now, and they are the
-    // stronger case: a board may go back to nothing.
-    expect(overtakenOn("press-page")).toBe(2);
+    // sitting's second batch and again by its third: two badges, until the
+    // overtaken audit's own reshape (2026-09-21) answered both by folding
+    // the reached ruling into `the-sheet` and `the-arc`'s own context and
+    // because lines rather than leaving them as a standing override — the
+    // third way a badge ends, beside his own answer and a board's wiring.
+    // Zero now, joining the retired boards above for a different reason.
+    expect(overtakenOn("press-page")).toBe(0);
     // A board nothing reached counts none, and never throws for asking.
     expect(overtakenOn("a-board-nobody-drew")).toBe(0);
     expect(overtakenKey("a", "b")).toBe("a.b");
@@ -369,11 +371,12 @@ describe("the overtaken map", () => {
     // A floor, never a census: three in four of these questions were drawn
     // with a baseline that has since moved, and the map has quadrupled since
     // the first pass set this at fifteen. It survived fifteen entries leaving
-    // at once, which is what a floor is for.
+    // at once (the closing sitting) and nineteen more (the overtaken audit's
+    // marketing-boards lane, 2026-09-21, `contact-page.topic` among them:
+    // still "Required, as today" in its own spec.ts, but no longer badged,
+    // so no longer this detector's to find), which is what a floor is for.
     expect(glossed.length).toBeGreaterThanOrEqual(40);
     expect(glossed).toContain("media-viewer.opening");
-    // And a badge written this pass is glossed on exactly the same reading.
-    expect(glossed).toContain("contact-page.topic");
     // And the gloss says which way to read them.
     expect(AS_TODAY_GLOSS).toContain("before that ruling");
     expect(saysAsToday("The dark room, as today")).toBe(true);
