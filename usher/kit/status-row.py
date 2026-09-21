@@ -13,6 +13,7 @@ rid, state = args[0], args[1]
 desc = args[args.index("--desc") + 1] if "--desc" in args else None
 lines = p.read_text().split("\n")
 hits = [i for i, l in enumerate(lines) if l.startswith(f"| `{rid}` |")]
+if not hits: hits = [i for i, l in enumerate(lines) if l.startswith(f"| {rid} |")]  # a plain-text first cell ("the closing sitting's lanes"), 2026-09-21: four hand edits in one night
 if len(hits) > 1: sys.exit(f"STATUS holds {len(hits)} rows for `{rid}`: fold them by hand first")
 if hits:
     cells = lines[hits[0]].split(" | ")
