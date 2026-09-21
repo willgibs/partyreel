@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `reshape-studio-export` (2026-09-21): the guest's Download dialog is still a centred `Dialog` while the export board is drawn on the one responsive sheet the guest's dialogs are ruled onto; the swap onto the sheet is a wiring line for the next batch that touches the guest's Download.
 - From the identity reshape (2026-09-21): the CONTRACT migration for the milestone that carries `require_verified_email` to `main`: drop the sync trigger and `events.allow_anonymous_uploads`, recreate `get_event_by_qr_token` without it, add `create_guest`'s 'Add your name to upload.' raise, retire `isAnonymous` and the seed script's old flag; never before `main` reads the new column.
 - Will's dashboard, before a large verified-emails event: raise 'Rate limit for sending emails' (Authentication, Rate Limits; 100 an hour project-wide today, custom SMTP in place): a 150-guest door in one hour outruns it; the door names the refusal and the switch is the host's live valve.
 - From `third-batch-fixes` (2026-09-21): the guest album's header threads `stats.contributorCount` from the RSC and holds it per load, so a guest's own first upload under-counts the guests by one until a reload (`event-experience.tsx`); the fix is a small server signal on the gallery poll (was this guest counted), never a client heuristic (a returning contributor would over-count).
