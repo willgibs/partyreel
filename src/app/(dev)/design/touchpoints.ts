@@ -112,7 +112,6 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "guest-verify"
-  | "seed-avatar"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -798,28 +797,33 @@ export const RULINGS: Ruling[] = [
       ],
     },
   },
+  // RULED AND RETIRED (round two, 2026-09-20). Round one wired six of seven
+  // asks (`avatar-wiring`); his one open question, whether the wired
+  // diagonal was hashvatar's richest register, came back `look=mesh`
+  // (rulings.md, "the closing sitting's second batch") and `avatar-mesh-
+  // wiring` wired it. The board left sandbox/ with the wiring;
+  // docs/design/rulings.md keeps his words.
   {
     id: "seed-avatar",
     title: "The colour a new account is",
     surface: "shared",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch); avatar-wiring lands six of the seven on the real Avatar (the clipping bug fixed, look=diagonal, full colour, the whole wheel, the initial always, the account id as seed, the colour waiting under a photograph, no motion); round two open on the one he left: is the diagonal the richest look hashvatar has to offer",
-    shipped: null,
-    why: "Every account without a photograph draws a seeded colour, not grey; round two asks whether the diagonal is as rich as hashvatar's own register.",
+      "whole: round one (Will, 2026-09-20, the sixth batch) ruled the clipping bug fixed, full colour, the whole wheel, the initial always, the account id as seed, the colour waiting under a photograph, no motion, wired six of seven by `avatar-wiring`; round two, the look alone, ruled `look=mesh` (overrules the wired `diagonal`) at the closing sitting's second batch (2026-09-20) and wired by `avatar-mesh-wiring`",
+    shipped:
+      "hashvatar's own register: one identity hue read at four tonal depths (a bright primary pool, two darker secondary pools, a plain base fill beneath), diffused and blended with `overlay`/`soft-light` (`background()`'s `mesh` branch and `blendMode()`, `src/lib/avatar/gradient.ts`); the stricter centre-pixel measurement the board used for `look` moved beside the generator as `measure.ts` and holds the shipped look to 4.5:1 under the initial across a thousand real UUIDs",
+    why: "Every account without a photograph draws a seeded colour, not grey; round two's mesh reads richer and measures better under the initial than the wired diagonal.",
     lives: [
+      "docs/systems/auth-accounts.md",
       "docs/systems/profiles-social.md",
       "src/lib/avatar/gradient.ts",
+      "src/lib/avatar/measure.ts",
+      "src/lib/avatar/seed.ts",
       "src/components/ui/avatar.tsx",
       "src/components/social/guest-list.tsx",
       "src/components/app/user-menu.tsx",
       "src/components/guest/guest-account-menu.tsx",
       "src/components/app/account-avatar-form.tsx",
     ],
-    board: {
-      note: "Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame",
-      variants: ["The look"],
-      tracks: ["avatar-look"],
-    },
   },
   {
     id: "profile-page",
@@ -1589,7 +1593,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
-  "seed-avatar",
   "first-event",
   "guest-upload",
   "media-viewer",

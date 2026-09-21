@@ -24,6 +24,21 @@
  * dependency that renders into a `<canvas>` with blurred polygons, six blend-mode
  * layers and a `requestAnimationFrame` loop, and we need none of that.
  *
+ * ★ ROUND TWO ADDS `mesh` (2026-09-20, `avatar-mesh-wiring`, `seed-avatar` r2:
+ * "is the diagonal the richest look hashvatar had to offer? The preview ones
+ * felt much more alive and rich"). Read from hashvatar's OWN source this
+ * round (`gradient.ts`, `color.ts`, `index.ts`, `demo/index.html`, all on
+ * GitHub): its default view — no `tones` supplied, which is what every one
+ * of its own gallery samples renders — draws four colours that all share ONE
+ * hue, never rotated: a bright primary and three darker, desaturated
+ * secondaries, composited back with `overlay` and `soft-light` at varying
+ * alpha. So the richness he saw is one hue read at several DEPTHS, diffused
+ * and blended, never several hues in one avatar. `mesh` below is the honest
+ * CSS-only translation: layered `radial-gradient`s plus `background-blend-
+ * mode` (`blendMode`, applied by the caller alongside this file's plain
+ * string, since one CSS value cannot itself declare a blend mode) — no
+ * canvas, no blur filter, no polygon path.
+ *
  * ★ WHAT WE CHANGE, AND WHY EACH CHANGE IS FORCED.
  *
  *  1. NO CANVAS, NO DEPENDENCY, NO CLIENT. The guest list, the user menu and the
@@ -344,8 +359,56 @@ export function orbFor(seed: string, mode: PaletteMode = "wheel"): Orb {
 
 /* ── 5. The picture: one CSS background string ────────────────────────────── */
 
-/** The four shapes a seeded avatar could take. The `look` decision on the board. */
-export type Look = "orb" | "diagonal" | "aurora" | "flat";
+/**
+ * The five shapes a seeded avatar could take. The `look` decision on the
+ * board: `mesh` is what round two picked (rulings.md, "the closing sitting's
+ * second batch") and what `Avatar` actually draws; `orb`, `diagonal`,
+ * `aurora` and `flat` are round one's exploration, kept for the generator's
+ * own tests and history rather than deleted with the board.
+ */
+export type Look = "orb" | "diagonal" | "aurora" | "flat" | "mesh";
+
+/** Keeps a `mesh` layer's own lightness swing inside a paintable window,
+ *  exactly hashvatar's own clamp on its four generated colours. */
+const clampL = (l: number): number => Math.max(0.1, Math.min(0.95, l));
+
+/**
+ * `diagonal`'s own three stops (0%, 58%, 100%), shared by `background()` and
+ * `measure.ts`'s comparison figure for the look `mesh` replaced, so the two
+ * can never quietly drift apart the way a hand-copied formula would.
+ */
+export function diagonalStops(orb: Orb): readonly [Lch, Lch, Lch] {
+  const { hue2, body, lit, deep } = orb;
+  return [lit, fitChroma({ l: body.l, c: body.c, h: hue2 }), deep];
+}
+
+/**
+ * `mesh`'s three depths of its ONE hue (never rotated), shared by
+ * `background()` (which paints them as layered `radial-gradient`s) and
+ * `measure.ts` (which composites them the way a browser actually would, for
+ * the contract test) — computed once so the two can never quietly drift
+ * apart. `primary` is `lit`, a hair dimmer; `secondaryDark` and
+ * `secondaryMid` are `body` read darker and less saturated, hashvatar's own
+ * two visible secondary tones at this scale.
+ */
+export function meshDepths(
+  orb: Orb,
+): { primary: Lch; secondaryDark: Lch; secondaryMid: Lch } {
+  const { hue, body, lit } = orb;
+  return {
+    primary: fitChroma({ l: clampL(lit.l - 0.02), c: lit.c, h: hue }),
+    secondaryDark: fitChroma({
+      l: clampL(body.l - 0.32),
+      c: body.c * 0.5,
+      h: hue,
+    }),
+    secondaryMid: fitChroma({
+      l: clampL(body.l - 0.1),
+      c: body.c * 0.85,
+      h: hue,
+    }),
+  };
+}
 
 /**
  * The avatar's `background-image`, or `background` for the flat one.
@@ -356,16 +419,19 @@ export type Look = "orb" | "diagonal" | "aurora" | "flat";
  * the ramp stays the same colour the whole way down; oklab rather than oklch because
  * the polar form takes a hue ARC between two hues and can swing through a third
  * colour that was never in the palette.
+ *
+ * ★ `mesh` PAINTS FOUR LAYERS THAT NEED A BLEND MODE TO READ RIGHT: pair this
+ * string with `blendMode(look)` on the SAME element's `backgroundBlendMode`
+ * (`ui/avatar.tsx` does); every other look composites correctly with the
+ * browser's default and needs nothing extra.
  */
 export function background(orb: Orb, look: Look): string {
   const { lit, body, deep, light, angle, hue, hue2 } = orb;
   if (look === "flat") return css(body);
   if (look === "diagonal") {
     // Vercel's shape: two hues, one straight ramp, no light source at all.
-    const far = fitChroma({ l: body.l, c: body.c, h: hue2 });
-    return `linear-gradient(in oklab ${angle.toFixed(0)}deg, ${css(
-      fitChroma({ l: lit.l, c: lit.c, h: hue }),
-    )} 0%, ${css(far)} 58%, ${css(deep)} 100%)`;
+    const [litAt, far, deepAt] = diagonalStops(orb);
+    return `linear-gradient(in oklab ${angle.toFixed(0)}deg, ${css(litAt)} 0%, ${css(far)} 58%, ${css(deepAt)} 100%)`;
   }
   if (look === "aurora") {
     // Two hues thrown across one deep ground with a soft seam between them: the
@@ -378,11 +444,42 @@ export function background(orb: Orb, look: Look): string {
       `linear-gradient(in oklab ${angle.toFixed(0)}deg, ${css(deep)} 0%, ${css(body)} 100%)`,
     ].join(", ");
   }
+  if (look === "mesh") {
+    // hashvatar's own register (the header above): one hue read at several
+    // depths, diffused and blended. Four layers, first-listed-paints-on-top:
+    // the bright primary pool at the light source, a dark secondary pool
+    // opposite it, a mid secondary wash low and centred, and a plain linear
+    // fill underneath everything else. `blendMode("mesh")` is what actually
+    // folds them together; this string alone paints them flat.
+    const { primary, secondaryDark, secondaryMid } = meshDepths(orb);
+    return [
+      `radial-gradient(in oklab 122% 118% at ${light.x.toFixed(0)}% ${light.y.toFixed(0)}%, ${css(primary)} 0%, transparent 58%)`,
+      `radial-gradient(in oklab 116% 116% at ${(100 - light.x).toFixed(0)}% ${(100 - light.y).toFixed(0)}%, ${css(secondaryDark)} 0%, transparent 64%)`,
+      `radial-gradient(in oklab 150% 150% at 50% 62%, ${css(secondaryMid)} 0%, transparent 72%)`,
+      `linear-gradient(in oklab 180deg, ${css(primary)} 0%, ${css(body)} 100%)`,
+    ].join(", ");
+  }
   // The orb: one hue, one light source, one shadow. hashvatar's gradient mode,
   // redrawn as the lit sphere it was always describing.
   return `radial-gradient(in oklab 118% 118% at ${light.x.toFixed(0)}% ${light.y.toFixed(0)}%, ${css(
     lit,
   )} 0%, ${css(body)} 46%, ${css(deep)} 100%)`;
+}
+
+/**
+ * `background-blend-mode` to pair with `background()`'s image, for a look
+ * that reads as several depths of ONE hue rather than a single ramp or a
+ * single lit pole. Only `mesh` needs one: `overlay` folds its bright primary
+ * pool into the fill without washing it flat, `soft-light` seats the dark
+ * secondary pool without ever turning fully opaque, and the mid secondary
+ * wash and the base fill composite with the browser's own default
+ * (`normal`) exactly as every other look already does with nothing
+ * declared. `undefined` for every other look, so a caller can set the style
+ * unconditionally: React drops a `backgroundBlendMode: undefined` the same
+ * way it drops any other unset style property.
+ */
+export function blendMode(look: Look): string | undefined {
+  return look === "mesh" ? "overlay, soft-light, normal, normal" : undefined;
 }
 
 /** What a caption can honestly say about one orb, without opening the file. */

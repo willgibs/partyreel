@@ -2,7 +2,6 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { GUEST_VERIFY } from "./guest-verify/spec";
-import { SEED_AVATAR } from "./seed-avatar/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
@@ -50,7 +49,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   GUEST_VERIFY,
-  SEED_AVATAR,
 
   FIRST_EVENT,
   GUEST_UPLOAD,
