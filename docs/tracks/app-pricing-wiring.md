@@ -1,6 +1,6 @@
 ---
 track: app-pricing-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ece02b97"          # the launch-prep SHA the branch was cut from
 board: app-pricing     # wired by this lane; the board retires (its eight asks ruled whole)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -264,30 +264,151 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None blocked the build. Every open call was taken on the brief's recommendation and is listed under "Calls his to
+  overrule" below, with the reasoning, so he can reverse any of them on the alias in one line.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/billing-caps.md`, the ROLE line: the in-app pricing surface and its return path are now facts this doc owns.
+- `docs/systems/billing-caps.md`, "Where it lives": one bullet for `src/components/app/pricing/`, naming all five modules.
+- `docs/systems/billing-caps.md`, "Invariants": TWO new ★ bullets. (1) Nothing in the surface may DECIDE an entitlement:
+  the tier is context for which sentence renders, the receipt's `applied` is `tier !== "free"` read at render (never the
+  URL marker), the route re-resolves from `profiles`, the RPCs gate again. (2) `success_url` is an exact-shape ALLOW-LIST
+  whose members are exactly the pages that mount `WelcomeToPro`, so adding a shape means mounting the modal there.
+- `docs/systems/billing-caps.md`, the video-gate gotcha: the client mirror line now names `LockChip feature="video"` and
+  records that the three gated capabilities are worded in exactly one place (`pricing/triggers.ts`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: `RestoreEventButton` and `RecentlyDeletedGrid` accept an optional `tier` that no caller passes yet (their parents,
+  `dashboard/events-section.tsx`, `dashboard/trash-section.tsx` and `event-feed/event-gallery.tsx`, are outside this lane).
+  Until threaded, an Event Pass holder hitting a cap refusal reads the Free-host headline rather than the pass one. Three
+  one-line props.
+- Now: the pricing sheet, the chip and the welcome modal have `for` lines and 31 contract guards but no Library SPECIMEN
+  (`src/components/app/pricing/` is not a `COMPONENT_DIRS` directory, and a live demo would put a real Checkout door in
+  the lab). If Will wants to judge the object without signing in, a lab stage is a small follow-up.
+- Now: the sheet's Pro card offers ONE size at ONE cadence by his `carry` ruling, so the yearly price (two months free)
+  is reachable only through /pricing or the portal. Worth watching once real hosts buy.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- BOARD commit `6191ba2b` (the contracts, the board's retirement, billing-caps' two invariants); SYNC-MERGE commit
+  `5a636358` (merged `origin/launch-prep` at `a368d0a0`; one conflict, `sandbox/overtaken.ts`, resolved to THEIRS:
+  `overtaken-4` had already removed the six `app-pricing.*` badges and left the tombstone that records why, which is
+  better than this lane's bare deletion). Pushed.
+- **Gates on the synced tree**, each on its own exit code: `pnpm design:rules` exit 0 (192 components, 1395 contracts,
+  18 policies) · specimen collector exit 0 (140 specimens on 101 entries) · `pnpm typecheck` exit 0 · `pnpm lint`
+  exit 0, 8 warnings (the known baseline, unchanged) · `pnpm test` exit 0, **305 files, 3195 passed, 1 skipped** ·
+  `pnpm build` exit 0, **255 pages** · `pnpm lab:smoke --base http://localhost:3135` exit 0, **423 checks, 0 failing**
+  (`app-pricing` gone from its board list, which is the retirement showing). No `lab:demo`: this is a production lane
+  and its board no longer exists. Logs in the lane's scratch directory.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`) = the owned paths, the house-convention
+  registration files, and FOUR exceptions, each listed with why:
+  - `src/app/(app)/layout.tsx` — ONE line: `planName={TIER_NAMES[toBillingTier(menu.tier ?? DEFAULT_TIER)]}` on
+    `<UserMenu>`. His `doors=menu` ruling is "the row carries the plan's NAME", and the layout is the only place that
+    renders the menu.
+  - `src/lib/db/queries/profile.ts` — three lines: `getProfileMenu` selects and returns `tier`, so the line above has
+    a value. The narrow menu read the whole host app already makes on every page; no new query.
+  - `src/app/(app)/dashboard/[eventId]/page.tsx` — one searchParam and one mount. `back=finish` is not built without
+    it: the four locked controls all live on this page, so it is the page Checkout returns to.
+  - `content/help/custom-event-link.mdx` — one sentence. It quoted two strings this lane deleted inside `<UiLabel>`,
+    and `help-ui-labels.test.ts` (the mock-fidelity gate) went red. Rewritten to the shipped chip; still listed for
+    `help-sync` below.
+  - NOTE, a manifest path drift rather than an exception: `event-password-control.tsx` and `event-settings-form.tsx`
+    are at `src/components/app/`, not `src/components/app/event-settings/`, and `event-share-sheet.tsx` is at
+    `src/components/app/share/`. The manifest's tree was `69a9a177`; the files moved before the cut. The real paths
+    were edited (`event-settings-form.tsx` needed nothing).
+- **The items, one line each:**
+  - `object=sheet`: the ONE responsive `Sheet` (`responsive`, so a bottom sheet in a hand and a right-edge panel at a
+    desk), both postures seen at 375 and 1440; lands as `src/components/app/pricing/pricing-sheet.tsx`.
+  - `first=trigger`: three trigger kinds, and each was read on the real surface. A locked control leads with its own
+    feature ("Video is on every paid plan"); `room` resolves through the SAME `smallestProFor` the marketing
+    calculator uses, so 300 GB opened on Pro 500 GB and never higher; a Pro host gets "You are on Pro already" with
+    Manage billing and NO card to buy.
+  - `carry=cards`: Free beside one Pro size, one cadence, a button each, and the absence is pinned (no slider, no
+    switch, no radios). His note's "couple of benefits" is three lines on the Pro card, every number from `tiers.ts`.
+  - `learn=foot`: "See every plan" opens `/pricing` in a new tab, quiet, under the buttons.
+  - `pass=line`: one line and a button, at every tier that may buy one; "Add a pass" for a holder, because passes stack.
+  - `doors=menu`: "Plan and storage" above Account carrying the plan's name, pointing at `/account#plan`; the Plan card
+    gained Upgrade, the pass line and that anchor. Billing had no door in the app that was not a refusal.
+  - `words=chip`: `lock-chip.tsx`, one component behind all four sentences, a real button with a tooltip saying why and
+    what. His "Convert, not block" is the contract test: it is pressable at every feature, never disabled.
+  - `back=finish`: `success_url` now carries the caller's `next`, validated by an exact-shape allow-list; the locked
+    control's page reopens its own sheet (`?room=settings`) with `welcome-to-pro.tsx` above it; a purchase with nothing
+    to finish lands on the dashboard with the same modal. `upgraded-toast.tsx` is retired into it.
+  - The eleven `/pricing` doors in the host app are now zero: `git grep '/pricing' -- 'src/app/(app)' src/components/app`
+    returns only comments explaining why they left.
+- **Calls his to overrule on the alias, one line each:**
+  - The Pro card's three benefit lines: "Video from you and every guest", "Unlimited events, not just the one",
+    "Password locks, custom links, 60-second reels" (his "phrased better"; the events line branches on `MAX_EVENTS.free`).
+  - "Plan and storage" as the menu row's words, with the plan name as a trailing muted label and a `CreditCard` glyph.
+  - The modal's door: "Back to what you were doing" on the event page (a close, the reopened sheet is behind it),
+    "Go to your dashboard" on the dashboard and on `/account`.
+  - The chip's tooltip words, three of them, in `pricing/triggers.ts` (`why` + `unlocks`), e.g. "On Free, anyone holding
+    the link can open the album. Password locks are on every paid plan."
+  - The chip's face: a lock, the control's name, and "Pro" in a fainter ink. It says Pro rather than "any paid plan"
+    because the row is two inches wide; the tooltip carries the fuller truth.
+  - **The Free card is dropped for an Event Pass holder** (found by eye, not by test): his `carry` pair is the FREE
+    host's moment, and a pass holder cannot move TO Free (it is what happens when the pass lapses), so drawing it
+    beside Pro sold them a downgrade. They see the Pro card full width with the pass line under it.
+  - Two doors on the dashboard page that the brief scoped narrowly ("the `?upgraded` read and the modal's mount only")
+    were converted anyway: the at-cap banner's "upgrade for more" and the over-capacity banner's "See plans" are
+    literally the `room` trigger, and leaving two `/pricing` links on the home would have been the one visible
+    inconsistency. Both are inside a file this lane owns. Easy to revert.
+  - No Library specimen for the three components (see Deferred): a live demo would put a real Checkout door in the lab.
+- **What a dedicated Billing page would need to justify itself** (his `doors` note: "If we're going to have a dedicated
+  'Billing' page (better name), we need to ensure the page has enough settings to justify it. Else we can drop it back
+  into the account page."). It is dropped back into the account page, and here is the honest list of what exists today
+  versus what a page would need. TODAY the Plan card holds five things: the plan and its capacity, events used of the
+  cap, storage used of the cap, Upgrade / Change plan, Manage billing, Renew Event Pass, and the pass line. That is one
+  card, and the Stripe Billing Portal already owns the six moves a billing page would otherwise exist for (the payment
+  method, the size change, monthly-to-yearly, cancellation, invoices, the billing address). A page earns itself when
+  Partyreel owns state Stripe does not, and there are exactly four candidates: (1) a purchase and pass LEDGER rendered
+  in-app (`event_passes` rows with their windows, which nobody can see today and which the pass-to-Pro credit depends
+  on); (2) a storage BREAKDOWN by event, so "you are at 97 percent" becomes actionable rather than alarming; (3)
+  spending and cap ALERTS a host can configure (an email at 80 percent, say), which is a preference we would store;
+  (4) a team or second-seat notion, if one ever exists. One of those is not a page. Three are. Recommendation: keep it
+  on the account page until the pass ledger exists, then revisit, and call it "Plan and billing" rather than "Billing",
+  which is the word the menu row already uses.
+- **The help articles this lane makes stale**, one line each (a `help-sync` lane rewrites them):
+  - `custom-event-link.mdx` — FIXED here because it broke the gate (the two dead `<UiLabel>` quotes); re-read it anyway.
+  - `password-protect-your-event.mdx` — describes the Free wall on the password panel, which is now a chip.
+  - `event-settings-explained.mdx` — the settings sheet's video row and password line both changed shape.
+  - `what-you-can-upload.mdx` — the video gate's wording in the settings sheet.
+  - `upgrade-downgrade-or-cancel.mdx` — EIGHT references to "the pricing page" as the place buying happens; it is now
+    the sheet, from a lock chip, the Plan card, the storage meter or a cap refusal. This is the big one.
+  - `what-the-free-plan-includes.mdx` — "Upgrading is instant from the pricing page".
+  - `what-happens-when-storage-fills-up.mdx` — "Move up a plan or a Pro size from the pricing page".
+  - `payments-receipts-and-invoices.mdx` — "Checkout opens when you pick a plan on the pricing page", and its
+    `<UiLabel>Manage billing</UiLabel>` paragraph says the meter is where it appears; it is also on the Plan card now.
+  - `pro-vs-event-pass.mdx` — its card action still sends people out to compare.
+  - `your-dashboard-explained.mdx` and `storage-plans-and-limits.mdx` — the meter's "Need more?" no longer leaves.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. No migration, no new price, no env. The
+  checkout route's only change is `success_url`, and the Stripe TEST catalog is untouched.
+- **Look at first** (all of it signed in on the alias; localhost cannot pass the (app) gate, so the eye below was taken
+  on a bare uncommitted stage and the rest is carried by 60 contract assertions):
+  1. THE CHECKOUT ROUND TRIP, which is the one thing no test can reach. From a Free host's event settings, press the
+     Password lock chip, buy Pro with the TEST card, and land back on that same event with the settings sheet reopened
+     and "Welcome to Pro" above it. Then repeat from `/account` (Upgrade) and confirm the dashboard modal for a
+     purchase with nothing to finish.
+  2. The webhook race, deliberately: the modal should say "Payment received" for a beat and then turn itself into the
+     real receipt without a reload. If it never turns, the bounded poll gave up after four tries and the sentence is
+     still true, which is the designed failure.
+  3. The four chips at 375, in the settings sheet and the share sheet, with a thumb: they are 28 px tall, and the
+     tooltip is a hover affordance a phone does not have (the accessible name carries the same words, and the press
+     opens the sheet, so nothing is lost; worth his eye anyway).
+  4. The user menu's new row at 375: the panel is w-56 by a measurement (the theme submenu clearing a 375 screen), and
+     the plan name is a trailing label inside it.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). `app-pricing-wiring` wired all eight of the closing sitting's second
+batch rulings and retired the board. Pricing now opens INSIDE the app: one responsive Sheet led by the reason it opened
+(a locked feature names itself, running out of room resolves through the marketing calculator's own `smallestProFor`, a
+subscriber is told she subscribes and handed the portal), carrying Free beside one Pro size with three benefit lines,
+the Event Pass on a line, and a quiet foot to `/pricing` in a new tab. One `LockChip` replaced four sentences that
+worded one rule four ways, as a pressable button with a tooltip rather than a dead end ("Convert, not block"). Billing
+got a door that is not a refusal (Plan and storage above Account, the account page's Plan card as its home, no
+dedicated page), and Checkout now returns to the control that refused you with a welcome-to-Pro modal, through an
+exact-shape same-origin allow-list on `success_url`. The eleven `/pricing` doors in the host app are zero.
