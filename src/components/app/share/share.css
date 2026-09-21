@@ -79,3 +79,27 @@
     width: 260px;
   }
 }
+
+/* ── THE SHARE SHEET'S CODE FILLS THE SHEET (`hand=same`, Will 2026-09-21: the
+   surface he kept, with "could be improved a lot" beside it).
+
+   Same mechanism as the mini-modal above, and for the same reason: `StyledQr`
+   renders a fixed-pixel SVG from its `size` prop, and the sheet is a full-width
+   bottom sheet at 375 and a ~448px side panel at a desk. Measuring the sheet
+   and re-rendering the code would cost a layout effect, a resize listener and a
+   second render of the generator; one rule costs none of them, and the module
+   stays the quiet-zone authority.
+
+   ★ THE SIZE PROP IS THE RESOLUTION, THE RULE IS THE SIZE. The component draws
+   at 360 so the downloaded PNG is a usable file and the baked quiet zone is
+   proportional to something real; this scales that drawing to the box. Scaling
+   UP from a small render would be the one direction that costs scannability, so
+   360 is the cap rather than a starting point.
+
+   `height: auto` with a square viewBox keeps the code square at every width,
+   and a QR that is not square does not scan. ── */
+.pr-share-code svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

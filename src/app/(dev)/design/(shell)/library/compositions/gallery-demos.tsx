@@ -231,16 +231,16 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Share suite",
     file: "src/components/app/event-card-qr.tsx",
     title: "EventCardQr",
-    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it opens the share dialog (the styled QR, copy link, customize) and never navigates.",
+    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it goes to the event's share sheet and never to the event itself.",
     specimens: [
       {
         label: "Share chip",
-        hint: "tap to open the dialog",
+        hint: "tap to open the share sheet",
         node: (
           <div className="flex items-center gap-3">
             {qrSlot}
             <span className="text-sm text-muted-foreground">
-              Opens the share dialog
+              Opens the share sheet
             </span>
           </div>
         ),
@@ -251,11 +251,10 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     id: "qr-preset-picker",
     family: "compositions",
     section: "Share suite",
-    file: "src/components/app/qr-preset-picker.tsx",
     title: "QrPresetPicker",
     // No variants axis for the same reason as the filter chips: the four style
     // keys live in src/lib/constants/qr-presets, not in this file.
-    lede: "The styler inside that dialog: every preset previewed on this event's real join URL, controlled by the parent.",
+    lede: "The style step of the create flow, and the styler inside the share sheet's designer: every preset previewed on this event's real join URL, controlled by the parent.",
     specimens: [
       {
         label: "QR preset picker",
@@ -326,7 +325,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     id: "host-media-grid",
     family: "compositions",
     section: "Moderation gallery",
-    file: "src/components/app/host-media-grid.tsx",
     title: "HostMediaGrid",
     lede: "The host's moderation grid on the shared masonry (S3·3a): status-aware approve / hide / unhide / remove plus the host like-count, each control riding any tile ratio. Visual only here, since the actions point at a sample id.",
     // The grid's other axis, `selectable`, is left undeclared: bulk select needs

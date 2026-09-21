@@ -289,25 +289,25 @@ export default async function DashboardPage({
             {maxEvents === 1 ? "" : "s"} used
           </p>
         </div>
-        {/* The create door is UNCONDITIONAL on this page (disabled at cap, never
-            absent): it is half of what stops a quiet home reading as an empty one. */}
-        {atCap ? (
-          <Button disabled>
+        {/* The create door is UNCONDITIONAL on this page (never absent): it is
+            half of what stops a quiet home reading as an empty one.
+            ★ AND IT IS LIVE AT THE CAP NOW (`limit=door`, Will 2026-09-21).
+            Disabling it made the refusal unreachable and unexplained: a host at
+            their one event met a dead button and a paragraph further down the
+            page. The route itself is the refusal now — it names the plan's
+            number, names the event holding the slot, and offers both ways
+            forward — so the door has to open for that to be reachable at all. */}
+        <Button asChild>
+          <Link
+            href="/dashboard/new"
+            {...trackAttrs("cta_click", {
+              cta: "new-event",
+              location: "dashboard",
+            })}
+          >
             <CalendarPlus /> New event
-          </Button>
-        ) : (
-          <Button asChild>
-            <Link
-              href="/dashboard/new"
-              {...trackAttrs("cta_click", {
-                cta: "new-event",
-                location: "dashboard",
-              })}
-            >
-              <CalendarPlus /> New event
-            </Link>
-          </Button>
-        )}
+          </Link>
+        </Button>
       </div>
 
       {graceDeadline && (

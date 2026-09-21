@@ -46,20 +46,44 @@ share from the main dashboard separately rather than from the event itself").
 `visibility` + `event_password_hash`, `accepting_uploads`, `allow_anonymous_uploads`, `max_upload_bytes` (host
 per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads are exempt), `qr_style`,
 `custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
-([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)): Details → QR design →
-Share. It creates **once at commit** via the non-redirecting `createEventInWizard`
+([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)), rebuilt on the
+`first-event` board's ruling (Will, 2026-09-21): **Name → Style → the beat**. Step 1 is ONE borderless field
+on a rule at the size the name will be (`asks=one`, his "bigger name edit field"); the note and the date
+LEFT the wizard for the settings sheet that already holds both, so nothing is typed on a screen that does
+not also show it. Step 2 is the style picker, kept because it is where a host learns the feature exists
+(`style=step`, his "Hosts may not know they can adjust it later"). It creates **once at commit** via the
+non-redirecting `createEventInWizard`
 ([`dashboard/actions.ts`](../../src/app/(app)/dashboard/actions.ts)), which RETURNS the event (id +
-qr_token) so the Share step can render the real QR + link. Settings are edited later on the event's
-dedicated `/settings` route ([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx),
+qr_token) so the beat can render the real QR + link. Settings are edited later in the event's settings
+SHEET ([`event-settings-form.tsx`](../../src/components/app/event-settings-form.tsx),
 an ORCHESTRATOR (the one form + Save) over `event-settings/*-section.tsx`; see "The event page" below). `enforce_event_limit`
 guards `MAX_EVENTS`. **Events have no end date**: deletion is the only lifecycle exit (anti-abuse).
 
+★ **THE BEAT** (`landing=beat`) is step 3 and happens exactly once in an event's life, **by construction**:
+only pressing Create reaches it and the route has no other way in. It draws the real code in a plain mat
+(`DemoFrame`'s composition borrowed, not its component — the event has no photograph yet), two doors out
+(Print the table cards → the print route in a new tab; Share the link → `navigator.share` falling back to
+the clipboard) and one primary door to the event. `EventSlugControl` is NOT here: it belongs to the share
+sheet, where the readable link already lives.
+
+★ **THE CAP IS A DOOR, NOT A DEAD BUTTON** (`limit=door`, his "Letting them do the work of creating a second
+event, then finding out they can't create it on the free plan is bad user experience design"). The route
+computes `atCap` with the dashboard's OWN math (`profile.event_slots ?? MAX_EVENTS[tier]`, the
+webhook-derived pass count overriding the static limit exactly as `enforce_event_limit` does in SQL) and
+passes it plus the events holding the slots; the wizard renders the refusal INSTEAD of the form, naming the
+plan's real number and the event, with Delete (→ the settings sheet, where delete lives) and Pro beside it.
+The dashboard's "New event" button is therefore a LIVE link at the cap — disabling it made the refusal
+unreachable. Copy comes from the number ("holds one event" / "holds 3 events"), never a literal one.
+
 **Invariants / gotchas:**
-- **The wizard route must NOT guard at-cap with a `redirect`.** A Server Action refreshes the route it was
-  called from, so an at-cap `redirect` on `/dashboard/new` fires on the POST-CREATE refresh (the host is
-  now at cap) and bounces them away BEFORE the Share step renders. The cap is
-  guarded instead by the disabled dashboard "New event" button + `createEvent`'s `limit_reached`. General
-  rule: no eligibility `redirect` on a route whose post-Server-Action refresh must show a success state.
+- **The wizard route must NOT guard at-cap with a `redirect`, and the wizard must SNAPSHOT `atCap` at
+  mount.** A Server Action refreshes the route it was called from, so the post-create refresh re-renders
+  `/dashboard/new` with `atCap` now true: an at-cap `redirect` fires there and bounces the host away before
+  the beat renders (this shipped and live testing caught it), and an island reading the live prop swaps the
+  beat for the refusal a half-second after a successful create. `useState(() => atCap)` answers both;
+  `create-flow.test.tsx` re-renders with the flag flipped and asserts the beat survives. General rule: no
+  eligibility redirect AND no eligibility prop read live on a route whose post-Server-Action refresh must
+  show a success state.
 - The design step previews with a **placeholder token** (`previewJoinUrl` in
   [`share-urls.ts`](../../src/lib/events/share-urls.ts), a 32-char stand-in the same length as a real token)
   because the real `qr_token` doesn't exist pre-insert.
@@ -100,11 +124,55 @@ touches `window`/`document` on construction, which crashes the client component'
 single-sourced in [`qr-presets.ts`](../../src/lib/constants/qr-presets.ts) (`classic`/`bold`/`rounded`/`dots`),
 persisted on `events.qr_style` (a plain **text** column, app-validated rather than a DB enum, so presets grow
 without a migration; unknown/legacy → `classic`). Chain: `StyledQr` (renderer) → `QrPresetPicker`
-([`qr-preset-picker.tsx`](../../src/components/app/qr-preset-picker.tsx), reused by the wizard) → `EventQr`
-(+ SVG/PNG download) → `QrDesignerDialog`, which rides in the event's SHARE SHEET. `StyledQr` also draws the
-hub's header code and the mini-modal's, so one renderer serves every code a host sees.
+([`qr-preset-picker.tsx`](../../src/components/app/qr-preset-picker.tsx), the wizard's step 2 and the
+designer's body) → `EventQr` (the plate) + `QrDownloadMenu` (SVG/PNG off the plate's own instance) →
+`QrDesignerDialog`, which rides in the event's SHARE SHEET. `StyledQr` also draws the hub's header code and
+the mini-modal's, so one renderer serves every code a host sees on a SCREEN.
+★ **A code's size is set in CSS, never by re-rendering it.** `StyledQr` draws a fixed-pixel SVG from `size`;
+the picker's swatches, the share sheet's plate and the mini-modal all scale that drawing with one rule
+(`w-full` + `height:auto` on a square viewBox) rather than measuring a container and drawing again. `size`
+remains the RESOLUTION and the baked quiet zone, so scaling only ever goes down.
+★ **Whether a code scans is decided by the MODULE, not the code**
+([`lib/qr/module-floor.ts`](../../src/lib/qr/module-floor.ts), promoted out of the retired board's frame):
+the count comes from the URL's length and the preset's error correction (M for classic/bold, Q for
+rounded/dots), and the two renderers reserve their quiet zones differently — `StyledQr` takes
+`round(size * 0.1)` per side INSIDE its box, `FooterQr` bakes 4 modules per side into the viewBox. Floors:
+**3 px** per module on a screen, **0.5 mm** on paper. `module-floor.test.ts` runs every shipped size at the
+longest link a real event can carry.
 **Invariant:** every preset keeps DARK data modules on a WHITE background for scannability; brand color only
 tints the corner finder patterns. Prove a new preset by SCANNING it (the host UI is auth-gated → verify on partyreel.com).
+
+### The paper the app prints
+
+`venue=sheet` (Will, 2026-09-21: "We should have a full gallery of printable QR designs ready to go...
+rather than always requiring the host to design the rest of the assets"). One design, three pieces —
+**nine table cards to a page, a welcome sign, a poster** — at
+[`/dashboard/<id>/print`](../../src/app/(print)/dashboard/[eventId]/print/page.tsx), reached from the create
+beat, the share sheet and the launch list. The gallery of DESIGNS his note asks for is a ROADMAP line.
+
+- ★ **Its own route group, `(print)`, and that is structural rather than stylistic.** Every host route
+  renders inside `(app)/layout.tsx`, which is `AppShell` — a STICKY header. A sticky element prints on every
+  sheet, so the page would come out stamped with the app's chrome and one card short. The group renders no
+  shell, so there is nothing to hide. The URL still begins `/dashboard`, so the surface rule keeps it off
+  the admin host with every other host route. ★ **It does NOT inherit the `(app)` auth gate**, so
+  [`(print)/layout.tsx`](../../src/app/(print)/layout.tsx) re-declares it with `getUser()` and the page
+  re-reads the event through RLS (`notFound()` on null).
+- ★ **Zero client JS on the sheet.** The codes are `FooterQr` (the marketing chrome's DOM-free server
+  renderer, imported and never edited), because nine codes as nine client islands can lose the race with a
+  print dialog the host has already opened — and a code that has not painted prints as a blank square, on
+  paper nobody checks until the party. The cost: the printed code is always the classic SHAPE whatever the
+  event's preset is (the styled presets are a `qr-code-styling` client feature). Same data, same scan; the
+  page says so rather than hiding it. His to overrule.
+- ★ **Every length is mm and every type size is pt** ([`lib/qr/stock.ts`](../../src/lib/qr/stock.ts)). A
+  print sheet has no viewport, and CSS absolute units are physical on paper (96 px = 1 in), so the preview
+  at 100% is what comes out of the printer. The sheet box is **186 × 252 mm**, which fits inside the
+  browser's own default margin on BOTH Letter and A4 — because **no `@page` anywhere** (it cannot be scoped
+  to a selector, so a margin set here would silently re-margin the help articles and the legal documents;
+  `legal-print.test.ts` is the house tripwire). A card is 62 × 84 mm and is deliberately NOT called A7: nine
+  A7 cards are 222 × 315 mm and have never fitted one sheet.
+- The print rules live in `globals.css` under ONE opt-in hook, `data-print-stock`, with every selector
+  scoped to it; the screen half of the page carries the shared `data-print-hide`. A PDF is the same
+  dialog's destination, so there is one button.
 
 ## Custom event link (slug)
 
@@ -218,10 +286,17 @@ Share are SHEETS; the album is the hub page itself.
   bookmarked deep link has nothing of ours behind it and replaces the URL in place instead). Radix portals
   keep the album mounted and scrolled behind.
 - **Share** ([`share/event-share-sheet.tsx`](../../src/components/app/share/event-share-sheet.tsx)) is the
-  ONE sharing surface: the code with its SVG/PNG downloads, the designer, the link, and the custom-link
-  claim that used to live on the settings route.
-  [`event-share-dialog.tsx`](../../src/components/app/event-share-dialog.tsx) survives as a thin wrapper
-  over it with all nine props, so the dashboard card's QR chip needs no import swap.
+  ONE sharing surface, redrawn at 375 on `hand=same` (Will, 2026-09-21: he kept this surface over two
+  prettier ones because "it allows guests to also send out the code or link themselves more easily", then
+  said the drawing "could be improved a lot"). Top to bottom: a one-line title, the CODE at the sheet's own
+  width (full width in a hand, ~416 px at a desk, sized by `.pr-share-code` in
+  [`share.css`](../../src/components/app/share/share.css)), then ONE row of the four verbs a host reaches
+  for at a door — **Copy link · Share · Open · Print** (the native share only where the browser has one) —
+  then the quiet doors (the SVG/PNG downloads and the designer) and the custom-link claim that used to live
+  on the settings route. ★ **`event-share-dialog.tsx` is DELETED**: it was a second surface drawing the same
+  code, the same copy row and a quieter designer, so a fix to either only half-landed. The dashboard card's
+  QR chip ([`event-card-qr.tsx`](../../src/components/app/event-card-qr.tsx)) is a plain `<Link>` to
+  `?room=share` now, which the hub resolves server-side into this sheet already open.
 - **Settings** ([`event-settings/event-settings-sheet.tsx`](../../src/components/app/event-settings/event-settings-sheet.tsx))
   imports `EventSettingsForm` whole, so the sheet and the retired route cannot disagree about what a setting
   does. The unsaved guard grew a third door: a sheet has no back-link, so the scrim, Escape and the close
@@ -238,6 +313,37 @@ Share are SHEETS; the album is the hub page itself.
   `floatingTransitionEntrance` in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts) declares
   no animation, because the transition IS the entrance, and falls back to the standard clock under reduced
   motion. It is listed by name in `floating-layer.test.ts`, whose family scan reads `ui/` only.
+- **Before the first photograph the album's room is a LAUNCH LIST**
+  ([`event-feed/launch-list.tsx`](../../src/components/app/event-feed/launch-list.tsx), `empty=list`, Will
+  2026-09-21: "Three things the app already knows, as three things she can finish. The album takes the room
+  back"). The items are derived from the event's own NULLS, so it is a list of what is LEFT rather than a
+  checklist with things already ticked: Set the date (→ `?room=settings`) when `event_date` is null, Write a
+  note for guests (→ `?room=settings`) when `description` is null, and Print the table cards (→ the print
+  route), which is always last because it is the one act the app cannot observe as done. Share the code
+  appears under it as a fourth door only while the list has fewer than three items — the code is already in
+  the header and on the dashboard card. The section HEADER reads "Before the first photo" with the
+  outstanding count, and both go back to "Album" the moment a photograph lands. A server component passed
+  down as a slot, so `EventUploads` (a client island) never needs the event's fields. The pending variant
+  ("Everything's in Review") stays its own thing: a held event is a full one whose host has not looked yet.
+- ★ **THE HUB IS LIVE** (`first=live`, his "It lands while she is looking"). `EventLive` (exported from
+  `event-gallery.tsx`, mounted once in the header's metadata row) spends a `router.refresh()` on EXACTLY two
+  signals and never on a timer: the guest's own Realtime doorbell
+  ([`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts), the public `gallery:<qr_token>`
+  channel, ping bursts coalesced), or a changed validator from
+  [`/api/events/<id>/live`](../../src/app/api/events/[eventId]/live/route.ts) — ONE RLS-scoped select, no
+  presigns, a bodiless 304 when nothing moved, polled on the guest album's own hybrid cadence (60 s while
+  the socket is up, 12 s when it is down, paused while the tab is hidden). ★ **The poll is not redundant
+  with the socket**: the `media_gallery_doorbell` trigger fires only on the APPROVED-VISIBLE set, so on a
+  moderated event a held upload wakes nobody — the host fingerprint
+  ([`lib/events/host-fingerprint.ts`](../../src/lib/events/host-fingerprint.ts): event id, the visible ids
+  and statuses, the PENDING count) is the only way the one person who can approve it hears that it arrived.
+  A refresh is the page's whole RSC (eleven queries plus three presigns an item), which is exactly why
+  nothing spends one on a clock. ★ The first 200 only SEEDS the validator, or every load would refresh
+  itself. `HostMediaGrid` marks arrivals by diffing its own item IDS across that refresh (never the
+  presigned urls, which roll about every 30 minutes) and passes them as `arrivedIds`; **`stagger` stays
+  OFF** — the seeded first-render entrance is what the emil contract forbids on a host album, and the glow
+  is an animation on the tile's own `::after` that runs regardless. The pip renders nothing until the
+  channel is actually subscribed.
 - **The album** ([`event-feed/event-gallery.tsx`](../../src/components/app/event-feed/event-gallery.tsx))
   carries Add photos (which left the deleted command strip), Download all, Select, and one **View menu**
   (`app-vocabulary` r2, `controls-home=view-menu`: his crowding note on the r1 cluster — "we may need to

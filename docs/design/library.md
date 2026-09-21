@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 921 contracts on 129 components · 17 standing boards.**
+**22 laws · 18 policies · 973 contracts on 141 components · 16 standing boards.**
 
 ## What binds you
 
@@ -347,22 +347,31 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
+- `src/app/(print)/dashboard/[eventId]/print/page.tsx` (17 guards)
+- `src/app/api/events/[eventId]/live/route.ts` (13 guards)
 - `src/app/globals.css` (6 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
 - `src/components/admin/destructive-sheet.tsx` (7 guards)
 - `src/components/admin/health-band.tsx` (6 guards)
 - `src/components/admin/inbox-pane.tsx` (4 guards)
+- `src/components/app/create-event-wizard.tsx` (17 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
 - `src/components/app/dashboard/next-step-band.tsx` (5 guards)
 - `src/components/app/event-feed/bulk-bar.tsx` (9 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
+- `src/components/app/event-feed/launch-list.tsx` (13 guards)
 - `src/components/app/event-feed/review-room.tsx` (10 guards)
+- `src/components/app/event-qr.tsx` (12 guards)
 - `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/event-uploads.tsx` (13 guards)
+- `src/components/app/host-media-grid.tsx` (13 guards)
 - `src/components/app/pricing/lock-chip.tsx` (6 guards)
 - `src/components/app/pricing/pricing-sheet.tsx` (12 guards)
 - `src/components/app/pricing/return-path.ts` (7 guards)
 - `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
+- `src/components/app/print/print-stock.tsx` (9 guards)
+- `src/components/app/qr-preset-picker.tsx` (17 guards)
 - `src/components/app/share/event-code-door.tsx` (12 guards)
 - `src/components/app/share/event-code-modal.tsx` (12 guards)
 - `src/components/app/share/event-link-row.tsx` (12 guards)
@@ -435,7 +444,10 @@ Contracted but outside the library's directories:
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)
 - `src/lib/dashboard/next-step.ts` (15 guards)
+- `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)
+- `src/lib/qr/module-floor.ts` (9 guards)
+- `src/lib/qr/stock.ts` (9 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 - `src/lib/shared/tile-size-cookie.ts` (7 guards)
 - `src/lib/shared/use-scroll-direction.ts` (8 guards)
@@ -457,7 +469,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `help-center` | marketing | Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches |
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
-| `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |

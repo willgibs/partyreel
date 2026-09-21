@@ -122,7 +122,6 @@ export type SandboxId =
   | "help-center"
   | "host-curation"
   | "guest-upload"
-  | "first-event"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -1067,30 +1066,22 @@ export const RULINGS: Ruling[] = [
     title: "A host's first event",
     surface: "host",
     ruled:
-      'open (Will, 2026-09-19: the host app is unprotected, "absolutely everything is up for relitigation or reconcepting from the ground up")',
-    shipped: null,
-    why: "The moment a host gets once: a style picked against a link that 404s, a refusal that inserts the row first, no paper anywhere in the product, and no live signal.",
+      "2026-09-21 (round one ruled whole, the closing sitting's third batch: asks=one, style=step, limit=door, venue=sheet, landing=beat, hand=same, empty=list, first=live)",
+    shipped:
+      "Create asks for a name and nothing else, on a borderless field at the size the name will be; the style step stays and is four large swatches on a container query, because it is where a host learns the feature exists; a Free host at their cap meets the refusal BEFORE the form, naming the plan's own number and the event holding the slot, with Delete and Pro beside it; Create ends on a beat, once, with the real code in a mat and two doors out of it. The app prints its own stock at real millimetres (nine table cards to a page, a welcome sign, a poster) from a route group outside the app shell, so the sticky header never reaches the printer. Sharing is ONE surface again (the legacy dialog retired into the sheet, redrawn at 375 with the code at the sheet's own width). Before the first photograph the page is a launch list of what is left; after it, the hub goes live on the guest's own doorbell plus a cheap host fingerprint, and a new tile arrives marked (first-event-wiring, 2026-09-21)",
+    why: "The one moment a host only gets once, and the only place in the product where paper is the deliverable.",
     lives: [
       "src/components/app/create-event-wizard.tsx",
-      "src/components/app/event-qr.tsx",
       "src/components/app/qr-preset-picker.tsx",
-      "src/components/app/event-share-dialog.tsx",
-      "src/components/app/event-uploads.tsx",
-      "src/app/(app)/dashboard/new/page.tsx",
+      "src/components/app/event-qr.tsx",
+      "src/components/app/share/event-share-sheet.tsx",
+      "src/components/app/print/print-stock.tsx",
+      "src/app/(print)/dashboard/[eventId]/print/page.tsx",
+      "src/components/app/event-feed/launch-list.tsx",
+      "src/lib/qr/stock.ts",
+      "src/lib/events/host-fingerprint.ts",
+      "docs/systems/host-app.md",
     ],
-    board: {
-      note: "Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes",
-      variants: [
-        "What creating asks",
-        "The code's style",
-        "The Free host's second",
-        "Out of the screen",
-        "Where she lands",
-        "In a hand",
-        "The empty event",
-        "The first photograph",
-      ],
-    },
   },
   {
     id: "app-door",
@@ -1593,7 +1584,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
-  "first-event",
   "guest-upload",
   "media-viewer",
   "host-curation",

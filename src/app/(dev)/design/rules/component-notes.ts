@@ -25,6 +25,61 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // A HOST'S FIRST EVENT (lp/first-event-wiring, 2026-09-21), at the head like
+  // the blocks below it, so several lanes adding `for` lines in one round land
+  // on distinct hunks instead of on each other.
+  "src/components/app/create-event-wizard.tsx": {
+    for: "the whole of creating an event (`first-event` r1): ONE big name field on a rule rather than a form, the style step that exists to introduce the feature, and a beat afterwards that happens once in an event's life. It also holds the CAP DOOR, which renders from a prop snapshotted at mount, because the post-create refresh hands this island `atCap: true` and reading it live would refuse a host a half-second after she succeeded",
+    unspecimened:
+      "a three-step machine over a Server Function that inserts a real row; the honest demo is /dashboard/new, and its contract sits beside it",
+  },
+  "src/components/app/qr-preset-picker.tsx": {
+    for: "the four code styles as a choice rather than four thumbnails (`style=step`): a container-query grid, each swatch as big as its cell through CSS rather than a re-render, every preview drawn on this event's real join URL. Controlled: the parent owns the value and the saving",
+  },
+  "src/components/app/event-feed/launch-list.tsx": {
+    for: "what an event's page says before any photograph (`empty=list`): the things the app can SEE are missing, derived from the event's own nulls, each one a door. The album takes the room back at the first photograph, so this is the one section in the product that is designed to disappear",
+    unspecimened:
+      "outside the library's directories, and every item is a link into a real event's settings sheet or print route",
+  },
+  "src/components/app/print/print-stock.tsx": {
+    for: "the paper the app prints (`venue=sheet`): nine table cards to a page, a welcome sign, a poster, in one face laid out in MILLIMETRES because a print sheet has no viewport. Zero client JS on purpose: nine codes as nine client islands can lose the race with a print dialog, and a code that has not painted prints as a blank square",
+    unspecimened:
+      "a sheet whose whole subject is its physical size; it is judged in a print preview, not in a frame on a screen",
+  },
+  "src/lib/qr/module-floor.ts": {
+    for: "the arithmetic that decides whether a code SCANS: modules across, and the edge of one in px on a screen or mm on paper. Two geometries, because the two renderers reserve their quiet zones differently, and the count comes from the URL's length and the preset's error correction rather than from a constant",
+    unspecimened: "pure functions; module-floor.test.ts is its demo",
+  },
+  "src/lib/qr/stock.ts": {
+    for: "the three printable pieces as numbers: the sheet box that fits Letter AND A4 inside the browser's own default margin (no @page anywhere, house doctrine), each piece's face, its code in mm and its type in points",
+    unspecimened: "a constants module; the print route is where it is seen",
+  },
+  "src/lib/events/host-fingerprint.ts": {
+    for: "the host hub's ETag (`first=live`): the visible set's ids and statuses plus the PENDING count, which is the fact the Realtime doorbell can never carry, because that trigger watches the approved-visible set and a held upload wakes nobody. Shaped after the guest's gallery fingerprint, deliberately not reusing it: that one is access-shaped",
+    unspecimened: "a pure hash; host-fingerprint.test.ts is its demo",
+  },
+  "src/app/(print)/dashboard/[eventId]/print/page.tsx": {
+    for: "the page that turns an event into paper (`venue=sheet`): three pieces to pick from, one press, and a proof of the real sheet at real size. It is a route GROUP of its own because the app shell's header is sticky and a sticky header prints on every sheet; the picker is three links rather than a client toggle so nine codes are always in the markup before a print dialog can open",
+    unspecimened:
+      "a route, and one whose output is a sheet of paper; the print preview is where it is judged",
+  },
+  "src/app/api/events/[eventId]/live/route.ts": {
+    for: "the host hub's one cheap question (`first=live`): has anything moved? One RLS-scoped select, no presigns, a bodiless 304 when nothing has. It exists beside the Realtime doorbell rather than instead of it, because that trigger only fires on the approved-visible set and a held upload has to reach the one person who can approve it",
+    unspecimened: "a route handler; host-fingerprint.test.ts is its contract",
+  },
+  "src/components/app/event-uploads.tsx": {
+    for: "which thing the album's room holds: the grid, the launch list before the first photograph, or the Review notice when everything uploaded so far is waiting on the host. The launch list arrives as a server-rendered SLOT, so this island never needs to know the event's own fields",
+    unspecimened:
+      "a three-way branch over server-presigned items; the event hub is where each arm is seen",
+  },
+  "src/components/app/host-media-grid.tsx": {
+    for: "the host's album: the shared masonry with the host's three verbs as its per-surface actions, optimistic moderation shared by the tiles and the lightbox, and the ARRIVAL mark, which is an id in this render that was not in the last one. That one definition catches every route a photograph takes into a host's album without this component knowing about any of them",
+  },
+  "src/components/app/event-qr.tsx": {
+    for: "the scannable code on its white plate, sized by CSS rather than by its `size` prop so one component fills a full-width bottom sheet and a 448 px side panel. The download menu ships beside it and borrows its ref, because exporting is imperative on the instance this component owns",
+    unspecimened:
+      "a live code needs a real join URL and loads its renderer inside an effect; the share sheet is the honest frame",
+  },
   // THE MONEY PAGE'S CONFIGURATOR (lp/pricing-split-wiring, 2026-09-20), at the
   // head like the blocks below it, so several lanes adding `for` lines in one
   // round land on distinct hunks instead of on each other.
@@ -146,7 +201,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the subtle event link under the metadata: it SHOWS the slug when there is one and always COPIES the permanent link, because a printed code outlives a slug. Confirms in place, never with a toast",
   },
   "src/components/app/share/event-share-sheet.tsx": {
-    for: "the one sharing surface: the code and its downloads, the designer, the link, and the custom-link claim that used to live on the settings route. Anything future about getting people to an album belongs here",
+    for: "the one sharing surface, redrawn at 375 (`hand=same`): the code at the sheet's own width, then ONE row of the four verbs a host reaches for at a door (Copy, Share, Open, Print), then the quiet doors (the files and the designer), and the custom-link claim that used to live on the settings route. The legacy share dialog retired into it, so there is no second opinion about sharing anywhere in the app",
   },
   "src/components/app/share/event-sheets.tsx": {
     for: "the hub's three floating surfaces mounted once, as siblings of the album rather than inside it, so radix can portal them and the album stays mounted and scrolled behind",
