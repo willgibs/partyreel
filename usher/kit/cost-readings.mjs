@@ -37,3 +37,25 @@ for (const [label, id] of [["app", APP], ["admin", ADMIN]]) {
   const over = [...byBranch].filter(([, n]) => n > KEEP + 2).map(([b, n]) => `${b}:${n}`);
   console.log(`cost: deployment storage (${label}) | reading ${at} UTC | retained ${rows.length} across ${byBranch.size} branch${byBranch.size === 1 ? "" : "es"} (${[...byBranch].map(([b, n]) => `${b}:${n}`).join(", ")}) | policy: ${KEEP} per live branch plus the aliased and the production ones | source: GET /v6/deployments, a proxy (Hobby lists no bytes) | reads as: ${over.length ? `OVER on ${over.join(", ")}: run the prune` : "within the policy: the prune's refusal stands"}`);
 }
+
+// Third reading: the merge replay. The cost behind hand-merge.sh's closer repair is a union merge printing a line both
+// sides end on once (two lanes' head blocks in component-notes.ts, 2026-09-21); this replays it on a fixture pair that
+// reproduces the fault, runs the SAME closer.py the merge runs, and compares with the expected file, then runs the
+// repair on the expected file and expects zero insertions. A refusal whose replay stops passing has drifted from the
+// merge it was written for.
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const KIT = path.dirname(fileURLToPath(import.meta.url)); const FX = path.join(KIT, "fixtures", "union");
+try {
+  const union = execFileSync("git", ["merge-file", "--union", "-p", path.join(FX, "ours.ts"), path.join(FX, "base.ts"), path.join(FX, "theirs.ts")], { encoding: "utf8" });
+  const tmp = path.join(FX, ".replay.ts"); fs.writeFileSync(tmp, union);
+  const rep = execFileSync("python3", [path.join(KIT, "closer.py"), tmp], { encoding: "utf8" }).trim();
+  const equal = fs.readFileSync(tmp, "utf8") === fs.readFileSync(path.join(FX, "expected.ts"), "utf8");
+  fs.copyFileSync(path.join(FX, "expected.ts"), tmp);
+  const noop = execFileSync("python3", [path.join(KIT, "closer.py"), tmp], { encoding: "utf8" }).trim();
+  fs.unlinkSync(tmp);
+  const pass = equal && /inserted 1$/.test(rep) && /inserted 0$/.test(noop);
+  console.log(`cost: merge replay | reading ${at} UTC | the union of the fixture pair loses a closer, closer.py ${rep.replace("component-notes: ", "")}, equals expected: ${equal}; on the expected file ${noop.replace("component-notes: ", "")} | source: usher/kit/fixtures/union, the same closer.py hand-merge.sh runs | reads as: ${pass ? "PASS: the repair still matches the fault it was written for" : "FAIL: the repair or the fault has drifted, read hand-merge.sh before the next retirement merge"}`);
+} catch (e) { console.log(`cost: merge replay | FAILED TO RUN: ${String(e.message || e).slice(0, 160)}`); }

@@ -40,25 +40,7 @@ PY
       # A union prints a line both sides END on once: two lanes' head blocks in component-notes.ts both end on
       # "  }," so the first block lost its closer (2026-09-21, app-pricing-wiring). Close any entry whose next key
       # arrives without one; the comment lines above a key belong to that key.
-      [ "$f" = "$NOTES" ] && python3 - "$f" <<'PY'
-import re,sys
-p=sys.argv[1]; lines=open(p).read().split("\n"); out=[]; fixed=0
-for i,l in enumerate(lines):
-    if re.match(r'^  "[^"]+": \{\s*$', l):
-        k=len(out)
-        while k>0:
-            s=out[k-1].strip()
-            if s=="" or s.startswith("//"): k-=1; continue
-            if s.endswith("*/"):
-                while k>0 and "/*" not in out[k-1]: k-=1
-                k-=1; continue
-            break
-        prev=out[k-1].rstrip() if k>0 else ""
-        if not (prev.endswith("},") or prev.endswith("= {")):
-            out.insert(k, "  },"); fixed+=1
-    out.append(l)
-open(p,"w").write("\n".join(out)); print("component-notes: closers inserted", fixed)
-PY
+      [ "$f" = "$NOTES" ] && python3 "$KIT/closer.py" "$f"
       ;;
     "$LIB"|"$GEN") echo "regenerate: $f" ;;
     *) echo "STOP: $f conflicts and no resolver owns it; the merge is left in progress"; exit 3 ;;
