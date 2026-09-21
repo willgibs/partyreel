@@ -1,6 +1,6 @@
 ---
 track: guest-upload-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "40e2c2c1"          # the launch-prep SHA the branch was cut from
 board: guest-upload    # wired by this lane; the board retires (its eight asks ruled whole)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -296,30 +296,153 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The host's own per-event cap still never reaches the guest.** `get_event_by_qr_token` does not return
+  `events.max_upload_bytes`, so the terms line states the universal 10 GB ceiling (true for every event,
+  never over-promising a bigger one) rather than "in the host's own number" as the option's own words ask.
+  The seam is BUILT and contract-tested: `uploadTermsLine(capBytes)` takes it, the sheet passes it through.
+  Recommended, and taken: ship the universal number now, and bank the migration + types + `guest-events.ts`
+  line as the Orchestrator's (a ROADMAP line below). One call site changes when it lands.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, "Flow": the action-block line now says every Add opens the ADD SHEET
+  (`uploadRef.openAdd()`), not the OS picker.
+- `docs/systems/guest-flow.md`, "Flow": "Upload lives IN the gallery" rewritten as **"The upload act"** with
+  its three surfaces (the add sheet and its two inputs, the review step and the named stand-in, the
+  end-of-run failure sheet), the blob re-key kept, and the one-owner object-URL rule stated.
+- `docs/systems/guest-flow.md`, "Flow": the empty state's CTA line says it opens the same add sheet.
+- `docs/systems/guest-flow.md`, "Live gallery": the ARRIVAL bullet rewritten as ONE grammar for both
+  surfaces (`data-arrived` / `data-landed`, the shared sheet and module, the exclusive sweep and why, the
+  green check retired, the "only that column re-flows" warning removed because the explicit columns landed).
+- `docs/systems/guest-flow.md`, "Live gallery": a new bullet, **"What THIS DEVICE draws at the album's
+  head"** (the stack, the waiting tile, nothing for a failure; the `data-lit` binding; the measured pane).
+- `docs/systems/uploads-and-r2.md`, the per-event cap bullet: the guest page never LEARNS the number, and
+  `capBytes` is the seam that closes it.
+- `docs/systems/uploads-and-r2.md`, "Where it lives": a refusal's sentence is now printed verbatim on the
+  guest's failure sheet, so its precision is user-facing copy rather than a log line.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now** — the guest RPC returns the host's per-event cap: a migration adding `max_upload_bytes` to
+  `get_event_by_qr_token`, the types regeneration, one field in `guest-events.ts`, and one prop through
+  `GuestUpload` -> `UploadIntentSheet` -> `uploadTermsLine(capBytes)`, which is already built and tested.
+  The terms line then says the host's own number, which is what `warning=both`'s option asked for.
+- **Now** — the camera row needs a REAL iPhone and a REAL Android. The pane's mobile emulation cannot open
+  a camera, so `capture="environment"` and the synchronous `.click()` are held by the source and by the
+  contract test alone. One tap on each device is the whole check.
+- **Later** — `shared/upload-thumbnail.tsx` (the host upload list) still HIDES a file the browser cannot
+  draw where the guest now NAMES it, and still mints its own object URL in a render initializer (the
+  StrictMode hazard `use-pick-urls.ts` documents). Folding it into `PickPreview` is one small change in the
+  host lane.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- **Board commit `321813b2`**, pushed. **Synced BEFORE the retirement commit as announced**: `git fetch` +
+  a FAST-FORWARD to `origin/launch-prep` `34dae086` (overtaken-5's landing), so there is no sync-merge
+  commit to name; the work was re-applied on top of it and every gate below ran on that tree. The one
+  conflict was `sandbox/overtaken.ts` (upstream had already removed the eight `guest-upload.*` entries and
+  written the board's departure note) and it was resolved to UPSTREAM outright: the file is byte-identical
+  to `34dae086`'s and is not in the lane check. `_desk/queue.test.ts` was never touched.
+- Gates on the synced tree, each on its own exit code: `design:rules` ok (0) · specimens ok (0, 140 on 101)
+  · `typecheck` ok (0) · `lint` ok (0, **10 warnings**, the real baseline you named, none of them in this
+  lane's files) · `test` ok (0, **313 files, 3,222 passed, 1 skipped**) · `build` ok (0, **255 static
+  pages**) · `pnpm lab:smoke --base http://localhost:3132` ok (**405 checks, 0 failing**). `pnpm lab:demo`
+  NOT run and cannot be: the board it would press retires in this commit.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the 46 paths below, every one owned except
+  the five exceptions, each with its why:
+  - `src/app/(dev)/design/rules/component-notes.ts` - the nine new `for` lines, prepended at the HEAD of
+    the table exactly as the round's other lanes do, so the hunks stay disjoint.
+  - `src/app/(dev)/design/{sandbox/registry.ts,(shell)/lab/boards.ts,touchpoints.ts}` - the board's own
+    lines only (the retirement exception): the spec import and its `BOARDS` row, the board component's
+    import and its row, the two `SandboxId` members, the `TOUCHPOINTS` entry and the `DESK_ORDER` member.
+  - `src/components/marketing/sections/features/album/how-much-fits.tsx` - ONE string: the cap mock's toast
+    title becomes the failure sheet's heading, because the toast it quoted retired.
+  - `src/components/marketing/sections/features/album/review-switch.tsx` - ONE string and its glyph: the
+    guest's toast becomes the waiting tile's line, because that toast retired too.
+  - `src/components/marketing/mock-parity.test.ts` - TWO `literal` values (and their labels/appFiles)
+    following both, which is that file's own documented procedure ("change the app copy and the marketing
+    mock's copy TOGETHER, then update the `literal` here"). Without it the suite is red, so the lane could
+    not have handed off green.
+  - Generated, not authored: `rules.generated.json`, `docs/design/library.md`, `specimens.generated.json`
+    (unchanged) - the output of `pnpm design:rules`, which a `for` line and a contract make mandatory.
+- The items, one line each:
+  - `tap=sheet`: KEPT. `guest/upload/intent-sheet.tsx` on the responsive Sheet, two rows, two hidden inputs
+    inside `SheetContent` (camera: `accept="image/*" capture="environment"`, one photograph; album:
+    `image/*,video/*` + `multiple`), each `.click()`ed synchronously from its row. Lands in the Library as
+    **the add sheet**.
+  - `warning=both`: KEPT. The review step (`review-step.tsx`) inside the same sheet, one-tap remove, `Send
+    N`; `pick-preview.tsx` names a file the browser cannot draw; `upload-terms.ts` is the line. Lands as
+    **the review step** and **the terms line**.
+  - `batch=one` + `sending=strip`: KEPT. `upload/stack-tile.tsx`: one object per pick, the file in the air
+    on top, two ghost edges, and one pane at the foot carrying "N to go" and the bar. Lands as **the stack
+    tile**.
+  - `held=tile`: KEPT, in the same file: the photograph lightly dimmed, a clock mark, "Waiting for the
+    host", no button; it goes when the poll shows the item approved (`QueueItem.mediaId`). Lands as **the
+    waiting tile**.
+  - `failed=sheet`: KEPT. `upload/failure-sheet.tsx` opens itself at the END of a run, one line per file
+    with the server's own sentence and a Retry, over one Retry all. Lands as **the failure sheet**.
+  - `landing=sweep`: KEPT, and made ONE grammar as his note asks: `lib/shared/arrival.ts` +
+    `components/shared/arrival.css`, `data-arrived` / `data-landed` written by the one grid. Lands as **the
+    arrival grammar**.
+  - `words=read`: KEPT. Every sentence the act says at `text-reading`.
+  - The board retires: its directory, its `registry`/`boards`/`touchpoints` lines. Its eight
+    `sandbox/overtaken.ts` entries were already gone upstream.
+- Calls his to overrule on the alias, one line each:
+  - **The review step at all.** It is a whole extra tap between picking and sending; his words asked for it
+    ("It may be helpful to preview the photos before upload") but he has not seen it.
+  - **The terms line's words** ("Photos and videos, up to 10 GB each."), and whether it earns its place at
+    all - his own note was "Terms either need a better design or to be scrapped", and this is the smallest
+    true thing that line can say.
+  - **The stack's ghost edges and its count wording** ("N to go", and no count at all for a single file).
+  - **The waiting line's words** ("Waiting for the host"): the board said "Waiting for Maya". The host's
+    name would need a new prop chain through the album for one word; his call.
+  - **Failures are never drawn as tiles**, and the "Sent, waiting for host approval" toast is gone.
+  - **16 px** for every sentence the act says (the board said 15; the ladder has no 15 rung). His to drop to
+    the 14 rung.
+  - **The failure sheet's shape**: Retry all ABOVE the list (the brief's word) rather than paired with "Not
+    now" in the footer as the board drew it, and only ONE retry when a single file failed.
+  - **The reading pane's darkness** on the stack and the waiting tile: glass at the marks' blur with its
+    tint re-pointed to 0.34, measured 4.78:1 for white over a pure-white photograph. His "maybe a darker
+    overlay" is satisfied by measurement rather than by eye.
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them): any article
+  describing the guest upload as "tap Add and the phone's picker opens" (the sheet and its review step are
+  new), and any describing a failed upload as a toast or an in-tile "Tap to retry" (it is an end-of-run
+  sheet now). `content/help/` belongs to `voice-wiring`, so nothing here was touched.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none in this lane. ONE is proposed for the
+  Orchestrator, under Deferred: `get_event_by_qr_token` returning `max_upload_bytes` so the terms line can
+  say the host's own number.
+- Verified locally, at 375 and at 1440, on `pnpm dev -p 3132` (captures in the lane's scratchpad):
+  - Demo event: the sheet's two rows and the terms line; six picks reviewed with an undrawable `.mov` drawn
+    as the named stand-in (name + size); one pick removed and the header recounting to "Send these 5?"; a
+    twelve-file batch drawing exactly ONE stack with "8 to go" and the dock badge at "8 uploading"; at
+    1440 the same sheet as a right-hand side panel with the review grid at five columns.
+  - The sweep, measured rather than eyeballed: `data-landed` carried by **at most one tile at a time**
+    across a ten- and a twelve-file batch (it was **two** before the hold was made exclusive), the
+    pseudo-element running `pr-arrival-sweep` for `0.9s` off `--arrival-sweep-ms`, and everything clear at
+    the run's end.
+  - A REAL disposable event (`guest-view-menu QA`): a real upload run failing at the PUT (localhost is not
+    allow-listed for R2, which is exactly the failure this needed) opened the failure sheet by itself -
+    "2 files did not go", the host's name, Retry all, a thumbnail + name + "Network error during upload."
+    + Retry per line, "Not now" - and Retry all re-queued both (the stack returned, the dock read "2
+    uploading") and the sheet re-opened when that run ended. No orphan `media` rows were left (checked).
+  - NOT exercised locally, and why: the WAITING tile (needs a `hold_for_approval` event with anonymous
+    uploads allowed; the Orchestrator sets the disposable event's moderation as its host) and the GLOW
+    (needs a second device's arrival through the poll). Both are contract-tested; the glow's CSS is a
+    verbatim move of the shipped rule.
+- Look at first: the add sheet at 375 on a real phone (the camera row is the one thing no emulator can
+  prove), then a twelve-file batch's single stack and its one sweep, then a file over the event's cap so
+  the failure sheet says the server's real sentence.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The upload act was rebuilt at both ends: every Add now
+opens our own sheet naming the two intents (two inputs, because `capture` cannot be both, each clicked
+inside the gesture Safari requires), the picker returns into that sheet as a review step where an
+accidental pick costs one tap, and a run that refuses anything ends on a sheet listing each file with the
+server's own sentence and a Retry. In the album, a pick in flight became ONE stacked tile with everything
+it says on a pane measured at 4.78:1 for white, a held upload finally draws a tile that waits instead of
+vanishing, a refused file draws nothing at all, and both upload toasts retired. The arrival became one
+grammar for a guest and a host alike - `data-arrived` and `data-landed` written by the one grid off
+`lib/shared/arrival.ts` and `shared/arrival.css` - with the sweep made exclusive after two tiles were
+measured carrying it at once. The `guest-upload` board retired with its files.
