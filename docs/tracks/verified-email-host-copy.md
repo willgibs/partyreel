@@ -1,6 +1,6 @@
 ---
 track: verified-email-host-copy
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "bc28580b"          # the launch-prep SHA the branch was cut from
 board: none            # the identity reshape, wave 1: the switch and every sentence; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -148,30 +148,197 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- The brief's `legal.ts:32` line reads "Terms 1.2 and Privacy 1.3", but the tree at the cut already had Privacy
+  at 1.2 and Terms at 1.3 (the guest-self-delete round, 2026-09-20) — the literal numbers named are lower than
+  or equal to what already shipped, which the file's own rule ("bump on any material change") never does.
+  Recommended and taken: bump each by its next tenth from where it stood — Privacy 1.2 → 1.3 (matching the
+  brief's number for Privacy exactly), Terms 1.3 → 1.4 (the brief's "1.2" read as the slot, not the target,
+  since 1.2 is Terms' OWN two-rounds-ago version) — both with a dated comment line naming the identity reshape,
+  on the file's established pattern. His to overrule if "1.2" for Terms was meant literally (which would mean
+  rolling Terms' version backward, not currently supported by the file's model).
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md`: the `events` model line now names `require_verified_email` (the identity
+  reshape) beside the legacy `allow_anonymous_uploads`, and the "Require accounts to upload" toggle
+  paragraph is rewritten whole for the renamed, non-inverted switch (no more accounts-required framing;
+  OFF is a typed, unverified name, never anonymous), dropping the stale "dashboard event-detail access
+  line" caller claim `guestExperienceSummary()` never actually had a second caller for.
+- `docs/systems/profiles-social.md`: three facts refined — the "What it does" summary's guest-list line
+  (every guest who added photos renders named now, not just signed-in ones); the escape-hatches sentence
+  (uploading without signing in no longer keeps a guest off the list; turning the switch off trades a
+  confirmed name for a marked one, never for no name); `getEventGuestList`'s own line (the `includeUnverified`
+  option and what unions in, now that `verified-email-server` landed it).
+- One line NOT changed, flagged rather than guessed: `profiles-social.md`'s `notification_prefs` paragraph
+  ("an anonymous email-only guest receives nothing beyond the one-shot...") is ambiguous whether it means an
+  event guest (which the reshape would affect: no OFF-mode guest has an email on file at all, so "email-only"
+  cannot describe them) or a different one-shot email capture outside the join/upload flow. Left untouched;
+  worth a look from whoever owns `notification_prefs` next.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- ROADMAP → Now: `src/app/(dev)/design/(shell)/library/components/interactive-demos.tsx` still quotes the
+  retired switch verbatim (`label="Require accounts to upload"`, `dialogTitle="Allow anonymous uploads?"`) in
+  a Library demo of `ConfirmSwitch`; no wave-1 lane owns it, so it drifted from the real control this round's
+  sweep would otherwise have caught. A one-line copy fix whenever a lane next touches that file.
+- ROADMAP → Now: `docs/systems/database-security.md` and `docs/systems/uploads-and-r2.md` still describe the
+  pre-reshape "anonymous guest" identity model (no lane owns either this round); both want a pass once the
+  identity reshape's three production lanes are all on `launch-prep` to true them up to `require_verified_email`
+  / the unverified-mark model.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Work commit `b371aac3` (the switch, marketing, blog, help, legal — 70 files); a second commit `a93f2421`
+  (post-merge integration fixes, below); pushed. Synced with launch-prep at `3d489efa` (the final merge
+  commit on this branch, HEAD; never quoted here as this lane's own — see the closing chat line for it).
+  **Unusual sync path, stated plainly**: `origin/launch-prep` moved twice while this lane ran (other
+  tracks' records, then `verified-email-lab`'s), and rather than wait idle on the two production lanes
+  this lane reads (`src/lib/db/queries/social.ts` server-owned, `src/components/social/guest-list.tsx`
+  guest-owned), this lane merged `origin/lp/verified-email-server` and `origin/lp/verified-email-guest`
+  directly the moment each hit "handed off" — both well ahead of the Orchestrator's own merge into
+  `launch-prep` at the time. That surfaced and fixed two real integration bugs (below) before they could
+  reach `launch-prep` at all. Once the Orchestrator's own merges of both landed on `launch-prep`, this lane
+  did one more ordinary sync (`3d489efa`) to converge on the exact same tree; it carried a single real
+  conflict (`src/app/(guest)/e/[token]/page.tsx`, both sides having independently written the identical
+  one-line fix to the same dead branch — resolved by keeping the code line and the shorter of the two
+  comments, `origin/launch-prep`'s own).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- **Gates, run clean on the fully-synced tree** (`3d489efa`), each its own exit code: `pnpm design:rules` 0
+  (no diff in `rules.generated.json` / `docs/design/library.md`) · specimen collector 0 (no diff) ·
+  `pnpm typecheck` 0 · `pnpm lint` 0 (12 warnings, saved in this lane's scratch as `lint-final.log`; the
+  2026-09-21 baseline was 10, the number moved as the manifest says it will, none in a file this lane
+  touched) · `pnpm test` 0 (323 files, 3401 passed / 1 skipped) · `pnpm build` 0 (255 pages,
+  `ƒ /help/require-verified-emails-explained`'s sibling static path among them) · `pnpm lab:smoke --base
+  http://localhost:3133` 0 (413 checks, 0 failing). Port 3133 killed before this lane's build, its test runs
+  and this handoff. No board this round (`board: none`), so no `lab:demo`.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` (on the synced tree, `3d489efa`) = 71
+  files. 68 are this lane's own `owns` paths (including the delete + rename that retired
+  `content/help/require-accounts-to-upload-explained.mdx` in favor of the new slug). **Three exceptions,
+  each a single, documented reason:**
+  - `next.config.ts` — the one sanctioned spread line (this lane's manifest names it directly): imports
+    `HELP_REDIRECTS` and adds its `/help/<old> → /help/<new>` 308, on the exact shape `BLOG_REDIRECTS`
+    already used there.
+  - `src/lib/content/help.test.ts` — not literally in this lane's `owns`, but the natural home for
+    `help-redirects.ts`'s retired-slug test (the `blog.test.ts` "retired slugs" `describe` block, mirrored
+    exactly): no lane owns `help.test.ts` by name this round, and a new redirect module without a test on it
+    would be the actual lane-rule violation.
+  - `src/app/(guest)/e/[token]/page.tsx` — `verified-email-guest`'s file, one line, applied only after
+    syncing past that lane's own merge (both the direct branch merge and, later, the real `launch-prep`
+    merge). Detail directly below.
+- **Two integration bugs found and fixed, neither this lane's own code, both caught only by merging
+  `verified-email-server` and `verified-email-guest` together early**:
+  - `uploads-section.tsx`'s `ConfirmSwitch.checked` (this lane's own file) took `field.value` directly once
+    the inversion was dropped, and `require_verified_email` types as `boolean | undefined` on the RHF INPUT
+    generic (`updateEventSchema.partial()`); the old inverted read (`!field.value`) had coincidentally always
+    normalized it to a strict boolean, so removing the inversion (per the brief) exposed a real gap `tsc`
+    caught. Fixed with `?? true`, matching the schema default and the pattern already used for `useWatch`
+    just above it in the same file (commit `a93f2421`).
+  - `src/app/(guest)/e/[token]/page.tsx` carried a dual-path shim (read `require_verified_email` if present,
+    else fall back to `!allow_anonymous_uploads`) written by `verified-email-guest` before it could see
+    `verified-email-server`'s landed `GuestEvent` type, which guarantees `require_verified_email` unconditionally.
+    Once both were merged together the fallback branch became unreachable and `tsc` refused it (`Property
+    'allow_anonymous_uploads' does not exist on type 'never'`) — a bug neither lane could have caught alone,
+    since each was green against its own understanding of the shared type. Fixed to a direct
+    `event.require_verified_email` read (commit `a93f2421`); the Orchestrator's own later merge of both lanes
+    hit the identical gap and wrote the identical one-line fix independently, which is exactly the conflict
+    `3d489efa` resolved (both sides correct, kept the shorter comment).
+  - Also fixed in `a93f2421`, found only once `pnpm test` ran against the real `content/help/` collection
+    loader post-merge: four `content/help/*.mdx` `description` frontmatter fields (mine, written to explain
+    the new behavior fully) ran past `HELP_DESCRIPTION_MAX` (200; `help.ts:178`) — `profiles-guest-lists-and-following.mdx`,
+    `reporting-and-safety.mdx`, `require-verified-emails-explained.mdx`, `what-guests-can-and-cant-see.mdx`.
+    Trimmed under the limit without losing the "confirmed or marked" framing; re-verified with a precise
+    `gray-matter` length check across every `content/help/*.mdx`, not just these four.
+- **`guests/page.tsx`'s own wiring** (this lane's file): calls the now-landed `getEventGuestList(event.id, {
+  includeUnverified: true })`, splits the union with `verified-email-server`'s `splitGuestList` before
+  hydrating only the profile-card half through `withAvatarUrls` (an unverified entry has no avatar to
+  resolve), recombines in the query's own cards-then-unverified order, and passes the result as
+  `verified-email-guest`'s own `GuestListItem` type. Visually confirmed on the synced tree via the browser
+  pane (`/features/guests` and `/features/privacy` at 1440 and 375; not saved to scratch, browser-pane-native
+  only, so read as observed-not-artifacted): the wall's "Theo" chip and the guest-list-card mock both carry
+  the small unverified-mark dot; the renamed help article resolves at its new slug and renders its full ToC;
+  the old slug 308s to it (`curl`-verified, an actual artifact: `Status: 308`, `Redirect URL:
+  http://localhost:3133/help/require-verified-emails-explained`).
+  The real, auth-gated Guests room and Settings sheet are unverified locally (no session in this pane) and
+  are the Orchestrator's to red-team on the alias, per the standing protocol.
+- **The items, one line each** (no board this round — the goal was one verdict and a note, wired directly;
+  see the manifest's Goal): the switch (renamed, non-inverted, both copy states written), the eight
+  `guestExperienceSummary` sentences, the Guests room (opted into the unverified union), the guest-list
+  settings copy (verbatim per the brief), the reel's bucket rename, fourteen marketing surfaces under
+  `sections/` (the two feature pages' "Anonymous" fixtures → a named, marked guest "Theo", carried
+  consistently across four components on two pages), `marketing-voice.ts`'s new rule, ten blog posts + both
+  `AUTHORING.md` guides, seventeen help articles (one renamed and rewritten whole, sixteen reworded) + a new
+  redirect module + its test, two legal documents (each a dated version bump + three reworded passages),
+  `PRD.md` and `PRICING.md`.
+- **Calls his to overrule, one line each:**
+  - The switch's exact copy throughout (label "Require verified emails"; the description's two sentences;
+    the confirm dialog's title, description, and both button labels) — brief-directed in shape, not in exact
+    wording.
+  - The version-number question in "Questions" above (Terms → 1.4 vs. a literal reading of "Terms 1.2").
+  - `require-accounts-to-upload-explained.mdx`'s new slug, `require-verified-emails-explained` (unnamed in
+    the brief beyond "renamed").
+  - "Theo" as the one recurring named example of an unverified guest, reused across `attribution-hero.tsx`,
+    `attribution-stage.tsx`, `album-fill-fixtures.ts` and `guest-list-section.tsx` on two feature pages, rather
+    than a different name on each.
+  - The visual mark itself on marketing surfaces (a `size-1.5 bg-warning` dot beside the name, with a
+    `title`/`aria-label` explanation) — designed to echo the sandbox's ruled "same small dot the avatar
+    wears" pattern (`sandbox/guest-verify/unproven.tsx`, read for reference, never imported), since no
+    shipped product component for the mark existed in this lane's own tree at write time.
+  - `getEventGuestList`'s union rejoin order in `guests/page.tsx` (hydrated cards, then unverified entries) —
+    matches the query's own documented order, but the visual grouping (cards before unverified, never
+    interleaved) is this lane's read of "listed, with the mark," not an explicit brief line.
+- **The help articles this lane makes stale: none outstanding.** This lane owns `content/help/` outright this
+  round and rewrote every article its own sweep found stale (seventeen, listed above) in the same pass, rather
+  than flagging them for a follow-up `help-sync` lane.
+- **THE SWEEP** (`git grep -in anonymous` across `src/`, `content/`, `docs/`, run fresh on the synced tree,
+  `3d489efa`; full output saved in this lane's scratch as `anonymous-post-merge.txt`, 323 lines across 120
+  files): every hit under this lane's `owns` is accounted for above (rewritten, or — three cases — verified
+  as a different sense and deliberately left: `src/lib/reel/engine/assets.ts`'s `img.crossOrigin = "anonymous"`
+  is the DOM `HTMLImageElement` CORS attribute, a Web-platform literal, not product vocabulary; `docs/PRD.md`'s
+  and `content/help/report-a-problem-as-a-guest.mdx` + `reporting-and-safety.mdx`'s "reports are anonymous"
+  lines describe who FILES a report, untouched per the brief). Every remaining hit outside this lane's `owns`,
+  by fate:
+  - **Another lane's, named** — the great majority. `verified-email-server`'s own surface (`uploader-identity.ts`
+    + test, `gallery-access.ts` + test, `grid-items.ts`, `db/queries/*`, `db/mutations/*`, `social.ts`, `event.ts`
+    + test, `upload.ts` + test) and `verified-email-guest`'s own (`anonymous-info.tsx` — modified, not deleted,
+    their own call; `unverified-mark.tsx`, `guest-list.tsx` + test, `media-lightbox.tsx` + test, `event-experience.tsx`,
+    `live-gallery.tsx`, `guest-header.tsx`, `enter-event-prompt.tsx`, `claim-uploads.ts`, `account-door.tsx`,
+    `e/[token]/*`, `u/[slug]/*`) are both now visible in this tree only because this lane merged them early to
+    verify its own contract against real code; their own word choices are each lane's own call, already
+    accounted for in their own Handoffs, and this lane did not re-sweep them.
+  - **Another sense, left** — `src/lib/auth/admin-context.ts` + `src/lib/surface/index.ts` (`status: "anonymous"`,
+    the admin portal's own signed-out gate, unrelated to guest identity); `src/components/marketing/chrome/session-hint.tsx`
+    (a signed-out web visitor, the same sense `checkout-button.tsx`'s comment used before this lane's edit);
+    `src/lib/shared/sampled-palette.ts` (a second `crossOrigin="anonymous"` DOM reference, same as
+    `engine/assets.ts`); `docs/systems/profiles-social.md`'s own remaining "anonymous strangers"/"viewer may
+    be anonymous" lines (an unauthenticated web visitor reading a public page) and "anonymous enumeration
+    surface" (an abuse-prevention term, unauthenticated API probing) — both pre-existing senses this lane's
+    own edits left alone by design.
+  - **No wave-1 owner this round, flagged rather than fixed** — moved to Deferred above:
+    `interactive-demos.tsx`'s stale `ConfirmSwitch` Library demo; `docs/systems/database-security.md` and
+    `uploads-and-r2.md` (both still describe the pre-reshape model; neither is in any wave-1 lane's `owns`);
+    a handful of sandbox fixtures (`sandbox/gallery-fixtures.ts`, `sandbox/media-viewer/fixtures.ts`,
+    `library/patterns/gallery-demos.tsx`) outside `verified-email-lab`'s three-file `owns` this round.
+  - **Record docs and generated files, untouched on purpose**: `docs/CHANGELOG.md`, `ROADMAP.md`, `STATUS.md`,
+    `docs/design/rulings.md`, `docs/SYSTEMS.md`, `docs/tracks/orchestrator.md` (record docs, forbidden to this
+    lane); `src/lib/db/types.ts`, `rules.generated.json`, `specimens.generated.json` (generated, never
+    hand-edited).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Look at first**: `src/components/app/event-settings/uploads-section.tsx` (the switch itself, the shape
+  every other surface's copy describes), then `content/help/require-verified-emails-explained.mdx` (the
+  full rewrite, whole-article), then this Handoff's "Two integration bugs" note above before touching
+  `src/app/(guest)/e/[token]/page.tsx` again — it is already converged with `launch-prep`'s own fix.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Wave 1's host-copy lane wired the identity reshape's whole
+sentence: the settings switch renamed to Require verified emails with no inversion, `guestExperienceSummary`'s
+eight sentences retold, the Guests room opted into the unverified union, the guest-list copy set verbatim,
+the reel's bucket renamed. Marketing's "Anonymous" fixtures became a named, marked guest across two feature
+pages; ten blog posts and one help article renamed and rewritten whole (sixteen more reworded) carried the
+same sentence to readers; two legal documents gained a dated version and three reworded passages. Merged
+`verified-email-server` and `verified-email-guest` in early (both had handed off) to verify against real
+code rather than the plan alone, which found and fixed two real cross-lane integration bugs before either
+reached `launch-prep`. The sweep accounted for every remaining "anonymous" outside this lane's own surface,
+by lane, by sense, or flagged for a future pass. Gate green throughout (typecheck, lint, 3401 tests, a
+255-page build, `lab:smoke` 413/0).
