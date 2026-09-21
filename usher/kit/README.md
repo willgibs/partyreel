@@ -32,7 +32,14 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   `.env.local`).
 - `desk-sections.mjs` / `desk-check.mjs`: the served desk per section; the library page's mention of a contract.
 - `make-manifests.py <cut-sha> [tracks]`: the lane manifests generated from the plan file's Lane sections with
-  disjoint `owns`.
+  disjoint `owns`. Three rules at a cut (the third batch, 2026-09-21): the desk pass (`overtaken-N`) merges
+  FIRST, because `overtaken.test.ts` refuses a key naming a board no longer in `registry.ts`, so a retirement that
+  lands before it turns `launch-prep` red (each retiring lane also removes its own board's entries so its branch stays
+  green; identical deletions merge clean); every path in a lane's `reads` must exist on disk when the manifest is
+  generated AND at every merge between the cut and its own (`track-manifests.test.ts` refuses a missing read: a module
+  another lane moves, like `lib/guest/arrival-glow.ts`, cannot be a read); and an Orchestrator-owned path a lane needs
+  (`src/app/globals.css` for a print block) is dropped from `orchestrator.md`'s `owns` BEFORE the generator runs, since
+  it refuses a lane owning an Orchestrator path, and returns at that lane's merge.
 - `spawn-prompt.txt`: the agent spawn prompt with `{track}`, `{port}`, `{model}` placeholders.
 - `batch-reader.mjs` (`< batch.txt`, `--json`, or `--board <id>`): a review paste read beside the boards it answers:
   each verdict's question, the chosen option's label and meaning, confirms or overrules the recommendation, what it
