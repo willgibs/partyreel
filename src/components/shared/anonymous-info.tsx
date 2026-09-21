@@ -8,6 +8,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+/**
+ * ★ RETIRED AT THE IDENTITY RESHAPE (2026-09-21), and kept on disk for the ONE
+ * surface that still draws it: the Library's own gallery patterns
+ * (`design/(shell)/library/patterns/gallery-demos.tsx`). Nothing in the product
+ * mounts it. Anonymity left the product on Will's `address=none`, so there is no
+ * longer an "Anonymous" credit for this to explain: every upload carries a name,
+ * and a name nobody proved wears `shared/unverified-mark.tsx` instead, whose
+ * popover says the same kind of thing about a fact that still exists.
+ *
+ * A wiring lane never deletes a module the lab imports, so the DELETE is the
+ * Library's own (its entry, its `for` line in `rules/component-notes.ts`, and
+ * this file, in one change) rather than this lane's.
+ */
+
 // The "(i)" explainer beside an "Anonymous" attribution caption in the lightbox. A TAP-to-open
 // popover (a Tooltip is hover/focus-only -> useless on touch, and guests are mobile-first). Copy is
 // context-aware: a guest learns what + why (and can ask the host to tighten it); the host learns it

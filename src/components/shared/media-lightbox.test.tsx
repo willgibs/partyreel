@@ -1,3 +1,4 @@
+// @contract-for: src/components/shared/unverified-mark.tsx
 /**
  * BEHAVIOR PINS for MediaLightbox (program Phase 2, slice 1). Freezes the
  * gesture physics + chrome contracts before Phase 4 splits the file: touch
@@ -532,5 +533,73 @@ describe("the lightbox's ground is separate from the photograph", () => {
       expect(pane.className).not.toMatch(/\bbg-(black|white)\/\d+/);
       expect(pane.className).not.toMatch(/backdrop-blur/);
     }
+  });
+});
+
+/**
+ * THE CREDIT, AFTER THE IDENTITY RESHAPE (2026-09-21).
+ *
+ * Anonymity left the product, so what is pinned is the three things a credit can
+ * now BE and nothing about how any of them look: a confirmed name stands plain, a
+ * typed one is marked, and a row minted before the change says "A guest" rather
+ * than inventing a name or leaving the line blank. The mark's own way out is
+ * pinned too, because it is the one Will asked for by name ("want to correct that
+ * immediately by verifying") and it exists only on your own upload.
+ */
+describe("MediaLightbox: the uploader's credit", () => {
+  // `isVerified` lands on GridMedia in the identity reshape's server lane; the
+  // intersection keeps this file green on both sides of that merge, and the
+  // component reads the field structurally for the same reason.
+  const credited = (
+    extra: Partial<GridMedia> & { isVerified?: boolean },
+  ): GridMedia[] => [{ ...PHOTOS[0], ...extra } as GridMedia];
+
+  it("a confirmed name stands plain, with no mark", () => {
+    mount(credited({ uploaderName: "Priya", isVerified: true }), 0);
+    expect(screen.getByText("Priya")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /name not verified/i }),
+    ).toBeNull();
+  });
+
+  it("a name nobody proved is named AND marked", () => {
+    mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
+    expect(screen.getByText("Sam")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /name not verified/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('a legacy nameless row reads "A guest", never a blank credit', () => {
+    mount(credited({ uploaderName: null, isAnonymous: true }), 0);
+    expect(screen.getByText("A guest")).toBeInTheDocument();
+  });
+
+  it("the mark offers the way out on the viewer's OWN upload only", () => {
+    // Somebody else's: the explanation, and no action.
+    const others = mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
+    fireEvent.click(screen.getByRole("button", { name: /name not verified/i }));
+    expect(
+      screen.queryByRole("button", { name: /confirm your email/i }),
+    ).toBeNull();
+    others.unmount();
+
+    // Mine (the `canDelete` seam is the "this is yours" answer every surface
+    // that can say so already carries).
+    mount(credited({ uploaderName: "Sam", isVerified: false }), 0, {
+      canDelete: () => true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: /name not verified/i }));
+    expect(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing about proof it was never given: an item with no flag is plain", () => {
+    mount(credited({ uploaderName: "Priya" }), 0);
+    expect(screen.getByText("Priya")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /name not verified/i }),
+    ).toBeNull();
   });
 });

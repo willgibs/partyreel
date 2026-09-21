@@ -51,7 +51,14 @@ type CompleteResponse =
 
 export type UploadOutcome =
   | { ok: true; status: string; mediaId: string; kind: "photo" | "video" }
-  | { ok: false; message: string };
+  // `code` is the SERVER's own refusal code when the refusal came from one of
+  // the two routes (absent for a local validation or a transport failure). The
+  // guest queue reads exactly one of them, `verification_required` (the identity
+  // reshape, 2026-09-21): a host who turns Require verified emails ON mid-party
+  // invalidates every name-only session mid-run, and the difference between "this
+  // file did not go" and "your session is worth nothing now" is the difference
+  // between a Retry that works and one that cannot.
+  | { ok: false; code?: string; message: string };
 
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
   return new Promise((resolve) => {
@@ -240,6 +247,7 @@ async function runUpload(args: {
   if (!presign.ok) {
     return {
       ok: false,
+      code: presign.code,
       message: presign.message ?? "Couldn't start the upload.",
     };
   }
@@ -330,6 +338,7 @@ async function runUpload(args: {
   if (!complete.ok) {
     return {
       ok: false,
+      code: complete.code,
       message: complete.message ?? "Couldn't finalize the upload.",
     };
   }

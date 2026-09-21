@@ -110,7 +110,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "guest-verify"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -1237,35 +1236,33 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/tile-size-control.tsx",
     ],
   },
-  // ROUND TWO (guest-verify, 2026-09-20): round one ruled four and the
-  // Orchestrator HELD all four on his own "May have to relitigate", so this
-  // round draws the shape they imply rather than wiring them. It changes the
-  // door every other guest board draws on, which is why it sits here.
+  // RULED WHOLE AND RETIRED (2026-09-21). Round two asked five questions and
+  // his answer to the first, `address=none`, dissolved the other four with it:
+  // "we remove the concept of 'anonymous' entirely... we shift the full concept
+  // to 'require verified emails'". His four answers at approval settled what
+  // was left, he asked for the board itself ("Retire it"), and the identity
+  // reshape wires the shape in three lanes beside this one. Round one's four
+  // rulings are no longer HELD: what supersedes them is his own next shape, not
+  // a lane's reading (sandbox/overtaken.ts, the HELD note). `guest-capture` is
+  // cut from the shipped capture flow for its refinement, on his word.
   {
     id: "guest-verify",
     title: "Verify, or badge",
     surface: "guest",
     ruled:
-      'round one ruled in part (Will, 2026-09-20, the closing sitting\'s first batch) and all four are HELD, not wired, on his own "May have to relitigate": gate=after (the photo goes live wearing a mark), badge=mark (subtler than a warning icon, with a tooltip, and on the pop-up and the profile too), host-lens=badge (one queue, every card saying who), expiry=host (nothing removed on a deadline). collision and outage came back `?` with his three cases and a summing-up that re-opened everything: "Consider all of our ideas and systems up until now unprotected and open to relitigation for best overall idea to streamline account identity." Both are re-asked inside round two, collision as its own decision and outage inside what a guest sees; the ruled gate SENTENCE is wired and untouched',
-    shipped: null,
-    why: "Round two, on top of the four held rulings: what a typed address does, who pays once the gate is gone, what a guest sees, and what the host's switch becomes.",
+      'whole: round two ruled address=none (Will, 2026-09-21) and the note under it reshaped identity, with his four answers at approval settling the rest (the capture flow wired now "but I\'d like to get this in the lab for refinement", an unverified name "Listed, with the mark", "No cap now", "Retire it"); gate-switch is answered on his own words as a fourth shape, collision by the capture flow, unproven on the credit and the guest list, allowance left open. Round one\'s four were HELD on his "May have to relitigate": gate=after is SUPERSEDED (nothing waits on a mail in either mode), expiry=host is moot, and badge=mark with host-lens=badge carry onto the unverified name',
+    shipped:
+      "Anonymity leaves the product: every upload carries a name. The host's switch is Require verified emails, on by default. On, a guest confirms an email before the full album and any upload, as today with truer words. Off, a guest types a display name at the door and uploads under it wearing a small unverified mark that carries its own way out (Confirm your email); the name is listed on the album's guest list with the mark and the tile itself stays plain, and nothing caps what a name-only guest may add. After such a guest's first upload the capture flow offers to keep the photographs and the event on a profile, then the host and the other guests to follow (the identity reshape, 2026-09-21; wired by verified-email-server, verified-email-guest and verified-email-host-copy, and refined in the lab by guest-capture once it has shipped)",
+    why: "One email gate was doing three jobs at once, credit, ownership and the host's safety; separating them is what let anonymity go without losing any of the three.",
     lives: [
       "docs/systems/guest-flow.md",
       "docs/systems/auth-accounts.md",
       "docs/systems/database-security.md",
       "src/components/guest/enter-event-prompt.tsx",
-      "src/components/auth/account-door.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/lib/media/uploader-identity.ts",
+      "src/components/social/guest-list.tsx",
     ],
-    board: {
-      note: "Round two: five decisions on the shipped door, album, guest list, queue and settings sheet, phone first at 375 with 1440 on the knob, drawn on top of the four held rulings. What a typed address does on a session that proved nothing, what such a session may add now that the host's month is the only cost left, where unproven content goes and what a guest is told about the person behind it, his case 2 with cases 1 and 3 drawn beside it as settled fact, and what Require accounts becomes once uploading no longer requires one. The rate-limit wall is re-measured from Supabase's current table, and three ideas are refused on the frames with the cost that refused them",
-      variants: [
-        "A typed address",
-        "The allowance",
-        "What a guest sees",
-        "The returning guest",
-        "The host's switch",
-      ],
-    },
   },
   {
     id: "guest-shape",
@@ -1556,7 +1553,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
-  "guest-verify",
   "media-viewer",
   "host-curation",
   "reel-studio",

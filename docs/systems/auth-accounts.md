@@ -1,7 +1,7 @@
 # Auth & host accounts
 
 > ROLE: how hosts (and operators) authenticate + the account/profile model.
-> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock, account deletion. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity / `allow_anonymous_uploads` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
+> BELONGS HERE: Supabase Auth setup, the `getUser` boundary, identity linking, email+password, avatars, display names, the `profiles` column-lock, account deletion. · NOT HERE: the admin MFA gate (→ [admin-observability.md](admin-observability.md)), guest identity, the name-only door and `require_verified_email` (→ [guest-flow.md](guest-flow.md)), the RLS/advisor model (→ [database-security.md](database-security.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -15,16 +15,24 @@ trigger creates one `profiles` row per signup.
 ## Where it lives
 
 - Clients: [`../../src/lib/supabase/`](../../src/lib/supabase) — `client` / `server` / `middleware` / `admin`.
-- **ONE account door, worn four ways** ([`account-door.tsx`](../../src/components/auth/account-door.tsx),
+- **ONE account door, worn five ways** ([`account-door.tsx`](../../src/components/auth/account-door.tsx),
   Will 2026-09-20, `app-door` r1 `surfaces=one` + `lead=code`): the host `/login`, the guest gate
   ([`enter-event-prompt.tsx`](../../src/components/guest/enter-event-prompt.tsx)), Save
-  ([`save-event-button.tsx`](../../src/components/guest/save-event-button.tsx)) and a like
-  ([`likes-provider.tsx`](../../src/components/likes/likes-provider.tsx)) all render `<AccountDoor>`; each
+  ([`save-event-button.tsx`](../../src/components/guest/save-event-button.tsx)), a like
+  ([`likes-provider.tsx`](../../src/components/likes/likes-provider.tsx)) and, since the identity reshape,
+  a name-only guest's own two rows (the mark's way out in
+  [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) and the header's
+  [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx)) all render `<AccountDoor>`; each
   passes only the REASON it is asking (`wear`), which methods it offers, and where a redirect returns.
-  `DOOR_WEAR` is the one table of the four headings and reason lines, so a surface that owns its own
+  `DOOR_WEAR` is the one table of the headings and reason lines, so a surface that owns its own
   semantic title (a `DialogTitle`, the gate's ruled framing) reads the words from there and passes
   `chrome="none"`. **Every wear carries the Terms line** (`consent`, default true) — the gate is the one
   exception, because the welcome step above it already says it.
+  ★ **The words ask for a CONFIRMED EMAIL, not an account** (the identity reshape, 2026-09-21): anonymity
+  left the product, so `save` and `like` say what confirming does and name the free account as what it
+  MAKES, in that order. `gate` alone is untouched, because Will ruled that sentence verbatim (`gate=ask`)
+  and it already said exactly this. `signin` is the fifth wear, for the one person the others do not fit:
+  a named guest at a party who already holds an account and wants tonight's photographs in it.
 - Inside it: [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) (the one field: code +
   magic-link OTP), [`password-sign-in.tsx`](../../src/components/auth/password-sign-in.tsx) (`SignIn` behind
   the quiet "Have a password?" link, and `SetInitialPassword` at the end of forgot-password),
@@ -112,6 +120,15 @@ trigger creates one `profiles` row per signup.
   a warning. The line is dismissible with "Not you? Sign out"; ★ on the guest gate the door HOLDS the
   caller's `onVerified` for four seconds or until a choice, because `claimAnonymousUploads` stamps a
   guest's photographs onto the signed-in account and the claim RPC never re-stamps an owned row.
+  ★ **And every guest-side wear AWAITS that claim before it refreshes** (the identity reshape,
+  2026-09-21). The capture door, the mark's own way out and the header's menu all exist to make these
+  photographs this account's; a `router.refresh()` that overtook the claim would redraw the very credit
+  the guest just paid an email to fix, still marked. The claim is best-effort and never throws, so
+  awaiting it costs one round trip. ★ **The claim does not name the profile**: `claim_anonymous_uploads`
+  stamps `user_id` and nothing else (deliberately unchanged by the reshape's schema), so the typed name
+  reaches a brand-new, nameless profile through `updateDisplayNameAction` in
+  [`claim-handle-prompt.tsx`](../../src/components/guest/claim-handle-prompt.tsx), and never overwrites a
+  name that already exists.
 - **One failure table, three real ways out** ([`door-failure.ts`](../../src/lib/auth/door-failure.ts),
   `failure=paths`): a kind (`expired_link`, `wrong_code`, `send_failed`, `rate_limited`, `google_failed`,
   `password_mismatch`), one short line and three actions. The callback route emits the KIND

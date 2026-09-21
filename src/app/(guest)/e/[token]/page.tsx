@@ -22,7 +22,7 @@ import {
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
-import { getEventGuestList } from "@/lib/db/queries/social";
+import * as social from "@/lib/db/queries/social";
 import { withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryAccess } from "@/lib/events/gallery-access";
@@ -39,6 +39,41 @@ import { needsDisplayName } from "@/lib/welcome";
 
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   THE WAVE SEAM, IN ONE PLACE (the identity reshape, wave 1, 2026-09-21).
+
+   `lib/db/queries/social.ts` belongs to `verified-email-server`, the lane
+   building the route and the queries beside this one. It lands two things this
+   page wants: `getEventGuestList`'s second argument (`{ includeUnverified }`,
+   which appends the name-only guests Will asked to see listed) and
+   `getHostCard(eventId)` (the host as a public card, for the capture flow's
+   follow moment).
+
+   Read through ONE narrow cast so this page is CORRECT on both sides of that
+   merge rather than green on only one of them: before it, the guest list is the
+   profile cards alone and the follow moment simply has no host row (both already
+   handled downstream, neither a stub); after it, every line below is live with no
+   edit here at all. Collapse this block to plain named imports once the server
+   lane is on the tree.
+   ────────────────────────────────────────────────────────────────────────── */
+type HostCard = {
+  id: string;
+  slug: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+const socialSeam = social as unknown as {
+  getEventGuestList: (
+    eventId: string,
+    opts?: { includeUnverified?: boolean },
+  ) => Promise<
+    | ({ id: string; displayName: string | null } & Record<string, unknown>)[]
+    | null
+  >;
+  getHostCard?: (eventId: string) => Promise<HostCard | null>;
+  getMyFollowing: () => Promise<{ id: string }[]>;
+};
 
 // The qr_token is an opaque capability — noindex (don't index join links), but emit OG
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
@@ -278,13 +313,37 @@ export default async function GuestEventPage({
   // receive storage markers, only hydrated public avatar URLs.
   let guestListSlot: React.ReactNode = null;
   if (access === "full" && !isDemo) {
-    const guestList = await getEventGuestList(event.id);
+    // ★ NAME-ONLY GUESTS ARE ON IT (Will, at the identity reshape's approval:
+    // "Listed, with the mark"). They arrive after the profile cards as
+    // `{ kind: "unverified" }` entries, which `withAvatarUrls` must not touch:
+    // there is no avatar and no seed to resolve for a name nobody proved.
+    const guestList = await socialSeam.getEventGuestList(event.id, {
+      includeUnverified: true,
+    });
     if (guestList && guestList.length > 0) {
-      const items = await withAvatarUrls(guestList);
+      const unverified = guestList.filter((g) => g.kind === "unverified");
+      const cards = guestList.filter((g) => g.kind !== "unverified");
+      const items = [
+        ...(await withAvatarUrls(
+          cards as unknown as Parameters<typeof withAvatarUrls>[0],
+        )),
+        ...(unverified as unknown as {
+          kind: "unverified";
+          id: string;
+          displayName: string | null;
+        }[]),
+      ];
       // Above the threshold the list condenses to a row of faces that says
       // "N guests added photos" itself, so the heading drops its pill: the
       // number renders once (Will, `list=faces`, 2026-09-19).
       const listSaysCount = items.length > GUEST_LIST_FACES_THRESHOLD;
+      // A Follow on somebody else's chip, only where it is not a no-op: one
+      // owner-scoped read, and only for a signed-in viewer.
+      const followingIds = userId
+        ? new Set(
+            (await socialSeam.getMyFollowing()).map((f: { id: string }) => f.id),
+          )
+        : undefined;
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
           <h2 className="flex items-center gap-1.5">
@@ -297,11 +356,37 @@ export default async function GuestEventPage({
               </span>
             )}
           </h2>
-          <GuestList items={items} />
+          <GuestList
+            items={items}
+            viewerId={userId}
+            followingIds={followingIds}
+          />
         </section>
       );
     }
   }
+
+  /**
+   * THE HOST'S SWITCH, READ BY WHICHEVER NAME THE TREE CARRIES (the identity
+   * reshape, 2026-09-21). Wave 0's migration added `events.require_verified_email`
+   * beside the legacy `allow_anonymous_uploads` under a BEFORE trigger that keeps
+   * the pair exact opposites, and the server lane renames the field on
+   * `GuestEvent`; reading whichever exists keeps this page correct on both sides
+   * of that merge and collapses to the new field alone the day the legacy column
+   * goes. OFF means NAMES MODE: a guest types a display name at the door and
+   * uploads under it, marked.
+   */
+  const requireVerifiedEmail =
+    "require_verified_email" in event
+      ? Boolean((event as { require_verified_email?: boolean }).require_verified_email)
+      : !event.allow_anonymous_uploads;
+
+  // The host as a public card, for the capture flow's follow moment. Only where
+  // it can be acted on: a full-access, non-demo album with a host to follow.
+  const hostCard =
+    access === "full" && !isDemo && socialSeam.getHostCard
+      ? await socialSeam.getHostCard(event.id)
+      : null;
 
   // Display-name nudge: a SIGNED-IN uploader without a public name sets one before uploading (so their
   // upload is attributed). Only meaningful in the `full` state; an account-required event viewed by an
@@ -337,6 +422,15 @@ export default async function GuestEventPage({
         guestReel={guestReel}
         canDeleteIds={canDeleteIds}
         isAuthed={Boolean(userId)}
+        // Identity keys on a CONFIRMED account, never a uid alone (wave 0's
+        // finding): an unconfirmed session still carries a typed name.
+        isVerified={isAuthed}
+        namesMode={!requireVerifiedEmail}
+        hostCard={
+          hostCard
+            ? { ...hostCard, seed: hostSeed }
+            : null
+        }
         initialTileSize={tileSize}
       />
     </div>

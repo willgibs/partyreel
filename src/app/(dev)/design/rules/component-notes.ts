@@ -117,6 +117,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a thin wrapper whose own subject is a live upload queue; `shared/masonry.tsx` is the grid's specimen",
   },
+  "src/lib/guest/join.ts": {
+    for: "the door's two calls (the identity reshape): join under a typed name and rename, with the route's refusals translated into kinds a surface can act on (a name refused in place, a session spent by the host's switch, a dead network)",
+    unspecimened:
+      "two fetches and a refusal table; its contract test stubs the route and the door is where it is seen",
+  },
   "src/lib/guest/use-upload-queue.ts": {
     for: "the guest upload queue machine: ONE file at a time (robust on venue Wi-Fi), per-item progress, the just-in-time SILENT join, the pending-files stash, demo simulation and retry. A refused or rejected file errors only its own item and the batch carries on; `mediaId` rides on a finished item so a held upload's tile can tell when the host approved it",
     unspecimened:
@@ -603,6 +608,24 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/guest/gallery-empty-state.tsx": {
     for: "an album with nothing in it yet: the river ghosted under the promise, with the CTA only when the viewer can upload",
   },
+  "src/components/guest/save-account-prompt.tsx": {
+    for: "the offer right after a guest's first photographs land: keep these photos, counting them, over the door that confirms an email (and the marker that makes a redirect sign-in land the same beat)",
+    unspecimened:
+      "supabase-bound (it resolves the viewer and the saved state); the album after an upload is where it stands",
+  },
+  "src/components/guest/follow-moment-card.tsx": {
+    for: "the beat after a name-only guest confirms their email: what they now hold, the host to follow, and the handle line folded in",
+    unspecimened:
+      "supabase- and router-bound (it carries the real Follow control); it is drawn by the slot's own contract test",
+  },
+  "src/components/guest/guest-name-menu.tsx": {
+    for: "the guest header's third state: a guest who typed a name and holds no account, their name marked, with confirm, rename and sign in",
+    unspecimened: "auth- and router-bound; the door it opens is the account door's own",
+  },
+  "src/components/guest/guest-name-step.tsx": {
+    for: "the door on a name-only event: one name field inside the entry shell, asked at the first Add and never at arrival",
+    unspecimened: "posts to the join route; the entry surface owns its framing",
+  },
 
   /* reel (not a library directory: indexed for the publish light's contract) */
   "src/components/reel/publish-light.tsx": {
@@ -620,7 +643,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the lightbox's icon tooltips; never on the SSR'd gallery tiles, which use native title",
   },
   "src/components/shared/anonymous-info.tsx": {
-    for: "the (i) beside an Anonymous credit; tap to open, because guests are on phones",
+    for: "RETIRED at the identity reshape (2026-09-21) and drawn only by this gallery now: the (i) beside an Anonymous credit, whose concept left the product; a marked name wears unverified-mark.tsx instead",
   },
   "src/components/shared/app-shell.tsx": {
     for: "the signed-in app frame",
@@ -727,6 +750,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide)",
     unspecimened:
       "a group context plus one trigger wrapper; BulkBar (src/components/app/event-feed, outside the library) is the real caller and the honest demo",
+  },
+  "src/components/shared/unverified-mark.tsx": {
+    for: "the quiet mark beside a name nobody proved, in MineMark's material, carrying its own explanation and, on your own credit, the way out",
+    unspecimened:
+      "its two tones only mean anything against what is behind them (a credit over a photograph, a chip on paper), and its own way out opens the account door; the lightbox's credit and the guest list are its specimens in place",
   },
   "src/components/shared/upload-thumbnail.tsx": {
     for: "the per-file thumbnail in the upload queue",
