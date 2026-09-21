@@ -1,6 +1,6 @@
 ---
 track: verified-email-guest
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "bc28580b"          # the launch-prep SHA the branch was cut from
 board: none            # the identity reshape, wave 1: the door, the credit, the capture flow; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -147,30 +147,153 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none raised mid-lane. Every open call in the brief was taken on its recommendation and is listed under
+  "Calls his to overrule" below, as the lane's rules ask.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, ROLE line: `allow_anonymous_uploads` account gate -> the
+  `require_verified_email` switch (its gate and its name-only door).
+- `docs/systems/guest-flow.md`, the Flow's lightbox bullet: the attribution pill reshaped ("[name] [mark]
+  [Host] · i+1 of N"), every upload carries a name, "A guest" for legacy rows, `anonymous-info.tsx` retired
+  in place for the Library, and WHY the mark carries its own door (the `canDelete` seam, not a second one).
+- `docs/systems/guest-flow.md`, the Flow's "Save is not in this row" paragraph: the capture flow's three
+  beats, the `pr_pending_offer_<qr_token>` marker, why the follow moment offers the host alone.
+- `docs/systems/guest-flow.md`, the upload act's bullets: a new one for the mid-run 403
+  `verification_required` (the silent re-join for a confirmed viewer, the dropped session and one failure
+  sheet for a name-only guest).
+- `docs/systems/guest-flow.md`, The ARRIVAL: a new bullet for the name step as a SECOND door through the
+  same shell (imperative, at the first Add, always free, nothing posted until Add photos, the two storage
+  keys and why they are not capabilities).
+- `docs/systems/guest-flow.md`, Auth-aware header island: the third state, the no-sign-out rule, and the
+  `name-door.ts` channel between the sibling islands.
+- `docs/systems/auth-accounts.md`, ROLE line: the NOT-HERE pointer renamed to the name-only door and
+  `require_verified_email`.
+- `docs/systems/auth-accounts.md`, "ONE account door": worn FIVE ways now (the two new guest surfaces),
+  the words asking for a confirmed email rather than an account, and `signin` as the fifth wear.
+- `docs/systems/auth-accounts.md`, the existing-account gotcha: every guest-side wear AWAITS the claim
+  before it refreshes, and the claim does not name the profile (`updateDisplayNameAction` does).
+- NOT touched, by the round's split: `guest-flow.md`'s "Joining + identity" block is the server lane's
+  exception line.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: delete `src/components/shared/anonymous-info.tsx` with its Library entry
+  (`design/(shell)/library/patterns/gallery-demos.tsx`, its `for` line in `rules/component-notes.ts`) in one
+  change; the product mounts it nowhere since the identity reshape, and a wiring lane never deletes a module
+  the lab imports.
+- Now: give `unverified-mark.tsx` a real gallery specimen (both tones, over a photograph and on a chip); it
+  ships `unspecimened` because its tones only mean anything against what is behind them and the gallery file
+  belongs to no lane this round.
+- Now: collapse the guest page's two wave seams once `verified-email-server` is on the tree: the
+  `socialSeam` cast in `(guest)/e/[token]/page.tsx` back to plain named imports, the
+  `"require_verified_email" in event` read to the plain field, and the `(item as { isVerified?: boolean })`
+  read in `media-lightbox.tsx` (+ its test's intersection type).
+- Now: the guest list's Follow wears the default Button size beside an `h-8` chip (`FollowButton` is a
+  read for this lane and hard-codes it); a size prop, or the chip row redrawn, is a one-line follow-up.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- BOARD commit `efb874f0` (the whole lane's wiring); SYNC-MERGE commit `5d4963ee` (launch-prep had moved to
+  `91c8c065`: `verified-email-lab`, `reshape-viewer-curation`, `reshape-studio-export`). One conflict, in the
+  generated `docs/design/library.md`, resolved by regenerating (`pnpm design:rules`), never by hand.
+- Every claim below names its artifact, so the Orchestrator checks rather than believes.
+- **Gates on the synced tree**, each on its own exit code: `pnpm design:rules` ok (221 components, 1757
+  contracts, 18 policies) · specimens ok (140 specimens on 101 entries) · `pnpm typecheck` ok · `pnpm lint`
+  ok, exit 0, **9 warnings** (one below the 10 baseline: the lab lane's merge took `overtaken.ts`'s two
+  unused consts with `guest-verify`; none is in a file this lane touched) · `pnpm test` ok, **3340 passed,
+  1 skipped, 320 files** · `pnpm build` ok, **255 pages** · `pnpm lab:smoke --base http://localhost:3132`
+  ok, **415 checks, 0 failing**. No `lab:demo`: no board (a wiring lane).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`) = the owned paths plus FOUR exceptions,
+  each a line the round's own rules ask for:
+  - `src/app/(dev)/design/rules/component-notes.ts` — the `for` lines for the four new components (the
+    ownership rule: "every new component gets its `for` line"), plus one rewritten line saying
+    `anonymous-info.tsx` is retired. No lane owns this file this round; `gallery.test.ts` and
+    `component-index.test.ts` fail without it.
+  - `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md` — generated by
+    `pnpm design:rules`, which is the gate's own first step. (`specimens.generated.json` did not change.)
+  - `src/lib/upload/uploader.ts` — THREE lines: `code?: string` on `UploadOutcome` and the presign/complete
+    branches passing it through. Unowned this round. Without it the queue cannot tell a refused FILE from a
+    spent SESSION, which is the whole of the mid-run flip below; the field is additive and the host upload
+    path is untouched.
+  - the manifest itself.
+- **The items, one line each** (no board; the brief's list):
+  - the name step: BUILT as a second door through the entry shell (`openToName("join" | "edit")`,
+    `nameOpen` ORed into `open`, never in `computeEntry`); verified locally at 1440 (a right-edge panel) and
+    375 (a bottom sheet with the album teased through the blur above it).
+  - `EventExperience.openAdd`: BUILT as the one router for all three Add affordances, holding `pendingAdd`;
+    verified end to end locally (typing a name closed the door and the intent sheet opened itself).
+  - `src/lib/guest/join.ts` + `use-stored-name.ts` + `name-door.ts`: BUILT; `join.test.ts` pins the refusal
+    translation, `session-tokens.test.ts` pins that the two name keys are never read as capabilities.
+  - the header's third state (`guest-name-menu.tsx` over the new `DOOR_WEAR.signin`): BUILT; verified
+    locally (the name, "Name not verified", the three rows), and Change name reached the modal across the
+    sibling islands.
+  - `unverified-mark.tsx`: BUILT in MineMark's material with its OWN door (see the calls below); the
+    lightbox's credit, the guest list's chips.
+  - `anonymous-info.tsx`: RETIRED IN PLACE, not deleted — `git grep -l "from \"@/" src/app/\(dev\)` lists it
+    (the Library's `gallery-demos.tsx`), and a wiring lane never deletes a module the lab imports. The
+    delete is one Library change, on the ROADMAP's Now list.
+  - the capture flow (the offer card's count and marker, `claim-handle-prompt.tsx` as the slot's owner,
+    `follow-moment-card.tsx`): BUILT and unit-pinned; NOT seen running, because it needs a real upload
+    (see "Look at first").
+  - the guest list's union and the chip Follow: BUILT behind the server lane's seam (see below).
+  - the mid-run 403 `verification_required`: BUILT; pinned in `guest-upload.test.tsx` (the session dropped,
+    the rest refused once, the server's own sentence on the sheet).
+  - No new floating primitive: the two new doors are `ui/dialog`, the name step rides the existing entry
+    shell, the mark is `ui/popover`.
+- **Calls his to overrule on the alias**, one line each:
+  - The name step is asked at the FIRST ADD, never at arrival (looking costs nothing; a name becomes a fact
+    about the album only when something is put in it).
+  - "A guest" for rows minted before the reshape (his own listed call, carried).
+  - The mark carries its OWN door rather than a prop. The lightbox's credit sits three modules deep under
+    `shared/masonry.tsx`, which this lane may not touch, so a threaded way out would simply not exist at the
+    one place he expects a guest to want it ("want to correct that immediately by verifying").
+  - "This is mine" reuses the lightbox's existing `canDelete` seam rather than a second prop meaning the
+    same thing; a surface that passes none (the demo, a locked album) gets the stranger's wording.
+  - The offer card's HEADING stays "Keep these photos" and the COUNT rides the sentence under it. The
+    heading is quoted verbatim by a shipped help article, and the stable heading + counted sentence reads
+    better than a heading that changes length with the number.
+  - `DOOR_WEAR.gate` is NOT reworded: he ruled that sentence verbatim (`gate=ask`) and it already says
+    "confirm your email". What moved is `save`, `like`, the entry modal's gate description and the teaser
+    pill's fallback line.
+  - The header's third state has NO sign-out row (there is no session to end, and clearing the token would
+    orphan the photographs that device can still remove).
+  - The Follow on a guest-list chip appears only for a signed-in viewer, on somebody else, with a handle,
+    whom they do not already follow (one owner-scoped `getMyFollowing` read on the page).
+  - The follow moment offers the HOST alone; the other guests carry their own Follow in the list below.
+  - Two guests with one typed name are two chips (his own listed call, carried).
+- **The help articles this lane makes stale** (a `help-sync` lane rewrites them):
+  - `content/help/save-an-event-and-find-your-uploads.mdx` — the after-upload card now asks for a confirmed
+    email rather than "a free account with the same email code", and its trigger reads "Confirm your email",
+    not "Save". Its `<UiLabel>Keep these photos</UiLabel>` still matches, deliberately.
+  - any article describing an uploader credit as "Anonymous", or the host switch as "allow anonymous
+    uploads" (the `verified-email-host-copy` lane owns `content/help/` and is sweeping for the word).
+- **Assets requested from Will**: none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Look at first** (and the one thing localhost cannot show):
+  1. THE CAPTURE FLOW, on the alias, signed out, on a names-mode event: add a photograph, then the offer
+     card ("Keep these photos", counting them) -> Confirm your email -> the follow moment with the host row
+     and the handle line. **Not verifiable locally**: the R2 PUT from `localhost:3132` fails CORS, so the
+     run ends on the failure sheet ("Network error during upload") and the offer card is never reached. The
+     failure sheet itself rendered correctly with the server's own sentence and Retry.
+  2. The name door at 375 and 1440 (the shell's two postures), and the header's third state after it.
+  3. The credit's mark, once the server lane's `GridMedia.isVerified` is on the tree: until then every
+     credit reads as verified by construction (the structural read treats `undefined` as verified, so a name
+     is never marked on a guess).
+- **Two seams wait on `verified-email-server`, and both are correct on either side of its merge** (both on
+  the ROADMAP's Now list to collapse): `socialSeam` in `(guest)/e/[token]/page.tsx` (it reads
+  `getEventGuestList`'s second argument and `getHostCard` through one narrow cast — before the merge the
+  list is the profile cards alone and the follow moment shows no host row, both already handled downstream),
+  and the `isVerified` / `require_verified_email` structural reads.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). Wave 1's guest lane wired the identity reshape's whole
+guest side: the name door as a second, imperative step through the entry shell, asked at the first Add and
+routed for all three Add affordances with the tap held; `lib/guest/join.ts` as the route's two calls, the
+typed name stored beside the session as a label and never a capability; the credit reshaped around
+`unverified-mark.tsx` (MineMark's material, the host's extra sentence, its own `save` door on your own
+upload) with "Anonymous" gone and "A guest" left for legacy rows; the capture flow as the working version
+(the offer card counting what landed, a marker that makes a magic-link round trip land the same beat, the
+follow moment with the host and the handle line); the header's third state over a fifth door wear; and the
+mid-run verification flip handled as a spent session rather than one refused file.
