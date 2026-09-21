@@ -159,6 +159,9 @@ export function EventShareSheet({
                 slug={slug ?? null}
                 locked={slugLocked ?? true}
                 eventName={eventName}
+                // `back=finish`: a host who buys from the lock here comes back
+                // to this sheet, reopened, with the control unlocked.
+                returnTo={`/dashboard/${eventId}?room=share`}
               />
             </section>
           )}

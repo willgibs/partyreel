@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import Link from "next/link";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,6 +9,7 @@ import {
   setEventSlugAction,
 } from "@/app/(app)/dashboard/actions";
 import { CopyShareLink } from "@/components/app/copy-share-link";
+import { LockChip } from "@/components/app/pricing/lock-chip";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,6 +36,12 @@ type EventSlugControlProps = {
   locked: boolean;
   // Event name → a one-click slug suggestion for first-time setup (optional).
   eventName?: string;
+  /**
+   * Where Checkout should return a buyer who unlocked this control
+   * (`back=finish`). The share sheet passes its own room; the create wizard
+   * omits it, because the host is mid-flow on a page with nothing to reopen.
+   */
+  returnTo?: string;
 };
 
 // The live status of what's in the input (Phase 2). The sync kinds (idle/invalid/current)
@@ -58,6 +64,7 @@ export function EventSlugControl({
   slug,
   locked,
   eventName,
+  returnTo,
 }: EventSlugControlProps) {
   // The input shows when there's no slug yet, or when the host taps "Change".
   const [editing, setEditing] = useState(!slug);
@@ -173,17 +180,10 @@ export function EventSlugControl({
       <p className="text-xs font-medium text-muted-foreground">Custom link</p>
 
       {locked && !slug ? (
-        // Free + no slug: can't create one — surface the upgrade affordance.
-        <p className="text-sm text-muted-foreground">
-          A custom link is a paid feature.{" "}
-          <Link
-            href="/pricing"
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Upgrade to enable
-          </Link>
-          .
-        </p>
+        // Free + no slug: can't create one. The chip is the control now
+        // (`words=chip`): it names itself, its tooltip says why and what opens
+        // it, and pressing it opens the pricing sheet led by this feature.
+        <LockChip feature="custom_slug" returnTo={returnTo} />
       ) : slug && !editing ? (
         // Slug set: show the pretty link + change/remove. "Change" hides on a locked
         // (downgraded) plan; "Remove" always stays so a dormant slug can be freed.

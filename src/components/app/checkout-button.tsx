@@ -14,6 +14,14 @@ type CheckoutButtonProps = Omit<
   planId: PlanId;
   /** Event Pass only — uses the cheaper renewal price (gated server-side). */
   renewal?: boolean;
+  /**
+   * Where Checkout should land the buyer (`back=finish`, Will 2026-09-20): the
+   * app path they were refused at, so paying finishes the job they started.
+   * A PREFERENCE, never a redirect: the route re-validates it against the
+   * same-origin allow-list in `pricing/return-path.ts` and silently falls back
+   * to the dashboard, so nothing a browser can put here leaves the app.
+   */
+  next?: string;
 };
 
 // Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Anonymous
@@ -27,6 +35,7 @@ type CheckoutButtonProps = Omit<
 export function CheckoutButton({
   planId,
   renewal,
+  next,
   children,
   ...buttonProps
 }: CheckoutButtonProps) {
@@ -39,7 +48,7 @@ export function CheckoutButton({
         const res = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ planId, renewal }),
+          body: JSON.stringify({ planId, renewal, next }),
         });
         if (res.status === 401) {
           router.push("/login");

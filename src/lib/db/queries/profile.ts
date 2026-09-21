@@ -57,6 +57,8 @@ export async function getProfileMenu(userId: string): Promise<{
   displayName: string | null;
   avatarMarker: string | null;
   slug: string | null;
+  /** The raw `tier_type`; coerce with toBillingTier() before indexing tiers.ts. */
+  tier: string | null;
 }> {
   const supabase = await getRequestClient();
   // A swallowed error here reads as "this host has no name", which the guest
@@ -65,7 +67,7 @@ export async function getProfileMenu(userId: string): Promise<{
   const data = await mustQuery(
     supabase
       .from("profiles")
-      .select("display_name, avatar_updated_at, slug")
+      .select("display_name, avatar_updated_at, slug, tier")
       .eq("id", userId)
       .maybeSingle(),
     "profile menu",
@@ -74,5 +76,10 @@ export async function getProfileMenu(userId: string): Promise<{
     displayName: data?.display_name ?? null,
     avatarMarker: data?.avatar_updated_at ?? null,
     slug: data?.slug ?? null,
+    // app-pricing-wiring's one column (`doors=menu`): the account menu's Plan
+    // and storage row carries the plan's NAME, and this is the narrow read the
+    // whole host app already makes on every page. Server-side and RLS-scoped;
+    // the webhook remains its sole writer (billing-caps.md).
+    tier: data?.tier ?? null,
   };
 }

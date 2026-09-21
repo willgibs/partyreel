@@ -7,6 +7,7 @@ import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { AppShell } from "@/components/shared/app-shell";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
 import { seedFor } from "@/lib/avatar/seed";
+import { DEFAULT_TIER, TIER_NAMES, toBillingTier } from "@/lib/constants/tiers";
 import { touchHostActive } from "@/lib/db/mutations/profile";
 import { getNotificationData } from "@/lib/db/queries/notifications";
 import { getProfileMenu } from "@/lib/db/queries/profile";
@@ -70,6 +71,7 @@ export default async function AppLayout({
             avatarUrl={avatarUrl}
             slug={menu.slug}
             seed={seedFor(user.id)}
+            planName={TIER_NAMES[toBillingTier(menu.tier ?? DEFAULT_TIER)]}
           />
         </>
       }

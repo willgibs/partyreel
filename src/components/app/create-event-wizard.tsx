@@ -47,6 +47,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CopyShareLink } from "@/components/app/copy-share-link";
 import { EventQr } from "@/components/app/event-qr";
 import { EventSlugControl } from "@/components/app/event-slug-control";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
 
 const STEP_LABELS = ["Details", "Design", "Share"] as const;
@@ -71,6 +72,10 @@ export function CreateEventWizard({
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [createdEvent, setCreatedEvent] = useState<CreatedEvent | null>(null);
+  // The cap refusal's Upgrade no longer LEAVES for /pricing (`first=trigger`):
+  // the sheet opens on `room`, knowing the host ran out of events. A toast
+  // action has no element to hang a trigger on, so this one is controlled.
+  const [pricingOpen, setPricingOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateEventInput, unknown, CreateEventValues>({
@@ -107,7 +112,7 @@ export function CreateEventWizard({
       if (result.code === "limit_reached") {
         toast.error(`Event limit reached on the ${planName} plan.`, {
           description: "Delete an event or upgrade to add more.",
-          action: { label: "Upgrade", onClick: () => router.push("/pricing") },
+          action: { label: "Upgrade", onClick: () => setPricingOpen(true) },
         });
         router.push("/dashboard");
         return;
@@ -119,6 +124,14 @@ export function CreateEventWizard({
   }
 
   return (
+    <>
+    <PricingSheet
+      open={pricingOpen}
+      onOpenChange={setPricingOpen}
+      trigger={{ kind: "room" }}
+      plan={{ tier, hasBilling: false }}
+      returnTo="/dashboard"
+    />
     <Card className="mx-auto w-full max-w-xl">
       <CardHeader>
         <CardTitle>Create an event</CardTitle>
@@ -306,6 +319,7 @@ export function CreateEventWizard({
                   slug={null}
                   locked={isSettingLocked("custom_slug", tier)}
                   eventName={createdEvent.name}
+                  returnTo={`/dashboard/${createdEvent.id}?room=share`}
                 />
               </div>
             </CardContent>
@@ -321,5 +335,6 @@ export function CreateEventWizard({
         )}
       </Form>
     </Card>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useFormContext } from "react-hook-form";
 
 import type { HostEvent } from "@/lib/db/queries/events";
@@ -9,6 +8,7 @@ import type {
   UpdateEventValues,
 } from "@/lib/validation/event";
 import { EventPasswordControl } from "@/components/app/event-password-control";
+import { LockChip } from "@/components/app/pricing/lock-chip";
 import { VisibilitySelector } from "@/components/app/visibility-selector";
 import { VISIBILITY_HINTS } from "@/lib/events/visibility-labels";
 import {
@@ -67,17 +67,13 @@ export function VisibilitySection({
                   />
                 </FormControl>
                 <FormDescription>{VISIBILITY_HINTS[value]}</FormDescription>
+                {/* One rule, one component (`words=chip`). This sentence and
+                    the password panel's used to word the same lock two ways. */}
                 {passwordLocked && !event.has_password && (
-                  <p className="text-sm text-muted-foreground">
-                    Password protection is a paid feature.{" "}
-                    <Link
-                      href="/pricing"
-                      className="font-medium text-foreground underline underline-offset-4"
-                    >
-                      Upgrade to enable
-                    </Link>
-                    .
-                  </p>
+                  <LockChip
+                    feature="password"
+                    returnTo={`/dashboard/${event.id}?room=settings`}
+                  />
                 )}
                 {value === "password" && (
                   <div
