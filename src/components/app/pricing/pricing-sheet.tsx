@@ -243,7 +243,14 @@ export function PricingSheet({
           ) : (
             <>
               <div className="flex gap-3">
-                <PlanCard plan={free} held={isFree} />
+                {/* ★ FREE IS A PEER ONLY FOR A FREE HOST. His `carry` ruling is
+                    "Free beside one Pro size", and that pair is the FREE host's
+                    moment: this is what you have, this is the step up. A pass
+                    holder cannot move TO Free (it is what happens if the pass
+                    lapses), so drawing it beside Pro would sell them a
+                    downgrade; their pair is the Pro card and the pass line
+                    under it, which is the move they can actually make. */}
+                {isFree && <PlanCard plan={free} held />}
                 <PlanCard plan={opening} ink>
                   <ul className="space-y-1.5">
                     {proBenefitLines().map((line) => (

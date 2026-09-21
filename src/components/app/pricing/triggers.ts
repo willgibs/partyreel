@@ -98,9 +98,11 @@ export function openingPlanFor(trigger: PricingTrigger): Plan {
 export function proBenefitLines(): string[] {
   return [
     "Video from you and every guest",
-    MAX_EVENTS.pro === null
-      ? `Unlimited events, not the ${MAX_EVENTS.free} Free holds`
-      : `Up to ${MAX_EVENTS.pro} events`,
+    MAX_EVENTS.pro !== null
+      ? `Up to ${MAX_EVENTS.pro} events`
+      : MAX_EVENTS.free === 1
+        ? "Unlimited events, not just the one"
+        : `Unlimited events, not ${MAX_EVENTS.free}`,
     `Password locks, custom links, ${MAX_REEL_SECONDS.pro}-second reels`,
   ];
 }
