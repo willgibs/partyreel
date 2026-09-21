@@ -7,6 +7,7 @@ const item = (over: Partial<GalleryFingerprintItem> = {}): GalleryFingerprintIte
   type: "photo",
   uploaderName: "Alice",
   isHost: false,
+  isVerified: true,
   isAnonymous: false,
   ...over,
 });
@@ -15,14 +16,24 @@ const base = {
   access: "full",
   teaserTotal: null,
   bucketId: "991337",
-  items: [item(), item({ id: "m2", uploaderName: null, isAnonymous: true })],
+  items: [
+    item(),
+    item({
+      id: "m2",
+      uploaderName: null,
+      isVerified: false,
+      isAnonymous: true,
+    }),
+  ],
 };
 
 describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    expect(a).toMatch(/^"g1-[A-Za-z0-9_-]{27}"$/);
+    // g2 since the identity reshape (2026-09-21): isVerified joined the item tuple, so a client
+    // holding a g1 ETag must re-pull rather than 304 past a mark appearing beside a name.
+    expect(a).toMatch(/^"g2-[A-Za-z0-9_-]{27}"$/);
   });
 
   it("changes with item order, membership, and every identity field", () => {
@@ -37,6 +48,11 @@ describe("galleryEtag", () => {
     ).not.toBe(a);
     expect(
       galleryEtag({ ...base, items: [item({ isAnonymous: true }), base.items[1]] }),
+    ).not.toBe(a);
+    // The mark is viewer-visible content: a guest who proves an email later must not be served a
+    // 304 that keeps the mark on screen.
+    expect(
+      galleryEtag({ ...base, items: [item({ isVerified: false }), base.items[1]] }),
     ).not.toBe(a);
     expect(
       galleryEtag({ ...base, items: [item({ type: "video" }), base.items[1]] }),

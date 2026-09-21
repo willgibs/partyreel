@@ -21,6 +21,7 @@
 
 export type AbuseKind =
   | "join"
+  | "rename"
   | "report"
   | "capture"
   | "export"
@@ -50,6 +51,21 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: 25,
     scopeWindowMin: 15,
     scopeMax: 400,
+  },
+  // The identity reshape's rename door (POST /api/guests/name), scope = (IP, event). TIGHTER than
+  // join by design — a guest names themselves once, at the door, and the rename is the "actually,
+  // call me something else" path — but still VENUE-SHAPED, which is the constraint that sets the
+  // number rather than the tightness: thirty people on one wedding WiFi correcting a typo in the
+  // same quarter of an hour are all legitimate, and a limiter that blocks them at a party is a
+  // worse failure than a name-spammer who has nothing to gain (the name is only ever their OWN
+  // row's — the session token is the capability). So the per-(IP, event) backstop is a runaway-bot
+  // ceiling six times under join's, and BREADTH does the real work: one IP renaming across 15
+  // distinct events in an hour is a script, and a venue is exactly one event.
+  rename: {
+    breadthWindowMin: 60,
+    breadthMax: 15,
+    scopeWindowMin: 15,
+    scopeMax: 60,
   },
   // Reports are rare even at a big venue → a tighter per-(IP,event) cap + a cross-event report-bomb guard.
   report: {

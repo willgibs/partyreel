@@ -44,7 +44,9 @@ export type ErrorCode =
   | "event_deleted"
   | "event_gone"
   // guest access
-  | "email_required"
+  | "verification_required"
+  | "name_required"
+  | "name_invalid"
   | "incorrect_password"
   | "wrong_password"
   | "unlock_required"
@@ -90,7 +92,9 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   event_limit: "You've reached your plan's event limit.",
   event_deleted: "That event has been deleted.",
   event_gone: "That event is no longer available.",
-  email_required: "An email is required to join this event.",
+  verification_required: "Confirm your email to join this event.",
+  name_required: "Enter a name.",
+  name_invalid: "That name isn't available.",
   incorrect_password: "That password is incorrect.",
   wrong_password: "That password is incorrect.",
   unlock_required: "This event is locked. Enter the event password to continue.",

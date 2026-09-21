@@ -172,7 +172,7 @@ export async function getHostAvatarSeed(
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
- * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isAnonymous onto
+ * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified/isAnonymous onto
  * the client (never email). Two batched reads: the host's name (for host uploads), then all media
  * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().
  */
@@ -205,7 +205,10 @@ export async function getUploaderIdentities(
   const { data, error } = await admin
     .from("media")
     .select(
-      "id, guest_id, guests!media_guest_id_fkey(user_id, email, profiles!guests_user_id_fkey(display_name))",
+      // The identity reshape (20260921150000): display_name + verified_at are what the one
+      // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
+      // column-scoped, QA #41), which is exactly why this read is on the admin client.
+      "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
     )
     .eq("event_id", eventId);
   if (error) throw error;

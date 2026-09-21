@@ -11,6 +11,7 @@
 import { z } from "zod";
 
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
+import { displayNameSchema } from "@/lib/validation/profile";
 
 /**
  * Upper bound on a CLIENT-DECLARED pixel dimension. These are measured in the
@@ -24,13 +25,69 @@ import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 export const MAX_DECLARED_DIMENSION = 100_000;
 
 // ─── POST /api/guests (join) ─────────────────────────────────────────────────
-// The join carries ONLY the capability `qr_token`. Identity (for account-required events) is a signed-in
-// Supabase session: the route derives the verified user id via getUser() and passes it as the trusted
-// p_user_id to the service-role-only create_guest (database-security.md), which reads the email from auth.users for that
-// id and raises if an account-required event has no verified session. No email is ever sent in this request.
+// The join carries the capability `qr_token` and, on a name-only event, the name the guest typed at
+// the door. Identity is still SERVER-derived: the route reads the session with getUser() and passes
+// the trusted user id to the service-role-only create_guest (database-security.md), which reads the
+// email and its confirmation from auth.users for that id. No email is ever sent in this request.
+//
+// ★ `display_name` is loose HERE on purpose (a plain optional string, shape only). Its real rules are
+// `parseGuestDisplayName` below, applied by the ROUTE, so a blank or a reserved name answers 422
+// `name_required` / `name_invalid` with a sentence the door can render, instead of collapsing into one
+// flat 400 for "the body was malformed". A lone `qr_token` still parses: a VERIFIED joiner sends no
+// name at all (their profile name is the identity), and so does the pre-reshape client.
 export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
+  display_name: z.string().optional(),
 });
+
+// ─── POST /api/guests/name (name / rename) ───────────────────────────────────
+// The second half of the name-only door: naming a row that arrived without one, or changing the name.
+// The `session_token` is the capability (set_guest_display_name validates it inside and can only ever
+// touch THAT row), the `qr_token` scopes the rate limiter and the visibility gate. Both tokens travel
+// in the BODY, never a URL (a capability in a query string ends up in a log and a referrer).
+// `display_name` is loose for the same reason as the join's, and parsed by the route.
+export const renameGuestSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1),
+  display_name: z.string().optional(),
+});
+
+/**
+ * THE TYPED NAME'S GATE, MINUS PROFANITY. The identity reshape (2026-09-21) gave a name-only guest
+ * the same name rules an account has, so the schema is `displayNameSchema` itself (profile.ts) and
+ * never a second copy of "1 to 60 characters, not a reserved word" that can drift from it.
+ *
+ * ★ PROFANITY IS NOT HERE, and cannot be: the obscenity matcher must never ship to a browser
+ * (validation/profanity.ts), and this module is imported by the browser upload client. So the ROUTE
+ * runs `containsProfanity` on the name this returns, exactly as `updateDisplayNameAction` does for a
+ * profile name. The DB's own `guests_display_name_len` CHECK is the hard backstop under both.
+ *
+ * Returns the trimmed name, or the refusal the route answers 422 with: `name_required` when nothing
+ * was typed (the two cases read differently to a guest, so they get different codes).
+ */
+export type GuestNameRefusalCode = "name_required" | "name_invalid";
+
+export function parseGuestDisplayName(
+  raw: unknown,
+):
+  | { ok: true; name: string }
+  | { ok: false; code: GuestNameRefusalCode; message: string } {
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  if (trimmed.length === 0) {
+    return { ok: false, code: "name_required", message: "Enter a name." };
+  }
+  const parsed = displayNameSchema.safeParse(trimmed);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "name_invalid",
+      // zod v4: `error.issues`. The first issue is the one the field failed on, and every message in
+      // displayNameSchema is already written for a person to read.
+      message: parsed.error.issues[0]?.message ?? "That name isn't available.",
+    };
+  }
+  return { ok: true, name: parsed.data };
+}
 
 // ─── POST /api/r2/presign-upload ─────────────────────────────────────────────
 // No key / filename / media_id — the server builds the key.
@@ -104,6 +161,7 @@ export const hostCompleteUploadSchema = z.object({
 });
 
 export type JoinInput = z.input<typeof joinSchema>;
+export type RenameGuestInput = z.input<typeof renameGuestSchema>;
 export type PresignUploadInput = z.input<typeof presignUploadSchema>;
 export type CompleteUploadInput = z.input<typeof completeUploadSchema>;
 export type HostPresignUploadInput = z.input<typeof hostPresignUploadSchema>;

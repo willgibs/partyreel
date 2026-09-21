@@ -11,11 +11,18 @@ import {
 } from "@/lib/security/abuse-rate-limit-store";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { createClient } from "@/lib/supabase/server";
-import { joinSchema } from "@/lib/validation/upload";
+import { containsProfanity } from "@/lib/validation/profanity";
+import { joinSchema, parseGuestDisplayName } from "@/lib/validation/upload";
 
 // POST joins a guest to an event via the create_guest RPC (validated by the
 // event's qr_token) and returns an opaque session_token — the guest's capability
-// for subsequent uploads (database-security.md). No account, no JWT.
+// for subsequent uploads (database-security.md).
+//
+// ★ THE IDENTITY RESHAPE (Will, 2026-09-21): every join now carries an identity, and which one is
+// the host's switch. `require_verified_email` ON: nothing but a CONFIRMED session passes. OFF: the
+// guest types a display name at the door and joins unverified under it. The DB deliberately still
+// accepts a NAMELESS mint (wave 0 kept production alive through the deploy window), so the name
+// requirement is THIS ROUTE'S 422 and nothing else's.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -104,25 +111,72 @@ export async function POST(request: Request) {
     }
   }
 
-  // create_guest is service-role-only (H3); derive the TRUSTED user id here from the verified session (or
-  // null for an anonymous guest). The RPC reads the verified email from auth.users for this id, so the
-  // client can't supply an identity or email.
+  // create_guest is service-role-only (H3); derive the TRUSTED identity here from the verified session
+  // (or null for a name-only guest). The RPC re-reads the email AND its confirmation from auth.users
+  // for this id, so the client can never supply either.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // ★ VERIFIED MEANS A CONFIRMED EMAIL, NEVER "HAS A USER ID" (wave 0's finding). An unconfirmed
+  // sign-up carries a perfectly good `user.id` and would sail through a `user !== null` test while
+  // having proved nothing at all — which is the exact hole this whole reshape closes.
+  const isVerifiedSession = Boolean(user?.email_confirmed_at);
+
+  // The identity, decided before the mint so the refusal can say which one was missing. A verified
+  // session needs no name (their profile display_name IS the identity, and create_guest nulls a
+  // typed one beside it), so only an unverified joiner is asked.
+  let displayName: string | null = null;
+  if (!isVerifiedSession) {
+    if (event.require_verified_email) {
+      // The switch is ON and nothing was proved. The RPC refuses this too (the belt), but answering
+      // here is what lets the door offer the sign-in instead of a dead end.
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "verification_required",
+          message: "Confirm your email to join this event.",
+        },
+        { status: 422 },
+      );
+    }
+    const name = parseGuestDisplayName(parsed.data.display_name);
+    if (!name.ok) {
+      return NextResponse.json(
+        { ok: false, code: name.code, message: name.message },
+        { status: 422 },
+      );
+    }
+    // Profanity is checked HERE, server-side, exactly as updateDisplayNameAction checks a profile
+    // name: the obscenity matcher must never ship to a browser, so no client gate and no SQL CHECK
+    // can own this. Policy, not a security boundary (validation/profanity.ts).
+    if (containsProfanity(name.name)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "name_invalid",
+          message: "That name isn't available.",
+        },
+        { status: 422 },
+      );
+    }
+    displayName = name.name;
+  }
+
   const result = await createGuest({
     qrToken: qr_token,
     userId: user?.id ?? null,
     unlockProven,
+    displayName,
   });
 
   if (!result.ok) {
     const status =
       result.code === "not_found"
         ? 404
-        : result.code === "email_required"
+        : result.code === "verification_required" ||
+            result.code === "name_invalid"
           ? 422
           : result.code === "unlock_required" || result.code === "unauthorized"
             ? 403
@@ -140,10 +194,15 @@ export async function POST(request: Request) {
     );
   }
 
-  // Return only what the client needs to upload — guest_id stays internal.
+  // Return only what the client needs to upload — guest_id stays internal. `display_name` and
+  // `verified` come back from the mint itself (never echoed from the request), so the door renders
+  // the identity the DATABASE settled on: a verified joiner gets null + true even if they sent a
+  // name, because create_guest nulls one beside a confirmed account.
   return NextResponse.json({
     ok: true,
     session_token: result.data.session_token,
     event_id: result.data.event_id,
+    display_name: result.data.display_name,
+    verified: result.data.verified,
   });
 }

@@ -69,7 +69,11 @@ export async function createEvent(
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
-    allow_anonymous_uploads: values.allow_anonymous_uploads,
+    // ★ A NEW EVENT NAMES ONLY THE NEW FLAG. The twin-keeper trigger derives
+    // allow_anonymous_uploads from it, and naming BOTH here would hand the trigger a contradiction
+    // to resolve on every create for no gain. The switch's own default (true) is the one that
+    // decides what a host who never touched it gets.
+    require_verified_email: values.require_verified_email,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
   };
@@ -144,7 +148,13 @@ export async function updateEvent(
   }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
-  if (values.allow_anonymous_uploads !== undefined)
+  // The host's switch. EITHER name lands a consistent row (the twin-keeper trigger mirrors
+  // whichever column actually moved), but the new one is written ALONE when it is present: if both
+  // arrive and disagree, the trigger resolves in favour of the new column anyway, so sending only
+  // it keeps the resolution out of the database and in one readable line here.
+  if (values.require_verified_email !== undefined)
+    patch.require_verified_email = values.require_verified_email;
+  else if (values.allow_anonymous_uploads !== undefined)
     patch.allow_anonymous_uploads = values.allow_anonymous_uploads;
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
