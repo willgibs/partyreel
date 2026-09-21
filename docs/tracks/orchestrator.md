@@ -13,7 +13,6 @@ owns:
   # board under it.runIf), so a retirement never needs them released again.
   - src/app/(dev)/design/_data/links.test.ts
   - src/app/(dev)/design/_data/docs.test.ts
-  - src/app/globals.css
   - src/app/theme.css
   - src/components/dev/motion-tuner-config.ts
   # The board lists: a lane adds or removes ONLY its own board's lines here

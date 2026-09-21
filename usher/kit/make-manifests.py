@@ -209,7 +209,7 @@ LANE_SECTION.update({"overtaken-3":r"Lane 46: `overtaken-3`","guest-verify-r2":r
 
 # the toasts verdicts (2026-09-20 20:05 EDT): the board's wiring lane
 QUEUE.update({"toasts-wiring"})
-OWNS.update({"toasts-wiring":["src/components/ui/sonner.tsx","src/app/layout.tsx","src/app/globals.css","src/lib/toast.ts","src/app/(dev)/design/sandbox/toasts/","docs/systems/design-system.md"]})
+OWNS.update({"toasts-wiring":["src/components/ui/sonner.tsx","src/app/globals.css","src/lib/toast.ts","src/app/(dev)/design/sandbox/toasts/","docs/systems/design-system.md"]})
 READS.update({"toasts-wiring":["src/components/ui/floating-layer.ts","src/components/shared/app-shell.tsx","src/components/guest/guest-header.tsx","docs/reviews/toasts.json","docs/design/rulings.md"]})
 BOARD.update({"toasts-wiring":"toasts          # wired by this lane; the board retires (its five asks ruled whole)"})
 LANE_SECTION.update({"toasts-wiring":r"Lane 48: `toasts-wiring`"})
