@@ -1263,6 +1263,33 @@ host app's `AppDesignIsland`), so Will judges a candidate on the real pages with
 labelled, persisted in the browser until cleared from the panel or the board; real selectors only
 (`:root, .surface-paper`, `.dark`, `.surface-ink`, a primitive's class), never a production path.
 
+**The toast system (`toasts` r1, 2026-09-20, every ask the board's own recommendation, no notes):** one
+`Toaster` (`ui/sonner.tsx`), five rules, all wired without touching any of the app's 65 `toast.*` call
+sites. **Where:** `position="top-center"`, one shared rule for the host app, the guest pages and
+marketing (the Toaster mounts once in `layout.tsx`, above every surface, not per-route) - clear of every
+fixed-bottom control the product already claims (the guest's floating Add pill and the lightbox credit
+line on a phone, the host's own fixed action bar on both sizes). The top `offset`/`mobileOffset` (5rem,
+same on both) clears the tallest bar in the product, the marketing header (`--mkt-header-h`, 4rem) plus a
+1rem breath; the app shell's bar and the guest header are both 3.5rem, so the one number clears every
+surface with room to spare. It cannot read `--mkt-header-h` directly - that var is scoped to `[data-mkt]`
+(marketing.css's containment contract) and the Toaster mounts as that scope's SIBLING, outside the cascade
+that would need. **Stack:** `expand` always on, so a run of toasts reads as full sentences newest-on-top
+rather than sonner's collapsed hover pile, which has no hover on the phone this product is built for;
+`visibleToasts` stays sonner's own default of three. **Life:** success and warning keep sonner's fixed
+4s clock (or a call site's own override, e.g. `guest-reel-overlay.tsx`'s 8000ms); an error waits for a
+press, because a failure that disappears before it is read repeats itself. ★ Sonner has no per-type
+default duration to lean on for this (the Toaster's `duration` prop and `toastOptions.duration` are each
+ONE flat number for every kind), so the fix is at the one choke point every `toast.error(...)` call
+already passes through: sonner's own `toast.error` function, patched once at module load in `ui/sonner.tsx`
+to force `duration: Infinity` and `closeButton: true`, guarded against double-patching via a
+`Symbol.for` flag on `toast` itself (Fast Refresh can re-evaluate the wrapping module while "sonner"
+stays cached). A call site's own explicit `duration`/`closeButton` still wins (spread after the forced
+defaults). **Action:** every toast reserves the same trailing slot via sonner's own `action`/`cancel`
+prop - Undo, Retry or a named door when a call site fills it, nothing rendered when it does not (the
+toast card's width never depends on whether the slot is filled). No new helper was needed for this:
+`src/lib/toast.ts` does not exist, because sonner's `action`/`cancel` already is the mechanism the
+ruling names.
+
 **State-colored toasts (global policy):** sonner's `data-type` is mapped to the design state colors,
 `success` = `--success` green, `warning` = `--warning` amber, `error`/destructive = `--destructive` red;
 plain/info toasts keep the neutral `--normal-*` default. Use the right TYPE for the state: approve/positive =

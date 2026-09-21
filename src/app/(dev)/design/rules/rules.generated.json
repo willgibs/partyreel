@@ -395,7 +395,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 300
+          "line": 303
         },
         {
           "title": "derives what became of an overtaken ask from the ledger alone",
@@ -403,7 +403,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 325
+          "line": 328
         },
         {
           "title": "names the reserved word and the words that ride with it",
@@ -411,7 +411,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 334
+          "line": 337
         }
       ]
     },
@@ -11734,7 +11734,56 @@
       ],
       "specimens": [],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "mounts the band at the top, centered, on both host and guest chrome alike",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "keeps a toast expanded to its full height with no hover",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "holds an error open past every finite clock while a success clears on its own",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "gives a persistent error a close control; a clearing success gets none",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "reserves the action slot only when a call site fills it",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 116
+        },
+        {
+          "title": "still lets a call site override the forced error defaults",
+          "suite": [
+            "Toaster"
+          ],
+          "file": "src/components/ui/sonner.test.tsx",
+          "line": 140
+        }
+      ]
     },
     {
       "id": "switch",

@@ -111,7 +111,6 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
-  | "toasts"
   | "guest-verify"
   | "seed-avatar"
   | "site-chrome"
@@ -1556,24 +1555,26 @@ export const RULINGS: Ruling[] = [
       "src/app/admin/page.tsx",
     ],
   },
+  // RULED AND RETIRED (2026-09-20). Round one ruled whole, every one of the
+  // five asks the board's own recommendation and no notes (Will, 20:05 EDT,
+  // the build paste verbatim in docs/design/rulings.md); toasts-wiring wired
+  // it the same night. The board left sandbox/ with the wiring;
+  // docs/design/rulings.md keeps his words.
   {
     id: "toasts",
     title: "The toast, as a system",
     surface: "shared",
     ruled:
-      'open (Will, 2026-09-19, the fifth batch, `moment=today`: "This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I\'d like to redesign our toasts.")',
-    shipped: null,
-    why: "Six boards already decided a toast's words; this asks the system underneath: if the control can show it, no toast halves the count before anything else is asked.",
+      "2026-09-20, 20:05 EDT (Will, the sixth batch): where=top, material=card, life=persist, stack=expanded, action=always, every one the board's recommendation",
+    shipped:
+      "The one Toaster at top-center under the tallest bar (5rem), always expanded, the popover card unchanged, an error held open behind a close control while every other kind keeps its clock (sonner's own `toast.error` patched once so the 65 existing call sites needed no edit), the action/cancel slot sanctioned for a future success toast (Undo) as much as today's refusals (Upgrade)",
+    why: "Six boards already decided a toast's words; this asked the system underneath: if the control can show it, no toast halves the count before anything else is asked.",
     lives: [
       "src/components/ui/sonner.tsx",
       "src/app/layout.tsx",
       "src/app/globals.css",
       "docs/systems/design-system.md",
     ],
-    board: {
-      note: "Five decisions on the real toasts (183 sonner calls today, six kinds), drawn on guest-upload's send, host-curation's bulk verdict, an export mint, a pricing refusal and a plain info, at 375 and 1440: where a toast sits, what it is made of, how long it lives, how a pile of them behaves, and whether one may ever carry a button.",
-      variants: ["Where", "Material", "Life", "Stack", "Action"],
-    },
   },
 ];
 
@@ -1605,7 +1606,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
-  "toasts",
   "seed-avatar",
   "app-door",
   "demo-event",

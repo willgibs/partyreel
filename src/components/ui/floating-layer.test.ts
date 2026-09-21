@@ -142,6 +142,8 @@ const OUTSIDE: Record<string, string> = {
     "vaul owns its own drag physics and its entrance is a gesture, not a curve: a clock imposed from outside would fight the drag",
   "sonner.tsx":
     "the toaster is a third-party surface we theme through CSS variables; it already reads --radius-float, and its stack motion is the library's",
+  "sonner.test.tsx":
+    "the toaster's own contract test (vi.unmock'd, since vitest.setup.ts stubs \"sonner\" for every other component test) imports the real toast() to prove position/expand/duration against the library itself; it renders no panel of its own",
   // Arrives with admin-wiring (2026-09-20): a command palette on the raw Radix Dialog, the lab's
   // help-centre pattern as a primitive. Listed ahead of its file so the scan does not go red the
   // day it lands; the Orchestrator moves it into SURFACES at that merge, where it belongs.

@@ -647,7 +647,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the loading block: a shimmer sweep that goes static under reduced motion",
   },
   "src/components/ui/sonner.tsx": {
-    for: "the themed Toaster",
+    for: "the themed Toaster (`toasts` r1, 2026-09-20, every ask the board's recommendation): top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, one trailing action/cancel slot every toast reserves (a named door, Undo, Retry) and nothing else changes when it is empty",
     unspecimened:
       "mounted once in the root layout; the toast demo on /design/library/components fires it",
   },

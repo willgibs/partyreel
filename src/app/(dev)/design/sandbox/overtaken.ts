@@ -186,18 +186,11 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // anything to have overtaken it yet.
 
   /* ── toasts ──────────────────────────────────────────────────────────── */
-  "toasts.where": {
-    ...GUEST_SHAPE_2,
-    ruling:
-      "the guest's actions dock at the foot of the album once the row scrolls away",
-    line: "stands: every guest album gains a fixed foot now, so the bottom band this asks about is a strip a dock is already standing in.",
-  },
-  "toasts.stack": {
-    ...APP_SHAPE_2,
-    ruling:
-      "a busy band shows three and folds the rest behind one chip that expands in place",
-    line: "stands: the product's own pile shows three and folds the rest, which is neither of these and the shape they are now measured against.",
-  },
+  // Ruled whole and wired (toasts-wiring, 2026-09-20): the two badges that
+  // named `toasts.where` and `toasts.stack` are gone with the board itself,
+  // on the same convention as app-vocabulary above (a badge pointing at a
+  // question nobody is asking any more is worse than an answer left
+  // orphaned).
 
   /* ── seed-avatar ─────────────────────────────────────────────────────── */
   // His `badge` answer is HELD (above): the look is badged with the hold and

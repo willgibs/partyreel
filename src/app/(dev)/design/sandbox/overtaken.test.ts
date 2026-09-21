@@ -278,9 +278,12 @@ describe("the overtaken map", () => {
     // Round one's five badges retired with the asks they named (album-controls,
     // 2026-09-20): the board's round two is too new for anything to overtake yet.
     expect(overtakenOn("app-vocabulary")).toBe(0);
-    // Two boards the earlier passes reached nothing on: a brand-new board, and
-    // one whose round two only a HELD ruling reaches.
-    expect(overtakenOn("toasts")).toBe(2);
+    // Ruled whole and wired (toasts-wiring, 2026-09-20): its two badges
+    // retired with the board itself, the same convention as app-vocabulary
+    // above (a badge pointing at a question nobody is asking any more is
+    // worse than an answer left orphaned).
+    expect(overtakenOn("toasts")).toBe(0);
+    // A board whose round two only a HELD ruling reaches.
     expect(overtakenOn("seed-avatar")).toBe(1);
     // The sixth batch ruled the portal's whole shell, one board over.
     expect(overtakenOn("admin-triage")).toBe(8);
