@@ -50,11 +50,11 @@ const ENTRIES: ParityEntry[] = [
     literal: "Max size per upload",
   },
   {
-    label: "album cap refusal toast title",
+    label: "album cap refusal sheet heading",
     marketingFile:
       "src/components/marketing/sections/features/album/how-much-fits.tsx",
-    appFile: "src/components/guest/guest-upload.tsx",
-    literal: "add that photo",
+    appFile: "src/components/guest/upload/failure-sheet.tsx",
+    literal: "1 file did not go",
   },
   {
     label: "album accounts-required teaser button",
@@ -105,11 +105,11 @@ const ENTRIES: ParityEntry[] = [
     literal: "View the album",
   },
   {
-    label: "album review switch guest toast",
+    label: "album review switch guest waiting tile",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
-    appFile: "src/components/guest/guest-upload.tsx",
-    literal: "Sent, waiting for host approval",
+    appFile: "src/components/guest/upload/stack-tile.tsx",
+    literal: "Waiting for the host",
   },
   {
     label: "album review switch bulk-approve button",

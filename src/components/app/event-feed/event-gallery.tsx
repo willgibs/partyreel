@@ -33,7 +33,7 @@ import {
   TILE_SIZES,
   type TileSize,
 } from "@/lib/shared/tile-size-cookie";
-import { ARRIVAL_GLOW_MS } from "@/lib/guest/arrival-glow";
+import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { useTileSize } from "@/lib/shared/use-tile-size";
 import { cn } from "@/lib/utils";
@@ -253,7 +253,7 @@ export function EventGallery({
           the ancestor wrapping the grid, never on the grid component itself.
 
           --arrival-glow-ms rides the same box for the same reason (`first=live`):
-          the number is ONE constant in lib/guest/arrival-glow.ts, the grid holds
+          the number is ONE constant in lib/shared/arrival.ts, the grid holds
           an id for exactly that long, and the sheet that fades the light reads it
           from here — so the attribute and the animation can never disagree. */}
       <div

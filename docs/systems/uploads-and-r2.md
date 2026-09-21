@@ -96,7 +96,9 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   auth placement (host `getUser()` gates in the route BEFORE the engine, the 401-before-body-parse
   ordering, duplicated verbatim in both host routes on purpose; guest capability tokens validate
   inside the RPCs), the per-event `max_upload_bytes` cap binds GUESTS ONLY (host exempt by design),
-  refusal framing (guest video refusals are EVENT-framed so a guest never learns the host's plan;
+  refusal framing (a refusal's sentence is printed VERBATIM on the guest's failure sheet now, one line per
+  file — `failed=sheet`, 2026-09-21 — so its precision is user-facing copy, not a log line; guest video
+  refusals are EVENT-framed so a guest never learns the host's plan;
   host refusals are tier-framed; host `not_owner` → 404, an existence non-leak), per-pair
   `errorStatus` maps, and NO request rate limiter on any of the four (abuse control = capability
   session + caps + per-part Content-Length binding + the multipart abort backstop).
@@ -185,7 +187,12 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
   the authoritative R2-HEAD size. A host may set a STRICTER per-event cap (`events.max_upload_bytes`, 25 MiB to
   10 GB, or null = no cap) that bounds **guest** uploads only — the host's own `create_media_as_host` is exempt.
   The cap is read from the event row INSIDE the RPC (never a client/RPC param → un-spoofable); the guest presign
-  route fast-fails over-cap claims but `create_media` is authoritative. Upload presign TTL is **2 h**: a
+  route fast-fails over-cap claims but `create_media` is authoritative. ⚠ **The guest page never LEARNS that
+  number**: `get_event_by_qr_token` does not return `max_upload_bytes`, so the add sheet's terms line
+  ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts), `warning=both`) states the
+  UNIVERSAL 10 GB ceiling — true for every event and never over-promising a bigger one. Its `capBytes`
+  argument is the seam, already wired and contract-tested: a migration that returns the column, a types
+  regeneration and one line in `guest-events.ts` put the host's own number in front of the guest. Upload presign TTL is **2 h**: a
   multipart upload presigns all its parts up front, so the whole transfer must finish before they expire.
 - ★ **No upload can exceed its declared (≤10 GB) size — protects the pipeline + WORM backup from a megafile.**
   Presigned PUT/UploadPart URLs **bind Content-Length** (`presignUpload`/`presignUploadPart` sign each part's

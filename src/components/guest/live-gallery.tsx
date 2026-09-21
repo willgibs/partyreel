@@ -14,10 +14,6 @@
  * the new promise — no resync effects. Uploads completing before this mounts
  * are buffered by the shell and flushed through the callback ref.
  */
-// The arrival's own sheet: the glow a photograph lands under, and nothing else
-// (the growth is globals.css's tile entrance, which this must not fight).
-import "./live-gallery.css";
-
 import {
   use,
   useCallback,
@@ -50,13 +46,19 @@ import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
-import { ARRIVAL_GLOW_MS } from "@/lib/guest/arrival-glow";
+import {
+  ARRIVAL_GLOW_MS,
+  ARRIVAL_SWEEP_MS,
+  arrivalMarks,
+  useArrivalMarks,
+} from "@/lib/shared/arrival";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import {
   newArrivalIds,
   reconcileGalleryItems,
 } from "@/lib/guest/reconcile-gallery-items";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
+import { useLivePoll } from "@/lib/shared/use-live-poll";
 import {
   DEFAULT_TILE_SIZE,
   TILE_SIZE_LABEL,
@@ -65,12 +67,6 @@ import {
 } from "@/lib/shared/tile-size-cookie";
 import { useTileSize } from "@/lib/shared/use-tile-size";
 import { useMediaQuery } from "@/lib/use-media-query";
-
-// The hybrid doorbell cadence (Phase 3): while the Realtime channel is live,
-// pings drive refreshes and the poll is just a 60s safety net; if the socket
-// drops, fall back to the old 12s blind poll until it reconnects.
-const FAST_POLL_MS = 12_000;
-const SLOW_POLL_MS = 60_000;
 
 export type GalleryPayload = {
   items: GridMedia[];
@@ -163,7 +159,6 @@ export function LiveGallery({
   onOpenGate,
   onCountChange,
   pendingUploads = [],
-  onRetryUpload,
   onAddFirst,
   joinUrl,
   canDeleteIds = [],
@@ -182,13 +177,14 @@ export function LiveGallery({
   onOpenGate: () => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
   onCountChange?: (count: number) => void;
-  /** In-flight queue items (status !== done) from the shell — rendered as
-   *  progress tiles at the head of the masonry (Phase 4). */
+  /**
+   * What this DEVICE has sent that is not in the album yet: everything still in
+   * flight, plus anything a hold-for-approval event is keeping back (the shell
+   * passes both; `failed=sheet` means a refused file is not among them).
+   */
   pendingUploads?: QueueItem[];
-  /** Tap-to-retry on an errored pending tile (round-trips to the queue handle). */
-  onRetryUpload?: (queueId: string) => void;
-  /** Present only when the viewer can upload — the empty-state CTA opens the
-   *  picker (Phase 4: at 0 items the header drops its Add, the empty CTA owns it). */
+  /** Present only when the viewer can upload — the empty-state CTA opens the ADD
+   *  SHEET (at 0 items the header drops its Add, the empty CTA owns it). */
   onAddFirst?: () => void;
   /** The event JOIN url for the lightbox Share button. */
   joinUrl?: string;
@@ -220,50 +216,21 @@ export function LiveGallery({
   // object, so the tile's <img src> never changes — zero flicker as a pending
   // tile becomes the optimistic tile).
   const pendingBlobs = useRef(new Map<string, string>());
-  // Media ids inside their ~2.5s "just landed" green-check window.
-  const [justLandedIds, setJustLandedIds] = useState<Set<string>>(
-    () => new Set(),
-  );
-  const landedTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
-  // THE ARRIVAL (Will, `live=land`, 2026-09-20): media ids inside the glow's
-  // life. Distinct from justLandedIds above, and the pair is the point — the
-  // green check says "yours is in", the glow says "somebody added one".
-  const [arrivedIds, setArrivedIds] = useState<Set<string>>(() => new Set());
-  const arrivalTimers = useRef(
-    new Map<string, ReturnType<typeof setTimeout>>(),
-  );
+  /* ────────────────────────────────────────────────────────────────────────
+     THE ARRIVAL GRAMMAR, AS TWO LISTS (Will, `landing=sweep`, 2026-09-21: "This
+     should be consistent across guest and host arrival experiences"). Every id
+     that has appeared in the album by itself, and every id THIS device landed;
+     `lib/shared/arrival.ts` turns the pair into the two marks and holds each one
+     for exactly as long as its keyframe runs. Both are plain append-only lists
+     rather than timers and sets, because deciding WHICH mark an id takes is
+     arithmetic the host's own surfaces need too, and the timers are the part
+     that was replaying light on re-renders when it lived in a component.
+     ──────────────────────────────────────────────────────────────────────── */
+  const [arrivals, setArrivals] = useState<string[]>([]);
+  const [ownLandings, setOwnLandings] = useState<string[]>([]);
   // The current conditional-request validator: sent as If-None-Match so an
   // unchanged gallery answers a bare 304 (no payload, no presigns server-side).
   const etagRef = useRef<string | null>(seed.etag);
-
-  /**
-   * Light these ids and set each one's own timer out. Per id rather than one
-   * timer for the batch, because arrivals overlap: two guests uploading a beat
-   * apart must not have the second's glow cut short by the first's clock.
-   */
-  const markArrived = useCallback((ids: Set<string>) => {
-    if (ids.size === 0) return;
-    setArrivedIds((prev) => {
-      const next = new Set(prev);
-      for (const id of ids) next.add(id);
-      return next;
-    });
-    for (const id of ids) {
-      const running = arrivalTimers.current.get(id);
-      if (running) clearTimeout(running);
-      arrivalTimers.current.set(
-        id,
-        setTimeout(() => {
-          arrivalTimers.current.delete(id);
-          setArrivedIds((prev) => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-        }, ARRIVAL_GLOW_MS),
-      );
-    }
-  }, []);
 
   // Re-fetch the latest approved media (presigned) and reconcile optimistic tiles.
   const refresh = useCallback(async () => {
@@ -296,17 +263,12 @@ export function LiveGallery({
       // was not on screen a moment ago — the only definition that catches every
       // route a photograph takes into the album (another guest's upload through
       // the doorbell, a held item the host approved an hour later, ten at once
-      // after a hidden tab wakes up). Computed BEFORE the optimistic cleanup
-      // below, because that is where this guest's OWN ids are still known: a
-      // photograph you just added has already had its landing beat (the green
-      // check), and lighting it again would say a stranger sent it.
-      markArrived(
-        new Set(
-          [...newArrivalIds(previous, items)].filter(
-            (id) => !blobUrls.current.has(id),
-          ),
-        ),
-      );
+      // after a hidden tab wakes up). Which of these take the GLOW rather than
+      // the sweep is not decided here: one's own landing arrives in this list
+      // too, and `arrivalMarks` subtracts it, so the rule lives in one pure
+      // function both surfaces read instead of in a ref lookup.
+      const fresh = [...newArrivalIds(previous, items)];
+      if (fresh.length > 0) setArrivals((prev) => [...prev, ...fresh]);
       // Drop + revoke any optimistic tile the server now reflects (the presigned
       // version takes over seamlessly via mergeGalleryItems' dedupe).
       const serverIds = new Set(items.map((m) => m.id));
@@ -324,7 +286,7 @@ export function LiveGallery({
     } catch {
       // Best-effort poll — never surface a transient network blip to the guest.
     }
-  }, [qrToken, markArrived]);
+  }, [qrToken]);
 
   // The doorbell: a contentless Realtime ping per gallery change, coalesced
   // inside the hook (immediate refresh, bursts collapse into one trailing
@@ -336,54 +298,23 @@ export function LiveGallery({
     onRefresh: () => void refresh(),
   });
 
-  // The fallback poll, paused while the tab is hidden (frugality + correctness):
-  // a 60s safety net while the doorbell is live, the old 12s cadence when the
-  // socket is down. In demo mode there's nothing to poll — the curated media is
-  // static and the simulated tiles are local-only — so skip it entirely.
-  useEffect(() => {
-    if (!liveEnabled) return;
-    const pollMs = live ? SLOW_POLL_MS : FAST_POLL_MS;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const start = () => {
-      if (!timer) timer = setInterval(refresh, pollMs);
-    };
-    const stop = () => {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    };
-    const onVisibility = () => {
-      if (document.hidden) {
-        stop();
-      } else {
-        void refresh();
-        start();
-      }
-    };
-    start();
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      stop();
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [refresh, liveEnabled, live]);
+  // The fallback poll, paused while the tab is hidden: the shared cadence
+  // (`lib/shared/use-live-poll.ts`), a 60s safety net while the doorbell is live
+  // and the old 12s blind poll when the socket is down. In demo mode there is
+  // nothing to poll — the curated media is static and the simulated tiles are
+  // local-only — so `liveEnabled` switches it off entirely.
+  useLivePoll({ enabled: liveEnabled, live, onPoll: refresh });
 
-  // Revoke any lingering blob URLs + green-check / arrival-glow timers on unmount.
+  // Revoke any lingering blob URLs on unmount (the arrival marks own their own
+  // timers now, inside lib/shared/arrival.ts).
   useEffect(() => {
     const blobs = blobUrls.current;
     const pending = pendingBlobs.current;
-    const timers = landedTimers.current;
-    const arrivals = arrivalTimers.current;
     return () => {
       for (const url of blobs.values()) URL.revokeObjectURL(url);
       blobs.clear();
       for (const url of pending.values()) URL.revokeObjectURL(url);
       pending.clear();
-      for (const t of timers.values()) clearTimeout(t);
-      timers.clear();
-      for (const t of arrivals.values()) clearTimeout(t);
-      arrivals.clear();
     };
   }, []);
 
@@ -521,21 +452,10 @@ export function LiveGallery({
           { id: u.mediaId, type: u.kind, url, downloadUrl: url },
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
-        // Open the green-check window for this media id (~2.5s, then fade).
-        setJustLandedIds((prev) => new Set(prev).add(u.mediaId));
-        const old = landedTimers.current.get(u.mediaId);
-        if (old) clearTimeout(old);
-        landedTimers.current.set(
-          u.mediaId,
-          setTimeout(() => {
-            landedTimers.current.delete(u.mediaId);
-            setJustLandedIds((prev) => {
-              const next = new Set(prev);
-              next.delete(u.mediaId);
-              return next;
-            });
-          }, 2500),
-        );
+        // YOURS IS IN (`landing=sweep`): newest first, because only the newest
+        // own tile takes the sweep — a batch of twelve is exactly the pile-up
+        // Will banked the shimmer to avoid.
+        setOwnLandings((prev) => [u.mediaId, ...prev]);
       }
       // An ANONYMOUS guest's own new photograph is removable the instant it
       // lands, without waiting for the next /api/guests/mine round trip (there
@@ -549,6 +469,23 @@ export function LiveGallery({
       if (!isDemo) void refresh();
     },
   }));
+
+  // THE TWO MARKS, from the two lists. Memoized because `useArrivalMarks` keys
+  // its work off the array it is handed: a fresh one every render would ask it
+  // to re-diff the whole session's arrivals on every like and every poll.
+  const marks = useMemo(
+    () => arrivalMarks({ arrivals, ownLandings }),
+    [arrivals, ownLandings],
+  );
+  const landedList = useMemo(
+    () => (marks.landed ? [marks.landed] : []),
+    [marks.landed],
+  );
+  // The glow holds PER ID (overlapping arrivals each get a full life); the
+  // sweep is EXCLUSIVE, so a batch landing faster than the light runs never
+  // stacks it up the gallery.
+  const arrivedIds = useArrivalMarks(marks.arrived, ARRIVAL_GLOW_MS);
+  const landedIds = useArrivalMarks(landedList, ARRIVAL_SWEEP_MS, true);
 
   // The render-facing mirror of the pending-blob ledger (refs + object-URL
   // minting are side effects, so they live in the effect below; render reads
@@ -578,23 +515,42 @@ export function LiveGallery({
     if (changed) setPendingUrls(new Map(pendingBlobs.current));
   }, [pendingUploads]);
 
-  // Build the pending TILES from the snapshot + the URL mirror.
+  /* ────────────────────────────────────────────────────────────────────────
+     WHAT THIS DEVICE DRAWS AT THE ALBUM'S HEAD, and the three things it does
+     NOT (the `guest-upload` board, 2026-09-21).
+
+     · A FAILURE draws nothing at all (`failed=sheet`): the run's end opens a
+       sheet listing every refusal with its own Retry, so a perfectly good
+       photograph is never labelled broken in somebody's album.
+     · AN APPROVED completion draws nothing either — it IS the album by then,
+       through the optimistic prepend above.
+     · A HELD one draws a waiting tile (`held=tile`) until the host approves it,
+       which is the moment its media id turns up in the poll's own list. That is
+       the one comparison `QueueItem.mediaId` exists for; without it the waiting
+       tile would sit beside the real photograph it became.
+     ──────────────────────────────────────────────────────────────────────── */
+  const serverIds = useMemo(
+    () => new Set(serverItems.map((m) => m.id)),
+    [serverItems],
+  );
   const pendingTiles: PendingTile[] = pendingUploads.flatMap((q) => {
     const url = pendingUrls.get(q.id);
-    if (!url) return [];
+    if (!url || q.status === "error") return [];
+    const held = q.status === "done" && q.mediaStatus === "pending";
+    if (q.status === "done" && !held) return [];
+    if (held && q.mediaId && serverIds.has(q.mediaId)) return [];
     return [
       {
         queueId: q.id,
         url,
+        file: q.file,
         kind: q.kind,
-        status:
-          q.status === "error"
-            ? ("error" as const)
-            : q.status === "queued"
-              ? ("queued" as const)
-              : ("uploading" as const),
+        status: held
+          ? ("held" as const)
+          : q.status === "queued"
+            ? ("queued" as const)
+            : ("uploading" as const),
         progress: q.progress,
-        error: q.error,
       },
     ];
   });
@@ -645,10 +601,15 @@ export function LiveGallery({
   return (
     <section
       className="mt-3"
-      // The glow's life, written once where every tile inherits it, so the
-      // sheet's keyframe and the state that holds `data-arrived` are ONE
-      // number (lib/guest/arrival-glow.ts) and cannot drift apart.
-      style={{ "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms` } as CSSProperties}
+      // Each mark's life, written once where every tile inherits it, so the
+      // sheet's keyframes and the state that holds `data-arrived` / `data-landed`
+      // are ONE pair of numbers (lib/shared/arrival.ts) and cannot drift apart.
+      style={
+        {
+          "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
+          "--arrival-sweep-ms": `${ARRIVAL_SWEEP_MS}ms`,
+        } as CSSProperties
+      }
     >
       {items.length > 0 || pendingTiles.length > 0 ? (
         // Likes: anonymous guests get the like button -> the create-account flow;
@@ -704,18 +665,15 @@ export function LiveGallery({
               comment describes); the View menu's Tile size group sets it here, on
               the ancestor wrapping the grid, never on the grid component itself —
               exactly as event-gallery.tsx does for the host. */}
-          <div
-            style={{ "--album-column": `${tileSize}px` } as CSSProperties}
-          >
+          <div style={{ "--album-column": `${tileSize}px` } as CSSProperties}>
             <GuestMasonry
               items={yours.items}
               pending={pendingTiles}
-              justLandedIds={justLandedIds}
-              onRetryPending={onRetryUpload}
               shareUrl={joinUrl}
-              // The arrival's mark (`data-arrived` on the tile box) — the glow is
-              // live-gallery.css, the growth the tile's own mount entrance.
+              // The two arrival marks on the tile box — the light is
+              // shared/arrival.css, the growth the tile's own mount entrance.
               arrivedIds={arrivedIds}
+              landedIds={landedIds}
               // A guest removes THEIR OWN photograph and no other: `canDelete`
               // gates the lightbox's Trash per item, so a tile that is not theirs
               // never shows the control. Both are omitted where the feature does

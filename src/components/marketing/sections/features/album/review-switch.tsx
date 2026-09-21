@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ListChecks, Radio, ShieldCheck } from "lucide-react";
+import { Check, Clock, ListChecks, Radio, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
@@ -148,14 +148,17 @@ export function ReviewSwitch() {
                 </span>
               </span>
             </span>
-            {/* The guest's own toast, exactly as the app fires it, only in Review. */}
+            {/* The guest's own tile, exactly as the app draws it, only in
+                Review: `held=tile` (2026-09-21) retired the "Sent, waiting for
+                host approval" toast, and the photograph now waits at the album's
+                head under this line until the host lets it in. */}
             <span
               data-mkt-toast
               data-on={mode === "review" ? "true" : undefined}
               className="mx-auto mt-2 flex w-fit max-w-full items-center gap-1.5 rounded-full border bg-popover/95 px-2 py-1 text-[10px] leading-none font-medium"
             >
-              <Check className="size-3 shrink-0 text-success" strokeWidth={3} />
-              <span className="truncate">Sent, waiting for host approval</span>
+              <Clock className="size-3 shrink-0" />
+              <span className="truncate">Waiting for the host</span>
             </span>
           </Plate>
 

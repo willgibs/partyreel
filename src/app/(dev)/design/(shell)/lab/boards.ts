@@ -10,7 +10,7 @@ import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
-import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board";
+
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
@@ -46,7 +46,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "reel-studio": { Component: ReelStudioBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },
-  "guest-upload": { Component: GuestUploadBoard },
+
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },

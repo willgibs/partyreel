@@ -44,7 +44,6 @@ export type RulingId =
   | "reel-studio"
   | "help-center"
   | "host-curation"
-  | "guest-upload"
   | "first-event"
   | "pricing-page"
   | "press-page"
@@ -121,7 +120,6 @@ export type SandboxId =
   | "reel-studio"
   | "help-center"
   | "host-curation"
-  | "guest-upload"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -1036,32 +1034,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "guest-upload",
-    title: "The upload act",
-    surface: "guest",
-    ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
-    shipped: null,
-    why: "Round one asks the product's core act from the foundation: what the tap opens, how a photograph reads while it flies, and what the page does when one is held or refused.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "docs/systems/uploads-and-r2.md",
-      "src/components/guest/guest-upload.tsx",
-      "src/components/guest/guest-masonry.tsx",
-      "src/lib/guest/use-upload-queue.ts",
-    ],
-    board: {
-      note: "Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are",
-      variants: [
-        "The tap",
-        "Sending",
-        "A dozen at once",
-        "Waiting for the host",
-        "A file that will not go",
-      ],
-    },
-  },
-  {
     id: "first-event",
     title: "A host's first event",
     surface: "host",
@@ -1121,7 +1093,8 @@ export const RULINGS: Ruling[] = [
     id: "app-pricing",
     title: "Pricing in the app",
     surface: "host",
-    ruled: "2026-09-20 (all eight: the object, the first view, how much it carries, the second layer, the pass, the doors, the words at a gate, coming back)",
+    ruled:
+      "2026-09-20 (all eight: the object, the first view, how much it carries, the second layer, the pass, the doors, the words at a gate, coming back)",
     shipped:
       "One pricing sheet on the responsive Sheet, led by the trigger (a locked feature names itself, running out of room opens on the smallest plan that clears it, a subscriber is told she subscribes), carrying Free beside one Pro size with three benefit lines, the Event Pass on one line, and a quiet foot to /pricing in a new tab; one lock chip behind every gated control, a button with a tooltip rather than a dead sentence; Plan and storage in the user menu and the account page's Plan card as billing's home; Checkout returning to the control that refused you with a welcome-to-Pro modal",
     why: "Every pricing click used to leave the app for a tier-blind page that could not name the control that refused you; the trigger is what keeping it inside buys.",
@@ -1584,7 +1557,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
-  "guest-upload",
   "media-viewer",
   "host-curation",
   "reel-studio",

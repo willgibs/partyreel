@@ -80,6 +80,53 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a live code needs a real join URL and loads its renderer inside an effect; the share sheet is the honest frame",
   },
+  // THE UPLOAD ACT (lp/guest-upload-wiring, 2026-09-21), at the head like the
+  // blocks below it, so several lanes adding `for` lines in one round land on
+  // distinct hunks instead of on each other.
+  "src/components/guest/upload/intent-sheet.tsx": {
+    for: "what every Add in the guest page opens (`tap=sheet`): our own surface in front of the phone's chooser, on the ONE responsive Sheet, naming the two acts the system never distinguishes. Two inputs, because `capture` cannot be both, and each is `.click()`ed SYNCHRONOUSLY from its row (Safari drops a picker opened after an `await`); the picker returns INTO this sheet as the review step, so the whole act is one surface",
+    unspecimened:
+      "its subject is a file picker: every meaningful frame is the OS chooser it opens or a guest's own camera roll, neither of which exists in a Library page",
+  },
+  "src/components/guest/upload/review-step.tsx": {
+    for: 'the beat between the picker and the album (`warning=both`, his "allow guests to catch an accidental selection"): the picks as tiles, one tap to drop a wrong one, Send with the terms line under it. Removing the last pick goes BACK rather than offering to send nothing, and a pick carries an id of its own because a File is not a key and a camera roll hands back duplicates',
+    unspecimened:
+      "it exists to show real picked Files; a Library frame would be photographs pretending to have come off somebody's phone",
+  },
+  "src/components/guest/upload/stack-tile.tsx": {
+    for: "the two tiles this DEVICE draws at the album's head and nowhere else: one stack for a pick in flight however many files it holds (`batch=one`), and one waiting tile per file a hold-for-approval event keeps back (`held=tile`). Everything either one SAYS lives on one reading pane at its foot, dark enough to be read over a white sky (his \"the text is currently hard to read\"), and both wear the album tile's own bright edge so a photograph never changes shape at the moment it finishes uploading",
+    unspecimened:
+      "both need a live queue item and its object URL; the guest album under a real upload is where they are seen",
+  },
+  "src/components/guest/upload/failure-sheet.tsx": {
+    for: 'what a guest reads when something will not go (`failed=sheet`, his "An upload failure should be bubbled up clearly"): nothing interrupts while the files fly, and the END of the run opens one surface naming every refused file with the SERVER\'s own sentence and a Retry beside it. No tile is drawn for a failure and no toast fires; a single failure gets one retry, never two for the same act',
+    unspecimened:
+      "it opens on the end of a real upload run and lists real Files with real server refusals, none of which a Library frame can stand up honestly",
+  },
+  "src/components/guest/upload/upload-terms.ts": {
+    for: "the one quiet line the upload act says before anything flies (`warning=both`): what this album takes and how big, read from `media/limits.ts` and formatted for a person. Nothing about rights, ownership or licenses is ever in it. `capBytes` is the seam for the host's own per-event cap, wired and tested, waiting only on the guest RPC returning `max_upload_bytes`",
+    unspecimened: "one pure function; the add sheet is where the line is read",
+  },
+  "src/components/guest/guest-upload.tsx": {
+    for: "the guest upload ENGINE and the two sheets the act speaks through: the queue machine's mount, the add sheet every Add affordance opens (`openAdd`), and the failure sheet that opens itself once at the END of a run that refused anything. It renders no tile of its own (the album's head draws those), and the hold-for-approval notice is the one sentence it still says",
+    unspecimened:
+      "it is an engine with two portalled sheets and a live queue behind it; the guest event page is the only honest frame",
+  },
+  "src/components/guest/guest-masonry.tsx": {
+    for: "the guest album: the one shared grid, plus the only thing that is genuinely the guest's and nobody else's: what this DEVICE has sent that is not in the album yet, seated in the grid's `prefix` slot. A batch collapses to one stack led by the file actually in the air, a held file gets a waiting tile, and a file that did not go is drawn nowhere at all",
+    unspecimened:
+      "a thin wrapper whose own subject is a live upload queue; `shared/masonry.tsx` is the grid's specimen",
+  },
+  "src/lib/guest/use-upload-queue.ts": {
+    for: "the guest upload queue machine: ONE file at a time (robust on venue Wi-Fi), per-item progress, the just-in-time SILENT join, the pending-files stash, demo simulation and retry. A refused or rejected file errors only its own item and the batch carries on; `mediaId` rides on a finished item so a held upload's tile can tell when the host approved it",
+    unspecimened:
+      "a hook over the network; its contract test is the demo and the guest page is where it runs",
+  },
+  "src/lib/shared/arrival.ts": {
+    for: 'one arrival grammar for both surfaces (`landing=sweep`, his "consistent across guest and host arrival experiences"): which ids take the GLOW (anything that arrived by itself) and which single id takes the SWEEP (the newest of your own), plus the per-id hold that lights an id once, ever. The two durations live here and the sheet reads them, so the attribute and the animation cannot disagree',
+    unspecimened:
+      "a pure function and a hook; `shared/arrival.css` is the light and an album is where it is seen",
+  },
   // THE MONEY PAGE'S CONFIGURATOR (lp/pricing-split-wiring, 2026-09-20), at the
   // head like the blocks below it, so several lanes adding `for` lines in one
   // round land on distinct hunks instead of on each other.
@@ -101,12 +148,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened: "pure string functions; return-path.test.ts is its demo",
   },
   "src/components/app/pricing/lock-chip.tsx": {
-    for: "the one component behind every gated control (`words=chip`, his \"Convert, not block\"): a BUTTON showing the control's own name and the plan that opens it, with a tooltip saying why it is locked and what unlocks it, opening the pricing sheet led by that feature. It replaced four sentences that worded one rule four ways; a fifth gated control is a row in `pricing/triggers.ts`, never a fifth sentence",
+    for: 'the one component behind every gated control (`words=chip`, his "Convert, not block"): a BUTTON showing the control\'s own name and the plan that opens it, with a tooltip saying why it is locked and what unlocks it, opening the pricing sheet led by that feature. It replaced four sentences that worded one rule four ways; a fifth gated control is a row in `pricing/triggers.ts`, never a fifth sentence',
     unspecimened:
       "it opens a sheet that POSTs to Checkout, and its tooltip rides the root TooltipProvider; the four shipped gates (the password panel, the visibility line, the video row, the custom link) are the demo",
   },
   "src/components/app/pricing/welcome-to-pro.tsx": {
-    for: "the first second after paying us (`back=finish`, his \"They should be excited to join Pro\"): the receipt as a modal on the page Checkout returned to, with ONE primary door. It says only what the SERVER can see, because the Stripe webhook is the sole writer of `profiles.tier` and the redirect routinely beats it, and it re-reads a bounded number of times so a pending receipt turns into a real one by itself",
+    for: 'the first second after paying us (`back=finish`, his "They should be excited to join Pro"): the receipt as a modal on the page Checkout returned to, with ONE primary door. It says only what the SERVER can see, because the Stripe webhook is the sole writer of `profiles.tier` and the redirect routinely beats it, and it re-reads a bounded number of times so a pending receipt turns into a real one by itself',
     unspecimened:
       "it exists for one URL marker on three app pages and drives the router on close; a Library frame would be a screenshot of a state nothing in the lab can reach",
   },

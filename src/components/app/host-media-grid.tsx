@@ -28,7 +28,7 @@ import { useLikes } from "@/components/likes/likes-provider";
 import { useReel } from "@/components/reel/reel-provider";
 import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
-import { ARRIVAL_GLOW_MS } from "@/lib/guest/arrival-glow";
+import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
 // Host moderation grid — the host's THREE verbs on the one album tile. The grid is the

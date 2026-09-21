@@ -276,7 +276,18 @@ describe("the yours mark rides only a viewer's own tiles", () => {
   });
 });
 
-describe("the arrival mark rides the tile box", () => {
+/**
+ * THE ARRIVAL GRAMMAR, ON THE ONE GRID (`landing=sweep`, Will 2026-09-21: "This
+ * should be consistent across guest and host arrival experiences. Would feel
+ * weird for it to be handled differently on either.").
+ *
+ * Two attributes, written from two sets the surface hands down — which is the
+ * whole of what a grid may know about an arrival. WHICH ids belong in which set
+ * is `lib/shared/arrival.ts`'s contract, and the light itself is
+ * `shared/arrival.css`; neither is pinned here, because a contract guards
+ * function and both of those are a look and a rule.
+ */
+describe("the arrival marks ride the tile box", () => {
   it("writes data-arrived on exactly the ids the surface names", () => {
     const { container } = render(
       <MasonryColumns items={items} arrivedIds={new Set(["b"])} />,
@@ -284,6 +295,21 @@ describe("the arrival mark rides the tile box", () => {
     const tiles = container.querySelectorAll("[data-media-tile]");
     expect(tiles[0].hasAttribute("data-arrived")).toBe(false);
     expect(tiles[1].hasAttribute("data-arrived")).toBe(true);
+  });
+
+  it("writes data-landed on exactly the ids the surface names", () => {
+    const { container } = render(
+      <MasonryColumns items={items} landedIds={new Set(["a"])} />,
+    );
+    const tiles = container.querySelectorAll("[data-media-tile]");
+    expect(tiles[0].hasAttribute("data-landed")).toBe(true);
+    expect(tiles[1].hasAttribute("data-landed")).toBe(false);
+  });
+
+  it("draws neither when a surface names neither", () => {
+    const { container } = render(<MasonryColumns items={items} />);
+    expect(container.querySelector("[data-arrived]")).toBeNull();
+    expect(container.querySelector("[data-landed]")).toBeNull();
   });
 });
 

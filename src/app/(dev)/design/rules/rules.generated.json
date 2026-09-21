@@ -4306,6 +4306,222 @@
       ]
     },
     {
+      "id": "guest-masonry",
+      "file": "src/components/guest/guest-masonry.tsx",
+      "names": [
+        "GuestMasonry"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "collapses a batch into a single stack that counts what is left",
+          "suite": [
+            "a pick in flight is ONE object at the album's head"
+          ],
+          "file": "src/components/guest/guest-masonry.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "leads with the file actually in the air, not the first of the batch",
+          "suite": [
+            "a pick in flight is ONE object at the album's head"
+          ],
+          "file": "src/components/guest/guest-masonry.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "draws no stack when nothing is flying",
+          "suite": [
+            "a pick in flight is ONE object at the album's head"
+          ],
+          "file": "src/components/guest/guest-masonry.test.tsx",
+          "line": 94
+        },
+        {
+          "title": "draws one waiting tile per held file, beside a live stack",
+          "suite": [
+            "a held upload waits where the guest can see it"
+          ],
+          "file": "src/components/guest/guest-masonry.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "hands both sets to the one grid",
+          "suite": [
+            "the arrival marks and the album's own tiles pass straight through"
+          ],
+          "file": "src/components/guest/guest-masonry.test.tsx",
+          "line": 122
+        }
+      ]
+    },
+    {
+      "id": "guest-upload",
+      "file": "src/components/guest/guest-upload.tsx",
+      "names": [
+        "GuestUpload",
+        "TurnCard",
+        "UploadedItem"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "uploads with the guest endpoint pair + session identity",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "runs ONE file at a time: the second starts only after the first resolves",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "patches per-file progress through the onProgress callback",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "approved outcome: reports onUploaded and mounts the growth prompt",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 216
+        },
+        {
+          "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "join rejection: toasts and clears the stash, nothing uploads",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 276
+        },
+        {
+          "title": "join network failure: the connection toast, stash cleared",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "simulates the upload: no network, synthetic approved outcome",
+          "suite": [
+            "GuestUpload: demo mode"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 311
+        },
+        {
+          "title": "hold_for_approval shows the review notice; auto_approve does not",
+          "suite": [
+            "GuestUpload: moderation copy"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 335
+        },
+        {
+          "title": "openAdd opens the sheet, and nothing is queued until Send",
+          "suite": [
+            "GuestUpload: the add sheet is the only door in"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 356
+        },
+        {
+          "title": "lists every refusal with the server's own sentence, and no toast fires",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 379
+        },
+        {
+          "title": "stays shut when the run is clean",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 400
+        },
+        {
+          "title": "its Retry re-queues the file",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 415
+        },
+        {
+          "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 454
+        },
+        {
+          "title": "handle.retry(id) resets an errored item and re-runs the queue",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 489
+        },
+        {
+          "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 517
+        },
+        {
+          "title": "a REJECTED upload does not stop the rest of the batch",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 530
+        },
+        {
+          "title": "a rejected upload is still retryable",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 555
+        }
+      ]
+    },
+    {
       "id": "live-gallery",
       "file": "src/components/guest/live-gallery.tsx",
       "names": [
@@ -4425,6 +4641,324 @@
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
           "line": 230
+        }
+      ]
+    },
+    {
+      "id": "failure-sheet",
+      "file": "src/components/guest/upload/failure-sheet.tsx",
+      "names": [
+        "UploadFailureSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "draws one line per file",
+          "suite": [
+            "every refusal is named, with the server's own reason"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 43
+        },
+        {
+          "title": "still says something when the failure arrived without words",
+          "suite": [
+            "every refusal is named, with the server's own reason"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 60
+        },
+        {
+          "title": "retries one line without touching the others",
+          "suite": [
+            "everything on it is one tap from going again"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 71
+        },
+        {
+          "title": "retries all of them at once, and closes behind itself",
+          "suite": [
+            "everything on it is one tap from going again"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "offers ONE retry when one file failed, never two for the same act",
+          "suite": [
+            "everything on it is one tap from going again"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "has a way out that is not the retry",
+          "suite": [
+            "everything on it is one tap from going again"
+          ],
+          "file": "src/components/guest/upload/failure-sheet.test.tsx",
+          "line": 95
+        }
+      ]
+    },
+    {
+      "id": "intent-sheet",
+      "file": "src/components/guest/upload/intent-sheet.tsx",
+      "names": [
+        "UploadIntentSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "mounts both inside the sheet",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "takes a photograph on the camera row: capture, no multiple",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "takes both kinds, many at a time, on the album row: no capture",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "sends nothing until Send is tapped",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 87
+        },
+        {
+          "title": "lists every pick, and a removed one never goes",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "goes back to the two rows when the last pick is removed",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 114
+        },
+        {
+          "title": "keeps two picks apart when they share a name",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 123
+        },
+        {
+          "title": "stands on the pick step and again under Send",
+          "suite": [
+            "the terms line"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 138
+        }
+      ]
+    },
+    {
+      "id": "review-step",
+      "file": "src/components/guest/upload/review-step.tsx",
+      "names": [
+        "ReviewStep"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "mounts both inside the sheet",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "takes a photograph on the camera row: capture, no multiple",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "takes both kinds, many at a time, on the album row: no capture",
+          "suite": [
+            "two inputs, and only one of them is the camera"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "sends nothing until Send is tapped",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 87
+        },
+        {
+          "title": "lists every pick, and a removed one never goes",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "goes back to the two rows when the last pick is removed",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 114
+        },
+        {
+          "title": "keeps two picks apart when they share a name",
+          "suite": [
+            "the review step stands between the picker and the album"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 123
+        },
+        {
+          "title": "stands on the pick step and again under Send",
+          "suite": [
+            "the terms line"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 138
+        }
+      ]
+    },
+    {
+      "id": "stack-tile",
+      "file": "src/components/guest/upload/stack-tile.tsx",
+      "names": [
+        "UploadStackTile",
+        "WaitingTile"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts what is still to go when the pick holds several",
+          "suite": [
+            "one pick is one object"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 25
+        },
+        {
+          "title": "says no count at all for a single file: a stack of one is a tile",
+          "suite": [
+            "one pick is one object"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 37
+        },
+        {
+          "title": "carries the CURRENT file's progress, because the queue runs one at a time",
+          "suite": [
+            "one pick is one object"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 51
+        },
+        {
+          "title": "wears the album tile's bright edge",
+          "suite": [
+            "one pick is one object"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "says what it is waiting for, and offers nothing to press",
+          "suite": [
+            "a held photograph waits in place"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 77
+        },
+        {
+          "title": "wears the album tile's bright edge too",
+          "suite": [
+            "a held photograph waits in place"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 85
+        },
+        {
+          "title": "draws no progress: its bytes are already in",
+          "suite": [
+            "a held photograph waits in place"
+          ],
+          "file": "src/components/guest/upload/stack-tile.test.tsx",
+          "line": 92
+        }
+      ]
+    },
+    {
+      "id": "upload-terms",
+      "file": "src/components/guest/upload/upload-terms.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names both kinds, so a guest knows video is welcome",
+          "suite": [
+            "the terms line states the product's limits, from the one source"
+          ],
+          "file": "src/components/guest/upload/upload-terms.test.ts",
+          "line": 25
+        },
+        {
+          "title": "reads the ceiling off limits.ts, formatted for a person",
+          "suite": [
+            "the terms line states the product's limits, from the one source"
+          ],
+          "file": "src/components/guest/upload/upload-terms.test.ts",
+          "line": 31
+        },
+        {
+          "title": "states the HOST's number when one is given, formatted the same way",
+          "suite": [
+            "the seam for the host's own cap"
+          ],
+          "file": "src/components/guest/upload/upload-terms.test.ts",
+          "line": 39
+        },
+        {
+          "title": "falls back to the universal ceiling when the event has no cap",
+          "suite": [
+            "the seam for the host's own cap"
+          ],
+          "file": "src/components/guest/upload/upload-terms.test.ts",
+          "line": 46
         }
       ]
     },
@@ -6210,7 +6744,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6218,7 +6752,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6226,7 +6760,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6234,7 +6768,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6242,7 +6776,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6250,7 +6784,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6258,7 +6792,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -6279,7 +6813,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6287,7 +6821,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6295,7 +6829,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6303,7 +6837,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6311,7 +6845,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6319,7 +6853,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6327,7 +6861,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -6349,7 +6883,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6357,7 +6891,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6365,7 +6899,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6373,7 +6907,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6381,7 +6915,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6389,7 +6923,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6397,7 +6931,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -6418,7 +6952,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6426,7 +6960,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6434,7 +6968,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6442,7 +6976,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6450,7 +6984,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6458,7 +6992,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6466,7 +7000,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -6487,7 +7021,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -6495,7 +7029,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -6503,7 +7037,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -6511,7 +7045,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -6519,7 +7053,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -6527,7 +7061,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -6535,7 +7069,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -7339,7 +7873,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -7347,7 +7881,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -7355,7 +7889,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -7363,7 +7897,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -7371,7 +7905,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -7379,7 +7913,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -7387,7 +7921,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         }
       ]
     },
@@ -10348,7 +10882,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 218
+          "line": 221
         },
         {
           "title": "sits on the box that owns the radius, never on a wrapper",
@@ -10356,7 +10890,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 233
+          "line": 236
         },
         {
           "title": "lands on a bordered surface's own border, which must be 1px and must not clip",
@@ -10364,7 +10898,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 248
+          "line": 251
         },
         {
           "title": "pushes the edge out by the border's width, reset on every host",
@@ -10372,7 +10906,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 273
+          "line": 276
         },
         {
           "title": "is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap",
@@ -10380,7 +10914,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 290
+          "line": 293
         },
         {
           "title": "makes the host a containing block without taking over its positioning",
@@ -10388,7 +10922,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 312
+          "line": 315
         },
         {
           "title": "exists on dark grounds only, through the one definition of dark",
@@ -10396,7 +10930,7 @@
             "the bright edge: data-lit"
           ],
           "file": "src/components/shared/lit-edge-contract.test.ts",
-          "line": 326
+          "line": 329
         },
         {
           "title": "renders no control at all when the surface declares no actions",
@@ -10513,10 +11047,26 @@
         {
           "title": "writes data-arrived on exactly the ids the surface names",
           "suite": [
-            "the arrival mark rides the tile box"
+            "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 280
+          "line": 291
+        },
+        {
+          "title": "writes data-landed on exactly the ids the surface names",
+          "suite": [
+            "the arrival marks ride the tile box"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 300
+        },
+        {
+          "title": "draws neither when a surface names neither",
+          "suite": [
+            "the arrival marks ride the tile box"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 309
         },
         {
           "title": "leaves every existing tile where it was when a newer one is prepended",
@@ -10524,7 +11074,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 313
+          "line": 339
         },
         {
           "title": "balances: no column runs away from the shortest",
@@ -10532,7 +11082,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 332
+          "line": 358
         },
         {
           "title": "puts a newly landed photograph at the HEAD of the column it joins",
@@ -10540,7 +11090,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 341
+          "line": 367
         }
       ]
     },
@@ -14678,6 +15228,167 @@
       ]
     },
     {
+      "id": "use-upload-queue",
+      "file": "src/lib/guest/use-upload-queue.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "uploads with the guest endpoint pair + session identity",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "runs ONE file at a time: the second starts only after the first resolves",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 134
+        },
+        {
+          "title": "patches per-file progress through the onProgress callback",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "approved outcome: reports onUploaded and mounts the growth prompt",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
+          "suite": [
+            "GuestUpload: queue"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 216
+        },
+        {
+          "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "join rejection: toasts and clears the stash, nothing uploads",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 276
+        },
+        {
+          "title": "join network failure: the connection toast, stash cleared",
+          "suite": [
+            "GuestUpload: just-in-time join"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "simulates the upload: no network, synthetic approved outcome",
+          "suite": [
+            "GuestUpload: demo mode"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 311
+        },
+        {
+          "title": "hold_for_approval shows the review notice; auto_approve does not",
+          "suite": [
+            "GuestUpload: moderation copy"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 335
+        },
+        {
+          "title": "openAdd opens the sheet, and nothing is queued until Send",
+          "suite": [
+            "GuestUpload: the add sheet is the only door in"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 356
+        },
+        {
+          "title": "lists every refusal with the server's own sentence, and no toast fires",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 379
+        },
+        {
+          "title": "stays shut when the run is clean",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 400
+        },
+        {
+          "title": "its Retry re-queues the file",
+          "suite": [
+            "GuestUpload: a run that ends badly opens the failure sheet"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 415
+        },
+        {
+          "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 454
+        },
+        {
+          "title": "handle.retry(id) resets an errored item and re-runs the queue",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 489
+        },
+        {
+          "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 517
+        },
+        {
+          "title": "a REJECTED upload does not stop the rest of the batch",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 530
+        },
+        {
+          "title": "a rejected upload is still retryable",
+          "suite": [
+            "GuestUpload: the lifted queue contract (Phase 4)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 555
+        }
+      ]
+    },
+    {
       "id": "module-floor",
       "file": "src/lib/qr/module-floor.ts",
       "names": [
@@ -14846,6 +15557,66 @@
           ],
           "file": "src/lib/qr/module-floor.test.ts",
           "line": 128
+        }
+      ]
+    },
+    {
+      "id": "arrival",
+      "file": "src/lib/shared/arrival.ts",
+      "names": [
+        "ARRIVAL_GLOW_MS",
+        "ARRIVAL_SWEEP_MS"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "subtracts every id this device landed from the glowing set",
+          "suite": [
+            "your own never glows, it sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 23
+        },
+        {
+          "title": "glows everything when this device has landed nothing",
+          "suite": [
+            "your own never glows, it sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 31
+        },
+        {
+          "title": "is empty on a still album",
+          "suite": [
+            "your own never glows, it sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 37
+        },
+        {
+          "title": "takes the head of the landings, never the batch",
+          "suite": [
+            "only the newest of your own sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 45
+        },
+        {
+          "title": "is null before anything of yours has landed",
+          "suite": [
+            "only the newest of your own sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 53
+        },
+        {
+          "title": "never marks one id both ways",
+          "suite": [
+            "only the newest of your own sweeps"
+          ],
+          "file": "src/lib/shared/arrival.test.ts",
+          "line": 59
         }
       ]
     },
