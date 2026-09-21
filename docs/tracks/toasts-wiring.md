@@ -1,6 +1,6 @@
 ---
 track: toasts-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "fc57b69b"          # the launch-prep SHA the branch was cut from
 board: toasts          # wired by this lane; the board retires (its five asks ruled whole)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -197,30 +197,47 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- The top offset's exact number: recommended 5rem (the marketing header, `--mkt-header-h`, the tallest bar in the product at 4rem, plus a 1rem breath); one shared value for host, guest and marketing since the one Toaster mounts globally, not per route. His to overrule per surface.
+- How many toasts stay visible: recommended sonner's own default of three (`visibleToasts`, untouched) - the board's own `stack` option text already measures a batch as "three bulk outcomes". His to overrule if a busier batch needs more shown at once (a fourth toast today stays mounted but invisible, per sonner's own stock behaviour, until an earlier one clears or is dismissed).
+- The close control on a persistent error: recommended forced on (`closeButton: true` alongside `duration: Infinity`, both defaulted in the `toast.error` patch) - verified legible (a dark circle, a light icon) against the red `--destructive` background in both themes. His to overrule.
+- The helper's shape: recommended none. `src/lib/toast.ts` was not built - sonner's own `action`/`cancel` prop already gives every call site the reserved trailing slot (a label and a handler) with zero new code, which is what `action=always` actually asked for. His to shape the day a call site needs more than that.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/design-system.md`: a new "The toast system" paragraph added in place, directly before the existing "State-colored toasts" paragraph (that section was already the doc's one home for toast facts) - the five rulings, the offset's derivation, and the `toast.error` patch mechanism (why sonner has no per-type default duration to lean on instead).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the toast board's own first line, "if the control can show it, no toast", as a sweep across the app's existing `toast.*` call sites (`CopyShareLink` is the worked example already in the retired spec: it flips its own icon AND fires a toast today, saying the same thing twice) - a follow-up pass, never this lane's (the manifest's brief said so explicitly).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Board `10e34abc`, pushed; synced with launch-prep at `6b59af17` (origin/launch-prep had moved since the cut: guest-chrome-wiring, home-states-wiring and overtaken-3 merged; app-shape and guest-shape retired).
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Gates on the synced tree (all run after the sync-merge `6b59af17`): design:rules ok (187 components, 1348 contracts, 18 policies), specimens ok (140 specimens on 101 entries, unchanged - `sonner.tsx` stays `unspecimened`), typecheck ok, lint ok (8 known warnings, 0 errors), test ok (3108 green + 1 pre-existing skip, 297 files), build ok (255 pages), `pnpm lab:smoke --base http://localhost:3131` ok (430 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/systems/design-system.md`, `src/components/ui/sonner.tsx`, its new sibling `src/components/ui/sonner.test.tsx`, the five deleted `src/app/(dev)/design/sandbox/toasts/*` files (all owned), the generated `docs/design/library.md` / `rules.generated.json`, this manifest, and four exceptions, each named and why:
+  - `touchpoints.ts`, `(shell)/lab/boards.ts`, `sandbox/registry.ts`, `rules/component-notes.ts`: the retirement exception this round's every lane uses (`SandboxId`/`DESK_ORDER`/`REGISTERED`/`BOARD_COMPONENTS` lines only; the RULINGS row rewritten as shipped, `toasts` stays a `RulingId`; the `sonner.tsx` `for` line refined in place).
+  - `src/components/ui/floating-layer.test.ts`: one line added to its `OUTSIDE` allowlist. The new `sonner.test.tsx` imports the real `toast` from `"sonner"` (`vi.unmock`, since `vitest.setup.ts` stubs the whole package for every other component test), which bible 15's own portal scan (`/Primitive\.Portal|from "vaul"|from "sonner"/` over every `ui/*.tsx`) would otherwise flag as an unregistered floating primitive. Not a panel, so `SURFACES` was the wrong list.
+  - `src/app/(dev)/design/sandbox/overtaken.ts` and its test: the `toasts.where`/`toasts.stack` overtaken badges retired with the board, on the exact convention this file already used for `app-vocabulary`'s own retirement above them (a badge pointing at a question nobody is asking any more is worse than an answer left orphaned); `overtaken.test.ts`'s hardcoded `overtakenOn("toasts")` moved from 2 to 0 to match, same as its neighbouring `app-vocabulary` assertion.
+  - `src/app/layout.tsx`: the one pre-authorized exception line was NOT touched. Every prop (`position`, `offset`, `mobileOffset`, `expand`) lives inside `ui/sonner.tsx`'s own defaults, so the bare `<Toaster />` call site needed no edit.
+- The items, one line each:
+  - `where=top`: shipped, `position="top-center"` plus a 5rem top offset (`offset`/`mobileOffset`, the same value on both since none of the three bars it clears change height by breakpoint).
+  - `material=card`: shipped as a no-op - the popover-card classes were already exactly this; verified unchanged.
+  - `life=persist`: shipped by patching sonner's own `toast.error` once at module load (`duration: Infinity` + `closeButton: true`, Symbol-guarded against double-patching under Fast Refresh); the 65 existing call sites needed no edit; the other four kinds keep sonner's own clock (or a call site's own override, e.g. `guest-reel-overlay.tsx`'s 8000ms) untouched.
+  - `stack=expanded`: shipped via the Toaster's `expand` prop.
+  - `action=always`: shipped as sonner's own existing `action`/`cancel` prop, sanctioned for a future success toast (Undo) as much as today's refusals (Upgrade, already live in three call sites); no new helper needed.
+  All five land in the one Library entry, `/design/library/sonner` (`src/components/ui/sonner.tsx`), whose `for` line and six contracts (`sonner.test.tsx`) now state the ruling.
+- Calls his to overrule on the alias, one line each:
+  - The exact top offset (5rem): one shared number for host, guest and marketing since one Toaster mounts globally; verified it clears all three bars (marketing 4rem, the app shell and the guest header both 3.5rem, the last measured live on `/demo` at 57px) with room to spare - never measured on a real signed-in host page.
+  - `visibleToasts` stays sonner's default of three: matches the board's own "three bulk outcomes" example; a fourth toast in a real batch stays mounted-but-invisible per sonner's own stock behaviour (an error's `duration: Infinity` at least keeps it from expiring unseen).
+  - The close control forced on every persistent error: verified legible against the red `--destructive` background in both themes on `/design/library/sonner`'s live specimen; never seen on a real production error toast signed in.
+  - No `src/lib/toast.ts` helper: sonner's `action`/`cancel` already is the mechanism; its shape (were one ever needed) is his to define.
+- The help articles this lane makes stale: none. The five that mention a toast (`review-uploads-before-they-appear.mdx`, `how-guests-join-and-upload.mdx`, `hide-remove-and-restore.mdx`, `a-photo-is-missing-from-the-album.mdx`, `an-upload-wont-finish.mdx`) all describe a toast's WORDS ("Sent, waiting for host approval", "Hidden from everyone", "Tap to retry"), and this lane changed no call site's words.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/library/sonner`'s Toast specimen - press Success then Error and watch both stack full-height under the header band, the error persisting behind its close button past the success's four-second clock - at 1440 and 375, both themes (all four already walked live on `pnpm dev -p 3131` this session). Once merged: a real guest upload on the alias for the "Sent, waiting for host approval" toast clear of the guest dock and header, and a host's bulk toast signed in (both flagged in the brief as this lane's blind spot).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Wired the toasts board whole (five verdicts at 20:05 EDT, every one the board's own recommendation, no notes): the one Toaster moved to `position="top-center"` with a 5rem top offset clearing the tallest bar in the product, `expand` always on so a batch reads as full sentences rather than sonner's hover-to-open pile, sonner's own `toast.error` patched once so every error persists behind a close control while the other four kinds keep their clock and none of the app's 65 existing call sites needed an edit, and the action/cancel slot sanctioned as sonner's own mechanism for any call site. The popover-card material stayed exactly as it was. Verified live at 1440 and 375 in both themes. The board retired (`sandbox/toasts/` deleted, its registry/boards/touchpoints/component-notes lines gone with it, the RULINGS row rewritten as shipped); two stale `overtaken` badges retired alongside it.
