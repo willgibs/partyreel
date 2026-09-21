@@ -801,14 +801,24 @@ reader, it stays `undefined` in prod. [`demo.ts`](../../src/lib/demo.ts) is the 
 become real links; unset → no demo anywhere (decorative QR, no CTA). The guest-page demo-mode behavior is in
 [guest-flow.md](guest-flow.md).
 
-**`doors=pile`** (`docs/design/rulings.md` the sixth batch, 2026-09-20: the footer's fanning photo pile,
-[`footer-demo.tsx`](../../src/components/marketing/chrome/footer-demo.tsx), is the rule every demo door works
-toward; a labelled QR ticket does not). The Features nav mega-panel's featured pane
-([`mega-panel.tsx`](../../src/components/marketing/chrome/mega-panel.tsx)) no longer carries
-[`demo-ticket.tsx`](../../src/components/marketing/system/demo-ticket.tsx) — that panel simply falls back to
-its plain one-column list, and the ticket component stays on disk unused outside the Library's own specimen.
-Round two on `doors` (queued) draws the hero's and a feature page's doors in the pile's own idiom; today they
-are unchanged (the hero's real matrix, `DemoCtaLink`'s text line).
+**`door=frame`** (`docs/design/rulings.md` "the closing sitting's second batch", 2026-09-20/21, overriding
+round one's `doors=pile`: his note on the board's own drawing, "this visual is the same height as the image
+banner behind, and isn't as noticeable as it could be"). One `DemoFrame` — a photograph in a plain mat, the
+code tucked into its corner
+([`demo-ticket.tsx`](../../src/components/marketing/system/demo-ticket.tsx)) — is the object every demo door
+now wears, at all four places: the home hero's plate
+([`cinema-hero.tsx`](../../src/components/marketing/sections/home/cinema-hero.tsx)'s `DemoQr`, sized past the
+shipped corridor's own tiles rather than the lab's flat mock, with a `heroCompact` pair below `lg`), the
+footer's invitation ([`footer-demo.tsx`](../../src/components/marketing/chrome/footer-demo.tsx), the fanning
+photo pile it replaces retired), a feature page's line beside its words
+([`demo-cta-link.tsx`](../../src/components/marketing/system/demo-cta-link.tsx)), and the Features nav
+mega-panel's featured pane ([`mega-panel.tsx`](../../src/components/marketing/chrome/mega-panel.tsx)), empty
+since `doors=pile` retired its ticket. The corner code trades the hero's old bare-QR pixel sizes for
+proportion (a full-size badge on a photograph-sized mat read as a QR code with a photo leaking out from
+behind it): `hero`/`heroCompact` follow the retired ticket's own precedent instead, a code that reads as a
+symbol and a tap target rather than an assumed scan; `footer` keeps a bigger badge because its copy
+promises a scan and carries none of the hero's vertical budget. `DemoTicket` stays the frame's own complete
+door (its own link and env gate) for the Library's specimen and the site-chrome sandbox alone.
 
 ## See also
 
