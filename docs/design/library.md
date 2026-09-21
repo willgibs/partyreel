@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 867 contracts on 121 components · 24 standing boards.**
+**22 laws · 18 policies · 877 contracts on 122 components · 23 standing boards.**
 
 ## What binds you
 
@@ -354,6 +354,7 @@ Contracted but outside the library's directories:
 - `src/components/admin/health-band.tsx` (6 guards)
 - `src/components/admin/inbox-pane.tsx` (4 guards)
 - `src/components/app/dashboard/events-section.tsx` (9 guards)
+- `src/components/app/dashboard/next-step-band.tsx` (5 guards)
 - `src/components/app/event-feed/bulk-bar.tsx` (9 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
@@ -427,7 +428,7 @@ Contracted but outside the library's directories:
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
 - `src/lib/dashboard/events-view.ts` (9 guards)
-- `src/lib/dashboard/next-step.ts` (10 guards)
+- `src/lib/dashboard/next-step.ts` (15 guards)
 - `src/lib/glass.ts` (6 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
 - `src/lib/shared/tile-size-cookie.ts` (7 guards)
@@ -459,7 +460,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
-| `app-shape` | host | Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand |
 | `guest-verify` | guest | Round two: five decisions on the shipped door, album, guest list, queue and settings sheet, phone first at 375 with 1440 on the knob, drawn on top of the four held rulings. What a typed address does on a session that proved nothing, what such a session may add now that the host's month is the only cost left, where unproven content goes and what a guest is told about the person behind it, his case 2 with cases 1 and 3 drawn beside it as settled fact, and what Require accounts becomes once uploading no longer requires one. The rate-limit wall is re-measured from Supabase's current table, and three ideas are refused on the frames with the cost that refused them |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |

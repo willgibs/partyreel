@@ -10,10 +10,13 @@ import { cn } from "@/lib/utils";
  * the bin and the saved events became FILTERS of the events list rather than
  * chips of their own. Nothing in the app renders this any more.
  *
- * It stays, with its props intact, because the LAB draws it: the `app-shape`
- * board's `home.tsx` composes it as the "inbox, as today" option, and a wiring
- * lane never deletes or reshapes a module the lab imports. Change its props and
- * that board stops building.
+ * It stays, with its props intact, because the Library's own compositions page
+ * still draws it directly (`FilterChipsDemo`,
+ * `(shell)/library/compositions/composition-demos.tsx`) as the shipped bar's
+ * own record, not because any board does — `app-shape` (home-states-wiring,
+ * 2026-09-20) retires this round without ever composing it: its `home.tsx`
+ * built the pulse's real bands only. Change this component's props and that
+ * composition stops building.
  *
  * The dashboard filter bar (Phase 5 S2b) — the single-feed replacement for the
  * radix tabs. A controlled segmented control: NOT radix Tabs (one-panel-per-value
