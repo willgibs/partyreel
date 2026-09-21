@@ -138,29 +138,23 @@ const PRICING = {
 /* The closing sitting's first batch (2026-09-20, 18:20 EDT): five boards, four
    of them a round two. `body-type` r2 is deliberately absent: a rung that pairs
    an icon with its text is mechanical, it reaches no open question, and round
-   one reached none either. `guest-verify`'s four are HELD (above). */
+   one reached none either. `guest-verify`'s four were HELD (above) and are
+   superseded now, so nothing spreads them; `app-vocabulary` r2's marker went
+   the same way when round one's badges retired with its asks. A BATCH KEEPS ONLY
+   THE MARKERS SOMETHING SPREADS: an unused one is a warning in the gate, and the
+   batch it belonged to is written above it in words either way. */
 const APP_SHAPE_2 = { by: "app-shape", since: "app-shape r2, 20 Sep" } as const;
 const GUEST_SHAPE_2 = {
   by: "guest-shape",
   since: "guest-shape r2, 20 Sep",
 } as const;
-const VOCABULARY_2 = {
-  by: "app-vocabulary",
-  since: "app-vocabulary r2, 20 Sep",
-} as const;
-const VERIFY = {
-  by: "guest-verify",
-  since: "guest-verify r1, 20 Sep",
-} as const;
 
 /* The closing sitting's second batch (2026-09-20, 22:45 EDT; 21 Sep in the
    ledgers, which stamp UTC): thirteen verdicts, four of them a round two and
    `app-pricing` a whole round one. Every one of the five boards retires at its
-   wiring, and a retiring board's ruling goes on reaching from here. */
-const AVATAR_2 = {
-  by: "seed-avatar",
-  since: "seed-avatar r2, 20 Sep",
-} as const;
+   wiring, and a retiring board's ruling goes on reaching from here (`seed-avatar`
+   r2's marker excepted: the one question it reached was `guest-verify.unproven`,
+   which left with that board). */
 const DOOR_2 = { by: "app-door", since: "app-door r2, 20 Sep" } as const;
 const DEMO_2 = { by: "demo-event", since: "demo-event r2, 20 Sep" } as const;
 const PRICING_2 = {
@@ -256,29 +250,15 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // question nobody is asking any more is worse than an answer left
   // orphaned).
 
-  /* ── guest-verify ────────────────────────────────────────────────────── */
-  // Round two relitigates the identity shape whole, so its five asks are the
-  // newest questions on the desk; two of them already have a backdrop that
-  // moved. His own round one answers are HELD (above) and reach from there,
-  // never onto this board: a board never overtakes its own question.
-  "guest-verify.unproven": {
-    ...AVATAR_2,
-    ruling:
-      "a seeded avatar is one identity hue at four tonal depths, hashvatar's own register",
-    line: "stands: the face a mark would ride is a blended mesh now, so a small dot has a busier ground to clear than the flat ramp it was drawn on. Also reached by guest-upload r1, 21 Sep: a photograph waiting on somebody else is a drawn tile now, which is the held option's own mechanism.",
-  },
-  "guest-verify.gate-switch": {
-    ...UPLOAD,
-    ruling:
-      "a photograph held for the host waits at the album's head, dimmed under a clock, on its own device",
-    line: "stands: the uploads section's other switch has a drawn guest side now, so this picks what the account row produces, not whether it has rows.",
-  },
-  "guest-verify.allowance": {
-    ...APP_PRICING,
-    ruling:
-      "a locked control says why it is locked and offers the way through, never just sits unusable",
-    line: "stands: a bound that only refuses is ruled out, so whichever cap wins has to arrive as an offer, and the size of it is still unpicked. Also reached by guest-upload r1, 21 Sep: the act now states its terms before the files fly, which is where a bound would first be said.",
-  },
+  /* ── guest-verify ──────────────────────────────────────────────────
+   * RULED WHOLE AND RETIRED (2026-09-21, `verified-email-lab`). Round two's
+   * `address=none` removed anonymity from the product, which answered the rest
+   * of the board with it, so the three badges this section carried (`unproven`,
+   * `gate-switch`, `allowance`) are gone with the asks they named: a badge
+   * pointing at a question nobody is asking any more is worse than an answer
+   * left orphaned, the same convention as `app-vocabulary`, `toasts` and
+   * `seed-avatar` below. His own round one rulings reached nothing from here in
+   * the end, and the HELD note above says why they never will now. */
 
   /* ── seed-avatar ─────────────────────────────────────────────────────────
    * `look` was the one question a HELD ruling reached and nothing else had
