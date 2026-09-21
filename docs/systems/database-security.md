@@ -54,7 +54,12 @@ The expected, accepted set:
   the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
   DROPPED in the one-link consolidation.)
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `remove_my_upload_by_session` (an anonymous guest's own-photograph removal: the session token validated inside against the media's guest row, a claimed row never touched; reached only through `POST /api/guests/remove` on the admin client; the sixth batch, 2026-09-20), `create_media`,
-  `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`.
+  `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`,
+  `set_guest_display_name` (the identity reshape, `20260921150000`: it names or renames a name-only
+  guest by their session token. Service-role for the usual reason AND a second one — PROFANITY and
+  the reserved-name list cannot be checked in SQL, because the obscenity matcher must never ship to
+  a browser, so the route that calls it is part of the gate, exactly as `updateDisplayNameAction` is
+  for a profile name).
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
   route-level guard (the R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
   (H1) + an unthrottled password oracle (H2) + spam/victim-email poisoning (H3). FIX: `revoke
@@ -94,6 +99,10 @@ The expected, accepted set:
 - **Service-role-only (must NEVER appear in either advisor list):** the 6 server-mediated write/password
   RPCs above, plus `purge_media_rows`, `record_link_hit`, `host_active_bytes`, and the trigger-only functions
   (`set_media_purge_at`, `set_event_purge_at`, `enforce_event_limit`, `handle_new_user`,
+  `sync_event_verified_email_flags` [the identity reshape's twin-keeper: it holds
+  `events.require_verified_email` and the legacy `allow_anonymous_uploads` exactly opposite in both
+  directions, which is what let the switch land as an EXPAND migration that production survives —
+  and what keeps `get_public_profile`'s QA #36 clause, still written on the legacy flag, truthful],
   `notify_gallery_change` [the gallery doorbell, Phase 3], `set_media_removal_provenance`,
   `guard_media_privileged_transitions`, `guard_event_privileged_transitions` [the QA-Q3 transition
   guards, see Invariants], …). If an unexpected one shows up, an over-broad
@@ -108,7 +117,9 @@ The expected, accepted set:
 - **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO: `reports`, `sent_emails`,
   `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`, `job_applications`,
   `export_log` (per-attempt "Download all" log — HMAC-of-IP, never a raw IP), `ops_flags` (the `export_enabled`
-  kill-switch + future ops toggles), `upload_forensics` + `forensic_audit_log` (raw IP BY RULING,
+  kill-switch + future ops toggles), `upload_forensics` + `forensic_audit_log` (raw IP BY RULING; `guest_display_name` joins the
+  denormalized-at-capture identity since the reshape, because for a name-only guest the typed name
+  IS the identity a lawful process response needs,
   deny-all is the containment; → [trust-safety-forensics.md](trust-safety-forensics.md)) — all
   operator/service-role-only. The "Download all" export adds NO new
   SECURITY DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing), so the 0028/0029
@@ -134,10 +145,16 @@ The expected, accepted set:
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
   - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`. Service-role only: `email` (QA #23, `20260729180000`: it is the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive; audited across both deployed branches first — no client path ever wrote it), `display_name` (Phase 1: the `authenticated` UPDATE grant was REVOKED so the public name can't be set unfiltered; written ONLY by `updateDisplayNameAction` via the admin client, after required + profanity + reserved checks), `tier`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
   - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`) WITHOUT a column grant — do NOT grant `update(purge_at)`. Likewise ungranted: `removed_by_uploader` (owner-context `remove_my_upload` — a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker, QA #2), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, QA #8/#24, trigger/service-role-written). **SELECT is column-scoped too** (migration `20260707150000`): `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host can't detect a legal hold via PostgREST (the host may BE the investigated uploader, so the hold is invisible by design), and neither are the three later flags above. Consequences: an authenticated `select("*")` on media ERRORS — the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant, and pins `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
-  - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability, and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. Writes were already fully revoked (RPC-only).
+  - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability, and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. Writes were already fully revoked (RPC-only). The reshape's `display_name` and
+    `verified_at` were deliberately LEFT OUT of that grant: a new column is fail-closed here, the
+    guest list and the credit are built server-side on the admin client, and the narrower the host's
+    PostgREST view of this table the better.
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE scoped to the host's own event via ownership); INSERT/UPDATE REVOKED at the table grant, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed), and the ONLY position-update path is the `reorder_reel(p_event_id, p_media_ids)` RPC (host-owns + a set-equality guard: the id list must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. Mirrors `media_likes` exactly but HOST-scoped, not owner-self (S5 Reel R1; reorder 2026-06-22).
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list` (+ `insert(host_id)`, `update(deleted_at)` — SOFT-DELETE ONLY; the un-delete direction is refused by a trigger, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (the
+    identity reshape's switch, free on every tier and default ON; never write it and its legacy twin
+    in one statement expecting both to stand, the trigger resolves a contradiction in the new
+    column's favour) (+ `insert(host_id)`, `update(deleted_at)` — SOFT-DELETE ONLY; the un-delete direction is refused by a trigger, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
 - ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers**
   (QA #7/#10, `20260729180000`). A column-scoped grant says *which* column may change, never *from what
   to what* — so `update(status)` also bought "un-remove", and `update(deleted_at)` also bought
@@ -184,6 +201,14 @@ The expected, accepted set:
   features). You MUST
   `revoke insert,update,delete … from authenticated` at the TABLE level FIRST, then `grant (cols)`. Verify
   with `has_column_privilege`, then re-run `get_advisors`. (Fixed in `…163011_lock_down_events_write_grant`.)
+- ★ **And the mirror: a TABLE-level `revoke` CASCADES TO THE COLUMN GRANTS and wipes them all.** So
+  "re-assert the table revoke first" is right when you are about to re-grant the whole column list,
+  and a loaded gun when you only mean to ADD one column. Measured on a throwaway PostgreSQL 17.10
+  cluster while writing `20260921150000`: after a belt `revoke insert, update, delete on
+  public.events from authenticated, anon`, `pg_attribute.attacl` for `events` held exactly ONE entry
+  (the new column) and an `authenticated` UPDATE naming `allow_anonymous_uploads` failed with
+  "permission denied for table events" — the whole host app, down, from a line that reads like a
+  safety belt. **Adding a column = a bare additive `grant insert (col), update (col)`, nothing else.**
 - **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
   `anon`.** A bare `revoke … from public` does NOT remove it (it bit the slug RPCs). Any host-only RPC
   created via the MCP must explicitly `revoke execute … from anon`; always re-run `get_advisors` to confirm anon vs authenticated placement.
@@ -231,6 +256,18 @@ The expected, accepted set:
 
 **Migrations are immutable history**: never edit one that has been applied, add a new one. The filename IS
 the applied version, which is what keeps the repo and the live schema comparable.
+
+★ **Pre-flight a migration on a throwaway local cluster before handing it off** (Homebrew
+`postgresql@17` is installed; `initdb` into a scratch dir, socket under `/private/tmp` because a
+scratchpad path blows the 103-byte socket limit, `LC_ALL=C` or the postmaster dies "multithreaded
+during startup"). Load a stand-in carrying the REAL column types/defaults/constraints of the tables
+you touch, the Supabase roles, an `auth.uid()`/`auth.users` stub, the CURRENT bodies of every
+function you replace and the touched grant state; apply the migration VERBATIM; run the contract
+check; then run a second probe that drives the DEPLOYED build's paths through `set local role
+authenticated` / `anon`. It does not validate against live DRIFT (step 1 still stands), but it is
+the only thing that catches a wrong GRANT before it reaches production — it caught the
+table-revoke cascade above, and `pg_get_functiondef` before/after is then a real diff to hand over
+rather than a claim.
 
 QA-round workflow lessons (2026-07-29 — don't relearn these):
 - **★ Apply BEFORE push when an RPC signature changes.** PostgREST resolves RPCs by argument NAME, so

@@ -1,47 +1,48 @@
 ---
-track: verified-email-migration
+track: verified-email-lab
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "9c90bc61"          # the launch-prep SHA the branch was cut from
-board: none            # the identity reshape, wave 0: the schema alone; no board
+cut: "bc28580b"          # the launch-prep SHA the branch was cut from
+board: guest-verify    # retires at this lane's merge (its five asks ruled on his words); the desk pass rides in the same seat
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - supabase/migrations/
-  - src/lib/db/migration-guards.test.ts
-  - src/lib/social/public-profile-visibility.test.ts
-  - src/lib/constants/tiers.test.ts
-  - docs/systems/database-security.md
+  - src/app/(dev)/design/sandbox/guest-verify/
+  - src/app/(dev)/design/sandbox/overtaken.ts
+  - src/app/(dev)/design/sandbox/overtaken.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/lib/validation/profile.ts
-  - src/lib/db/mutations/guest.ts
-  - src/lib/db/mutations/events.ts
-  - src/app/api/guests/route.ts
-  - src/lib/guest/claim-uploads.ts
-  - src/lib/forensics/capture.ts
-  - docs/systems/guest-flow.md
+  - docs/reviews/guest-verify.json
+  - docs/ROADMAP.md
   - docs/design/rulings.md
+  - src/components/lab/exploration.ts
+  - src/components/lab/board-spec.ts
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/touchpoints.ts
+  - docs/tracks/orchestrator.md
 ---
 
-# lp/verified-email-migration
+# lp/verified-email-lab
 
-**Goal.** WAVE 0 of the identity reshape, alone: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. This lane writes the schema and nothing else (the migration, the rolled-back contract check, the tests that parse migration text); the Orchestrator applies it before any other lane is cut, so every function body is carried verbatim from its latest definition and changed only where the brief says. The brief below is the whole reading.
+**Goal.** Wave 1 of the identity reshape: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. This lane retires `guest-verify` (every ask ruled on his words) and runs the desk pass across the fourteen standing boards. The brief below is the whole reading.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `9c90bc61`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `bc28580b`)
 
-- The migration in the schema section, whole, every function carried verbatim from its latest definition (the lane
-  hands off the `pg_get_functiondef` diffs it started from) and changed only where the schema section says; every
-  grant and revoke re-asserted (R1.8); the rolled-back contract check as a SQL file in its scratch folder and pasted
-  whole into the Handoff; the text-parity tests: the latest-wins guards in `migration-guards.test.ts` (`create_guest`'s
-  new raise, the nulled name, `verified_at`; `create_media`'s "not accepting" raise; `get_upload_context`'s two keys;
-  `set_guest_display_name`'s revoke and grant; the trigger function's revoke; the claim's update never naming `email`;
-  a new latest-wins guard for `get_event_by_qr_token`'s QA #40 clauses and anon grant; the existing pins carried:
-  `'private'`, `p_unlock_proven`, `'password'`, `'visibility', v_event.visibility`, the exact `get_upload_context` grant
-  string, `for update`), `public-profile-visibility.test.ts` repointed with its gated negative, the `between 1 and 60`
-  parity with `DISPLAY_NAME_MAX_LENGTH`, `tiers.test.ts:201-203` extended. No TypeScript beyond the tests; no docs
-  beyond `database-security.md`'s RPC inventory (the two new functions, the trigger, the forensics column, the
-  profanity note).
-- Owns: `supabase/migrations/`, `src/lib/db/migration-guards.test.ts`, `src/lib/social/public-profile-visibility.test.ts`,
-  `src/lib/constants/tiers.test.ts`, `docs/systems/database-security.md`. Reads: `src/lib/validation/profile.ts`,
-  `src/lib/db/mutations/guest.ts`, `src/lib/db/mutations/events.ts`, `src/app/api/guests/route.ts`,
-  `src/lib/guest/claim-uploads.ts`, `src/lib/forensics/capture.ts`, `docs/systems/guest-flow.md`, `docs/design/rulings.md`.
+- The board RETIRES (his answer 4) under the retirement exception, its lines in `registry.ts`, `lab/boards.ts` and
+  `touchpoints.ts` as Handoff exception lines (RulingId kept; the RULINGS row rewritten as shipped with its `lives`
+  list; no `board` block; R2.13); `sandbox/guest-verify/` deleted; the board's three `guest-verify.*` entries removed
+  from `overtaken.ts` in the same commit (the test refuses a key naming a retired board); the ledger deleted at the
+  record by the Orchestrator. Its gate is green only after syncing past `verified-email-guest`'s merge if that lane's
+  manifest still reads anything it deletes (it does not: the reads were dropped); the lane syncs before handoff anyway.
+- The desk pass in the same lane, after the retirement commit, is ONE paragraph and NO new badge: `overtaken.ts` gains
+  "a hold can be superseded by his own next shape" in the HELD comment (`gate=after` fell to `address=none` and the
+  renamed switch; recorded in rulings.md, never as a badge). The reach of "every upload carries a name" across the
+  fourteen standing boards is NOT badged: the overtaken audit's reshape lanes (Lanes 62 to 65, cut 2026-09-21 on Will's
+  cleanup) fold that context into the questions themselves and delete every existing badge on those boards as exception
+  lines in this file; this lane deletes only the three `guest-verify` entries with the board. When the reshape lanes have
+  merged the map holds no entry; the file, its type, its test and the desk's badge stay as the mechanism for a future
+  overlap, which the stacking rule (PROGRAM.md) is to avoid.
+- Owns: `src/app/(dev)/design/sandbox/guest-verify/` (deleted), `src/app/(dev)/design/sandbox/overtaken.ts`,
+  `src/app/(dev)/design/sandbox/overtaken.test.ts`. Reads: `docs/reviews/guest-verify.json`, `docs/ROADMAP.md`,
+  `docs/design/rulings.md`, `src/components/lab/exploration.ts`, `src/components/lab/board-spec.ts`,
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/touchpoints.ts`, `docs/tracks/orchestrator.md`.
+  Verify: `overtaken.test.ts`, `queue.test.ts` and the registry tests green; `lab:smoke` whole; the gate.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
