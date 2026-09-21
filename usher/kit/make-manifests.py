@@ -296,17 +296,43 @@ RESHAPE_TEXT={
 "verified-email-lab":"**Goal.** Wave 1 of the identity reshape: "+_R+"This lane retires `guest-verify` (every ask ruled on his words) and runs the desk pass across the fourteen standing boards. The brief below is the whole reading.",
 "guest-capture":"**Goal.** A NEW BOARD on Will's word at approval (2026-09-21, verbatim: \"You can wire it now as you recommended, but I'd like to get this in the lab for refinement.\"): the capture flow shipped by `verified-email-guest` (the offer after a name-only guest's first upload, the follow moment, the profile the guest lands on) refined as a lab catalog for his next sitting, drawn on the SHIPPED components; lab-only, no production byte. The brief below is the whole reading.",
 }
+# The overtaken audit (2026-09-21): Will's cleanup of the badged questions; four reshape lanes, one board folder each.
+CLEANUP={"reshape-viewer-curation","reshape-studio-export","reshape-admin-help-emails","reshape-marketing-boards"}
+CLEANUP_TEXT="**Goal.** A lane of the overtaken audit (Will, 2026-09-21, verbatim in `docs/design/rulings.md` under \"the overtaken audit: reshape or remove, and the stacking rule\"): \"For any open questions that have been 'overtaken', please evaluate whether they should be reshaped or removed\", with his criteria (reshape a question that could still offer a better solution than the earlier selection that overtook it, with updated context; remove only a question with zero potential value; \"I'd rather you lean into reshape if you aren't confident in removal\"; \"everything is unprotected and anything may be re-litigated\"). The Orchestrator read every badged question against the ruling its badge names and judged each: the verdicts for this lane's boards are the brief below, one line per question, and are the whole reading. This is lab work on the boards' own folders: no production byte."
+OWNS.update({
+"reshape-viewer-curation":["src/app/(dev)/design/sandbox/media-viewer/","src/app/(dev)/design/sandbox/host-curation/"],
+"reshape-studio-export":["src/app/(dev)/design/sandbox/reel-studio/","src/app/(dev)/design/sandbox/export-flow/"],
+"reshape-admin-help-emails":["src/app/(dev)/design/sandbox/admin-triage/","src/app/(dev)/design/sandbox/help-center/","src/app/(dev)/design/sandbox/emails/"],
+"reshape-marketing-boards":["src/app/(dev)/design/sandbox/site-chrome/","src/app/(dev)/design/sandbox/profile-page/","src/app/(dev)/design/sandbox/privacy-hero/","src/app/(dev)/design/sandbox/album-motion/","src/app/(dev)/design/sandbox/loose-ends/","src/app/(dev)/design/sandbox/contact-page/","src/app/(dev)/design/sandbox/press-page/"],
+})
+_LAB=["src/app/(dev)/design/sandbox/overtaken.ts","src/components/lab/exploration.ts","src/components/lab/board-spec.ts","src/app/(dev)/design/touchpoints.ts","docs/design/rulings.md","docs/STATUS.md"]
+READS.update({
+"reshape-viewer-curation":_LAB+["src/components/guest/live-gallery.tsx","src/components/shared/media-lightbox.tsx","src/components/app/event-feed/event-gallery.tsx"],
+"reshape-studio-export":_LAB+["src/app/(app)/dashboard/[eventId]/reel/","src/components/app/export/","src/components/guest/live-gallery.tsx"],
+"reshape-admin-help-emails":_LAB+["src/app/admin/reports/","content/help/"],
+"reshape-marketing-boards":_LAB+["docs/reviews/site-chrome.json","docs/reviews/profile-page.json","docs/reviews/privacy-hero.json","src/components/marketing/chrome/","src/components/shared/arrival.css"],
+})
+BOARD.update({
+"reshape-viewer-curation":"media-viewer    # and host-curation: both reshaped in place, unanswered, at their round; no retirement, no new board",
+"reshape-studio-export":"reel-studio     # and export-flow: both reshaped in place, unanswered, at their round; no retirement, no new board",
+"reshape-admin-help-emails":"admin-triage    # and help-center, emails: reshaped in place, unanswered, at their round; no retirement, no new board",
+"reshape-marketing-boards":"site-chrome     # and profile-page, privacy-hero, album-motion, loose-ends, contact-page, press-page: reshaped in place inside their open rounds; no retirement, no new board",
+})
+LANE_SECTION.update({"reshape-viewer-curation":r"Lane 62: `reshape-viewer-curation`","reshape-studio-export":r"Lane 63: `reshape-studio-export`","reshape-admin-help-emails":r"Lane 64: `reshape-admin-help-emails`","reshape-marketing-boards":r"Lane 65: `reshape-marketing-boards`"})
+
 def goal_text(track):
     if track in RESHAPE: return RESHAPE_TEXT[track]
+    if track in CLEANUP: return CLEANUP_TEXT
     if track in EXPLORE: return EXPLORE_TEXT
     if track in FIXES: return FIX_TEXT
     tail=(" His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the\nsection "+('"the sixth batch"' if track in SIXTH else '"the fifth batch"')+"); the Orchestrator's reading of every verdict is below under \"The verdict map\", and this lane's\nbrief follows it. Read the brief end to end before the first edit; where it says \"his to overrule\", build the recommended\nanswer and list it in the Handoff.")
     if track in QUEUE: return QUEUE_TEXT+tail
     return "**Goal.** "+("Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first." if track in SIXTH else "Will's fifth batch (2026-09-19, build `69a9a17`) answered the four boards at the head of the desk; this lane is one of ten cut from it.")+tail
 def tree_of(track):
-    if track in RESHAPE or track in FIXES: return "`"+CUT+"`"
+    if track in RESHAPE or track in FIXES or track in CLEANUP: return "`"+CUT+"`"
     return "`806695d1`" if track in SIXTH else "`69a9a177`"
 def map_text(track):
+    if track in CLEANUP: return "(no verdict map: the audit's verdicts for this lane's boards are the brief above, one line per question; the rulings they fold in are verbatim in docs/design/rulings.md)"
     if track in RESHAPE: return "(no verdict map: one verdict and a note, verbatim in docs/design/rulings.md under \"the identity reshape\", and his four answers at approval; the brief above is the Orchestrator's whole reading)"
     if track in EXPLORE: return "(no verdict map: an exploration asks; the rules of the exploration shape are in docs/PROGRAM.md and the board precedents in src/app/(dev)/design/sandbox/)"
     if track in QUEUE: return VERDICTS6.split(chr(10),1)[1].strip()
