@@ -232,9 +232,12 @@ function OnceOrAgain({
 }
 
 /**
- * The live result. `aria-live` so a keyboard slider announces the new verdict;
- * the prints are `aria-hidden` inside `PhotoStack`, so what is announced is
- * the plan, its price and the reason, never a deck of decoration.
+ * The live result. `aria-live` sits on the VERDICT alone (the plan, its price
+ * and the one sentence of why), not on the whole card: a polite region wrapped
+ * around the room bar and the stat trio as well would read four numbers out on
+ * every step of a slider a person is dragging, and every one of them is
+ * derivable from the plan it just named. The prints are `aria-hidden` inside
+ * `PhotoStack`, so a deck of decoration is never announced at all.
  */
 function ResultCard({
   rec,
@@ -261,8 +264,8 @@ function ResultCard({
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4">
         <PhotoStack ids={DECK} shown={prints} faded={false} />
 
-        <div aria-live="polite" className="flex flex-col gap-4">
-          <div>
+        <div className="flex flex-col gap-4">
+          <div aria-live="polite">
             <p className="text-caption text-faint">We recommend</p>
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h3 className="font-heading text-subsection">{rec.plan.name}</h3>
