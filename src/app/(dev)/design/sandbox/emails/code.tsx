@@ -8,7 +8,13 @@
  * banner says so on every option.
  */
 
-export type CodeShape = "digits" | "digits-button" | "button";
+/**
+ * `button` (no visible digits, a Sign in button only) left the option set:
+ * app-door r1 makes the code the way in for everybody, so a mail with no
+ * code at all is no longer a real answer. Both shapes left standing draw the
+ * digits; they differ only in whether a Continue button rides beneath them.
+ */
+export type CodeShape = "digits" | "digits-button";
 
 const CODE = "482915";
 
@@ -30,25 +36,19 @@ export function CodeMock({ shape }: { shape: CodeShape }) {
       <h1 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 12px" }}>
         Sign in to Partyreel
       </h1>
-      {shape !== "button" ? (
-        <p
-          data-inbox-digits
-          style={{
-            fontSize: 40,
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-            fontVariantNumeric: "tabular-nums",
-            margin: "20px 0",
-          }}
-        >
-          {CODE}
-        </p>
-      ) : (
-        <p style={{ fontSize: 14, color: "#444", margin: "12px 0 20px" }}>
-          Tap the button below on the device you started on.
-        </p>
-      )}
-      {shape !== "digits" ? (
+      <p
+        data-inbox-digits
+        style={{
+          fontSize: 40,
+          fontWeight: 700,
+          letterSpacing: "0.15em",
+          fontVariantNumeric: "tabular-nums",
+          margin: "20px 0",
+        }}
+      >
+        {CODE}
+      </p>
+      {shape === "digits-button" ? (
         <p style={{ margin: "8px 0 20px" }}>
           <a
             data-inbox-cta
@@ -63,7 +63,7 @@ export function CodeMock({ shape }: { shape: CodeShape }) {
               display: "inline-block",
             }}
           >
-            {shape === "button" ? "Sign in to Partyreel" : "Continue"}
+            Continue
           </a>
         </p>
       ) : null}

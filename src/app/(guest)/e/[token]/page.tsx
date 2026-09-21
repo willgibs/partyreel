@@ -370,12 +370,11 @@ export default async function GuestEventPage({
    * THE HOST'S SWITCH (the identity reshape, 2026-09-21). `GuestEvent.require_verified_email`
    * is the field every new read keys on (guest-events.ts's own words); the legacy
    * `allow_anonymous_uploads` stays on the type for `main`'s build and QA #36 alone.
-   * ★ verified-email-host-copy's one-line exception, applied after syncing past this
-   * lane's merge (lane-check note in its Handoff): the dual-path read above shimmed
-   * for a `GuestEvent` where the rename had not landed yet, which server's now has —
-   * so the fallback branch is unreachable and `tsc` refused it (never `x`). OFF means
-   * NAMES MODE: a guest types a display name at the door and uploads under it, marked.
+   * OFF means NAMES MODE: a guest types a display name at the door and uploads
+   * under it, marked.
    */
+  // The seam collapsed at the merge (verified-email-server landed first): the
+  // field is on GuestEvent, and the legacy flag is its trigger-kept opposite.
   const requireVerifiedEmail = event.require_verified_email;
 
   // The host as a public card, for the capture flow's follow moment. Only where

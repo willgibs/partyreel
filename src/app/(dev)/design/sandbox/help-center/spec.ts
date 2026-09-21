@@ -25,9 +25,9 @@ export const HELP_CENTER = defineExploration({
   title: "Where a problem lands",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: who the hub greets first, whether the index sheet survives, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from the product, whether feedback goes anywhere, troubleshooting's dead end, and how far search reaches.",
+      "The overtaken audit's reshape: five questions reframed with admin r1, app-pricing r1, first-event r1, app-door r2 and guest-shape r2 folded in; who-first and dead-end untouched, reached by nothing.",
   },
   context:
     "Will (2026-09-19, the overnight round): the help center is unprotected like the rest, reconceived from the ground up, \"at worst, net neutral and fully deleted\". Seven decisions on the real hub, article and search pieces, drawn on three real articles.",
@@ -69,9 +69,10 @@ export const HELP_CENTER = defineExploration({
     {
       id: "hub",
       label: "The hub",
-      question: "Should the full index sheet survive below the hero?",
+      question:
+        "Should the full index still follow the doors, now two other boards took the shortest front door?",
       context:
-        "Below the hero sits every one of 59 articles, two columns of ten category panes. Most visits are answered by the trio or the search, yet the whole index is still the second thing on the page.",
+        "App-pricing r1 took the short surface, the rest one click away; first-event r1 took the shortest front door, everything else for later screens. Both argue for a few doors first, whether or not the full index still lives further down.",
       options: [
         {
           id: "sheet",
@@ -91,18 +92,19 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "hybrid",
       because:
-        "The index is real inventory search engines and llms.txt both read, which costs nothing to keep, but it need not be the second thing every visitor meets; doors first serve the two-second scanner without deleting the one browsing everything.",
+        "The index is real inventory search engines and llms.txt both read, which neither ruling touches; doors first give the two-second scanner the short front door they now expect everywhere else, without deleting the page that lists everything.",
       overrule:
-        "If the sheet is shown to earn real engagement right where it sits today, leave it exactly there; there is no traffic data yet to say either way.",
+        "If neither ruling's brevity should extend to a reference page like this one, the doors are decoration and the sheet earns being first again.",
       lands: "Whether the index sheet survives at all, and how far down the page it sits.",
       after: { ask: "who-first" },
     },
     {
       id: "article",
       label: "The article",
-      question: "Should a how-to lean on prose, a checklist, or the real screen it names?",
+      question:
+        "Should a how-to lean on prose, a checklist, or the real screen, now the welcome tour chose pictures over screens?",
       context:
-        "Today's steps are numbered prose with quoted controls (a UiLabel chip). The reader is holding the screen those controls live on and has to translate a sentence onto it every time.",
+        "App-door r2 sent the tour toward bespoke pictures, reading against a screen here too. A tour earns a mood; a how-to bridges a sentence to the surface the reader holds, which a picture cannot. First-event r1 moved teaching inside the act.",
       options: [
         {
           id: "prose",
@@ -122,7 +124,7 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "screen",
       because:
-        "A how-to's whole job is bridging the sentence to the screen, and today's articles quote a control without ever showing where it lives; a small illustration beside each step removes that last translation.",
+        "The tour's own choice does not transfer: a first look earns a mood, a how-to earns accuracy, and today's articles quote a control without ever showing where it lives; a small illustration beside each step removes that last translation.",
       overrule:
         "Troubleshooting spans too many surfaces for one settled screen; prose stays the cheaper, general answer there even if setup and sharing gain one.",
       lands: "Whether help articles gain a per-step illustration slot, and how much heavier that makes fifty-nine articles to keep current.",
@@ -130,9 +132,10 @@ export const HELP_CENTER = defineExploration({
     {
       id: "from-product",
       label: "From the product",
-      question: "How should a guest reach help from inside the product?",
+      question:
+        "How should a guest reach help, now the action block and a failure both have a settled home?",
       context:
-        "No guest surface links to help today: not the header, not the album, not the entry gate. A stuck guest's one exit is Report, which queues a review and answers nothing.",
+        "The guest's action block is ruled now, a row on landing then a dock (guest-shape r2). App-pricing r1 opens a surface on the reason it opened; guest-upload r1 gives a failed run its own surface, so a contextual link has a home: that sheet.",
       options: [
         {
           id: "none",
@@ -142,27 +145,28 @@ export const HELP_CENTER = defineExploration({
         {
           id: "menu",
           label: "A Help entry in the guest's menu",
-          means: "A standing row beside Report, reachable any time, on every guest page.",
+          means: "A standing row in the now-ruled action block, reachable any time, on every guest page.",
         },
         {
           id: "contextual",
           label: "A link at the moment of trouble",
-          means: "No standing entry; a failed tile or a wrong password carries its own link to the matching fix.",
+          means: "No standing entry; the end-of-run failure sheet carries its own link to the matching fix.",
         },
       ],
       recommended: "contextual",
       because:
-        "A stuck guest is already looking at a specific error, not browsing a menu they do not have; a link on the failed tile lands them on the one article that answers their exact problem instead of a generic hub.",
+        "The failure sheet guest-upload r1 already draws is exactly the moment a guest wants an answer, and it is a surface that exists now, not a hope for one; a link inside it costs one row and lands on the matching article.",
       overrule:
-        "If guests hit the account menu far more than any single error, a standing entry is the simpler net and needs no failure state to carry its own link.",
-      lands: "Whether error surfaces across the guest app each carry a help deep link, or one static menu entry does the job.",
+        "If guests hit the account menu far more than any single error, the now-ruled action block is cheap real estate for a standing entry instead.",
+      lands: "Whether the failure sheet and other error surfaces carry a help deep link, or one static menu entry does the job.",
     },
     {
       id: "feedback",
       label: "Feedback",
-      question: 'Should "Did this answer your question?" go anywhere?',
+      question:
+        'Should "Did this answer your question?" go anywhere, now the portal\'s home is built for numbers?',
       context:
-        "Yes flips local state; No deep-links to contact. Nothing is ever recorded, so nothing has ever told anyone which of fifty-nine articles fail.",
+        "Admin r1 already opens the portal on four figures and a fortnight's trend, the queue beneath: a page built to lead with exactly this kind of count. A per-article miss rate has somewhere to land without needing a page invented for it.",
       options: [
         {
           id: "ephemeral",
@@ -182,7 +186,7 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "beacon",
       because:
-        "Fifty-nine articles have never once said which of them fail; a beacon is one small table and one insert, cheap enough to ship without also turning every miss into a support ticket.",
+        "Fifty-nine articles have never once said which of them fail, and the portal now has a home built for counts; a beacon is one small table and one insert, cheap enough to ship onto a page that already exists.",
       overrule:
         "If every No should already be a signal a person triages, route it through contact_submissions directly instead of a count nobody reads day to day.",
       lands: "Whether a beacon table ships at all, and whether admin gains a per-article miss rate.",
@@ -221,9 +225,10 @@ export const HELP_CENTER = defineExploration({
     {
       id: "search",
       label: "Search",
-      question: "How far should the help search palette reach?",
+      question:
+        "How far should the help search palette reach, now the admin portal builds on it too?",
       context:
-        "The ranked ⌘K palette mounts only on /help and /contact today, with no visible door: a reader has to already know the shortcut exists.",
+        "Admin r1 mounts the portal's command palette on this same help palette if it can: a thing two separate apps rely on now, the marketing site and a wholly separate admin deployment. Proof it travels without every route wiring it in.",
       options: [
         {
           id: "local",
@@ -243,7 +248,7 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "visible",
       because:
-        "⌘K with no affordance is a shortcut nobody finds by accident, and today's index only ranks help content; a button where people already look costs far less than mounting a whole provider on every route to search a fraction of the site.",
+        "The palette proving portable enough for a second, unrelated app argues for keeping it self-contained rather than rooting it sitewide; a visible trigger in the footer and header costs one row apiece and needs no second provider mounted everywhere.",
       overrule:
         "If the site's search intent is really pricing, features and the blog together, sitewide is worth the provider cost and the index should grow to match it.",
       lands: "Whether HelpPaletteProvider mounts once at the root, and whether the footer and header gain a visible search entry.",

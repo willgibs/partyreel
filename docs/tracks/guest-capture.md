@@ -1,54 +1,58 @@
 ---
-track: reshape-admin-help-emails
+track: guest-capture
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5143c87e"          # the launch-prep SHA the branch was cut from
-board: admin-triage    # and help-center, emails: reshaped in place, unanswered, at their round; no retirement, no new board
+cut: "c7817102"          # the launch-prep SHA the branch was cut from
+board: guest-capture   # a new board on his word: registers at the head of DESK_ORDER; the Orchestrator moves it after media-viewer at the merge
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/admin-triage/
-  - src/app/(dev)/design/sandbox/help-center/
-  - src/app/(dev)/design/sandbox/emails/
+  - src/app/(dev)/design/sandbox/guest-capture/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/app/(dev)/design/sandbox/overtaken.ts
-  - src/components/lab/exploration.ts
-  - src/components/lab/board-spec.ts
-  - src/app/(dev)/design/touchpoints.ts
+  - src/components/guest/save-account-prompt.tsx
+  - src/components/guest/follow-moment-card.tsx
+  - src/components/guest/claim-handle-prompt.tsx
+  - src/components/guest/guest-header.tsx
+  - src/components/shared/unverified-mark.tsx
+  - src/components/social/follow-button.tsx
+  - src/components/social/guest-list.tsx
+  - src/components/auth/account-door.tsx
+  - src/app/(guest)/u/[slug]/
+  - src/components/lab/
   - docs/design/rulings.md
-  - docs/STATUS.md
-  - src/app/admin/reports/
-  - content/help/
+  - docs/reviews/README.md
 ---
 
-# lp/reshape-admin-help-emails
+# lp/guest-capture
 
-**Goal.** A lane of the overtaken audit (Will, 2026-09-21, verbatim in `docs/design/rulings.md` under "the overtaken audit: reshape or remove, and the stacking rule"): "For any open questions that have been 'overtaken', please evaluate whether they should be reshaped or removed", with his criteria (reshape a question that could still offer a better solution than the earlier selection that overtook it, with updated context; remove only a question with zero potential value; "I'd rather you lean into reshape if you aren't confident in removal"; "everything is unprotected and anything may be re-litigated"). The Orchestrator read every badged question against the ruling its badge names and judged each: the verdicts for this lane's boards are the brief below, one line per question, and are the whole reading. This is lab work on the boards' own folders: no production byte.
+**Goal.** A NEW BOARD on Will's word at approval (2026-09-21, verbatim: "You can wire it now as you recommended, but I'd like to get this in the lab for refinement."): the capture flow shipped by `verified-email-guest` (the offer after a name-only guest's first upload, the follow moment, the profile the guest lands on) refined as a lab catalog for his next sitting, drawn on the SHIPPED components; lab-only, no production byte. The brief below is the whole reading.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `5143c87e`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `c7817102`)
 
-- What this is: as Lane 62's first line, for these three boards (the same rules).
-- admin-triage.look (dropped `card`): a prose inbox is a list beside the message (admin r1). Ask the one inbox where the thing judged is a picture: the ruled list carrying the frame beside the reason, or the picture leading full width with a caption.
-- admin-triage.reason (dropped `same` and `quiet`, the latter as ruled): an empty block is absent, never drawn hollow (app-shape r2), so a wordless report draws nothing. Ask only the ranking half: do wordless reports fall under reports with words, or keep their place.
-- admin-triage.verdict (dropped `required`): only a permanent act makes an operator type (admin r1). Ask two buttons vs a verdict with a note if you want one, and what the record holds.
-- admin-triage.closed (dropped `card`): the portal's data is a table (admin r1). Ask a line vs a line with a day's Undo.
-- admin-triage.escalate: the preserve panel is a sheet sized to the damage (admin r1). Ask whether the report carries the door.
-- admin-triage.phone (dropped `none`): the portal's bar is measured for a thumb (admin r1). Ask act vs all at 375.
-- admin-triage.idiom: the inboxes share one shape (admin r1); the album folds its sort and filter behind one button (app-vocabulary r2). Ask the words and the statuses, not the furniture.
-- admin-triage.notice: a host meets one silent gap already (guest-shape r1) and he refuses a gap a person has to notice themselves (guest-upload r1); every upload carries a name now (the identity reshape). Ask whether the portal tells anyone, with the two leans named.
-- help-center.from-product: the guest's action block is ruled (guest-shape r2: a row on landing, a dock once it scrolls); a surface opens on the reason it was opened (app-pricing r1); a failure has a surface of its own at a run's end (guest-upload r1). Ask a standing Help row vs a link at the moment of trouble, with the failure sheet as that moment's home.
-- help-center.hub: he took the short surface with the rest one click away (app-pricing r1) and the shortest front door (first-event r1). Ask doors vs doors-then-sheet.
-- help-center.article: the tour is bespoke pictures, not real screens (app-door r2); teaching moved inside the act (first-event r1). Ask prose vs checklist vs the real screen beside each step, with that analogy weighed.
-- help-center.feedback: the portal's home is numbers (admin r1). Ask beacon vs routed with the KPI page as the beacon's home.
-- help-center.search: the portal builds on the help palette (admin r1). Ask local vs sitewide vs a visible trigger with the second tenant named.
-- emails.shell: a repeated control becomes one component with props (app-vocabulary r1; his note leaves unification discretionary). Ask unified vs plain for mail.
-- emails.code (dropped `button`): the code is the product's one door (app-door r1) and the product typesets a code to be read off an object (first-event r1). Ask digits alone vs digits with a button beneath.
-- emails.moments (dropped `today`): a switch with nothing behind it is absent (app-shape r2), so the four dormant rows leave; the capture flow now confirms an email as an account (the identity reshape). Ask which moments should really send a mail now, the four as drawn or a set the new door implies.
-- emails.guest: the address is taken on a promise to keep the album (guest-shape r1) and confirming makes the account (the identity reshape). Ask the album link once vs the link and one after the party, on the new door.
-- Owns: `src/app/(dev)/design/sandbox/admin-triage/`, `src/app/(dev)/design/sandbox/help-center/`, `src/app/(dev)/design/sandbox/emails/`. Reads: `src/app/(dev)/design/sandbox/overtaken.ts`, `src/components/lab/exploration.ts`, `src/components/lab/board-spec.ts`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/STATUS.md`, `src/app/admin/reports/`, `content/help/`.
-- Verify: the registry tests and `overtaken.test.ts` green (the seventeen entries deleted); `lab:smoke` whole; `lab:demo` on each of the three boards; the boards at 375 and 1440; the gate.
-- His to overrule: every reshaped framing; the eight dropped options.
+- What this is: the capture flow lands as a working version in Lane 58; this board is its refinement catalog for
+  his next sitting, drawn on the SHIPPED components (the offer card, the follow moment, the profile the guest lands
+  on, the guest's own menu with its unverified name), lab-only ("NO PRODUCTION BYTE"), a `defineExploration` with
+  three to five decisions at 375 and 1440, each a catalog of two or three options with a recommendation and its
+  cost: the MOMENT (after the first photo, as shipped; at the tenth; when the guest returns to the album; when they
+  tap Yours; the album's end), the OFFER'S SHAPE (the card in the album's slot, as shipped; a line under the guest's
+  own tile; a step inside the upload sheet after Send), the FOLLOW SURFACE (the one moment card, as shipped; the
+  Guests section with Follow on every handled chip; the host's profile as the landing after saving), the LANDING
+  (the album, as shipped; the new profile with the event on it; the dashboard's saved events), and WHAT THE NAME
+  BECOMES (the profile takes the typed name, as shipped; the guest is asked to confirm it; the handle claim in the
+  same breath, as shipped on the card's second line). It registers at the HEAD of `DESK_ORDER` under the registration
+  exception (its lines in `registry.ts`, `lab/boards.ts`, `touchpoints.ts` as Handoff exception lines; the
+  Orchestrator moves it into its leverage place at the merge: after `media-viewer`, since the capture flow lives
+  under the album's shape), with a RULINGS row and a `for` line; its ledger is opened by the Orchestrator when it is
+  first reviewed.
+- Owns: `src/app/(dev)/design/sandbox/guest-capture/` (new). Reads (every one on disk at the wave-2 cut, after the
+  guest lane's merge): `src/components/guest/save-account-prompt.tsx`, `src/components/guest/follow-moment-card.tsx`,
+  `src/components/guest/claim-handle-prompt.tsx`, `src/components/guest/guest-header.tsx`,
+  `src/components/shared/unverified-mark.tsx`, `src/components/social/follow-button.tsx`,
+  `src/components/social/guest-list.tsx`, `src/components/auth/account-door.tsx`, `src/app/(guest)/u/[slug]/`,
+  `src/components/lab/`, `docs/design/rulings.md`, `docs/reviews/README.md`. Verify: the registry tests; `lab:smoke`
+  whole; `lab:demo --board guest-capture`; the board at 375 and 1440; the gate.
+- His to overrule: the five decisions' framing; the board's place on the desk.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
-(no verdict map: the audit's verdicts for this lane's boards are the brief above, one line per question; the rulings they fold in are verbatim in docs/design/rulings.md)
+(no verdict map: one verdict and a note, verbatim in docs/design/rulings.md under "the identity reshape", and his four answers at approval; the brief above is the Orchestrator's whole reading)
 
 ## The ownership rules every lane follows this round
 
