@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From the overtaken audit (2026-09-21): the `OVERTAKEN` map is empty and its per-batch handles went at the last reshape lane's record; the mechanism (the badge grammar, the census tests, the desk's badge rendering) stands for a future overlap per the announce, Will's to retire if he prefers; the stacking rule (PROGRAM.md) makes the overlap rare.
 - From `verified-email-host-copy` (2026-09-21): `database-security.md` and `uploads-and-r2.md` still tell the anonymous-guest identity model, and `profiles-social.md`'s `notification_prefs` paragraph says 'an anonymous email-only guest'; true the three up to `require_verified_email` and the unverified mark in the next lane that owns them.
 - From `verified-email-guest` (2026-09-21): two wave seams read the server lane's names through one narrow cast each (the guest list's second argument and the host card in the guest page; `GridMedia.isVerified` in the lightbox); collapse the casts onto the merged types in the next lane that touches those files.
 - From `reshape-studio-export` (2026-09-21): the guest's Download dialog is still a centred `Dialog` while the export board is drawn on the one responsive sheet the guest's dialogs are ruled onto; the swap onto the sheet is a wiring line for the next batch that touches the guest's Download.

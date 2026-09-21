@@ -130,75 +130,11 @@ export const isHeld = (note: OvertakenNote): boolean =>
 /** What the ledger says happened to an overtaken ask. Derived, never stored. */
 export type Outcome = "open" | "stood" | "overrode";
 
-/* The fifth batch (2026-09-19): four boards ruled, thirteen reached.
-   `glass` r1's own handle went with the last three badges it wrote, which the
-   overtaken audit folded into their questions (2026-09-21); its round two,
-   `CRYSTAL` below, still reaches. A handle is declared by the pass that needs
-   it and leaves with the last entry that spreads it. */
-const APP_SHAPE = { by: "app-shape", since: "app-shape r1, 19 Sep" } as const;
-
-/* The sixth batch and its second paste (2026-09-20): eight boards ruled. */
-const GUEST_SHAPE = {
-  by: "guest-shape",
-  since: "guest-shape r1, 20 Sep",
-} as const;
-const VOCABULARY = {
-  by: "app-vocabulary",
-  since: "app-vocabulary r1, 20 Sep",
-} as const;
-const ADMIN = { by: "admin", since: "admin r1, 20 Sep" } as const;
-const DOOR = { by: "app-door", since: "app-door r1, 20 Sep" } as const;
-const CRYSTAL = { by: "glass", since: "glass r2, 20 Sep" } as const;
-const DEMO = { by: "demo-event", since: "demo-event r1, 20 Sep" } as const;
-const PRICING = {
-  by: "pricing-page",
-  since: "pricing-page r1, 20 Sep",
-} as const;
-
-/* The closing sitting's first batch (2026-09-20, 18:20 EDT): five boards, four
-   of them a round two. `body-type` r2 is deliberately absent: a rung that pairs
-   an icon with its text is mechanical, it reaches no open question, and round
-   one reached none either. `guest-verify`'s four were HELD (above) and are
-   superseded now, so nothing spreads them; `app-vocabulary` r2's marker went
-   the same way when round one's badges retired with its asks. A BATCH KEEPS ONLY
-   THE MARKERS SOMETHING SPREADS: an unused one is a warning in the gate, and the
-   batch it belonged to is written above it in words either way. */
-const APP_SHAPE_2 = { by: "app-shape", since: "app-shape r2, 20 Sep" } as const;
-const GUEST_SHAPE_2 = {
-  by: "guest-shape",
-  since: "guest-shape r2, 20 Sep",
-} as const;
-
-/* The closing sitting's second batch (2026-09-20, 22:45 EDT; 21 Sep in the
-   ledgers, which stamp UTC): thirteen verdicts, four of them a round two and
-   `app-pricing` a whole round one. Every one of the five boards retires at its
-   wiring, and a retiring board's ruling goes on reaching from here (`seed-avatar`
-   r2's marker excepted: the one question it reached was `guest-verify.unproven`,
-   which left with that board). */
-const DOOR_2 = { by: "app-door", since: "app-door r2, 20 Sep" } as const;
-const DEMO_2 = { by: "demo-event", since: "demo-event r2, 20 Sep" } as const;
-const PRICING_2 = {
-  by: "pricing-page",
-  since: "pricing-page r2, 20 Sep",
-} as const;
-const APP_PRICING = {
-  by: "app-pricing",
-  since: "app-pricing r1, 20 Sep",
-} as const;
-
-/* The closing sitting's third batch (2026-09-21, ~01:40 EDT, the same stamp the
-   ledgers carry): sixteen verdicts on the desk's second and third boards, both
-   ruled whole and both retiring at their wiring. The first two rulers whose own
-   questions were all answered in the same paste, so neither keeps a badge and
-   both start reaching the moment they are recorded. */
-const CREATE = {
-  by: "first-event",
-  since: "first-event r1, 21 Sep",
-} as const;
-const UPLOAD = {
-  by: "guest-upload",
-  since: "guest-upload r1, 21 Sep",
-} as const;
+/* THE PER-BATCH HANDLES ARE GONE (the overtaken audit's last record, 2026-09-21). Sixteen of them once carried
+   `by` and `since` for the fifth batch through the closing sitting's third; every entry that spread one has
+   been folded into its question's own context by the audit's four reshape lanes, and the file's own rule is
+   that a handle leaves with the last entry that spreads it. A future pass that fills the map declares its own
+   handle beside its entries; the batches themselves are told in rulings.md and the CHANGELOG. */
 
 /**
  * THE ASKS AN EARLIER RULING HAS REACHED, in desk order, across four passes.
