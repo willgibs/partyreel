@@ -1,6 +1,6 @@
 ---
 track: reshape-admin-help-emails
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5143c87e"          # the launch-prep SHA the branch was cut from
 board: admin-triage    # and help-center, emails: reshaped in place, unanswered, at their round; no retirement, no new board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -109,30 +109,99 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the brief carried a line per question and every call it left open was taken and is listed under "his to overrule" below.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: lab work on three board folders, no production byte and no `docs/systems/` fact inside the lane.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: the one piece of debt this lane could have left behind (`overtaken.test.ts`'s fixed floor and named glossed keys) is resolved in the merge below by adopting `reshape-viewer-curation`'s fix wholesale, so the audit's fourth lane inherits nothing fragile.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- BOARD commit `718a47fa` (the three boards, the seventeen badges, the test's floor); the head is the merge above it,
+  `6b21ecfc`. Synced: `origin/launch-prep` had moved (to `7f1017fb`: `reshape-studio-export`'s merge, then the identity
+  reshape's wave-0 and wave-1 cut), merged clean apart from one real conflict in `overtaken.test.ts`'s "as today"
+  floor assertion (both `reshape-studio-export` and this lane had touched the same line; resolved below).
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` 0 (215 components, 1650 contracts, 18
+  policies) · specimen collector 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (13 known
+  warnings: the 10 baseline, `DOOR_2` orphaned by `help-center.article`'s badge leaving in this lane's own commit,
+  `DOOR` and `APP_SHAPE_2` orphaned by `reshape-studio-export`'s merged-in deletions; none in a file this lane wrote
+  new logic in) · `pnpm test` 0 (318 files, 3,307 passed, 1 pre-existing skip) · `pnpm build` 0 (255 static pages) ·
+  `pnpm lab:smoke --base http://localhost:3138` 0 (417 checks, 0 failing; admin-triage 632 words, help-center 415,
+  emails 547, budget 1200) · `pnpm lab:demo --board admin-triage` 0 (8 steps, 0 failing) · `--board help-center` 0 (7
+  steps, 0 failing) · `--board emails` 0 (8 steps, 0 failing); every step draws its options on all three (`lab:demo`'s
+  own pixel-diff, reduced motion honoured). Spot-checked by hand in the browser pane too, on the structurally
+  changed asks specifically: `admin-triage.look` both options at 1440, `admin-triage.reason` both options at 1440,
+  `admin-triage.phone` at its forced 375, `emails.moments` option 3 (the new `identity` roster row) at its default
+  375.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `admin-triage/{board.tsx,report.tsx,spec.ts}`,
+  `emails/{board.tsx,code.tsx,moments.tsx,spec.ts}`, `help-center/spec.ts` (all under `owns`), plus three exceptions:
+  `sandbox/overtaken.ts` (the seventeen badge entries deleted, one comment block per board naming why, nothing else
+  in the file touched), `sandbox/overtaken.test.ts` (the `admin-triage` count assertion, 8 to 0, the only board
+  here a pre-existing assertion named; the "as today" gloss floor, adopted verbatim from
+  `reshape-viewer-curation`'s same-day, not-yet-merged fix on the identical line rather than reinvented, so the two
+  lanes' hunks read alike), `design/rules/rules.generated.json` (regenerated by the gate's own `pnpm design:rules`
+  step; only the two touched test files' line numbers moved).
+- The one real merge conflict, and how it resolved: `overtaken.test.ts`'s "as today" floor line was touched by both
+  `reshape-studio-export` (already merged: `glossed.length * 2 >= KEYS.length`, two named keys kept) and this lane
+  (adopted from `reshape-viewer-curation`'s unmerged branch: the same proportion behind an `if (KEYS.length >= 10)`
+  guard, the two named keys dropped because one of them, `media-viewer.opening`, is one of `reshape-viewer-curation`'s
+  own badges and will not survive its merge). Resolved in favour of the guarded version: a strict superset of
+  `reshape-studio-export`'s fix, and the one the audit's fourth lane will not need to touch a third time.
+- The items, one line each. **admin-triage** (8 asks, all badged) · `look`: the ruled row (admin r1) vs the
+  full-width frame; `card` dropped. · `reason`: narrowed to the ranking half; `same` and `quiet` both dropped, a new
+  `chrono` option ("keeps its place") recommended over `last`. · `verdict`: two buttons vs an optional note;
+  `required` dropped, the destructive sheet already reserving typing for the permanent act. · `closed`: a line vs a
+  line with a day's Undo; `card` dropped. · `escalate`: reworded on the now-ruled preserve panel, option set
+  unchanged, `door` still recommended. · `phone`: act vs the whole act at 375; `none` dropped, the shell itself now
+  ruled to reach 375. · `idiom`: reworded onto the words/status axis, option set unchanged, `shape` still
+  recommended. · `notice`: reworded, option set unchanged, recommendation MOVED from `silence` to `host` (guest-shape
+  r1's precedent plus guest-upload r1's case against an unnoticed gap). **help-center** (5 of 7 badged) ·
+  `from-product`, `hub`, `feedback`, `search`: reworded, no option dropped, each ruling now a concrete surface
+  rather than a hope for one. · `article`: reworded to weigh the app-door r2 tour analogy directly, no option
+  dropped. `who-first` and `dead-end` carried no badge, untouched. **emails** (4 of 8 badged) · `code`: digits vs
+  digits-with-button; `button` dropped, app-door r1 making the code everybody's door. · `moments`: `today` dropped
+  (a dead switch is ruled absent); a new option, `identity`, the moment the identity reshape's capture flow implies,
+  now the board's OWN recommendation over `shipped`. · `shell`, `guest`: reworded, no option dropped. `brand`,
+  `sender`, `foot`, `dark` carried no badge, untouched. None of the seventeen is a Library entry: every board stays
+  unanswered in the lab.
+- Calls his to overrule on the alias, one line each:
+  - `admin-triage.notice`'s recommendation, silence to host: both reached rulings argue against a second silent
+    gap, but the doctrine's whole point (a hold must never read differently from an ordinary removal) is a reason
+    to keep it silent that neither ruling touches; if that risk outweighs a host's ignorance, this should revert.
+  - `admin-triage.idiom` and `escalate` keep three options each rather than trim toward the "eight dropped options"
+    the brief's backtick count names: none of their remaining options is incoherent under a ruling the way the
+    eight actually-dropped ones are, so "reshape, don't remove" reads as keeping the field open and rewording the
+    framing instead.
+  - `emails.moments` recommends the new `identity` option over `shipped`: it is the moment the identity reshape
+    most clearly justifies today, but its exact shape depends on `guest-capture`'s own board, which has not run
+    yet; `shipped` is the shovel-ready fallback if he'd rather not wait on it.
+  - `admin-triage.reason`'s new `chrono` option is a genuinely new concept, not a reworded survivor: the brief's
+    "or keep its place" had nothing left to reuse once `same` and `quiet` both left, so this lane wrote one.
+  - The merge conflict resolution above (favouring `reshape-viewer-curation`'s unmerged fix over
+    `reshape-studio-export`'s already-merged one): a judgment call between two valid same-day fixes, made because
+    this lane could see the unmerged branch and knew the simpler one would need a second fix later.
+- The help articles this lane makes stale: none (no shipped surface changed; this is lab work only).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/admin-triage?session=admin-triage.notice` (the recommendation flip, silence to host)
+  and `?session=admin-triage.reason` (the new `chrono` concept, both options drawn), then
+  `/design/lab/emails?session=emails.moments` on option 3 (the new `identity` roster row, tied to today's identity
+  reshape).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The overtaken audit's admin-help-emails lane reshaped all
+seventeen badged questions across `admin-triage`, `help-center` and `emails`, removing none: every ruling a badge
+named folded into its question's own context. `admin-triage.reason` narrowed to the ranking half with a new
+`chrono` option ("keeps its place"); `admin-triage.notice` moved silence to telling the host; `emails.moments`
+gained a new option, `identity` (the identity reshape's own implied moment), now its recommendation. Eight options
+were dropped where a ruling made them incoherent (`look.card`, `reason.same`/`quiet`, `verdict.required`,
+`closed.card`, `phone.none`, `code.button`, `moments.today`); the rest kept their options and reworded only the
+question. The seventeen entries left `overtaken.ts` otherwise intact; the merge past `reshape-studio-export`
+resolved the one real conflict (the glossed floor) for `reshape-viewer-curation`'s unmerged, more defensive fix.
