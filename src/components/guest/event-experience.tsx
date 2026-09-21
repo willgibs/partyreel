@@ -176,7 +176,14 @@ export function EventExperience({
   // tiles, the floating pill count, and the header Add.
   const uploadRef = useRef<GuestUploadHandle>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
-  const inFlightUploads = queue.filter((it) => it.status !== "done");
+  // WHAT THE ALBUM'S HEAD STILL OWES THIS DEVICE: everything in flight, AND
+  // anything a hold-for-approval event finished but is keeping back (`held=tile`,
+  // 2026-09-21 — a completed upload used to vanish, which reads as a failure).
+  // A held item stays here until the poll shows the host approved it, and its
+  // object URL stays alive with it.
+  const inFlightUploads = queue.filter(
+    (it) => it.status !== "done" || it.mediaStatus === "pending",
+  );
   const uploadingCount = queue.filter(
     (it) => it.status === "uploading" || it.status === "queued",
   ).length;
@@ -590,7 +597,7 @@ export function EventExperience({
                   type="button"
                   size="lg"
                   className="w-full"
-                  onClick={() => uploadRef.current?.openPicker()}
+                  onClick={() => uploadRef.current?.openAdd()}
                 >
                   <ImageUp /> Add photos
                 </Button>
@@ -714,9 +721,8 @@ export function EventExperience({
                 onOpenGate={() => entryRef.current?.openToGate()}
                 onCountChange={setMediaCount}
                 pendingUploads={inFlightUploads}
-                onRetryUpload={(id) => uploadRef.current?.retry(id)}
                 onAddFirst={
-                  canUpload ? () => uploadRef.current?.openPicker() : undefined
+                  canUpload ? () => uploadRef.current?.openAdd() : undefined
                 }
                 joinUrl={joinUrl}
                 canDeleteIds={canDeleteIds}
@@ -743,7 +749,7 @@ export function EventExperience({
             uploadingCount={uploadingCount}
             onAdd={
               canUpload && !galleryEmpty
-                ? () => uploadRef.current?.openPicker()
+                ? () => uploadRef.current?.openAdd()
                 : undefined
             }
             invite={

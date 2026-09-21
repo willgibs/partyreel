@@ -11,7 +11,6 @@ import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
-import { GUEST_UPLOAD } from "./guest-upload/spec";
 import { FIRST_EVENT } from "./first-event/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
@@ -51,7 +50,6 @@ const REGISTERED: readonly BoardSpec[] = [
   GUEST_VERIFY,
 
   FIRST_EVENT,
-  GUEST_UPLOAD,
   MEDIA_VIEWER,
   HOST_CURATION,
   REEL_STUDIO,

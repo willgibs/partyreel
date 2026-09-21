@@ -26,6 +26,15 @@ export type QueueItem = {
   status: QueueItemStatus;
   progress: number;
   mediaStatus?: string;
+  /**
+   * The row this file became, once it exists. The album needs it for the ONE
+   * case where a finished upload is still drawn on this device and has to stop
+   * being drawn: a HELD file (`mediaStatus === "pending"`) keeps its waiting
+   * tile at the album's head until the host approves it, and the only way to
+   * know that has happened is to see this id arrive in the poll's own list.
+   * Without it the tile would sit beside the real photograph it became.
+   */
+  mediaId?: string;
   error?: string;
 };
 
@@ -147,6 +156,7 @@ export function useUploadQueue({
             status: "done",
             progress: 100,
             mediaStatus: outcome.status,
+            mediaId: outcome.mediaId,
           });
           onUploaded({
             mediaId: outcome.mediaId,

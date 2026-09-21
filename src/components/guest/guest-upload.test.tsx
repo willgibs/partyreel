@@ -1,18 +1,37 @@
+// @contract-for: src/components/guest/guest-upload.tsx
+// @contract-for: src/lib/guest/use-upload-queue.ts
 /**
- * BEHAVIOR PINS for GuestUpload (program Phase 2, slice 1). Freezes the
- * ref-based queue machine before Phase 4 rewrites it as a reducer hook:
- * one-at-a-time uploads, progress patching, the just-in-time silent join,
- * demo simulation, error + retry, and the coordinator callbacks. Pins assert
- * behavior (payloads, callbacks, copy, toasts) - never styles.
+ * BEHAVIOR PINS for GuestUpload (program Phase 2, slice 1), and since the
+ * `guest-upload` wiring (2026-09-21) the ENGINE's contract in the Library too.
+ *
+ * The queue machine's pins are untouched and deliberately so: one-at-a-time
+ * uploads, progress patching, the just-in-time silent join, demo simulation,
+ * retry, and the rule that a rejected file errors only its own item while the
+ * batch carries on. Those survived this board and must survive the next one.
+ *
+ * What the board CHANGED is where files come from and where a refusal is read,
+ * and both are pinned here: nothing reaches `addFiles` until a guest has said
+ * Send on the review step (`tap=sheet` with his "preview the photos before
+ * upload"), and a run that ends with anything refused opens the failure sheet
+ * once instead of firing a toast (`failed=sheet`). Pins assert behavior
+ * (payloads, callbacks, what is on screen), never styles.
  */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
+import { createRef } from "react";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
 
-import { GuestUpload } from "./guest-upload";
+import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
 vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
 // Out of scope for these pins (own state machine + supabase); doneCount>0
@@ -37,11 +56,13 @@ const mockUploadFile = vi.mocked(uploadFile);
 const EVENT = {
   id: "evt-1",
   moderation_mode: "auto_approve",
+  host_display_name: "Maya",
 } as unknown as GuestEvent;
 
 const HOLD_EVENT = {
   id: "evt-1",
   moderation_mode: "hold_for_approval",
+  host_display_name: "Maya",
 } as unknown as GuestEvent;
 
 function makeFile(name = "photo.jpg") {
@@ -51,8 +72,10 @@ function makeFile(name = "photo.jpg") {
 function mount(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
   const onSession = vi.fn();
   const onUploaded = vi.fn();
+  const handleRef = createRef<GuestUploadHandle>();
   const utils = render(
     <GuestUpload
+      ref={handleRef}
       event={EVENT}
       qrToken="qr-token-1"
       sessionToken="sess-1"
@@ -62,13 +85,22 @@ function mount(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
       {...props}
     />,
   );
+  /**
+   * THE WHOLE FRONT OF THE ACT, as a guest performs it: open the sheet, choose
+   * from the album, then SEND on the review step. Nothing reaches the queue
+   * before that last tap, which is the point of the step.
+   */
   const addFiles = (files: File[]) => {
-    const input = utils.container.querySelector(
-      'input[type="file"]',
+    act(() => handleRef.current!.openAdd());
+    const album = document.querySelector(
+      'input[type="file"][multiple]',
     ) as HTMLInputElement;
-    fireEvent.change(input, { target: { files } });
+    fireEvent.change(album, { target: { files } });
+    fireEvent.click(
+      screen.getByRole("button", { name: `Send ${files.length}` }),
+    );
   };
-  return { ...utils, onSession, onUploaded, addFiles };
+  return { ...utils, onSession, onUploaded, handleRef, addFiles };
 }
 
 beforeEach(() => {
@@ -120,7 +152,12 @@ describe("GuestUpload: queue", () => {
     await new Promise((r) => setTimeout(r, 30));
     expect(mockUploadFile).toHaveBeenCalledTimes(1);
 
-    resolveFirst({ ok: true, status: "approved", mediaId: "med-1", kind: "photo" });
+    resolveFirst({
+      ok: true,
+      status: "approved",
+      mediaId: "med-1",
+      kind: "photo",
+    });
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
   });
 
@@ -159,8 +196,8 @@ describe("GuestUpload: queue", () => {
     const file = makeFile();
     addFiles([file]);
 
-    // Phase 4: an approved upload's feedback IS the gallery tile + the green
-    // check (no copy here); the contract is the payload + the growth prompt.
+    // An approved upload's feedback IS the gallery tile (the sweep, as of
+    // `landing=sweep`); the contract here is the payload + the growth prompt.
     await waitFor(() =>
       expect(onUploaded).toHaveBeenCalledWith({
         mediaId: "med-1",
@@ -176,56 +213,35 @@ describe("GuestUpload: queue", () => {
     await screen.findByTestId("save-account-prompt");
   });
 
-  it("pending outcome surfaces the waiting-for-approval copy (as a toast)", async () => {
+  it("a HELD outcome says nothing here: the waiting TILE is the whole answer", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "pending",
       mediaId: "med-1",
       kind: "photo",
     });
-    const { addFiles } = mount({ event: HOLD_EVENT });
+    const { addFiles, snapshots } = mountWithQueue({ event: HOLD_EVENT });
     addFiles([makeFile()]);
 
-    // Phase 4: the per-file list is gone; the pinned copy fires as a toast.
+    // `held=tile` (2026-09-21) retired the "Sent, waiting for host approval"
+    // toast. What the album needs instead is on the queue item: the outcome AND
+    // the media id, which is the only way its tile can tell it has been
+    // approved later.
     await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        "Sent, waiting for host approval",
-      ),
-    );
-  });
-
-  it("failure surfaces the message and retry re-runs it", async () => {
-    mockUploadFile
-      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: "approved",
+      expect(snapshots.at(-1)?.[0]).toMatchObject({
+        status: "done",
+        mediaStatus: "pending",
         mediaId: "med-1",
-        kind: "photo",
-      });
-    const { addFiles, snapshots, handleRef } = mountWithQueue();
-    addFiles([makeFile()]);
-
-    // Phase 4: the error surfaces as a toast + an in-tile retry; the retry
-    // path runs through the imperative handle (what the tile calls).
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Couldn't add that photo", {
-        description: "That upload failed.",
       }),
     );
-    handleRef.current!.retry(snapshots.at(-1)![0].id);
-    await waitFor(() =>
-      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
-    );
-    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });
 
 describe("GuestUpload: just-in-time join", () => {
   it("no session: POSTs /api/guests with the qr_token, then uploads the stash", async () => {
     vi.mocked(global.fetch).mockResolvedValue({
-      json: () =>
-        Promise.resolve({ ok: true, session_token: "fresh-token" }),
+      json: () => Promise.resolve({ ok: true, session_token: "fresh-token" }),
     } as Response);
     mockUploadFile.mockResolvedValue({
       ok: true,
@@ -265,6 +281,8 @@ describe("GuestUpload: just-in-time join", () => {
     const { addFiles, onSession } = mount({ sessionToken: null });
     addFiles([makeFile()]);
 
+    // The JOIN's toast stays: nothing was ever queued, so there is no run to
+    // end and no failure sheet to open. `failed=sheet` is about FILES.
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith("Couldn't start uploading", {
         description: "Bad token",
@@ -332,25 +350,104 @@ describe("GuestUpload: moderation copy", () => {
   });
 });
 
+/* ── The act's two ends (the `guest-upload` board, 2026-09-21) ────────────── */
+
+describe("GuestUpload: the add sheet is the only door in", () => {
+  it("openAdd opens the sheet, and nothing is queued until Send", () => {
+    const { handleRef, snapshots } = mountWithQueue();
+    // Closed, the sheet is not in the document at all — which is also why both
+    // inputs live inside it rather than on the page.
+    expect(document.querySelector('input[type="file"]')).toBeNull();
+
+    act(() => handleRef.current!.openAdd());
+    const album = document.querySelector(
+      'input[type="file"][multiple]',
+    ) as HTMLInputElement;
+    fireEvent.change(album, {
+      target: { files: [makeFile(), makeFile("b.jpg")] },
+    });
+
+    // The review step is standing and the queue is still empty: this is the
+    // whole of "allow guests to catch an accidental selection".
+    expect(screen.getByRole("button", { name: "Send 2" })).toBeInTheDocument();
+    expect(mockUploadFile).not.toHaveBeenCalled();
+    expect(snapshots.at(-1) ?? []).toEqual([]);
+  });
+});
+
+describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
+  it("lists every refusal with the server's own sentence, and no toast fires", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-2",
+        kind: "photo",
+      });
+    const { addFiles } = mount();
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
+
+    await waitFor(() =>
+      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("That upload failed.")).toBeInTheDocument();
+    expect(screen.getByText("a.jpg")).toBeInTheDocument();
+    // `failed=sheet` retired the upload error toast outright.
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("stays shut when the run is clean", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "med-1",
+      kind: "photo",
+    });
+    const { addFiles } = mount();
+    addFiles([makeFile()]);
+
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByText(/did not go/)).toBeNull();
+  });
+
+  it("its Retry re-queues the file", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-1",
+        kind: "photo",
+      });
+    const { addFiles, snapshots } = mountWithQueue();
+    addFiles([makeFile()]);
+
+    await waitFor(() =>
+      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+    await waitFor(() =>
+      expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
+    );
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+  });
+});
+
 // ─── Phase 4 contracts: the lifted queue + the imperative handle ─────────────
-// These pin the NEW subscriber surface (onQueueChange snapshots + handle.retry
-// + handle.openPicker) BEFORE S5 swaps the per-file list UI for in-gallery
-// tiles, so the visual swap lands against an already-pinned contract.
-import type {
-  GuestUploadHandle,
-} from "./guest-upload";
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
-import { createRef } from "react";
+// These pin the subscriber surface (onQueueChange snapshots + handle.retry),
+// which the in-gallery tiles read.
 
 function mountWithQueue(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
   const snapshots: QueueItem[][] = [];
-  const handleRef = createRef<GuestUploadHandle>();
-  const base = mount({
-    ...props,
-    ref: handleRef,
-    onQueueChange: (items: QueueItem[]) => snapshots.push(items),
-  });
-  return { ...base, snapshots, handleRef };
+  return {
+    ...mount({
+      ...props,
+      onQueueChange: (items: QueueItem[]) => snapshots.push(items),
+    }),
+    snapshots,
+  };
 }
 
 describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
@@ -377,7 +474,12 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
         progress: 50,
       });
     });
-    resolveUpload({ ok: true, status: "approved", mediaId: "med-9", kind: "photo" });
+    resolveUpload({
+      ok: true,
+      status: "approved",
+      mediaId: "med-9",
+      kind: "photo",
+    });
     await waitFor(() => {
       const last = snapshots.at(-1)!;
       expect(last[0]).toMatchObject({ status: "done", progress: 100 });
@@ -402,7 +504,7 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
         error: "Nope.",
       }),
     );
-    handleRef.current!.retry(snapshots.at(-1)![0].id);
+    act(() => handleRef.current!.retry(snapshots.at(-1)![0].id));
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
     );
@@ -420,7 +522,7 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "error" }),
     );
-    // "error" is what renders the tap-to-retry affordance; "uploading" is the
+    // "error" is what puts the file on the failure sheet; "uploading" is the
     // stuck state the guest could do nothing about.
     expect(snapshots.at(-1)?.[0].status).not.toBe("uploading");
   });
@@ -465,19 +567,9 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "error" }),
     );
-    handleRef.current!.retry(snapshots.at(-1)![0].id);
+    act(() => handleRef.current!.retry(snapshots.at(-1)![0].id));
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
     );
-  });
-
-  it("handle.openPicker clicks the hidden file input", () => {
-    const { container, handleRef } = mountWithQueue();
-    const hidden = container.querySelector(
-      'input[type="file"][hidden]',
-    ) as HTMLInputElement;
-    const clickSpy = vi.spyOn(hidden, "click");
-    handleRef.current!.openPicker();
-    expect(clickSpy).toHaveBeenCalled();
   });
 });

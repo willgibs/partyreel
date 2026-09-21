@@ -26,7 +26,7 @@ neighbouring code says.
 The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
 is the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line**
 ("N photos & videos from M guests") → the **action block**: a full-width primary **Add photos** over a
-full-width **`[Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`).
+full-width **`[Invite]`** row. Every Add opens the ADD SHEET (`uploadRef.openAdd()`; `tap=sheet`, below).
 `GuestShare` is the Invite trigger + sheet (QR + Copy + native Share + Download).
 ★ **THE ROW ON LANDING, A DOCK ONCE IT LEAVES** (Will, `chrome=both`, 2026-09-20: "you see the actions
 higher on the page when first landing, and then keep them visible as you continue"). The row above is
@@ -80,20 +80,45 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
   and would otherwise draw a window-wide box of nothing. The streaming skeleton
   ([`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx)) reads the same rule and carries
   12 more tiles from 640 up, so a wide album never loads as one thin row.
-- **Upload lives IN the gallery**: the queue machine is [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts)
-  (one-at-a-time, JIT silent join, demo sim, retry — moved verbatim, the pins encode it). `GuestUpload` is a
-  thin engine (hidden input + `{openPicker, retry}` handle + `onQueueChange`); in-flight items render as
-  masonry tiles with a progress bar / dimmed error + "Tap to retry" / a ~2.5s green `--success` check.
-  ★ **The blob re-key**: a pending tile's object URL is keyed by queue id, re-keyed to the media id at
+- **The upload act** (the `guest-upload` board, ruled whole 2026-09-21). The queue machine is
+  [`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts) (one-at-a-time, JIT silent join, demo sim,
+  retry — moved verbatim, the pins encode it); `GuestUpload`
+  ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) is a thin engine over it with a
+  `{openAdd, retry}` handle and `onQueueChange`, and it renders no tile of its own. The act has three
+  surfaces:
+  - ★ **THE ADD SHEET** (`tap=sheet`): every Add affordance opens
+    [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the one responsive
+    Sheet — *Take a photo* over *Choose from your album*, with the terms line
+    ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts): the kinds and the ceiling from
+    `media/limits.ts`; nothing about rights, ever) beneath. TWO hidden inputs INSIDE `SheetContent`, because
+    `capture` cannot be both: the camera row is `accept="image/*" capture="environment"` and takes ONE
+    photograph (iOS ignores `multiple` under `capture`, Android adds a Camera/Camcorder chooser the moment
+    video is accepted), the album row is `accept="image/*,video/*" multiple`. ★ **Each is `.click()`ed
+    SYNCHRONOUSLY from its row's tap** — one `await` in between and Safari silently drops the picker.
+  - ★ **THE REVIEW STEP** (`warning=both`, his "allow guests to catch an accidental selection"): the picker
+    returns INTO the same sheet ([`upload/review-step.tsx`](../../src/components/guest/upload/review-step.tsx))
+    as tiles with a one-tap remove and a `Send N` primary; only then does `addFiles(kept)` run. A file the
+    browser cannot draw (an iPhone `.mov`, a HEIC outside Safari) is drawn as a NAMED stand-in with its size
+    ([`upload/pick-preview.tsx`](../../src/components/guest/upload/pick-preview.tsx)) rather than the empty
+    black box it used to be. ★ Object URLs are minted and revoked by ONE owner in one effect
+    ([`use-pick-urls.ts`](../../src/components/guest/upload/use-pick-urls.ts)): mint-in-render plus
+    revoke-in-cleanup paints a revoked URL on React's StrictMode remount and every preview falls to the
+    stand-in (measured on `pnpm dev`).
+  - ★ **THE FAILURE SHEET** (`failed=sheet`): nothing interrupts while files go, and when the RUN ENDS
+    (nothing queued, nothing uploading) with anything refused,
+    [`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx) opens itself once with
+    a line per file — the name, the SERVER's own sentence, a Retry — over one `Retry all`. No tile is drawn
+    for a refused file and **both upload toasts retired** (the error toast and "Sent, waiting for host
+    approval"); only the JOIN's own failure still toasts, because nothing was ever queued.
+  ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id, re-keyed to the media id at
   approved completion (`UploadedItem.queueId`) — the SAME URL object, so the `<img src>` never changes
-  (zero flicker as a pending tile becomes the optimistic tile). Hold-for-approval completions show NO
-  optimistic tile (a settle toast fires; the host's approval rings the doorbell and the tile arrives).
+  (zero flicker as an in-flight tile becomes the optimistic tile).
 - **Empty state** ([`gallery-empty-state.tsx`](../../src/components/guest/gallery-empty-state.tsx)): the
   photographic promise — the RIVER (`shared/river`, Will's `guest-photos=ghost`, 2026-09-18) in a square
   box the width of the column, the `public/guest-ghost` WebPs pouring down under a centered `font-heading`
   title and CTA. The fade (grayscale 0.85 at 40%) is a filter on the WRAPPER, never a layer over the
   photographs, and NOTHING sits at the top of the flow: a demo code inside a host's own album is what bible 4
-  refuses. At 0 items the header drops its Add (the CTA owns it). ★ **That wrapper is `GhostRiver`, exported
+  refuses. At 0 items the header drops its Add (the CTA owns it, opening the same add sheet). ★ **That wrapper is `GhostRiver`, exported
   from this file and the ONE home of the depth**, because the locked page draws the same picture
   (`nothing=river`) and two copies of the fade are how the two screens drifted apart the first time.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
@@ -336,23 +361,49 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   unchanged from the pre-doorbell era by design (kept-object merge).
 - **Optimistic tiles only for LIVE-approved media:** a completed upload prepends a local `createObjectURL`
   tile (deduped against the next refetch by media id, then the blob is revoked) — but ONLY when
-  `create_media` returned `approved`. Hold-for-approval items stay pending until the host's approval
-  rings the doorbell. Upload completions reach LiveGallery through a `LiveGalleryHandle` callback ref
-  (with a pre-mount buffer, since the gallery streams in async).
-- **The ARRIVAL** (Will, `live=land`, 2026-09-20: "a new photograph grows into its column under a glow that
-  fades"): `newArrivalIds(prev, next)`
+  `create_media` returned `approved`. Upload completions reach LiveGallery through a `LiveGalleryHandle`
+  callback ref (with a pre-mount buffer, since the gallery streams in async).
+- **What THIS DEVICE draws at the album's head**, in the grid's `prefix` slot
+  ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)), and nowhere else:
+  - ★ **ONE stack for a pick in flight** (`batch=one`):
+    [`upload/stack-tile.tsx`](../../src/components/guest/upload/stack-tile.tsx) draws the file actually in
+    the air (the queue runs one at a time) with two ghost edges behind it and, at its foot, everything the
+    tile SAYS — "N to go" and the progress bar on one pane. Twelve files used to take twelve tiles with
+    eleven bars at zero. A single file is a stack of one and says no count.
+  - ★ **A WAITING tile per held file** (`held=tile`): a completed upload on a `hold_for_approval` event sits
+    dimmed under a clock mark with "Waiting for the host" until the poll shows it approved (its `mediaId`
+    rides on the queue item for exactly that comparison) or the session ends. It used to draw NOTHING, which
+    reads as a failure. Only this device ever sees it; nothing here asserts anything to the server.
+  - ★ **Nothing at all for a file that did not go** (`failed=sheet`), and nothing for one already in the
+    album.
+  ★ Both tiles wear the album tile's `data-lit` bright edge, bound by
+  [`lit-edge-contract.test.ts`](../../src/components/shared/lit-edge-contract.test.ts)'s closed list, so a
+  photograph never gains or loses an edge at the moment it finishes uploading. The pane both read on is the
+  ONE glass material at the marks' blur with its tint re-pointed to an alpha MEASURED at 4.5:1 for white over
+  a pure-white photograph (4.78:1; the board's plain black/45 wash read 3.35:1, which is the number behind
+  his "the text is currently hard to read").
+- **The ARRIVAL, one grammar for a guest and a host alike** (Will, `live=land` 2026-09-20 and
+  `landing=sweep` 2026-09-21: "This should be consistent across guest and host arrival experiences"). TWO
+  marks, and the whole difference is whose photograph it is: `data-arrived` is the glow a photograph takes
+  when it appeared by ITSELF, `data-landed` is the one pass of light a guest's OWN landing takes. Both are
+  written by the ONE grid ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) from two sets the
+  surface hands down, both are drawn by [`shared/arrival.css`](../../src/components/shared/arrival.css) (it
+  lives beside the grid now, not in the guest's own folder, which is what made it shareable), and both read
+  their life from [`lib/shared/arrival.ts`](../../src/lib/shared/arrival.ts), written onto the album box as
+  `--arrival-glow-ms` / `--arrival-sweep-ms` so the attribute and the keyframe can never disagree.
+  `newArrivalIds(prev, next)`
   ([`reconcile-gallery-items.ts`](../../src/lib/guest/reconcile-gallery-items.ts)) reports the ids that were
   NOT on screen a moment ago — the only definition that catches every route into the album (a doorbell
-  arrival, a held item approved an hour later, a burst after a hidden tab wakes). `LiveGallery` holds each
-  for `ARRIVAL_GLOW_MS` ([`arrival-glow.ts`](../../src/lib/guest/arrival-glow.ts)) and passes `arrivedIds`
-  through the seam → `data-arrived` on the tile box → the white inset rim + wash that fades in
-  [`live-gallery.css`](../../src/components/guest/live-gallery.css). ★ Three things it never lights: the SEED
-  render (`prev` empty; the album's own entrance stagger is that moment's motion), a rolled presign, and this
-  guest's OWN upload (that has the `--success` check; the exclusion reads `blobUrls` BEFORE the optimistic
-  cleanup). The GROWTH is the existing `[data-media-tile]` entrance in `globals.css`, deliberately not
-  re-declared. Reduced motion = a plain appearance, no rim at all. ⚠ **"Only that column re-flows" is NOT
-  landed**: CSS columns are column-major, so any head insert shifts every tile — it needs the glass lane's
-  explicit column assignment. The glow is what ships until then.
+  arrival, a held item approved an hour later, a burst after a hidden tab wakes) — and `arrivalMarks()`
+  (pure, contract-tested) splits them: one's OWN landings are subtracted from the glow and the NEWEST of them
+  takes the sweep. ★ The glow holds PER ID (two guests a beat apart each get a full life); the sweep is
+  EXCLUSIVE, so a batch landing faster than the light runs never stacks it up the gallery — measured at two
+  at once before that rule, which is the beginning of what Will banked the shimmer to avoid. ★ Three things
+  never glow: the SEED render (`prev` empty; the album's own entrance stagger is that moment's motion), a
+  rolled presign, and this guest's OWN upload (it sweeps instead). The green `--success` check RETIRED with
+  the sweep. The GROWTH is the existing `[data-media-tile]` entrance in `globals.css`, deliberately not
+  re-declared, and the album re-flows around an arrival for real now (the grid's explicit columns).
+  Reduced motion = a plain appearance, neither mark paints.
 - **A guest's own photographs, removable ever** (Will, `yours`, 2026-09-20; final for the host too):
   two identities, one control. SIGNED IN → `removeMyUploadGuestAction`
   ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on the existing `remove_my_upload`

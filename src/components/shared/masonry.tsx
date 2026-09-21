@@ -46,6 +46,12 @@
  * over in a layout effect. Same rule, same count, same gap: the swap is a
  * re-balance, never a jump in height.
  */
+// THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the glow
+// an arriving tile takes (`data-arrived`, anyone's) and the sweep a guest's own
+// landing takes (`data-landed`). It used to be `guest/live-gallery.css`, where
+// the host could not reach it, which is exactly what `landing=sweep` refused.
+import "./arrival.css";
+
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { Play } from "lucide-react";
@@ -409,6 +415,7 @@ export function MasonryColumns<T extends GridMedia>({
   onTileLongPress,
   layout = "masonry",
   arrivedIds,
+  landedIds,
   canDelete,
   prefix,
   mineIds,
@@ -421,12 +428,19 @@ export function MasonryColumns<T extends GridMedia>({
   /**
    * THE SEAM (the Orchestrator, 2026-09-20, before the sixth batch's lanes were cut): three
    * additive props so the guest lane can pass what it knows from its own files while the glass
-   * lane rebuilds this grid. `arrivedIds` marks tiles that just arrived (`data-arrived` on the
-   * tile box; the glow is the guest lane's sheet, the growth is the column assignment above);
-   * `canDelete` gates `onDeleteItem` per item (a guest may remove their OWN photographs, never
-   * another's); `prefix` renders before the first tile (the pending tiles' seat).
+   * lane rebuilds this grid. `canDelete` gates `onDeleteItem` per item (a guest may remove their
+   * OWN photographs, never another's); `prefix` renders before the first tile (the in-flight
+   * tiles' seat).
+   *
+   * ★ THE ARRIVAL GRAMMAR IS TWO SETS AND ONE SHEET (`landing=sweep`, Will 2026-09-21:
+   * "This should be consistent across guest and host arrival experiences"). `arrivedIds` are the
+   * tiles that appeared by themselves and take the glow; `landedIds` are the ones THIS device
+   * just sent and take the sweep, and it is never more than one (lib/shared/arrival.ts decides
+   * both, and holds each id for exactly as long as its keyframe runs). A surface that passes
+   * neither draws neither.
    */
   arrivedIds?: ReadonlySet<string>;
+  landedIds?: ReadonlySet<string>;
   canDelete?: (item: GridMedia) => boolean;
   prefix?: ReactNode;
   /**
@@ -523,6 +537,7 @@ export function MasonryColumns<T extends GridMedia>({
       key={item.id}
       data-media-tile
       data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
+      data-landed={landedIds?.has(item.id) ? "" : undefined}
       data-mine={mineIds?.has(item.id) ? "" : undefined}
       // The bright edge (globals.css, [data-lit]): this div owns the tile
       // radius and clips the photo, so the hook sits here and nowhere

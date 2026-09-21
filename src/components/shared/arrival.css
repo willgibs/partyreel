@@ -1,0 +1,135 @@
+/* ── THE ARRIVAL GRAMMAR, ONE SHEET FOR BOTH SURFACES (Will, `landing=sweep`,
+   2026-09-21: "This should be consistent across guest and host arrival
+   experiences. Would feel weird for it to be handled differently on either.").
+
+   It lives beside `masonry.tsx` and is imported by it, because the two marks are
+   written by the ONE grid every album in the product is made of. It used to be
+   `guest/live-gallery.css`, where the host could not reach it.
+
+   THE GROWTH IS ALREADY THERE and is deliberately not re-declared here: every
+   tile mounts through the `[data-media-tile]` entrance in globals.css (opacity
+   plus a small rise and scale on --ease-emphasis, @starting-style so a
+   reconciled tile never replays it). A second transform on the same box would
+   fight it. What this sheet adds is the LIGHT — the part that says this one is
+   new, and which of the two kinds of new it is.
+
+   ★ THEY ARE LIGHTS, NOT COLOURS. The album's tiles are photographs and the
+   surface under them is dark, so white reads on every one of them; a state hue
+   would also be a claim. Bible: the media is the colour. The green check that
+   used to mark a guest's own landing was exactly that claim, and it retired
+   here.
+
+   ★ INSET, BECAUSE THE TILE CLIPS. The tile box is overflow-hidden, so a halo
+   outside it would be cut by its own corner; both marks are drawn INSIDE the
+   photograph, which is also where a reader is already looking.
+
+   ★ OPACITY AND TRANSLATE ONLY. A box-shadow keyframe repaints the tile every
+   frame across an album that may be eight columns wide; a pseudo-element is
+   composited. The pseudo-elements also keep both marks entirely out of the
+   tile's own stacking work, so nothing here can reach the lightbox's origin or
+   the hover row above it.
+
+   THE LIVES ARE TWO NUMBERS, AND THEY LIVE IN TYPESCRIPT (ARRIVAL_GLOW_MS and
+   ARRIVAL_SWEEP_MS in lib/shared/arrival.ts). The surface writes them onto the
+   album box as --arrival-glow-ms / --arrival-sweep-ms and holds each id for
+   exactly that long, so the attribute and the animation can never disagree:
+   retune them there and both move. ── */
+
+/* ── data-arrived: SOMEBODY ADDED ONE. A rim and a wash, up fast (the
+   photograph is already landing) and then most of the life is the fade — a
+   light going out, not a pulse asking to be looked at twice. ── */
+[data-media-tile][data-arrived]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Under the hover action row (z-10): the light is atmosphere, never a layer
+     over a control. */
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.9),
+    inset 0 0 26px 3px rgb(255 255 255 / 0.38);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-media-tile][data-arrived]::after {
+    animation: pr-arrival-glow var(--arrival-glow-ms, 2000ms)
+      var(--ease-emphasis) forwards;
+  }
+}
+
+@keyframes pr-arrival-glow {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── data-landed: YOURS IS IN. One pass of light across the tile, once — the
+   shimmer Will banked on 2026-09-17 with the reason attached ("The shimmer
+   feels more like a delight moment. A couple dozen photos being uploaded in a
+   single batch would cover the top of a gallery in shimmer"), spent on exactly
+   the one tile that is a delight moment by definition. Only the newest own tile
+   ever carries the attribute (lib/shared/arrival.ts), so a batch never stacks
+   it up the gallery, which is the half he refused.
+
+   The band is oversized and tilted, and the tile's own overflow is what crops
+   it — no extra wrapper, because a wrapper inside the tile would sit between
+   the photograph and the marks that already live there. ── */
+[data-media-tile][data-landed]::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 55%;
+  /* z-index below the glow's 5 and below the hover row: both marks can be true
+     at once on a busy album, and the answer to "yours is in" reads first. */
+  z-index: 4;
+  pointer-events: none;
+  translate: -60% 0;
+  rotate: 12deg;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.05) 35%,
+    rgb(255 255 255 / 0.34) 50%,
+    rgb(255 255 255 / 0.05) 65%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-media-tile][data-landed]::before {
+    animation: pr-arrival-sweep var(--arrival-sweep-ms, 900ms)
+      var(--ease-emphasis) 1 forwards;
+  }
+}
+
+@keyframes pr-arrival-sweep {
+  from {
+    translate: -60% 0;
+  }
+  to {
+    translate: 160% 0;
+  }
+}
+
+/* ── REDUCED MOTION: A PLAIN APPEARANCE (ruled). Not a slower light and not a
+   static rim or band left burning on the tile — the photograph simply arrives,
+   which is the whole information. The rules above already leave the glow at
+   opacity 0 with no animation to run and the sweep parked off the tile's left
+   edge, so this is only the belt: neither pseudo-element paints at all. ── */
+@media (prefers-reduced-motion: reduce) {
+  [data-media-tile][data-arrived]::after,
+  [data-media-tile][data-landed]::before {
+    content: none;
+  }
+}

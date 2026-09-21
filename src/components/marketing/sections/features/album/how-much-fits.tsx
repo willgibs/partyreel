@@ -167,8 +167,11 @@ export function HowMuchFits() {
         </div>
       </Reveal>
 
-      {/* The cap, honestly: the guest's refusal as the toast the app fires,
-          beside two one-line facts. */}
+      {/* The cap, honestly: the guest's refusal in the app's own words, beside
+          two one-line facts. It quoted the upload TOAST until `failed=sheet`
+          retired it (2026-09-21); what a refused file gets now is the failure
+          sheet's own heading and the server's own sentence under it, which is
+          what this card says. mock-parity.test.ts is the proof. */}
       <Reveal className="mx-auto mt-10 grid max-w-5xl items-center gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <div
           data-mkt-toast
@@ -179,9 +182,7 @@ export function HowMuchFits() {
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />
           <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">
-              Couldn&rsquo;t add that photo
-            </span>
+            <span className="text-sm font-medium">1 file did not go</span>
             <span className="text-sm text-muted-foreground">
               This album is full right now. The host needs to free up space.
             </span>
