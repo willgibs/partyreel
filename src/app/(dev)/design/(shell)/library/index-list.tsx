@@ -28,6 +28,24 @@ export type LibraryRow = {
 };
 
 /**
+ * One group per directory, in the order a directory FIRST appears, holding
+ * every row of that directory wherever it sits in the input. The rows come in
+ * the rules artifact's order, which lists a directory's files in several runs
+ * (`src/components/shared` five times on 2026-09-20); a consecutive-run scan
+ * made one group per run and React refused the duplicate `key={dir}`. The
+ * order is not sorted on purpose: the artifact's order is the page's order.
+ */
+export function groupRowsByDir(rows: LibraryRow[]): [string, LibraryRow[]][] {
+  const byDir = new Map<string, LibraryRow[]>();
+  for (const r of rows) {
+    const group = byDir.get(r.dir);
+    if (group) group.push(r);
+    else byDir.set(r.dir, [r]);
+  }
+  return [...byDir.entries()];
+}
+
+/**
  * THE LIBRARY INDEX, filtered in the browser: every component the repo has,
  * one row each, searchable by name, by file and by what it is for. This is the
  * page an agent lands on when it does not yet know what the thing is called,
@@ -43,13 +61,7 @@ export function LibraryIndex({ rows }: { rows: LibraryRow[] }) {
       r.title.toLowerCase().includes(q) ||
       r.file.toLowerCase().includes(q) ||
       (r.for ?? "").toLowerCase().includes(q);
-    const out: [string, LibraryRow[]][] = [];
-    for (const r of rows.filter(hit)) {
-      const last = out.at(-1);
-      if (last?.[0] === r.dir) last[1].push(r);
-      else out.push([r.dir, [r]]);
-    }
-    return out;
+    return groupRowsByDir(rows.filter(hit));
   }, [rows, query]);
 
   const shown = groups.reduce((n, [, g]) => n + g.length, 0);
