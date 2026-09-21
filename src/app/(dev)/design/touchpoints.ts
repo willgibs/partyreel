@@ -382,9 +382,9 @@ export const RULINGS: Ruling[] = [
     id: "pricing-calculator",
     title: "Pricing calculator",
     surface: "marketing",
-    ruled: "2026-08-27",
-    shipped: "V1 Album fill",
-    why: "Album fill: the wall fills as you slide, on the real gallery grammar; the receipt line stays the accessible summary.",
+    ruled: "2026-08-27, superseded 2026-09-20 by pricing-page r2 (fit=split)",
+    shipped: "V2 The split configurator (V1 Album fill retired)",
+    why: "The controls recessed beside one photographed plan card; its deck fans as the slider climbs, which is the album-fill delight the wall was ruled for, kept.",
     lives: [
       "src/app/(marketing)/(cinema)/pricing/",
       "docs/systems/marketing-content.md",
