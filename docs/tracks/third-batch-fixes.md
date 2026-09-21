@@ -1,6 +1,6 @@
 ---
 track: third-batch-fixes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8dcdaee2"          # the launch-prep SHA the branch was cut from
 board: none            # production follow-up: the alias red-team's two defects and one polish item on the third batch's wiring; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -96,30 +96,45 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: nothing here reached a genuinely new one-way-door decision; the ONE MORE LINE item did not stay one line, so it is Deferred below instead of asked.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, the failure-sheet paragraph: added the `dismiss(ids)` fact (a dismissed failure leaves the queue outright; "Not now" and the sheet's own close call it for every listed id; it re-checks each id's LIVE status so `Retry all`'s re-queue in the same close survives it).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- ROADMAP → Now: the guest header's `stats.contributorCount` (`event-experience.tsx:508`) is threaded from the RSC and stays static per load, so a guest's own FIRST upload can under-count by one until reload (the brief's "ONE MORE LINE IF IT IS ONE LINE"). It was not one line: the only cheap client-side signal for "was this guest already counted" is unreliable — `canDeleteIds.length` catches a signed-in returning contributor, but an anonymous one has no equivalent threaded into this shell (the anon "mine" list lives inside `LiveGallery`, fetched after mount), and `useStoredSession`'s SSR-null-then-client-sync `useSyncExternalStore` snapshot makes "no session at mount" an unreliable proxy for "never contributed" across a hydration boundary. A blind "bump on this mount's first done upload" fixes the reported case but silently OVER-counts a returning contributor's later session (a very ordinary case: anyone who reloads mid-event and uploads again) — trading the reported bug for a subtler one in the opposite direction. The correct fix is a small server signal (e.g. `getGalleryStats` or the page RSC resolving whether the current viewer/session is already among the M) rather than a client heuristic; recommend a `guest-flow` follow-up line once such a signal exists.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Head `72535a9d`, pushed; synced with launch-prep (moved to `70abc489` during this lane) at the merge commit `6dc71753`, `--no-edit`, clean (no conflicts: launch-prep's four commits since my boot touched only `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/design/rulings.md`, `usher/HEARTBEAT.md`, `usher/journal/2026-09-21.md`, disjoint from every owned path)
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Gates on the synced tree (all re-run AFTER the sync-merge, on :3131): `design:rules` ok (215 components, no diff on re-run post-merge); specimens ok (140 specimens, no diff on re-run post-merge); `typecheck` ok; `lint` ok (10 known warnings, matching CLAUDE.md's 2026-09-21 baseline exactly — none in a file this lane touched); `test` ok (3276 passed, 1 skipped, 318 files); `build` ok (255 pages, 0 errors); `pnpm lab:smoke --base http://localhost:3131` ok (412 checks, 0 failing) — commit `72535a9d` for the diff, `6dc71753` for the synced tree these numbers were read on.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly the owned paths touched (`docs/systems/guest-flow.md`, `src/components/app/print/print-stock.tsx` + its new `print-stock.test.tsx`, `src/components/guest/guest-upload.tsx` + `.test.tsx`, `src/components/guest/upload/intent-sheet.tsx` + `.test.tsx`, `src/lib/guest/use-upload-queue.ts`) plus this manifest. Two exceptions, both generated and why: `docs/design/library.md` + `src/app/(dev)/design/rules/rules.generated.json` are `pnpm design:rules`'s own required-gate output (the new `print-stock.test.tsx` contract test registers `PrintStock`/`WRAP_RISK_CHARS`/`LINK_STEP_DOWN` in the generator's index), never hand-edited.
+- The items, one line each:
+  - DEFECT 1 (`failed=sheet` follow-up): fixed. `use-upload-queue.ts` gains `dismiss(ids)`; "Not now" and the sheet's own close call it for every listed id; a dismissed failure never reopens the sheet on a later, unrelated run's end (`guest-upload.test.tsx`, two new cases, one of them the exact repro: refuse `notes.txt`, Not now, a clean run). `Retry all` still re-queues every listed file even though it closes through the same call (`dismiss` re-checks each id's LIVE status via the queue's ref, not the ids it was handed, so a just-retried id already reads "queued" and survives).
+  - DEFECT 2 (the print card's link line): fixed. Every piece's link line carries `wrap-anywhere` + `w-full` (bound to the face's own inner width — the pair is one fix; either alone still overflows) and steps its font to 0.85x past 70 characters. `print-stock.test.tsx` (new, 5 cases) asserts the rule and the arithmetic in jsdom (it cannot measure a real box, so it asserts the CSS that produces one); a real-browser check (not jsdom) on real link shapes is in "Look at first" below.
+  - POLISH (the sheet's flash on Send): fixed. `picks` now clears on `SheetContent`'s own `animationend` once `!open` (any genuine close, never the tap that starts one), so the review step stays mounted through the whole exit. `intent-sheet.test.tsx`, new case: render with `open` still true right after Send (the real moment the sheet is mid-exit) and the review step, not the two intake rows, is what renders.
+  - ONE MORE LINE (the guest header's contributor count): NOT fixed — Deferred above, with why.
+  - Nothing here is a new Library entry: every touched component (`GuestUpload`, `UploadFailureSheet`, `UploadIntentSheet`, `PrintStock`) already ships and keeps its existing Library page; this lane only corrected their wiring.
+- Calls his to overrule on the alias, one line each:
+  - The three the brief already named, built as recommended: dismissed failures dropped from the queue rather than kept and hidden; the link line wraps anywhere rather than printing a shorter link; the review step is held through the close rather than clearing on Send.
+  - Mine, beyond the brief: the font step-down ratio past `WRAP_RISK_CHARS` is 0.85 ("one step"; the brief named the 70-character threshold but not a ratio) — cards go 6.5pt → 5.52pt, sign 12pt → 10.2pt, poster 14pt → 11.9pt, rounded to 2dp so no face ships a raw binary-float size like `5.5249999999999995pt`.
+  - Mine: the contributor-count line stayed Deferred rather than shipping a heuristic that trades the reported under-count for a subtler over-count on a returning contributor's later session (full reasoning in Deferred above).
+- The help articles this lane makes stale: none (no host- or guest-facing behavior description changed, only a queue-state bug and a print CSS rule).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the print card's link line on the REAL alias hostname (`https://partyreel-git-launch-prep-partyreel.vercel.app/dashboard/<id>/print`, signed in as willg97), a long link (a custom slug, or the raw `/e/<32 hex>` token against the alias's own long domain) printed at 100% — jsdom cannot measure a box, and this environment cannot reach that route (no OAuth redirect registered for localhost, and `lp/*` branches get no alias by design), so the fix is verified here by: (a) 5 jsdom contract tests asserting the exact rule + arithmetic, and (b) a real-Chromium layout check outside the app (not jsdom: an isolated static page reproducing the exact CSS at the card's real mm/pt sizes, read with `getBoundingClientRect`) on the real link shapes — `partyreel.com/e/<32 hex>` (48 chars: the shipped rule already sits at the wire, 233.8px inside a 234.3px inner box, zero margin) and the long alias host + `/e/<32 hex>` (81 chars: the shipped rule measures 259.7px, a real overflow; the fix binds both to exactly 234.3px, and the 81-char case wraps to 2 lines at the stepped font where it would have taken 3 at the normal one, confirming the step-down is load-bearing and not just decorative). The alias's own pixel read, once this merges, is still the real proof for a physical print.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Fixed the alias red-team's two defects and one polish item in the third
+batch's guest-upload and print wiring: a dismissed upload failure now leaves the queue for good (`dismiss(ids)`,
+`use-upload-queue.ts`) instead of reopening the failure sheet on every later run; the print stock's link line wraps
+inside its own card (`wrap-anywhere` + a width bound to the face) and steps its font down past 70 characters instead
+of overflowing into the next card; the upload intent sheet's review step stays mounted through its own close instead
+of flashing the two intake rows during the exit. `docs/systems/guest-flow.md` refined in place for the dismiss fact.
+Deferred: the guest header's contributor count under-counts a guest's own first upload until reload — a correct fix
+needs a small server signal, not a client heuristic (ROADMAP → Now).
