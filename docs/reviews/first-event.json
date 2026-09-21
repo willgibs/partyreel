@@ -1,0 +1,67 @@
+{
+  "board": "first-event",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-21",
+      "answers": [
+        {
+          "ask": "asks",
+          "choice": "one",
+          "note": "However, the option 3 design feels much more exciting along the way. Would love to use that bigger name edit field.",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "style",
+          "choice": "step",
+          "note": "The picker needs a redesign. Choosing this selection because it makes more sense to handle it up front. Hosts may not know they can adjust it later. This introduces the feature.",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "limit",
+          "choice": "door",
+          "note": "Letting them do the work of creating a second event, then finding out they can't create it on the free plan is bad user experience design. Should handle upfront with actions to address.",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "venue",
+          "choice": "sheet",
+          "note": "This is a great spark to a bigger idea. We should have a full gallery of printable QR designs ready to go, rather than only offering the code itself. Would make it very easy to use quickly for events, rather than always requiring the host to design the rest of the assets.",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "landing",
+          "choice": "beat",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "hand",
+          "choice": "same",
+          "note": "The shared dialog design could be improved a lot, but this works better than the other two options because it allows guests to also send out the code or link themselves more easily (rather than simply allowing it to be scanned from their phone for another guest). Options 2 and 3 do have a more pleasant visual design, though.",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "empty",
+          "choice": "list",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "ask": "first",
+          "choice": "live",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
