@@ -8,6 +8,8 @@ import {
   AS_TODAY_GLOSS,
   badgeText,
   concedes,
+  HELD,
+  isHeld,
   OVERTAKEN,
   outcomeOf,
   overtakenFor,
@@ -33,10 +35,18 @@ import { BOARDS } from "./registry";
  * ★ AND THE LINES ARE HELD TO THEIR SHAPE. Will asked for one line per
  * question, and the lane's whole judgment is in it: "stands: <why this option
  * may beat the ruling>" or "concedes: <what the ruling covers>". A line that
- * grew into a paragraph is a redraw wearing a badge's clothes. A SECOND ruling
+ * grew into a paragraph is a redraw wearing a badge's clothes. A LATER ruling
  * reaching the same question appends one clause behind `ALSO_REACHED` rather
- * than rewriting the first pass's judgment, so the cap is read on the judgment
- * and again on the whole.
+ * than rewriting the earlier pass's judgment, so the cap is read on the
+ * judgment and again on every clause behind it.
+ *
+ * ★ AND THE THIRD GRAMMAR IS NO JUDGMENT AT ALL (the closing sitting,
+ * 2026-09-20). Four of `guest-verify`'s answers are recorded and HELD on his
+ * own "May have to relitigate", so a question one of them reaches carries the
+ * hold and the clause he wrote, and nothing the lane thinks: weighing an
+ * option against a ruling that may not survive is precisely what the hold
+ * refuses. These never concede, never append, and the badge says "held" in its
+ * first word so the walk cannot read one as law.
  *
  * It is deliberately NOT a published contract (`@contract-for:`): the collector
  * indexes every file a marker names and an indexed file owes a `for` line in
@@ -60,6 +70,7 @@ const RULED = [
   "glass",
   "app-shape",
   "guest-shape",
+  "guest-verify",
   "app-vocabulary",
   "seed-avatar",
   "admin",
@@ -69,14 +80,24 @@ const RULED = [
 ];
 /** One line, readable at a glance on the way past a question. */
 const LINE_CAP = 160;
-/** The judgment, plus at most one appended clause naming a second ruling. */
-const WHOLE_CAP = 260;
+/** Each appended clause, held to the same glance as the judgment it rides on. */
+const CLAUSE_CAP = 150;
+/**
+ * ★ ONE CLAUSE PER PASS, so counting the clauses counts the rounds of rulings
+ * that have landed on a judgment since it was written. Two passes have appended
+ * (the sixth batch's and the closing sitting's), so two is the cap today and it
+ * rises by exactly one the next time a pass appends. A line carrying three
+ * clauses before a third pass has run is a lane rewriting history in place.
+ */
+const MAX_CLAUSES = 2;
 
 const askOf = (board: string, ask: string) =>
   BOARDS.find((b) => b.id === board)?.asks.find((a) => a.id === ask);
 
 /** The judgment the first pass wrote, with any appended clause taken off. */
 const judgment = (line: string) => line.split(ALSO_REACHED)[0];
+/** The clauses later passes appended, in the order the rulings landed. */
+const clausesOf = (line: string) => line.split(ALSO_REACHED).slice(1);
 
 describe("the overtaken map", () => {
   it("annotates only questions a standing board still asks", () => {
@@ -124,24 +145,62 @@ describe("the overtaken map", () => {
     }
   });
 
-  it("holds every judgment to one line, in the two words", () => {
+  it("holds every judgment to one line, in the two words or the hold", () => {
     for (const [key, note] of Object.entries(OVERTAKEN)) {
       expect(
         note.line,
-        `${key}: a line says "stands:" or "concedes:" and nothing else`,
-      ).toMatch(/^(stands|concedes): /);
+        `${key}: a line says "stands:", "concedes:" or the hold, nothing else`,
+      ).toMatch(new RegExp(`^(stands: |concedes: |${HELD})`));
       expect(note.line, `${key}: a line is one line`).not.toContain("\n");
       const first = judgment(note.line);
       expect(
         first.length,
         `${key}: ${first.length} characters is a paragraph, not a line`,
       ).toBeLessThanOrEqual(LINE_CAP);
-      expect(
-        note.line.length,
-        `${key}: ${note.line.length} characters with its second clause`,
-      ).toBeLessThanOrEqual(WHOLE_CAP);
+      for (const clause of clausesOf(note.line)) {
+        expect(
+          clause.length,
+          `${key}: an appended clause of ${clause.length} characters`,
+        ).toBeLessThanOrEqual(CLAUSE_CAP);
+      }
       // No em-dashes anywhere a reviewer reads (the copy policy).
       expect(`${note.line} ${note.ruling} ${note.since}`).not.toContain("—");
+    }
+  });
+
+  /**
+   * ★ A HELD RULING IS RECORDED, NEVER WEIGHED (the closing sitting,
+   * 2026-09-20). Will held four of `guest-verify` round one's answers on his
+   * own "May have to relitigate", so a question one of them reaches gets the
+   * fact and no judgment: the hold, and the clause he wrote, so round two can
+   * relitigate it without a lane's opinion already leaning on the walk. A held
+   * badge therefore never concedes (the dock's third button stays unprimed)
+   * and never carries an appended clause, because a clause rides inside a
+   * judgment and there is none.
+   */
+  it("weighs nothing against a ruling he may relitigate", () => {
+    const held = Object.entries(OVERTAKEN).filter(([, n]) => isHeld(n));
+    expect(
+      held.length,
+      "his four held answers reached two questions nothing else had",
+    ).toBe(2);
+    for (const [key, note] of held) {
+      expect(note.by, `${key}: only guest-verify's answers are held`).toBe(
+        "guest-verify",
+      );
+      // The clause he wrote, verbatim, and nothing after it.
+      expect(note.line, `${key}: the hold names his own clause`).toMatch(
+        new RegExp(`^${HELD}[a-z-]+=[a-z-]+$`),
+      );
+      expect(concedes(note), `${key}: a hold never concedes`).toBe(false);
+      expect(
+        note.line.includes(ALSO_REACHED),
+        `${key}: a hold carries no appended clause`,
+      ).toBe(false);
+      expect(
+        badgeText(note),
+        `${key}: the badge says "held" before anything else`,
+      ).toMatch(/^Ruled and held since guest-verify r1, /);
     }
   });
 
@@ -153,32 +212,42 @@ describe("the overtaken map", () => {
    * and the date for the same reason the badge does, so a reader can go and
    * find the words in rulings.md without asking anybody.
    */
-  it("appends a second ruling behind the first, named and dated", () => {
+  it("appends a later ruling behind the first, named and dated", () => {
     const appended = Object.entries(OVERTAKEN).filter(([, n]) =>
       n.line.includes(ALSO_REACHED),
     );
     expect(
       appended.length,
-      "the sixth batch reached questions the fifth had already badged",
+      "later batches reached questions an earlier pass had badged",
     ).toBeGreaterThan(0);
     for (const [key, note] of appended) {
-      const clauses = note.line.split(ALSO_REACHED);
-      expect(clauses.length, `${key}: one appended clause, never two`).toBe(2);
-      const [board] = clauses[1].split(" ");
+      const clauses = clausesOf(note.line);
       expect(
-        RULED.includes(board),
-        `${key}: "${board}" is not a board whose ruling landed`,
-      ).toBe(true);
-      expect(
-        board,
-        `${key}: a board cannot overtake its own question, twice over`,
-      ).not.toBe(key.split(".")[0]);
-      expect(clauses[1], `${key}: the clause names a round and a date`).toMatch(
-        /^[a-z-]+ r\d+, \d{1,2} \w{3}: .+\.$/,
-      );
-      // The first pass's judgment is left exactly as it was written.
+        clauses.length,
+        `${key}: ${clauses.length} clauses, one per pass that appended`,
+      ).toBeLessThanOrEqual(MAX_CLAUSES);
+      for (const clause of clauses) {
+        const [board] = clause.split(" ");
+        expect(
+          RULED.includes(board),
+          `${key}: "${board}" is not a board whose ruling landed`,
+        ).toBe(true);
+        expect(
+          board,
+          `${key}: a board cannot overtake its own question, twice over`,
+        ).not.toBe(key.split(".")[0]);
+        expect(clause, `${key}: the clause names a round and a date`).toMatch(
+          /^[a-z-]+ r\d+, \d{1,2} \w{3}: .+\.$/,
+        );
+      }
+      // The earlier pass's judgment is left exactly as it was written.
       expect(judgment(note.line)).toMatch(/^(stands|concedes): .+\.$/);
     }
+    // The closing sitting's pass appended to lines that already carried one.
+    expect(
+      appended.filter(([, n]) => clausesOf(n.line).length === 2).length,
+      "a third ruling reached questions two had already reached",
+    ).toBeGreaterThan(0);
   });
 
   it("reads a concession off the line it is written on", () => {
@@ -203,12 +272,18 @@ describe("the overtaken map", () => {
   });
 
   it("counts a board's overtaken asks for the desk", () => {
-    expect(overtakenOn("first-event")).toBe(4);
+    // Six since the desk's queue test began deriving its numbers from here
+    // rather than restating them (overtaken-3's granted exception).
+    expect(overtakenOn("first-event")).toBe(6);
     // Round one's five badges retired with the asks they named (album-controls,
     // 2026-09-20): the board's round two is too new for anything to overtake yet.
     expect(overtakenOn("app-vocabulary")).toBe(0);
+    // Two boards the earlier passes reached nothing on: a brand-new board, and
+    // one whose round two only a HELD ruling reaches.
+    expect(overtakenOn("toasts")).toBe(2);
+    expect(overtakenOn("seed-avatar")).toBe(1);
     // The sixth batch ruled the portal's whole shell, one board over.
-    expect(overtakenOn("admin-triage")).toBe(7);
+    expect(overtakenOn("admin-triage")).toBe(8);
     // A board nothing reached counts none, and never throws for asking.
     expect(overtakenOn("press-page")).toBe(0);
     expect(overtakenKey("a", "b")).toBe("a.b");
