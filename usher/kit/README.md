@@ -28,7 +28,7 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   three concurrent gates stalls CDP past 60 s and reads TIMED OUT; the retry is the test, not a longer timeout); it waits up to four minutes for the built server to answer (a big build once needed more than 90 s, and the smoke ran against nothing).
 - `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): THE launch-prep deployment (no push creates one since 2026-09-20):
   finds or creates one per project (app, admin) for a `[preview]` commit, waits for both READY, assigns both
-  aliases by hand, reads the served stamp; exit 1 only when the app's alias did not move. `DRY=1` reports what exists for the sha and where each alias points and creates nothing. `vercel-lib.mjs` is its client (the token from
+  aliases by hand, reads the served stamp; exit 1 only when the app's alias did not move. `DRY=1` reports what exists for the sha and where each alias points and creates nothing. A creation for a branch whose `git.deploymentEnabled` is false IS accepted by the API (proven 2026-09-21 11:59 EDT: dpl_8gySEGPLSdDYXQUyApk9ozcBXjoL on `5e210ef8`, both projects 200); and the cap's window is rolling per creation (hit at 20:03 EDT on 2026-09-20, a creation accepted at 11:59 EDT the next day), so after a cap the first wake TRIES the real run rather than waiting for an estimate: a refused creation costs nothing and its 402 names the hours to wait. `vercel-lib.mjs` is its client (the token from
   `.env.local`).
 - `desk-sections.mjs` / `desk-check.mjs`: the served desk per section; the library page's mention of a contract.
 - `make-manifests.py <cut-sha> [tracks]`: the lane manifests generated from the plan file's Lane sections with
