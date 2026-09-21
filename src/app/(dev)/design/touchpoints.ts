@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "guest-capture"
   | "toasts"
   | "guest-verify"
   | "seed-avatar"
@@ -110,6 +111,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "guest-capture"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -143,6 +145,33 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
+  {
+    id: "guest-capture",
+    title: "Keeping what she just added",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-21, at the identity reshape's approval: \"You can wire it now as you recommended, but I'd like to get this in the lab for refinement.\")",
+    shipped: null,
+    why: "The capture flow after a name-only guest's first upload (verified-email-guest) is live; this board is its refinement catalog, never a gate on the shipped flow.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/save-account-prompt.tsx",
+      "src/components/guest/follow-moment-card.tsx",
+      "src/components/guest/claim-handle-prompt.tsx",
+      "src/components/guest/guest-header.tsx",
+      "src/components/shared/unverified-mark.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped capture flow's real pieces, over Priya, the unproven guest media-viewer's own board already marked: when the offer first reaches her, what shape it takes, whom she can follow once she confirms, where she lands afterward, and what becomes of the name she typed at the door",
+      variants: [
+        "The moment",
+        "The offer's shape",
+        "The follow surface",
+        "The landing",
+        "What the name becomes",
+      ],
+    },
+  },
   {
     id: "entry",
     title: "Guest entry",
@@ -1552,7 +1581,10 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
-  // after `app-vocabulary`: a part under both shapes).
+  // after `app-vocabulary`: a part under both shapes). `guest-capture` moves
+  // after `media-viewer` at its merge (the manifest's own brief: the capture
+  // flow lives under the album's shape).
+  "guest-capture",
   "media-viewer",
   "host-curation",
   "reel-studio",

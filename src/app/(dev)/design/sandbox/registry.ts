@@ -1,6 +1,7 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
+import { GUEST_CAPTURE } from "./guest-capture/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
@@ -10,7 +11,6 @@ import { EMAILS } from "./emails/spec";
 import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
-
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
@@ -46,7 +46,7 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-
+  GUEST_CAPTURE,
 
   MEDIA_VIEWER,
   HOST_CURATION,
