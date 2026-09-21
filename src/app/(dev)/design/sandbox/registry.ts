@@ -20,7 +20,6 @@ import { APP_PRICING } from "./app-pricing/spec";
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
-import { DEMO_EVENT } from "./demo-event/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
@@ -56,7 +55,6 @@ const REGISTERED: readonly BoardSpec[] = [
   SEED_AVATAR,
 
   APP_DOOR,
-  DEMO_EVENT,
   PRICING_PAGE,
   APP_PRICING,
   FIRST_EVENT,

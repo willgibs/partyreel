@@ -5,9 +5,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { NavigationMenuLink } from "@/components/ui/navigation-menu";
+import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -32,13 +35,19 @@ import { cn } from "@/lib/utils";
  *
  * ★ THE FEATURES PANEL LOST ITS DEMO TICKET (`doors=pile`, the sixth batch,
  * 2026-09-20: "the nav's ticket goes"; one object skinned per place, and a
- * ticket labelling a QR was the one door that read as unpolished). `Features`
- * simply carries no `FEATURED` entry now, which `MegaPanel` above already
- * handles: `featured` reads `undefined` off the map and the grid falls back
- * to its plain one-column list (the same branch a fourth nav group with no
- * card would take; no group had exercised it before). `DemoTicket`
- * (`system/demo-ticket.tsx`) stays on disk for the Library's own specimen;
- * nothing in the shipped site imports it now.
+ * ticket labelling a QR was the one door that read as unpolished), THEN GOT
+ * THE FRAME BACK (`door=frame`, round two, 2026-09-20/21,
+ * docs/design/rulings.md "the closing sitting's second batch"): the object
+ * every demo door now shares, at the pane's own size, so the one nav group
+ * with no other picture of the product carries a text-free door again rather
+ * than the plain list `stage` (the board's other option) would have left
+ * standing there. With no demo configured `FEATURED.Features` is never
+ * assigned (`DEMO_EVENT_URL &&` below), so `featured` reads `undefined` off
+ * the map exactly as it did while the entry was absent outright, and the
+ * grid falls back to its plain one-column list (the same branch a fourth nav
+ * group with no card would take). `DemoTicket` (`system/demo-ticket.tsx`)
+ * stays on disk for the Library's own specimen; nothing in the shipped site
+ * imports that name any more.
  */
 export function MegaPanel({ group }: { group: NavGroup }) {
   const featured = FEATURED[group.label];
@@ -129,9 +138,17 @@ function ItemLink({ link }: { link: NavLink }) {
 }
 
 /** The featured right panes, keyed by group label (see the header comment).
- *  `Features` carries none (see the star above) — an absent key here is the
- *  same as an explicit `null`, both read as "no featured pane". */
+ *  `Features` carries none with no demo configured — an absent key here is
+ *  the same as an explicit `null`, both read as "no featured pane", the
+ *  branch a fourth nav group with no card takes too. */
 const FEATURED: Record<string, ReactNode> = {
+  // undefined reads exactly like an absent key (both fall to the plain
+  // one-column list), which is what keeps this a plain object rather than a
+  // conditional spread: DEMO_EVENT_URL's type (string | undefined) cannot be
+  // spread directly without narrowing first.
+  Features: DEMO_EVENT_URL ? (
+    <FeaturedDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
+  ) : undefined,
   Events: (
     <FeaturedCard
       href="/events"
@@ -204,6 +221,35 @@ function FeaturedCard({
           <span className="text-xs leading-snug text-muted-foreground">
             {blurb}
           </span>
+        </span>
+      </Link>
+    </NavigationMenuLink>
+  );
+}
+
+/**
+ * THE FEATURES PANE'S DOOR: the frame every other demo door now wears,
+ * centred on the same card ground `FeaturedCard` sits on rather than that
+ * card's own full-bleed photo anatomy — a nav pane is the one place the
+ * object stands ALONE, no words beside it (the board's own `stage`, drawn as
+ * "nothing stands here: the pane stays a clean column", was the alternative
+ * with no demo configured; this is the alternative with one). No `title` or
+ * `blurb`: the round's own rule (doors.tsx, `spec.ts`) is that none of the
+ * four objects carries words, and a caption here would be the one exception.
+ */
+function FeaturedDemo({ href, value }: { href: string; value: string }) {
+  return (
+    <NavigationMenuLink
+      asChild
+      className="flex-col items-stretch gap-0 overflow-hidden rounded-lg border bg-card p-0"
+    >
+      <Link
+        href={href}
+        aria-label="Explore the live demo"
+        {...trackAttrs("demo_open", { source: "nav-panel" })}
+      >
+        <span className="flex aspect-[16/9] w-full items-center justify-center">
+          <DemoFrame value={value} size="nav" />
         </span>
       </Link>
     </NavigationMenuLink>
