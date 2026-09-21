@@ -8,6 +8,17 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-20 · the toasts board: five verdicts, every one the board's recommendation
+
+Will, 20:05 EDT, on the alias's `c75734b9` (the paste verbatim, no notes):
+
+```
+# build c75734b
+review toasts r1: where=top; material=card; life=persist; stack=expanded; action=always
+```
+
+**Became:** `toasts-wiring` (Sonnet): the Toaster at the top under the bar at both sizes, the popover card as today, errors staying until dismissed, the stack always expanded, one trailing action slot on every toast; the 65 call sites untouched (the "if the control can show it, no toast" sweep is a follow-up); the board retires at its wiring.
+
 ## 2026-09-20 · the closing sitting's first batch: the button rung, the home's three states, the guest chrome, the View menu, and the identity question
 
 Will, 18:20 EDT, on the alias's `fe056e62`, the desk's first five boards answered (14 verdicts; the paste verbatim below, one line per board; his instruction at its head: "Let's put a pause on Moltbook for now to avoid distilling context - we'll re-enable later after work."):
