@@ -146,7 +146,7 @@ origin/lp/<track>..launch-prep`; a live agent syncs first when the diffs interse
 system-doc edit, fact against code → the manifest's Record into the round's CHANGELOG entry, its
 Deferred lines into their ROADMAP buckets, its questions and Will's answers into
 `docs/design/rulings.md`, its asset asks into `docs/ASSETS.md` → prune (`git worktree remove`,
-`git branch -d`, `git push origin --delete lp/<track>`, the Vercel prune). A change touching more
+`git branch -d`, `git push origin --delete lp/<track>`, the Vercel prune), and only after the lane's final line: a lane asked for more work after its handoff is a lane still working, and its worktree holds edits the program has not seen (2026-09-20: a mount was lost this way and redone as its own lane). A change touching more
 than one open lane is Orchestrator-only, announced in `tracks/orchestrator.md` first. Migrations are
 global state (one Supabase behind prod and every preview): agents write the SQL file, the
 Orchestrator applies it (additive-only while any branch is unmerged; `get_advisors`; regenerate
