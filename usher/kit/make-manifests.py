@@ -207,6 +207,13 @@ READS.update({
 BOARD.update({"overtaken-3":"none            # lab infrastructure: the judgment lines for the closing sitting's first batch; no board of its own","guest-verify-r2":"guest-verify    # round two on the same board id: the identity shape whole; round one's four rulings held"})
 LANE_SECTION.update({"overtaken-3":r"Lane 46: `overtaken-3`","guest-verify-r2":r"Lane 47: `guest-verify` round two"})
 
+# the toasts verdicts (2026-09-20 20:05 EDT): the board's wiring lane
+QUEUE.update({"toasts-wiring"})
+OWNS.update({"toasts-wiring":["src/components/ui/sonner.tsx","src/app/layout.tsx","src/app/globals.css","src/lib/toast.ts","src/app/(dev)/design/sandbox/toasts/","docs/systems/design-system.md"]})
+READS.update({"toasts-wiring":["src/components/ui/floating-layer.ts","src/components/shared/app-shell.tsx","src/components/guest/guest-header.tsx","docs/reviews/toasts.json","docs/design/rulings.md"]})
+BOARD.update({"toasts-wiring":"toasts          # wired by this lane; the board retires (its five asks ruled whole)"})
+LANE_SECTION.update({"toasts-wiring":r"Lane 48: `toasts-wiring`"})
+
 SIXTH={"glass-wiring","guest-wiring","door-wiring","admin-wiring","vocab-wiring","avatar-wiring"}
 OWNS.update({
 "pricing-wiring":["src/app/(marketing)/(cinema)/pricing/","src/components/marketing/sections/pricing/","docs/systems/marketing-content.md"],
