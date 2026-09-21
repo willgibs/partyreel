@@ -204,8 +204,8 @@ export function UploadsSection({
             </p>
           </div>
           {/* The fourth of the four sentences that worded one rule four ways
-              (`words=chip`). Where the status pill said "Photos only" beside an
-              "Upgrade to allow video" link, the chip IS the control: it says
+              (`words=chip`). Where the status pill read "Photos only" beside a
+              link out to the marketing page, the chip IS the control: it says
               what is locked, what opens it, and opens the sheet. */}
           {videosAllowed ? (
             <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground">

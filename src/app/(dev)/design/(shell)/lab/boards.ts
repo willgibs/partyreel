@@ -15,7 +15,6 @@ import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board"
 import { FirstEventBoard } from "@/app/(dev)/design/sandbox/first-event/board";
 import { AppDoorBoard } from "@/app/(dev)/design/sandbox/app-door/board";
 import { PricingPageBoard } from "@/app/(dev)/design/sandbox/pricing-page/board";
-import { AppPricingBoard } from "@/app/(dev)/design/sandbox/app-pricing/board";
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
@@ -56,7 +55,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "first-event": { Component: FirstEventBoard },
   "app-door": { Component: AppDoorBoard },
   "pricing-page": { Component: PricingPageBoard },
-  "app-pricing": { Component: AppPricingBoard },
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
   "demo-event": { Component: DemoEventBoard },

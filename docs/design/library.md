@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 883 contracts on 123 components · 22 standing boards.**
+**22 laws · 18 policies · 916 contracts on 127 components · 21 standing boards.**
 
 ## What binds you
 
@@ -341,7 +341,7 @@ function. A contract never freezes a look.
 
 Contracted but outside the library's directories:
 
-- `src/app/(app)/account/page.tsx` (4 guards)
+- `src/app/(app)/account/page.tsx` (6 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
@@ -360,6 +360,10 @@ Contracted but outside the library's directories:
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
 - `src/components/app/event-feed/review-room.tsx` (10 guards)
 - `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/pricing/lock-chip.tsx` (6 guards)
+- `src/components/app/pricing/pricing-sheet.tsx` (12 guards)
+- `src/components/app/pricing/return-path.ts` (7 guards)
+- `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
 - `src/components/app/share/event-code-door.tsx` (12 guards)
 - `src/components/app/share/event-code-modal.tsx` (12 guards)
 - `src/components/app/share/event-link-row.tsx` (12 guards)
@@ -455,7 +459,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `app-door` | host | Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all |
 | `pricing-page` | marketing | Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed |
-| `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |
 | `demo-event` | marketing | One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440. |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |

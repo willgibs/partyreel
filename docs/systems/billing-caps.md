@@ -1,7 +1,7 @@
 # Billing, tiers & storage caps
 
 > ROLE: the entitlement engine — how a tier maps to limits, how uploads are gated against them, and how Stripe provisions tiers.
-> BELONGS HERE: the cap model (`host_active_bytes`, monthly ingress, the `tiers.ts`↔SQL parity), video gating, the Stripe checkout/portal/webhook + provisioning, the Stripe-MCP runbook gotchas. · NOT HERE: the tier *numbers* + the human setup/cutover runbook (→ [`../PRICING.md`](../PRICING.md)), the upload pipeline itself (→ [uploads-and-r2.md](uploads-and-r2.md)), lapsed-pass/over-cap sweeps (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
+> BELONGS HERE: the cap model (`host_active_bytes`, monthly ingress, the `tiers.ts`↔SQL parity), video gating, the Stripe checkout/portal/webhook + provisioning, the in-app pricing surface and its return path, the Stripe-MCP runbook gotchas. · NOT HERE: the tier *numbers* + the human setup/cutover runbook (→ [`../PRICING.md`](../PRICING.md)), the upload pipeline itself (→ [uploads-and-r2.md](uploads-and-r2.md)), lapsed-pass/over-cap sweeps (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
 > GROWS BY: integrate-in-place.
 
 ## The cap model (account-level bytes, not item counts)
@@ -44,6 +44,10 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   [`stripe/plans.ts`](../../src/lib/stripe/plans.ts) (Price-ID↔plan map),
   [`stripe/dashboard.ts`](../../src/lib/stripe/dashboard.ts), [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts);
   routes [`/api/stripe/`](../../src/app/api/stripe) `checkout` / `portal` / `webhook`.
+- The IN-APP surface (`app-pricing` r1, ruled 2026-09-20): [`components/app/pricing/`](../../src/components/app/pricing) —
+  `pricing-sheet.tsx` (the one responsive Sheet every pricing click opens), `lock-chip.tsx` (the one component
+  behind every gated control), `welcome-to-pro.tsx` (the post-Checkout receipt), `triggers.ts` (why it opened,
+  the gated-feature record, the three Pro benefit lines) and `return-path.ts` (the `success_url` allow-list).
 - Env: `assertStripeEnv()` + the memoized `getStripe()` in [`env.ts`](../../src/lib/env.ts) / `stripe/`.
 
 ## Invariants (don't break)
@@ -101,6 +105,22 @@ media in non-deleted events) **+ a 10% overflow buffer**, plus a **monthly ingre
   carry an earlier `created` than the checkout session that produced it. **Pass purchases no longer ride
   this guard at all**: their replay-safety is the ledger's unique `stripe_session_id`, and the
   profile write is a derived-absolute recompute.
+- ★ **Nothing in the app's pricing surface may DECIDE an entitlement, and the split is deliberate.** The sheet, the
+  chip and the receipt modal take `tier` as CONTEXT for which sentence to render; every one of them is handed a
+  server-derived tier (the RLS-scoped `profiles` row), the checkout route re-resolves the entitlement from
+  `profiles` before it will open a session, and the RPCs enforce the gate again. So a forged prop or a hand-typed
+  `?welcome=pro` changes a headline and never a permission. The receipt's `applied` flag is `tier !== "free"` read
+  at RENDER time, never the URL marker, because Stripe redirects the instant payment succeeds and routinely beats
+  the webhook by a second or two; the modal re-reads a BOUNDED number of times and flips to the real receipt when
+  the write lands. Every price on the surface comes from `tiers.ts`, which is also why the sheet carries no
+  hand-written plan of its own.
+- ★ **Checkout's `success_url` is built from an exact-shape ALLOW-LIST, never a sanitized input**
+  ([`return-path.ts`](../../src/components/app/pricing/return-path.ts)). The buy buttons send a `next` path so a
+  purchase finishes the job it started (`/dashboard/<uuid>?room=settings` reopens the very sheet the locked control
+  lives in); the route accepts only `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and
+  `/account`, and answers with `/dashboard` for everything else, so no client value can leave the origin. The list
+  is also the set of pages that MOUNT `WelcomeToPro`: adding a shape means mounting the modal there in the same
+  change, or a purchase returns to a page that says nothing. Stripe validates none of this itself.
 - **Subscription writes null `event_slots` + `tier_expires_at` ALWAYS** — a stale stacked-pass slot count
   would cap a Pro host inside SQL's `enforce_event_limit` coalesce, and nothing banks behind Pro. The
   downgrade path then calls `recomputePassEntitlement`, so live UNCREDITED passes resurface as

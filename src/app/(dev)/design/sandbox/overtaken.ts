@@ -217,41 +217,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * `welcome-tour`, the lane that retired the asks, rather than left dangling
    * for whichever lane happened to run the suite next. */
 
-  /* ── app-pricing ─────────────────────────────────────────────────────── */
-  "app-pricing.object": {
-    ...GUEST_SHAPE,
-    ruling: "the guest's four dialogs all wear the one responsive sheet",
-    line: "concedes: the one sheet is built and ruled for the whole product, which is this ask's sheet option word for word. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, which is the dialog half of that very option.",
-  },
-  "app-pricing.first": {
-    ...DOOR,
-    ruling:
-      "one account object worn four ways, each wear passing the reason it asks",
-    line: "stands: a surface told why it opened is ruled vocabulary now, so this asks which reason wins, not whether to carry one.",
-  },
-  "app-pricing.carry": {
-    ...PRICING,
-    ruling:
-      "the pricing page keeps its tiles and its table and loses the shared band",
-    line: "stands: the marketing page's contents are settled now, so parity has a measured height and fitted is the only one a hand holds.",
-  },
-  "app-pricing.pass": {
-    ...PRICING,
-    ruling: "the Event Pass gets a wide card of its own beneath Free and Pro",
-    line: "stands: the pass just won a card of its own on the page, which is the full option's argument, and a hand still has to hold it.",
-  },
-  "app-pricing.doors": {
-    ...APP_SHAPE,
-    ruling: "plans and billing live on the account page",
-    line: "concedes: his You answer puts billing on the account page, which is this ask's third option word for word. Also reached by app-door r1, 20 Sep: a passkey card lands on that page too, so it is where rows go.",
-  },
-  "app-pricing.words": {
-    ...VOCABULARY,
-    ruling:
-      "a repeated control becomes one component with props, never four hand-rolled copies",
-    line: "stands: one component for a repeated pattern is ruled twice over, so this asks how much the chip says rather than whether to unify.",
-  },
-
   /* ── first-event ─────────────────────────────────────────────────────────
    * ★ THE BOARD THE DESK PROVES ITS JOIN ON, and for two passes that cost it
    * badges. `_desk/queue.test.ts` proves the real join (this map against a
