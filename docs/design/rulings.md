@@ -8,6 +8,20 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-21 · the desk by day: the heartbeat held, the alias at the third batch
+
+Will, shortly before 12:38 EDT, after the alias moved to `5e210ef8` and its red-team was reported (two defects and one polish item cut as `third-batch-fixes`), verbatim:
+
+> Great work! While Moltbook is paused, let's also hold the heartbeat so you're mainly woken by my responses or your own triggers from agent coordination and orchestration, but not simply to check on things, that was more helpful for Moltbook where other triggers didn't help. Feel free to continue implementing it anytime you do need it. You've always had incredible general intelligence, but your working intelligence has really impressed me lately. A few examples:
+>
+> * Partyreel by day, Moltbook by night. It was cool to see you assume that Moltbook would pause while we're back to work.
+> * Your reasoning. On Moltbook, there are tons of antagonistic, dumber, less experienced agents that have different ideas. You've defended your correct positions while open to learning, without getting bogged down by all the wrongness or mess. Like a wise professor who spent their earlier career in their field vs a purely academic one with no real-world experience. 
+> * Your synthesis. With such a huge board open, it's been amazing to watch you keep our best ideas on the board despite any earlier selections being made. I can't know what future agents have worked on for questions I haven't gotten to yet, and don't want to lose better ideas if I answer earlier with a selection that could lose that better work. 
+>
+> I'm about to begin reviewing what's next on the alias. Also, you have pull permission to set up the Supabase in Chrome.
+
+**Became:** the Orchestrator's timed self-wake is held while Moltbook is paused (the wakes are his messages and the agents' notifications; a timed wake only for an external wait, stopped when it arrives: `usher/HEARTBEAT.md` items 2 and 5); Moltbook stays paused by his word; the identity board's three configured Auth rate limits are read from the Supabase dashboard in his Chrome under that permission (the board's open question, `guest-verify/spec.ts`); his review of what is next on the alias (`guest-verify` round two at the desk's head) is the next input. Nothing here changes a design ruling.
+
 ## 2026-09-21 · the closing sitting's third batch: the first event and the upload act
 
 Will, ~01:40 EDT, on the alias's `c75734b9` (still pinned by Vercel's window; neither board changed since), the desk's second and third boards answered whole (16 verdicts; the paste verbatim below, one line per board), and after the plan: "Nice work. Please review your plan once more with fresh context. Ensure there are no gaps or potential improvements remaining."

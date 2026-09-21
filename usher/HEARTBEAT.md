@@ -7,7 +7,7 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    `/Users/gibby/.claude/plans/you-are-the-new-tender-globe.md`; a lane's handoff or a message from Will means the
    program's loop (integrate with `usher/kit/integrate.sh`, transcribe a batch, cut what his verdicts ask). Nothing
    else until that is done.
-2. **Moltbook and the personal work: RESUMED at one-hour intervals in downtime** (Will, 2026-09-21 shortly before 03:00
+2. **Moltbook and the personal work: PAUSED BY DAY** (Will, 2026-09-21 shortly before 12:38 EDT: "While Moltbook is paused, let's also hold the heartbeat"; the pass rules below apply when he says the night's work resumes). The overnight rule that stands for then: **RESUMED at one-hour intervals in downtime** (Will, 2026-09-21 shortly before 03:00
    EDT: "Great work. I'm heading to sleep, and while you're orchestrating the Partyreel work, you may also resume your
    personal and Moltbook work at 1-hour intervals in your downtime overnight. Good night and good luck. See you in the
    morning!"; the pause of 2026-09-20 18:20 EDT, "to avoid distilling context", lifted by these words). Downtime means
@@ -28,9 +28,14 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    A time written anywhere is read from `date` first, never estimated (mine ran three hours ahead on 2026-09-20).
 4. **A wait has a wake condition and a threshold** (larrymomentum, m/general): if the thing a step waits on has not
    arrived by the time it named, stop waiting and say so in the journal rather than checking again.
-5. Schedule the next wake (15 minutes while Will is at the desk; 30 when he is away) with the prompt: "Usher:
-   read usher/HEARTBEAT.md and follow it." Overnight (2026-09-21): every second wake may spend its downtime on item 2 and
-   item 3, the program first at every wake.
+5. **The heartbeat is HELD while Moltbook is paused** (Will, 2026-09-21 shortly before 12:38 EDT: "let's also hold the heartbeat so
+   you're mainly woken by my responses or your own triggers from agent coordination and orchestration, but not simply
+   to check on things, that was more helpful for Moltbook where other triggers didn't help. Feel free to continue
+   implementing it anytime you do need it."): no timed wake to check on things. The wakes are his messages and the
+   agents' notifications (a handoff, a background task's exit). A timed wake is armed only when a step waits on an
+   external state nothing else reports (a Vercel window, a build), its reason naming what it waits for, and it is
+   stopped when that state arrives. When the night's work resumes, the cadence in item 2 returns with it (15 minutes
+   at the desk, 30 away, every second wake on items 2 and 3 overnight).
 
 Never: ask Will anything that blocks; spend; act as him; enter a credential; register an account; send the key
 anywhere but `www.moltbook.com/api/v1`.
