@@ -1,7 +1,7 @@
 /**
  * THE QUESTIONS AN EARLIER RULING REACHED (Will, 2026-09-19, the fifth batch;
- * extended 2026-09-20 for the sixth batch and its second paste, and again the
- * same night for the closing sitting's first batch).
+ * extended 2026-09-20 for the sixth batch and its second paste, and twice more
+ * the same night for the closing sitting's two batches).
  *
  * ★ HIS RULING IS THE WHOLE SPEC. "I'd still like to see the explorations that
  * were voided by my decisions. There's a chance that their opportunities or
@@ -86,6 +86,12 @@ export const ALSO_REACHED = " Also reached by ";
  * standing ruling keeps the line and the hold is recorded in the lane's handoff
  * instead: an appended clause rides INSIDE a judgment, and there is no judgment
  * to ride in. The one place a hold is drawn is a question nothing else reached.
+ *
+ * ★ AND A HOLD IS SPENT THE MOMENT HE ANSWERS THE QUESTION IT BADGED (the
+ * closing sitting's second batch). `badge=mark` reached `seed-avatar.look` and
+ * nothing else; he then answered `look` outright, so the badge retired with the
+ * ask and that hold reached nothing at all in the end. `gate=after`'s reach on
+ * `first-event.first` is the one held badge left, and it keeps the grammar.
  */
 export const HELD = "held for guest-verify round two: ";
 
@@ -137,8 +143,27 @@ const VERIFY = {
   since: "guest-verify r1, 20 Sep",
 } as const;
 
+/* The closing sitting's second batch (2026-09-20, 22:45 EDT; 21 Sep in the
+   ledgers, which stamp UTC): thirteen verdicts, four of them a round two and
+   `app-pricing` a whole round one. Every one of the five boards retires at its
+   wiring, and a retiring board's ruling goes on reaching from here. */
+const AVATAR_2 = {
+  by: "seed-avatar",
+  since: "seed-avatar r2, 20 Sep",
+} as const;
+const DOOR_2 = { by: "app-door", since: "app-door r2, 20 Sep" } as const;
+const DEMO_2 = { by: "demo-event", since: "demo-event r2, 20 Sep" } as const;
+const PRICING_2 = {
+  by: "pricing-page",
+  since: "pricing-page r2, 20 Sep",
+} as const;
+const APP_PRICING = {
+  by: "app-pricing",
+  since: "app-pricing r1, 20 Sep",
+} as const;
+
 /**
- * THE ASKS AN EARLIER RULING HAS REACHED, in desk order, across three passes.
+ * THE ASKS AN EARLIER RULING HAS REACHED, in desk order, across four passes.
  *
  * The first pass (`overtaken`, the fifth batch) read 29 asks across thirteen
  * boards against four rulings. The second read every open ask on every standing
@@ -147,7 +172,11 @@ const VERIFY = {
  * a later ruling reached the same question again. The third (`overtaken-3`) is
  * the closing sitting's first batch, fourteen verdicts on five boards: eight
  * more questions judged, two carrying a HELD ruling and no judgment at all,
- * and nineteen lines gaining a clause behind the one they had.
+ * and nineteen lines gaining a clause behind the one they had. The fourth
+ * (`overtaken-4`) is that sitting's second batch, thirteen verdicts on the
+ * five boards that retire with it: fourteen more questions judged, fifteen
+ * lines gaining a clause, and the seven badges his own answers closed removed
+ * with the asks they named.
  * Every line was written from the board's own option set read against the
  * ruling that reaches it; none of them redraws anything, and a board never
  * overtakes its own question (his own note on the board he is walking is an
@@ -192,16 +221,33 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // question nobody is asking any more is worse than an answer left
   // orphaned).
 
-  /* ── seed-avatar ─────────────────────────────────────────────────────── */
-  // His `badge` answer is HELD (above): the look is badged with the hold and
-  // no line, because measuring four backgrounds against a mark that may not
-  // survive round two is exactly the concession the hold exists to refuse.
-  "seed-avatar.look": {
-    ...VERIFY,
+  /* ── guest-verify ────────────────────────────────────────────────────── */
+  // Round two relitigates the identity shape whole, so its five asks are the
+  // newest questions on the desk; two of them already have a backdrop that
+  // moved. His own round one answers are HELD (above) and reach from there,
+  // never onto this board: a board never overtakes its own question.
+  "guest-verify.unproven": {
+    ...AVATAR_2,
     ruling:
-      "an unconfirmed account wears a small mark on its avatar, on every surface",
-    line: HELD + "badge=mark",
+      "a seeded avatar is one identity hue at four tonal depths, hashvatar's own register",
+    line: "stands: the face a mark would ride is a blended mesh now, so a small dot has a busier ground to clear than the flat ramp it was drawn on.",
   },
+  "guest-verify.allowance": {
+    ...APP_PRICING,
+    ruling:
+      "a locked control says why it is locked and offers the way through, never just sits unusable",
+    line: "stands: a bound that only refuses is ruled out, so whichever cap wins has to arrive as an offer, and the size of it is still unpicked.",
+  },
+
+  /* ── seed-avatar ─────────────────────────────────────────────────────────
+   * `look` was the one question a HELD ruling reached and nothing else had
+   * (`badge=mark`, the closing sitting's first batch). He answered it outright
+   * in the second batch (`look=mesh`, an override recorded in `_window.json`),
+   * the board retires at `avatar-mesh-wiring`, and the badge goes with the ask
+   * it named: a badge pointing at a question nobody is asking any more is
+   * worse than an answer left orphaned (overtaken.test.ts, the one failure
+   * this exists to catch). The hold it carried was spent by his own answer and
+   * reached nothing in the end; the mesh itself now overtakes from above. */
 
   /* ── admin ───────────────────────────────────────────────────────────── */
 
@@ -216,6 +262,19 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * (overtaken.test.ts, "the one failure this exists to catch"). Removed by
    * `welcome-tour`, the lane that retired the asks, rather than left dangling
    * for whichever lane happened to run the suite next. */
+
+  /* ── app-pricing ─────────────────────────────────────────────────────────
+   * ★ THE BOARD A BATCH ANSWERED WHOLE, AND THE MECHANISM'S BEST DAY. Six of
+   * its eight asks were badged by five different boards' rulings, and he
+   * answered all eight in one paste (the closing sitting's second batch):
+   * `object=sheet`, `first=trigger`, `carry=cards`, `pass=line`, `doors=menu`
+   * and `words=chip` each OVERRODE the ruling that had reached them, which is
+   * his own contract working exactly as written (an answer to an overtaken
+   * question IS the new ruling), and `_window.json` echoes all six on the
+   * boards they overrode. The board retires at `app-pricing-wiring`, so the
+   * badges go with the asks, on the `app-vocabulary` precedent above; what
+   * they decided lives on in the ledger, in rulings.md, and in the six lines
+   * this batch's own rulings write across the standing boards below. */
 
   /* ── first-event ─────────────────────────────────────────────────────────
    * ★ THE BOARD THE DESK PROVES ITS JOIN ON, and for two passes that cost it
@@ -239,23 +298,29 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ruling: "one share sheet holds the code, the posters and anything future",
     line: "concedes: the share sheet is where the designer lands, which is this ask's on-the-real-code option.",
   },
+  "first-event.limit": {
+    ...APP_PRICING,
+    ruling:
+      "a refusal opens the pricing surface inside the app, and checkout comes back to the control it stopped",
+    line: "stands: a refusal keeps its door in the app and returns to the thing it blocked now, which kills the toast and leaves only where the wall is met.",
+  },
   "first-event.landing": {
     ...APP_SHAPE,
     ruling:
       "the event is a hub: a cards row, a live QR in the header, the gallery beneath",
-    line: "stands: the hub rules what the event page is, never what Create ends on, and the one-time beat is still unasked. Also reached by app-door r1, 20 Sep: the welcome tour now holds the product's one-time screen. Also reached by app-shape r2, 20 Sep: the dashboard is ruled out as the place a single event is prompted from.",
+    line: "stands: the hub rules what the event page is, never what Create ends on, and the one-time beat is still unasked. Also reached by app-door r1, 20 Sep: the welcome tour now holds the product's one-time screen. Also reached by app-shape r2, 20 Sep: the dashboard is ruled out as the place a single event is prompted from. Also reached by app-door r2, 20 Sep: the product's one-time screen is five screens of film now, so a beat of its own has a house idiom to borrow.",
   },
   "first-event.hand": {
     ...APP_SHAPE,
     ruling:
       "sharing is a sheet, with a QR mini-modal for a bigger scannable code",
-    line: "stands: the mini-modal is a modal doing three jobs; full screen at full brightness is the only one that reads across a dark room. Also reached by guest-shape r2, 20 Sep: no centred float survives, so the mini-modal is a bottom sheet in a hand.",
+    line: "stands: the mini-modal is a modal doing three jobs; full screen at full brightness is the only one that reads across a dark room. Also reached by guest-shape r2, 20 Sep: no centred float survives, so the mini-modal is a bottom sheet in a hand. Also reached by demo-event r2, 20 Sep: the site's own door is one photograph with the code in its corner, which is the table card option's composition.",
   },
   "first-event.empty": {
     ...APP_SHAPE,
     ruling:
       "the event is a hub: a cards row, a live QR in the header, the gallery beneath",
-    line: "stands: the hub puts the code in the header and says nothing about the album's empty room, which the launch list still fills. Also reached by guest-shape r1, 20 Sep: the guest's own empty album carries the river. Also reached by app-shape r2, 20 Sep: a band with nothing real in it is ruled absent, never drawn empty.",
+    line: "stands: the hub puts the code in the header and says nothing about the album's empty room, which the launch list still fills. Also reached by guest-shape r1, 20 Sep: the guest's own empty album carries the river. Also reached by app-shape r2, 20 Sep: a band with nothing real in it is ruled absent, never drawn empty. Also reached by app-door r2, 20 Sep: a five-screen film teaches before the app now, so a launch list is the second place that would.",
   },
 
   "first-event.first": {
@@ -315,7 +380,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   "media-viewer.opening": {
     ...GLASS,
     ruling: "the album sits blurred at half brightness behind the lightbox",
-    line: "stands: the ruling fixes the ground behind a photograph, never the way it opens, and growing from its tile still says which one. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, which is the dark room's own shape.",
+    line: "stands: the ruling fixes the ground behind a photograph, never the way it opens, and growing from its tile still says which one. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, which is the dark room's own shape. Also reached by app-pricing r1, 20 Sep: his pricing object centres at a laptop, so a centred surface is alive again at a desk.",
   },
   "media-viewer.holds": {
     ...GLASS,
@@ -326,7 +391,13 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...AVATAR,
     ruling:
       "every account wears a colour of its own, with the initial at every size",
-    line: "stands: attribution has a face to ride now, so this asks where the name sits rather than whether it has anything to sit on.",
+    line: "stands: attribution has a face to ride now, so this asks where the name sits rather than whether it has anything to sit on. Also reached by seed-avatar r2, 20 Sep: that face is a four-depth mesh now, so what a name would sit beside got richer rather than plainer.",
+  },
+  "media-viewer.next": {
+    ...PRICING_2,
+    ruling:
+      "the plans stay a stack at a phone, because a swipe row is the thing a visitor misses",
+    line: "stands: he refused a swipe row for plans and kept the gesture for galleries, which is exactly what a neighbour at the viewer's edge is.",
   },
   "media-viewer.video": {
     ...VOCABULARY,
@@ -338,7 +409,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...GUEST_SHAPE,
     ruling:
       "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the sheet teaches a drag back down in a hand now, so swiping a photograph into the grid is a gesture the product has.",
+    line: "stands: the sheet teaches a drag back down in a hand now, so swiping a photograph into the grid is a gesture the product has. Also reached by pricing-page r2, 20 Sep: he reads a swipe as the thing a visitor misses, so a way out that is only a swipe keeps the circle.",
   },
 
   /* ── host-curation ───────────────────────────────────────────────────── */
@@ -399,7 +470,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...GUEST_SHAPE_2,
     ruling:
       "even a guest's first screen wears the one sheet, and no centred float survives at a desk",
-    line: "stands: the sheet is a side panel at a desk now, so the wall stops covering the reel it is picking for, and the rail's case is its size.",
+    line: "stands: the sheet is a side panel at a desk now, so the wall stops covering the reel it is picking for, and the rail's case is its size. Also reached by pricing-page r2, 20 Sep: a row a visitor has to swipe is the thing he says gets missed, which is the rail's own risk.",
   },
   "reel-studio.moments": {
     ...GUEST_SHAPE,
@@ -418,6 +489,18 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ruling: "sharing gets one comprehensive sheet, reached from the event",
     line: "stands: the sheet holds where sharing is asked, never what taking it back costs, which is all this ask decides.",
   },
+  "reel-studio.wait": {
+    ...APP_PRICING,
+    ruling:
+      "a moment worth celebrating opens a modal, rather than a box at the top of the page",
+    line: "stands: the modal he took is for a moment worth feeling, not a minute of waiting, so a bar on the reel itself keeps its case.",
+  },
+  "reel-studio.guests": {
+    ...DEMO_2,
+    ruling:
+      "the site's demo door is a plain framed still, never the falling engine's own frame",
+    line: "stands: he took a still over a running engine at the site's own door, which is this ask's case against paying for a player on first paint.",
+  },
 
   /* ── export-flow ─────────────────────────────────────────────────────── */
   "export-flow.means": {
@@ -429,7 +512,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   "export-flow.chips": {
     ...APP_SHAPE_2,
     ruling: "a band with nothing real in it is absent, never drawn empty",
-    line: "stands: the rule kills the chip that renders a zero and takes the tap, and whether a guest is told of video they cannot have is still open.",
+    line: "stands: the rule kills the chip that renders a zero and takes the tap, and whether a guest is told of video they cannot have is still open. Also reached by app-pricing r1, 20 Sep: a locked control must say why and offer the way up, never sit there unusable.",
   },
   "export-flow.wait": {
     ...GUEST_SHAPE,
@@ -441,6 +524,12 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ruling:
       "a failure keeps its line short and puts the ways out on real buttons",
     line: "stands: the ways out of a failure are real buttons now, which is Try again by another name, leaving only the timer to pick.",
+  },
+  "export-flow.cap": {
+    ...APP_PRICING,
+    ruling:
+      "a locked control says why and offers the way through, never simply refuses",
+    line: "stands: a refusal that names no number is ruled out, so the limit has to speak before it bites, and whether a zip ever splits is still open.",
   },
   "export-flow.object": {
     ...APP_SHAPE,
@@ -501,7 +590,19 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...GUEST_SHAPE,
     ruling:
       "the guest's actions dock at the foot of the album, and go to a second round",
-    line: "stands: the guest's own action block is still being redrawn, so a standing Help row would be joining something unfinished. Also reached by guest-shape r2, 20 Sep: the block is ruled now, a row on landing and a dock once it scrolls away.",
+    line: "stands: the guest's own action block is still being redrawn, so a standing Help row would be joining something unfinished. Also reached by guest-shape r2, 20 Sep: the block is ruled now, a row on landing and a dock once it scrolls away. Also reached by app-pricing r1, 20 Sep: a surface now opens on the reason it was opened, which is the contextual link's own argument.",
+  },
+  "help-center.hub": {
+    ...APP_PRICING,
+    ruling:
+      "the in-app surface holds the plans and a price, with the whole argument one click away",
+    line: "stands: he took the short surface with everything else one click away, which is this ask's doors option argued on another screen.",
+  },
+  "help-center.article": {
+    ...DOOR_2,
+    ruling:
+      "the welcome tour is five screens of bespoke pictures, not the product's real screens",
+    line: "stands: he took drawn pictures over the real screens for the tour, and a how-to is the one place the real screen is the whole point.",
   },
   "help-center.feedback": {
     ...ADMIN,
@@ -530,7 +631,8 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
   "emails.moments": {
     ...APP_SHAPE_2,
-    ruling: "a control with nothing real behind it is absent, never drawn empty",
+    ruling:
+      "a control with nothing real behind it is absent, never drawn empty",
     line: "concedes: a switch with nothing behind it is ruled absent, which is the four dormant rows leaving until each mail is really wired.",
   },
   "emails.guest": {
@@ -545,7 +647,19 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...DEMO,
     ruling:
       "every demo door shows the party: the footer's photo pile, skinned per place",
-    line: "stands: he took that pile for the demo's doors and still read the reuse as unpolished, which is this ask's own worry about it.",
+    line: "stands: he took that pile for the demo's doors and still read the reuse as unpolished, which is this ask's own worry about it. Also reached by demo-event r2, 20 Sep: the pile is one framed photograph now, so today's register is already redrawn under this question.",
+  },
+  "site-chrome.foot-alone": {
+    ...PRICING_2,
+    ruling:
+      "the pricing page closes on its folded questions, after the overview and the table",
+    line: "stands: one more page now reaches the footer having closed on questions rather than an invitation, which is what the special case is for.",
+  },
+  "site-chrome.foot-phone": {
+    ...DEMO_2,
+    ruling:
+      "every demo door is one framed photograph with the code tucked into its corner",
+    line: "stands: the demo is one object now rather than a pile, so a phone takes it whole or keeps a line, and he already reads it as too quiet.",
   },
 
   /* ── profile-page ────────────────────────────────────────────────────── */
@@ -553,7 +667,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...GUEST_SHAPE,
     ruling:
       "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the sheet is built and ruled now, so it is the cheapest of the four and a page is the only one that buys anything new. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, so the modal is off the one primitive.",
+    line: "stands: the sheet is built and ruled now, so it is the cheapest of the four and a page is the only one that buys anything new. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, so the modal is off the one primitive. Also reached by app-pricing r1, 20 Sep: his pricing object centres at a laptop, so a centred list is not off the primitive after all.",
   },
   "profile-page.quick-look": {
     ...APP_SHAPE,
@@ -564,7 +678,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...APP_SHAPE,
     ruling:
       "the app's bar carries a crumb trail: Partyreel, the event, the room",
-    line: "stands: the crumb rides the host app's bar and a scanned guest is on the album's header, where the pill is the only way back. Also reached by guest-shape r1, 20 Sep: the guest's chrome goes to a second round.",
+    line: "stands: the crumb rides the host app's bar and a scanned guest is on the album's header, where the pill is the only way back. Also reached by guest-shape r1, 20 Sep: the guest's chrome goes to a second round. Also reached by app-pricing r1, 20 Sep: the account menu just took a standing row of its own, so one more row is cheap wherever a menu exists.",
   },
 
   /* ── privacy-hero ────────────────────────────────────────────────────── */
@@ -572,7 +686,7 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...CRYSTAL,
     ruling:
       "one glass material everywhere, with a double edge and nothing borrowed",
-    line: "stands: frosted is a named material now, so the access grid's tiles would wear it and the choice is the mechanism, not the finish.",
+    line: "stands: frosted is a named material now, so the access grid's tiles would wear it and the choice is the mechanism, not the finish. Also reached by app-door r2, 20 Sep: the welcome runs its copy over bespoke pictures in motion, which is the aperture's own composition.",
   },
 
   /* ── album-motion ────────────────────────────────────────────────────── */
@@ -597,7 +711,13 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...PRICING,
     ruling:
       "the pricing page ends on a folded accordion, with fewer questions in the row",
-    line: "stands: one of the two looks this reconciles was just decided on its own page, which leaves the other to follow it or stay.",
+    line: "stands: one of the two looks this reconciles was just decided on its own page, which leaves the other to follow it or stay. Also reached by pricing-page r2, 20 Sep: the questions now close that page after the table, so the look they wear is the last thing read.",
+  },
+  "loose-ends.review-photo": {
+    ...DEMO_2,
+    ruling:
+      "a demo visual no taller and no louder than the banner behind it is not noticeable enough",
+    line: "stands: he judges a picture by whether it carries at the size it is drawn, which is this ask's whole test, and the three are still unranked.",
   },
   "loose-ends.everywhere-pill": {
     ...VOCABULARY,
@@ -611,7 +731,23 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ...PRICING,
     ruling:
       "the pricing page opens on paper, because a dark chapter above the plans read as harsh",
-    line: "stands: he just moved a page onto paper to soften that very seam, which is the transition this one is being asked to open with.",
+    line: "stands: he just moved a page onto paper to soften that very seam, which is the transition this one is being asked to open with. Also reached by pricing-page r2, 20 Sep: he re-cut that page's chapters himself, so a dark chapter over a paper body is his own working order.",
+  },
+  "contact-page.receipt": {
+    ...APP_PRICING,
+    ruling:
+      "a confirmation worth feeling opens a modal, rather than a box at the top of the page",
+    line: "stands: a box in the page is ruled the flat way to confirm something worth feeling, and a receipt still has to be a thing you can keep.",
+  },
+
+  /* ── press-page ──────────────────────────────────────────────────────── */
+  // The desk's last board, and the first ruling to reach it: nothing had
+  // before the closing sitting re-cut a marketing page's own order.
+  "press-page.the-arc": {
+    ...PRICING_2,
+    ruling:
+      "the pricing page reads overview first, then the detail table, then the questions",
+    line: "stands: he re-cut a marketing page into an overview, the detail, then the questions, which is this ask's own case for the claims leading.",
   },
 };
 

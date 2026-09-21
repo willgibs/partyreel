@@ -21,8 +21,9 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   pressed before the board's demo; if it reads FROZEN the run is blind and a frozen step below is the harness, not the
   board: `gate<N>-sight.log`), then `lab:demo` retried once on the warm server (a cold frame compile under
   three concurrent gates stalls CDP past 60 s and reads TIMED OUT; the retry is the test, not a longer timeout); it waits up to four minutes for the built server to answer (a big build once needed more than 90 s, and the smoke ran against nothing).
-- `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): finds or creates the launch-prep deployment for a `[preview]`
-  commit, waits for READY, assigns the alias, reads the served stamp. `vercel-lib.mjs` is its client (the token from
+- `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): THE launch-prep deployment (no push creates one since 2026-09-20):
+  finds or creates one per project (app, admin) for a `[preview]` commit, waits for both READY, assigns both
+  aliases by hand, reads the served stamp; exit 1 only when the app's alias did not move. `vercel-lib.mjs` is its client (the token from
   `.env.local`).
 - `desk-sections.mjs` / `desk-check.mjs`: the served desk per section; the library page's mention of a contract.
 - `make-manifests.py <cut-sha> [tracks]`: the lane manifests generated from the plan file's Lane sections with
