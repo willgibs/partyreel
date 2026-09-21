@@ -21,8 +21,7 @@ import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 import { DEMO_EVENT } from "./demo-event/spec";
-import { APP_SHAPE } from "./app-shape/spec";
-import { GUEST_SHAPE } from "./guest-shape/spec";
+
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 
@@ -55,8 +54,7 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
 const REGISTERED: readonly BoardSpec[] = [
   GUEST_VERIFY,
   SEED_AVATAR,
-  APP_SHAPE,
-  GUEST_SHAPE,
+
   APP_DOOR,
   DEMO_EVENT,
   PRICING_PAGE,

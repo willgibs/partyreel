@@ -1,7 +1,11 @@
+"use client";
+
+import { useId, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
   Clapperboard,
   ListChecks,
   PauseCircle,
@@ -10,7 +14,11 @@ import {
 } from "lucide-react";
 
 import { trackAttrs } from "@/lib/analytics/events";
-import type { NextStep, NextStepKind } from "@/lib/dashboard/next-step";
+import {
+  foldNextSteps,
+  type NextStep,
+  type NextStepKind,
+} from "@/lib/dashboard/next-step";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,8 +34,14 @@ import { cn } from "@/lib/utils";
  * (`lib/dashboard/next-step.ts`), and when that rule finds nothing the band
  * says so calmly and keeps the create door where a host can reach it.
  *
- * Presentational and server-renderable: the steps are resolved on the server
- * where the state is, and this only draws them.
+ * ★ THE FOLD (`busy=collapsed`, app-shape round two, 2026-09-20). A genuinely
+ * busy host — several queues, a full shelf, a few quiet suggestions — hits six
+ * steps by Thursday, and six chips wrapping three lines deep stops answering
+ * "what needs you" at a glance. So past three steps (`foldNextSteps`, the pure
+ * rule this only draws), the rest fold behind one "+N more" chip that expands
+ * in place, `aria-expanded` on the control for assistive tech. A CLIENT
+ * component for that reason alone — the steps themselves are still resolved on
+ * the server, where the state is.
  */
 
 const ICONS: Record<NextStepKind, typeof ListChecks> = {
@@ -48,7 +62,47 @@ const TONES = {
     "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
 } as const;
 
+/** One step's chip. `reveal` rides `data-settings-reveal` (globals.css), the
+ *  product's own "a control eases in when it appears" idiom (the visibility
+ *  and uploads settings panels, the gallery's Filter panel): opacity + a small
+ *  rise on mount, a plain instant swap under reduced motion — never a bespoke
+ *  animation for one band. */
+function StepChip({ step, reveal }: { step: NextStep; reveal: boolean }) {
+  const Icon = ICONS[step.kind];
+  return (
+    <Link
+      href={step.href}
+      data-settings-reveal={reveal ? "" : undefined}
+      // The doors the chrome carries. They are inert on (app): only
+      // the marketing layout mounts the delegated listener, which
+      // analytics/events.ts states outright. Carried anyway because
+      // the round's ownership rules ask every new door to, and
+      // flagged in the lane's Deferred rather than silently skipped.
+      {...trackAttrs("cta_click", {
+        cta: `pulse-${step.kind}`,
+        location: "dashboard",
+      })}
+      className={cn(
+        "group flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none transition-[background-color,transform] duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:active:scale-100",
+        TONES[step.tone],
+      )}
+    >
+      <Icon className="size-4 shrink-0" aria-hidden />
+      {step.label}
+      {/* The arrow only leans on hover: a row of six static arrows
+          reads as decoration, one that moves reads as a door. */}
+      <ArrowRight
+        className="size-3.5 shrink-0 opacity-0 transition-[opacity,translate] duration-150 ease-emphasis group-hover:translate-x-0.5 group-hover:opacity-70 group-focus-visible:opacity-70 motion-reduce:transition-none"
+        aria-hidden
+      />
+    </Link>
+  );
+}
+
 export function NextStepBand({ steps }: { steps: NextStep[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const restId = useId();
+
   if (steps.length === 0) {
     return (
       <section aria-label="What needs you">
@@ -61,41 +115,37 @@ export function NextStepBand({ steps }: { steps: NextStep[] }) {
     );
   }
 
+  const { head, rest } = foldNextSteps(steps);
+  const visible = expanded ? [...head, ...rest] : head;
+
   return (
     <section aria-label="What needs you">
-      <ul className="flex flex-wrap items-center gap-2">
-        {steps.map((step) => {
-          const Icon = ICONS[step.kind];
-          return (
-            <li key={`${step.kind}-${step.eventId ?? "account"}`}>
-              <Link
-                href={step.href}
-                // The doors the chrome carries. They are inert on (app): only
-                // the marketing layout mounts the delegated listener, which
-                // analytics/events.ts states outright. Carried anyway because
-                // the round's ownership rules ask every new door to, and
-                // flagged in the lane's Deferred rather than silently skipped.
-                {...trackAttrs("cta_click", {
-                  cta: `pulse-${step.kind}`,
-                  location: "dashboard",
-                })}
+      <ul id={restId} className="flex flex-wrap items-center gap-2">
+        {visible.map((step, i) => (
+          <li key={`${step.kind}-${step.eventId ?? "account"}`}>
+            <StepChip step={step} reveal={expanded && i >= head.length} />
+          </li>
+        ))}
+        {rest.length > 0 && (
+          <li>
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={restId}
+              onClick={() => setExpanded((e) => !e)}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-dashed border-border px-3.5 text-sm font-medium text-muted-foreground outline-none transition-colors duration-150 ease-emphasis hover:border-foreground/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              {expanded ? "Show fewer" : `+${rest.length} more`}
+              <ChevronDown
                 className={cn(
-                  "group flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none transition-[background-color,transform] duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:active:scale-100",
-                  TONES[step.tone],
+                  "size-3.5 shrink-0 transition-transform duration-150 ease-emphasis motion-reduce:transition-none",
+                  expanded && "rotate-180",
                 )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden />
-                {step.label}
-                {/* The arrow only leans on hover: a row of six static arrows
-                    reads as decoration, one that moves reads as a door. */}
-                <ArrowRight
-                  className="size-3.5 shrink-0 opacity-0 transition-[opacity,translate] duration-150 ease-emphasis group-hover:translate-x-0.5 group-hover:opacity-70 group-focus-visible:opacity-70 motion-reduce:transition-none"
-                  aria-hidden
-                />
-              </Link>
-            </li>
-          );
-        })}
+                aria-hidden
+              />
+            </button>
+          </li>
+        )}
       </ul>
     </section>
   );

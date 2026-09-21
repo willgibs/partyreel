@@ -26,11 +26,22 @@ neighbouring code says.
 The ratified **left-editorial** layout ([`event-experience.tsx`](../../src/components/guest/event-experience.tsx)
 is the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line**
 ("N photos & videos from M guests") → the **action block**: a full-width primary **Add photos** over a
-full-width **`[Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`);
-a **floating Add pill** ([`floating-add-button.tsx`](../../src/components/guest/floating-add-button.tsx))
-appears once the header Add scrolls out of view (an `IntersectionObserver` sentinel —
-[`use-in-view-sentinel.ts`](../../src/lib/guest/use-in-view-sentinel.ts) — never both, never over the
-empty-state CTA). `GuestShare` is the Invite trigger + sheet (QR + Copy + native Share + Download).
+full-width **`[Invite]`** row. The primary Add opens the OS picker directly (`uploadRef.openPicker()`).
+`GuestShare` is the Invite trigger + sheet (QR + Copy + native Share + Download).
+★ **THE ROW ON LANDING, A DOCK ONCE IT LEAVES** (Will, `chrome=both`, 2026-09-20: "you see the actions
+higher on the page when first landing, and then keep them visible as you continue"). The row above is
+unchanged; [`guest-action-dock.tsx`](../../src/components/guest/guest-action-dock.tsx) takes its place at
+the foot the moment the row's `IntersectionObserver` sentinel
+([`use-in-view-sentinel.ts`](../../src/lib/shared/use-in-view-sentinel.ts)) leaves the viewport, carrying
+BOTH actions over a gradient scrim and inside the safe area. It is `inert` rather than unmounted while the
+row is on screen, so it travels in and back out, and the page root reserves its height for as long as it is
+MOUNTED (never only while it is visible, or the page would grow under a thumb mid-scroll). The dock carries
+exactly what the row carries: Add drops out of both together (uploads closed, a teaser, an empty album whose
+own CTA is the primary). **The floating Add pill is retired**:
+[`floating-add-button.tsx`](../../src/components/shared/floating-add-button.tsx) stays on disk for the three
+lab surfaces still drawing it, and nothing in the product mounts it. Round one's `chrome=dock` ALONE was
+refused for the reason a dock alone still earns ("one of the last places a guest's eye will reach"), so the
+dock is never a guest's first sight of Add.
 ★ **SAVE IS NOT IN THIS ROW** (Will, `account=after`, 2026-09-20: "Moving Save makes it feel more natural
 after upload rather than a random button above an album for guests"). The account is asked once at the door,
 and keeping the album is a one-tap offer AFTER a guest's first photograph lands
@@ -41,9 +52,9 @@ round two, which draws this block with Save already gone.
 `settings=sheet`'s "apply this sheet concept everywhere"): `SheetContent responsive`
 ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)) — a side panel at a desk, a bottom sheet in a hand.
 Invite ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)) and Report
-([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)) are on it. The DOOR is NOT: its shell
-stays vaul-backed (below), and "Download all" (`ExportDialog`) + Save (`SaveEventButton`) are shared with host
-surfaces, so they follow in their owning lanes. ⚠ Report is the one with a FIELD in it, and the responsive
+([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)) are on it. The DOOR is on it from 640 up
+too now (`welcome=sheet`, below); its phone half stays vaul-backed, and "Download all" (`ExportDialog`) + Save
+(`SaveEventButton`) are shared with host surfaces, so they follow in their owning lanes. ⚠ Report is the one with a FIELD in it, and the responsive
 Sheet's phone half has never held a focused input on a real iPhone — if the keyboard covers the textarea the
 fix is the Sheet's phone half becoming vaul-backed for every consumer, one change, never a per-dialog exception.
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
@@ -155,7 +166,15 @@ exits).
 
 One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders a REAL Vaul
 drawer on phones (drag physics, `repositionInputs` lifts a focused field above the iOS keyboard,
-`dismissible={false}` rubber-bands) and the centered Radix `Dialog` on sm+; the step machine is
+`dismissible={false}` rubber-bands) and, from 640 up, the ONE product Sheet (`SheetContent responsive`)
+as a full-height panel from the right edge. ★ **NO CENTRED FLOAT AT A DESK** (Will, `welcome=sheet`,
+2026-09-20: "Aligning to the bottom rather than centering as a modal gives much more blurred visual
+preview of the album awaiting above to incentivize/tease through the welcome gates"). Round one ruled the
+SEQUENCE and said so in the same breath ("this is directly approving the welcome then gate, not this sheet
+design"); round two ruled the SHELL, and the sequence below is untouched by it. The phone half keeps vaul
+because the gates TYPE into this surface and `repositionInputs` is the only thing keeping a focused field
+off the keyboard; what it took from the Sheet is the posture, `max-h-[85svh]`, so the album still shows
+above the door. The dismissability table is identical on both halves. The step machine is
 unchanged: steps adapt `welcome → password? → account?`, the CURRENT step is the first un-satisfied
 one, advancement is SERVER-DRIVEN — each gate form calls `router.refresh()` on success, which
 re-runs the RSC, drops the satisfied gate from `gateSteps`
@@ -173,7 +192,8 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server snapshot "seen" = no
   flash). Suppressed for the owner + the demo. Primary reads "Continue" when a gate follows, else
   "View the album". Inside the drawer the welcome stands `min-height: 55svh` (the ratified "tall"
-  presence; `[data-entry-drawer] [data-welcome-step]`).
+  presence; `[data-entry-drawer] [data-welcome-step]`); the desk panel is full height already, so the rule
+  stays drawer-scoped and the content sits at the panel's top the way every other product sheet's does.
 - **THE HONEST-AFFORDANCE TABLE** (dismissal exists only when there is something to dismiss TO):
   welcome-before-PASSWORD = held (the continuous invitation→gate flow; the old X "closed" it only
   for the firm gate to instantly re-open); password = held (it IS the page); welcome-before-account
@@ -346,6 +366,19 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   per person — which also means uploads made before this shipped are covered. The ids reach the grid as
   `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so the host's bin
   never shows it and `restore_media` refuses it; the purge cron reclaims the bytes on the usual 30-day path.
+- **And WHICH tiles are a guest's own** (Will, `theirs=mark`, 2026-09-20): the same server-read set reaches
+  the grid a second time as `mineIds`, and the ONE grid
+  ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) writes `data-mine` on those tile boxes
+  and gives each a FOURTH mark in the marks' own material (`GLASS_MARK` + the `glass-mark-lit` halo, the
+  play mark's exact recipe). It takes the tile's TOP-LEFT corner, the only one free at every width: the play
+  and like marks own the two bottom corners and the desk's hover row owns the top right. A tap toggles the
+  **Yours filter** ([`yours-filter.ts`](../../src/components/guest/yours-filter.ts), pure): the album narrows
+  to that set under a "Showing yours · Show all" line, the event's own count line keeps saying how big the
+  WHOLE album is, and the filter cannot stay live once the guest owns nothing in the list — removing your
+  last photograph can never strand you in an empty view. A LINE and not a chip, on his own note: "rather
+  than just adding more and more configs here"; Yours joins tile size inside the View menu
+  (`controls-home=view-menu`) when that lands on the guest row, and this line stays as the state's receipt.
+  Omitted wherever Remove is (the demo, a locked gallery), so a surface with no removal has no marks either.
 
 ## Auth-aware header island
 

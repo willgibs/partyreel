@@ -15,7 +15,7 @@ import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 
 import { initial } from "@/components/app/user-menu";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
-import { FloatingAddButton } from "@/components/shared/floating-add-button";
+import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GhostRiver } from "@/components/guest/gallery-empty-state";
 import { GuestReelCard } from "@/components/guest/guest-reel-card";
@@ -174,8 +174,9 @@ export function EventExperience({
   const uploadingCount = queue.filter(
     (it) => it.status === "uploading" || it.status === "queued",
   ).length;
-  // "Header Add on load, floating Add on scroll, never both": the pill shows
-  // only while the header action block's sentinel is out of view.
+  // `chrome=both` (Will, 2026-09-20): the row on landing, the DOCK once that
+  // row scrolls away — the same sentinel the floating pill used to read, now
+  // carrying both of a guest's actions instead of only Add.
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads && !needsName;
@@ -339,7 +340,9 @@ export function EventExperience({
   // does: shareUrl === joinUrl). GuestShare takes whatever string it is
   // handed and never re-derives it, so this is the entire integration.
   const shareUrl =
-    isDemo && ownPairId ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}` : joinUrl;
+    isDemo && ownPairId
+      ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}`
+      : joinUrl;
 
   // `try=turn`: the same upload, then one card. Paired, the two lines above
   // say more (the SAME moment, worded for a second screen); unpaired, the
@@ -362,7 +365,16 @@ export function EventExperience({
 
   return (
     <div
-      className="w-full flex-1 py-8"
+      className={cn(
+        "w-full flex-1 pt-8",
+        // The dock is fixed, so the page owes it room or it crops the last row
+        // and the report line. Reserved for as long as the dock is MOUNTED
+        // rather than while it is visible: a padding that appeared with the bar
+        // would grow the page under a guest's thumb mid-scroll.
+        access !== "none"
+          ? "pb-[calc(6rem+env(safe-area-inset-bottom))]"
+          : "pb-8",
+      )}
       data-reveal-curtain={holdCurtain ? "" : undefined}
     >
       {/* Claim anonymous uploads when a magic-link return lands the visitor here signed-in. Silent on the
@@ -578,7 +590,10 @@ export function EventExperience({
                 </Button>
               )}
               <div
-                className={cn("mt-2 grid gap-2", isDemo ? "grid-cols-2" : "grid-cols-1")}
+                className={cn(
+                  "mt-2 grid gap-2",
+                  isDemo ? "grid-cols-2" : "grid-cols-1",
+                )}
               >
                 {isDemo && (
                   <Button size="sm" className="h-9 w-full" asChild>
@@ -711,12 +726,27 @@ export function EventExperience({
               It is words, so it keeps the column. */}
           {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
 
-          {/* The floating Add pill: only while the header's Add is scrolled away
-              (never both), and never over the empty-state CTA. */}
-          <FloatingAddButton
-            show={canUpload && !galleryEmpty && !headerActionsInView}
+          {/* THE DOCK, the second half of `chrome=both`: the row's own two
+              actions, taking the row's place the moment it leaves the screen
+              (and mounted-but-inert until then, so it travels in rather than
+              appearing). It replaces the floating Add pill, which carried Add
+              alone and left Invite unreachable deep in an album. */}
+          <GuestActionDock
+            hidden={headerActionsInView}
             uploadingCount={uploadingCount}
-            onClick={() => uploadRef.current?.openPicker()}
+            onAdd={
+              canUpload && !galleryEmpty
+                ? () => uploadRef.current?.openPicker()
+                : undefined
+            }
+            invite={
+              <GuestShare
+                joinUrl={shareUrl}
+                qrStyle={event.qr_style}
+                eventName={event.name}
+                triggerClassName="h-9 flex-1 sm:flex-none"
+              />
+            }
           />
 
           {/* Discreet anonymous report path (the report capability is the qr_token).

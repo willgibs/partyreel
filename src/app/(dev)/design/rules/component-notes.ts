@@ -33,6 +33,15 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a thin dropdown wrapper over caller-owned groups and handlers; event-gallery.tsx's own View button (src/components/app/event-feed, outside the library) is the real caller and the honest demo, not fixture groups invented for the Library",
   },
+  // THE HOME'S COLLAPSE (lp/home-states-wiring, 2026-09-20), at the head for
+  // the same reason as the block below it: several lanes add `for` lines this
+  // round, and prepending keeps each lane's on its own hunk.
+  "src/components/app/dashboard/next-step-band.tsx": {
+    for: "the pulse's first band: one next-best-step chip per event, and past three the top three by tone with the rest folded behind an \"N more\" chip that expands in place",
+  },
+  // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
+  // block below it, so several lanes adding `for` lines in one round land on
+  // distinct hunks instead of on each other.
   "src/components/ui/table.tsx": {
     for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
   },
@@ -192,6 +201,20 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/components/guest/claim-handle-prompt.tsx": {
     for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
+  },
+
+  /* the guest's chrome and its door (guest-chrome-wiring, 2026-09-20). */
+  "src/components/guest/guest-action-dock.tsx": {
+    for: "the guest's two actions once the row under the event's name has scrolled away: Add beside Invite, at the foot, over a scrim rather than a hairline. It carries what the ROW carries and never invents one, and it is `inert` rather than unmounted while the row is still on screen, so it travels in and out",
+  },
+  "src/components/guest/entry-shell.tsx": {
+    for: "the shell every guest's first screen wears: vaul below 640 (the drag physics and the keyboard lift the gates type into) and the one responsive Sheet above it, both at the same ceiling so the album shows above the door. It owns no flow state and no copy, and `held` versus `free` is the whole of its table",
+    unspecimened:
+      "furniture with no content of its own; entry-modal.tsx is what stands inside it",
+  },
+  "src/components/guest/yours-filter.ts": {
+    for: "whether a guest's album is showing all of it or only theirs, and how many of theirs there are. The filter refuses to stay live once the guest owns nothing in the list, so removing your last photograph can never strand you in an empty view",
+    unspecimened: "one pure function; the album above it is the specimen",
   },
 
   /* the door into an account (door-wiring, 2026-09-20): one object worn four
@@ -469,7 +492,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the neutral placeholder for an empty gallery, dashboard or list",
   },
   "src/components/shared/floating-add-button.tsx": {
-    for: "the floating Add photos pill, shown only while the header's Add button is off screen",
+    for: "the floating Add photos pill, RETIRED from the product by `chrome=both` (the guest album's deep-scroll chrome is `guest/guest-action-dock.tsx`, which carries Invite beside Add); it stays on disk only because three lab surfaces still draw it, so never mount it in a new surface",
   },
   "src/components/shared/glow-filter.tsx": {
     for: "the turbulence field every Glow warps through",

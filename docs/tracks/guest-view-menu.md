@@ -1,21 +1,24 @@
 ---
-track: overtaken-3
+track: guest-view-menu
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "c75734b9"          # the launch-prep SHA the branch was cut from
-board: none            # lab infrastructure: the judgment lines for the closing sitting's first batch; no board of its own
+cut: "9faf4218"          # the launch-prep SHA the branch was cut from
+board: none            # a production follow-up of guest-chrome-wiring (guest-shape retired at fd42c759); no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/overtaken.ts
-  - src/app/(dev)/design/sandbox/overtaken.test.ts
+  - src/components/guest/live-gallery.tsx
+  - src/app/(guest)/e/[token]/page.tsx
+  - src/app/(guest)/e/[token]/actions.ts
+  - docs/systems/guest-flow.md
 reads:                  # single-sources you depend on: never duplicate, never edit
+  - src/components/shared/view-menu.tsx
+  - src/lib/shared/tile-size-cookie.ts
+  - src/components/app/event-feed/event-gallery.tsx
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/components/shared/masonry.tsx
+  - src/components/guest/guest-masonry.tsx
   - docs/design/rulings.md
-  - docs/reviews/
-  - src/app/(dev)/design/touchpoints.ts
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/_desk/
-  - src/components/lab/
 ---
 
-# lp/overtaken-3
+# lp/guest-view-menu
 
 **Goal.** A lane from the sixth batch's queue (the Orchestrator's plan, "The queue after wave one"; Will's answers of 2026-09-20 verbatim in `docs/design/rulings.md`, "the sixth batch"; the wiring lanes of that batch are on `launch-prep`). Read the brief end to end before the first edit; where it names his words, they bind; where it says recommended, draw that first. His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
 section "the fifth batch"); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
@@ -24,16 +27,12 @@ answer and list it in the Handoff.
 
 ## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `69a9a177`)
 
-- THE REVIEW SHEET FIRST: his verdicts beside the option pictures, `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b97eafa6-025b-4736-847b-48f80c42ec24/scratchpad/review-sheets/fe056e62.html` (open it in a browser; your board's section); the plan's words for this lane are in `/Users/gibby/.claude/plans/let-s-put-a-pause-gentle-widget.md`.
-- The judgment pass for the fourteen verdicts (the list above is the starting point, not the lines): every reached
-  ask opened on its board and read against the ruling and the drawings; one line each, "stands: ..." or
-  "concedes: ...", the badge in plain words with the date 2026-09-20; an ask reached by one of `guest-verify`'s four
-  HELD rulings carries a badge that names the hold and NO line ("held for guest-verify round two: gate=after"), so
-  nothing concedes to a ruling he may relitigate. An ask already badged keeps its first entry and gains "also reached
-  by ...". Owns `src/app/(dev)/design/sandbox/overtaken.ts` and `overtaken.test.ts` only. Reads the five specs and
-  ledgers, rulings.md, `touchpoints.ts`, `node usher/kit/board-card.mjs --desk`. Verify: the test green (every key a
-  standing board's ask; every line in the two words or the hold form), `lab:smoke` whole, `lab:demo` on one affected
-  board pressing a badged step, the gate. Handoff: the counts per board, the tally, the held list.
+- What this is: `guest-chrome-wiring` (merged `fd42c759`) handed off before `controls-home-wiring`'s `ViewMenu` reached the tree, and its follow-up mount was lost with its worktree. This lane lands that one mount, and nothing else. His words behind it (guest-shape r2 `theirs=mark`, 2026-09-20): "We could likely combine this new filter with the tile size filter to create a new parent dropdown, rather than just adding more and more configs here. This would be more scalable as we progress."
+- The mount, as the guest lane had built it: the shared `ViewMenu` (`src/components/shared/view-menu.tsx`, the host gallery's own object, its groups as props) in the guest album's control row in `live-gallery.tsx` beside Download all, with two groups: Tile size (the three steps from `src/lib/shared/tile-size-cookie.ts`, disabled below 640 with the hint "Wider screens", because `masonry.tsx` forces two columns there and the control would otherwise be dead) and Showing (Everyone's / Yours (n), present only when the guest owns something on this album); `--album-column` on a wrapper around `GuestMasonry`, exactly as `event-gallery.tsx` does for the host; the mark's own tap and the "Showing yours · Show all" line both kept (the menu's Yours and the mark's tap set the same filter).
+- The cookie, HONESTLY: the guest page's server component reads `pr_tile_size` (`tile-size-cookie.ts`'s `resolveTileSize`, the host page's precedent) and passes the initial size down, and the write goes through a server action in the guest page's `actions.ts` (the host's `setTileSize` precedent), so the first paint is right and no client pre-measure frame exists. Never a client-only cookie read.
+- Owns: `src/components/guest/live-gallery.tsx`, `src/app/(guest)/e/[token]/page.tsx`, `src/app/(guest)/e/[token]/actions.ts`, `docs/systems/guest-flow.md` (the control row's line). Reads, never edits: `src/components/shared/view-menu.tsx`, `src/lib/shared/tile-size-cookie.ts`, `src/components/app/event-feed/event-gallery.tsx`, `src/app/(app)/dashboard/[eventId]/page.tsx` (the host's cookie read), `src/components/shared/masonry.tsx`, `src/components/guest/guest-masonry.tsx`, `docs/design/rulings.md`.
+- Tests: the existing guest gallery tests green; a test for the server read (the cookie's value reaches the album's wrapper; a missing cookie gives the default); `lab:smoke` whole; the gate. Red-team on the alias at 375 and 1440 signed out on the disposable event: the menu beside Download all, Tile size disabled at 375 with its hint, Yours present only with an own upload (a second tab uploads), the first paint at the chosen size after a reload.
+- His to overrule: the group names ("Tile size", "Showing"); the hint's words; Yours hidden when nothing is yours.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

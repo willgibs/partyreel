@@ -130,11 +130,9 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "demo-event"
-  | "guest-shape"
   | "album-motion"
   | "loose-ends"
-  | "privacy-hero"
-  | "app-shape";
+  | "privacy-hero";
 
 export type Ruling = {
   id: RulingId;
@@ -1253,24 +1251,18 @@ export const RULINGS: Ruling[] = [
     title: "The host app's shape",
     surface: "host",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
-    shipped: null,
+      "round one ruled whole (Will, 2026-09-20, the sixth batch: home=pulse, density=both a cover/row toggle, event=hub, nav=crumbs, share its own room plus a QR mini-modal, settings=sheet, phone=same); round two ruled the same day (empty=wizard, first=pulse overrules share, busy=collapsed with his band-order note)",
+    shipped:
+      'The pulse and the hub (home-wiring 62a82a26, hub-wiring a91464cb, 2026-09-20); round two (home-states-wiring, 2026-09-20) verified the zero-event and one-event pages unchanged and wired the real fold: the band\'s top three by tone behind one "N more" chip that expands in place, and the page reordered to next-step, storage, events, Just arrived beneath them, by his note.',
     why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
     lives: [
       "docs/systems/host-app.md",
       "src/components/shared/app-shell.tsx",
       "src/app/(app)/dashboard/page.tsx",
       "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/lib/dashboard/next-step.ts",
+      "src/components/app/dashboard/next-step-band.tsx",
     ],
-    board: {
-      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
-      variants: [
-        "The host's home",
-        "The event as a place",
-        "Moving around",
-        "In a hand",
-      ],
-    },
   },
   // RULED AND RETIRED (round two, 2026-09-20). Round one wired six of seven
   // asks (`vocab-wiring`) with the tile-size cluster as the interim shape;
@@ -1329,20 +1321,18 @@ export const RULINGS: Ruling[] = [
     title: "The guest experience's shape",
     surface: "guest",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch): door=today (the welcome-then-gate sequence, not the sheet design), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after, dialogs=stands; `guest-wiring` wires five of seven; round two open on the chrome (his \"warrants a second round\"), the welcome's shell on a real gate and the demo's own arrival, and where a guest finds their own photographs at scale",
-    shipped: null,
-    why: "Round two: where Add and Invite live so the top action is found landing and reachable deep, the door's shell, and where a guest finds their own photographs at scale.",
+      "whole: round one (Will, 2026-09-20, the sixth batch) ruled door=today (the welcome-then-gate SEQUENCE, not its shell), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after and dialogs=stands, five of them wired at `7f4f2ffe` (`guest-wiring`); round two, the two he sent back plus where a guest finds their own photographs, ruled chrome=both, welcome=sheet and theirs=mark at the closing sitting's first batch (2026-09-20) and wired at `guest-chrome-wiring`",
+    shipped:
+      "The row under the event's name on landing and a dock of the same two actions at the foot once it scrolls away (the floating Add pill retired), the door on the one responsive Sheet from 640 up with vaul keeping the phone, and a fourth tile mark on a guest's own photographs whose tap filters the album to theirs",
+    why: "His criterion held both halves at once, found on landing AND reachable at any depth, so the row he liked first becomes the dock he trusted.",
     lives: [
       "docs/systems/guest-flow.md",
-      "src/app/(guest)/e/[token]/page.tsx",
       "src/components/guest/event-experience.tsx",
+      "src/components/guest/guest-action-dock.tsx",
       "src/components/guest/entry-shell.tsx",
-      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/guest/live-gallery.tsx",
+      "src/components/shared/masonry.tsx",
     ],
-    board: {
-      note: "Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68",
-      variants: ["The chrome", "The welcome", "Theirs"],
-    },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
   // (full-quality, the plate, the band with its rail, the slide, the rhythm as
@@ -1615,8 +1605,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
-  "app-shape",
-  "guest-shape",
   "guest-verify",
   "seed-avatar",
   "app-door",

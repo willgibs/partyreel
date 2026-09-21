@@ -52,6 +52,9 @@ export function GuestMasonry({
   canDelete,
   arrivedIds,
   prefix,
+  mineIds,
+  onSelectMine,
+  mineSelected,
 }: {
   items: GridMedia[];
   /**
@@ -64,6 +67,14 @@ export function GuestMasonry({
   canDelete?: (item: GridMedia) => boolean;
   arrivedIds?: ReadonlySet<string>;
   prefix?: ReactNode;
+  /**
+   * THE FOURTH MARK (`theirs=mark`, Will 2026-09-20): the ids that are this
+   * guest's own, the mark's tap, and whether the Yours filter is already on.
+   * Straight through to the one grid, like the three above.
+   */
+  mineIds?: ReadonlySet<string>;
+  onSelectMine?: () => void;
+  mineSelected?: boolean;
   /** In-flight uploads, rendered FIRST (newest activity leads the flow). */
   pending?: PendingTile[];
   /** Media ids that JUST landed (the ~2.5s green --success check window). */
@@ -101,6 +112,9 @@ export function GuestMasonry({
       onDeleteItem={onDeleteItem}
       canDelete={canDelete}
       arrivedIds={arrivedIds}
+      mineIds={mineIds}
+      onSelectMine={onSelectMine}
+      mineSelected={mineSelected}
       tileActions={tileActions}
       prefix={
         <>
