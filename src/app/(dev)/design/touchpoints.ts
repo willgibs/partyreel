@@ -1581,11 +1581,11 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
   // stay line-disjoint, and the Orchestrator moves it into its leverage place
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
-  // after `app-vocabulary`: a part under both shapes). `guest-capture` moves
-  // after `media-viewer` at its merge (the manifest's own brief: the capture
-  // flow lives under the album's shape).
-  "guest-capture",
+  // after `app-vocabulary`: a part under both shapes; `guest-capture` after
+  // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
+  // album's shape).
   "media-viewer",
+  "guest-capture",
   "host-curation",
   "reel-studio",
   "export-flow",
