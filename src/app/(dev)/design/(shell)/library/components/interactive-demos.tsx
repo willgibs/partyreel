@@ -102,7 +102,7 @@ export function OtpDemo() {
 }
 
 /** ConfirmSwitch: on the real edge it asks on (uploads-section.tsx's own
- *  "Require accounts to upload" — turning it OFF is the consequential
+ *  "Require verified emails", the identity reshape's switch; turning it OFF is the consequential
  *  direction). Uncontrolled state, so pressing it here really opens the
  *  dialog and really flips the switch on Confirm. */
 export function ConfirmSwitchDemo() {
@@ -111,13 +111,13 @@ export function ConfirmSwitchDemo() {
     <ConfirmSwitch
       checked={checked}
       onCheckedChange={setChecked}
-      label="Require accounts to upload"
-      description="On (recommended): guests verify a free account before uploading."
+      label="Require verified emails"
+      description="On (recommended): guests confirm their email once before they see the full album or add photos, so every upload has a verified email behind it. Off: guests type a display name, with nothing to prove who they are."
       confirmWhen={(next) => !next}
-      dialogTitle="Allow anonymous uploads?"
-      dialogDescription="Anyone with the link will be able to add photos without creating an account."
-      confirmLabel="Allow anyone to upload"
-      cancelLabel="Keep accounts required"
+      dialogTitle="Stop requiring verified emails?"
+      dialogDescription="Guests will add photos under a name they type, with no email behind it. You can turn this back on anytime."
+      confirmLabel="Use names only"
+      cancelLabel="Keep verified emails"
     />
   );
 }

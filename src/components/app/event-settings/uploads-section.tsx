@@ -172,14 +172,14 @@ export function UploadsSection({
           render={({ field }) => (
             <ConfirmSwitch
               label="Require verified emails"
-              description="On (recommended): guests confirm their email to see the full gallery and add photos (a few previews show first). Off, guests choose a display name before adding photos, shown with a small unverified mark."
+              description="On (recommended): guests confirm their email once before they see the full album or add photos (a few previews show first), so every upload has a verified email behind it. Off: guests type a display name and add photos straight away, with nothing to prove who they are."
               checked={field.value ?? true}
               onCheckedChange={field.onChange}
               confirmWhen={(next) => !next}
-              dialogTitle="Let guests upload without verifying?"
-              dialogDescription="Guests will type a display name instead of confirming an email. Their photos carry a small unverified mark, abuse is harder to trace, and you won’t capture their email. You can turn this back on anytime."
-              confirmLabel="Allow unverified uploads"
-              cancelLabel="Keep emails required"
+              dialogTitle="Stop requiring verified emails?"
+              dialogDescription="Guests will add photos under a name they type, with no email behind it. Names stay on every photo, but nothing proves who typed them, so abuse is harder to trace. You can turn this back on anytime."
+              confirmLabel="Use names only"
+              cancelLabel="Keep verified emails"
             />
           )}
         />
