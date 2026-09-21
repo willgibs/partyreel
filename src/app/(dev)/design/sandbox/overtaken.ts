@@ -120,16 +120,17 @@ const PRICING = {
 } as const;
 
 /* The closing sitting's first batch (2026-09-20, 18:20 EDT): five boards, four
-   of them a round two. Two are deliberately absent. `body-type` r2, because a
-   rung that pairs an icon with its text is mechanical: it reaches no open
-   question, and round one reached none either. `app-vocabulary` r2, because the
-   View menu reached only questions an earlier pass had already badged, so it
-   rides in their clauses and never opens an entry of its own. `guest-verify`'s
-   four are HELD (above). */
+   of them a round two. `body-type` r2 is deliberately absent: a rung that pairs
+   an icon with its text is mechanical, it reaches no open question, and round
+   one reached none either. `guest-verify`'s four are HELD (above). */
 const APP_SHAPE_2 = { by: "app-shape", since: "app-shape r2, 20 Sep" } as const;
 const GUEST_SHAPE_2 = {
   by: "guest-shape",
   since: "guest-shape r2, 20 Sep",
+} as const;
+const VOCABULARY_2 = {
+  by: "app-vocabulary",
+  since: "app-vocabulary r2, 20 Sep",
 } as const;
 const VERIFY = {
   by: "guest-verify",
@@ -144,8 +145,8 @@ const VERIFY = {
  * board against the sixth batch's eight, and the second paste's two: 47 more
  * questions, and nine of the first pass's lines gained a second clause because
  * a later ruling reached the same question again. The third (`overtaken-3`) is
- * the closing sitting's first batch, fourteen verdicts on five boards: seven
- * more questions judged, one carrying a HELD ruling and no judgment at all,
+ * the closing sitting's first batch, fourteen verdicts on five boards: eight
+ * more questions judged, two carrying a HELD ruling and no judgment at all,
  * and nineteen lines gaining a clause behind the one they had.
  * Every line was written from the board's own option set read against the
  * ruling that reaches it; none of them redraws anything, and a board never
@@ -259,16 +260,22 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
 
   /* ── first-event ─────────────────────────────────────────────────────────
-   * ★ FOUR, AND FOUR ONLY, AND NOT BECAUSE FOUR IS THE TRUTH. The desk's
-   * `_desk/queue.test.ts` proves the real join (the map against a board's own
-   * asks) on THIS board, and it does it by pinning the count at four and naming
-   * `asks` as the one nothing reached. So a judgment pass that reaches a fifth
-   * cannot record it without editing a file it only reads: the sixth batch's
-   * pass dropped three on this board for the same reason, and the closing
-   * sitting's dropped two more (`asks`, reached by the View menu's refusal of a
-   * busy top level, and `first`, reached by the HELD `gate=after`). They are in
-   * `docs/tracks/overtaken-3.md`'s handoff, and they come back the day that
-   * test derives its numbers from this map instead of restating them. */
+   * ★ THE BOARD THE DESK PROVES ITS JOIN ON, and for two passes that cost it
+   * badges. `_desk/queue.test.ts` proves the real join (this map against a
+   * board's own asks) on THIS board, and it used to do it by restating the
+   * numbers: four overtaken asks, `asks` named as the one nothing reached. A
+   * judgment pass that reached a fifth could not record it without editing a
+   * file it only reads, so the sixth batch's pass dropped three here and the
+   * closing sitting's first pass dropped two. That test now DERIVES both from
+   * this map (a granted exception, `docs/tracks/overtaken-3.md`), so the count
+   * below is the truth rather than a number some other file is holding, and the
+   * two it kept out are back. Nothing here is capped again. */
+  "first-event.asks": {
+    ...VOCABULARY_2,
+    ruling:
+      "the gallery's controls fold behind one View button, because everything at once read as busy",
+    line: "stands: he refuses a top level that shows everything at once, which is the case against three fields, and the two that leave need a home.",
+  },
   "first-event.style": {
     ...APP_SHAPE,
     ruling: "one share sheet holds the code, the posters and anything future",
@@ -291,6 +298,13 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
     ruling:
       "the event is a hub: a cards row, a live QR in the header, the gallery beneath",
     line: "stands: the hub puts the code in the header and says nothing about the album's empty room, which the launch list still fills. Also reached by guest-shape r1, 20 Sep: the guest's own empty album carries the river. Also reached by app-shape r2, 20 Sep: a band with nothing real in it is ruled absent, never drawn empty.",
+  },
+
+  "first-event.first": {
+    ...VERIFY,
+    ruling:
+      "a guest's photograph goes live at once, wearing an unconfirmed mark until the code is typed",
+    line: HELD + "gate=after",
   },
 
   /* ── guest-upload ────────────────────────────────────────────────────── */

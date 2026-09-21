@@ -182,8 +182,8 @@ describe("the overtaken map", () => {
     const held = Object.entries(OVERTAKEN).filter(([, n]) => isHeld(n));
     expect(
       held.length,
-      "his four held answers reached one question nothing else had",
-    ).toBe(1);
+      "his four held answers reached two questions nothing else had",
+    ).toBe(2);
     for (const [key, note] of held) {
       expect(note.by, `${key}: only guest-verify's answers are held`).toBe(
         "guest-verify",
@@ -272,8 +272,9 @@ describe("the overtaken map", () => {
   });
 
   it("counts a board's overtaken asks for the desk", () => {
-    // Four, and the map says why: the desk's own queue test pins this board.
-    expect(overtakenOn("first-event")).toBe(4);
+    // Six since the desk's queue test began deriving its numbers from here
+    // rather than restating them (overtaken-3's granted exception).
+    expect(overtakenOn("first-event")).toBe(6);
     // Round one's five badges retired with the asks they named (album-controls,
     // 2026-09-20): the board's round two is too new for anything to overtake yet.
     expect(overtakenOn("app-vocabulary")).toBe(0);
