@@ -8,7 +8,8 @@
 
 The ruled model: profiles are **public by existence** (claiming a handle
 is the consent act; NO `discoverable` flag); the event guest list is **host-controlled**
-(`events.show_guest_list`; when on, ALL signed-in uploaders render named, no per-guest opt-in); the
+(`events.show_guest_list`; when on, EVERY guest who added photos renders named, a confirmed name
+or one wearing the small unverified mark, no per-guest opt-in); the
 guest's control lives on their **own profile** (`profile_hidden_events` hides an attended event from
 `/u/[slug]` while they stay on the event's guest list); follows are **open any-to-any with an
 owner-private graph** (lists + counts visible only to the account owner, the VSCO shape); **blocking
@@ -18,8 +19,9 @@ ships in-slice** (mutual severance, private, prevents re-follow).
 opt-in lands guest lists near-empty, which disappoints the host, starves the social side and adds one more
 thing for a new guest to digest between signing up and uploading. Attribution is ALREADY public by name on
 the same album surface, so gathering the uploaders into one list adds little exposure that the captions did
-not. A guest who does not want the linkage can decline to upload, or the host can allow anonymous uploads:
-the escape hatches already exist at the right layer. The consequence to carry: the GDPR posture rests on
+not. A guest who does not want the linkage can decline to upload, or the host can turn off Require verified
+emails, which trades a confirmed identity for an unverified name, marked, never for no name at all: the
+escape hatches already exist at the right layer. The consequence to carry: the GDPR posture rests on
 legitimate interest over already-public attribution rather than on opt-in consent, so the `/privacy` and ToS
 wording is what has to hold up, not a consent checkbox.
 
@@ -82,8 +84,10 @@ appears on no profile.
   event still hits its lock at `/e/`. Don't "fix" it to match the attended arm.
 - **One guest-list read** (`getEventGuestList`, admin client): BOTH surfaces call it AFTER their own
   access gate (host page = ownership; guest album = `access === "full"`, never demo); returns null when
-  `show_guest_list` is off; approved signed-in uploaders only, deduped by user; explicit id-list joins
-  (the PGRST201 embed landmine), no `select(*)` on media. `GuestList` draws chips at or under
+  `show_guest_list` is off; approved signed-in uploaders by default, deduped by user, with an
+  `includeUnverified` option that unions in named unverified guests (the identity reshape, 2026-09-21:
+  the host's Guests room opts in); explicit id-list joins (the PGRST201 embed landmine), no `select(*)`
+  on media. `GuestList` draws chips at or under
   `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces plus "N guests added photos" above it,
   expanding in place 24 at a time; because the row says the count, both callers drop the count from
   their own heading above the threshold (the album's pill, the feed's `guestsCountInList`). HOW View

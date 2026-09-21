@@ -106,7 +106,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         "A host account is a verified email address, a display name, and whichever sign-in method you choose: a password, one-time codes sent to that email, or Google. You are responsible for everything that happens under your account, so keep access to that inbox and to any password secure, use the account for yourself only, and tell us promptly if you believe it has been compromised.",
       ),
       p(
-        "Your display name is required and is shown publicly wherever you appear: on your events, beside your uploads, in guest lists and on your profile. Choose one you are comfortable showing to the people at your events. Names that impersonate others, contain profanity, or use reserved words are not permitted, and we may change a name that breaks this rule. Keep the information on your account accurate.",
+        "Your display name is required and is shown publicly wherever you appear: on your events, beside your uploads, in guest lists and on your profile. The same rule applies to the name a guest types at an event that does not require a verified email: it is shown publicly beside whatever they add, in place of a verified display name. Choose one you are comfortable showing to the people at your events. Names that impersonate others, contain profanity, or use reserved words are not permitted, and we may change a name that breaks this rule. Keep the information on your account accurate.",
       ),
     ],
   },
@@ -117,10 +117,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Guests join through the event link, usually with a verified email, and keep control of what they upload.",
     blocks: [
       p(
-        "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host allows it, guests may also upload without signing in, and those uploads are shown as Anonymous.",
+        "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host turns that requirement off, a guest instead types a display name at the door, and their uploads are shown under that name with a small unverified mark rather than a confirmed one.",
       ),
       p(
-        "Uploads made while signed in are attributed to your display name and, if the host shows a guest list, listed there by name. If you sign in later, uploads you made anonymously from the same browser can be claimed to your account. You may delete any upload of your own, right on the album, at any time, whether or not you are signed in; without signing in, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
+        "Uploads made with a verified email are attributed to your confirmed display name and, if the host shows a guest list, listed there by name; uploads made under a typed name instead carry that name with a small unverified mark, and are listed the same way. If you confirm an email later, uploads you made under a typed name from the same browser can be claimed to your account. You may delete any upload of your own, right on the album, at any time, whether or not you have confirmed an email; without a confirmed email, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
       ),
       p(
         "Guests pay nothing to join, view, upload or download. These Terms apply to guests in full, including the sections on your content, acceptable use and copyright.",

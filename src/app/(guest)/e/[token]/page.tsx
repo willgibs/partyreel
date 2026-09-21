@@ -367,14 +367,11 @@ export default async function GuestEventPage({
   }
 
   /**
-   * THE HOST'S SWITCH, READ BY WHICHEVER NAME THE TREE CARRIES (the identity
-   * reshape, 2026-09-21). Wave 0's migration added `events.require_verified_email`
-   * beside the legacy `allow_anonymous_uploads` under a BEFORE trigger that keeps
-   * the pair exact opposites, and the server lane renames the field on
-   * `GuestEvent`; reading whichever exists keeps this page correct on both sides
-   * of that merge and collapses to the new field alone the day the legacy column
-   * goes. OFF means NAMES MODE: a guest types a display name at the door and
-   * uploads under it, marked.
+   * THE HOST'S SWITCH (the identity reshape, 2026-09-21). `GuestEvent.require_verified_email`
+   * is the field every new read keys on (guest-events.ts's own words); the legacy
+   * `allow_anonymous_uploads` stays on the type for `main`'s build and QA #36 alone.
+   * OFF means NAMES MODE: a guest types a display name at the door and uploads
+   * under it, marked.
    */
   // The seam collapsed at the merge (verified-email-server landed first): the
   // field is on GuestEvent, and the legacy flag is its trigger-kept opposite.

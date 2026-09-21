@@ -16,7 +16,7 @@
  * ───────────────────────────────────────────────────────────────────────────────────────────────
  * ★ THE ACCOUNT RULE (Will, 2026-09-19, `voice` r1 `absence=named`; bible 20 ruled PERMISSIVE).
  *
- * NEVER PROMISE "NO ACCOUNT" ANYWHERE. A host may require one, and Require accounts to upload
+ * NEVER PROMISE "NO ACCOUNT" ANYWHERE. A host may require one, and Require verified emails
  * DEFAULTS ON for a new event, so "No app, no account." was a promise the product breaks on most
  * events. His instruction, verbatim: "since many events will likely require guests accounts,
  * let's change 'No app, no account.' to 'No app required.'" That exact swap ran through every
@@ -49,6 +49,15 @@
  * feeling passive and waiting for a picture to land." An empty state here names the thing that is
  * about to exist and puts the reader at the start of it. It never describes the void, and it
  * never waits.
+ * ───────────────────────────────────────────────────────────────────────────────────────────────
+ * ★ THE IDENTITY RULE (the identity reshape, 2026-09-21; `docs/design/rulings.md`, "the identity
+ * reshape"). Anonymity left the product on Will's ruling: the host's switch is Require verified
+ * emails, on by default; off, a guest still types a display name at the door and uploads under
+ * it, shown with a small unverified mark. NEVER WRITE "ANONYMOUS": every upload carries a name,
+ * verified or marked, so no surface may call an upload, a guest, or a contributor anonymous again.
+ * Say the true thing instead — a name wearing the unverified mark, or a guest who has not
+ * confirmed their email. (Reporting abuse stays its own thing: "reports are anonymous" describes
+ * who FILES a report, never who uploaded, and this rule leaves it untouched.)
  * ───────────────────────────────────────────────────────────────────────────────────────────────
  */
 

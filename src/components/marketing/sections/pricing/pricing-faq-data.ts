@@ -26,7 +26,7 @@ import { formatBytes } from "@/lib/utils";
  * never loses one:
  *   · "Do my guests ever pay or need an account?" -> the page's own subhead
  *     carries "No per-guest fees", and /help/how-guests-join-and-upload with
- *     /help/require-accounts-to-upload-explained answer the account half.
+ *     /help/require-verified-emails-explained answer the account half.
  *   · "How big can uploads be?" -> the unlock tiles print the per-file size on
  *     this page already, and /help/what-you-can-upload is its article.
  * Both still reach machines through /llms-full.txt, which inlines the site FAQ

@@ -4,13 +4,14 @@ import { notFound } from "next/navigation";
 import { Users } from "lucide-react";
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
+import type { GuestListItem } from "@/components/social/guest-list";
 import { GuestList } from "@/components/social/guest-list";
 import { Button } from "@/components/ui/button";
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
 import { getEvent } from "@/lib/db/queries/events";
 import { getEventGuestList } from "@/lib/db/queries/social";
-import { withAvatarUrls } from "@/lib/social/cards";
+import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,14 @@ export async function generateMetadata({
 }
 
 /**
- * THE GUESTS ROOM. The named list of signed-in uploaders, or the discovery
- * teaser when the host key is off — `getEventGuestList` returns null in that
- * case (and at the pre-apply seam), exactly as it did when this was a section.
+ * THE GUESTS ROOM. The named list of every guest who added photos, a
+ * verified name and an unverified one (the small mark) alike, or the
+ * discovery teaser when the host key is off — `getEventGuestList` returns
+ * null in that case (and at the pre-apply seam), exactly as it did when this
+ * was a section. Opts INTO the unverified union (`includeUnverified: true`):
+ * this room is the host's own full read, unlike the album's guest-facing
+ * caller (the identity reshape, 2026-09-21 — unproven=shown-marked, never
+ * hidden from the one person the mark exists for).
  *
  * The teaser's door now opens the SETTINGS SHEET on the hub rather than the
  * retired settings route, because the consented flip lives there with the LOUD
@@ -38,8 +44,18 @@ export default async function EventGuestsPage({ params }: PageProps) {
   const event = await getEvent(eventId);
   if (!event) notFound();
 
-  const entries = await getEventGuestList(event.id);
-  const items = entries ? await withAvatarUrls(entries) : null;
+  const entries = await getEventGuestList(event.id, { includeUnverified: true });
+  // The union splits before hydration (lib/social/cards.ts owns why): only a
+  // profile card has an avatar to resolve, so `withAvatarUrls` runs on that
+  // half alone; the unverified half rejoins as-is, after it, matching the
+  // query's own cards-then-unverified order. GuestList (verified-email-guest's)
+  // renders the mix: a hydrated card gets its avatar and link, an unverified
+  // entry gets neither, both the small mark.
+  let items: GuestListItem[] | null = null;
+  if (entries) {
+    const { cards, unverified } = splitGuestList(entries);
+    items = [...(await withAvatarUrls(cards)), ...unverified];
+  }
 
   return (
     <div data-route-fade className="space-y-6">
@@ -57,7 +73,7 @@ export default async function EventGuestsPage({ params }: PageProps) {
         <FeedSectionEmpty
           icon={Users}
           title="Introduce your guests"
-          desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
+          desc="Turn on the guest list to name everyone who added photos, right on the album. Unverified names wear a small mark."
           action={
             <Button asChild variant="outline" size="sm">
               <Link href={`/dashboard/${event.id}?room=settings`}>

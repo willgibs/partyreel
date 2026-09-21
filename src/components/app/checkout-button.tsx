@@ -24,7 +24,7 @@ type CheckoutButtonProps = Omit<
   next?: string;
 };
 
-// Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Anonymous
+// Starts a Stripe Checkout session for a Pro plan and redirects to Stripe. Signed-out
 // visitors (the public pricing page) are sent to /login first. The server route is
 // authoritative — this is just the trigger.
 //

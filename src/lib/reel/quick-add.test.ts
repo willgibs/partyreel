@@ -222,11 +222,11 @@ describe("pickQuickAdd uploader coverage", () => {
     expect(ids.filter((id) => id.startsWith("hog"))).toHaveLength(10);
   });
 
-  it("pools unattributable uploads into ONE anonymous bucket", () => {
-    // 20 anonymous + 1 named guest: the named guest must not be drowned out.
+  it("pools nameless legacy uploads into ONE bucket", () => {
+    // 20 nameless legacy uploads + 1 named guest: the named guest must not be drowned out.
     const items = [
       ...Array.from({ length: 20 }, (_, i) =>
-        item(`anon${i}`, { uploaderKey: null, hoursAgo: i * 0.1 }),
+        item(`legacy${i}`, { uploaderKey: null, hoursAgo: i * 0.1 }),
       ),
       item("named", { uploaderKey: "g9", hoursAgo: 30 }),
     ];

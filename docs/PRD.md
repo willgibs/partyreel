@@ -7,7 +7,7 @@ what exists today trust [SYSTEMS.md](SYSTEMS.md); the product has shipped well p
 
 Capture **every** photo and video from an event, not just the handful that trickle into a group chat
 the next day. The host runs the event; the **guests** are the camera crew. Friction is the enemy:
-guests contribute with **no app required**, just a tap on a QR code and a display name (an account when the host asks for one). The
+guests contribute with **no app required**, just a tap on a QR code and a display name (a verified email when the host asks for one). The
 product is its own growth engine: every QR code and every shared album is an ad, and a guest who loved
 how easy it was becomes the next host. **North-star metric: a host creates a second event.**
 
@@ -16,20 +16,21 @@ how easy it was becomes the next host. **North-star metric: a host creates a sec
 - **Host**: throws the event (wedding, birthday, conference, trip); wants all the media in one place,
   light curation control and an easy way to share the result; has an account; pays, if anyone does.
 - **Guest**: attends; wants to contribute in seconds from a phone without installing or signing up;
-  has no account, only a display name (and an email when the host requires one).
+  has no account, only a display name (and a verified email when the host requires one).
 - Planned: co-hosts sharing management (a paid-only feature; the single-owner `host_id` stays the
   billing and storage anchor) and invite-only guests by email.
 
 ## The core loop
 
 1. **Create**: the host makes an event; one `qr_token` (`/e/[qr_token]`) becomes the QR code.
-2. **Join and upload**: a guest scans and uploads straight from the phone (browser to storage,
-   direct; an account only when the host turns off anonymous uploads).
+2. **Join and upload**: a guest scans, types a display name, and uploads straight from the phone
+   (browser to storage, direct; a verified email only when the host requires one, else the typed
+   name carries a small unverified mark).
 3. **Curate**: uploads land live in the host's gallery, visible at once (`live`) or waiting in a queue
    (`hold_for_approval`); the host can hide, remove, lock uploads and toggle public visibility.
 4. **Share**: the same link, with uploads closed, reads as a view-only album; it carries a "start for
    free" CTA and unfurls with a per-event preview card (`noindex`; the token is a private capability);
-   after a guest's first upload a one-time prompt invites a free account to save the event.
+   after a guest's first upload a one-time prompt invites them to confirm an email and save the event.
 5. **Reel**: a highlight reel stitched from the best clips (host curation, the canvas engine,
    on-device export, guest surfacing).
 

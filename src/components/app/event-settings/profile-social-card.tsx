@@ -23,9 +23,12 @@ import { Switch } from "@/components/ui/switch";
  * host just consented to). Optimistic + reverted with a toast on failure.
  *
  * The guest-list copy is deliberately LOUD (the ruling): flipping it on names
- * EVERY signed-in uploader on the album, with no per-guest opt-in. The switch
- * label carries that sentence permanently — not a one-time confirm the host
- * forgets — so the consequence stays visible every time they visit.
+ * EVERY guest who added photos on the album, with no per-guest opt-in — a
+ * verified name and an unverified one alike (the identity reshape,
+ * 2026-09-21: anonymity left the product, so there is no uploader this list
+ * still hides). The switch label carries that sentence permanently — not a
+ * one-time confirm the host forgets — so the consequence stays visible every
+ * time they visit.
  */
 export function ProfileSocialCard({
   eventId,
@@ -74,8 +77,7 @@ export function ProfileSocialCard({
       }
       if (patch.showGuestList === true) {
         toast.success("Guest list is on.", {
-          description:
-            "Everyone signed in who uploaded is now named on the album.",
+          description: "Everyone who added photos is now named on the album.",
         });
       } else {
         toast.success("Setting saved.");
@@ -139,9 +141,9 @@ export function ProfileSocialCard({
               Show the guest list on the album
             </span>
             <span className="text-xs leading-relaxed text-muted-foreground">
-              When this is on, EVERY guest who uploaded while signed in is
-              listed by name on the album, for anyone who can open it. Guests
-              who uploaded anonymously are never listed.
+              When this is on, every guest who added photos is listed by name
+              on the album, for anyone who can open it. A name with no
+              verified email behind it wears a small mark.
             </span>
           </Label>
           <Switch

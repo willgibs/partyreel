@@ -18,7 +18,7 @@ import { TextsReveal } from "../shared/texts-reveal";
  *
  * ★ THE SAME TRAP CAUGHT THE FIRST CLAIM (Will, 2026-09-19, voice r1). It read
  * "No app, no account": four words at the top of the page promising something
- * Require accounts to upload switches off by default. Four SHORT claims is the
+ * Require verified emails switches off by default. Four SHORT claims is the
  * strip's whole form, so there is nowhere to hedge in place and the claim had
  * to become one that is true of every event. Never restore the second half.
  */

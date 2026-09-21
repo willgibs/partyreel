@@ -15,10 +15,11 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 /**
  * /features/guests hero: the shared PageHero lockup over THE ATTRIBUTION WALL,
  * the credited album made visible: a photo grid where the shots carry small
- * name chips (display names, plus "Anonymous" where the host allows it). All
- * server-rendered; the Reveal island staggers tiles first, chips after (higher
- * --i slots), so the names visibly land ON the photos. Fixtures are manifest
- * images + the Maya & Jay family's art-directed names, no real PII.
+ * name chips (display names, one wearing the small unverified mark where the
+ * host allows a name with no confirmed email behind it). All server-rendered;
+ * the Reveal island staggers tiles first, chips after (higher --i slots), so
+ * the names visibly land ON the photos. Fixtures are manifest images + the
+ * Maya & Jay family's art-directed names, no real PII.
  *
  * THE PAGE'S LAMP (the feature-pages round): the wall is the lit thing, and it
  * throws its own light down off its bottom edge, coloured by SAMPLING the eight
@@ -27,16 +28,19 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
  */
 
 /** R4 / review B3: two of the eight tiles carried NO chip, directly under a
- *  heading about every shot being credited, and since "Anonymous" has its own
- *  chip here, a BARE tile means nothing at all. All eight are credited now
- *  (repeat names are the truth: guests add more than one shot each), and the
- *  cast matches the guest-list card further down the page. */
-const WALL: { id: string; by: string }[] = [
+ *  heading about every shot being credited, and a BARE tile means nothing at
+ *  all. All eight are credited now (repeat names are the truth: guests add
+ *  more than one shot each), and the cast matches the guest-list card further
+ *  down the page. The identity reshape (2026-09-21) retired the "Anonymous"
+ *  chip along with the concept: Theo's shot carries his typed name and the
+ *  small unverified mark instead, since every upload carries a name now,
+ *  verified or marked. */
+const WALL: { id: string; by: string; unverified?: boolean }[] = [
   { id: "wedding-golden", by: "Maya" },
   { id: "reception-table", by: "Alex" },
   { id: "party-balloons", by: "Priya" },
   { id: "wedding-toast", by: "Jay" },
-  { id: "party-dj", by: "Anonymous" },
+  { id: "party-dj", by: "Theo", unverified: true },
   { id: "festival-crowd", by: "Maya" },
   { id: "wedding-rings", by: "Noor" },
   { id: "reception-hall", by: "Sam" },
@@ -73,7 +77,8 @@ export function AttributionHero() {
         <ScreenLamp>
           <BrowserFrame label="partyreel.com/a/maya-and-jay">
             {/* 2-up below sm: at 375px a 4-col tile is too narrow for the
-                "Anonymous" chip; the wall goes taller instead of clipping. */}
+                widest chip (Theo's, with the mark); the wall goes taller
+                instead of clipping. */}
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {WALL.map((tile, i) => {
                 const m = marketingImage(tile.id);
@@ -101,6 +106,13 @@ export function AttributionHero() {
                         {tile.by[0]}
                       </span>
                       {tile.by}
+                      {tile.unverified && (
+                        <span
+                          aria-label="A name with no verified email behind it"
+                          title="A name with no verified email behind it"
+                          className="size-1.5 shrink-0 rounded-full bg-warning"
+                        />
+                      )}
                     </span>
                   </div>
                 );

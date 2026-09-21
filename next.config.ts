@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 import { BLOG_REDIRECTS } from "./src/lib/content/blog-redirects";
+// verified-email-host-copy's one-line exception (its manifest's sanctioned spread below): the
+// identity reshape renamed a help article, so its old URL needs a redirect same as the blog's.
+import { HELP_REDIRECTS } from "./src/lib/content/help-redirects";
 import {
   LAB_REDIRECTS,
   TRACED_DOC_GLOBS,
@@ -58,6 +61,12 @@ const nextConfig: NextConfig = {
       ...BLOG_REDIRECTS.map(({ from, to }) => ({
         source: `/blog/${from}`,
         destination: `/blog/${to}`,
+        permanent: true,
+      })),
+      // Retired help slugs (the identity reshape's rename), same pattern as the blog's.
+      ...HELP_REDIRECTS.map(({ from, to }) => ({
+        source: `/help/${from}`,
+        destination: `/help/${to}`,
         permanent: true,
       })),
       // The lab's old URLs (the Library x Lab round, 2026-09-15): temporary, so

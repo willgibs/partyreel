@@ -72,15 +72,15 @@ export function CreditedAlbum() {
             Names ride with the photos.
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
-            Signed-in guests pick a display name once, and it travels with
-            everything they add: on the tiles, in the lightbox, all through the
-            album. No more mystery folders of somebody&rsquo;s cousin&rsquo;s
-            shots.
+            Every guest picks a display name once, confirmed or typed at the
+            door, and it travels with everything they add: on the tiles, in
+            the lightbox, all through the album. No more mystery folders of
+            somebody&rsquo;s cousin&rsquo;s shots.
           </p>
           <p {...rise(3)} className="text-pretty text-muted-foreground">
-            With accounts required (the default for new events), every upload
-            traces back to a verified guest email. The name is what the room
-            sees; the email stays with you, the host.
+            With verified emails required (the default for new events), every
+            upload traces back to a confirmed guest email. The name is what
+            the room sees; the email stays with you, the host.
           </p>
         </Reveal>
       </MediaSplit>

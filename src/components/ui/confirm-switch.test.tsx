@@ -29,13 +29,13 @@ function Harness({
         setChecked(next);
         onChange?.(next);
       }}
-      label="Require accounts"
-      description="Guests verify a free account before uploading."
+      label="Require verified emails"
+      description="Guests confirm their email before uploading."
       confirmWhen={confirmWhen}
-      dialogTitle="Allow anonymous uploads?"
-      dialogDescription="Anyone with the link can add photos without an account."
-      confirmLabel="Allow anyone"
-      cancelLabel="Keep accounts required"
+      dialogTitle="Let guests upload without verifying?"
+      dialogDescription="Guests will add photos under a typed display name instead."
+      confirmLabel="Allow unverified uploads"
+      cancelLabel="Keep emails required"
     />
   );
 }
@@ -51,7 +51,7 @@ afterEach(() => {
 describe("ConfirmSwitch", () => {
   it("shows the glyph beside the label, unconditionally", () => {
     render(<Harness confirmWhen={() => false} />);
-    const label = screen.getByText("Require accounts").closest("label");
+    const label = screen.getByText("Require verified emails").closest("label");
     expect(label?.querySelector("svg")).toBeTruthy();
   });
 
@@ -83,7 +83,7 @@ describe("ConfirmSwitch", () => {
       vi.advanceTimersByTime(0);
     });
     expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(screen.getByText("Allow anonymous uploads?")).toBeTruthy();
+    expect(screen.getByText("Let guests upload without verifying?")).toBeTruthy();
     // Still unapplied: the confirm is a decision, not a side effect of opening.
     expect(onChange).toHaveBeenCalledTimes(1);
   });
@@ -96,7 +96,7 @@ describe("ConfirmSwitch", () => {
     act(() => {
       vi.advanceTimersByTime(0);
     });
-    fireEvent.click(screen.getByText("Allow anyone"));
+    fireEvent.click(screen.getByText("Allow unverified uploads"));
     expect(onChange).toHaveBeenLastCalledWith(false);
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "false");
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -110,7 +110,7 @@ describe("ConfirmSwitch", () => {
     act(() => {
       vi.advanceTimersByTime(0);
     });
-    fireEvent.click(screen.getByText("Keep accounts required"));
+    fireEvent.click(screen.getByText("Keep emails required"));
     // Only the one instant application from the first click — Cancel never
     // calls back.
     expect(onChange).toHaveBeenCalledTimes(1);

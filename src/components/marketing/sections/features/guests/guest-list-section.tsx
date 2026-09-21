@@ -11,11 +11,19 @@ import { GuestListCard } from "./guest-list-card";
  * /features/guests paper section 1: THE GUEST LIST. The card itself (mock +
  * the avatar comb + the live "show on the album" switch) lives in the
  * GuestListCard island; this section is the copy half and the settings truth:
- * only signed-in uploaders appear, anonymous uploads are never listed, and
- * showing the list ON the album is the host's own switch.
+ * every guest who added photos appears, a verified name plain and an
+ * unverified one wearing the small mark, and showing the list ON the album
+ * is the host's own switch.
  */
 
-const GUESTS = ["Maya", "Jay", "Priya", "Sam", "Noor", "Alex"];
+const GUESTS: { name: string; unverified?: boolean }[] = [
+  { name: "Maya" },
+  { name: "Jay" },
+  { name: "Priya" },
+  { name: "Sam" },
+  { name: "Noor" },
+  { name: "Theo", unverified: true },
+];
 
 export function GuestListSection() {
   const rise = (i: number) => ({
@@ -62,9 +70,9 @@ export function GuestListSection() {
             See who showed up for the album.
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
-            Your event page keeps a live list of everyone adding photos while
-            signed in. Names and faces, not a spreadsheet, so you know who
-            actually filled the album.
+            Your event page keeps a live list of everyone adding photos, a
+            verified name or a marked one. Names and faces, not a
+            spreadsheet, so you know who actually filled the album.
           </p>
           <p {...rise(3)} className="text-pretty text-muted-foreground">
             Want the room to see it too? One switch shows the guest list on the

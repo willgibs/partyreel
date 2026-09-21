@@ -147,7 +147,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Verified-email guests",
-          tip: "On by default: guests confirm a one-tap email code before uploading. You can allow anonymous uploads per event.",
+          tip: "On by default: guests confirm a one-tap email code before uploading. You can allow unverified display names per event instead.",
           values: [true, true, true],
         },
       ],

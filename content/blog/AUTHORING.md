@@ -105,7 +105,7 @@ plates. Will replaces the whole media set before launch; the ids stay.
    there is no slideshow or projector mode (say "put the album on a screen"), no co-hosts, no
    custom branding, no comments, no native app, no email-the-album, no upload-time scanning.
 5. **Quote the app exactly.** A control is named by its shipped string inside `<UiLabel>`:
-   "Require accounts to upload", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
+   "Require verified emails", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
    and `src/app/(app)`; never invent UI.
 6. **Commit to outcomes, never to who or what delivers them** (the promise-neutralization doctrine,
    `docs/systems/marketing-content.md`). A report gets reviewed; a note gets a reply; the host
@@ -176,13 +176,14 @@ in a unit renders the bare number and you write the unit; a name for a thing ren
 ## The product, in one place (write from this, verify against the source)
 
 - **The loop.** A host creates an event and gets one QR code and one link. Guests scan with the
-  phone camera and upload from the browser: no app required, no password. NEVER write "no
-  account": a host may require one and the setting is ON by default. By default guests
-  confirm their email with a one-tap code (the "Require accounts to upload" setting, free on
-  every plan, on by default); the host can allow fully anonymous uploads per event. The album
-  fills live. The host approves, hides or removes anything, in review mode (uploads wait for
-  approval) or live mode. The same link is the shared album afterwards, and the event can end as
-  a highlight reel.
+  phone camera, add a display name, and upload from the browser: no app required, no password.
+  NEVER write "no account" and NEVER write "anonymous": a host may require a verified email and
+  the setting is ON by default; every upload carries a name either way, verified or marked. By
+  default guests confirm their email with a one-tap code (the "Require verified emails" setting,
+  free on every plan, on by default); the host can allow a typed display name instead, shown with
+  a small unverified mark, per event. The album fills live. The host approves, hides or removes
+  anything, in review mode (uploads wait for approval) or live mode. The same link is the shared
+  album afterwards, and the event can end as a highlight reel.
 - **Quality.** Originals are stored byte-for-byte. Tiles show a small preview for speed; the
   lightbox, the per-item save, and the zip all serve the original. Accepted: JPEG, PNG, WebP,
   HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file size ceiling, no duration cap. No watermark on

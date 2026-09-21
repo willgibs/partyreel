@@ -60,8 +60,8 @@ export function EventSettingsForm({
   const [isSaving, startSaving] = useTransition();
 
   // Tier-gated settings: locked controls are disabled with an upgrade hint. The
-  // server re-enforces the gate — this is UX, not the boundary. (Require-accounts is
-  // no longer gated; it's free + default-on, with an opt-in-anon confirm in UploadsSection.)
+  // server re-enforces the gate — this is UX, not the boundary. (Require verified emails is
+  // not gated; it's free + default-on, with an opt-out-to-unverified confirm in UploadsSection.)
   const passwordLocked = isSettingLocked("password", tier);
   // Video is a paid feature (Phase 2). This is a read-only STATUS, not a toggle —
   // the gate is tier-driven and enforced at upload (create_media), not a host switch.
@@ -77,7 +77,7 @@ export function EventSettingsForm({
       event_date: event.event_date ?? "",
       visibility: event.visibility,
       accepting_uploads: event.accepting_uploads,
-      allow_anonymous_uploads: event.allow_anonymous_uploads,
+      require_verified_email: event.require_verified_email,
       moderation_mode: event.moderation_mode,
       max_upload_bytes: event.max_upload_bytes,
     },
