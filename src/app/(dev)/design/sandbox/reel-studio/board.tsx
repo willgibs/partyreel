@@ -37,13 +37,13 @@ import {
   Cinema,
   type DoorShape,
   EventPage,
-  EventReelSection,
   FrameProgress,
   GuestAlbum,
   GuestReelBlock,
   type GuestShape,
   momentOf,
   QuietLine,
+  StackProgress,
   StitchingDialog,
   StopSharingPanel,
   UndoToast,
@@ -212,17 +212,14 @@ const workBox = (root: HTMLElement): Box | null =>
 
 /* the readers, one per decision */
 
-const doorRead: Reader = (root, win) => {
+const doorRead: Reader = (root) => {
   const door = root.querySelector<HTMLElement>("[data-rs-door]");
-  const poster = root.querySelector<HTMLElement>("[data-rs-poster]");
-  const reel = root.querySelector<HTMLElement>("[data-rs-reel]");
-  if (!door || !poster || !reel) return null;
+  if (!door) return null;
   const d = door.getBoundingClientRect();
   if (d.height < 4) return null;
-  const card = Math.round(poster.getBoundingClientRect().width);
-  const inner = Math.round(reel.getBoundingClientRect().width);
-  const words = d.height < 40 ? ` at ${sizeOf(door, win)} px type` : "";
-  return `Measured: the door is ${Math.round(d.width)} by ${Math.round(d.height)} px${words}, on a ${card} px card around a ${inner} px reel.`;
+  const cards = root.querySelectorAll("[data-rs-door], [data-rs-card-room]");
+  const face = root.querySelector<HTMLElement>("[data-rs-face] img");
+  return `Measured: the Reel card is ${Math.round(d.width)} by ${Math.round(d.height)} px, one of ${cards.length} in the row, and the reel's own face is ${face ? "on it" : "nowhere on this page"}.`;
 };
 
 const roomRead: Reader = (root, win) => {
@@ -380,12 +377,26 @@ function useScrollTo(offset: number) {
 /* ── 1. the door ─────────────────────────────────────────────────────────── */
 
 const DOOR_CAPTION: Record<DoorShape, string> = {
-  link: "Today. The only visible way into the room is a text link at the page's smallest size, beside the status chip.",
-  button:
-    "The same row, a real control. It reads as a control from across the desk and costs one more object over the poster.",
-  poster:
-    "The picture is the press, and the card hugs the reel instead of spreading to the column. The link stays for a keyboard.",
+  card: "As shipped. The fourth door of four, told apart from its neighbours by one icon and one word.",
+  face: "The same footprint, filled with the host's own cut. The row stops being four of a kind and the reel is on the page.",
 };
+
+/** The album beneath the cards, which is what the hub is FOR. */
+function HubAlbum({ screen }: { screen: ScreenId }) {
+  return (
+    <div className="pt-1">
+      <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+        Gallery
+      </p>
+      <MomentGrid
+        grid="fluid"
+        min={screen === "375" ? 150 : 220}
+        blocked="title"
+        limit={12}
+      />
+    </div>
+  );
+}
 
 function DoorScreen({ shape, s }: { shape: DoorShape; s: BoardState }) {
   const screen = screenFor(s);
@@ -397,13 +408,8 @@ function DoorScreen({ shape, s }: { shape: DoorShape; s: BoardState }) {
       read={doorRead}
       caption={DOOR_CAPTION[shape]}
     >
-      <EventPage>
-        <EventReelSection
-          door={shape}
-          shared={sharedOf(s.shared)}
-          still={hero}
-          styleId="classic"
-        />
+      <EventPage door={shape} still={hero}>
+        <HubAlbum screen={screen} />
       </EventPage>
     </Screen>
   );
@@ -504,7 +510,7 @@ const MOMENT_CAPTION: Record<MomentShape, string> = {
   sheet:
     "Today. The pool in a sheet at 70 percent of the room's height, over the reel it is re-cutting.",
   pool: "The pool takes a column on a workbench and a band at the foot anywhere else. The reel gives up height and nothing covers it.",
-  tray: "Off the room entirely: the event page's own gallery, at album size, under a tray holding the cut and the way in.",
+  tray: "Off the room entirely: the hub's own gallery, at album size, under a tray holding the cut and the way into the room.",
 };
 
 /**
@@ -529,13 +535,7 @@ function TrayPage({
   const gallery = useScrollTo(16);
   return (
     <div className="relative min-h-screen pb-20">
-      <EventPage>
-        <EventReelSection
-          door="poster"
-          shared
-          still={still}
-          styleId="classic"
-        />
+      <EventPage door="face" still={still}>
         <div ref={gallery} className="pt-2">
           <p className="mb-2 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
             Gallery
@@ -768,13 +768,15 @@ function SharingScreen({ shape, s }: { shape: ShareShape; s: BoardState }) {
 
 /* ── 7. the wait ─────────────────────────────────────────────────────────── */
 
-type WaitShape = "dialog" | "player" | "quiet";
+type WaitShape = "dialog" | "player" | "stack" | "quiet";
 
 const WAIT_CAPTION: Record<WaitShape, string> = {
   dialog:
     "Today, at 62 percent. A light dialog over a near-black room, describing the thing it is covering.",
   player:
     "The same 62 percent, on the reel itself. It keeps playing while its own copy is made, and Cancel is in the bar.",
+  stack:
+    "The same 62 percent, in the idiom a guest already knows: the frame stacked, three moments still to draw, Cancel on the strip.",
   quiet:
     "Nothing is interrupted. One line under the tray says it is happening, and the host carries on choosing moments.",
 };
@@ -798,7 +800,13 @@ function WaitScreen({ shape, s }: { shape: WaitShape; s: BoardState }) {
         meta={roomMeta(look)}
         tray={shape === "quiet" ? "Moments" : "Length"}
         frameFoot={
-          shape === "player" ? <FrameProgress progress={62} /> : undefined
+          shape === "player" ? (
+            <FrameProgress progress={62} />
+          ) : shape === "stack" ? (
+            // Three of the cut's seven moments still to draw at 62 percent,
+            // which is the arithmetic rather than a number that looks right.
+            <StackProgress remaining={3} progress={62} />
+          ) : undefined
         }
         underTray={shape === "quiet" ? <QuietLine /> : undefined}
         overlay={
@@ -845,9 +853,8 @@ function GuestScreen({ shape, s }: { shape: GuestShape; s: BoardState }) {
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof REEL_STUDIO> = {
-  "door.link": (s) => <DoorScreen shape="link" s={s} />,
-  "door.button": (s) => <DoorScreen shape="button" s={s} />,
-  "door.poster": (s) => <DoorScreen shape="poster" s={s} />,
+  "door.card": (s) => <DoorScreen shape="card" s={s} />,
+  "door.face": (s) => <DoorScreen shape="face" s={s} />,
 
   "room.capped": (s) => <RoomScreen shape="capped" s={s} />,
   "room.float": (s) => <RoomScreen shape="float" s={s} />,
@@ -871,6 +878,7 @@ const PREVIEWS: PreviewsFor<typeof REEL_STUDIO> = {
 
   "wait.dialog": (s) => <WaitScreen shape="dialog" s={s} />,
   "wait.player": (s) => <WaitScreen shape="player" s={s} />,
+  "wait.stack": (s) => <WaitScreen shape="stack" s={s} />,
   "wait.quiet": (s) => <WaitScreen shape="quiet" s={s} />,
 
   "guests.overlay": (s) => <GuestScreen shape="overlay" s={s} />,
