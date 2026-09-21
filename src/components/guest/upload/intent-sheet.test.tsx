@@ -142,3 +142,42 @@ describe("the terms line", () => {
     expect(document.querySelectorAll("[data-upload-terms]")).toHaveLength(1);
   });
 });
+
+/**
+ * THE SHEET NEVER FLASHES THE TWO ROWS ON ITS OWN WAY OUT (the alias
+ * red-team's POLISH item, 2026-09-21, captured in the pane at 375, 12:11
+ * EDT). Send used to clear the picks in the same tick as the close call, so
+ * the still-open (closing) sheet repainted "Take a photo / Choose from your
+ * album" underneath itself for the rest of its own exit. The fix defers the
+ * clear to the CONTENT's own animationend, which jsdom never fires on its
+ * own - so a render straight after Send, with `open` still true (exactly the
+ * moment the sheet is mid-exit in the real browser), is the whole test: the
+ * review step must still be what is on screen.
+ */
+describe("the review step survives its own sheet closing", () => {
+  it("after Send, with open still true, the review step is still what renders", () => {
+    const onOpenChange = vi.fn();
+    const onSend = vi.fn();
+    render(
+      <UploadIntentSheet
+        open
+        onOpenChange={onOpenChange}
+        hostName="Maya"
+        onSend={onSend}
+      />,
+    );
+    const kept = file("kept.jpg");
+    fireEvent.change(inputs().album!, { target: { files: [kept] } });
+    expect(screen.getByRole("button", { name: "Send 1" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Send 1" }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onSend).toHaveBeenCalledWith([kept]);
+    // The two intent rows must NOT be back - that is the flash the fix kills.
+    expect(
+      screen.queryByRole("button", { name: "Take a photo" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send 1" })).toBeInTheDocument();
+  });
+});

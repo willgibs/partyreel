@@ -109,7 +109,13 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
     [`upload/failure-sheet.tsx`](../../src/components/guest/upload/failure-sheet.tsx) opens itself once with
     a line per file — the name, the SERVER's own sentence, a Retry — over one `Retry all`. No tile is drawn
     for a refused file and **both upload toasts retired** (the error toast and "Sent, waiting for host
-    approval"); only the JOIN's own failure still toasts, because nothing was ever queued.
+    approval"); only the JOIN's own failure still toasts, because nothing was ever queued. ★ **A dismissed
+    failure LEAVES THE QUEUE, it does not just leave the screen**: `useUploadQueue`'s `dismiss(ids)` drops
+    those items outright, and "Not now" plus the sheet's own close (backdrop, Escape) call it for every id
+    the sheet is currently listing — the run-end effect only ever looks at what is STILL in the queue, so a
+    failure once dismissed cannot resurrect itself on a later, unrelated run's end. `dismiss` re-checks each
+    id's LIVE status rather than trusting the list it was called with, which is what keeps it from also
+    eating the ids `Retry all` just re-queued a moment earlier in the same close.
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id, re-keyed to the media id at
   approved completion (`UploadedItem.queueId`) — the SAME URL object, so the `<img src>` never changes
   (zero flicker as an in-flight tile becomes the optimistic tile).

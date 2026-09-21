@@ -74,7 +74,7 @@ export function GuestUpload({
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
 }) {
-  const { items, addFiles, retry } = useUploadQueue({
+  const { items, addFiles, retry, dismiss } = useUploadQueue({
     qrToken,
     sessionToken,
     onSession,
@@ -118,6 +118,20 @@ export function GuestUpload({
     }
     wasRunning.current = running;
   }, [items]);
+  /**
+   * "Not now" AND every other way the sheet closes (backdrop, Escape, the X)
+   * all funnel through this one `onOpenChange` — Retry-all closes through it
+   * too, right after re-queuing the same ids, which is exactly why `dismiss`
+   * itself re-checks each id's LIVE status rather than trusting the list: a
+   * retried id already reads "queued" by the time this runs, so it survives.
+   * Closing without ever touching Retry drops every listed failure for good,
+   * so the next run's end judges itself only by what is STILL in the queue
+   * (`failed=sheet`'s "a dismissed failure does not re-open the sheet").
+   */
+  const closeFailures = (open: boolean) => {
+    if (!open) dismiss(failures.map((it) => it.id));
+    setFailuresOpen(open);
+  };
 
   const doneCount = items.filter((it) => it.status === "done").length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
@@ -133,7 +147,7 @@ export function GuestUpload({
       />
       <UploadFailureSheet
         open={failuresOpen && failures.length > 0}
-        onOpenChange={setFailuresOpen}
+        onOpenChange={closeFailures}
         failures={failures.map((it) => ({
           id: it.id,
           file: it.file,

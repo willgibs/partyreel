@@ -77,18 +77,36 @@ export function UploadIntentSheet({
     setPicks(files.map((file) => ({ id: crypto.randomUUID(), file })));
   };
 
-  const close = (next: boolean) => {
-    onOpenChange(next);
-    // The picks die with the sheet: a stale review from ten minutes ago
-    // reopening under "Add photos" would be its own small horror.
-    if (!next) setPicks([]);
-  };
-
   const reviewing = picks.length > 0;
 
   return (
-    <Sheet open={open} onOpenChange={close}>
-      <SheetContent responsive className="overflow-y-auto">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        responsive
+        className="overflow-y-auto"
+        onAnimationEnd={(e) => {
+          /**
+           * The picks die with the sheet, but only once it has ACTUALLY
+           * closed — never in the same tick as the call that closes it. Send
+           * used to clear `picks` immediately, which flipped `reviewing` back
+           * to false while the sheet was still visibly playing its exit: the
+           * still-open panel repainted the two intent rows underneath itself
+           * for the rest of the close (captured in the pane at 375, 12:11
+           * EDT). A stale review from ten minutes ago reopening under "Add
+           * photos" would be its own small horror, so this still runs on
+           * every genuine close (Send, the X, Escape, the backdrop) — just
+           * on the CONTENT's own `animate-out` finishing rather than on the
+           * tap that started it.
+           *
+           * `e.target === e.currentTarget` skips a bubbled animation from a
+           * child (there are none today, but the review grid is exactly the
+           * kind of place one gets added later); `!open` skips the ENTRANCE
+           * animation's own end, which would otherwise wipe a pick mid-review
+           * the moment the sheet finished opening.
+           */
+          if (e.target === e.currentTarget && !open) setPicks([]);
+        }}
+      >
         <SheetHeader>
           <SheetTitle>
             {reviewing
@@ -135,7 +153,7 @@ export function UploadIntentSheet({
               }
               onSend={() => {
                 const files = picks.map((p) => p.file);
-                close(false);
+                onOpenChange(false);
                 onSend(files);
               }}
             />

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1030 contracts on 150 components · 15 standing boards.**
+**22 laws · 18 policies · 1038 contracts on 150 components · 15 standing boards.**
 
 ## What binds you
 
@@ -370,7 +370,7 @@ Contracted but outside the library's directories:
 - `src/components/app/pricing/pricing-sheet.tsx` (12 guards)
 - `src/components/app/pricing/return-path.ts` (7 guards)
 - `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
-- `src/components/app/print/print-stock.tsx` (9 guards)
+- `src/components/app/print/print-stock.tsx` (14 guards)
 - `src/components/app/qr-preset-picker.tsx` (17 guards)
 - `src/components/app/share/event-code-door.tsx` (12 guards)
 - `src/components/app/share/event-code-modal.tsx` (12 guards)
@@ -388,11 +388,11 @@ Contracted but outside the library's directories:
 - `src/components/guest/guest-bar.tsx` (15 guards)
 - `src/components/guest/guest-header.tsx` (3 guards)
 - `src/components/guest/guest-masonry.tsx` (5 guards)
-- `src/components/guest/guest-upload.tsx` (19 guards)
+- `src/components/guest/guest-upload.tsx` (21 guards)
 - `src/components/guest/live-gallery.tsx` (14 guards)
 - `src/components/guest/upload/failure-sheet.tsx` (6 guards)
-- `src/components/guest/upload/intent-sheet.tsx` (8 guards)
-- `src/components/guest/upload/review-step.tsx` (8 guards)
+- `src/components/guest/upload/intent-sheet.tsx` (9 guards)
+- `src/components/guest/upload/review-step.tsx` (9 guards)
 - `src/components/guest/upload/stack-tile.tsx` (7 guards)
 - `src/components/guest/upload/upload-terms.ts` (4 guards)
 - `src/components/guest/yours-filter.ts` (6 guards)
@@ -453,7 +453,7 @@ Contracted but outside the library's directories:
 - `src/lib/dashboard/next-step.ts` (15 guards)
 - `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)
-- `src/lib/guest/use-upload-queue.ts` (19 guards)
+- `src/lib/guest/use-upload-queue.ts` (21 guards)
 - `src/lib/qr/module-floor.ts` (9 guards)
 - `src/lib/qr/stock.ts` (9 guards)
 - `src/lib/shared/arrival.ts` (6 guards)

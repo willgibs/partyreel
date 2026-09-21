@@ -33,6 +33,34 @@ import {
  * No Tailwind size step appears on a face below.
  */
 
+/**
+ * ★ A LINK LONG ENOUGH TO WRAP MUST WRAP INSIDE THE FACE, NEVER OVER ITS
+ * NEIGHBOUR (the alias red-team, 2026-09-21: a 61-char link at 8.67px measured
+ * 255px wide inside a 234px card and ran into the next one on the printed
+ * sheet). `wrap-anywhere` only breaks a token that has somewhere to shrink
+ * TO — a flex column's cross-axis child shrink-wraps to its content by
+ * default, so an unbroken string still pushes the box wide open with the
+ * rule alone. `w-full` below (bound to the face's own inner width, inside its
+ * padding) is the other half of the same fix, not a separate one.
+ *
+ * Today's longest real link is 61 characters (the alias) to 48 (production);
+ * `WRAP_RISK_CHARS` gives room for a custom slug beyond that. Past it, two
+ * wrapped rows are not enough on the smallest face (the card), so the link
+ * steps down one size rather than taking a third row into the card below it.
+ * Exported so `print-stock.test.tsx` asserts against the real numbers rather
+ * than a second copy of them.
+ */
+export const WRAP_RISK_CHARS = 70;
+export const LINK_STEP_DOWN = 0.85;
+
+/** `piece.type.link`, stepped down and rounded to 2dp past `WRAP_RISK_CHARS`
+ *  (a bare `* 0.85` prints binary-float noise like 5.5249999999999995pt —
+ *  harmless to a browser, just not a number anyone should have to read). */
+function linkFontPt(piece: StockPiece, readableUrl: string): number {
+  if (readableUrl.length <= WRAP_RISK_CHARS) return piece.type.link;
+  return Math.round(piece.type.link * LINK_STEP_DOWN * 100) / 100;
+}
+
 /** The one face, at whatever size the piece asks for. */
 function StockFace({
   piece,
@@ -47,6 +75,7 @@ function StockFace({
   /** What a person reads and types. The slug when there is one. */
   readableUrl: string;
 }) {
+  const linkPt = linkFontPt(piece, readableUrl);
   return (
     <div
       className="flex flex-col items-center justify-center text-center text-black"
@@ -80,8 +109,9 @@ function StockFace({
         {eventName}
       </p>
       <p
-        className="leading-tight text-neutral-500"
-        style={{ fontSize: `${piece.type.link}pt` }}
+        data-print-link
+        className="w-full leading-tight text-neutral-500 wrap-anywhere"
+        style={{ fontSize: `${linkPt}pt` }}
       >
         {readableUrl}
       </p>
