@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import type { EntryBadge } from "@/app/(dev)/design/gallery/entry";
+import { groupByKey } from "@/app/(dev)/design/gallery/group-by";
 
 export type LibraryRow = {
   id: string;
@@ -36,13 +37,7 @@ export type LibraryRow = {
  * order is not sorted on purpose: the artifact's order is the page's order.
  */
 export function groupRowsByDir(rows: LibraryRow[]): [string, LibraryRow[]][] {
-  const byDir = new Map<string, LibraryRow[]>();
-  for (const r of rows) {
-    const group = byDir.get(r.dir);
-    if (group) group.push(r);
-    else byDir.set(r.dir, [r]);
-  }
-  return [...byDir.entries()];
+  return groupByKey(rows, (r) => r.dir);
 }
 
 /**
