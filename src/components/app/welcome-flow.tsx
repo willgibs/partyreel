@@ -1,32 +1,108 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CalendarPlus } from "lucide-react";
 
 import { markWelcomedAction } from "@/app/(app)/actions";
+import { ReelPicture } from "@/components/marketing/sections/how-it-works/host-pictures";
+import { StepPicture } from "@/components/marketing/sections/how-it-works/step-picture";
 import { HOW_IT_WORKS } from "@/lib/constants/how-it-works";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import { PageHeading } from "@/components/shared/page-heading";
 
-const STEP_COUNT = 3;
+import "./welcome-flow.css";
 
-// First-time onboarding. Two phases, both reached via the /dashboard + /dashboard/new gates:
+// First-time onboarding (app-door round two, `tour=film`, 2026-09-20). Two phases, both reached
+// via the /dashboard + /dashboard/new gates:
 //   1. "name" — a REQUIRED display name (Phase 1 identity foundation), shown when the account has
-//      none. No skip; it's the public name on every upload. Prefilled from an OAuth name if present.
-//   2. "tutorial" — the original 3-step intro, shown when welcomed_at is null.
-// A brand-new account does name -> tutorial; an already-welcomed but nameless account does name
-// only (then straight to /dashboard); a named-but-unwelcomed account does the tutorial only. Each
-// exit persists welcomed_at via markWelcomedAction BEFORE navigating so the gate doesn't bounce back
-// (skipped when the tutorial wasn't shown, since welcomed_at is already set).
+//      none. UNTOUCHED by this round's ruling: no skip, the public name on every upload, prefilled
+//      from an OAuth name if present.
+//   2. "tour" — four screens where the original shipped three dot-tracked cards: three of the
+//      marketing site's own bespoke how-it-works pictures (StepPicture, QUOTED from
+//      sections/how-it-works/ rather than redrawn, so a host's first minute looks like the site
+//      that just sold them on the product) breathing under a copy plate, then a closing beat on
+//      ReelPicture into the same primary-and-skippable pair as always. His ruling fixed both ends
+//      (the name step and the closing pair); the drift (welcome-flow.css) is the one thing this
+//      round adds to a picture the marketing site already drew.
+// A brand-new account does name -> tour; an already-welcomed but nameless account does name only
+// (then straight to /dashboard); a named-but-unwelcomed account does the tour only. Each exit
+// persists welcomed_at via markWelcomedAction BEFORE navigating so the gate doesn't bounce back
+// (skipped when the tour wasn't shown, since welcomed_at is already set).
+
+const TOUR_STEP_COUNT = 4;
+
+/** The welcome tutorial quotes the host's first three steps (how-it-works.ts); the closing beat
+ *  (screen 4) is drawn fresh below, since nothing in the loop's six steps is "you're all set". */
+const [CREATE, SHARE, FILL] = HOW_IT_WORKS;
+
+/** The dots the tour draws over its four screens, unchanged from the shipped tutorial's own. */
+function TourDots({ step }: { step: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {Array.from({ length: TOUR_STEP_COUNT }).map((_, i) => (
+        <span
+          key={i}
+          className={cn(
+            "size-1.5 rounded-full transition-colors",
+            i + 1 === step
+              ? "bg-brand"
+              : i + 1 < step
+                ? "bg-foreground"
+                : "bg-muted",
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * One live beat of the tour: a bespoke how-it-works picture breathing under a
+ * copy plate that overlaps its bottom edge — the exact composition app-door
+ * round two drew and Will confirmed (`tour=film`, recommended).
+ *
+ * ★ THE FRAME THAT CLIPS IS A SEPARATE ELEMENT FROM THE ONE THAT SCALES, so
+ * the picture pans inside a fixed window instead of growing past its own
+ * rounded corner (welcome-flow.css's `.welcome-film-live`).
+ *
+ * ★ aria-hidden ON THE PICTURE, never the plate: the copy carries the
+ * meaning, the same rule the marketing spine draws these pictures under
+ * (sections/how-it-works/spine.tsx).
+ */
+function FilmBeat({
+  title,
+  body,
+  centered = false,
+  children,
+}: {
+  title: string;
+  body: string;
+  centered?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative pb-10">
+      <div aria-hidden className="relative overflow-hidden rounded-2xl">
+        <div className="welcome-film-live">{children}</div>
+      </div>
+      <div
+        className={cn(
+          "absolute inset-x-4 -bottom-2 rounded-xl border bg-card p-4 shadow-lift ring-1 ring-foreground/5",
+          centered && "text-center",
+        )}
+      >
+        <h2 className="font-heading text-subsection">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+      </div>
+    </div>
+  );
+}
+
 export function WelcomeFlow({
   needsName,
   needsWelcome,
@@ -37,8 +113,8 @@ export function WelcomeFlow({
   namePrefill: string;
 }) {
   const router = useRouter();
-  const [phase, setPhase] = useState<"name" | "tutorial">(
-    needsName ? "name" : "tutorial",
+  const [phase, setPhase] = useState<"name" | "tour">(
+    needsName ? "name" : "tour",
   );
   const [step, setStep] = useState(1);
   const [isLeaving, startLeaving] = useTransition();
@@ -65,7 +141,7 @@ export function WelcomeFlow({
             prefill={namePrefill}
             submitLabel={needsWelcome ? "Continue" : "Save and continue"}
             onSaved={() => {
-              if (needsWelcome) setPhase("tutorial");
+              if (needsWelcome) setPhase("tour");
               else router.push("/dashboard");
             }}
           />
@@ -75,81 +151,50 @@ export function WelcomeFlow({
   }
 
   return (
-    <Card className="mx-auto w-full max-w-lg">
-      <CardHeader className="relative">
+    <div className="mx-auto w-full max-w-lg">
+      <div className="mb-4 flex items-center justify-between">
+        <TourDots step={step} />
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-3 right-4 text-muted-foreground"
+          className="text-muted-foreground"
           onClick={() => leave("/dashboard")}
           disabled={isLeaving}
         >
           Skip
         </Button>
-        <div className="flex items-center justify-center gap-1.5">
-          {Array.from({ length: STEP_COUNT }).map((_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "size-1.5 rounded-full transition-colors",
-                i + 1 === step
-                  ? "bg-brand"
-                  : i + 1 < step
-                    ? "bg-foreground"
-                    : "bg-muted",
-              )}
-            />
-          ))}
-        </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="min-h-44">
+      <div className="flex flex-col gap-4">
         {step === 1 && (
-          <div className="space-y-2 text-center">
-            <PageHeading>Welcome to Partyreel</PageHeading>
-            <p className="text-muted-foreground">
-              Collect every photo and video from your event. Your guests just
-              scan a QR code. No app required.
-            </p>
-          </div>
+          <FilmBeat title={CREATE.title} body={CREATE.body}>
+            <StepPicture id="create" />
+          </FilmBeat>
         )}
         {step === 2 && (
-          <div className="space-y-4">
-            {/* Every step's title is the same slot, so it wears step 1's
-                PageHeading step: the tutorial's rhythm is one title per
-                screen, never a size per screen. */}
-            <h2 className="text-center font-heading text-page">How it works</h2>
-            <ul className="space-y-4">
-              {HOW_IT_WORKS.map(({ icon: Icon, title, body }) => (
-                <li key={title} className="flex gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-                    <Icon className="size-5" />
-                  </span>
-                  <div className="space-y-0.5">
-                    <p className="font-medium">{title}</p>
-                    <p className="text-sm text-muted-foreground">{body}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FilmBeat title={SHARE.title} body={SHARE.body}>
+            <StepPicture id="share" />
+          </FilmBeat>
         )}
         {step === 3 && (
-          <div className="space-y-2 text-center">
-            <h2 className="font-heading text-page">You&rsquo;re all set</h2>
-            <p className="text-muted-foreground">
-              Create your first event and share the QR with your guests.
-              They&rsquo;ll start adding photos in seconds.
-            </p>
-          </div>
+          <FilmBeat title={FILL.title} body={FILL.body}>
+            <StepPicture id="fill" />
+          </FilmBeat>
         )}
-      </CardContent>
+        {step === 4 && (
+          <FilmBeat
+            centered
+            title="You're all set"
+            body="Create your first event and share the code."
+          >
+            <ReelPicture />
+          </FilmBeat>
+        )}
 
-      <CardFooter className="flex-col gap-3">
-        {step < STEP_COUNT ? (
+        {step < TOUR_STEP_COUNT ? (
           <div
             className={cn(
-              "flex w-full items-center",
+              "flex items-center",
               step > 1 ? "justify-between" : "justify-end",
             )}
           >
@@ -163,7 +208,7 @@ export function WelcomeFlow({
             </Button>
           </div>
         ) : (
-          <>
+          <div className="flex flex-col gap-3">
             <Button
               className="w-full"
               onClick={() => leave("/dashboard/new")}
@@ -179,9 +224,9 @@ export function WelcomeFlow({
             >
               I&rsquo;ll look around first
             </Button>
-          </>
+          </div>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

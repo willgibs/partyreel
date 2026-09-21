@@ -134,15 +134,29 @@ later, which is why the reserved list is written to be forward-compatible.
 
 ## First-time host welcome
 
-A full-page **`/welcome`** intro (never a coachmark overlay: Will dislikes "click here" tours): 3 steps →
-the create wizard ([`welcome-flow.tsx`](../../src/components/app/welcome-flow.tsx)). Auto-shown **once** to
-new accounts via `profiles.welcomed_at` (null = unwelcomed; `/dashboard` redirects there when null via
-[`welcome.ts`](../../src/lib/welcome.ts) `shouldShowWelcome`).
-**Every exit calls `markWelcomed` BEFORE navigating** (an RLS self-update via the regular client), or
-the `/dashboard` guard bounces the host straight back. The `/welcome` route itself must NOT gate on
-`welcomed_at` (no loop). `welcomed_at` is on the `profiles` host-writable allowlist. The "how it works"
-story is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) (shared with the
-marketing page — edit it once).
+A full-page **`/welcome`** intro (never a coachmark overlay: Will dislikes "click here" tours), five
+screens as of app-door round two (`tour=film`, 2026-09-20): the required name step, then a FOUR-screen
+tour → the create wizard ([`welcome-flow.tsx`](../../src/components/app/welcome-flow.tsx)). The tour is
+three of the marketing site's own bespoke how-it-works pictures (`StepPicture` for `create`/`share`/`fill`,
+QUOTED from [`sections/how-it-works/`](../../src/components/marketing/sections/how-it-works) rather than
+redrawn, so a host's first minute looks like the site that just sold them on the product) breathing under a
+copy plate that overlaps each picture's bottom edge, then a closing beat on `ReelPicture` into the same
+primary-and-skippable pair as always ("Create my first event" / "I'll look around first"). The one thing
+this round adds to a picture the marketing site already drew is motion: a slow 16s scale-only drift, its
+own small stylesheet ([`welcome-flow.css`](../../src/components/app/welcome-flow.css)), reduced-motion-safe
+by construction (the class's only declaration lives inside the `prefers-reduced-motion: no-preference`
+block, bible 14) and LINEAR on purpose (the house's own ambient-drift rule, `marketing.css`'s
+`mkt-kenburns`/`mkt-wall-drift`: "constant motion, the conveyor rule"), a deliberate bible-12 exception (an
+ambient breath rather than a control's feedback, so the 300ms ceiling for what a person touches does not
+bind it). Auto-shown **once** to new accounts via `profiles.welcomed_at` (null = unwelcomed; `/dashboard`
+redirects there when null via [`welcome.ts`](../../src/lib/welcome.ts) `shouldShowWelcome`).
+**Every exit calls `markWelcomed` BEFORE navigating** (an RLS self-update via the regular client, through
+`markWelcomedAction` in [`(app)/actions.ts`](../../src/app/(app)/actions.ts)), or the `/dashboard` guard
+bounces the host straight back. The `/welcome` route itself must NOT gate on `welcomed_at` (no loop).
+`welcomed_at` is on the `profiles` host-writable allowlist. The "how it works" story, both the copy and now
+the pictures, is single-sourced in [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) and
+[`sections/how-it-works/`](../../src/components/marketing/sections/how-it-works) (shared with the marketing
+page — edit either once).
 A host arriving from the wizard lands on the pulse with no events yet, where the events band renders the
 create-first hero (`events-empty-teaser.tsx`) rather than the four bands: the "what needs you" band is
 suppressed at zero events, because a rule with nothing to rule on is the empty surface the pulse exists
