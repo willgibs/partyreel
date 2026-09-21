@@ -173,7 +173,7 @@ export function UploadsSection({
             <ConfirmSwitch
               label="Require verified emails"
               description="On (recommended): guests confirm their email to see the full gallery and add photos (a few previews show first). Off, guests choose a display name before adding photos, shown with a small unverified mark."
-              checked={field.value}
+              checked={field.value ?? true}
               onCheckedChange={field.onChange}
               confirmWhen={(next) => !next}
               dialogTitle="Let guests upload without verifying?"

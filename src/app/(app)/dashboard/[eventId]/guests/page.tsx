@@ -4,13 +4,14 @@ import { notFound } from "next/navigation";
 import { Users } from "lucide-react";
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
+import type { GuestListItem } from "@/components/social/guest-list";
 import { GuestList } from "@/components/social/guest-list";
 import { Button } from "@/components/ui/button";
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
 import { getEvent } from "@/lib/db/queries/events";
 import { getEventGuestList } from "@/lib/db/queries/social";
-import { withAvatarUrls } from "@/lib/social/cards";
+import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,17 @@ export default async function EventGuestsPage({ params }: PageProps) {
   if (!event) notFound();
 
   const entries = await getEventGuestList(event.id, { includeUnverified: true });
-  const items = entries ? await withAvatarUrls(entries) : null;
+  // The union splits before hydration (lib/social/cards.ts owns why): only a
+  // profile card has an avatar to resolve, so `withAvatarUrls` runs on that
+  // half alone; the unverified half rejoins as-is, after it, matching the
+  // query's own cards-then-unverified order. GuestList (verified-email-guest's)
+  // renders the mix: a hydrated card gets its avatar and link, an unverified
+  // entry gets neither, both the small mark.
+  let items: GuestListItem[] | null = null;
+  if (entries) {
+    const { cards, unverified } = splitGuestList(entries);
+    items = [...(await withAvatarUrls(cards)), ...unverified];
+  }
 
   return (
     <div data-route-fade className="space-y-6">
