@@ -77,8 +77,8 @@ same night. Its record is the CHANGELOG's second entry.
   `353ad884`); `launch-prep` is ahead by the overnight round's records. **The admin cutover is complete** (2026-09-18, late):
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`, the allow-list) and the apex by
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
-  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the fifth
-  batch's wave and glass round two (`806695d1`, 2026-09-20; the sixth batch's record moves it next); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
+  **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the closing
+  sitting's first batch as transcribed (`c75734b9`, 2026-09-20 19:05 EDT; a whole day of records is behind it on the tree, and the first `alias-ensure` after Vercel's window clears, ~20:00 EDT 2026-09-21, moves it to the newest `[preview]` record); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
   100 deployment creations per trailing day (canceled ones included, both projects): on 2026-09-19 it held the alias at `89548cbb` for a
   day, and on 2026-09-20 at `c75734b9` (the Orchestrator's own pushes), so no push to `launch-prep` or a lane creates a deployment any more (`vercel.json`); the Orchestrator creates one per project by API at each `[preview]` record (`usher/kit/alias-ensure.mjs`) and the prune runs on both projects after every integration. The wiring lanes' surfaces were
   red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the

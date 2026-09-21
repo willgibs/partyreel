@@ -18,7 +18,7 @@ git fetch -q origin "lp/$TRACK" || { echo "REFUSED: no origin/lp/$TRACK"; exit 2
 HEAD_SHORT=$(git rev-parse --short "origin/lp/$TRACK"); [ "$HEAD_SHORT" = "$SHA" ] || { echo "REFUSED: lane head is $HEAD_SHORT, not $SHA"; exit 2; }
 rm -rf .next/dev
 git merge --no-ff --no-commit "origin/lp/$TRACK" >/dev/null 2>&1 || true
-CONFL=("${(@f)$(git diff --name-only --diff-filter=U)}")
+CONFL=("${(@f)$(git diff --name-only --diff-filter=U)}"); CONFL=("${(@)CONFL:#}")
 echo "conflicted: ${#CONFL[@]} ${CONFL[*]}"
 REG="src/app/(dev)/design/sandbox/registry.ts"; BOARDS="src/app/(dev)/design/(shell)/lab/boards.ts"
 TP="src/app/(dev)/design/touchpoints.ts"; NOTES="src/app/(dev)/design/rules/component-notes.ts"
