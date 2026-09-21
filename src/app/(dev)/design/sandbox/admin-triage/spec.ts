@@ -57,9 +57,9 @@ const DRAFT = defineExploration({
   title: "Acting on a report",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: what a report is on screen, what a wordless one does, what pressing a verdict costs, how a legal hold is reached, whether four inboxes speak one language, what a closed report leaves, the act in a hand, and who is told.",
+      "The overtaken audit's reshape: all eight questions reframed with admin r1, app-shape r2, guest-shape and guest-upload r1 folded in; reason narrows to the ranking half alone; notice now leans toward telling the host.",
   },
   context:
     "Three reports are open on a Saturday night. Each is a card titled with the event's name, a status badge, a timestamp, a 160 px square of the thing that was flagged, and two buttons that write a status and nothing else. A column for the operator's reasoning has existed since the founding migration and has never been read or written; no id renders anywhere, so a legal hold means finding a UUID on two other surfaces. Every picture here is that portal on that night, with one thing changed.",
@@ -68,80 +68,70 @@ const DRAFT = defineExploration({
     {
       id: "look",
       label: "The first look",
-      question: "What should a report look like when the queue is opened?",
+      question:
+        "What should a report look like, the one inbox where the thing judged is a picture?",
       context:
-        "Three open reports, as they draw today: the event's name is the headline, the reported frame is a 160 px square under a timestamp, and the reason is body text beneath it. The picture is the smallest thing on the card.",
+        "Admin r1 already draws every prose inbox as a list beside the message, a row each. Reports judges a picture, not prose, so what's open is whether it takes that ruled row, or breaks from it: a picture can lead a card full width.",
       options: [
         {
-          id: "card",
-          label: "The event's name and a badge, as today",
+          id: "split",
+          label: "The ruled shape: a row each",
           means:
-            "A card per report, titled with an album the operator has never seen, and the thing being judged at 160 px near its foot.",
+            "The frame on the left at a size you can judge, the words and the verdict on the right, the same row every prose inbox now wears.",
         },
         {
           id: "frame",
-          label: "The picture, full width, the reason under it",
+          label: "The picture, full width, a caption",
           means:
             "The card becomes the reported frame with a caption. One report fills most of a screen, so the queue is scrolled rather than scanned.",
-        },
-        {
-          id: "split",
-          label: "The picture beside the reason, a row each",
-          means:
-            "A 200 px frame on the left, the words and the verdict on the right. An album report keeps the row and takes the width.",
         },
       ],
       recommended: "split",
       because:
-        "The operator's job is to look at a photograph and read one sentence, and today the photograph is the smallest thing on the page while the album's name is the largest. The row is the only answer that makes the frame judgeable and still fits the night on one screen.",
+        "The portal's other inboxes already wear this row; a report reusing it costs nothing new and still puts the frame at a size an operator can judge, which is the one thing the ruling did not have to invent twice.",
       overrule:
-        "If a report is almost always decided on the picture alone, the full-width frame is the honest card and 200 px is a compromise.",
+        "If a report is almost always decided on the picture alone, breaking from the ruled row for a full-width frame is the one inbox that earns it.",
       lands:
-        "What /admin/reports draws, and how much of a night's queue an operator sees at once.",
+        "What /admin/reports draws, and whether Reports keeps the ruled row or becomes the one exception to it.",
       configs: [SCREEN],
     },
     {
       id: "reason",
       label: "Nothing said",
-      question: "What should a report with no reason at all do?",
+      question:
+        "Once a wordless report draws nothing, should it rank under reports with words, or keep its place?",
       context:
-        "The reason is optional and capped at 2,000 characters, so a report can arrive carrying only a timestamp. Tonight one of the three does. Today it reads No reason provided, in the place and at the size of a sentence somebody wrote.",
+        "A report's reason is optional, and app-shape r2 rules an empty block absent, never hollow: a wordless report draws nothing either way. What's open is only its place: ranked under words, or left in the queue's own order.",
       options: [
-        {
-          id: "same",
-          label: "No reason provided, as today",
-          means:
-            "A sentence saying nothing was said, in the reason's own slot, so an empty report is as tall as a full one.",
-        },
-        {
-          id: "quiet",
-          label: "Nothing said, so nothing drawn",
-          means:
-            "The reason's block is simply absent and the card is visibly shorter. What was reported still shows; the silence is the signal.",
-        },
         {
           id: "last",
           label: "Ranked under every report with words",
           means:
             "Wordless reports fall to the foot of the queue and say so. The queue sorts by how much a stranger typed.",
         },
+        {
+          id: "chrono",
+          label: "Keeps its place",
+          means:
+            "No reordering: a wordless report sits exactly where its timestamp puts it, same as one that said plenty.",
+        },
       ],
-      recommended: "quiet",
+      recommended: "chrono",
       because:
-        "A line saying nothing was said is the loudest thing on a report that said nothing, and it makes an empty one look as considered as a written one. Ranking on whether a stranger typed anything puts the panicked report last.",
+        "A report with nothing typed is not necessarily a lesser one; a panicked stranger often has no words at all, and sorting the queue on that risks teaching operators to skip past the report that needed the fastest look.",
       overrule:
         "If wordless reports turn out to be mostly griefing, sorting them down is the cheapest triage the queue can do.",
-      lands:
-        "What every report without a reason draws, and whether the queue's order means anything.",
+      lands: "Whether OPEN_REPORTS ever reorders on whether a reason was typed.",
       after: { ask: "look" },
       configs: [SCREEN],
     },
     {
       id: "verdict",
       label: "The verdict",
-      question: "What should pressing a verdict cost, and what should it record?",
+      question:
+        "What should pressing a verdict cost, now a permanent act already opens its own sheet?",
       context:
-        "Two buttons on an open report, Dismiss and Remove item and action. Each writes a status, an operator id and a time. The resolution_note column has been there since the founding migration and nothing reads or writes it.",
+        "Admin r1 already reserves typing for the permanent act: a destructive act opens one sheet sized to the damage, so Remove has a form to write into. What's open is Dismiss: two wordless buttons, or a verdict with an optional note beside it.",
       options: [
         {
           id: "two",
@@ -153,37 +143,26 @@ const DRAFT = defineExploration({
           id: "note",
           label: "A verdict, and a note if you want one",
           means:
-            "The same two verbs with Add a note beside them. The unused column finally gets written, on the reports somebody bothers.",
-        },
-        {
-          id: "required",
-          label: "A verdict, and the note is the record",
-          means:
-            "Pressing either verb opens one line before it commits. Every closed report reads back as a sentence, and nothing closes without one.",
+            "The same two verbs with Add a note beside them. Dismiss stays a press; Remove's own note lives in the sheet admin r1 already opens.",
         },
       ],
-      recommended: "required",
+      recommended: "note",
       because:
-        "The site tells every guest that every report is reviewed before anything comes down, and the only proof we keep of that is an enum value. One line costs about five seconds on three reports a week, and it is the only thing that answers why this came down a year from now.",
+        "Admin r1 already makes the destructive verb write a line before it commits, so this is really just Dismiss's question: an optional note costs nothing on the ones that took no thought and still fills resolution_note on the ones that do.",
       overrule:
-        "If most reports are obvious griefing, a required sentence taxes a decision that took no thought and the optional note still fills the column when it matters.",
+        "If even Dismiss should leave a record every time, require the line there too and let the sheet be the only place it was ever truly needed.",
       lands:
-        "What both verbs do, whether resolution_note is finally written, and what a closed report can say.",
+        "What Dismiss does, and whether resolution_note is ever written outside the destructive sheet.",
       configs: [SCREEN],
     },
     {
       id: "closed",
       label: "Once it is closed",
-      question: "What should a report look like after it has been answered?",
+      question:
+        "What should a closed report leave, now the portal's data lives in a table?",
       context:
-        "A closed report draws the same full card as an open one, forever, in the All view: the picture, the reason, the badge, no buttons. There is no way back from here; a removal can only be undone from Albums, a surface with its own words.",
+        "Admin r1 already rules the portal's data into a table, which is what history draws once All is pressed. What's left is whether a way back rides along: a line in the log, or the same line with a day's Undo.",
       options: [
-        {
-          id: "card",
-          label: "The same full card forever, as today",
-          means:
-            "History is as tall as the queue. Six reports is about two screens, and the three that need an answer are somewhere in it.",
-        },
         {
           id: "line",
           label: "A closed report is one line",
@@ -199,7 +178,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "undo",
       because:
-        "A takedown is the one act here that reaches into a stranger's album, and today the only way back is a different surface with a different vocabulary. A day is well inside the seven the removal already sits in before anything is really gone.",
+        "A takedown reaches into a stranger's album, and the log admin r1 already gives history is the only place a day's way back could live.",
       overrule:
         "If undoing a takedown must always be a deliberate second act on the Albums surface, the log alone is the whole gain.",
       lands:
@@ -210,9 +189,10 @@ const DRAFT = defineExploration({
     {
       id: "escalate",
       label: "The legal hold",
-      question: "How should an operator put a reported item under legal hold?",
+      question:
+        "How should an operator reach the hold, now the preserve panel is a sheet of its own?",
       context:
-        "The runbook's second step is to paste a media UUID and a reason into Forensics. No id renders on a report, so that means leaving it, finding the same frame in Albums and retyping 36 characters into a third surface, at speed, at night.",
+        "Admin r1 already sizes the preserve panel as a destructive sheet, so it exists regardless of the answer here. What's open is the distance from a report to it: nothing on the card, ids copyable, or a control opening it directly.",
       options: [
         {
           id: "retype",
@@ -235,7 +215,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "door",
       because:
-        "The worst step of the runbook is the one performed under the most pressure, and a hand-typed UUID is where the wrong photograph gets preserved. A hold set from the report writes the report reference into its own reason for free.",
+        "The worst step of the runbook happens under the most pressure, and admin r1 already gives it a sheet sized to the damage; a report with no way to open that sheet leaves the worst step exactly as far away as it is today.",
       overrule:
         "If the hold must stay a deliberate, separate act so it is never pressed casually, showing the ids is the whole improvement.",
       lands:
@@ -246,16 +226,11 @@ const DRAFT = defineExploration({
     {
       id: "phone",
       label: "In a hand",
-      question: "What should an operator be able to do about a report from a phone?",
+      question:
+        "Now the portal's own bar reaches a phone, what should an operator be trusted to do there?",
       context:
-        "Nothing in the portal has a phone layout. Reports arrive on Saturday nights, which is exactly when nobody is at a laptop. Drawn at 375 on every option, whatever the screen knob says elsewhere.",
+        "Admin r1 already measures the portal's bar for a thumb at 44 px, so the shell reaches 375 regardless of the answer here. What's open is how much of the act a small screen is trusted with. Drawn at 375 on every option.",
       options: [
-        {
-          id: "none",
-          label: "No phone layout at all, as today",
-          means:
-            "Whatever the desk draws, folded into 375 by accident: a frame beside a 120 px column, one word a line, the verbs below the fold.",
-        },
         {
           id: "act",
           label: "See it and stop it, nothing else",
@@ -274,28 +249,28 @@ const DRAFT = defineExploration({
         "The only thing that cannot wait is a photograph that should not be up, and the only thing that should not be done at a party is writing a record somebody may read in a courtroom. One verb is the whole of what a phone is for here.",
       overrule:
         "If the operator is as often on a phone as at a desk, a surface that can only half finish the job is a surface they will resent.",
-      lands:
-        "Whether the portal gets a phone layout at all, and which acts a small screen is trusted with.",
+      lands: "Which acts a small screen is trusted with, now the shell itself is ruled.",
       after: { ask: "look" },
     },
     {
       id: "idiom",
       label: "One language",
-      question: "Should the inboxes in one nav group speak one language?",
+      question:
+        "Now every inbox shares one control, should Reports also speak the others' status words?",
       context:
-        "Support and Applicants share a status control and a filter on New, In progress and Closed. Reports hand-rolls Open and All over a four-value enum whose Reviewed nothing writes. Albums, one row down, spells a fifth set.",
+        "Admin r1 shares one control and filter bar across every inbox; the album folds its own behind one button too (app-vocabulary r2). Furniture settled; what's open is the words: Reports' own, the others', or none.",
       options: [
         {
           id: "three",
-          label: "Three vocabularies, as today",
+          label: "Apart from the ruling: three controls",
           means:
-            "Each surface keeps its own words, its own filter bar and its own control. Two of the four share a component; the others do not.",
+            "Reports keeps its own filter bar and badge, unlike the shared picker admin r1 already gives Support and Applicants. The one inbox that still looks apart.",
         },
         {
           id: "shape",
-          label: "One control, each surface's own words",
+          label: "One control, each its own words",
           means:
-            "The shared control and filter take their statuses from the surface, so Reports gains both and keeps the outcome a report needs.",
+            "The shared picker and filter bar; Reports still says Open, Dismissed, Actioned while the others say New, In progress, Closed.",
         },
         {
           id: "one-inbox",
@@ -306,19 +281,20 @@ const DRAFT = defineExploration({
       ],
       recommended: "shape",
       because:
-        "The complaint is that one gesture looks different on four pages, not that a report and a job application are the same thing. Generalising the control costs one prop; merging the surfaces costs the difference between dismissed and actioned.",
+        "Admin r1 and app-vocabulary r2 already settle the furniture: one control, one filter bar, everywhere. Generalising it still costs one prop, while merging the words costs the difference between dismissed and actioned.",
       overrule:
-        "If the home already ranks everything waiting, one inbox under it is the surface that ranking implies and four pages are three too many.",
+        "If the home already ranks everything waiting, one inbox under it is the surface that ranking implies.",
       lands:
-        "The filter and the status control on four surfaces, and whether Reports joins the shared triage.",
+        "The filter and status control on four surfaces, and whether Reports' own words survive the merge.",
       configs: [SCREEN],
     },
     {
       id: "notice",
       label: "Who is told",
-      question: "Should anyone outside the portal be told a report was answered?",
+      question:
+        "Should the portal tell anyone, now a host already lives with one silent gap?",
       context:
-        "Nobody is told anything today. The reporter gets a thank you and never hears again; the host finds the photograph gone, and restoring it gives the same vague line a deleted row does, so a hold cannot be told from a deletion.",
+        "A guest may delete any upload for good; a host meets that gap in the album (guest-shape r1). Guest-upload r1 refuses any gap a person notices themselves. The two leans: stay silent, by doctrine, or tell the host one line.",
       options: [
         {
           id: "silence",
@@ -339,11 +315,11 @@ const DRAFT = defineExploration({
             "That, and a closing note to whoever reported it. It needs an address, so the anonymous dialog grows an optional email field.",
         },
       ],
-      recommended: "silence",
+      recommended: "host",
       because:
-        "A notice that fires on an ordinary takedown and stays quiet on a held one is itself a way to learn a hold exists, which is the thing the trigger and the grant work exist to prevent. This is a ruling to make, not a default to pick.",
+        "Two rulings now argue against a second silent gap: a host already absorbs one when a guest deletes their own upload, and guest-upload r1 states the case against a gap nobody is told about. One line keeps a hold indistinguishable from an ordinary removal.",
       overrule:
-        "If a host is entitled to know when a stranger's complaint changed their album, one identical line on every removal is the only safe shape.",
+        "If telling a hold apart from an ordinary removal is the greater risk, the doctrine's silence is the only shape that guarantees it.",
       lands:
         "Whether the portal sends anything at all, and whether the report dialog ever asks who is reporting.",
       configs: [SCREEN],
