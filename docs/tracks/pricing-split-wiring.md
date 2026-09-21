@@ -1,6 +1,6 @@
 ---
 track: pricing-split-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ece02b97"          # the launch-prep SHA the branch was cut from
 board: pricing-page    # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -211,30 +211,118 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none. Every open call was taken on the brief's recommendation and is listed under "Calls his to overrule" below.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/marketing-content.md`, the `/pricing` bullet, rewritten in place: the paper chapter names the
+  configurator as its close and the dark room loses the calculator from its run; his order and its reason recorded
+  with the test that pins it; the configurator's two planes and why Pearl leaves no other way to draw them;
+  `recommend.ts` named as the only thing that picks a plan; `phone=stack` said once; `shared-band.tsx` now "stays on
+  disk, unimported" rather than "the lab's `pricing-page` board still draws it", which the retirement made false.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing (Next): the swipe row is banked for future gallery-type sections, his words: "we could use swipe cards
+  for mobile elsewhere in the marketing site, such as future gallery-type sections". The drawing is in git at the
+  retired board's `sandbox/pricing-page/phone.tsx` (`ece02b97`), repaired and `lab:demo`-pressed.
+- Marketing (Later): `src/lib/content/llms.ts` calls the block "a find-your-size calculator" in the /pricing line of
+  `llms.txt`. Still true in substance, one word behind the file's new name; left alone because the file is outside
+  this lane and nobody owns it this batch.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- BOARD commit `d3d796b7` (the wiring and the retirement); `743edf42` (the doc and the two stale records) and
+  `d73fbadb` (the live region) after it. SYNC-MERGE `ef893383` (the second; `b4789a3e` was the first).
+  `origin/launch-prep` moved twice while the lane ran and both merges were clean, with no conflict on the
+  retirement lines: `overtaken-4` added no `pricing-page.*` badge, so nothing of the board's was left in
+  `overtaken.ts` to retire with it.
+- Gates on the synced tree (`ef893383`), each on its own exit code: design:rules 0, specimens 0 (140 specimens on
+  101 entries), typecheck 0, lint 0 (8 known warnings), test 0 (301 files, 3138 passed, 1 skipped), build 0 (255
+  pages). `pnpm lab:smoke --base http://localhost:3134` 0 (420 checks, 0 failing; one board fewer than the 421 of
+  the pre-merge run, which is the retirement showing up in the smoke's own count). No `lab:demo`: the board is gone.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/systems/marketing-content.md`,
+  `src/app/(marketing)/(cinema)/pricing/page.tsx`, `src/components/marketing/sections/pricing/{calculator.tsx ->
+  configurator.tsx, configurator-contract.test.tsx, plan-cards.tsx, pricing-page.test.ts}`,
+  `src/app/(dev)/design/sandbox/pricing-page/*` (all six deleted) + this file. EXCEPTIONS, four, each with why:
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts` and
+  `src/app/(dev)/design/touchpoints.ts` are the retirement exception (the import and the list entry in each, the
+  `SandboxId` member and the `DESK_ORDER` entry, the row keeping `ruled` + `shipped` and losing its `board` block);
+  `src/app/(dev)/design/rules/component-notes.ts` gains ONE `for` line at the head, because a file with a
+  `@contract-for` test enters the component index and `gallery.test.ts` fails without it (the round's own ownership
+  rule asks for it); `src/lib/type-ladder-policy.test.ts` LOSES one body exception, because its `calculator.tsx`
+  entry named a timecode chip inside the album wall and both are gone (the list only ever shrinks, and the test
+  fails on a reason for a file that has left). `docs/design/library.md` and
+  `src/app/(dev)/design/rules/rules.generated.json` are the generator's, regenerated, never merged.
+  One line NOT in the diff and worth his eye: `touchpoints.ts`'s 2026-08-27 `pricing-calculator` row still said
+  "V1 Album fill" ships, which the Library renders as current truth; it now names its successor. It is not this
+  board's row, so it is called out here rather than taken silently.
+- The items, one line each:
+  - `fit=split`: the album wall is gone and Find your size is one bordered panel of two planes. The recess
+    (`bg-muted`) holds the storage slider on `STOP_GB`, the video switch and the once-or-again fork, each control on
+    the page's own white; the elevated half is the frame and the column inside it is the card (the prints, the plan,
+    the price, the reason, the expected-room bar, `StatRow`, the annual and runner-up lines, the plan's own door).
+    Lands in the Library as `sections/pricing/configurator.tsx` with its `for` line and a five-clause contract.
+  - `fit=split`, the chapter half of his note: the configurator CLOSES the paper chapter directly under the pair and
+    the ticket, and `UnlockGrid` opens the dark one as its overview, then the matrix, then the questions. His
+    round-one line about the tiles standing above Find your size is superseded, as his note says it would be. Both
+    halves pinned in `pricing-page.test.ts` (its chapter assertions rewritten in the same commit).
+  - `phone=stack`: nothing changed at 375. The pair's grid already collapses to one column and the ticket sits under
+    it; the configurator's panel stacks the same way, the recess above the card with the hairline between them.
+  - The delight, and the one thing `split` otherwise traded away: the result card's deck FANS as the slider climbs,
+    one print at 1 GB and four at 2 TB, under a 300ms transform. That is the wall's "watch your album fill up" kept
+    rather than lost, and it is the pair's own `PhotoStack` (now exported beside `StatRow`, three props all
+    defaulting to what the pair has always drawn) rather than a second copy of the grammar. The price re-pops its
+    digits through the shipped `PricePop`, keyed on the label.
+  - The board retires in the house convention: the row keeps `ruled` and `shipped`, the `RulingId` member stays, the
+    `SandboxId` member, the `DESK_ORDER` entry, the registry line, the lab map line and the directory go. The
+    dangling `docs/tracks/pricing-fit.md` reference went with `fit.tsx`. `PRICING_FAQ_ITEMS` and `StatRow` keep
+    their exports; `loose-ends`' board still imports the first and `pass-card.tsx` the second.
+- Calls his to overrule on the alias, one line each:
+  - THE RESULT CARD'S PHOTOGRAPH is the pair's stack of prints on its own deck of four (wedding-rings,
+    reception-hall, party-dj, festival-lights: none of them the pair's or the ticket's), not a single framed
+    picture. The reason to keep it: it makes the answer a member of the family and gives the slider something to
+    move. The reason to overrule: at a glance a fourth stack of prints on the same page can read as a fourth plan.
+  - THE RECESSED PANEL'S DEPTH is `bg-muted` (Pearl's 0.963 against the page's 0.995) with each control on the
+    page's own white, and NOT a card fill or a shadow: on paper `--card` and `--background` are the same white, so
+    `bg-muted` is the only real step the palette offers. If he wants the recess deeper it is a token change, not a
+    structure change.
+  - THE FIGURE'S SIZE: `text-prose` (24 at 375, 34 at 1440), a step under the section's own h2. The board drew
+    `text-subsection` and the first wiring tried `text-section`, which came out exactly level with "Find your size."
+  - THE PANEL'S WIDTH is `max-w-5xl`, wider than the wall's `max-w-3xl` (two halves need it) and narrower than the
+    pair above.
+  - THE SUBHEAD is new copy, because the board's ("Set the shape of your event on the left ... on the right") is
+    false at 375 where the halves stack. It now reads "Set what your event will collect, and the plan that fits
+    takes shape as you go."
+  - THE LIVE REGION is the verdict alone, not the whole card: a polite region around the bar and the stat trio
+    reads four numbers out on every step of a slider someone is dragging.
+- The help articles this lane makes stale: none. The five help articles that mention plans and storage describe
+  tiers and caps, never the /pricing page's furniture; `help-sync` (2026-09-20) had already taken them against the
+  tree and nothing it wrote names the calculator or the page's chapter order.
+- Assets requested from Will: none. Every photograph is an existing `MARKETING_IMAGES` id.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. The checkout doors' targets are untouched:
+  `CheckoutButton` for anything paid, a `/login` link for Free, both carrying `trackAttrs` as the round's rule asks.
+- Verified, and how. Local only: the alias is still capped, so the Orchestrator's is the alias pass. At 1440 and
+  375, headless Chrome against `:3134` (captures in the lane's scratch, not the repo): the whole page top to
+  bottom, the chapter order on screen (h1, pair, ticket, configurator, one cut, tiles, matrix, FAQ, band), the
+  panel at both widths, and the card at three points of the ladder (1 print at 2 GB Free, 2 at 50 GB Event Pass, 4
+  at 2 TB Pro 2 TB). Keyboard, driven with real CDP key events: five ArrowRight on the focused slider moved 50 GB
+  to 500 GB, flipped Event Pass to Pro 500 GB and fanned the deck from two prints to three. Under
+  `prefers-reduced-motion: reduce`, measured off computed styles: the prints, the room bar and the price digits all
+  resolve to no motion. Server HTML carries the whole default state (50 GB, Event Pass, the stats, Buy a pass), so
+  the block is never blank before hydration. Console on /pricing: zero exceptions and one Next DEV advisory about
+  the Event Pass ticket's photograph and LCP, which is `pass-card.tsx`'s and pre-existing (nothing moved above it).
+- Look at first: `/pricing` at 1440, the configurator directly under the Event Pass ticket. Drag the slider from
+  end to end and watch three things at once: the prints laying one on another, the room bar, and the price popping
+  its digits. Then the same block at 375, where the recess sits above the card.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). `pricing-page` r2 wired whole and the board retired: the album
+wall became the split configurator, the controls recessed on `bg-muted` beside one photographed plan card on the
+page's own white, its deck of prints fanning as the slider climbs so the wall's own delight survived the wall. The
+other half of his verdict was the page: the configurator now closes the paper chapter directly under the pair and
+the ticket, and the upgrade tiles open the dark one as its overview, then the matrix, then the questions, which he
+said himself overrides his round-one line. `calculator.tsx` became `configurator.tsx`, `PhotoStack` joined `StatRow`
+as an export of the pair, and the page's chapter assertions and a new five-clause contract hold both halves.
+`phone=stack` changed nothing at 375; the swipe row is banked on the ROADMAP for future gallery-type sections.
