@@ -22,7 +22,9 @@ import {
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { PlayBadge } from "@/components/shared/play-badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { GLASS_BEHIND } from "@/lib/glass";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +33,9 @@ import {
   BEFORE,
   CLIP_SRC,
   CURRENT,
+  isUnproven,
   positionOf,
+  seedOf,
   sentAt,
   STRIP,
 } from "./fixtures";
@@ -65,9 +69,9 @@ import type { ScreenId } from "./page-parts";
 
 /* ── the shapes each decision can take ───────────────────────────────────── */
 
-export type OpeningShape = "dialog" | "grow" | "sheet";
+export type OpeningShape = "fade" | "grow" | "sheet";
 export type HoldsShape = "pills" | "quiet" | "strip";
-export type WhoShape = "pill" | "foot" | "none";
+export type WhoShape = "pill" | "foot" | "face";
 export type NextShape = "swipe" | "film" | "peek";
 export type ZoomShape = "browser" | "double" | "pinch";
 export type VideoShape = "controls" | "auto" | "badge";
@@ -78,10 +82,10 @@ const pick = <T extends string>(all: readonly T[], v: string | undefined) =>
   all.includes(v as T) ? (v as T) : all[0];
 
 export const openingOf = (v?: string) =>
-  pick(["dialog", "grow", "sheet"] as const, v);
+  pick(["fade", "grow", "sheet"] as const, v);
 export const holdsOf = (v?: string) =>
   pick(["pills", "quiet", "strip"] as const, v);
-export const whoOf = (v?: string) => pick(["pill", "foot", "none"] as const, v);
+export const whoOf = (v?: string) => pick(["pill", "foot", "face"] as const, v);
 export const nextOf = (v?: string) =>
   pick(["swipe", "film", "peek"] as const, v);
 export const zoomOf = (v?: string) =>
@@ -159,20 +163,24 @@ function Attribution({
   counter?: boolean;
 }) {
   const position = positionOf(item);
-  const name = item.isAnonymous ? "Anonymous" : (item.uploaderName ?? "Guest");
-  if (who === "none" && !counter) return null;
-  if (who === "none")
+  const name = item.uploaderName ?? "Guest";
+  // ★ THE FACE-LED CREDIT IS NOT DRAWN IN THE CHROME. `face` puts the credit at
+  // the top edge, opposite the close circle (`FaceCredit` below), so all the
+  // chrome still owes under that answer is the position, and only where a
+  // counter is wanted at all. `data-mv-said` goes with the credit, so the
+  // caption measures the words that are actually on the photograph.
+  if (who === "face" && !counter) return null;
+  if (who === "face")
     return (
-      <span data-mv-said className="text-[11px] text-white/70 tabular-nums">
-        {position}
-      </span>
+      <span className="text-[11px] text-white/70 tabular-nums">{position}</span>
     );
   return (
     <span
       data-mv-said
       className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90"
     >
-      <span>{name}</span>
+      <span data-mv-name>{name}</span>
+      {isUnproven(item) && <UnprovenMark />}
       {item.isHost && (
         <Badge
           variant="secondary"
@@ -200,6 +208,85 @@ function Attribution({
             {(item.uploaderName ?? "guest").toLowerCase()}@example.com
           </span>
         </>
+      )}
+    </span>
+  );
+}
+
+/* ── the mark, and the credit the face leads ─────────────────────────────── */
+
+/**
+ * THE DOT THAT SAYS AN ADDRESS IS UNPROVEN, quoted from `guest-verify`'s board
+ * so the product has one mark and not two. Will on `badge=mark`: "Rather than a
+ * warning icon, this could be more subtle." So it is a dot at the corner of the
+ * face, or a dot beside the name where there is no face to sit on, and never a
+ * triangle. Its ring is the ground's own black here rather than `bg-background`,
+ * because everything on this surface floats over a photograph.
+ */
+function UnprovenMark({ onFace }: { onFace?: boolean }) {
+  return (
+    <span
+      data-mv-mark
+      aria-label="Email not confirmed"
+      className={cn(
+        "flex size-2.5 items-center justify-center rounded-full bg-black/80",
+        onFace && "absolute -right-0.5 -bottom-0.5",
+      )}
+    >
+      <span className="size-1.5 rounded-full bg-warning/80" />
+    </span>
+  );
+}
+
+/**
+ * ★ A CONCEPT TWO RULINGS MADE POSSIBLE (the overtaken audit, 2026-09-21).
+ * `seed-avatar` r1 and r2 gave every account a face of its own, and the
+ * identity reshape gave every upload a name that is verified or MARKED, so a
+ * credit is three facts now rather than one word. The shipped attribution
+ * capsule already says in its own comment that it is waiting to become a door
+ * to a person's page ("the day it becomes a door to a profile it changes
+ * behaviour and not appearance"); this is that day, drawn: the face leading, at
+ * the top edge opposite the close circle, where the eye lands first and where
+ * it costs the foot nothing.
+ *
+ * ★ AND IT WEARS THE SAME MATERIAL AS THE TWO OPTIONS BESIDE IT, which is the
+ * board's hand-copied `bg-black/55 backdrop-blur-sm` rather than the shipped
+ * Crystal. Three options of one question have to be comparable before any of
+ * them is faithful; that the whole board's chrome is now a grade behind
+ * production is a finding in this lane's handoff, not a thing to fix inside one
+ * option and nowhere else.
+ */
+function FaceCredit({ item }: { item: GridMedia }) {
+  const name = item.uploaderName ?? "Guest";
+  return (
+    <span
+      data-mv-said
+      className={cn(
+        "absolute top-[calc(0.625rem+env(safe-area-inset-top))] left-2.5 z-30 inline-flex max-w-[66%] items-center gap-2 rounded-full bg-black/55 py-1 pr-3 pl-1 backdrop-blur-sm",
+        "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
+      )}
+    >
+      <span className="relative inline-flex shrink-0">
+        <Avatar size="sm" seed={seedOf(item)}>
+          <AvatarFallback className="text-[10px]">
+            {name.slice(0, 1)}
+          </AvatarFallback>
+        </Avatar>
+        {isUnproven(item) && <UnprovenMark onFace />}
+      </span>
+      <span
+        data-mv-name
+        className="truncate text-working font-medium text-white"
+      >
+        {name}
+      </span>
+      {item.isHost && (
+        <Badge
+          variant="secondary"
+          className="bg-white/15 text-white hover:bg-white/15"
+        >
+          Host
+        </Badge>
       )}
     </span>
   );
@@ -280,7 +367,7 @@ function Chrome({
           )}
           <Actions host={host} />
         </div>
-        {who !== "foot" && (who !== "none" || counter) && (
+        {who !== "foot" && (who !== "face" || counter) && (
           <div className="flex max-w-[88vw] flex-col items-center gap-1 rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
             {attribution}
           </div>
@@ -676,7 +763,7 @@ function Flight({ item, screen }: { item: GridMedia; screen: ScreenId }) {
 export function Viewer({
   screen,
   item = CURRENT,
-  opening = "dialog",
+  opening = "fade",
   holds = "pills",
   who = "pill",
   next = "swipe",
@@ -711,18 +798,8 @@ export function Viewer({
    * decides is the ground, the margin around the picture, whether the picture
    * is flying out of a tile, and whether the whole thing sits on a sheet.
    */
-  const ground =
-    opening === "dialog"
-      ? "bg-black/90"
-      : // The flight is caught at 62 percent, so its ground is 62 percent of the
-        // way to black: the end state would hide the album the photograph is
-        // coming OUT of, which is the whole of this option's argument.
-        opening === "grow"
-        ? "bg-black/60"
-        : "bg-transparent";
-  const slot =
-    opening === "dialog" ? (phone ? "px-2 pb-6" : "px-6 pb-6") : "p-0";
-  const radius = opening === "dialog" ? "rounded-md" : "rounded-none";
+  const slot = opening === "fade" ? (phone ? "px-2 pb-6" : "px-6 pb-6") : "p-0";
+  const radius = opening === "fade" ? "rounded-md" : "rounded-none";
   const peek = next === "peek";
 
   const body = (
@@ -763,6 +840,11 @@ export function Viewer({
         summoned={summoned}
         above={next === "film" ? <FilmStrip screen={screen} /> : undefined}
       />
+      {/* The credit at the top edge, under the answer that puts it there, and
+          never while the chrome it belongs to is away. */}
+      {who === "face" && !(holds === "quiet" && !summoned) && (
+        <FaceCredit item={item} />
+      )}
       <CloseCircle />
       {onTop}
     </>
@@ -802,7 +884,15 @@ export function Viewer({
       data-mv-ground
       className={cn(
         "mv-open fixed inset-0 z-50 flex flex-col",
-        ground,
+        // ★ THE GROUND IS RULED, AND IT IS THE SAME UNDER EVERY OPENING (the
+        // overtaken audit, 2026-09-21). `glass` r1 `behind=album` shipped: what
+        // stands behind a photograph is the album itself, blurred at half
+        // brightness. The old `bg-black/90` was the pre-ruling dark room and
+        // `bg-black/60` was that room at 62 percent of a flight into it, so
+        // both were drawings of a dead option. The PRODUCTION utility rather
+        // than a copy of its numbers, so a retune of `--glass-behind-*` reaches
+        // this board without an edit here.
+        GLASS_BEHIND,
         wayOut === "down" && "mv-dismissing",
       )}
     >
