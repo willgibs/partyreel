@@ -1,8 +1,8 @@
 /**
- * Consent-scope guard for get_public_profile (its NEWEST definition, migration
- * 20260919140000, which restored the July anonymous-viewer gate after 20260919120000
- * dropped it while adding the bio; re-point this path whenever the function is replaced), parsed
- * as TEXT like the notification-prefs parity guard.
+ * Consent-scope guard for get_public_profile, resolved LATEST-WINS across the whole migration set
+ * (it used to be pinned to 20260919140000, the migration that restored the July anonymous-viewer
+ * gate after 20260919120000 dropped it while adding the bio — a hand-repointed path is exactly how
+ * that drift went unseen the first time). Parsed as TEXT like the notification-prefs parity guard.
  *
  * The ATTENDED arm must stay gated to OPEN events: the album-side guest list
  * renders only to viewers who can OPEN the album, and profiles-social.md preserves
@@ -14,30 +14,48 @@
  * The HOSTED arm deliberately has NO visibility gate: display_in_profile is the
  * host publishing their OWN event link (link-in-bio; discovery decoupled from
  * access), and a gated event still hits its lock at /e/. Don't "fix" that arm.
+ *
+ * ★ The identity reshape (2026-09-21) did NOT replace this function, and the attended arm's
+ * account-required clause still names `allow_anonymous_uploads`. That stays correct only because
+ * the events_sync_verified_email_flags trigger keeps the legacy flag exactly opposite to the new
+ * `require_verified_email` switch, so the last test below pins the two together: whoever finally
+ * drops the legacy column must re-point this clause in the same change.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(
-  join(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "supabase/migrations/20260919140000_profile_rpc_anon_viewer_gate.sql",
-  ),
-  "utf8",
-);
+const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
 
-/** The executable function body (skip the header's commented contract check). */
+function migrationFiles(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+}
+
+/**
+ * The definition that actually WINS on the live DB: the LAST migration in timestamp order that
+ * creates or replaces get_public_profile, sliced to its closing dollar-quote. Same resolver as
+ * db/migration-guards.test.ts — the truth is the migration SET, never one file in it.
+ */
 function functionBody(): string {
-  const start = migration.indexOf("function public.get_public_profile");
-  expect(start).toBeGreaterThan(-1);
-  const end = migration.indexOf("$$;", start);
-  expect(end).toBeGreaterThan(start);
-  return migration.slice(start, end);
+  let latest: string | null = null;
+  for (const file of migrationFiles()) {
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+    const start = sql.indexOf(
+      "create or replace function public.get_public_profile",
+    );
+    if (start === -1) continue;
+    const end = sql.indexOf("$$;", start);
+    expect(
+      end,
+      `${file}: get_public_profile body never closes`,
+    ).toBeGreaterThan(start);
+    latest = sql.slice(start, end);
+  }
+  expect(latest, "get_public_profile defined nowhere").not.toBeNull();
+  return latest!;
 }
 
 function arm(body: string, name: "hosted_events" | "attended_events"): string {
@@ -75,6 +93,23 @@ describe("get_public_profile consent scope (migration SQL)", () => {
   it("the hosted arm stays UNgated on visibility (host consent; the lock gates at /e/)", () => {
     expect(hosted).toContain("e.display_in_profile");
     expect(hosted).not.toContain("e.visibility = 'open'");
+  });
+
+  it("the legacy flag it reads is kept truthful by the twin-keeper trigger", () => {
+    // The attended arm's account-required clause names allow_anonymous_uploads, which the identity
+    // reshape demoted to a compatibility twin. If this trigger ever goes without the clause being
+    // re-pointed, an account-required album starts publishing its attendance to anonymous viewers
+    // again — the exact 2026-07-08 leak, reintroduced by a column rename nobody connected to it.
+    const all = migrationFiles()
+      .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
+      .join("\n")
+      .replace(/\s+/g, " ");
+    expect(all).toContain(
+      "create or replace trigger events_sync_verified_email_flags before insert or update on public.events",
+    );
+    expect(all).toContain(
+      "new.allow_anonymous_uploads := not new.require_verified_email;",
+    );
   });
 
   it("the contract check exercises the gated-event negative (the leak repro)", () => {
