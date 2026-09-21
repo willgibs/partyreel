@@ -2,7 +2,7 @@
   "version": 3,
   "components": [
     {
-      "id": "page",
+      "id": "account-page",
       "file": "src/app/(app)/account/page.tsx",
       "names": [
         "AccountPage"
@@ -618,6 +618,268 @@
       ]
     },
     {
+      "id": "print-page",
+      "file": "src/app/(print)/dashboard/[eventId]/print/page.tsx",
+      "names": [
+        "PrintStockPage"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "asks for a name and nothing else",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "refuses to advance on an empty name",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "advances on a name alone",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "offers every preset and round-trips the choice",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "previews against a stand-in the same length as a real token",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "ends on the beat, carrying the real code and both doors",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "never navigates by itself: the beat has an end the host chooses",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 184
+        },
+        {
+          "title": "refuses before the form opens, naming the plan's number and the event",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 200
+        },
+        {
+          "title": "says the NUMBER, so a stacked pass never reads 'one event'",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 216
+        },
+        {
+          "title": "★ never replaces the beat with the door after a creation in this session",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 231
+        },
+        {
+          "title": "lives OUTSIDE the app shell's route group",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 275
+        },
+        {
+          "title": "re-declares the auth gate it does not inherit",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 283
+        },
+        {
+          "title": "renders the code with the ZERO-JS server renderer, never the client one",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "encodes the PERMANENT link, never the slug",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 307
+        },
+        {
+          "title": "sets no @page rule (the house doctrine: it cannot be scoped)",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 316
+        },
+        {
+          "title": "retired the second one, and the card chip goes to the sheet",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 335
+        },
+        {
+          "title": "gives the share sheet a door onto paper",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 343
+        }
+      ]
+    },
+    {
+      "id": "route",
+      "file": "src/app/api/events/[eventId]/live/route.ts",
+      "names": [
+        "GET"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is stable for an unchanged album",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 40
+        },
+        {
+          "title": "moves when a photograph arrives",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 44
+        },
+        {
+          "title": "moves when a photograph leaves",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 50
+        },
+        {
+          "title": "moves when one is hidden from a second tab",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 54
+        },
+        {
+          "title": "moves when something lands in Review, which the doorbell never reports",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 63
+        },
+        {
+          "title": "never validates across two events",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 70
+        },
+        {
+          "title": "carries a version prefix, quoted and strong",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 74
+        },
+        {
+          "title": "cannot be confused with the guest gallery's validator",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 81
+        },
+        {
+          "title": "re-verifies the caller rather than trusting the cookie",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 89
+        },
+        {
+          "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 98
+        },
+        {
+          "title": "answers 304 when nothing moved",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 107
+        },
+        {
+          "title": "presigns nothing",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 113
+        },
+        {
+          "title": "is never cached",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 121
+        }
+      ]
+    },
+    {
       "id": "globals.css",
       "file": "src/app/globals.css",
       "names": [],
@@ -980,6 +1242,153 @@
       ]
     },
     {
+      "id": "create-event-wizard",
+      "file": "src/components/app/create-event-wizard.tsx",
+      "names": [
+        "CreateEventWizard"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "asks for a name and nothing else",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "refuses to advance on an empty name",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "advances on a name alone",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "offers every preset and round-trips the choice",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "previews against a stand-in the same length as a real token",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "ends on the beat, carrying the real code and both doors",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "never navigates by itself: the beat has an end the host chooses",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 184
+        },
+        {
+          "title": "refuses before the form opens, naming the plan's number and the event",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 200
+        },
+        {
+          "title": "says the NUMBER, so a stacked pass never reads 'one event'",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 216
+        },
+        {
+          "title": "★ never replaces the beat with the door after a creation in this session",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 231
+        },
+        {
+          "title": "lives OUTSIDE the app shell's route group",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 275
+        },
+        {
+          "title": "re-declares the auth gate it does not inherit",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 283
+        },
+        {
+          "title": "renders the code with the ZERO-JS server renderer, never the client one",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "encodes the PERMANENT link, never the slug",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 307
+        },
+        {
+          "title": "sets no @page rule (the house doctrine: it cannot be scoped)",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 316
+        },
+        {
+          "title": "retired the second one, and the card chip goes to the sheet",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 335
+        },
+        {
+          "title": "gives the share sheet a door onto paper",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 343
+        }
+      ]
+    },
+    {
       "id": "events-section",
       "file": "src/components/app/dashboard/events-section.tsx",
       "names": [
@@ -1259,7 +1668,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 134
+          "line": 146
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1267,7 +1676,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 158
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1275,7 +1684,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 162
+          "line": 174
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1283,7 +1692,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 176
+          "line": 188
         }
       ]
     },
@@ -1291,7 +1700,8 @@
       "id": "event-gallery",
       "file": "src/components/app/event-feed/event-gallery.tsx",
       "names": [
-        "EventGallery"
+        "EventGallery",
+        "EventLive"
       ],
       "specimens": [],
       "indexed": false,
@@ -1350,7 +1760,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 134
+          "line": 146
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1358,7 +1768,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 158
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1366,7 +1776,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 162
+          "line": 174
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1374,7 +1784,122 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 176
+          "line": 188
+        }
+      ]
+    },
+    {
+      "id": "launch-list",
+      "file": "src/components/app/event-feed/launch-list.tsx",
+      "names": [
+        "LaunchList"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names everything the event is still missing",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "drops an item the host has already done",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "always ends on paper, because that one is never 'done' in the data",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "gives every item a real destination",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "opens paper in a new tab and nothing else",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "offers the code as a fourth door only when the list has room",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the launch list before the first photograph",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 131
+        },
+        {
+          "title": "gives the room back to the album at the first one",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 144
+        },
+        {
+          "title": "never asks a host to print table cards while photographs wait in Review",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "is what is new, and nothing else",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 173
+        },
+        {
+          "title": "marks nothing when items only leave",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "catches a batch, not just the newest",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 182
+        },
+        {
+          "title": "reads ids, never the presigned url that rolls every half hour",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 189
         }
       ]
     },
@@ -1441,7 +1966,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 134
+          "line": 146
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1449,7 +1974,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 158
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1457,7 +1982,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 162
+          "line": 174
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1465,7 +1990,115 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 176
+          "line": 188
+        }
+      ]
+    },
+    {
+      "id": "event-qr",
+      "file": "src/components/app/event-qr.tsx",
+      "names": [
+        "EventQr",
+        "QrDownloadMenu"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "binds one name across the module and the stylesheet",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "scopes every view-transition rule to that name, never to a wildcard",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "hands the name to exactly one element at a time",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "never starts a transition under reduced motion",
+          "suite": [
+            "the code's morph"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 93
+        },
+        {
+          "title": "gives the code and every copy control the PERMANENT link",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 103
+        },
+        {
+          "title": "shows the readable link and copies the permanent one",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 125
+        },
+        {
+          "title": "confirms a copy in place and says so once in a live region",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 143
+        },
+        {
+          "title": "claims nothing when the clipboard refuses",
+          "suite": [
+            "what the sharing surfaces encode"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "puts the two sheets in history and keeps the mini-modal out of it",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 182
+        },
+        {
+          "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 198
+        },
+        {
+          "title": "mounts the sheets outside the album, so the album survives them",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 214
+        },
+        {
+          "title": "opens with the page on a deep link, resolved on the server",
+          "suite": [
+            "what rides the URL, and what does not"
+          ],
+          "file": "src/components/app/share/event-share.test.tsx",
+          "line": 234
         }
       ]
     },
@@ -1532,7 +2165,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 134
+          "line": 146
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1540,7 +2173,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 158
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1548,7 +2181,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 162
+          "line": 174
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1556,7 +2189,240 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 176
+          "line": 188
+        }
+      ]
+    },
+    {
+      "id": "event-uploads",
+      "file": "src/components/app/event-uploads.tsx",
+      "names": [
+        "EventUploads"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names everything the event is still missing",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "drops an item the host has already done",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "always ends on paper, because that one is never 'done' in the data",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "gives every item a real destination",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "opens paper in a new tab and nothing else",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "offers the code as a fourth door only when the list has room",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the launch list before the first photograph",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 131
+        },
+        {
+          "title": "gives the room back to the album at the first one",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 144
+        },
+        {
+          "title": "never asks a host to print table cards while photographs wait in Review",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "is what is new, and nothing else",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 173
+        },
+        {
+          "title": "marks nothing when items only leave",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "catches a batch, not just the newest",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 182
+        },
+        {
+          "title": "reads ids, never the presigned url that rolls every half hour",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 189
+        }
+      ]
+    },
+    {
+      "id": "host-media-grid",
+      "file": "src/components/app/host-media-grid.tsx",
+      "names": [
+        "ApproveAllPendingButton",
+        "HostMediaGrid"
+      ],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names everything the event is still missing",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "drops an item the host has already done",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "always ends on paper, because that one is never 'done' in the data",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 76
+        },
+        {
+          "title": "gives every item a real destination",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "opens paper in a new tab and nothing else",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 98
+        },
+        {
+          "title": "offers the code as a fourth door only when the list has room",
+          "suite": [
+            "the launch list"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "shows the launch list before the first photograph",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 131
+        },
+        {
+          "title": "gives the room back to the album at the first one",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 144
+        },
+        {
+          "title": "never asks a host to print table cards while photographs wait in Review",
+          "suite": [
+            "what the album's room holds"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "is what is new, and nothing else",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 173
+        },
+        {
+          "title": "marks nothing when items only leave",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "catches a batch, not just the newest",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 182
+        },
+        {
+          "title": "reads ids, never the presigned url that rolls every half hour",
+          "suite": [
+            "the arrival diff"
+          ],
+          "file": "src/components/app/event-feed/launch-list.test.tsx",
+          "line": 189
         }
       ]
     },
@@ -1855,6 +2721,238 @@
       ]
     },
     {
+      "id": "print-stock",
+      "file": "src/components/app/print/print-stock.tsx",
+      "names": [
+        "PrintStock"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts more modules for the higher error correction the soft presets use",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 41
+        },
+        {
+          "title": "reserves the screen renderer's ten percent per side",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 49
+        },
+        {
+          "title": "keeps every shipped screen plate above the screen floor",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 60
+        },
+        {
+          "title": "clears the print floor on every piece, at every preset, on the longest link",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 76
+        },
+        {
+          "title": "clears it with real room, not by a hair (a cheap printer spreads ink)",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 86
+        },
+        {
+          "title": "fits the box that is printable on BOTH Letter and A4",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 98
+        },
+        {
+          "title": "lays nine cards on one sheet without spilling off it",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 113
+        },
+        {
+          "title": "keeps every piece's code inside its own face",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 120
+        },
+        {
+          "title": "converts millimetres to the px the code renderer takes",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 128
+        }
+      ]
+    },
+    {
+      "id": "qr-preset-picker",
+      "file": "src/components/app/qr-preset-picker.tsx",
+      "names": [
+        "QrPresetPicker"
+      ],
+      "specimens": [
+        "/design/library/compositions"
+      ],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "asks for a name and nothing else",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 89
+        },
+        {
+          "title": "refuses to advance on an empty name",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 96
+        },
+        {
+          "title": "advances on a name alone",
+          "suite": [
+            "what creating asks for"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "offers every preset and round-trips the choice",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "previews against a stand-in the same length as a real token",
+          "suite": [
+            "the style step"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "ends on the beat, carrying the real code and both doors",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "never navigates by itself: the beat has an end the host chooses",
+          "suite": [
+            "where Create lands"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 184
+        },
+        {
+          "title": "refuses before the form opens, naming the plan's number and the event",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 200
+        },
+        {
+          "title": "says the NUMBER, so a stacked pass never reads 'one event'",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 216
+        },
+        {
+          "title": "★ never replaces the beat with the door after a creation in this session",
+          "suite": [
+            "the door at the cap"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 231
+        },
+        {
+          "title": "lives OUTSIDE the app shell's route group",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 275
+        },
+        {
+          "title": "re-declares the auth gate it does not inherit",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 283
+        },
+        {
+          "title": "renders the code with the ZERO-JS server renderer, never the client one",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 295
+        },
+        {
+          "title": "encodes the PERMANENT link, never the slug",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 307
+        },
+        {
+          "title": "sets no @page rule (the house doctrine: it cannot be scoped)",
+          "suite": [
+            "the print route"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 316
+        },
+        {
+          "title": "retired the second one, and the card chip goes to the sheet",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 335
+        },
+        {
+          "title": "gives the share sheet a door onto paper",
+          "suite": [
+            "the one sharing surface"
+          ],
+          "file": "src/app/(app)/dashboard/new/create-flow.test.tsx",
+          "line": 343
+        }
+      ]
+    },
+    {
       "id": "event-code-door",
       "file": "src/components/app/share/event-code-door.tsx",
       "names": [
@@ -1869,7 +2967,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -1877,7 +2975,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -1885,7 +2983,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -1893,7 +2991,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -1901,7 +2999,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -1909,7 +3007,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -1917,7 +3015,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -1925,7 +3023,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -1933,7 +3031,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -1941,7 +3039,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -1949,7 +3047,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -1957,7 +3055,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -1976,7 +3074,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -1984,7 +3082,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -1992,7 +3090,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2000,7 +3098,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2008,7 +3106,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2016,7 +3114,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2024,7 +3122,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2032,7 +3130,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2040,7 +3138,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2048,7 +3146,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2056,7 +3154,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2064,7 +3162,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -2083,7 +3181,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -2091,7 +3189,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -2099,7 +3197,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2107,7 +3205,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2115,7 +3213,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2123,7 +3221,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2131,7 +3229,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2139,7 +3237,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2147,7 +3245,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2155,7 +3253,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2163,7 +3261,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2171,7 +3269,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -2191,7 +3289,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -2199,7 +3297,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -2207,7 +3305,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2215,7 +3313,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2223,7 +3321,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2231,7 +3329,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2239,7 +3337,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2247,7 +3345,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2255,7 +3353,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2263,7 +3361,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2271,7 +3369,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2279,7 +3377,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -2298,7 +3396,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -2306,7 +3404,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -2314,7 +3412,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2322,7 +3420,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2330,7 +3428,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2338,7 +3436,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2346,7 +3444,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2354,7 +3452,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2362,7 +3460,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2370,7 +3468,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2378,7 +3476,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2386,7 +3484,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -2405,7 +3503,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -2413,7 +3511,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -2421,7 +3519,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2429,7 +3527,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2437,7 +3535,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2445,7 +3543,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2453,7 +3551,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2461,7 +3559,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2469,7 +3567,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2477,7 +3575,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2485,7 +3583,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2493,7 +3591,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -2510,7 +3608,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 47
+          "line": 48
         },
         {
           "title": "scopes every view-transition rule to that name, never to a wildcard",
@@ -2518,7 +3616,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "hands the name to exactly one element at a time",
@@ -2526,7 +3624,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "never starts a transition under reduced motion",
@@ -2534,7 +3632,7 @@
             "the code's morph"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 92
+          "line": 93
         },
         {
           "title": "gives the code and every copy control the PERMANENT link",
@@ -2542,7 +3640,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 102
+          "line": 103
         },
         {
           "title": "shows the readable link and copies the permanent one",
@@ -2550,7 +3648,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "confirms a copy in place and says so once in a live region",
@@ -2558,7 +3656,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 142
+          "line": 143
         },
         {
           "title": "claims nothing when the clipboard refuses",
@@ -2566,7 +3664,7 @@
             "what the sharing surfaces encode"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 160
+          "line": 161
         },
         {
           "title": "puts the two sheets in history and keeps the mini-modal out of it",
@@ -2574,7 +3672,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 181
+          "line": 182
         },
         {
           "title": "keeps our marker a FIELD on the state Next merges, never the state itself",
@@ -2582,7 +3680,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 197
+          "line": 198
         },
         {
           "title": "mounts the sheets outside the album, so the album survives them",
@@ -2590,7 +3688,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 213
+          "line": 214
         },
         {
           "title": "opens with the page on a deep link, resolved on the server",
@@ -2598,7 +3696,7 @@
             "what rides the URL, and what does not"
           ],
           "file": "src/components/app/share/event-share.test.tsx",
-          "line": 233
+          "line": 234
         }
       ]
     },
@@ -13403,6 +14501,119 @@
       ]
     },
     {
+      "id": "host-fingerprint",
+      "file": "src/lib/events/host-fingerprint.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is stable for an unchanged album",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 40
+        },
+        {
+          "title": "moves when a photograph arrives",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 44
+        },
+        {
+          "title": "moves when a photograph leaves",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 50
+        },
+        {
+          "title": "moves when one is hidden from a second tab",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 54
+        },
+        {
+          "title": "moves when something lands in Review, which the doorbell never reports",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 63
+        },
+        {
+          "title": "never validates across two events",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 70
+        },
+        {
+          "title": "carries a version prefix, quoted and strong",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 74
+        },
+        {
+          "title": "cannot be confused with the guest gallery's validator",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 81
+        },
+        {
+          "title": "re-verifies the caller rather than trusting the cookie",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 89
+        },
+        {
+          "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 98
+        },
+        {
+          "title": "answers 304 when nothing moved",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 107
+        },
+        {
+          "title": "presigns nothing",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 113
+        },
+        {
+          "title": "is never cached",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 121
+        }
+      ]
+    },
+    {
       "id": "glass",
       "file": "src/lib/glass.ts",
       "names": [
@@ -13463,6 +14674,178 @@
           ],
           "file": "src/lib/glass.test.ts",
           "line": 114
+        }
+      ]
+    },
+    {
+      "id": "module-floor",
+      "file": "src/lib/qr/module-floor.ts",
+      "names": [
+        "FOOTER_QR_QUIET_ZONE",
+        "MODULE_FLOOR_MM",
+        "MODULE_FLOOR_PX"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts more modules for the higher error correction the soft presets use",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 41
+        },
+        {
+          "title": "reserves the screen renderer's ten percent per side",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 49
+        },
+        {
+          "title": "keeps every shipped screen plate above the screen floor",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 60
+        },
+        {
+          "title": "clears the print floor on every piece, at every preset, on the longest link",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 76
+        },
+        {
+          "title": "clears it with real room, not by a hair (a cheap printer spreads ink)",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 86
+        },
+        {
+          "title": "fits the box that is printable on BOTH Letter and A4",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 98
+        },
+        {
+          "title": "lays nine cards on one sheet without spilling off it",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 113
+        },
+        {
+          "title": "keeps every piece's code inside its own face",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 120
+        },
+        {
+          "title": "converts millimetres to the px the code renderer takes",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 128
+        }
+      ]
+    },
+    {
+      "id": "stock",
+      "file": "src/lib/qr/stock.ts",
+      "names": [
+        "PRINT_STOCK",
+        "PX_PER_MM",
+        "SHEET_MM",
+        "STOCK_IDS",
+        "STOCK_LINE"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts more modules for the higher error correction the soft presets use",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 41
+        },
+        {
+          "title": "reserves the screen renderer's ten percent per side",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 49
+        },
+        {
+          "title": "keeps every shipped screen plate above the screen floor",
+          "suite": [
+            "the module floor"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 60
+        },
+        {
+          "title": "clears the print floor on every piece, at every preset, on the longest link",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 76
+        },
+        {
+          "title": "clears it with real room, not by a hair (a cheap printer spreads ink)",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 86
+        },
+        {
+          "title": "fits the box that is printable on BOTH Letter and A4",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 98
+        },
+        {
+          "title": "lays nine cards on one sheet without spilling off it",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 113
+        },
+        {
+          "title": "keeps every piece's code inside its own face",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 120
+        },
+        {
+          "title": "converts millimetres to the px the code renderer takes",
+          "suite": [
+            "the printed stock"
+          ],
+          "file": "src/lib/qr/module-floor.test.ts",
+          "line": 128
         }
       ]
     },

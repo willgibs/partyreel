@@ -28,6 +28,7 @@ import { useLikes } from "@/components/likes/likes-provider";
 import { useReel } from "@/components/reel/reel-provider";
 import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
+import { ARRIVAL_GLOW_MS } from "@/lib/guest/arrival-glow";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
 // Host moderation grid — the host's THREE verbs on the one album tile. The grid is the
@@ -139,6 +140,82 @@ function prefersReducedMotion(): boolean {
   );
 }
 
+/** The ids in `next` that were not in `prev`. Pure, so the diff has a test. */
+export function newItemIds(
+  prev: readonly string[],
+  next: readonly string[],
+): Set<string> {
+  const before = new Set(prev);
+  return new Set(next.filter((id) => !before.has(id)));
+}
+
+/**
+ * WHAT JUST ARRIVED, READ OFF THE SERVER RENDER AND NOTHING ELSE (Will,
+ * `first=live`, 2026-09-21).
+ *
+ * The hub is server-rendered and `EventLive` re-runs it with `router.refresh()`
+ * on a doorbell ping or a changed fingerprint. React keeps this island mounted
+ * across that, so "new" is simply: an id in this render's items that was not in
+ * the last one. That one definition catches every route a photograph takes into
+ * a host's album — a guest uploading, a held item the host approved an hour ago,
+ * ten at once after a shut laptop wakes up — without this component knowing a
+ * thing about any of them.
+ *
+ * ★ THE FIRST RENDER MARKS NOTHING. The ref is SEEDED from the initial items, so
+ * opening an album of four hundred photographs does not light four hundred of
+ * them. Only what turns up afterwards is new.
+ *
+ * ★ ONE TIMER PER ID, NEVER ONE FOR THE BATCH. Arrivals overlap: two guests a
+ * beat apart must not have the second's glow cut short by the first's clock.
+ *
+ * ★ PRESIGNED URLS ROLL ABOUT EVERY 30 MINUTES AND THAT IS NOT AN ARRIVAL. Ids
+ * are stable across refreshes and urls are not, which is exactly why the diff is
+ * on the id — a url-keyed diff would light the whole album twice an hour.
+ */
+function useArrivedIds(items: GridMedia[]): ReadonlySet<string> {
+  const ids = items.map((i) => i.id);
+  const key = ids.join("|");
+  const seen = useRef<Set<string>>(new Set(ids));
+  const [arrived, setArrived] = useState<Set<string>>(() => new Set());
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    const incoming = key ? key.split("|") : [];
+    const fresh = newItemIds([...seen.current], incoming);
+    seen.current = new Set(incoming);
+    if (fresh.size === 0) return;
+    setArrived((prev) => new Set([...prev, ...fresh]));
+    for (const id of fresh) {
+      const running = timers.current.get(id);
+      if (running) clearTimeout(running);
+      timers.current.set(
+        id,
+        setTimeout(() => {
+          timers.current.delete(id);
+          setArrived((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }, ARRIVAL_GLOW_MS),
+      );
+    }
+  }, [key]);
+
+  // Held too long, a tile keeps a `data-arrived` attribute with nothing painting
+  // under it, and the next thing that re-renders it replays the light on a
+  // photograph that landed minutes ago. So every timer dies with the album.
+  useEffect(() => {
+    const running = timers.current;
+    return () => {
+      for (const t of running.values()) clearTimeout(t);
+      running.clear();
+    };
+  }, []);
+
+  return arrived;
+}
+
 export function HostMediaGrid({
   eventId,
   items,
@@ -161,6 +238,10 @@ export function HostMediaGrid({
   // revalidation lag; it reverts on failure. ONE moderation hook drives both surfaces.
   const [optimisticItems, applyOptimistic] = useOptimistic(items, applyChange);
   const { setStatus, remove } = useModeration(eventId, applyOptimistic);
+  // The arrival mark reads the SERVER items, never the optimistic overlay: an
+  // optimistic hide removes nothing and adds nothing, and a host's own action is
+  // not an arrival to be announced back to her.
+  const arrivedIds = useArrivedIds(items);
   const [, startBulk] = useTransition();
   const [exiting, setExiting] = useState<Set<string>>(new Set());
 
@@ -377,6 +458,13 @@ export function HostMediaGrid({
       dimItem={(item) => item.status === "hidden"}
       onTileLongPress={selectable ? enterSelectAt : undefined}
       tileActions={tileActions}
+      // ★ THE GLOW RIDES `arrivedIds`; THE STAGGER STAYS OFF. `stagger` seeds a
+      // per-tile entrance delay on the FIRST render, which is the entrance
+      // theatre the emil contract forbids on a host album — and it is not what
+      // `first=live` asks for either. The arrival is an animation on the tile's
+      // own `::after` and runs whether or not the stagger does, so a host gets
+      // the light without the album dealing itself out like a hand of cards.
+      arrivedIds={arrivedIds}
     />
   );
 }

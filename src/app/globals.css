@@ -2878,3 +2878,54 @@
     word-break: break-all;
   }
 }
+
+/* PRINT: the event's printable stock (`venue=sheet`, Will 2026-09-21: "This is
+   a great spark to a bigger idea. We should have a full gallery of printable QR
+   designs ready to go"). /dashboard/<id>/print draws a sheet of table cards, a
+   welcome sign or a poster at real millimetres, and this is what the printer
+   gets.
+
+   SAME DOCTRINE AS THE TWO BLOCKS ABOVE: ONE opt-in hook (data-print-stock, set
+   on the sheet itself by print-stock.tsx), every selector scoped to it through
+   body:has(), and NO @page. @page cannot be scoped to a selector, so a margin
+   set for this sheet would silently re-margin the help articles and the legal
+   documents — which is also why the sheet is sized (lib/qr/stock.ts) to fit
+   INSIDE the browser's own default margin on both Letter and A4 rather than
+   asking for a margin of its own. legal-print.test.ts's last assertion is the
+   tripwire for the whole house; module-floor.test.ts holds this sheet's fit.
+
+   The screen half of the page (the back link, the heading, the picker, the
+   Print button, the advice) carries the SHARED data-print-hide hook, handled by
+   the help block above — nothing here repeats it. */
+@media print {
+  /* THE ROOM PRINTS LIGHT. The host app is dark; paper is not. The page already
+     forces the light token set with .surface-paper, so this is only the belt
+     against a browser that prints the body paint. */
+  body:has([data-print-stock]) {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* EVERY BOX BETWEEN THE BODY AND THE SHEET DROPS ITS SCREEN FRAMING. The
+     page's max width, its padding and the proof's ring and shadow are all
+     screen affordances, and any of them would push a 252 mm sheet onto a second
+     page or print a rule around a page of cards. `:has()` walks the real
+     ancestors rather than asking the page to mark each one, so a layout change
+     upstream cannot silently unscope this. */
+  body:has([data-print-stock]) div:has([data-print-stock]) {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000;
+  }
+
+  /* THE SHEET IS THE PAGE. print-color-adjust: exact because the cut lines are
+     a hairline a pair of scissors follows and the code's plate is white on
+     white: both are the first things a driver in "economy" mode drops. */
+  [data-print-stock] {
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

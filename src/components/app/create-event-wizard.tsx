@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { ArrowLeft, ArrowRight, Check, PartyPopper } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  Printer,
+  Share2,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -16,7 +25,7 @@ import {
   resolveQrPreset,
   type QrStyleKey,
 } from "@/lib/constants/qr-presets";
-import { isSettingLocked, type Tier } from "@/lib/constants/tiers";
+import { type Tier } from "@/lib/constants/tiers";
 import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
 import {
   createEventSchema,
@@ -24,6 +33,7 @@ import {
   type CreateEventValues,
 } from "@/lib/validation/event";
 import { cn } from "@/lib/utils";
+import { trackAttrs } from "@/lib/analytics/events";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,38 +46,68 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { CopyShareLink } from "@/components/app/copy-share-link";
-import { EventQr } from "@/components/app/event-qr";
-import { EventSlugControl } from "@/components/app/event-slug-control";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
+import { StyledQr } from "@/components/app/styled-qr";
+import { useCopyLink } from "@/components/app/share/use-copy-link";
 
-const STEP_LABELS = ["Details", "Design", "Share"] as const;
+const STEP_LABELS = ["Name", "Style", "Ready"] as const;
+
+/** One event already filling a slot, as the door names it. */
+export type CappedEvent = { id: string; name: string };
 
 type CreateEventWizardProps = {
   siteUrl: string;
   planName: string;
   tier: Tier;
+  /** Server-computed with the dashboard's own cap math. */
+  atCap: boolean;
+  /** The plan's event limit. null = unlimited, so the door never renders. */
+  maxEvents: number | null;
+  /** The events already filling the plan, so the door can name one. */
+  cappedEvents: CappedEvent[];
 };
 
-// The streamlined create flow (Phase 6 cut #2): details → QR design → share.
-// Everything is collected client-side and the event is created ONCE, at commit
-// (end of the design step), so nothing is persisted until the host commits (no
-// abandoned events). The share step needs the real qr_token, so this
-// uses createEventInWizard (which RETURNS the event) rather than redirecting on
-// create. Only `name` is required — the rest is optional/defaulted.
+/**
+ * THE CREATE FLOW (the `first-event` board, ruled whole by Will 2026-09-21).
+ *
+ * Four of his eight verdicts land in this one file:
+ *
+ *  ★ `asks=one` — "Name it and it exists", with his note: "the option 3 design
+ *    feels much more exciting along the way. Would love to use that bigger name
+ *    edit field." So step 1 is ONE field, drawn as option 3's name-under-a-
+ *    cursor: the name at the size it will be on the event, on a rule rather than
+ *    in a box. The note and the date LEFT the wizard — they are edited on the
+ *    event, under the header that shows them, through the settings sheet that
+ *    already holds both.
+ *
+ *  ★ `style=step` — the step stays, redesigned (qr-preset-picker.tsx), because
+ *    his note says what it is for: "Hosts may not know they can adjust it later.
+ *    This introduces the feature."
+ *
+ *  ★ `limit=door` — the refusal arrives before the form, not after the work.
+ *
+ *  ★ `landing=beat` — Create ends on ONE screen for the one job that is next,
+ *    shown exactly once in an event's life. By construction, not by a flag: only
+ *    pressing Create reaches step 3, and the route has no other way into it.
+ *
+ * The event is still created ONCE, at commit, so an abandoned wizard leaves no
+ * row (`createEventInWizard` RETURNS the event rather than redirecting, which is
+ * what lets the beat draw the real code).
+ */
 export function CreateEventWizard({
   siteUrl,
   planName,
   tier,
+  atCap,
+  maxEvents,
+  cappedEvents,
 }: CreateEventWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -77,6 +117,23 @@ export function CreateEventWizard({
   // action has no element to hang a trigger on, so this one is controlled.
   const [pricingOpen, setPricingOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  /**
+   * ★ THE DOOR IS DECIDED ONCE, AT MOUNT, AND THAT IS LOAD-BEARING
+   * (`limit=door`, Will: "Letting them do the work of creating a second event,
+   * then finding out they can't create it on the free plan is bad user
+   * experience design").
+   *
+   * Creating an event puts a Free host AT their cap, and a Server Action
+   * refreshes the route it was called from — so the RSC refresh that follows
+   * `createEventInWizard` re-renders /dashboard/new with `atCap` now TRUE. React
+   * keeps this island's STATE across that refresh but hands it fresh PROPS, so
+   * reading the live prop would swap the beat the host just earned for a
+   * refusal. The same fact once made an at-cap `redirect` on this route bounce a
+   * host away mid-create (it shipped, and live testing caught it); this is that
+   * bug's second shape, and the snapshot answers both.
+   */
+  const [wasAtCap] = useState(() => atCap);
 
   const form = useForm<CreateEventInput, unknown, CreateEventValues>({
     resolver: zodResolver(createEventSchema),
@@ -96,7 +153,7 @@ export function CreateEventWizard({
     ? eventUrl(siteUrl, createdEvent.qr_token)
     : null;
 
-  async function goToDesign() {
+  async function goToStyle() {
     // Only the name gates progress; validate just it before advancing.
     if (await form.trigger("name")) setStep(2);
   }
@@ -110,6 +167,8 @@ export function CreateEventWizard({
         return;
       }
       if (result.code === "limit_reached") {
+        // The server's enforce_event_limit stays the guard BEHIND the door: a
+        // second tab, a slot spent elsewhere, a page left open for an hour.
         toast.error(`Event limit reached on the ${planName} plan.`, {
           description: "Delete an event or upgrade to add more.",
           action: { label: "Upgrade", onClick: () => setPricingOpen(true) },
@@ -123,8 +182,7 @@ export function CreateEventWizard({
     });
   }
 
-  return (
-    <>
+  const pricing = (
     <PricingSheet
       open={pricingOpen}
       onOpenChange={setPricingOpen}
@@ -132,209 +190,370 @@ export function CreateEventWizard({
       plan={{ tier, hasBilling: false }}
       returnTo="/dashboard"
     />
-    <Card className="mx-auto w-full max-w-xl">
-      <CardHeader>
-        <CardTitle>Create an event</CardTitle>
-        <CardDescription>
-          {step < 3
-            ? "Name it, pick a QR style, and you're ready to collect photos."
-            : "Your event is live. Share it with your guests."}
-        </CardDescription>
-        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs">
-          {STEP_LABELS.map((label, i) => {
-            const n = i + 1;
-            const active = n === step;
-            const done = n < step;
-            return (
-              <li key={label} className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "flex size-5 items-center justify-center rounded-full text-micro font-medium",
-                    active
-                      ? "bg-brand text-brand-foreground"
-                      : done
-                        ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground",
+  );
+
+  // THE DOOR, before the form opens — and never after a creation in this session.
+  if (wasAtCap && !createdEvent) {
+    return (
+      <>
+        {pricing}
+        <CapDoor
+          planName={planName}
+          maxEvents={maxEvents}
+          events={cappedEvents}
+          onUpgrade={() => setPricingOpen(true)}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {pricing}
+      <Card className="mx-auto w-full max-w-xl">
+        <CardHeader>
+          <CardTitle>
+            {step === 3 && createdEvent
+              ? `${createdEvent.name} is live`
+              : "Create an event"}
+          </CardTitle>
+          <CardDescription>
+            {step === 3
+              ? "One thing left: get the code where your guests will be."
+              : "Name it, pick a style for the code, and you're collecting photos."}
+          </CardDescription>
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 text-xs">
+            {STEP_LABELS.map((label, i) => {
+              const n = i + 1;
+              const active = n === step;
+              const done = n < step;
+              return (
+                <li key={label} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "flex size-5 items-center justify-center rounded-full text-micro font-medium",
+                      active
+                        ? "bg-brand text-brand-foreground"
+                        : done
+                          ? "bg-foreground text-background"
+                          : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {done ? <Check className="size-3" /> : n}
+                  </span>
+                  <span
+                    className={cn(
+                      active
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {label}
+                  </span>
+                  {n < STEP_LABELS.length && (
+                    <ArrowRight className="size-3 text-muted-foreground" />
                   )}
-                >
-                  {done ? <Check className="size-3" /> : n}
-                </span>
-                <span
-                  className={cn(
-                    active
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground",
+                </li>
+              );
+            })}
+          </ol>
+        </CardHeader>
+
+        <Form {...form}>
+          {step === 1 && (
+            <>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      {/* The label is the question, because the field under it
+                          is the screen's subject rather than one row of a form. */}
+                      <FormLabel className="font-normal text-muted-foreground">
+                        What are you collecting photos for?
+                      </FormLabel>
+                      <FormControl>
+                        {/* ★ THE NAME AT THE SIZE IT WILL BE (his "bigger name
+                            edit field"). Borderless on a rule: a box would make
+                            this one field of a form, and the whole verdict is
+                            that it is not. The focus state thickens the RULE
+                            rather than drawing a ring — a ring around a
+                            borderless field is the box coming back. */}
+                        <Input
+                          autoFocus
+                          placeholder="Maya & Sam's Wedding"
+                          className="h-auto rounded-none border-0 border-b-2 border-border bg-transparent px-0 py-2 font-heading !text-section shadow-none transition-colors focus-visible:border-brand focus-visible:ring-0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
+                />
+              </CardContent>
+              <CardFooter className="justify-between">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => router.push("/dashboard")}
                 >
-                  {label}
-                </span>
-                {n < STEP_LABELS.length && (
-                  <ArrowRight className="size-3 text-muted-foreground" />
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </CardHeader>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={goToStyle}>
+                  Continue <ArrowRight />
+                </Button>
+              </CardFooter>
+            </>
+          )}
 
-      <Form {...form}>
-        {step === 1 && (
-          <>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event name</FormLabel>
-                    <FormControl>
-                      <Input
-                        autoFocus
-                        placeholder="Maya & Sam's Wedding"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Description{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={3}
-                        placeholder="A note your guests will see when they join."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="event_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Event date{" "}
-                      <span className="font-normal text-muted-foreground">
-                        (optional)
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Just for your reference: events never expire.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter className="justify-between">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.push("/dashboard")}
-              >
-                Cancel
-              </Button>
-              <Button type="button" onClick={goToDesign}>
-                Continue <ArrowRight />
-              </Button>
-            </CardFooter>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Guest join QR</p>
-                <p className="text-sm text-muted-foreground">
-                  Pick a style for the QR your guests scan. You can change it
-                  anytime.
-                </p>
-              </div>
-              <QrPresetPicker
-                value={qrStyle}
-                onChange={(k) => form.setValue("qr_style", k)}
-                joinUrl={previewJoinUrl(siteUrl)}
-              />
-            </CardContent>
-            <CardFooter className="justify-between">
-              <Button type="button" variant="ghost" onClick={() => setStep(1)}>
-                <ArrowLeft /> Back
-              </Button>
-              <Button
-                type="button"
-                disabled={isPending}
-                onClick={form.handleSubmit(onCreate)}
-              >
-                {isPending ? "Creating…" : "Create event"}
-              </Button>
-            </CardFooter>
-          </>
-        )}
-
-        {step === 3 && createdEvent && eventLink && (
-          <>
-            <CardContent className="space-y-5">
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
-                <PartyPopper className="size-4 text-brand" />
-                <span className="font-medium">
-                  {createdEvent.name} is ready.
-                </span>
-              </div>
-              <div className="space-y-3">
+          {step === 2 && (
+            <>
+              <CardContent className="space-y-3">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Your event link</p>
+                  <p className="text-sm font-medium">
+                    Pick a style for the code
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Print or display the QR, or share the link. Guests just open
-                    it. No app required.
+                    This is what your guests scan. You can change it later from
+                    Share.
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-3 pt-1">
-                  <EventQr
-                    joinUrl={eventLink}
-                    eventName={createdEvent.name}
-                    style={resolveQrPreset(createdEvent.qr_style)}
-                  />
-                </div>
-                <CopyShareLink url={eventLink} />
-                <EventSlugControl
-                  eventId={createdEvent.id}
-                  siteUrl={siteUrl}
-                  slug={null}
-                  locked={isSettingLocked("custom_slug", tier)}
-                  eventName={createdEvent.name}
-                  returnTo={`/dashboard/${createdEvent.id}?room=share`}
+                <QrPresetPicker
+                  value={qrStyle}
+                  onChange={(k) => form.setValue("qr_style", k)}
+                  joinUrl={previewJoinUrl(siteUrl)}
                 />
-              </div>
-            </CardContent>
-            <CardFooter className="justify-end">
-              <Button
-                type="button"
-                onClick={() => router.push(`/dashboard/${createdEvent.id}`)}
-              >
-                Go to your event <ArrowRight />
-              </Button>
-            </CardFooter>
-          </>
-        )}
-      </Form>
-    </Card>
+              </CardContent>
+              <CardFooter className="justify-between">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setStep(1)}
+                >
+                  <ArrowLeft /> Back
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isPending}
+                  onClick={form.handleSubmit(onCreate)}
+                >
+                  {isPending ? "Creating…" : "Create event"}
+                </Button>
+              </CardFooter>
+            </>
+          )}
+
+          {step === 3 && createdEvent && eventLink && (
+            <TheBeat
+              eventId={createdEvent.id}
+              eventName={createdEvent.name}
+              joinUrl={eventLink}
+              qrStyle={createdEvent.qr_style}
+              onGo={() => router.push(`/dashboard/${createdEvent.id}`)}
+            />
+          )}
+        </Form>
+      </Card>
     </>
+  );
+}
+
+/**
+ * THE BEAT (`landing=beat`). One screen, once: the code the host now owns, and
+ * the two ways it leaves the screen.
+ *
+ * ★ THE MAT IS `DemoFrame`'S COMPOSITION, NOT ITS COMPONENT. That object is a
+ * photograph in a mat with the code tucked into a corner, and this event has no
+ * photograph — it has nothing at all yet, which is the point of the beat. So the
+ * mat is borrowed (a card of its own lightness, the layer shadow, the white
+ * plate with its contact shadow and hairline on top of it) and the code is its
+ * SUBJECT rather than its accent, at a size a phone across a table reads.
+ *
+ * ★ `EventSlugControl` IS NOT HERE. It rode the old share step; it belongs to
+ * the share sheet, where the readable link already lives and where a host comes
+ * back to claim one. A beat with a text input on it is not a beat.
+ */
+function TheBeat({
+  eventId,
+  eventName,
+  joinUrl,
+  qrStyle,
+  onGo,
+}: {
+  eventId: string;
+  eventName: string;
+  joinUrl: string;
+  qrStyle: string;
+  onGo: () => void;
+}) {
+  const { copied, copy } = useCopyLink(joinUrl);
+  const canShare = useSyncExternalStore(
+    () => () => {},
+    () => typeof navigator !== "undefined" && "share" in navigator,
+    () => false,
+  );
+
+  async function shareOrCopy() {
+    if (canShare) {
+      try {
+        await navigator.share({
+          title: eventName,
+          text: `Add your photos and videos to ${eventName}`,
+          url: joinUrl,
+        });
+        return;
+      } catch {
+        // Dismissed, or refused. The clipboard is the same intent, so fall to it
+        // rather than leaving the press with nothing to show for itself.
+      }
+    }
+    void copy();
+  }
+
+  return (
+    <>
+      <CardContent className="space-y-5">
+        <div className="flex justify-center">
+          <span className="inline-flex flex-col items-center gap-3 rounded-[var(--radius-tile)] border bg-card p-3 shadow-layer">
+            <span className="rounded-md bg-white p-3 shadow-lift ring-1 ring-border">
+              <StyledQr
+                value={joinUrl}
+                size={240}
+                style={resolveQrPreset(qrStyle)}
+                className="[&>svg]:block"
+              />
+            </span>
+            <span className="max-w-[240px] truncate text-center text-sm font-medium">
+              {eventName}
+            </span>
+          </span>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="outline" asChild>
+            <Link
+              href={`/dashboard/${eventId}/print`}
+              target="_blank"
+              rel="noopener noreferrer"
+              {...trackAttrs("cta_click", {
+                cta: "print-stock",
+                location: "create-beat",
+              })}
+            >
+              <Printer /> Print the table cards
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={shareOrCopy}
+            {...trackAttrs("cta_click", {
+              cta: "copy-event-link",
+              location: "create-beat",
+            })}
+          >
+            <span data-copy-pop={copied ? "on" : undefined} className="flex">
+              {copied ? <Check /> : canShare ? <Share2 /> : <Copy />}
+            </span>
+            {copied ? "Copied" : "Share the link"}
+          </Button>
+        </div>
+        <span aria-live="polite" className="sr-only">
+          {copied ? "Link copied" : ""}
+        </span>
+      </CardContent>
+      <CardFooter className="justify-end">
+        <Button type="button" onClick={onGo}>
+          Go to your event <ArrowRight />
+        </Button>
+      </CardFooter>
+    </>
+  );
+}
+
+/**
+ * THE DOOR (`limit=door`, Will: "Should handle upfront with actions to
+ * address"). The refusal arrives BEFORE the form, names the plan's real number
+ * and the event already holding the slot, and offers both ways forward.
+ *
+ * ★ THE COPY COMES FROM THE NUMBER, NEVER FROM A LITERAL "ONE". Free holds one
+ * event today and an Event Pass holds one, but `profiles.event_slots` is the
+ * webhook-derived concurrent-pass count and overrides both (billing-caps.md), so
+ * a host who stacked three passes must read "holds 3 events". A sentence with
+ * "one" written into it is a sentence that lies the first time somebody stacks.
+ */
+function CapDoor({
+  planName,
+  maxEvents,
+  events,
+  onUpgrade,
+}: {
+  planName: string;
+  maxEvents: number | null;
+  events: CappedEvent[];
+  onUpgrade: () => void;
+}) {
+  const limit = maxEvents ?? events.length;
+  const holds = limit === 1 ? "one event" : `${limit} events`;
+  const named = events[0];
+  const rest = events.length - 1;
+
+  return (
+    <Card className="mx-auto w-full max-w-xl">
+      <CardHeader>
+        <CardTitle>
+          {planName} holds {holds}
+        </CardTitle>
+        <CardDescription>
+          {named
+            ? rest > 0
+              ? `You have ${named.name} and ${rest} more. Pro holds as many events as you want.`
+              : `You have ${named.name}. Pro holds as many events as you want.`
+            : "Pro holds as many events as you want."}
+        </CardDescription>
+      </CardHeader>
+      {named && (
+        <CardContent className="space-y-3">
+          <ul className="space-y-2">
+            {events.map((event) => (
+              <li key={event.id}>
+                <Link
+                  href={`/dashboard/${event.id}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm transition-colors hover:border-foreground/30"
+                >
+                  <span className="min-w-0 truncate font-medium">
+                    {event.name}
+                  </span>
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm text-muted-foreground">
+            Deleting an event frees its slot. It waits in the bin for 30 days
+            first, so nothing is gone the moment you press it.
+          </p>
+        </CardContent>
+      )}
+      <CardFooter className="flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
+        {named && (
+          <Button variant="ghost" asChild>
+            <Link href={`/dashboard/${named.id}?room=settings`}>
+              <Trash2 /> Delete it
+            </Link>
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={onUpgrade}
+          {...trackAttrs("cta_click", {
+            cta: "upgrade",
+            location: "create-cap-door",
+          })}
+        >
+          See Pro
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

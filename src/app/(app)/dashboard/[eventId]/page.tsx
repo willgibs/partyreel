@@ -4,7 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
 
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
-import { EventGallery } from "@/components/app/event-feed/event-gallery";
+import { EventGallery, EventLive } from "@/components/app/event-feed/event-gallery";
+import {
+  LaunchList,
+  launchItems,
+} from "@/components/app/event-feed/launch-list";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostAddProvider } from "@/components/app/host-add-provider";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
@@ -181,6 +185,15 @@ export default async function EventDetailPage({
   // (the header's two chips are gone: "accepting uploads" became the code's own
   // state). The word for `visibility = 'open'` is "Public", never "Open" (Will,
   // 2026-09-02), and it comes from the one server-safe record.
+  // The launch list's outstanding items (`empty=list`), derived from the event's
+  // own nulls by the same pure function the list renders from — so the section
+  // header's count and the list can never disagree.
+  const launch = launchItems({
+    eventId: event.id,
+    eventDate: event.event_date,
+    description: event.description,
+  });
+
   const cards = [
     {
       id: "review" as const,
@@ -282,6 +295,13 @@ export default async function EventDetailPage({
                 <Eye className="size-3.5" />
                 {views}
               </span>
+              {/* ★ THE PIP IS THE PAGE'S ONE LIVE ISLAND (`first=live`, Will
+                  2026-09-21). It sits in the metadata row because that is where
+                  a host is already reading the counts it keeps current, and it
+                  renders NOTHING until the Realtime channel is actually
+                  subscribed — a pip claiming "Live" over a dead socket is worse
+                  than no pip. Everything it refreshes is this page's own RSC. */}
+              <EventLive eventId={event.id} qrToken={event.qr_token} />
             </div>
             <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
           </div>
@@ -293,6 +313,7 @@ export default async function EventDetailPage({
             <EventGallery
               eventId={event.id}
               albumCount={visibleItems.length}
+              launchCount={launch.length}
               videosAllowed={videosAllowedForTier(tier)}
               initialTileSize={tileSize}
             >
@@ -301,6 +322,13 @@ export default async function EventDetailPage({
                 items={visibleItems}
                 pendingCount={pendingItems.length}
                 shareUrl={eventLink}
+                launchList={
+                  <LaunchList
+                    eventId={event.id}
+                    eventDate={event.event_date}
+                    description={event.description}
+                  />
+                }
               />
             </EventGallery>
           </HostSelectionProvider>

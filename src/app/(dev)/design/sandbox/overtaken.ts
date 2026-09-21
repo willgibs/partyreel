@@ -276,60 +276,6 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * they decided lives on in the ledger, in rulings.md, and in the six lines
    * this batch's own rulings write across the standing boards below. */
 
-  /* ── first-event ─────────────────────────────────────────────────────────
-   * ★ THE BOARD THE DESK PROVES ITS JOIN ON, and for two passes that cost it
-   * badges. `_desk/queue.test.ts` proves the real join (this map against a
-   * board's own asks) on THIS board, and it used to do it by restating the
-   * numbers: four overtaken asks, `asks` named as the one nothing reached. A
-   * judgment pass that reached a fifth could not record it without editing a
-   * file it only reads, so the sixth batch's pass dropped three here and the
-   * closing sitting's first pass dropped two. That test now DERIVES both from
-   * this map (a granted exception, `docs/tracks/overtaken-3.md`), so the count
-   * below is the truth rather than a number some other file is holding, and the
-   * two it kept out are back. Nothing here is capped again. */
-  "first-event.asks": {
-    ...VOCABULARY_2,
-    ruling:
-      "the gallery's controls fold behind one View button, because everything at once read as busy",
-    line: "stands: he refuses a top level that shows everything at once, which is the case against three fields, and the two that leave need a home.",
-  },
-  "first-event.style": {
-    ...APP_SHAPE,
-    ruling: "one share sheet holds the code, the posters and anything future",
-    line: "concedes: the share sheet is where the designer lands, which is this ask's on-the-real-code option.",
-  },
-  "first-event.limit": {
-    ...APP_PRICING,
-    ruling:
-      "a refusal opens the pricing surface inside the app, and checkout comes back to the control it stopped",
-    line: "stands: a refusal keeps its door in the app and returns to the thing it blocked now, which kills the toast and leaves only where the wall is met.",
-  },
-  "first-event.landing": {
-    ...APP_SHAPE,
-    ruling:
-      "the event is a hub: a cards row, a live QR in the header, the gallery beneath",
-    line: "stands: the hub rules what the event page is, never what Create ends on, and the one-time beat is still unasked. Also reached by app-door r1, 20 Sep: the welcome tour now holds the product's one-time screen. Also reached by app-shape r2, 20 Sep: the dashboard is ruled out as the place a single event is prompted from. Also reached by app-door r2, 20 Sep: the product's one-time screen is five screens of film now, so a beat of its own has a house idiom to borrow.",
-  },
-  "first-event.hand": {
-    ...APP_SHAPE,
-    ruling:
-      "sharing is a sheet, with a QR mini-modal for a bigger scannable code",
-    line: "stands: the mini-modal is a modal doing three jobs; full screen at full brightness is the only one that reads across a dark room. Also reached by guest-shape r2, 20 Sep: no centred float survives, so the mini-modal is a bottom sheet in a hand. Also reached by demo-event r2, 20 Sep: the site's own door is one photograph with the code in its corner, which is the table card option's composition.",
-  },
-  "first-event.empty": {
-    ...APP_SHAPE,
-    ruling:
-      "the event is a hub: a cards row, a live QR in the header, the gallery beneath",
-    line: "stands: the hub puts the code in the header and says nothing about the album's empty room, which the launch list still fills. Also reached by guest-shape r1, 20 Sep: the guest's own empty album carries the river. Also reached by app-shape r2, 20 Sep: a band with nothing real in it is ruled absent, never drawn empty. Also reached by app-door r2, 20 Sep: a five-screen film teaches before the app now, so a launch list is the second place that would.",
-  },
-
-  "first-event.first": {
-    ...VERIFY,
-    ruling:
-      "a guest's photograph goes live at once, wearing an unconfirmed mark until the code is typed",
-    line: HELD + "gate=after",
-  },
-
   /* ── guest-upload ────────────────────────────────────────────────────── */
   "guest-upload.tap": {
     ...GUEST_SHAPE,

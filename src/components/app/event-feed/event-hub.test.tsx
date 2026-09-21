@@ -112,11 +112,23 @@ describe("the album, and the bin as its filter", () => {
   it("never counts the bin's items in the album's count", () => {
     // A host reading "48 photos" must be reading the number their guests can
     // see. The bin says its own size on its own header.
+    //
+    // The album branch leads with albumCount and falls through to the LAUNCH
+    // list's outstanding count when the album is empty (`empty=list`, Will
+    // 2026-09-21: before the first photograph this section is the launch list,
+    // and a "0" beside its name would be a count of the wrong thing). What is
+    // still forbidden, and is what this guards, is the bin reaching that branch.
     const src = read(GALLERY);
+    const branch = /view === "album"\s*\?([\s\S]*?):\s*\(bin\?\.length/.exec(src);
+    expect(branch, "the count stopped branching on the view at all").toBeTruthy();
     expect(
-      /view === "album"\s*\?\s*albumCount \|\| undefined/.test(src),
-      "the album's count started including something other than the album",
+      /albumCount/.test(branch![1]),
+      "the album's count stopped being the album's own length",
     ).toBe(true);
+    expect(
+      /bin/.test(branch![1]),
+      "the album's count started including something other than the album",
+    ).toBe(false);
     const hub = read(HUB);
     expect(
       /albumCount=\{visibleItems\.length\}/.test(hub),

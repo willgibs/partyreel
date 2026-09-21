@@ -1,7 +1,15 @@
 "use client";
 
-import { useCallback, useMemo, useState, useTransition } from "react";
-import { ImageUp, Loader2, QrCode } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { useRouter } from "next/navigation";
+import { ImageUp, Loader2 } from "lucide-react";
 
 import {
   listDeletedMediaAction,
@@ -16,7 +24,6 @@ import {
   type BinMedia,
 } from "@/components/app/recently-deleted-grid";
 import { GalleryDownloadAllButton } from "@/components/app/export/download-all-button";
-import { useEventShare } from "@/components/app/share/event-share-provider";
 import { Button } from "@/components/ui/button";
 import { ViewMenu, type ViewMenuGroup } from "@/components/shared/view-menu";
 import { trackAttrs } from "@/lib/analytics/events";
@@ -26,6 +33,8 @@ import {
   TILE_SIZES,
   type TileSize,
 } from "@/lib/shared/tile-size-cookie";
+import { ARRIVAL_GLOW_MS } from "@/lib/guest/arrival-glow";
+import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
 import { useTileSize } from "@/lib/shared/use-tile-size";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +69,7 @@ type View = "album" | "deleted";
 export function EventGallery({
   eventId,
   albumCount,
+  launchCount = 0,
   videosAllowed,
   initialTileSize,
   children,
@@ -67,6 +77,10 @@ export function EventGallery({
   eventId: string;
   /** Approved + hidden. Pending lives in the Review room; deleted lives in the bin. */
   albumCount: number;
+  /** How many things are still outstanding on an empty event (`empty=list`), so
+   *  the section can be named for what it actually holds before the first
+   *  photograph. Ignored the moment the album has one. */
+  launchCount?: number;
   videosAllowed: boolean;
   /** Server-resolved from the cookie (`app-vocabulary` r1,
    *  `gallery-controls-persistence`, overruled to a cookie so the first paint
@@ -80,7 +94,6 @@ export function EventGallery({
   const [bin, setBin] = useState<BinMedia[] | null>(null);
   const [binError, setBinError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
-  const { openSheet } = useEventShare();
   const { size: tileSize, setTileSize } = useTileSize(
     initialTileSize ?? DEFAULT_TILE_SIZE,
     setTileSizeAction,
@@ -158,10 +171,22 @@ export function EventGallery({
   return (
     <section aria-label="Album" className="space-y-2.5">
       <FeedSectionHeader
-        label={view === "album" ? "Album" : "Deleted"}
+        // ★ THE SECTION IS NAMED FOR WHAT IT HOLDS (`empty=list`, Will
+        // 2026-09-21). Before the first photograph this room is not an album
+        // with nothing in it, it is the launch list — so the header says so, and
+        // its count is what is still outstanding rather than a zero. The name
+        // and the count both go back the moment a photograph lands, which is the
+        // verdict's own sentence: "The album takes the room back".
+        label={
+          view === "deleted"
+            ? "Deleted"
+            : albumCount === 0
+              ? "Before the first photo"
+              : "Album"
+        }
         count={
           view === "album"
-            ? albumCount || undefined
+            ? albumCount || launchCount || undefined
             : (bin?.length ?? undefined)
         }
         action={
@@ -225,11 +250,21 @@ export function EventGallery({
 
       {/* --album-column is the knob masonry.tsx's grid reads (the seam its
           own comment describes); the tile-size cluster above sets it here, on
-          the ancestor wrapping the grid, never on the grid component itself. */}
+          the ancestor wrapping the grid, never on the grid component itself.
+
+          --arrival-glow-ms rides the same box for the same reason (`first=live`):
+          the number is ONE constant in lib/guest/arrival-glow.ts, the grid holds
+          an id for exactly that long, and the sheet that fades the light reads it
+          from here — so the attribute and the animation can never disagree. */}
       <div
         data-section-swap
         className={cn(view === "album" ? "" : "hidden")}
-        style={{ "--album-column": `${tileSize}px` } as React.CSSProperties}
+        style={
+          {
+            "--album-column": `${tileSize}px`,
+            "--arrival-glow-ms": `${ARRIVAL_GLOW_MS}ms`,
+          } as React.CSSProperties
+        }
       >
         {children}
       </div>
@@ -253,23 +288,9 @@ export function EventGallery({
         </div>
       )}
 
-      {/* The empty album's first door is the code, which is the one thing that
-          actually fills an album (his `event` note: "Get the QR and sharing
-          more infusion to the album UI visually"). */}
-      {view === "album" && albumCount === 0 && (
-        <div className="flex justify-center pb-4">
-          <Button
-            size="sm"
-            onClick={() => openSheet("share")}
-            {...trackAttrs("cta_click", {
-              cta: "share-sheet",
-              location: "hub-album-empty",
-            })}
-          >
-            <QrCode /> Share the code
-          </Button>
-        </div>
-      )}
+      {/* The empty album's Share door moved INTO the launch list, which is the
+          empty room's subject now (`empty=list`): two doors to sharing, one
+          under the other, was the shape his verdict replaced. */}
     </section>
   );
 }
@@ -286,4 +307,140 @@ function toBinMedia(item: BinItem): BinMedia {
     height: item.height,
     durationSeconds: item.durationSeconds,
   } as BinMedia;
+}
+
+/** The guest album's own hybrid cadence, and for the same reasons. */
+const FAST_POLL_MS = 12_000;
+const SLOW_POLL_MS = 60_000;
+
+/**
+ * THE ALBUM, LIVE (Will, `first=live`, 2026-09-21: "It lands while she is
+ * looking. The empty room gives way to the tile, the count moves, a Live pip.
+ * The guest's doorbell, pointed here").
+ *
+ * It lives in this module because it is the album's own channel: what it watches
+ * is what `EventGallery` renders, and the pip it draws is that album's state,
+ * shown up in the header where a host is already reading the counts. The page
+ * mounts it exactly once.
+ *
+ * ★ NOTHING HERE RUNS ON A TIMER EXCEPT THE CHEAP QUESTION. The hub page is
+ * eleven queries plus three presigns per item, so refreshing it on a clock would
+ * be the most expensive poll in the product and would spend most of its money
+ * re-rendering an album nobody added to. Exactly two signals spend a refresh:
+ * the Realtime doorbell rings, or `/api/events/<id>/live` answers with a
+ * fingerprint that is not the one we hold. That route is one select, no
+ * presigns, and a bodiless 304 when nothing moved.
+ *
+ * ★ THE TWO SIGNALS ARE NOT REDUNDANT, AND THAT IS WHY THE POLL SURVIVES BESIDE
+ * THE SOCKET. The doorbell's DB trigger fires on the APPROVED-VISIBLE set
+ * (`20260611220000_gallery_doorbell.sql`), so on an event held for approval a
+ * guest's upload lands in Review and rings nobody. The host fingerprint carries
+ * the pending count, so this poll is the only way the one person who can approve
+ * it ever hears that it arrived.
+ *
+ * ★ `router.refresh()`, NOT A FETCH INTO STATE. The album, the count, the launch
+ * list and the Review card are all server-rendered from one page, and their
+ * presigned URLs are per-request. Re-running the RSC is the only way to move all
+ * of them together and the only way the grid gets fresh signatures; React keeps
+ * this island's state and the tiles' identity across it, which is exactly what
+ * lets `HostMediaGrid` notice what is new by diffing its own items.
+ *
+ * ★ THE FIRST 200 ONLY SEEDS. The client mounts holding no validator, so the
+ * first answer is always a full one; refreshing on it would mean every load of
+ * the hub immediately re-rendered itself.
+ */
+export function EventLive({
+  eventId,
+  qrToken,
+}: {
+  eventId: string;
+  /** The doorbell's public channel key: `gallery:<qr_token>`. */
+  qrToken: string;
+}) {
+  const router = useRouter();
+  const etagRef = useRef<string | null>(null);
+
+  /** Ask the cheap question. Refresh the page only if the answer changed. */
+  const check = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/events/${eventId}/live`, {
+        // `cache: "no-store"` rather than a cache-busting query string: the
+        // conditional request IS the caching strategy here, and a rolling query
+        // param would defeat the 304 the whole design depends on.
+        cache: "no-store",
+        headers: etagRef.current
+          ? { "If-None-Match": etagRef.current }
+          : undefined,
+      });
+      if (res.status === 304 || !res.ok) return;
+      const body = (await res.json()) as { ok: boolean; etag?: string };
+      if (!body.ok || !body.etag) return;
+      const seeding = etagRef.current === null;
+      etagRef.current = body.etag;
+      if (!seeding) router.refresh();
+    } catch {
+      // Best-effort. A host watching an empty room must never be shown a
+      // network blip; the next tick asks again.
+    }
+  }, [eventId, router]);
+
+  // The doorbell: a contentless Realtime ping per visible-gallery change,
+  // coalesced inside the hook (immediate refresh, bursts collapse into one
+  // trailing refetch), so an Approve-all does not fire eleven page renders.
+  const { live } = useGalleryDoorbell({
+    qrToken,
+    enabled: true,
+    // The ping says the album moved. Take the new validator WITH the refresh, so
+    // the poll that follows does not spend a second render on the same change.
+    onRefresh: () => {
+      void check();
+      router.refresh();
+    },
+  });
+
+  // The fallback question, paused while the tab is hidden: a 60s safety net
+  // while the socket is up, the tighter 12s cadence when it is down. Asking on
+  // the way back from hidden is what catches the party that happened while the
+  // laptop was shut.
+  useEffect(() => {
+    const pollMs = live ? SLOW_POLL_MS : FAST_POLL_MS;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (!timer) timer = setInterval(() => void check(), pollMs);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        void check();
+        start();
+      }
+    };
+    void check();
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [check, live]);
+
+  // Silent until the channel is actually subscribed: a pip that claims "Live"
+  // while the socket is down is the one thing worse than no pip.
+  if (!live) return null;
+  return (
+    <span
+      className="flex items-center gap-1.5"
+      title="New photos appear here as they arrive"
+    >
+      <span className="size-1.5 rounded-full bg-success" aria-hidden />
+      Live
+    </span>
+  );
 }
