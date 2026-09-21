@@ -2,7 +2,8 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19).
+ * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; reshaped by the overtaken
+ * audit, 2026-09-21).
  *
  * Will (docs/design/rulings.md, 2026-09-19): the app and the guest pages are
  * unprotected, "absolutely everything is up for relitigation or reconcepting
@@ -20,11 +21,21 @@ import { defineExploration } from "@/components/lab/exploration";
  * this flow has never been designed for anything else: 375 is the default on
  * every decision and 1440 is the knob.
  *
+ * ★ THE OVERTAKEN AUDIT (Will, 2026-09-21: "For any open questions that have
+ * been 'overtaken', please evaluate whether they should be reshaped or
+ * removed... I'd rather you lean into reshape if you aren't confident in
+ * removal"). All eight of this board's questions were badged by a later
+ * ruling and none of them was removed. Each one now carries the ruling that
+ * reached it INSIDE its own context, five options a ruling forbids outright
+ * are dropped (`chips.three`, `stuck.forever`, `hollow.silence`, `cap.bite`,
+ * `object.link`), and the surface they are all drawn on is the one responsive
+ * sheet `guest-shape` r1 ruled every guest dialog onto: a side panel at a desk,
+ * a bottom sheet in a hand. Nothing is answered; the round is still round one.
+ *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
- * originals invariant (metadata is stripped at upload, never here). Whether the
- * guest's four dialogs become one sheet is `guest-shape`'s; the bulk bar's
- * grammar and its Download icon are `app-vocabulary`'s; tier gating of export
- * sizes is `app-pricing`'s; the viewer's per-item Save and the reel's own
+ * originals invariant (metadata is stripped at upload, never here). The bulk
+ * bar's grammar and its Download icon are `app-vocabulary`'s; tier gating of
+ * export sizes is `app-pricing`'s; the viewer's per-item Save and the reel's own
  * download are sibling lanes. Nothing on this board mints, signs, logs, reaches
  * the limiter or wakes the Worker.
  */
@@ -53,7 +64,7 @@ const ALBUM: Control = {
   default: "wedding",
 };
 
-/** Whose dialog it is: the host gets the hidden switch, the guest never does. */
+/** Whose sheet it is: the host gets the hidden switch, the guest never does. */
 const WHO: Control = {
   id: "who",
   label: "Who is asking",
@@ -69,12 +80,12 @@ const DRAFT = defineExploration({
   title: "Getting everything out",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: what Download hands a guest, what a teaser's third chip does, what the wait looks like, what a mint that never answers does, what a hollow zip says, what the item limit does, what the dialog offers as keeping the album, and what the phone does with the file.",
+      "The overtaken audit: all eight questions reshaped with the rulings that reached them folded in, five dead options dropped (the third chip, the endless spinner, the silent hollow zip, the unsaid cap, the link-first lead), and the surface redrawn as the one ruled sheet.",
   },
   context:
-    "One dialog serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. Every picture here is that dialog and the surfaces around it, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
+    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs are ruled onto, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
   bible: [1, 15, 21, 22],
   asks: [
     {
@@ -82,7 +93,7 @@ const DRAFT = defineExploration({
       label: "What a guest takes",
       question: "What should Download hand a guest at a party?",
       context:
-        "A guest's only download is a small Download all link above the tiles. It opens the host's own dialog and bundles everything they can see, however many hundreds that is, whoever took them.",
+        "A guest's only download is a small Download all link, and it bundles everything they can see. The product now knows their own photographs for good: the tiles carry a mark, and the View menu's Yours lens is that filter.",
       options: [
         {
           id: "album",
@@ -94,7 +105,7 @@ const DRAFT = defineExploration({
           id: "mine",
           label: "Their own shots first, the album under",
           means:
-            "The dialog leads with the ones they added, and the whole album sits beneath as the second bundle. The chips filter whichever is chosen.",
+            "The sheet leads with the set the Yours lens already defines, and the whole album sits beneath it as the second bundle.",
         },
         {
           id: "picked",
@@ -105,47 +116,41 @@ const DRAFT = defineExploration({
       ],
       recommended: "mine",
       because:
-        "A guest came back for the ones they took and the few they were in, and today those are buried in a few hundred files they have to sort at home. Their own set is already identified server-side, and a second bundle costs the dialog one row.",
+        "A guest came back for the ones they took and the few they were in, and today those are buried in a few hundred files. The set is marked on every tile and filtered by a lens that ships, so leading with it costs the sheet one row and no new machinery.",
       overrule:
-        "If a guest's own uploads cannot be recognised across a cleared browser, one album is the only bundle that is honest.",
+        "If the commonest tap is take the lot, a second bundle makes it one step longer and the album should lead.",
       lands:
-        "What a guest's Download all means, and how many bundles the shared dialog offers.",
+        "What a guest's Download all means, and how many bundles the shared sheet offers.",
       configs: [SCREEN, ALBUM],
     },
     {
       id: "chips",
       label: "A chip with nothing in it",
       question:
-        "What should the Videos chip do for a guest who can only ever have photographs?",
+        "Should a guest who can only ever have photographs be told there is video?",
       context:
-        "A visitor who has not signed in gets a teaser: the nine newest photographs, never video. The dialog still draws all three chips, and tapping Videos answers Nothing selected with the button dead.",
+        "A visitor who has not signed in gets a teaser: nine photographs, never video. A band with nothing real in it is ruled absent, and a locked control is ruled to say why and offer the way through rather than sit there dead.",
       options: [
-        {
-          id: "three",
-          label: "Three chips, as today",
-          means:
-            "Videos renders with a zero under it, takes the tap, and answers Nothing selected. Nothing says why.",
-        },
         {
           id: "two",
           label: "The Videos chip goes",
           means:
-            "Two chips, both of which can answer. A guest is never told there is video they cannot have.",
+            "Two chips, both of which can answer. A guest is never told there is video in this album that they cannot have.",
         },
         {
           id: "why",
           label: "The chip stays and says why",
           means:
-            "Dimmed and unpressable, with the reason under the row and the album's own See all beside it.",
+            "Dimmed and unpressable, with the reason under the row and the album's own See all beside it as the way through.",
         },
       ],
       recommended: "why",
       because:
-        "A control that takes a tap and answers with nothing is the defect; both other options close it. Keeping the chip keeps the fact that the album has more in it, and See all is already the guest album's word for that door.",
+        "The dead chip is closed by the ruling either way, so all this decides is whether the fact survives. Saying why and offering the door is the house answer for a control a person cannot use, and See all is already the guest album's word for that door.",
       overrule:
-        "If a dimmed chip reads as a tease on the host's own album, the chip simply goes and the row holds two.",
+        "If a dimmed chip reads as a tease on someone else's album, the row simply holds two.",
       lands:
-        "What the dialog draws for an access level that cannot fill it, on every guest album.",
+        "What the sheet draws for an access level that cannot fill it, on every guest album.",
       after: { ask: "means" },
       configs: [SCREEN],
     },
@@ -154,32 +159,32 @@ const DRAFT = defineExploration({
       label: "The wait",
       question: "What should the album show while the zip is being made?",
       context:
-        "The tap raises a toast, mints a token, posts it to the Worker and closes the dialog. The browser's own download UI is then the only thing that knows anything, and on a phone that is a line in a tray nobody opens.",
+        "The tap raises a toast, mints a token, posts it to the Worker and closes the sheet. Bytes in flight are ruled to be narrated in place and silently, and a run that did not finish is read on one surface at its end.",
       options: [
         {
           id: "toast",
           label: "A toast, then the browser, as today",
           means:
-            "Preparing your download, then Your download is starting, then nothing. The dialog is already gone.",
+            "Preparing your download, then Your download is starting, then nothing. The sheet is already gone.",
         },
         {
           id: "panel",
-          label: "The dialog holds until it lands",
+          label: "The sheet holds until it lands",
           means:
-            "The dialog becomes the progress: what is being zipped, a bar, and Saved when the bytes reach the device. One thing to watch.",
+            "The sheet becomes the progress: what is being zipped, a bar, and Saved when the bytes reach the device. One thing to watch.",
         },
         {
           id: "line",
           label: "A line under the header, and carry on",
           means:
-            "The dialog closes and a quiet line sits under the album's own header until the file lands, then says where it went.",
+            "The sheet closes and a quiet line sits under the album's own header until the file lands, then says where it went.",
         },
       ],
       recommended: "panel",
       because:
-        "The person is standing at the one surface that could tell them and it goes quiet at the exact moment they care. Holding the dialog gives the wait somewhere to live, and gives cancelling and failing somewhere to be said.",
+        "The person is standing at the one surface that could tell them and it goes quiet at the exact moment they care. The sheet is where the end of a run is ruled to be said, and holding it gives cancelling, failing and a hollow file one home.",
       overrule:
-        "If a zip can take minutes on a phone, holding a dialog over the album is a cage, and the line is the kinder answer.",
+        "If a zip can take minutes on a phone, a sheet over the album is a cage and the quiet line is the narration in place.",
       lands:
         "Whether the app watches its own download at all, and where a failure could ever be said.",
       configs: [SCREEN, ALBUM, WHO],
@@ -189,14 +194,8 @@ const DRAFT = defineExploration({
       label: "A tap with no answer",
       question: "What should happen when the mint never comes back?",
       context:
-        "The mint has no timeout and no cancel. A request that hangs leaves the toast spinning and the Download button disabled for as long as the page is open, with no way back and nothing said.",
+        "The mint has no timeout and no cancel, so a request that hangs leaves the spinner going and the button dead. A failure is ruled to put its ways out on real buttons, so a spinner nobody can end is gone.",
       options: [
-        {
-          id: "forever",
-          label: "It spins, as today",
-          means:
-            "The spinner never stops and the button never comes back. Reloading the page is the only way out, and nothing says so.",
-        },
         {
           id: "timeout",
           label: "It gives up and offers Try again",
@@ -214,7 +213,7 @@ const DRAFT = defineExploration({
       because:
         "A mint normally answers in well under a second, so a Cancel is a control almost nobody will ever want and every host will see. A timeout costs nothing when it works and is the only thing that helps when it does not.",
       overrule:
-        "If a mint on a party network really does take many seconds, a Cancel is the control, and the timeout becomes its backstop.",
+        "If a mint on a party network really does take many seconds, Cancel is the control and the timeout is its backstop.",
       lands:
         "Whether a hung download is recoverable, and what the button does while it waits.",
       after: { ask: "wait" },
@@ -225,14 +224,8 @@ const DRAFT = defineExploration({
       label: "A zip with nothing in it",
       question: "What should be said when the zip comes back hollow?",
       context:
-        "The Worker skips an object it cannot find, silently. An album emptied between the mint and the stream downloads as a valid zip with nothing in it, and every surface behaves exactly as if it had worked.",
+        "The Worker skips an object it cannot find, silently, so an album emptied between the mint and the stream downloads as a valid zip with nothing in it. He refuses a gap a person has to check for themselves.",
       options: [
-        {
-          id: "silence",
-          label: "Nothing is said, as today",
-          means:
-            "A valid, empty zip lands in the downloads folder. The host believes they have their album until they open it.",
-        },
         {
           id: "after",
           label: "It says what did not make it",
@@ -248,7 +241,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "after",
       because:
-        "The failure that matters is believing you have your album when you do not. Reporting the count covers the whole range, including the common one where six of 148 are missing, which refusing would either ignore or turn into losing the other 142.",
+        "Counting covers the whole range, including the common one where six of 148 are missing, which refusing would either ignore or turn into losing the other 142.",
       overrule:
         "If the Worker cannot tell the page anything without holding the stream open, refusing an empty zip is the one case worth the seam.",
       lands:
@@ -259,16 +252,10 @@ const DRAFT = defineExploration({
     {
       id: "cap",
       label: "The limit",
-      question: "What should the dialog do about the 2,000 item limit?",
+      question: "What should the sheet do about the 2,000 item limit?",
       context:
-        "An album over 2,000 items cannot be sent at once. Nothing says the number until it blocks you, and then the refusal asks the host to do the splitting by hand. Marketing states the figure; the dialog never has.",
+        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the sheet never has. A refusal that names no number is ruled out, and the act states its terms before the files fly.",
       options: [
-        {
-          id: "bite",
-          label: "Unsaid until it blocks, as today",
-          means:
-            "The size is replaced by a refusal that names no number and tells the host to pick photos or videos instead.",
-        },
         {
           id: "near",
           label: "Said in the foot when it is close",
@@ -284,7 +271,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "split",
       because:
-        "The refusal already tells the host exactly what to do, which means the product knows how to do it. Asking a person to hand-simulate a batch loop is the defect; the limit is a Worker ceiling, not a promise to the host.",
+        "The refusal already tells the host exactly what to do, which means the product knows how to do it. Asking a person to hand simulate a batch loop is the defect; the limit is a Worker ceiling, not a promise to the host.",
       overrule:
         "If parts arriving as several files is worse than one refusal, naming the number early is the honest middle.",
       lands:
@@ -293,37 +280,31 @@ const DRAFT = defineExploration({
     },
     {
       id: "object",
-      label: "What keeping it means",
-      question: "What should the dialog offer as keeping the album?",
+      label: "Whether it opens at all",
+      question: "Should Download open a sheet of bundles, or simply start?",
       context:
-        "Download album offers exactly one thing: a zip of the originals. An event has no end date and leaves only by being deleted, so the album's own address outlives any copy of it, and the dialog has never said so.",
+        "Download album offers a zip of the originals. The album's own address and its copy button are ruled onto the event page twice over, so this sheet no longer has to lead with the promise that it outlives a copy.",
       options: [
         {
           id: "zip",
-          label: "One zip, as today",
+          label: "The sheet of bundles, as today",
           means:
-            "Pick a bundle, get a file. Whether the album is still there in a year is never mentioned.",
-        },
-        {
-          id: "link",
-          label: "The link first, the zip under it",
-          means:
-            "The album's own address leads, with Copy link beside it, and the zip is the second way to keep it.",
+            "Pick a bundle, get a file. The chips, the size, the host's hidden switch and the wait all keep the one home they have.",
         },
         {
           id: "straight",
-          label: "No dialog: it just starts",
+          label: "No sheet: it just starts",
           means:
-            "Download takes everything immediately. Anyone who wants less uses select mode, where the chips now live.",
+            "Download takes everything immediately. Anyone who wants less uses select mode, where the chips would have to live.",
         },
       ],
-      recommended: "link",
+      recommended: "zip",
       because:
-        "This is the one moment someone is actively trying to preserve the album, and the strongest thing we have to say is that they do not have to. A guest on a phone with no room is better served by an address than by a file that will not fit.",
+        "Everything else this board decides lives on that surface: the bundles, the chip that says why, the number before the limit bites, and the only place a hollow file or a hung mint could ever be said. Starting straight away has to find all four another home.",
       overrule:
-        "If someone who tapped Download meets a link first and reads it as a dodge, the zip leads and the promise is a line beneath it.",
+        "If the commonest tap is take the lot, the sheet is a toll on it and select mode can hold the chips.",
       lands:
-        "What the download dialog is for, and whether the never-expires promise is ever said in the app.",
+        "Whether Download opens a surface at all, and where the chips and the wait live if it does not.",
       configs: [SCREEN, ALBUM, WHO],
     },
     {
@@ -331,7 +312,7 @@ const DRAFT = defineExploration({
       label: "Where the file lands",
       question: "What should a phone do with the file?",
       context:
-        "The download is a top-level form post that answers as an attachment. Nothing in the code, the help or any test says what iOS does with it, and no copy anywhere names where a guest should go looking.",
+        "The download is a top level form post that answers as an attachment, and no copy anywhere names where a guest should go looking. On the way IN he took our own sheet over the system's own chooser.",
       options: [
         {
           id: "today",
@@ -349,14 +330,14 @@ const DRAFT = defineExploration({
           id: "share",
           label: "Hand it to the phone's share sheet",
           means:
-            "The zip goes to the share sheet, so it can be saved, sent on, or dropped to a laptop. It needs the file in memory first.",
+            "The zip goes to the system sheet, so it can be saved, sent on, or dropped to a laptop. It needs the file in memory first.",
         },
       ],
       recommended: "files",
       because:
-        "Naming the destination costs one line and removes the whole where did it go moment. The share sheet needs the bytes client-side, which is a few hundred megabytes of a party phone's memory for the ordinary album, and it cannot stream.",
+        "Naming the destination costs one line, removes the whole where did it go moment, and keeps the words ours, which is the lean he took on the way in. The share sheet needs the bytes client side, which no party phone has for an ordinary album.",
       overrule:
-        "If a guest's real intent is to send the album on rather than store it, only the share sheet serves that, and the small albums it suits are the common case.",
+        "If a guest's real intent is to send the album on rather than store it, only the system sheet serves that.",
       lands:
         "What the download says on a phone, and whether the album ever tells a guest where their copy went.",
       after: { ask: "object" },
