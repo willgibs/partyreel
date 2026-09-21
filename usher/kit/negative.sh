@@ -10,7 +10,7 @@ cd "$REPO"
 S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "$T/integrate.out" 2>&1
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
 # 1b. hand-merge.sh refuses a lane that does not exist and a head that is not the sha named, before touching the tree
-zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ -z "$(git -C "$REPO" status --short)" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
+BEFORE=$(git -C "$REPO" status --short); zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ "$(git -C "$REPO" status --short)" = "$BEFORE" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
 # 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
 BEFORE="$(git status --short)"; zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. status-row.py refuses to touch a doc that already holds two rows for one id (on a copy)
