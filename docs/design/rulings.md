@@ -8,6 +8,21 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-21 · the identity reshape: Require verified emails
+
+Will, after the third batch's fixes were verified on the alias (13:40 EDT), one verdict on the desk's head board and a note that reshapes the foundation. His framing, verbatim: "Nice work. This is only 1 new answer, but it helps reshape our login/verification/etc."
+
+```
+# build 5e210ef
+review guest-verify r2: address=none "Idea: instead of a host option to allow anonymous uploads, we remove the concept of 'anonymous' entirely. We shift the full concept to 'require verified emails', where depending on the host's toggle, a guest can either upload with an unverified display name, or must actually verify their email with magic link prior to access/upload. This feels like a much cleaner foundation and splits into a clear 'Get a display name, but no proof' or 'Get display name and confirm email for better safety' with a flow for us to capture non-user guests after their uploads to save the event/uploads to a profile, follow host/other guests, etc."
+```
+
+His review request at the plan, verbatim: "Since this is a big round that impacts the foundation of our app, please review your plan once more with fresh context to ensure no potential gaps or improvements exist before we begin." (The plan was reviewed twice with fresh context, a schema and production pass and a product and program pass, and approved at ~14:45 EDT.)
+
+His four answers at approval (plan mode; the option labels and his sentence verbatim): the capture flow after uploads, "You can wire it now as you recommended, but I'd like to get this in the lab for refinement."; a name with no verified email on the album's guest list, "Listed, with the mark"; a cap for name-only guests, "No cap now"; the board's fate, "Retire it".
+
+**Became:** anonymity leaves the product on his shape. The host's switch becomes Require verified emails (on by default): on, a guest confirms an email before the full album and any upload, as today with truer words; off, a guest types a display name at the door and uploads under it with a small unverified mark, and the capture flow after their first upload (keep the photos and the event on a profile, then follow the host and the guests) is wired as the working version, with a board cut on his word for its refinement once it has shipped. Every ask of `guest-verify` is ruled: `address=none` (the door asks a name, never an unproven email), `gate-switch` as a fourth shape on his own words (one row, renamed, gating view and add together), `collision=offer` (the capture flow), `unproven=shown-marked` on the credit and the guest list with the tile plain, `allowance=open` (no cap, the host's confirmed choice); the board retires at the wiring. Round one's held `gate=after` is SUPERSEDED (verification is before access in the one mode and absent in the other, so nothing waits on a mail); `badge=mark` and `host-lens=badge` carry onto the unverified name, the mark carrying its own way out ("Confirm your email"), on his badge note; `expiry=host` is moot. Six lanes in three waves, the schema first (an expand migration production survives). His to overrule: the teaser's nine tiles before the gate, the code-led mail with the link in it, the tile unmarked, "A guest" for the rows from before the change, two guests with one typed name as two chips. The project's configured Auth rate limits (emails 100 an hour project-wide) are a launch fact for verified-emails events: raised in the dashboard, not code.
+
 ## 2026-09-21 · the desk by day: the heartbeat held, the alias at the third batch
 
 Will, shortly before 12:38 EDT, after the alias moved to `5e210ef8` and its red-team was reported (two defects and one polish item cut as `third-batch-fixes`), verbatim:

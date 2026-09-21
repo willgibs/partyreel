@@ -51,6 +51,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-21",
+      "answers": [
+        {
+          "ask": "address",
+          "choice": "none",
+          "note": "Idea: instead of a host option to allow anonymous uploads, we remove the concept of 'anonymous' entirely. We shift the full concept to 'require verified emails', where depending on the host's toggle, a guest can either upload with an unverified display name, or must actually verify their email with magic link prior to access/upload. This feels like a much cleaner foundation and splits into a clear 'Get a display name, but no proof' or 'Get display name and confirm email for better safety' with a flow for us to capture non-user guests after their uploads to save the event/uploads to a profile, follow host/other guests, etc.",
+          "by": "Will",
+          "at": "2026-09-21T18:46:50Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "gate-switch is answered on his address note as a fourth shape: one row, Require verified emails, gating view and add together, a name step on the off side; at approval (plan mode, 2026-09-21) he answered the capture flow wired now with a board for its refinement, the guest list listing unverified names with the mark, no cap for name-only guests, and the board retired at the wiring; verbatim in rulings.md, the identity reshape.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-21T18:47:57Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

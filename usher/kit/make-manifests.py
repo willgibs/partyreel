@@ -285,6 +285,58 @@ VERDICTS6=section(r"The verdict map \(every answer, what it becomes\)\n")
 SMALL6=section(r"The small batch, synthesized")
 SEAM6=section(r"The seam, landed by the Orchestrator")
 
+# The identity reshape (2026-09-21): one verdict and a note reshape the foundation; three waves, six lanes.
+RESHAPE={"verified-email-migration","verified-email-server","verified-email-guest","verified-email-host-copy","verified-email-lab","guest-capture"}
+_R="Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under \"the identity reshape\", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. "
+RESHAPE_TEXT={
+"verified-email-migration":"**Goal.** WAVE 0 of the identity reshape, alone: "+_R+"This lane writes the schema and nothing else (the migration, the rolled-back contract check, the tests that parse migration text); the Orchestrator applies it before any other lane is cut, so every function body is carried verbatim from its latest definition and changed only where the brief says. The brief below is the whole reading.",
+"verified-email-server":"**Goal.** Wave 1 of the identity reshape: "+_R+"The schema is applied and the types regenerated on the tree you were cut from: the flag is `events.require_verified_email`, the name `guests.display_name`, the proof `guests.verified_at`. This lane is the route, the identity and the queries. The brief below is the whole reading.",
+"verified-email-guest":"**Goal.** Wave 1 of the identity reshape: "+_R+"This lane is the guest's door, the credit and the capture flow, on the applied schema. The brief below is the whole reading.",
+"verified-email-host-copy":"**Goal.** Wave 1 of the identity reshape: "+_R+"This lane is the host's switch, the host's surfaces and every sentence in the product, the marketing, the help and the legal pages that named the old concept. The brief below is the whole reading.",
+"verified-email-lab":"**Goal.** Wave 1 of the identity reshape: "+_R+"This lane retires `guest-verify` (every ask ruled on his words) and runs the desk pass across the fourteen standing boards. The brief below is the whole reading.",
+"guest-capture":"**Goal.** A NEW BOARD on Will's word at approval (2026-09-21, verbatim: \"You can wire it now as you recommended, but I'd like to get this in the lab for refinement.\"): the capture flow shipped by `verified-email-guest` (the offer after a name-only guest's first upload, the follow moment, the profile the guest lands on) refined as a lab catalog for his next sitting, drawn on the SHIPPED components; lab-only, no production byte. The brief below is the whole reading.",
+}
+def goal_text(track):
+    if track in RESHAPE: return RESHAPE_TEXT[track]
+    if track in EXPLORE: return EXPLORE_TEXT
+    if track in FIXES: return FIX_TEXT
+    tail=(" His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the\nsection "+('"the sixth batch"' if track in SIXTH else '"the fifth batch"')+"); the Orchestrator's reading of every verdict is below under \"The verdict map\", and this lane's\nbrief follows it. Read the brief end to end before the first edit; where it says \"his to overrule\", build the recommended\nanswer and list it in the Handoff.")
+    if track in QUEUE: return QUEUE_TEXT+tail
+    return "**Goal.** "+("Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first." if track in SIXTH else "Will's fifth batch (2026-09-19, build `69a9a17`) answered the four boards at the head of the desk; this lane is one of ten cut from it.")+tail
+def tree_of(track):
+    if track in RESHAPE or track in FIXES: return "`"+CUT+"`"
+    return "`806695d1`" if track in SIXTH else "`69a9a177`"
+def map_text(track):
+    if track in RESHAPE: return "(no verdict map: one verdict and a note, verbatim in docs/design/rulings.md under \"the identity reshape\", and his four answers at approval; the brief above is the Orchestrator's whole reading)"
+    if track in EXPLORE: return "(no verdict map: an exploration asks; the rules of the exploration shape are in docs/PROGRAM.md and the board precedents in src/app/(dev)/design/sandbox/)"
+    if track in QUEUE: return VERDICTS6.split(chr(10),1)[1].strip()
+    return (VERDICTS6 if track in SIXTH else VERDICTS).split(chr(10),1)[1].strip()+(chr(10)+chr(10)+SEAM6+chr(10)+chr(10)+SMALL6 if track in SIXTH else "")
+OWNS.update({
+"verified-email-migration":["supabase/migrations/","src/lib/db/migration-guards.test.ts","src/lib/social/public-profile-visibility.test.ts","src/lib/constants/tiers.test.ts","docs/systems/database-security.md"],
+"verified-email-server":["src/app/api/guests/","src/app/api/r2/","src/lib/db/queries/","src/lib/db/mutations/","src/lib/validation/","src/lib/security/","src/lib/forensics/","src/app/admin/forensics/","src/lib/social/cards.ts","src/lib/media/uploader-identity.ts","src/lib/media/uploader-identity.test.ts","src/lib/events/gallery-access.ts","src/lib/events/gallery-access.test.ts","src/lib/events/gallery-access.server.ts","src/lib/events/gallery-fingerprint.ts","src/lib/events/gallery-fingerprint.test.ts","src/lib/r2/grid-items.ts","src/lib/r2/grid-items.email-safety.test.ts","src/lib/event/gallery-items.ts","src/lib/reel/build-reel-props.test.ts","src/components/app/media-grid.tsx","scripts/seed-demo-event.mjs"],
+"verified-email-guest":["src/components/guest/","src/lib/guest/","src/app/(guest)/","src/components/shared/media-lightbox.tsx","src/components/shared/media-lightbox.test.tsx","src/components/shared/anonymous-info.tsx","src/components/shared/unverified-mark.tsx","src/components/social/guest-list.tsx","src/components/social/guest-list.test.tsx","src/components/auth/account-door.tsx","src/components/auth/account-door.test.tsx","docs/systems/guest-flow.md","docs/systems/auth-accounts.md"],
+"verified-email-host-copy":["src/components/app/event-settings/","src/components/app/event-settings-form.tsx","src/components/app/checkout-button.tsx","src/app/(app)/dashboard/[eventId]/guests/","src/lib/events/guest-experience-summary.ts","src/lib/events/guest-experience-summary.test.ts","src/lib/reel/quick-add.ts","src/lib/reel/quick-add.test.ts","src/lib/reel/engine/assets.ts","src/components/ui/confirm-switch.tsx","src/components/ui/confirm-switch.test.tsx","src/components/marketing/sections/","src/components/marketing/faq-data.ts","src/components/marketing/mock-parity.test.ts","src/app/(marketing)/(cinema)/features/guests/page.tsx","src/lib/constants/marketing-voice.ts","src/lib/constants/legal-terms.tsx","src/lib/constants/legal-privacy.tsx","src/lib/constants/legal.ts","src/lib/content/llms.ts","src/lib/content/help-redirects.ts","content/help/","content/blog/","docs/PRD.md","docs/PRICING.md","docs/systems/host-app.md","docs/systems/profiles-social.md"],
+"verified-email-lab":["src/app/(dev)/design/sandbox/guest-verify/","src/app/(dev)/design/sandbox/overtaken.ts","src/app/(dev)/design/sandbox/overtaken.test.ts"],
+"guest-capture":["src/app/(dev)/design/sandbox/guest-capture/"],
+})
+READS.update({
+"verified-email-migration":["src/lib/validation/profile.ts","src/lib/db/mutations/guest.ts","src/lib/db/mutations/events.ts","src/app/api/guests/route.ts","src/lib/guest/claim-uploads.ts","src/lib/forensics/capture.ts","docs/systems/guest-flow.md","docs/design/rulings.md"],
+"verified-email-server":["src/lib/guest/claim-uploads.ts","src/lib/guest/session-tokens.ts","src/components/guest/enter-event-prompt.tsx","src/components/auth/email-sign-in.tsx","src/components/app/event-settings/uploads-section.tsx","src/lib/constants/tiers.ts","supabase/migrations/","docs/systems/database-security.md","docs/systems/guest-flow.md","docs/design/rulings.md"],
+"verified-email-guest":["src/lib/validation/profile.ts","src/lib/validation/upload.ts","src/lib/events/gallery-access.ts","src/lib/media/uploader-identity.ts","src/lib/db/queries/guest-events.ts","src/lib/db/queries/social.ts","src/components/app/media-grid.tsx","src/components/app/user-menu.tsx","src/components/shared/masonry.tsx","src/components/shared/set-name-step.tsx","src/components/social/follow-button.tsx","src/components/ui/","src/lib/constants/marketing-voice.ts","docs/design/rulings.md"],
+"verified-email-host-copy":["src/lib/media/uploader-identity.ts","src/lib/validation/event.ts","src/lib/db/queries/social.ts","src/components/shared/media-lightbox.tsx","src/components/social/guest-list.tsx","src/lib/content/blog-redirects.ts","src/lib/content-policy.test.ts","src/lib/no-em-dash-policy.test.ts","next.config.ts","docs/design/rulings.md"],
+"verified-email-lab":["docs/reviews/guest-verify.json","docs/ROADMAP.md","docs/design/rulings.md","src/components/lab/exploration.ts","src/components/lab/board-spec.ts","src/app/(dev)/design/sandbox/registry.ts","src/app/(dev)/design/touchpoints.ts","docs/tracks/orchestrator.md"],
+"guest-capture":["src/components/guest/save-account-prompt.tsx","src/components/guest/follow-moment-card.tsx","src/components/guest/claim-handle-prompt.tsx","src/components/guest/guest-header.tsx","src/components/shared/unverified-mark.tsx","src/components/social/follow-button.tsx","src/components/social/guest-list.tsx","src/components/auth/account-door.tsx","src/app/(guest)/u/[slug]/","src/components/lab/","docs/design/rulings.md","docs/reviews/README.md"],
+})
+BOARD.update({
+"verified-email-migration":"none            # the identity reshape, wave 0: the schema alone; no board",
+"verified-email-server":"none            # the identity reshape, wave 1: the route, the identity, the queries; no board",
+"verified-email-guest":"none            # the identity reshape, wave 1: the door, the credit, the capture flow; no board",
+"verified-email-host-copy":"none            # the identity reshape, wave 1: the switch and every sentence; no board",
+"verified-email-lab":"guest-verify    # retires at this lane's merge (its five asks ruled on his words); the desk pass rides in the same seat",
+"guest-capture":"guest-capture   # a new board on his word: registers at the head of DESK_ORDER; the Orchestrator moves it after media-viewer at the merge",
+})
+LANE_SECTION.update({"verified-email-migration":r"Lane 56: `verified-email-migration`","verified-email-server":r"Lane 57: `verified-email-server`","verified-email-guest":r"Lane 58: `verified-email-guest`","verified-email-host-copy":r"Lane 59: `verified-email-host-copy`","verified-email-lab":r"Lane 60: `verified-email-lab`","guest-capture":r"Lane 61: `guest-capture`"})
+
 CONTEXT=section(r"Context")
 for track in (sys.argv[2].split(",") if len(sys.argv)>2 else ["voice-wiring","ladder-wiring","home-wiring","hub-wiring","glass-material","overtaken"]):
     body=section(LANE_SECTION[track])
@@ -303,18 +355,15 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 # lp/{track}
 
-{EXPLORE_TEXT if track in EXPLORE else FIX_TEXT if track in FIXES else QUEUE_TEXT if track in QUEUE else "**Goal.** " + ("Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first." if track in SIXTH else "Will's fifth batch (2026-09-19, build `69a9a17`) answered the four boards at the head of the desk; this lane is one of ten cut from it.")} His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the
-section {'"the sixth batch"' if track in SIXTH else '"the fifth batch"'}); the Orchestrator's reading of every verdict is below under "The verdict map", and this lane's
-brief follows it. Read the brief end to end before the first edit; where it says "his to overrule", build the recommended
-answer and list it in the Handoff.
+{goal_text(track)}
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at {'`806695d1`' if track in SIXTH else '`69a9a177`'})
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at {tree_of(track)})
 
 {goal}
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
-{'(no verdict map: an exploration asks; the rules of the exploration shape are in docs/PROGRAM.md and the board precedents in src/app/(dev)/design/sandbox/)' if track in EXPLORE else VERDICTS6.split(chr(10),1)[1].strip() if track in QUEUE else (VERDICTS6 if track in SIXTH else VERDICTS).split(chr(10),1)[1].strip()}{chr(10)+chr(10)+SEAM6+chr(10)+chr(10)+SMALL6 if track in SIXTH else ''}
+{map_text(track)}
 
 ## The ownership rules every lane follows this round
 
@@ -328,7 +377,7 @@ line. Never edit a record doc (`docs/CHANGELOG.md`, `STATUS.md`, `ROADMAP.md`, `
 Stage explicitly; never `--no-verify` or force-push; the `Co-Authored-By` trailer on every commit.
 
 **Verify on.** For a production lane: the gate on the synced tree (`pnpm design:rules`, the specimen collector
-`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`, `pnpm typecheck`, `pnpm lint` with the 8 known warnings, `pnpm test`,
+`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`, `pnpm typecheck`, `pnpm lint` (10 known warnings on 2026-09-21; the number moves, the exit code is the gate, a warning in a file you touched is yours), `pnpm test`,
 `pnpm build`), each on its own exit code; `pnpm lab:smoke --base http://localhost:<your port>` whole; the surfaces the Handoff is
 judged on, local at 1440 and 375 (the Orchestrator red-teams them on the alias). For a lab lane: the board at 1440 and 375 with
 reduced motion honoured, `pnpm lab:smoke` whole, `pnpm lab:demo --board <board> --base http://localhost:<your port>` pressing
