@@ -2397,7 +2397,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 56
+          "line": 64
         },
         {
           "title": "walks the three live beats in the how-it-works order, then the close",
@@ -2405,7 +2405,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 65
+          "line": 73
         },
         {
           "title": "back returns to the previous beat and never navigates",
@@ -2413,7 +2413,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 90
+          "line": 98
         },
         {
           "title": "has no back door on the first beat or the closing screen",
@@ -2421,7 +2421,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 100
+          "line": 108
         },
         {
           "title": "marks welcomed before navigating to /dashboard on skip",
@@ -2429,7 +2429,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 110
+          "line": 118
         },
         {
           "title": "marks welcomed before navigating to the wizard on the primary close door",
@@ -2437,7 +2437,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 117
+          "line": 125
         },
         {
           "title": "marks welcomed before navigating to /dashboard on the skippable close door",
@@ -2445,7 +2445,7 @@
             "WelcomeFlow"
           ],
           "file": "src/components/app/welcome-flow.test.tsx",
-          "line": 129
+          "line": 137
         }
       ]
     },
