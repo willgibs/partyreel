@@ -1,6 +1,6 @@
 ---
 track: controls-home-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c75734b9"          # the launch-prep SHA the branch was cut from
 board: app-vocabulary  # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -217,26 +217,103 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md`, "## The event page", the "**The album**" bullet: rewritten in place for the View
+  menu (`app-vocabulary` r2, `controls-home=view-menu`) in place of the r1 tile-size cluster; names `ViewMenu`,
+  its three groups, the honesty reason Sort ships disabled, and that `TileSizeControl` is retired from
+  production and kept for the lab. No heading touched.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Launch checkpoint / later polish: Sort (newest/oldest) ships disabled in the View menu because
+  `event-gallery.tsx` holds its album as an opaque RSC-presigned slot, never the approved list — wiring a
+  real sort needs the gallery to hold (or the server to accept) an order, which is bigger than this lane;
+  same root cause blocks a Photos/Videos option inside Filter (`app-vocabulary` r2's own `lands` line: "the
+  shape a future view control... joins", already built for it — a future lane only adds a group).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `89911d49`, pushed; synced with launch-prep via merge commit `fb80e5b0`, pushed (`origin/
+  launch-prep` moved by two `[skip ci]` orchestrator/journal commits, `usher/journal/2026-09-20.md` and
+  `usher/kit/spawn-prompt.txt`, neither touching this lane's `owns` or `reads`; merged clean, no conflicts).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree (`fb80e5b0`), each its own exit code: `pnpm design:rules` ok (825 contracts on 116
+  components, 26 standing boards); the specimen collector ok (140 specimens on 101 entries, unchanged by this
+  lane — `ViewMenu` is `unspecimened`, said below); `pnpm typecheck` ok; `pnpm lint` ok (8 known warnings, 0
+  errors, none in this lane's files); `pnpm test` ok (291 files, 3061 passed, 1 pre-existing skip); `pnpm build`
+  ok (255/255 static pages, exit 0); `pnpm lab:smoke --base http://localhost:3132` ok (438 checks, 0 failing;
+  the one non-200 line, `/design/boom` at 500, is that tool's own deliberate crash). No `lab:demo` run: this is
+  a production lane whose board retires whole (no round two left standing to demo) — the "Verify on" split in
+  this lane's own brief calls that step for a lab lane, not this shape.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` (17 files) = this manifest (added next commit) +
+  owned paths (`src/components/app/event-feed/event-gallery.tsx`; the NEW `src/components/shared/view-menu.tsx`
+  + `view-menu.test.tsx`; `src/lib/shared/tile-size-cookie.ts`; `src/app/(dev)/design/sandbox/app-vocabulary/`,
+  deleted whole) + exceptions:
+  - `docs/systems/host-app.md` — named in this lane's own brief ("Owns: ... `docs/systems/host-app.md`'s
+    gallery lines"), not in the frontmatter `owns` list; listed under System-doc edits above.
+  - `src/app/(dev)/design/touchpoints.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+    `src/app/(dev)/design/(shell)/lab/boards.ts` — the registration/retirement exception, this board's own
+    lines only: `app-vocabulary` dropped from `SandboxId` and `DESK_ORDER` (kept in `RulingId` forever, its
+    `RULINGS` row rewritten as shipped, its `board` field removed); the board's directory removal is
+    `registry.ts`'s own documented rule ("its directory goes with it").
+  - `src/app/(dev)/design/rules/component-notes.ts` — named in this lane's own brief ("`rules/component-
+    notes.ts`'s `for` line for `ViewMenu`"); also refreshed `tile-size-control.tsx`'s existing entry (a file
+    this lane owns) to say it is retired from production.
+  - `src/app/(dev)/design/rules/rules.generated.json`, `docs/design/library.md` — mechanical output of
+    `pnpm design:rules` after the two edits above; never hand-edited.
+  - `src/app/(dev)/design/sandbox/gallery-fixtures.ts` (NEW) and
+    `src/app/(dev)/design/sandbox/host-curation/fixtures.ts` (one import line + one clarifying sentence in its
+    own docblock) — deleting `app-vocabulary/`'s directory (this board's own retirement) broke
+    `host-curation`'s fixtures, which reused its four media pools verbatim; lifted the pools into a new,
+    board-less file directly under `sandbox/` (never registered: `registry.test.ts`'s own scan only requires
+    registration for a directory holding a `spec.ts`, and this one holds none) and repointed host-curation's
+    one import at it, since leaving its import broken would have failed `pnpm typecheck` on this lane's own
+    change. No other file references the retired board's `board.tsx` / `controls-home.tsx` / `scene.tsx`
+    (checked: `grep -rn "app-vocabulary/(fixtures|scene|board|controls-home)"` across `src`, one hit, fixed).
+- The items, one line each: `controls-home: view-menu` wired as `src/components/shared/view-menu.tsx`, one
+  shared radio-group dropdown (`ui/dropdown-menu.tsx`'s `DropdownMenuGroup` + `DropdownMenuRadioGroup`,
+  `events-section.tsx`'s own precedent) behind a single "View" button holding Tile size (three steps, real),
+  Sort (two orders, reserved/disabled) and Filter (All / Deleted, real); Download and Select stay the row's
+  other two verbs, Add photos stays the hub's own door. Lands in the Library as `ViewMenu`
+  (`src/components/shared/view-menu.tsx`, `for` line in `component-notes.ts`); `TileSizeControl` is superseded
+  in production and kept, unmounted, for its three lab importers.
+- Calls his to overrule (from this lane's own brief, built as the brief's recommendation; none reached a
+  genuinely new one-way-door decision, so nothing is in Questions):
+  - Sort's two orders: labelled "Newest first" / "Oldest first", but shipped fully DISABLED (every option,
+    not just the wording) with a "Coming soon" hint, because `event-gallery.tsx` receives its album as an
+    opaque, server-rendered `children` slot — never the approved media array — so there is no client-held
+    list to honestly reorder. This is the brief's own contingency ("it stays a reserved entry INSIDE the
+    menu... never a sort of one page"), executed once confirmed true; his to overrule if he would rather see
+    Sort disappear entirely than sit inert, or wants the gallery re-architected to hold its list client-side.
+  - The Deleted lens inside Filter: built as one of Filter's two options ("All", "Deleted"), replacing the
+    standalone toggle; the bin still loads only on demand and caches, unchanged.
+  - The trigger's word "View": used literally, with a `SlidersHorizontal` icon (the lab exploration's own
+    choice).
+  - One beyond the three named: Filter offers only All / Deleted, never a Photos/Videos split, for the
+    identical client-list reason Sort is disabled — the ruling's own words made that split conditional ("if
+    the list carries the kind"), and it does not, honestly, on this component today. Recorded under Deferred.
+- The help articles this lane makes stale: `content/help/your-event-page-explained.mdx` line 33 ("a control
+  for tile size, Select for batch actions, and a Deleted toggle...") still describes the r1 row; a `help-sync`
+  lane rewrites it to name the View menu.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the hub gallery's View menu itself, signed in (`willg97`, an event with photographs) — this
+  lane could not reach it locally or on the alias (sign-in is an allow-list-gated flow no agent can drive
+  locally, and `docs/STATUS.md`'s own closing-sitting row already names "the hub gallery's View menu" among
+  the signed-in surfaces no lane can reach, Will's on the alias); the automated cover is the new
+  `view-menu.test.tsx` contract (opens on pointerdown, three groups by accessible name, a pick calls the right
+  group's own handler, a disabled group never fires and says "Coming soon", the menu closes on a real choice)
+  plus `event-hub.test.tsx` unchanged and green. Also worth his eye: whether "Coming soon" is the right word
+  for Sort, and whether an inert-but-visible Sort row is preferable to no row at all.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `app-vocabulary` retired: its round two
+(`controls-home=view-menu`, "Tile size, Sort and Filter move behind one button; Download and Select stay the
+row's only two verbs") wired as one shared `ViewMenu` (`src/components/shared/view-menu.tsx`, arbitrary radio
+`groups`, so the guest album can mount the same object later) replacing the r1 tile-size cluster on the host
+gallery's header; the Deleted lens folded into Filter, Sort shipped honestly disabled (the gallery holds no
+client-side list to reorder), `TileSizeControl` retired from production and kept for the lab. Retiring the
+board's sandbox directory broke `host-curation`'s reused fixtures; lifted them into a new board-less
+`sandbox/gallery-fixtures.ts`. One help article now stale (`your-event-page-explained.mdx`). Gate green on the
+synced tree; `lab:smoke` whole; no `lab:demo` (the board retires whole). Signed-in verification of the real
+hub gallery is Will's on the alias.
