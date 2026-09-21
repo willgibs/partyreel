@@ -1,6 +1,6 @@
 ---
 track: reshape-studio-export
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5143c87e"          # the launch-prep SHA the branch was cut from
 board: reel-studio     # and export-flow: both reshaped in place, unanswered, at their round; no retirement, no new board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -108,30 +108,45 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the brief carried a line per question and every call it left open was taken and is listed under "his to overrule".
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: lab work on two board folders, no production byte and no `docs/systems/` fact inside the lane.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the shipped export dialog is still a centred `Dialog` (`src/components/app/export/export-dialog.tsx`); `guest-shape` r1 ruled the guest's dialogs onto the one responsive Sheet and the board is drawn on it, so the swap is a wiring line whoever wires `export-flow`.
+- Now: `overtaken.test.ts` still asserts `overtakenFor("media-viewer","opening")` and two literal glossed keys (`media-viewer.opening`, `contact-page.topic`); the last audit lane to land inherits them, and once the map is empty the file's remaining live-entry assertions want one pass to read off the grammar rather than the entries.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- BOARD commit `265ca025` (the two boards, the sixteen badges, the test's floor); the head is the merge above it. Synced: `origin/launch-prep` had moved nine commits (to `18b63b31`, the identity reshape's wave 0 and wave 1 cut), merged clean, no file in common.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` 0 (215 components, 1650 contracts, 18 policies; `rules.generated.json` byte-identical, see the note below) · specimen collector 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (10 known warnings, none in a file this lane touched) · `pnpm test` 0 (318 files, 3,309 passed, 1 skipped) · `pnpm build` 0 (255 static pages) · `pnpm lab:smoke --base http://localhost:3137` 0 (418 checks, 0 failing; reel-studio 717 words, export-flow 703, budget 1200) · `pnpm lab:demo --board reel-studio` 0 (8 steps, 0 failing, every step draws its options) · `--board export-flow` 0 (the same).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `export-flow/{board.tsx,dialog.tsx,export-flow.css,spec.ts}`, `reel-studio/{board.tsx,fixtures.ts,spec.ts,surfaces.tsx}` (both under `owns`), plus two exceptions: `sandbox/overtaken.ts` (the sixteen badge entries deleted, one line below each, nothing else in the file touched: the type, the grammar, the functions and the other 53 entries are byte-identical) and `sandbox/overtaken.test.ts` (ONE assertion: `glossed.length >= 40` became `glossed.length * 2 >= KEYS.length`, because deleting fifteen glossed entries takes the count to 35 and the test is named in this lane's brief as a gate. A proportion survives every audit lane and the empty map, so a lane that syncs past this one needs no further edit on that line; the comment was written to the SAME line count so `rules.generated.json`, which indexes the file by line, did not move).
+- The sixteen entries deleted from `overtaken.ts`, and why each one went: every one was RESHAPED rather than removed, so the badge would now point at a question that has already absorbed it. `reel-studio.door` (concedes; the ask it named no longer exists in that form). `reel-studio.room` (glass r2 is in the room's context and its float option). `reel-studio.styles` (guest-shape r2 + pricing r2 + first-event r1, all three in the context and the recommendation). `reel-studio.moments` (guest-shape r1 in the context and the sheet option). `reel-studio.blocked` (app-vocabulary r1; the question now asks the touch half only). `reel-studio.sharing` (app-shape r1; the sheet is in the context and the confirm option). `reel-studio.wait` (app-pricing r1 + guest-upload r1; both in the context, and guest-upload r1 IS the new option). `reel-studio.guests` (demo-event r2 + guest-upload r1, both in the context and the because). `export-flow.means` (guest-shape r1/r2 + first-event r1; the Yours lens is now the option's own mechanism). `export-flow.chips` (app-shape r2 + app-pricing r1 + guest-upload r1; the first dropped the option). `export-flow.wait` (guest-shape r1 + guest-upload r1; the sheet is the surface now). `export-flow.stuck` (app-door r1 + guest-upload r1; the first dropped `forever`). `export-flow.hollow` (guest-upload r1; it dropped `silence`). `export-flow.cap` (app-pricing r1 + guest-upload r1; the first dropped `bite`). `export-flow.phone` (guest-upload r1; the lean is named in the context and the because). `export-flow.object` (concedes; app-shape r1 dropped `link` and the question was re-aimed).
+- The items, one line each. **reel-studio** · `door`: REDRAWN, because `event=hub` deleted the status row its three options sat in; it now asks what the hub's Reel card shows, a labelled card as shipped against the reel's own frame with Edit reel at its corner (round one's poster idea, moved onto the card), and the whole event-page surface is rebuilt as the hub (the held 112 px code at the left of the title, the link row, the cards row copied class for class from `event-cards-row.tsx`, the album beneath). · `room`: glass r2 folded in, so the float option floats on the ONE ruled material and the question is the room's shape alone. · `styles`: the ruled side panel means the wall covers nothing at a desk and a gallery of designs is owed twice over, so the recommendation moves from the rail to the wall and the rail's case is a hand. · `moments`: the same posture, so sheet and pool converge at a desk and the question is a long act in a hand; `tray` gains the hub's own full-size album. · `blocked`: the mouse half is ruled, so it asks the touch half only and `title` becomes "the ruled tooltip, and nothing else". · `sharing`: drawn on the ruled share sheet's terms, the Undo riding the toast's own action slot. · `wait`: NEW option `stack`, the reel's own frame stacking and counting down the moments still to draw, quoted from `UploadStackTile` (two ghost edges at 3 and 6 px, everything it says in one strip, the ONE material at the measured 0.34 tint that puts white at 4.78:1) and recommended over the bar. · `guests`: demo r2 and the album's waiting tile folded into the case for the still. **export-flow** · every question drawn on the ONE responsive sheet (bottom sheet under 640, side panel above it, `max-w-md`, the numbers read off `floatingEdgeEntranceResponsive`); `means` the Yours lens; `chips` DROPPED `three`; `wait` the sheet holding; `stuck` DROPPED `forever`; `hollow` DROPPED `silence`; `cap` DROPPED `bite`; `object` DROPPED `link` and became whether Download opens a sheet at all, recommending `zip`; `phone` unchanged in shape, with his own-surface lean named.
+- Calls his to overrule on the alias, one line each:
+  - The door's REDRAW itself: three options were retired with the surface they lived on rather than re-asked, and the poster became one of two card shapes. If he wants the old three back, the hub's status row would have to come back with them.
+  - `door` recommends `face`, and its `shared` knob was dropped because the shipped Reel card says nothing about sharing (a knob that moves nothing on the stage).
+  - `styles` recommends `wall` where round one recommended `rail`: the ruled panel answered the rail's whole case at a desk.
+  - `wait` recommends the NEW `stack` over `player`: the device is drawing those frames, so a reel that claims to keep playing is a fiction.
+  - `object` recommends `zip` because its old recommendation (`link`) is one of the five dropped options; the never-expires sentence is kept in `dialog.tsx` with no caller rather than deleted.
+  - The five dropped options are dropped on the Orchestrator's verdict lines, not on mine; each one is named above with the ruling that forbids it.
+  - `export-flow` is drawn on the ruled sheet although the shipped dialog is still a centred `Dialog`: a question about the sheet cannot be answered on the surface the ruling replaced. The swap is a wiring line (Deferred).
+  - The Reel card is measured at 160 by 96 px at a laptop and 144 by 96 in a hand (`sm:w-40`), so the door step's stage moves only 1.2 percent: the card IS one percent of a 1440 page, and the caption carries the difference.
+- The help articles this lane makes stale: none (no shipped surface changed).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/reel-studio?session=reel-studio.door` at 1440 (the hub with its four cards, the second one wearing the host's own cut), then `?session=reel-studio.wait` on option 3 (the stack's ghost edges and its reading strip), then `/design/lab/export-flow?session=export-flow.wait` on option 2 at 1440 AND at 375 (the same sheet as a side panel and as a bottom sheet).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The overtaken audit's studio-and-export lane reshaped all sixteen
+badged questions on `reel-studio` and `export-flow` and removed none: every ruling a badge named was folded into its
+question's own context, `reel-studio.door` was redrawn onto the event hub's Reel card (the surface its three options
+lived on had been deleted by `event=hub`), `wait` gained the reel's own frame stacking and counting down on
+`UploadStackTile`'s idiom, `styles` moved its recommendation from the rail to the wall, and `export-flow` dropped the
+five options a ruling forbids outright and was redrawn on the one responsive sheet `guest-shape` r1 ruled the guest's
+dialogs onto. The sixteen entries left `overtaken.ts` with its file, type, test and badge intact, and that test's
+glossed floor became a proportion so the rest of the audit can empty the map without touching it again.
