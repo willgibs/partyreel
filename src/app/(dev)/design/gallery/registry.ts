@@ -1,4 +1,5 @@
 import { COMPONENT_NOTES, type ComponentNote } from "../rules/component-notes";
+import { groupByKey } from "./group-by";
 import {
   COMPONENTS,
   componentTitle,
@@ -94,14 +95,14 @@ export function hasEntry(id: string): boolean {
 export function familySections(
   family: GalleryFamily,
 ): { section: string; items: GalleryItem[] }[] {
-  const out: { section: string; items: GalleryItem[] }[] = [];
-  for (const entry of GALLERY) {
-    if (entry.family !== family) continue;
-    const last = out.at(-1);
-    if (last?.section === entry.section) last.items.push(item(entry));
-    else out.push({ section: entry.section, items: [item(entry)] });
-  }
-  return out;
+  // ★ BY SECTION IN FIRST-APPEARANCE ORDER, every entry of a section in its one
+  // group wherever it sits: a lane adds at the head under a heading that already
+  // exists further down (the disjoint-hunk convention), and a consecutive-run
+  // scan once made two "Surfaces" blocks with one key (2026-09-20).
+  return groupByKey(
+    GALLERY.filter((entry) => entry.family === family),
+    (entry) => entry.section,
+  ).map(([section, entries]) => ({ section, items: entries.map(item) }));
 }
 
 export function familyItems(family: GalleryFamily): GalleryItem[] {

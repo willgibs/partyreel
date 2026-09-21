@@ -190,7 +190,13 @@ retired `type-phone`; both agents were told so by message.
 | `overtaken-3` | the judgment pass for the closing sitting's first batch: 29 reached, the map 62 to 72, a held grammar for guest-verify's four | done: merged `8c30faf6` (2026-09-20, handed off `2ec5dffa` then `6fa766be`; boards `1d8af324` and `d69da9ba`, synced `05498a8a` and `cc8cd50b`), gate 69 on the merged tree | Opus, :3136 | nothing |
 | `toasts-wiring` | the Toaster at the top under the bar, expanded, errors persisting until dismissed, one trailing action slot, the card as today; `toasts` retires | done: merged `c92d653f` (2026-09-20, handed off `fa1727be`, board `10e34abc`, synced `6b59af17`), gate 71 on the merged tree; the ledger deleted at the merge; `globals.css` back in the Orchestrator's owns | Sonnet, :3131 | the 5rem offset and the visible count his to overrule |
 | `guest-view-menu` | the guest album's View menu (tile size and Yours), the cookie read server-side | done: merged `86e41a28` (2026-09-20, handed off `f7788882`), gate 72 on the merged tree | Sonnet, :3134 | the group names and the hint his to overrule |
-| the closing sitting's first batch: every lane integrated and recorded by 2026-09-20 21:25 EDT (gates 66 to 72; five boards retired: body-type, app-vocabulary, guest-shape, app-shape, toasts); no lane runs; six seats free, held for his verdicts (the four drawn round twos, guest-verify round two, the unruled round ones); NO new board until the desk is closed | the next batch, transcribed; the wiring lanes his verdicts ask for (drafted for the four drawn round twos in the plan file's Lane sections 38, 40, 41, 44) | waiting | Opus / Sonnet | the alias moves onto the next record once Vercel's daily cap resets (~20:00 EDT 2026-09-21) |
+| `avatar-mesh-wiring` | cut at the second batch's record: hashvatar's mesh register in `lib/avatar`, the one line in `ui/avatar.tsx`, the centre-pixel measurement in the contract; `seed-avatar` retires | running | Sonnet, :3131 | the diffusion at 24 px his to overrule |
+| `welcome-film-wiring` | cut at the record: the tour as five screens, three bespoke pictures breathing under the copy (the board's drift), the closing doors untouched; `app-door` retires | running | Sonnet, :3132 | which three pictures and the drift's length his to overrule |
+| `demo-frame-wiring` | cut at the record: one framed photograph with the code in its corner at four places, standing apart from the hero's stream; `demo-event` retires | running | Sonnet, :3133 | the object's size at the hero his to overrule; its `marketing-content.md` line is an exception (`pricing-split-wiring` owns the file) |
+| `pricing-split-wiring` | cut at the record: the split configurator directly beneath the plans, the upgrade section opening the dark chapter, then the table, then the FAQ; the phone row the stack; `pricing-page` retires | running | Opus, :3134 | the result card's photograph his to overrule |
+| `app-pricing-wiring` | cut at the record: the pricing sheet on its trigger with two cards and a price, the pass line, the quiet foot, the menu's Plan and storage row, the lock chip, the checkout returning to the locked control with a welcome-to-Pro modal (`next` allow-listed; the webhook the sole writer of tier); `app-pricing` retires | running | Opus, :3135 | no Billing page (what one would need listed in the Handoff); the Pro card's three lines his to overrule |
+| `overtaken-4` | cut at the record: the judgment pass for the second batch's reach; the seven overrides reconciled in the map | running | Opus, :3136 | nothing |
+| the closing sitting: the first batch's every lane integrated (gates 66 to 72; five boards retired); the second batch's six lanes cut ~23:00 EDT (five more boards retire at their merges); NO new board until the desk is closed | integrate each handoff in the program's order (gate 73 onward on guest-verify; `hand-merge.sh` when the retirements' adjacent lines conflict); then the four unruled round ones from `first-event` down and `guest-verify` round two wait on his verdicts | running | Opus / Sonnet | the alias moves onto the next record once Vercel's daily cap resets (~20:00 EDT 2026-09-21) |
 
 **The overnight round** (2026-09-19, Will asleep: "occupy 8 more slots, paced as usual", then "12 more agent slots throughout the night"; his words in rulings.md): twelve boards at the Orchestrator's discretion, six seats at a time, each cut from a read-only map (the paragraphs under "The overnight round's maps" below). Every board is cut (`profile-page` took the first freed seat, :3133; `how-it-works` the second, :3136; `export-flow` the third, :3132; `site-chrome` the fourth, :3135; `event-type-pages` the fifth, :3131; `error-pages` the sixth, :3134); the drafts wait in the Orchestrator's scratchpad under `drafts/` and each is committed at its cut with the cut's SHA. CLOSED 2026-09-19 10:40 UTC: every lane integrated and recorded with `[preview]` on each record, twelve boards on the desk, every seat free, nothing asked of Will; the alias rebuilt onto the closing record `5910d489` at 10:58 UTC, seven deployments pruned, the wired surfaces red-teamed signed out (clean).
 
@@ -475,7 +481,7 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **A function replaced by a lane starts from its NEWEST definition (2026-09-19, `profile-wiring`):** the bio migration rebuilt `get_public_profile` from the June file and dropped the July anonymous-viewer gate (`20260729180000`, QA #36); the doc's expected-set paragraph is what caught it at the apply, and `20260919140000` restored it. Before applying any `create or replace function`, diff the file's body against `pg_get_functiondef()` on the live project; the visibility guard now reads the newest file and asserts the clause.
-- **An alias rebuild needs `[preview]` IN THE COMMIT (2026-09-19):** a deployment created by API for a commit whose message lacks it is CANCELED by `vercel-ignore-build.mjs` like any push (one creation wasted on `304a813b`). So a batch's record commit carries `[preview]` from now on (the push already creates the deployment, so the rebuild costs nothing extra), and `alias-force.mjs` is only for a commit that already says it.
+- **An alias rebuild needs `[preview]` IN THE COMMIT (2026-09-19):** a deployment created by API for a commit whose message lacks it is CANCELED by `vercel-ignore-build.mjs` like any push (one creation wasted on `304a813b`). So a batch's record commit carries `[preview]`, and since 2026-09-20 that API creation is the only launch-prep deployment there is (the push creates none).
 - **Two lane incidents (2026-09-19, `profile-wiring`, self-reported):** one force-push to its own branch to amend a manifest SHA (nothing lost; the rule stands: a wrong SHA is fixed by a new commit, now in the spawn brief), and the preview key echoed once into the lane's own terminal (its transcript on this machine; never committed). Will decides whether the key rotates.
 - **Phone widths in Will's Chrome do not take (2026-09-19):** the extension's `resize_window` reports success at 375 but the
   tab's inner width stays 1440, so a 375 pass of a public surface runs in the built-in pane (`resize_window` preset `mobile`,
@@ -554,17 +560,25 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 - **The deployment cap.** Vercel's Hobby team allows 100 deployment CREATIONS per trailing day, and a canceled one
   counts: with six lanes pushing working states and TWO projects on the repo, every lane push created two, and the
   cap hit on 2026-09-19 (`api-deployments-free-per-day`, a 402 on the API too), so the desk sat on `89548cbb`
-  while `app-shape` waited. Since then `vercel.json` carries `git.deploymentEnabled: { "lp/*": false }` (glob keys
-  are supported), so a lane push creates nothing on either project; only `launch-prep` and `main` deploy. The
-  cap is a rolling window: creations age out one by one, and the `[preview]` build resumes when the count drops.
+  while `app-shape` waited; `vercel.json` then took `git.deploymentEnabled: { "lp/*": false }` (glob keys are
+  supported). It hit again on 2026-09-20 on the Orchestrator's OWN pushes (about forty to `launch-prep` by the
+  evening, most of them `[skip ci]` journal and kit commits, each creating two deployments the ignore step
+  canceled at once, and the prune deleting the canceled ones so the dashboard showed almost none), pinning the
+  alias at `c75734b9` from 20:03 EDT. So since 2026-09-20 `launch-prep` is off in `vercel.json` too: NO PUSH
+  CREATES A DEPLOYMENT on either project; `usher/kit/alias-ensure.mjs` creates one per project by API at each
+  record (`SHA=<short> FULL=<full>`), waits for READY, assigns both launch-prep aliases by hand, and the prune covers
+  both projects. A day of records costs about twenty creations. Will's review-branch alternative (a `review` branch
+  fast-forwarded per round) was not taken because the allow-listed URL is the launch-prep alias itself; if an API
+  creation for a disabled branch is ever refused, that alternative is the fallback. The window is rolling:
+  creations age out one by one, and a git creation blocked by the cap fails silently (nothing appears; no error).
 - **Seats.** Six agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
   challenged yet today... Seems the concurrent local dev builds may be where it gets dicey", then "let's go +1 agent slot
   again... If we ever start going too fast for your preference, that's your call, and let me know"): the machine has 36 GB,
   a dev server holds 3 to 9 GB, and a `pnpm build` is the spike, so the Orchestrator runs its own gate builds only
   between lane builds where it can and watches `memory_pressure` before a fifth spawn; back to four if a build
   starves. Ports 3131 to 3136.
-- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
-  about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
+- **The alias check.** A launch-prep deployment exists only because `alias-ensure.mjs` created it for a `[preview]`
+  record commit (a build takes about four minutes; the two projects build at once). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
   and the stamp rides the RSC payload with ESCAPED quotes, `\"build\":\"<sha7>`, so grep for the bare sha7,
   never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The
