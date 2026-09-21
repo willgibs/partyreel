@@ -9,8 +9,10 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 
 import type { BoardStatus } from "@/app/(dev)/design/review/status";
 
+import { optionLabel, optionMeans } from "@/components/lab/board-spec";
+
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
-import { OVERTAKEN } from "@/app/(dev)/design/sandbox/overtaken";
+import { OVERTAKEN, saysAsToday } from "@/app/(dev)/design/sandbox/overtaken";
 
 import { type AskStep, toSteps } from "./session-step";
 
@@ -304,13 +306,19 @@ describe("what the ledger already holds", () => {
       ...s,
       round: s.round && {
         ...s.round,
-        notes: [{ on: null, text: "no light ground for now", by: "Will", at: AT }],
+        notes: [
+          { on: null, text: "no light ground for now", by: "Will", at: AT },
+        ],
       },
     };
   };
 
   it("hands over the notes of the board's open round, by board", () => {
-    const rows = deskRows([BOARD], () => withNote(SAMPLE_BOARD.round.n), () => []);
+    const rows = deskRows(
+      [BOARD],
+      () => withNote(SAMPLE_BOARD.round.n),
+      () => [],
+    );
     expect(transcribedFrom(rows).notes).toEqual({
       [SAMPLE_BOARD.id]: ["no light ground for now"],
     });
@@ -332,9 +340,8 @@ describe("what the ledger already holds", () => {
  * ★ AGAINST A REAL BOARD ON PURPOSE. Everything else here runs on the fixture,
  * because the join being proven is a shape; this one is a JOIN BETWEEN TWO REAL
  * LISTS (`sandbox/overtaken.ts` and a board's own asks), and a fixture would
- * prove only that the code compiles. `first-event` is one of the thirteen the
- * fifth batch reached, and if its spec ever stops declaring the asks the map
- * names, this fails here as well as in the map's own test.
+ * prove only that the code compiles. If a board's spec ever stops declaring the
+ * asks the map names, this fails here as well as in the map's own test.
  *
  * ★ AND IT READS THE MAP RATHER THAN RESTATING IT (overtaken-3, 2026-09-20, a
  * granted exception on a file that lane only reads). This block used to pin the
@@ -342,12 +349,23 @@ describe("what the ledger already holds", () => {
  * true the day they were written and neither was a fact about the desk: a
  * judgment pass that reaches a fifth question cannot record it without editing
  * this file, so two passes dropped five real badges rather than break the rule.
- * The count and the unreached ask are now DERIVED, which proves exactly the
- * same join (the desk's row lists the map's keys for this board, and no
- * others), keeps the failure this exists to catch (a badge on a question the
- * board no longer asks), and never has to be touched by a pass again. The
- * guard below refuses the degenerate case, where every ask is badged and
- * "and no other" would be proving nothing at all.
+ * The count and the unreached ask are DERIVED, which proves exactly the same
+ * join (the desk's row lists the map's keys for this board, and no others) and
+ * keeps the failure this exists to catch (a badge on a question the board no
+ * longer asks).
+ *
+ * ★ AND THE BOARD ITSELF IS DERIVED NOW (overtaken-5, 2026-09-21, the same
+ * granted exception). That change said it would never have to be touched again
+ * and it was wrong by one assumption: it still named `first-event`, and when
+ * Will answered that board's eight asks in one paste every badge on it retired
+ * at once, so the very guard below fired on the board it was written for. A
+ * board that is answered whole is the normal end of a board, not an accident,
+ * so the block now PICKS the board it proves on: the first standing one that
+ * still has a badged ask, an unreached ask, and an option the badge has to
+ * gloss. All three are what the assertions need, and each is checked below
+ * rather than assumed, so the next board answered whole takes nothing with it.
+ * The guard refuses the degenerate cases: a board with no badge at all, and one
+ * where every ask is badged and "and no other" would be proving nothing.
  *
  * ★ AND THE COUNT IS TWO NUMBERS, NEVER ONE. An overtaken ask is a normal ask
  * everywhere the desk counts: it queues, it walks, it fills Next. What the desk
@@ -355,47 +373,70 @@ describe("what the ledger already holds", () => {
  * many of those are still open.
  */
 describe("the asks an earlier ruling reached", () => {
-  const FIRST_EVENT = BOARDS.find((b) => b.id === "first-event")!;
+  const badgedOn = (b: BoardSpec) =>
+    b.asks.map((a) => a.id).filter((id) => `${b.id}.${id}` in OVERTAKEN);
+  const unreachedOn = (b: BoardSpec) =>
+    b.asks.map((a) => a.id).find((id) => !(`${b.id}.${id}` in OVERTAKEN));
+  /** An option whose "as today" the badge has to correct: the gloss's own case. */
+  const glossedOn = (b: BoardSpec) =>
+    badgedOn(b).find((id) =>
+      b.asks
+        .find((a) => a.id === id)!
+        .options.some(
+          (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
+        ),
+    );
+  /** The first standing board that can carry every half of this join. */
+  const SPEC = BOARDS.find(
+    (b) => badgedOn(b).length > 0 && unreachedOn(b) && glossedOn(b),
+  )!;
   const board = {
-    id: FIRST_EVENT.id,
-    title: FIRST_EVENT.title,
+    id: SPEC.id,
+    title: SPEC.title,
     surfaceLabel: "App",
     note: "",
-    tracks: ["first-event"],
+    tracks: [SPEC.id],
   };
   const rowFor = (answers: [string, string][]) =>
     deskRows(
       [board],
-      () => status(FIRST_EVENT.round.n, answers, [], FIRST_EVENT),
+      () => status(SPEC.round.n, answers, [], SPEC),
       () => [],
     )[0];
 
   /** The map's own keys for this board, which the desk's row has to reproduce. */
-  const BADGED = FIRST_EVENT.asks
-    .map((a) => a.id)
-    .filter((id) => `first-event.${id}` in OVERTAKEN);
+  const BADGED = badgedOn(SPEC);
   /** A question on this board that nothing has reached; the "no other" half. */
-  const UNREACHED = FIRST_EVENT.asks
-    .map((a) => a.id)
-    .find((id) => !(`first-event.${id}` in OVERTAKEN));
+  const UNREACHED = unreachedOn(SPEC);
+  /** One badged ask, and one whose words the badge has to gloss. */
+  const REACHED = BADGED[0];
+  const GLOSSED = glossedOn(SPEC)!;
 
   it("carries the note onto the ask the ruling reached, and no other", () => {
     // Neither half of this proves anything on a board that is all one or all
     // the other, so the shape of the board is asserted before the join is.
-    expect(BADGED.length, "no ruling has reached this board at all").toBeGreaterThan(0);
-    expect(UNREACHED, "every ask is badged, so 'no other' proves nothing").toBeDefined();
-    const states = askStates(board, status(FIRST_EVENT.round.n, [], [], FIRST_EVENT));
-    const landing = states.find((a) => a.ask.id === "landing");
-    expect(landing?.overtaken?.by).toBe("app-shape");
-    expect(landing?.overtaken?.line.startsWith("stands: ")).toBe(true);
+    expect(SPEC, "no standing board can carry this join").toBeDefined();
+    expect(
+      BADGED.length,
+      "no ruling has reached this board at all",
+    ).toBeGreaterThan(0);
+    expect(
+      UNREACHED,
+      "every ask is badged, so 'no other' proves nothing",
+    ).toBeDefined();
+    const states = askStates(board, status(SPEC.round.n, [], [], SPEC));
+    const reached = states.find((a) => a.ask.id === REACHED);
+    // The desk carries the map's own words onto the ask, not a copy of them.
+    expect(reached?.overtaken).toEqual(OVERTAKEN[`${SPEC.id}.${REACHED}`]);
+    expect(reached?.overtaken?.line).toMatch(/^(stands|concedes): /);
     expect(
       states.find((a) => a.ask.id === UNREACHED)?.overtaken,
       `${UNREACHED} is in no map entry, so the desk must not badge it`,
     ).toBeUndefined();
     // And the row carries a badge for every key the map does hold, no more.
-    expect(
-      states.filter((a) => a.overtaken).map((a) => a.ask.id),
-    ).toEqual(BADGED);
+    expect(states.filter((a) => a.overtaken).map((a) => a.ask.id)).toEqual(
+      BADGED,
+    );
   });
 
   it("counts them apart from the answered, and says how many are open", () => {
@@ -403,7 +444,7 @@ describe("the asks an earlier ruling reached", () => {
     expect(untouched.overtaken).toHaveLength(BADGED.length);
     expect(untouched.overtakenOpen).toHaveLength(BADGED.length);
     // An overtaken ask is still open work: it queues like any other.
-    expect(untouched.open.map((a) => a.ask.id)).toContain("empty");
+    expect(untouched.open.map((a) => a.ask.id)).toContain(REACHED);
   });
 
   /**
@@ -413,14 +454,16 @@ describe("the asks an earlier ruling reached", () => {
    */
   it("hands the step the badge already in plain words", () => {
     const row = rowFor([]);
-    const steps = toSteps(boardWork([row]), () => FIRST_EVENT, null);
-    const hand = steps.find(
-      (s) => s.kind === "ask" && s.askId === "hand",
+    const steps = toSteps(boardWork([row]), () => SPEC, null);
+    const glossed = steps.find(
+      (s) => s.kind === "ask" && s.askId === GLOSSED,
     ) as AskStep;
-    expect(hand.overtaken?.badge).toMatch(/^Ruled since app-shape r1, 19 Sep: /);
-    expect(hand.overtaken?.conceded).toBe(false);
-    // "The share dialog at 375, as today" was drawn before sharing was a sheet.
-    expect(hand.overtaken?.gloss).toContain("before that ruling");
+    expect(glossed.overtaken?.badge).toMatch(
+      /^Ruled (and held )?since [a-z-]+ r\d, \d{1,2} [A-Z][a-z]{2}: /,
+    );
+    expect(glossed.overtaken?.badge).not.toMatch(/[a-z-]+=[a-z-]+/);
+    // An option still labelled "as today" was drawn before that ruling landed.
+    expect(glossed.overtaken?.gloss).toContain("before that ruling");
     const unreached = steps.find(
       (s) => s.kind === "ask" && s.askId === UNREACHED,
     ) as AskStep;
@@ -428,18 +471,23 @@ describe("the asks an earlier ruling reached", () => {
   });
 
   it("derives standing and overriding from the ledger alone", () => {
+    const [stood, overrode, ...rest] = BADGED;
+    expect(
+      rest.length,
+      "this needs three badged asks to say anything",
+    ).toBeGreaterThan(0);
     const row = rowFor([
-      ["empty", "stands"],
-      ["style", "after"],
+      [stood, "stands"],
+      [overrode, "an-option-of-its-own"],
     ]);
     const by = (id: string) => row.asks.find((a) => a.ask.id === id);
-    expect(by("empty")?.outcome).toBe("stood");
-    expect(by("style")?.outcome).toBe("overrode");
-    expect(by("landing")?.outcome).toBe("open");
+    expect(by(stood)?.outcome).toBe("stood");
+    expect(by(overrode)?.outcome).toBe("overrode");
+    expect(by(rest[0])?.outcome).toBe("open");
     // Both are answers, so neither is open work any more; the rest remain.
     expect(row.overtakenOpen.map((a) => a.ask.id).sort()).toEqual(
-      BADGED.filter((id) => id !== "empty" && id !== "style").sort(),
+      BADGED.filter((id) => id !== stood && id !== overrode).sort(),
     );
-    expect(row.open.map((a) => a.ask.id)).not.toContain("empty");
+    expect(row.open.map((a) => a.ask.id)).not.toContain(stood);
   });
 });
