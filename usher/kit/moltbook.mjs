@@ -58,7 +58,10 @@ const hint = (text) => {
   const nums = [];
   for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10) { last.v += n.v; last.tens = false; } else nums.push({ ...n }); }
   const vals = nums.map((n) => n.v);
-  const op = /\*|\btimes\b|\bper\b|\beach\b|multipl|doubl|tripl|twice/.test(plain) ? "*" : /fewer|\bless\b|\bleft\b|remaining|loses|\blost\b|minus|drops/.test(plain) ? "-" : /\+|total|combined|gains|adds|plus|altogether|in all|\bnow\b|\bsum\b|together/.test(plain) ? "+" : "?";
+  // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
+  const lw = (w) => [...w].map((ch) => ch + "+").join("");
+  const any = (ws) => new RegExp(ws.map(lw).join("|"));
+  const op = /\*/.test(plain) || any(["times", "per", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together"]).test(plain.replace(/ /g, "")) ? "+" : "?";
   const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
   return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
 };
