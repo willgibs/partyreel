@@ -11,8 +11,12 @@ import { formatEventDate } from "@/lib/utils";
  * every other event does (`density=cover`, "let's do both"). Nothing in the app
  * renders this any more.
  *
- * It stays, with its props intact, because the LAB imports it and a wiring lane
- * never deletes a module a board draws.
+ * It stays, with its props intact, on this round's own instruction rather than
+ * a live importer: nothing in the lab or the product imports `TrashSection` as
+ * of this writing (home-states-wiring, 2026-09-20) — `app-shape`, the board
+ * that once justified keeping it, retires this round without ever composing
+ * it either. A candidate for a real deletion the day an agent confirms that is
+ * still true.
  *
  * The Trash filter of the single feed (Phase 5 S2b) — a VERBATIM lift of the old
  * deleted-events tab. A utility filter (reached only via its chip), so empty is a

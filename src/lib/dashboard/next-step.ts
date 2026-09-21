@@ -144,6 +144,55 @@ export function resolveNextSteps(input: {
 }
 
 /**
+ * THE BAND'S FOLD (`busy=collapsed`, app-shape round two, 2026-09-20).
+ *
+ * A genuinely busy host — several queues waiting, a shelf nearly full, a few
+ * quiet suggestions — hits six steps in the one band by Thursday, and six
+ * chips wrapping three lines deep stops answering "what needs you" at a
+ * glance. So PAST THE LIMIT, the band shows the top steps BY TONE (a queue
+ * waiting outranks a shelf nearly full outranks a quiet suggestion) and folds
+ * the rest behind one count.
+ *
+ * ★ A BAND THAT ALREADY FITS IS NEVER RE-RANKED. Tone order only enters once
+ * folding is real; at or under the limit `resolveNextSteps`'s own order
+ * (newest event first) passes through untouched, so a host with one or two
+ * events sees exactly today's order — the same guarantee that keeps `empty`
+ * and `first` unchanged. A STABLE sort past the limit: two steps of the same
+ * tone keep their own relative order rather than being re-ranked against each
+ * other, so the fold never invents an opinion about which of two waiting
+ * queues matters more.
+ */
+export const NEXT_STEP_BAND_LIMIT = 3;
+
+const TONE_RANK: Record<NextStep["tone"], number> = {
+  waiting: 0,
+  warning: 1,
+  quiet: 2,
+};
+
+export type FoldedNextSteps = {
+  /** The band's default view: the top steps. */
+  head: NextStep[];
+  /** Behind the "N more" chip; empty when the band already fits. */
+  rest: NextStep[];
+};
+
+export function foldNextSteps(
+  steps: NextStep[],
+  limit: number = NEXT_STEP_BAND_LIMIT,
+): FoldedNextSteps {
+  if (steps.length <= limit) return { head: steps, rest: [] };
+  const ranked = steps
+    .map((step, index) => ({ step, index }))
+    .sort((a, b) => {
+      const byTone = TONE_RANK[a.step.tone] - TONE_RANK[b.step.tone];
+      return byTone !== 0 ? byTone : a.index - b.index;
+    })
+    .map(({ step }) => step);
+  return { head: ranked.slice(0, limit), rest: ranked.slice(limit) };
+}
+
+/**
  * `YYYY-MM-DD` plus one day, by UTC arithmetic on the date parts alone.
  *
  * ★ NEVER `new Date(today)` + setDate: that parses a bare date string as UTC

@@ -25,6 +25,12 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE HOME'S COLLAPSE (lp/home-states-wiring, 2026-09-20), at the head for
+  // the same reason as the block below it: several lanes add `for` lines this
+  // round, and prepending keeps each lane's on its own hunk.
+  "src/components/app/dashboard/next-step-band.tsx": {
+    for: "the pulse's first band: one next-best-step chip per event, and past three the top three by tone with the rest folded behind an \"N more\" chip that expands in place",
+  },
   // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
   // block below it, so several lanes adding `for` lines in one round land on
   // distinct hunks instead of on each other.

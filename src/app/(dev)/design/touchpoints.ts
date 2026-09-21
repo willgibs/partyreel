@@ -136,8 +136,7 @@ export type SandboxId =
   | "album-motion"
   | "loose-ends"
   | "body-type"
-  | "privacy-hero"
-  | "app-shape";
+  | "privacy-hero";
 
 export type Ruling = {
   id: RulingId;
@@ -1256,24 +1255,18 @@ export const RULINGS: Ruling[] = [
     title: "The host app's shape",
     surface: "host",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
-    shipped: null,
+      "round one ruled whole (Will, 2026-09-20, the sixth batch: home=pulse, density=both a cover/row toggle, event=hub, nav=crumbs, share its own room plus a QR mini-modal, settings=sheet, phone=same); round two ruled the same day (empty=wizard, first=pulse overrules share, busy=collapsed with his band-order note)",
+    shipped:
+      'The pulse and the hub (home-wiring 62a82a26, hub-wiring a91464cb, 2026-09-20); round two (home-states-wiring, 2026-09-20) verified the zero-event and one-event pages unchanged and wired the real fold: the band\'s top three by tone behind one "N more" chip that expands in place, and the page reordered to next-step, storage, events, Just arrived beneath them, by his note.',
     why: "The host app's shape asked from the foundation: what the home is, what an event's page is, and where navigation, sharing, settings and money live.",
     lives: [
       "docs/systems/host-app.md",
       "src/components/shared/app-shell.tsx",
       "src/app/(app)/dashboard/page.tsx",
       "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/lib/dashboard/next-step.ts",
+      "src/components/app/dashboard/next-step-band.tsx",
     ],
-    board: {
-      note: "Eight decisions on one host's Saturday night, every option drawn on the shipped components with fixtures at 1440 and again at 375: the home, how an event draws on it, the event as a place, how seven routes are reached, where sharing lives, where settings live, where the plan and your own photographs live, and the shape in a hand",
-      variants: [
-        "The host's home",
-        "The event as a place",
-        "Moving around",
-        "In a hand",
-      ],
-    },
   },
   {
     id: "app-vocabulary",
@@ -1617,7 +1610,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "body-type",
-  "app-shape",
   "guest-shape",
   "guest-verify",
   "app-vocabulary",

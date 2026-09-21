@@ -10,24 +10,35 @@
 (`home=pulse`), a PULSE rather than an inbox: "what needs you, then what just arrived". The five-chip
 filter bar is gone, and so are the personal feeds it mixed in - your uploads, your likes and the hosts
 you follow moved to the profile's owner mode (→ [profiles-social.md](profiles-social.md)), because your
-own likes were never a hosting job. Four bands, in this order:
+own likes were never a hosting job. Four bands, in this order (`busy=collapsed`'s note, app-shape round
+two, 2026-09-20 — his words: "Notices & storage are more helpful above, more global and immediately
+helpful[.] ... I like 'just arrived' underneath the events"):
 - **What needs you** — one NEXT BEST STEP per event from a pure rule
   ([`next-step.ts`](../../src/lib/dashboard/next-step.ts)), first match wins: a queue waiting, uploads
   paused, a live album with items but no reel, an event dated tomorrow. Plus the storage step over 85%.
   ★ **It must never render as a void.** Will approved the pulse while warning that the old inbox existed
   so the app would not feel "limited and empty... until more things start to happen". A band wired
   straight to the review queue is blank for every host who is up to date, so the rule is what ships and
-  an empty result renders a calm line, not nothing. `home-states` (app-shape round two) inherits this.
-- **Just arrived** — the newest photographs, in a window that WIDENS until it holds twelve (the last
-  hour, then today, then the newest across events) and a caption that says which it settled on
-  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)). ★ These tiles are the ONE host surface that
-  keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just arrived, so the
-  animation is the only thing on the page reporting what changed. Reads + presigns live in
-  [`pulse.ts`](../../src/lib/db/queries/pulse.ts), a separate file from `events.ts` on purpose - the
-  event SETTINGS page shares `getEventCardStats`, and growing that module ties two surfaces together.
-- **The storage line** — the ambient `StorageMeter`, now UNCONDITIONAL (it used to need 1+ events). A
-  host with no events still has a plan and a shelf. The over-cap grace banner stays its own top alert.
+  an empty result renders a calm line, not nothing. Past three steps the band FOLDS
+  (`foldNextSteps`, `next-step-band.tsx`): the top three by tone, the rest behind one "N more" chip that
+  expands in place — a busy host hits six most weeks, and six chips wrapping three lines stops answering
+  the question at a glance.
+- **The storage line** — the ambient `StorageMeter`, UNCONDITIONAL (it used to need 1+ events). A host
+  with no events still has a plan and a shelf. The over-cap grace banner stays its own top alert.
 - **Your events** — hosted + saved, interleaved by recency, in either of two views (below).
+- **Just arrived** — beneath your events, the newest photographs in a window that WIDENS until it holds
+  twelve (the last hour, then today, then the newest across events) and a caption that says which it
+  settled on ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)). ★ These tiles are the ONE host
+  surface that keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just
+  arrived, so the animation is the only thing on the page reporting what changed. Reads + presigns live
+  in [`pulse.ts`](../../src/lib/db/queries/pulse.ts), a separate file from `events.ts` on purpose - the
+  event SETTINGS page shares `getEventCardStats`, and growing that module ties two surfaces together.
+
+Two edge states, checked against app-shape round two (2026-09-20) and unchanged: a new host (zero
+events) sees only the create teaser and the storage line, no band at all; a host's first live event holds
+the pulse exactly as above (a calm "nothing needs you" line, one cover card) rather than growing a share
+prompt of its own — sharing stays the event's own door (his note: "I don't like prompting a single event
+share from the main dashboard separately rather than from the event itself").
 
 ## Events & the create flow
 
