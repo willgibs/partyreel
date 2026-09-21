@@ -1,6 +1,6 @@
 ---
 track: overtaken-5
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "40e2c2c1"          # the launch-prep SHA the branch was cut from
 board: none            # lab infrastructure: the judgment lines for the closing sitting's third batch; merges first; no board of its own
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -211,30 +211,97 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none for Will. One for the Orchestrator, answered in the lane and listed under "Calls his to overrule" below: the
+  brief's deletion of the fifteen badges fires `_desk/queue.test.ts`'s own guard, because that block proved the desk's
+  real join on `first-event` BY NAME and a board answered whole loses every badge at once. Repaired in place rather
+  than handed back, on the `overtaken-3` precedent (that lane held a granted exception on this same file, for this
+  same reason); both wiring lanes inherit the repair through their pre-handoff sync and neither has to find it.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. This lane owns no `docs/systems/` fact: the desk's mechanism documents itself in `overtaken.ts`'s head, which
+  is where the two findings below are written.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the desk's overtaken join is proved against a real board picked from the map (`_desk/queue.test.ts`), and it
+  needs a board with a badge, an unreached ask and an "as today" option. Seven qualify today; when the desk closes
+  there will be none, and that block moves to the fixture every other test there already uses.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `ba309d04` (the whole pass, one commit); sync-merge `59bc51f0`. Synced past `origin/launch-prep`: its
+  message names `3dcdda15` (what the fetch a moment earlier reported) and it merged `508979bd`, which is what the
+  parent list says and what `git rev-list --count HEAD..origin/launch-prep` = 0 confirms. The head is in the chat line.
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` 0 (194 components, 1400 contracts, 18
+  policies) · specimens 0 (140 on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0, **10 warnings not 8** (the brief's
+  baseline is stale by two; none of the ten is in a file this lane touched: `album-fill-grid.tsx`, `review-switch.tsx`,
+  `contact-form.tsx`, `jobs.ts`, `use-flip.ts`) · `pnpm test` 0 (307 files, 3186 passed, 1 skipped) · `pnpm build` 0
+  (255 pages) · `pnpm lab:smoke --base http://localhost:3133` 0 (399 checks, 0 failing) · `pnpm lab:demo --board
+  media-viewer` 0 (8 steps, 0 failing, including the badge written this pass on `media-viewer.link`). Logs in the
+  lane's scratch. Port 3133 killed before each build, each test run and this handoff.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `sandbox/overtaken.ts`, `sandbox/overtaken.test.ts` (both owned) + two exceptions, and NOT this file (its own commit):
+  - `(shell)/lab/_desk/queue.test.ts`: one `describe` block, ~35 lines. WHY: it proved the desk's real join on
+    `first-event` by name, so deleting that board's badges fired its own guard ("no ruling has reached this board at
+    all"). It now derives the board it proves on from the map (the first standing one with a badged ask, an unreached
+    ask and an option the badge must gloss: `media-viewer` today, seven candidates behind it) and asserts against the
+    map's own values rather than literals. Nothing else in the file moved; the other 17 tests there still run on the
+    fixture. Both wiring lanes need this the moment they drop their board from `registry.ts`, and they get it free by
+    syncing past this merge. The `overtaken-3` precedent is a granted exception on this same file for this same reason.
+  - `design/rules/rules.generated.json`: twelve line numbers, every one of them pointing into
+    `sandbox/overtaken.test.ts`, which this lane owns. Regenerating is the gate's own first step; leaving it out would
+    hand the next lane a spurious diff.
+- The items, one line each:
+  - `first-event` (7 badges) and `guest-upload` (8) removed whole, on the `app-vocabulary` precedent; each leaves a
+    comment block saying what happened. 77 entries -> 69. Both boards are now RULERS in the test's `RULED` list.
+  - Seven questions badged for the first time: `guest-verify.gate-switch` (the uploads section's other switch has a
+    drawn guest side), `media-viewer.link` (he took the surface a guest can pass a link on from), `export-flow.hollow`
+    (he refuses a gap a person has to check for), `export-flow.phone` (our own surface beat the system's going in),
+    `contact-page.topic` (a door that asks one field and defers the rest), `contact-page.urgency` (a failure at a live
+    party as the product's worst hour), `press-page.the-sheet` (the product prints its own stock now).
+  - Thirty-one lines gained a clause behind the judgment they carried; the earlier judgments are word for word intact.
+    Three lines now carry three clauses (`media-viewer.opening`, `export-flow.object`, `help-center.from-product`).
+  - THE LAST HOLD IS SPENT. `first-event.first` carried `gate=after`, he answered `first=live`, and the badge retired
+    with the ask: the second hold in two nights to end by his own answer rather than by round two, and the map now
+    holds none. The grammar (`HELD`, `isHeld`, the badge's "Ruled and held since") is untouched and its test proves the
+    shape on the note that hold wrote, because `guest-verify`'s four rulings are still held and the next question one
+    of them reaches is badged this way and no other.
+  - FINDING, recorded in the test: the clause cap did NOT rise to four. The only two lines that ever carried three
+    clauses were `first-event`'s, so they left with the board rather than taking a fourth; this pass refilled the cap
+    from lines that had two. `MAX_CLAUSES` stays 3 and its comment now says the cap is a measurement, not a count of
+    passes.
+  - `profile-page` was read and left alone, as the brief predicted: nothing in this batch reaches its three asks.
+    `media-viewer.closeup`, `host-curation.keys`, `guest-verify.address`/`.collision`, `help-center.who-first`/
+    `.dead-end`, `emails.brand`/`.sender`/`.foot`/`.dark`, `loose-ends.hero-tablet`/`.phone-cycle`,
+    `contact-page.reach`/`.beside` and five of `press-page`'s were read against all sixteen and left unbadged: a badge
+    that does not really reach is the same lie as one pointing at a retired ask.
+- Calls his to overrule on the alias, one line each:
+  - The `since` on both rulers reads **21 Sep**, not 20: the ledger stamps `2026-09-21T06:33:51Z` and rulings.md's own
+    heading is `## 2026-09-21`. The second batch used 20 Sep because it was 22:45 EDT; this sitting ran past midnight.
+  - The seven new badges are seven judgments that a ruling really reaches a question nobody had badged. The two
+    furthest from his literal words: `guest-verify.gate-switch` (reached through the uploads section they share, not
+    through the account switch itself) and `press-page.the-sheet` (his "full gallery of printable QR designs" read as
+    the product owning real branded objects a kit could show).
+  - `reel-studio.guests` is judged against the album's HEAD being ruled to carry a guest's waiting tile, which is a
+    consequence of `held=tile` rather than a sentence of his.
+  - `queue.test.ts` repaired in the lane rather than handed back (above).
+- The help articles this lane makes stale: none. This lane changes no product surface, no copy and no route; it writes
+  the desk's judgment data and two contract tests.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/media-viewer?session=media-viewer.opening` at 1440, where the fourth ruling to reach that
+  question now rides behind the three that already had, then `/design/lab/contact-page?session=contact-page.urgency` at
+  375, where a badge written this pass sits over a question nothing had reached. Captured at both sizes in the lane.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The closing sitting's third batch was read against the fifteen
+boards left on the desk: seven questions were badged for the first time and thirty-one judgments gained a clause
+behind the one they already carried, while `first-event` and `guest-upload` left the map with the fifteen badges they
+had been carrying, each behind a comment block saying what happened. The last held badge in the file, `gate=after` on
+`first-event.first`, was spent by his own `first=live`, so the map holds no hold at all and its test proves the
+grammar on the note that one wrote. Two findings were recorded in place: the clause cap did not rise, because the only
+two lines that had ever carried three clauses retired with their board, so the cap is read off the map rather than off
+a count of passes; and `_desk/queue.test.ts`, which proved the desk's real join on `first-event` by name, now derives
+the board it proves on, so the next board answered whole takes nothing with it.
