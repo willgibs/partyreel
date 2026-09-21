@@ -50,15 +50,9 @@ import { type Album, EVENT, hasHidden, totalFor } from "./fixtures";
  * on this board says what the real foot would say for the same album.
  */
 
-/* ── the quoted shell ────────────────────────────────────────────────────── */
+/* ── the quoted shell, in the ruled sheet's posture ──────────────────────── */
 
-export function Shell({
-  children,
-  tall,
-}: {
-  children: ReactNode;
-  tall?: boolean;
-}) {
+export function Shell({ children }: { children: ReactNode }) {
   return (
     <>
       <div className="xf-scrim" aria-hidden />
@@ -67,7 +61,6 @@ export function Shell({
         data-xf-dialog
         role="dialog"
         aria-label="Download album"
-        style={tall ? { maxWidth: "28rem" } : undefined}
       >
         {children}
         <Button
@@ -274,9 +267,18 @@ export function Foot({
   );
 }
 
-/* ── what the `object` decision adds above the chips ─────────────────────── */
+/* ── the promise the audit took off the sheet ────────────────────────────── */
 
 /**
+ * KEPT, AND NO LONGER DRAWN (the overtaken audit, 2026-09-21). `object=link`
+ * put the album's own address at the head of the sheet; the event page carries
+ * that address and its copy button twice over now (under the metadata and in
+ * the share sheet), so the option was dropped and this row has no caller. It
+ * stays because the SENTENCE is still the truest thing the product has to say
+ * and nothing else says it, and because a lane deletes an idea only when the
+ * idea is dead rather than when its one caller is (Will, 2026-09-21: "I'd
+ * rather you lean into reshape if you aren't confident in removal").
+ *
  * NEW COPY, and the only promise in the product that outlives every zip.
  *
  * ★ TWO ROWS, NOT THREE COLUMNS. The first pass put the sentence, the address

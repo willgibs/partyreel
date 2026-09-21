@@ -378,15 +378,17 @@ describe("the overtaken map", () => {
         (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
       );
     });
-    // ★ A PROPORTION READ OFF THE MAP, NEVER A CENSUS OF A MAP THAT HAS GONE.
-    // This was a floor of forty keys, measured when the map held seventy, and
-    // it named two of them by id. The overtaken audit (2026-09-21) is emptying
-    // the map a board at a time, folding each badge into the question it
-    // annotated, so a fixed count and a named key both fail on whichever lane
-    // happens to cross them, in a file no lane owns. What stays true is the
-    // proportion: most of what a badge reaches was drawn against a baseline
-    // that has since moved. Held to half, and skipped once the map is too
-    // small to measure, which is where the audit is walking this file.
+    // ★ A PROPORTION READ OFF THE MAP, NEVER A CENSUS OF A MAP THAT HAS GONE
+    // (the overtaken audit, 2026-09-21, reconciled across three lanes that
+    // each crossed this line the same day: `reshape-studio-export` first
+    // moved the floor from a fixed forty to this ratio, `reshape-viewer-
+    // curation` then found even the ratio's two named examples fragile,
+    // since media-viewer.opening is one of ITS badges and does not survive
+    // its own merge). A fixed count and a named key both fail on whichever
+    // lane happens to cross them, in a file no lane owns; what stays true is
+    // the proportion, most of what a badge reaches was drawn against a
+    // baseline that has since moved, held to half and skipped once the map
+    // is too small to measure, which is where the audit is walking this file.
     if (KEYS.length >= 10) {
       expect(glossed.length * 2).toBeGreaterThanOrEqual(KEYS.length);
     }

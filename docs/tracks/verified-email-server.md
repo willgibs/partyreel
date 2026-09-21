@@ -1,53 +1,90 @@
 ---
-track: reshape-studio-export
+track: verified-email-server
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5143c87e"          # the launch-prep SHA the branch was cut from
-board: reel-studio     # and export-flow: both reshaped in place, unanswered, at their round; no retirement, no new board
+cut: "bc28580b"          # the launch-prep SHA the branch was cut from
+board: none            # the identity reshape, wave 1: the route, the identity, the queries; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/reel-studio/
-  - src/app/(dev)/design/sandbox/export-flow/
+  - src/app/api/guests/
+  - src/app/api/r2/
+  - src/lib/db/queries/
+  - src/lib/db/mutations/
+  - src/lib/validation/
+  - src/lib/security/
+  - src/lib/forensics/
+  - src/app/admin/forensics/
+  - src/lib/social/cards.ts
+  - src/lib/media/uploader-identity.ts
+  - src/lib/media/uploader-identity.test.ts
+  - src/lib/events/gallery-access.ts
+  - src/lib/events/gallery-access.test.ts
+  - src/lib/events/gallery-access.server.ts
+  - src/lib/events/gallery-fingerprint.ts
+  - src/lib/events/gallery-fingerprint.test.ts
+  - src/lib/r2/grid-items.ts
+  - src/lib/r2/grid-items.email-safety.test.ts
+  - src/lib/event/gallery-items.ts
+  - src/lib/reel/build-reel-props.test.ts
+  - src/components/app/media-grid.tsx
+  - scripts/seed-demo-event.mjs
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/app/(dev)/design/sandbox/overtaken.ts
-  - src/components/lab/exploration.ts
-  - src/components/lab/board-spec.ts
-  - src/app/(dev)/design/touchpoints.ts
+  - src/lib/guest/claim-uploads.ts
+  - src/lib/guest/session-tokens.ts
+  - src/components/guest/enter-event-prompt.tsx
+  - src/components/auth/email-sign-in.tsx
+  - src/components/app/event-settings/uploads-section.tsx
+  - src/lib/constants/tiers.ts
+  - supabase/migrations/
+  - docs/systems/database-security.md
+  - docs/systems/guest-flow.md
   - docs/design/rulings.md
-  - docs/STATUS.md
-  - src/app/(app)/dashboard/[eventId]/reel/
-  - src/components/app/export/
-  - src/components/guest/live-gallery.tsx
 ---
 
-# lp/reshape-studio-export
+# lp/verified-email-server
 
-**Goal.** A lane of the overtaken audit (Will, 2026-09-21, verbatim in `docs/design/rulings.md` under "the overtaken audit: reshape or remove, and the stacking rule"): "For any open questions that have been 'overtaken', please evaluate whether they should be reshaped or removed", with his criteria (reshape a question that could still offer a better solution than the earlier selection that overtook it, with updated context; remove only a question with zero potential value; "I'd rather you lean into reshape if you aren't confident in removal"; "everything is unprotected and anything may be re-litigated"). The Orchestrator read every badged question against the ruling its badge names and judged each: the verdicts for this lane's boards are the brief below, one line per question, and are the whole reading. This is lab work on the boards' own folders: no production byte.
+**Goal.** Wave 1 of the identity reshape: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. The schema is applied and the types regenerated on the tree you were cut from: the flag is `events.require_verified_email`, the name `guests.display_name`, the proof `guests.verified_at`. This lane is the route, the identity and the queries. The brief below is the whole reading.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `5143c87e`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `bc28580b`)
 
-- What this is: as Lane 62's first line, for these two boards (the same rules: reshape with the context folded in, dead options dropped, new concepts where a ruling made one possible, the badges deleted as exception lines in `overtaken.ts`, the boards unanswered at their round with `round.changed` saying what moved).
-- reel-studio.door (redraw): the event hub's Reel card is the door (app-shape r1 event=hub), so the status-row link the three options sat in is gone. Ask what the card shows: a labelled card as shipped, or the reel's own face as the door with Edit reel at its corner (the poster idea moved onto the card).
-- reel-studio.room: floating panes wear the ruled glass material (glass r2). Ask the laptop room's shape as before.
-- reel-studio.styles: the sheet is a side panel at a desk (guest-shape r2), so the wall no longer covers the reel there; a whole gallery of printed designs is owed (first-event r1). Ask wall vs rail vs three with a hand as the place the wall still covers the reel.
-- reel-studio.moments: the same posture rule; ask sheet vs pool vs tray with a desk already served by the panel and a hand still paying the sheet's price.
-- reel-studio.blocked: the product's tooltip is instant at a mouse (app-vocabulary r1). Ask the touch half only: what a thumb reads on a blocked tile.
-- reel-studio.sharing: sharing lives on the share sheet (app-shape r1). Ask what unsharing costs and where the count is said, on that sheet.
-- reel-studio.wait (new): the celebration modal is for a moment worth feeling, not a minute of waiting (app-pricing r1); the stack tile counting down is the house idiom for a run in progress (guest-upload r1). Ask what a host sees while the video is made, with a new option: the reel's own frame as a stack counting down in place.
-- reel-studio.guests: the site's demo door is a plain framed still (demo-event r2); the album's head carries a guest's own waiting tile (guest-upload r1). Ask how a guest meets the reel on the album, with first paint's cost and the head's room named.
-- export-flow.means: a guest's own photographs are known and marked and the Yours filter exists (guest-shape r1 and r2); the app makes a PDF of printed stock (first-event r1). Ask what Download hands a guest, with own-first as a bundle the filter already defines.
-- export-flow.chips (dropped `three`): a chip that renders a zero and takes the tap is out (app-shape r2); a lock says why and offers the way (app-pricing r1); a guest is told the limits of what they may add (guest-upload r1). Ask two chips vs the chip that says why.
-- export-flow.wait: Download wears the one sheet (guest-shape r1); bytes in flight are narrated in place and silently (guest-upload r1). Ask whether the sheet holds until the bytes land, a line, or a toast.
-- export-flow.stuck (dropped `forever`): a failure's ways out are real buttons (app-door r1); a run that did not finish is read on one surface at its end (guest-upload r1). Ask timeout vs cancel.
-- export-flow.hollow (dropped `silence`): he refuses a gap a person has to check for themselves (guest-upload r1). Ask after vs refuse.
-- export-flow.cap (dropped `bite`): a refusal that names no number is out (app-pricing r1); the act states its terms before the files fly (guest-upload r1). Ask near vs split.
-- export-flow.phone: he took our own surface over the system's on the way in (guest-upload r1). Ask the way out with that lean named.
-- export-flow.object (dropped `link`): the album's link and its copy sit twice on the page (app-shape r1). Ask whether Download opens a dialog of bundles or just starts.
-- Owns: `src/app/(dev)/design/sandbox/reel-studio/`, `src/app/(dev)/design/sandbox/export-flow/`. Reads: `src/app/(dev)/design/sandbox/overtaken.ts`, `src/components/lab/exploration.ts`, `src/components/lab/board-spec.ts`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/STATUS.md`, `src/app/(app)/dashboard/[eventId]/reel/`, `src/components/app/export/`, `src/components/guest/live-gallery.tsx` (the guest's Download dialog lives in it).
-- Verify: the registry tests and `overtaken.test.ts` green (the sixteen entries deleted); `lab:smoke` whole; `lab:demo --board reel-studio` and `--board export-flow`; both boards at 375 and 1440; the gate.
-- His to overrule: every reshaped framing; the five dropped options; the new stack option; the door's redraw.
+- Against the applied schema and regenerated types: `POST /api/guests` (`joinSchema` gains
+  `display_name: displayNameSchema.optional()`; `containsProfanity` server-side; 422 `name_required` | `name_invalid`
+  | `verification_required`), `mutations/guest.ts` (`displayName` → `p_display_name`; `mapCheckViolation` gains the
+  "verified email" branch before the generic ones), the rename route `POST /api/guests/name {qr_token, session_token,
+  display_name}` (the same zod and profanity gate; its own limiter kind `rename` with a tight per-IP-and-event cap in
+  `abuse-rate-limit.ts`, R1.7; the token in the body) over `set_guest_display_name`, presign and complete (403
+  `verification_required` from the context, with a `captureWarning("security", …)` so a flip's fallout is visible,
+  R1.14), `uploader-identity.ts` (`UploaderIdentity { displayName, email, isHost, isVerified }` on the one precedence
+  rule AS WAVE 0 CORRECTED IT: `guests.verified_at` set means the profile's name and verified; else a typed
+  `guests.display_name`, unverified; else "A guest"; NEVER `user_id` alone, since an unconfirmed session still
+  carries a uid and keeps its typed name; `isAnonymous` kept only as "nameless legacy row" so the lab's fixtures keep compiling), `grid-items.ts` and
+  `GridMedia` (`isVerified`), the admin embed's select (`guest-events-admin.ts:208` gains `display_name`,
+  `verified_at`), the forensics capture (`forensics/capture.ts` stores `guest_display_name`) and its admin view,
+  `gallery-access.ts` (`require_verified_email`), `validation/event.ts` (default true; `createEvent` sends only the
+  new flag), `mutations/events.ts`, `getEventGuestList(eventId, { includeUnverified = false })` (a second admin read
+  of named unverified guests with approved media, one entry per guest row, appended after the profile cards as
+  `{ kind: "unverified", id, displayName }`; the default keeps the host hub and `withAvatarUrls` green, and the guest
+  page opts in; `social/cards.ts` owned here so the union splits before it; R2.2), the host's card for the follow
+  moment (`getHostCard(eventId)` in `queries/social.ts`: `{ id, slug, displayName, avatarUrl } | null`, public fields
+  only), the seed script's flag line (`scripts/seed-demo-event.mjs:440` writes both columns until the contract).
+  Tests: the fixture flips (`gallery-access`, `uploader-identity` with unverified-named, legacy and claimed cases,
+  `upload` (trims, refuses >60 and reserved, a lone qr_token still parses; the rename schema), `event` (default true),
+  `gallery-fingerprint`, `grid-items.email-safety`, `build-reel-props`), the rename route's test on the `mine`
+  route's pattern, the host-card query's shape, the guest list's union. `guest-flow.md`'s "Joining + identity" block
+  refined in place (this lane's exception line; the guest lane owns the file).
+- Owns (files under `src/lib/events/` because the host lane owns the summary there): `src/app/api/guests/`,
+  `src/app/api/r2/`, `src/lib/db/queries/`, `src/lib/db/mutations/`, `src/lib/validation/` (`profile.ts` inside it
+  stays untouched), `src/lib/security/`, `src/lib/forensics/`, `src/app/admin/forensics/`, `src/lib/social/cards.ts`,
+  `src/lib/media/uploader-identity.ts` (+ test), `src/lib/events/gallery-access.ts` (+ test, + `.server.ts`),
+  `src/lib/events/gallery-fingerprint.ts` (+ test), `src/lib/r2/grid-items.ts` (+ `grid-items.email-safety.test.ts`),
+  `src/lib/event/gallery-items.ts`, `src/lib/reel/build-reel-props.test.ts`, `src/components/app/media-grid.tsx`,
+  `scripts/seed-demo-event.mjs`. Reads: `src/lib/guest/claim-uploads.ts`, `src/lib/guest/session-tokens.ts`,
+  `src/components/guest/enter-event-prompt.tsx`, `src/components/auth/email-sign-in.tsx`,
+  `src/components/app/event-settings/uploads-section.tsx`, `src/lib/constants/tiers.ts`, `supabase/migrations/`,
+  `docs/systems/database-security.md`, `docs/systems/guest-flow.md`, `docs/design/rulings.md`.
+- His to overrule: the legacy label "A guest"; the 403 after a flip ON; the claim naming a profile; the rename door.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
-(no verdict map: the audit's verdicts for this lane's boards are the brief above, one line per question; the rulings they fold in are verbatim in docs/design/rulings.md)
+(no verdict map: one verdict and a note, verbatim in docs/design/rulings.md under "the identity reshape", and his four answers at approval; the brief above is the Orchestrator's whole reading)
 
 ## The ownership rules every lane follows this round
 

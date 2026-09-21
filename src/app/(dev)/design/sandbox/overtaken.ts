@@ -434,100 +434,21 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   },
 
   /* ── reel-studio ─────────────────────────────────────────────────────── */
-  "reel-studio.door": {
-    ...APP_SHAPE,
-    ruling: "the event is a row of cards: Review, Reel, Guests, Settings",
-    line: "concedes: the Reel card in the hub's row is the door now, and it is none of these three.",
-  },
-  "reel-studio.room": {
-    ...CRYSTAL,
-    ruling:
-      "one glass material everywhere, and the reel's own controls are one pane of it",
-    line: "stands: a control floating over the reel has a ruled material now, so the room's shape is the only thing this still picks.",
-  },
-  "reel-studio.styles": {
-    ...GUEST_SHAPE_2,
-    ruling:
-      "even a guest's first screen wears the one sheet, and no centred float survives at a desk",
-    line: "stands: the sheet is a side panel at a desk now, so the wall stops covering the reel it is picking for, and the rail's case is its size. Also reached by pricing-page r2, 20 Sep: a row a visitor has to swipe is the thing he says gets missed, which is the rail's own risk. Also reached by first-event r1, 21 Sep: he asked for a whole gallery of printed designs, so offering a host many looks is owed twice over.",
-  },
-  "reel-studio.moments": {
-    ...GUEST_SHAPE,
-    ruling:
-      "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the one sheet is a side panel at a desk, so it stops covering the reel there and only a hand still pays this option's price.",
-  },
-  "reel-studio.blocked": {
-    ...VOCABULARY,
-    ruling:
-      "the product's own tooltip opens the instant a pointer arrives, never delayed",
-    line: "stands: our tooltip is ruled and instant now, which replaces the native one at a mouse and still says nothing at all to a thumb.",
-  },
-  "reel-studio.sharing": {
-    ...APP_SHAPE,
-    ruling: "sharing gets one comprehensive sheet, reached from the event",
-    line: "stands: the sheet holds where sharing is asked, never what taking it back costs, which is all this ask decides.",
-  },
-  "reel-studio.wait": {
-    ...APP_PRICING,
-    ruling:
-      "a moment worth celebrating opens a modal, rather than a box at the top of the page",
-    line: "stands: the modal he took is for a moment worth feeling, not a minute of waiting, so a bar on the reel itself keeps its case. Also reached by guest-upload r1, 21 Sep: a stacked tile counting down is the house idiom for a run in progress, and it sits in the grid.",
-  },
-  "reel-studio.guests": {
-    ...DEMO_2,
-    ruling:
-      "the site's demo door is a plain framed still, never the falling engine's own frame",
-    line: "stands: he took a still over a running engine at the site's own door, which is this ask's case against paying for a player on first paint. Also reached by guest-upload r1, 21 Sep: the album's head is ruled to carry a guest's own waiting tile, so a player on first paint wants that room.",
-  },
+  // All eight badges (door, room, styles, moments, blocked, sharing, wait,
+  // guests) were deleted by the overtaken audit (2026-09-21), not by an answer:
+  // Will asked for an overtaken question to be RESHAPED or REMOVED rather than
+  // left standing with a badge on it, and every one of these was reshaped. The
+  // ruling each badge named is now folded into the question's own context, the
+  // door is redrawn onto the event hub's Reel card (`event=hub` deleted the
+  // status row its three options lived in) and `wait` gained the stack the
+  // rulings made possible. Nothing was answered, so nothing is recorded.
 
   /* ── export-flow ─────────────────────────────────────────────────────── */
-  "export-flow.means": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a guest may delete any photograph they personally uploaded, for ever",
-    line: "stands: the product has to know a guest's own photographs for good now, so leading the bundle with them costs nothing new. Also reached by guest-shape r2, 20 Sep: their own tiles carry a mark whose tap is already this bundle's filter. Also reached by first-event r1, 21 Sep: the app makes a PDF of printable stock now, so Download already means more than one kind of file.",
-  },
-  "export-flow.chips": {
-    ...APP_SHAPE_2,
-    ruling: "a band with nothing real in it is absent, never drawn empty",
-    line: "stands: the rule kills the chip that renders a zero and takes the tap, and whether a guest is told of video they cannot have is still open. Also reached by app-pricing r1, 20 Sep: a locked control must say why and offer the way up, never sit there unusable. Also reached by guest-upload r1, 21 Sep: a guest is told the limits of what they may add, so the limits of what they may take are the same manners.",
-  },
-  "export-flow.wait": {
-    ...GUEST_SHAPE,
-    ruling: "the guest's Download wears the one responsive sheet",
-    line: "stands: Download wears the one sheet now, so holding it open until the bytes land is a decision about that sheet. Also reached by guest-upload r1, 21 Sep: bytes in flight are ruled to be narrated in place and silently, which is what watching a zip would be.",
-  },
-  "export-flow.stuck": {
-    ...DOOR,
-    ruling:
-      "a failure keeps its line short and puts the ways out on real buttons",
-    line: "stands: the ways out of a failure are real buttons now, which is Try again by another name, leaving only the timer to pick. Also reached by guest-upload r1, 21 Sep: a run that did not finish is ruled onto one surface at its end, so a hung one has a place to be said.",
-  },
-  "export-flow.hollow": {
-    ...UPLOAD,
-    ruling:
-      "a failed run is read on one surface at its end, never card by card",
-    line: "stands: he refuses a gap a person has to check for themselves, which is this ask's whole case and leaves only how much the file says.",
-  },
-  "export-flow.cap": {
-    ...APP_PRICING,
-    ruling:
-      "a locked control says why and offers the way through, never simply refuses",
-    line: "stands: a refusal that names no number is ruled out, so the limit has to speak before it bites, and whether a zip ever splits is still open. Also reached by guest-upload r1, 21 Sep: the upload act states its terms before the files fly, which is the same manners one step later.",
-  },
-  "export-flow.phone": {
-    ...UPLOAD,
-    ruling:
-      "Add opens our own sheet naming both ways in, never the browser's own chooser",
-    line: "stands: he took our own surface over the system's on the way in, and this asks the same question about the way out.",
-  },
-  "export-flow.object": {
-    ...APP_SHAPE,
-    ruling:
-      "the album's link and a copy button sit under the event's metadata and in the share sheet",
-    line: "concedes: the share ruling already places the link and its copy twice, which is what this ask wanted the dialog to lead with. Also reached by guest-shape r1, 20 Sep: Download is one of the four dialogs on the one sheet. Also reached by app-vocabulary r2, 20 Sep: Download stays a top-level verb beside Select, above the View menu. Also reached by first-event r1, 21 Sep: he took the share surface because a guest can pass the link on, which is this ask's link-first case.",
-  },
+  // The same, for all eight (means, chips, wait, stuck, hollow, cap, object,
+  // phone): every ruling folded into its question, five options a ruling
+  // forbids outright dropped (`chips.three`, `stuck.forever`, `hollow.silence`,
+  // `cap.bite`, `object.link`), and the surface redrawn as the one responsive
+  // sheet `guest-shape` r1 ruled the guest's dialogs onto.
 
   /* ── admin-triage ─────────────────────────────────────────────────────────
    * The overtaken audit's reshape (`reshape-admin-help-emails`, 2026-09-21):

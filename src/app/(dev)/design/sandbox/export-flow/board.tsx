@@ -21,7 +21,6 @@ import {
   Foot,
   Head,
   HiddenRow,
-  KeepsakeLead,
   Shell,
   WorkBody,
 } from "./dialog";
@@ -44,8 +43,15 @@ import {
 } from "./surfaces";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: the download dialog and the two surfaces it
+ * THE PREVIEWS, AND NOTHING ELSE: the download sheet and the two surfaces it
  * opens over, at a real 375 by 812 and a real 1440 by 900, over one wedding.
+ *
+ * ★ THE SURFACE IS THE ONE RESPONSIVE SHEET (guest-shape r1, folded in by the
+ * overtaken audit 2026-09-21): a bottom sheet in a hand, a side panel at a
+ * desk. The shipped export dialog is still a centred `Dialog`, and drawing it
+ * that way would have every option of this board answered on a surface the
+ * ruling has already replaced. The reshaped questions are asked on the sheet;
+ * the swap itself is the wiring lane's, not a question here.
  *
  * ★ THE GROUND IS TODAY'S PRODUCT EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped surface with ONE thing changed, so a decision never
@@ -58,7 +64,7 @@ import {
  * a board once drew an option with its formula's sign backwards, and the tile
  * Will judged showed the opposite of its words). Each caption is read off the
  * laid-out DOM inside the frame's own document once it settles: how big the
- * dialog really is, how many controls on the screen can really be pressed, and
+ * sheet really is, how many controls on the screen can really be pressed, and
  * what the foot really says. If the words above a frame and the caption under
  * it disagree, the caption is the truth.
  *
@@ -126,7 +132,7 @@ const pct = (n: number, of: number) =>
 
 const text = (el: Element | null) => (el?.textContent ?? "").trim();
 
-/** The dialog's own box, and what it costs the screen. */
+/** The sheet's own box, and what it costs the screen. */
 function dialogFacts(root: HTMLElement, win: Window) {
   const el = root.querySelector<HTMLElement>("[data-xf-dialog]");
   if (!el) return null;
@@ -160,9 +166,9 @@ const meansRead: Reader = (root, win) => {
     const picked = root.querySelectorAll("[data-xf-picked]").length;
     const bar = root.querySelector<HTMLElement>("[data-xf-bar]");
     if (!bar) return null;
-    return `Measured: no dialog at all, ${picked} tiles already picked, and the bar is ${Math.round(bar.getBoundingClientRect().width)} px wide.`;
+    return `Measured: no sheet at all, ${picked} tiles already picked, and the bar is ${Math.round(bar.getBoundingClientRect().width)} px wide.`;
   }
-  return `Measured: the dialog is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and offers ${bundles === 0 ? "one bundle and no choice of set" : `${bundles} bundles above the chips`}.`;
+  return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and offers ${bundles === 0 ? "one bundle and no choice of set" : `${bundles} bundles above the chips`}.`;
 };
 
 const chipsRead: Reader = (root) => {
@@ -181,7 +187,7 @@ const waitRead: Reader = (root, win) => {
   const toast = root.querySelector<HTMLElement>("[data-xf-toast]");
   const line = root.querySelector<HTMLElement>("[data-xf-line]");
   const surface = d
-    ? `a dialog at ${d.share} percent of the screen`
+    ? `a sheet at ${d.share} percent of the screen`
     : toast
       ? `a toast of ${pct(toast.getBoundingClientRect().width * toast.getBoundingClientRect().height, win.innerWidth * win.innerHeight)} percent`
       : line
@@ -229,14 +235,12 @@ const capRead: Reader = (root) => {
 
 const objectRead: Reader = (root, win) => {
   const d = dialogFacts(root, win);
-  const lead = root.querySelector<HTMLElement>("[data-xf-lead]");
-  const body = text(root.querySelector("[data-xf-dialog]"));
-  const keeps = /partyreel\.com/.test(body);
   if (!d) {
     const bar = root.querySelector("[data-xf-bar]");
-    return `Measured: no dialog, ${bar ? "the select bar is the only chrome" : "nothing between the tap and the file"}, and the album's own address is not on the screen.`;
+    return `Measured: no sheet, ${bar ? "the select bar is the only chrome" : "nothing between the tap and the file"}, and the chips are nowhere on the screen.`;
   }
-  return `Measured: the dialog is ${d.h} px tall, ${d.share} percent of the screen, and the album's address ${keeps ? `is on it, ${Math.round(lead?.getBoundingClientRect().height ?? 0)} px above the chips` : "is nowhere on it"}.`;
+  const chips = root.querySelectorAll("[data-xf-chip]").length;
+  return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and holds ${chips} chips, the size and the button.`;
 };
 
 const phoneRead: Reader = (root) => {
@@ -284,7 +288,7 @@ function Screen({
 const screenFor = (s: BoardState): ScreenId => screenOf(s.screen);
 const whoFor = (s: BoardState): Who => whoOf(s.who);
 
-/** The album the ground draws and the dialog counts, from the knob. */
+/** The album the ground draws and the sheet counts, from the knob. */
 const albumFor = (s: BoardState) => albumOf(s.album);
 
 /* ── 1. what a guest takes ───────────────────────────────────────────────── */
@@ -295,10 +299,10 @@ const meansOf = (v: string | undefined): MeansShape =>
 
 const MEANS_CAPTION: Record<MeansShape, string> = {
   album:
-    "Today. One link, the host's own dialog, and a zip of everything the guest can see.",
+    "Today. One link, the host's own sheet, and a zip of everything the guest can see.",
   mine: "Their own set leads and the whole album is the row under it. The chips then filter whichever is chosen.",
   picked:
-    "No dialog: the album goes into select mode and the bar takes exactly what was tapped.",
+    "No sheet: the album goes into select mode and the bar takes exactly what was tapped.",
 };
 
 function PickedGrid() {
@@ -384,14 +388,21 @@ function MeansScreen({ shape, s }: { shape: MeansShape; s: BoardState }) {
 
 /* ── 2. a chip with nothing in it ────────────────────────────────────────── */
 
-const CHIP_CAPTION: Record<ChipMode, string> = {
-  three:
-    "Today. Three chips on a teaser that can only ever hold photographs; the third takes the tap and answers with nothing.",
+/**
+ * ★ `three` IS DROPPED, NOT DRAWN SMALLER (the overtaken audit, 2026-09-21).
+ * A band with nothing real in it is ruled absent rather than drawn empty, so
+ * the chip that renders a zero and takes the tap is no longer an option Will
+ * could take. `ChipMode` keeps the word because `ChipRow`'s DEFAULT is the
+ * ordinary three-chip row every other decision draws; only this ask lost it.
+ */
+type ChipShape = Exclude<ChipMode, "three">;
+
+const CHIP_CAPTION: Record<ChipShape, string> = {
   two: "The row holds only chips that can answer. Nothing tells the guest there is more in the album.",
   why: "The chip stays, cannot be pressed, and the reason sits under the row with the album's own way in beside it.",
 };
 
-function ChipScreen({ shape, s }: { shape: ChipMode; s: BoardState }) {
+function ChipScreen({ shape, s }: { shape: ChipShape; s: BoardState }) {
   const screen = screenFor(s);
   // The teaser is the only album this decision exists in, so it is forced here
   // rather than left on the knob: three identical tiles would be a dead step.
@@ -419,15 +430,10 @@ function ChipScreen({ shape, s }: { shape: ChipMode; s: BoardState }) {
           {means === "mine" ? (
             <BundleRows album={album} chosen="album" />
           ) : null}
-          {/* Only today's row can BE in the video state: the tap that puts it
-              there is the defect. The other two answers keep the dialog on
-              Everything, because their third chip never takes a tap. */}
-          <ChipRow
-            summary={summary}
-            types={shape === "three" ? "video" : "all"}
-            mode={shape}
-          />
-          <Foot summary={summary} types={shape === "three" ? "video" : "all"} />
+          {/* Neither answer can BE in the video state: the tap that put the
+              sheet there was the defect, and the ruling closed it. */}
+          <ChipRow summary={summary} types="all" mode={shape} />
+          <Foot summary={summary} types="all" />
         </Shell>
       </GuestAlbum>
     </Screen>
@@ -442,10 +448,10 @@ const waitOf = (v: string | undefined): WaitShape =>
 
 const WAIT_CAPTION: Record<WaitShape, string> = {
   toast:
-    "Today, one second after the tap. The dialog is gone, the toast is leaving, and the app knows nothing more.",
+    "Today, one second after the tap. The sheet is gone, the toast is leaving, and the app knows nothing more.",
   panel:
-    "The same second, in the dialog that was already open. It holds the count, the size and a bar, and Cancel is on it.",
-  line: "The dialog closed and the album is usable. One line under its own header carries the wait.",
+    "The same second, in the sheet that was already open. It holds the count, the size and a bar, and Cancel is on it.",
+  line: "The sheet closed and the album is usable. One line under its own header carries the wait.",
 };
 
 /** Whichever album surface the asker is standing on. */
@@ -465,7 +471,7 @@ function Ground({
   return who === "guest" ? (
     <GuestAlbum screen={screen} count={count}>
       {/* The guest album has no section header to hang a line under, so the
-          wait's line rides the same slot the dialog and the toast do. */}
+          wait's line rides the same slot the sheet and the toast do. */}
       {under}
       {children}
     </GuestAlbum>
@@ -518,11 +524,10 @@ function WaitScreen({ shape, s }: { shape: WaitShape; s: BoardState }) {
 
 /* ── 4. a tap with no answer ─────────────────────────────────────────────── */
 
-type StuckShape = "forever" | "timeout" | "cancel";
+/** `forever` is dropped: a failure's ways out are ruled onto real buttons. */
+type StuckShape = "timeout" | "cancel";
 
 const STUCK_CAPTION: Record<StuckShape, string> = {
-  forever:
-    "Ten seconds after the tap, in whichever wait was chosen. The request never answered, and nothing on the screen ends it.",
   timeout:
     "The same ten seconds, given up on. The button is back and the way forward is named.",
   cancel:
@@ -610,11 +615,10 @@ function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
 
 /* ── 5. a zip with nothing in it ─────────────────────────────────────────── */
 
-type HollowShape = "silence" | "after" | "refuse";
+/** `silence` is dropped: he refuses a gap a person has to check for themselves. */
+type HollowShape = "after" | "refuse";
 
 const HOLLOW_CAPTION: Record<HollowShape, string> = {
-  silence:
-    "The album lost its files between the mint and the stream, and every surface behaves exactly as if it had worked.",
   after:
     "The same moment, counted. What really reached the file is on the screen, whether that is six missing or all of them.",
   refuse:
@@ -630,11 +634,9 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
   const kept = Math.max(0, total.count - 6);
 
   const said =
-    shape === "silence"
-      ? "Your download is starting."
-      : shape === "after"
-        ? `${kept.toLocaleString("en-US")} of ${total.count.toLocaleString("en-US")} items are in your zip. Six could not be found.`
-        : "The album changed while your zip was being made.";
+    shape === "after"
+      ? `${kept.toLocaleString("en-US")} of ${total.count.toLocaleString("en-US")} items are in your zip. Six could not be found.`
+      : "The album changed while your zip was being made.";
 
   return (
     <Screen
@@ -650,7 +652,7 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
         under={
           wait === "line" ? (
             <UnderLine
-              icon={shape === "silence" ? "done" : shape === "after" ? "warn" : "warn"}
+              icon="warn"
               action={shape === "refuse" ? "Try again" : undefined}
             >
               {said}
@@ -659,10 +661,7 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
         }
       >
         {wait === "toast" ? (
-          <Toast
-            screen={screen}
-            tone={shape === "silence" ? "success" : "error"}
-          >
+          <Toast screen={screen} tone="error">
             {said}
           </Toast>
         ) : null}
@@ -673,13 +672,7 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
               summary={album.summary}
               types="all"
               percent={100}
-              state={
-                shape === "silence"
-                  ? "done"
-                  : shape === "after"
-                    ? "partial"
-                    : "failed"
-              }
+              state={shape === "after" ? "partial" : "failed"}
             />
           </Shell>
         ) : null}
@@ -690,14 +683,20 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
 
 /* ── 6. the limit ────────────────────────────────────────────────────────── */
 
-const CAP_CAPTION: Record<CapMode, string> = {
-  bite: "Today, on an album of 2,440 items. The size is replaced by a refusal that names no number and hands the work back.",
+/**
+ * ★ `bite` IS DROPPED (a refusal that names no number is ruled out). `CapMode`
+ * keeps the word because it is `Foot`'s DEFAULT, which is what every other
+ * decision's foot draws; only this ask lost it as an answer.
+ */
+type CapShape = Exclude<CapMode, "bite">;
+
+const CAP_CAPTION: Record<CapShape, string> = {
   near: "The same album, with the number said. It is still a refusal, but the host knows what they are up against.",
   split:
     "The same album, taken home. The foot says how many files it will be and the button says it too.",
 };
 
-function CapScreen({ shape, s }: { shape: CapMode; s: BoardState }) {
+function CapScreen({ shape, s }: { shape: CapShape; s: BoardState }) {
   const screen = screenFor(s);
   const who = whoFor(s);
   // Forced to the album where the limit exists at all: on a wedding the three
@@ -727,15 +726,15 @@ function CapScreen({ shape, s }: { shape: CapMode; s: BoardState }) {
 
 /* ── 7. what keeping it means ────────────────────────────────────────────── */
 
-type ObjectShape = "zip" | "link" | "straight";
+/** `link` is dropped: the album's address and its copy sit twice on the page. */
+type ObjectShape = "zip" | "straight";
 const objectOf = (v: string | undefined): ObjectShape =>
-  v === "link" || v === "straight" ? v : "zip";
+  v === "straight" ? "straight" : "zip";
 
 const OBJECT_CAPTION: Record<ObjectShape, string> = {
-  zip: "Today. Three chips, a size and a button. Nothing says the album will still be there next year.",
-  link: "The promise leads and the file follows. The dialog grows by one row and says the truest thing the product has.",
+  zip: "Today. Three chips, a size and a button, on the sheet every other decision here happens on.",
   straight:
-    "The dialog is gone entirely: the tap starts the download, and anyone who wants less picks tiles instead.",
+    "The sheet is gone entirely: the tap starts the download, and anyone who wants less picks tiles instead.",
 };
 
 function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
@@ -770,7 +769,6 @@ function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
       <Ground who={who} screen={screen} count={total.count}>
         <Shell>
           <Head />
-          {shape === "link" ? <KeepsakeLead /> : null}
           <ChipRow summary={album.summary} types="all" />
           {who === "host" ? (
             <HiddenRow summary={album.summary} checked={false} />
@@ -823,7 +821,6 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
         ) : (
           <Shell>
             <Head />
-            {object === "link" ? <KeepsakeLead /> : null}
             <ChipRow summary={album.summary} types="all" />
             <Foot
               summary={album.summary}
@@ -845,7 +842,6 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
   "means.mine": (s) => <MeansScreen shape="mine" s={s} />,
   "means.picked": (s) => <MeansScreen shape="picked" s={s} />,
 
-  "chips.three": (s) => <ChipScreen shape="three" s={s} />,
   "chips.two": (s) => <ChipScreen shape="two" s={s} />,
   "chips.why": (s) => <ChipScreen shape="why" s={s} />,
 
@@ -853,20 +849,16 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
   "wait.panel": (s) => <WaitScreen shape="panel" s={s} />,
   "wait.line": (s) => <WaitScreen shape="line" s={s} />,
 
-  "stuck.forever": (s) => <StuckScreen shape="forever" s={s} />,
   "stuck.timeout": (s) => <StuckScreen shape="timeout" s={s} />,
   "stuck.cancel": (s) => <StuckScreen shape="cancel" s={s} />,
 
-  "hollow.silence": (s) => <HollowScreen shape="silence" s={s} />,
   "hollow.after": (s) => <HollowScreen shape="after" s={s} />,
   "hollow.refuse": (s) => <HollowScreen shape="refuse" s={s} />,
 
-  "cap.bite": (s) => <CapScreen shape="bite" s={s} />,
   "cap.near": (s) => <CapScreen shape="near" s={s} />,
   "cap.split": (s) => <CapScreen shape="split" s={s} />,
 
   "object.zip": (s) => <ObjectScreen shape="zip" s={s} />,
-  "object.link": (s) => <ObjectScreen shape="link" s={s} />,
   "object.straight": (s) => <ObjectScreen shape="straight" s={s} />,
 
   "phone.today": (s) => <PhoneScreen shape="today" s={s} />,

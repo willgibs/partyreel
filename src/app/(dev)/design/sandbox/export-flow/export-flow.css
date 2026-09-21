@@ -27,26 +27,49 @@
   }
 }
 
-/* `DialogContent`'s own box at the export dialog's `sm:max-w-[26rem]`: the
-   float corner, popover ink, the hairline ring and the layer shadow. */
+/* THE ONE RESPONSIVE SHEET the guest's dialogs are ruled onto (`guest-shape`
+   r1, folded in by the overtaken audit 2026-09-21): a bottom sheet in a hand, a
+   side panel from 640px up. The numbers are read off the shipped constant
+   (`floatingEdgeEntranceResponsive` in ui/floating-layer.ts) rather than
+   guessed: max-sm inset-x-0 bottom-0 h-auto max-h-[85svh] w-full border-t
+   rounded-t-float; sm inset-y-0 right-0 h-full w-3/4 max-w-md border-l.
+
+   ★ THE MEDIA QUERY IS THE FRAME'S OWN VIEWPORT, which is the whole reason one
+   stage can draw both postures: each preview is an iframe at a real 375 or a
+   real 1440, so the sheet answers the picture it is in rather than the lab page
+   around it. The shipped export dialog is still a centred `Dialog`; the swap is
+   the wiring lane's, and drawing it here is what lets a question about the
+   sheet be answered on a sheet. */
 .xf-dialog {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  inset-inline: 0;
+  bottom: 0;
   z-index: 50;
   display: grid;
+  align-content: start;
   gap: 1rem;
-  width: calc(100% - 2rem);
-  max-width: 26rem;
+  width: 100%;
+  max-height: 85svh;
+  overflow: auto;
   padding: 1rem;
   font-size: 0.875rem;
-  transform: translate(-50%, -50%);
-  border-radius: var(--radius-float);
+  border-top: 1px solid var(--border);
+  border-radius: var(--radius-float) var(--radius-float) 0 0;
   background: var(--popover);
   color: var(--popover-foreground);
   box-shadow: var(--shadow-layer);
-  outline: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
-  outline-offset: -1px;
+}
+@media (min-width: 40rem) {
+  .xf-dialog {
+    inset-block: 0;
+    inset-inline: auto 0;
+    width: 75%;
+    max-width: 28rem;
+    max-height: none;
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0;
+  }
 }
 /* A grid item's `min-width: auto` lets one wide child push the column past the
    panel, and then every row below it hangs out of the box. The shipped dialog

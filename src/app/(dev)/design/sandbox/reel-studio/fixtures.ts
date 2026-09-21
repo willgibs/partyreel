@@ -57,6 +57,8 @@ export const EVENT = {
   guests: 19,
   /** What the album holds; the picker's pool below is its first screen. */
   photos: 148,
+  /** The qr_token the hub's link row prints under the event's metadata. */
+  token: "k3f9qz",
 } as const;
 
 /**
