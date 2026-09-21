@@ -32,6 +32,6 @@ const thrown = events.filter((e) => e.method === "Runtime.exceptionThrown").map(
 const title = (await send("Runtime.evaluate", { expression: "document.title + ' | rows=' + document.querySelectorAll('[role=search] ~ div ul li').length + ' | groups=' + document.querySelectorAll('[role=search] ~ div > div').length", returnByValue: true })).result?.result?.value;
 console.log("page:", redact(title));
 console.log("console errors/warnings:", errors.length); for (const e of errors) console.log("  -", redact(e).slice(0, 220));
-console.log("exceptions:", thrown.length); for (const t of thrown) console.log("  -", redact(t).slice(0, 220));
+console.log("exceptions:", thrown.length); for (const t of thrown) console.log("  -", redact(t).slice(0, 900));
 console.log("duplicate-key error present:", errors.some((e) => e.includes("same key")) ? "YES" : "no");
 ws.close(); chrome.kill("SIGKILL"); await sleep(300); try { rmSync(profile, { recursive: true, force: true }); } catch {}

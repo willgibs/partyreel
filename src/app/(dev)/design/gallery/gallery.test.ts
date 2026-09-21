@@ -463,3 +463,24 @@ describe("the config panels", () => {
     }
   });
 });
+
+/**
+ * ★ ONE GROUP PER SECTION, PER FAMILY. A family page keys its section blocks by
+ * the section's name, and a lane that adds an entry at the head of a family's
+ * list under a heading that already exists further down (the disjoint-hunk
+ * convention) used to open a second block with the same key: React dropped one
+ * silently and the page logged the duplicate ("Surfaces", twice, 2026-09-20).
+ * `familySections` merges every entry of a section into one block through the
+ * shared first-appearance grouping now. Pinned on the SOURCE, not at runtime:
+ * importing the registry here pulls every family's components and the product's
+ * env validation into a node test; `group-by.test.ts` proves the helper itself.
+ */
+describe("a family's sections", () => {
+  it("are grouped by the shared first-appearance helper, never by a consecutive-run scan", () => {
+    const src = readFileSync(join(__dirname, "registry.ts"), "utf8");
+    const body = src.slice(src.indexOf("export function familySections"));
+    const fn = body.slice(0, body.indexOf("\n}\n") + 3);
+    expect(fn).toContain("groupByKey(");
+    expect(fn).not.toMatch(/out\.at\(-1\)|last\?\.section/);
+  });
+});

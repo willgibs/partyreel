@@ -12,21 +12,27 @@
  * shows as canceled). Runs BEFORE install with the repo checked out, so: node stdlib only,
  * never import from node_modules.
  *
- * Policy: build main (production) always. launch-prep builds ON REQUEST: only when the commit
- * message carries `[preview]` (the Vercel cost round, 2026-09-11 — Will: "deployments are only
- * needed for reviewable rounds"). It used to build on every push, which alone accounted for 176
- * of the 381 retained deployments and most of the storage overage; a docs commit or a
- * mid-round checkpoint needs no preview, and the round's LAST push before a walk says
- * `[preview]`. Nothing is lost but the preview itself: CI (GitHub Actions) runs typecheck,
- * lint, test and build on every push to main, launch-prep and lp/** regardless of this file.
- *
- * An lp/<track> push builds ONLY when the commit message carries `[preview]` (the storage round,
- * 2026-09-15: with fourteen tracks handing off in one day, "build at handed-off" put the project
- * at 40 GB of its 10 GB monthly deployment storage and over on function storage, and Will's
- * review surface for a round is the launch-prep alias after integration, not fourteen branch
- * aliases). A manifest's `status` and `preview:` fields no longer build anything, and a branch
- * without a manifest builds nothing either. The Orchestrator builds the launch-prep alias once
- * per round close, and prunes (`scripts/prune-vercel-deployments.mjs`) after every integration.
+ * Policy: build main (production) always. launch-prep and lp/<track>: NO PUSH CREATES A DEPLOYMENT
+ * (vercel.json's `git.deploymentEnabled`: `lp/*` off since 2026-09-19, `launch-prep` off since
+ * 2026-09-20). Vercel's Hobby cap is 100 deployment CREATIONS per rolling day across the team, a
+ * canceled one counts, and two projects build this repository, so every push cost two creations
+ * even when this script canceled both at once: six lanes pushing working states filled the cap on
+ * 2026-09-19, and the Orchestrator's own pushes (about forty by the evening of 2026-09-20, most of
+ * them journal and kit commits) filled it again and pinned the review alias for a day. Now the
+ * Orchestrator creates one deployment per project by API for each record commit
+ * (`usher/kit/alias-ensure.mjs`) and assigns the two launch-prep aliases by hand, so the only
+ * launch-prep deployment this script ever sees was asked for. It still requires `[preview]` on
+ * that commit: the Ignored Build Step runs on an API-created git deployment too (2026-09-19: one
+ * created for a commit without it was canceled here), so a record commit says `[preview]` and an
+ * accidental creation of any other commit costs one canceled deployment, never a build. The same
+ * word gates `lp/*` should that line ever leave vercel.json. Nothing is lost but the preview
+ * itself: CI (GitHub Actions) runs typecheck, lint, test and build on every push to main,
+ * launch-prep and lp/** regardless of this file. Lanes never had a preview to lose: they work on
+ * their own dev servers, and the alias is Will's review surface and the Orchestrator's live
+ * red-team (the storage round, 2026-09-15: fourteen "build at handed-off" previews put the project
+ * at 40 GB of its 10 GB deployment storage). The cost round before it (2026-09-11, Will:
+ * "deployments are only needed for reviewable rounds") had taken launch-prep from "build every
+ * push" (176 of 381 retained deployments) to "build on `[preview]`", the rule the cap then outran.
  * A missing/empty VERCEL_GIT_COMMIT_REF means a manual `vercel deploy` with no git ref, which
  * must never be silently canceled, so it builds. Everything else skips.
  *
