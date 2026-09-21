@@ -252,25 +252,41 @@ time on this machine; your dev server on your own port, killed by port before a 
   grid's wrapper, as the host does); the "Showing yours · Show all" line stays as the state's receipt.
 ## Handoff (replaces the chat report)
 
-- The BOARD commit is `206cb7bf` (the whole wiring and the board's retirement); the SYNC-MERGE is `b162d563`
-  (`origin/launch-prep` had moved to `436ef3d3`, two `usher/` commits only, nothing this lane reads or owns).
-  The head is in the chat line, not here.
-- Gates on the synced tree (`b162d563`), each on its own exit code: `pnpm design:rules` 0 · the specimen
+- The BOARD commit is `206cb7bf` (the whole wiring and the board's retirement); the SYNC-MERGE is `456a973d`
+  (`origin/launch-prep` at `224049d6`: buttons-wiring merged, `body-type` retired, guest-verify round two and
+  the record). An earlier sync, `b162d563`, carried the two `usher/` commits before it. The head is in the
+  chat line, not here.
+- The second sync had TWO conflicts, both the three-lanes-retiring-at-once one this lane predicted, and both
+  resolved as "keep EVERY deletion":
+  - `sandbox/registry.ts`: the `BODY_TYPE` and `GUEST_SHAPE` spec imports are adjacent lines and each lane
+    deleted the other's, so git saw one hunk. Neither board survives and both imports are gone. `DESK_ORDER`
+    and `(shell)/lab/boards.ts` merged clean with both rows already removed.
+  - `docs/design/library.md`: generated, so it was regenerated (`pnpm design:rules`) rather than merged, as
+    was `rules.generated.json`.
+  And ONE CORRECTION the merge exposed, in this lane's own board lines: retiring `guest-shape` I had deleted
+  its `TOUCHPOINTS` row and both union members outright, and `body-type` arriving retired shows the house
+  convention `glass` and `voice` already followed. A retired board KEEPS its `RulingId` member and its
+  touchpoint row, with `ruled` and `shipped` filled in and no `board` block, and leaves `SandboxId` and
+  `DESK_ORDER` (`boards.ts` holds `Record<SandboxId, BoardEntry>` TOTAL, so a member with no component is a
+  type error, measured). `guest-shape`'s row is restored in that shape, naming what its two rounds ruled and
+  what this lane shipped. `entry-modal.tsx` and `password-gate.tsx` carry buttons-wiring's five `size="cta"`
+  changes verbatim (this lane never touched either file); both lanes' work is on the tree, checked by hand.
+- Gates on the synced tree (`456a973d`), each on its own exit code: `pnpm design:rules` 0 · the specimen
   collector 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (the 8 known warnings,
-  unchanged) · `pnpm test` 0 (3078 passing, 1 skipped, 293 files) · `pnpm build` 0 (255 static pages, 130
-  routes) · `pnpm lab:smoke --base http://localhost:3134` 440 checks / 0 failing (442 before the retirement:
-  the two the board itself owned) · `pnpm lab:demo --board guest-shape --base http://localhost:3134` reported
-  "0 steps, 0 failing", run BEFORE the retirement, because this board declared no step to press.
-- Lane check, `git diff --name-only origin/launch-prep...HEAD`: everything under `src/components/guest/`,
-  `src/components/shared/masonry.tsx` + `masonry.test.tsx`, `src/components/shared/floating-add-button.tsx`,
-  `src/app/(dev)/design/sandbox/guest-shape/` (deleted) and `docs/systems/guest-flow.md` is owned. Six files
-  outside the `owns` list, with why:
+  unchanged) · `pnpm test` 0 (3099 passing, 1 skipped, 294 files) · `pnpm build` 0 (255 static pages, 130
+  routes) · `pnpm lab:smoke --base http://localhost:3134` 441 checks / 0 failing ·
+  `pnpm lab:demo --board guest-shape --base http://localhost:3134` reported "0 steps, 0 failing", run BEFORE
+  the retirement, because this board declared no step to press.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD` (re-run on the second sync): everything under
+  `src/components/guest/`, `src/components/shared/masonry.tsx` + `masonry.test.tsx`,
+  `src/components/shared/floating-add-button.tsx`, `src/app/(dev)/design/sandbox/guest-shape/` (deleted) and
+  `docs/systems/guest-flow.md` is owned, plus this file. Six files outside the `owns` list, with why:
   - `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts` and
     `src/app/(dev)/design/touchpoints.ts`: the RETIREMENT exception, this board's lines only. Two lines in
-    each registry; in touchpoints its `SandboxId` member (it appears in two unions), its `TOUCHPOINTS` entry
-    and its `DESK_ORDER` row. WARNING: `body-type`, `app-shape` and `guest-shape` are ADJACENT rows in
-    `DESK_ORDER` and three lanes retire them this round, so expect a real git conflict there at the second
-    and third merges; the resolution is "keep every deletion", nothing more.
+    each registry; in touchpoints its `SandboxId` member and its `DESK_ORDER` row removed, and its `RulingId`
+    member and `TOUCHPOINTS` row kept in the retired shape. `app-shape` is still an adjacent `DESK_ORDER` row
+    and its lane retires it too, so expect the same one-hunk conflict once more; the resolution is "keep every
+    deletion", nothing else.
   - `src/app/(dev)/design/rules/component-notes.ts`: the ownership rule ("every new component gets its `for`
     line"). Three added (`guest-action-dock.tsx`, `entry-shell.tsx`, `yours-filter.ts`), placed in the GUEST
     block rather than at the head so the four lanes adding lines this round stay line-disjoint; plus one
@@ -299,8 +315,9 @@ time on this machine; your dev server on your own port, killed by port before a 
     green. The tap toggles a Yours filter in `live-gallery.tsx` under a "Showing yours · Show all" line with
     the count, on the same server-read own-uploads set `canDelete` already gates Remove with.
     `guest/yours-filter.ts` is the pure half and lands in the Library as **yours-filter**.
-  - The board: `guest-shape` retired. The directory is deleted, the three registries are clean, and
-    `/design/lab` renders with no guest-shape link (measured in the browser).
+  - The board: `guest-shape` retired. The directory is deleted, the registries are clean and `/design/lab`
+    renders with no guest-shape link (measured in the browser); its touchpoint row stays in the retired shape
+    (`ruled` + `shipped`, no `board` block), the way `glass`, `voice` and now `body-type` do.
 - Calls his to overrule on the alias, one line each:
   - **The mark's corner.** The board drew it top-RIGHT on a phone, where nothing else sits; I put it top-LEFT
     at every width, because from `md` up the top right is the desk hover row's own pane (`row=bar`) and that
