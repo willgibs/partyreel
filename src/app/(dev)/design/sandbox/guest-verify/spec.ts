@@ -2,50 +2,58 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * VERIFY, OR BADGE (2026-09-20): the guest door's confirmation, re-asked.
+ * THE IDENTITY SHAPE, WHOLE (round two, 2026-09-20).
  *
- * ★ HIS ASK, BY NAME (Will, 2026-09-19, `voice` r1 `gate=ask`, verbatim): "this
- * is a big one, I've been wondering about whether we should skip requiring
- * email confirmation to upload in favor of a verified/unverified email
- * ownership badge on avatars or something. A huge fear of mine is that at one
- * event on a shared network, either users can't get the email confirm email or
- * we have a problem that stops sending them, blocking everyone from creating an
- * account to upload. This continues to provide safety, without ever blocking
- * the core upload feature. However, we'd need extra safety considerations here,
- * such as what happens if a user goes to create an account under an email that
- * already exists but is unverified. Worth 1+ exploratory tracks."
+ * ★ HIS SUMMING-UP IS THE BRIEF, verbatim (Will, 2026-09-20, `guest-verify` r1
+ * `collision`): "We either need a good login/verification system, or maybe we
+ * just need to fall back to the magic link or a similar idea. Passwords don't
+ * prove ownership either. Consider all of our ideas and systems up until now
+ * unprotected and open to relitigation for best overall idea to streamline
+ * account identity." And on `expiry`: "Sorry if any of these selections are
+ * starting to cross wires. May have to relitigate."
  *
- * His own gate SENTENCE was ruled and is wired ("For safety, the host has
- * requested you confirm your email. One tap and you're in.", `DOOR_WEAR.gate`).
- * This board does not touch it. It asks the question underneath it.
+ * So all four of round one's rulings (`gate=after`, `badge=mark`,
+ * `host-lens=badge`, `expiry=host`) are HELD rather than wired, and this round
+ * draws the shape they imply, whole, with each of them named on the frames that
+ * rest on it. An option that would change one says so on its own frame.
  *
- * ★ WHAT IS TRUE TODAY, read out of the tree rather than remembered:
- *  - `events.allow_anonymous_uploads` defaults FALSE, so accounts are required
- *    (migration 20260621170000).
- *  - The account step is Supabase Auth OTP: one email carrying a 6-digit code
- *    AND a magic link, verified in-page by `verifyOtp` (`email-sign-in.tsx`).
- *    Typing the code IS the confirmation; there is no other way to a session.
- *  - The hard gate is POSTGRES, not the app: `create_guest` raises "This event
- *    requires an account to upload." when the event requires an account and the
- *    caller has no `email_confirmed_at`. The address on `guests.email` is read
- *    from `auth.users` under definer privilege — verified at join, never the
- *    client's word.
- *  - A failed send is one `FailurePaths` block and a Resend button on a 60s
- *    cooldown.
- *  - Nothing in the product distinguishes a verified guest from an unverified
- *    one, because today there is no such thing as an unverified one.
+ * ★ WHAT ROUND ONE GOT WRONG, CORRECTED BEFORE ANYTHING WAS DRAWN. Its wall
+ * strip said typing a code rides "a bucket of 30, not configurable" and that
+ * sending was capped at 30 an hour project-wide, which together read as "most
+ * guests cannot confirm that night". Supabase's current Auth rate-limit table
+ * says otherwise: `/auth/v1/verify` is 360 an hour PER IP with bursts up to 30
+ * (a room drains the burst, then clears at about six a minute), `/auth/v1/otp`
+ * is 360 an hour project-wide and customizable, and the "30 an hour" figure is
+ * the custom-SMTP emails cap, which is ours to raise. The true risk is smaller
+ * and differently shaped: a mail can still fail, and a room at the door queues.
+ * Every number on this board is the DOCUMENTED default, labelled as documented;
+ * the project's CONFIGURED numbers are the one thing the board needs from him
+ * and ride the carried call `numbers`.
  *
- * ★ SIX DECISIONS, AND THE FIRST ONE MOVES THE OTHER FIVE. `gate` decides
- * whether an unproven upload can exist at all; `badge` asks who is told;
- * `collision` asks what an unproven address IS (a key or a label), which is the
- * security core; `outage` is the remedy for the failure he actually named;
- * `host-lens` is what the host holds; `expiry` is the only one with a
- * data-loss cost. Each is drawn on the shipped door, the shipped album, the
- * shipped guest list and the shipped review queue. Never `/admin`.
+ * ★ THE THREE JOBS ONE EMAIL GATE WAS DOING. Credit (who added this) needs no
+ * proof. Ownership (mine across events, my profile, my deletions) needs proof
+ * only when ownership matters. Safety (the host's) was served by the gate and
+ * has to be served by something else once the gate opens. Every decision below
+ * is one of those three, separated.
  *
- * ★ NO PRODUCTION BYTE. The proposed migration (one nullable column on
- * `guests`, and nothing on `media` or on Supabase Auth) is written out in this
- * lane's Handoff as SQL and applied by nobody.
+ * ★ FIVE DECISIONS, AND THE FIRST MOVES THE OTHERS. `address` decides whether
+ * an unproven string exists at all; `allowance` decides who pays once the gate
+ * is gone; `unproven` decides what a guest sees; `collision` is his case 2 with
+ * his other two drawn beside it as settled fact; `gate-switch` decides what is
+ * left of the host's control. Each is drawn on the shipped door, album, guest
+ * list, queue and settings sheet at 375 with 1440 on the knob.
+ *
+ * ★ EVERY CONTROL DEFAULTS TO ITS OWN RECOMMENDATION HERE, WHICH IS DELIBERATE
+ * and the one place this board departs from `Decision.today`. Only `allowance`
+ * has an option that IS the surface as built (`open` is what an anonymous
+ * upload gets today on an open event); nothing else here exists in the product
+ * at all, because an unproven session cannot exist today. The recommendations
+ * are therefore ONE coherent proposed shape, and each frame is drawn standing
+ * inside it: `collision` reads the board's `address` answer and says out loud
+ * when an option is not reachable under it.
+ *
+ * ★ NO PRODUCTION BYTE. The migrations either shape needs are WRITTEN ONLY, in
+ * this lane's Handoff, and applied by nobody.
  */
 
 /** The screen every decision shares. Phone first: a guest is at a party. */
@@ -60,297 +68,249 @@ const SCREEN: Control = {
 };
 
 /**
- * ★ `gate` ON `badge`'s OWN STRIP, and this is not decoration. The badge's
- * AUDIENCE depends on the gate: under `held` nothing unproven ever reaches a
- * guest's screen, so a guest-facing mark labels people whose photographs nobody
- * has seen; under `after` the mark is standing next to the photograph it is
- * about. Same mark, two different jobs. The constructor dedupes controls by id
- * and the DERIVED `gate` control is declared first, so this mirror never
- * displaces it — it only puts the knob on the step where the answer depends on
- * it (`exploration.ts`, `byId`).
+ * ★ `address` ON `collision`'s OWN STRIP, and it is not decoration. Decision
+ * one decides whether an unproven address exists, and two of `collision`'s
+ * three answers cannot be built without one. The constructor dedupes controls
+ * by id and the DERIVED `address` control is declared first, so this mirror
+ * never displaces it: it only puts the knob on the step where the answer
+ * depends on it (`exploration.ts`, `byId`).
  */
-const GATE_MIRROR: Control = {
-  id: "gate",
-  label: "The gate",
+const ADDRESS_MIRROR: Control = {
+  id: "address",
+  label: "A typed address",
   options: [
-    { id: "before", label: "Confirm first, as today" },
-    { id: "after", label: "Upload now, the photo marked" },
-    { id: "held", label: "Upload now, held until confirmed" },
+    { id: "none", label: "Never typed at the door" },
+    { id: "private", label: "Typed, kept private" },
+    { id: "public", label: "Typed, public credit" },
   ],
-  default: "before",
+  default: "none",
 };
 
 const DRAFT = defineExploration({
   id: "guest-verify",
   title: "Verify, or badge",
   round: {
-    n: 1,
+    n: 2,
     date: "2026-09-20",
     changed:
-      "The first round of the question his gate ruling left open: whether a guest must confirm an email before uploading at all, and what the product has to grow if the answer is no. Six decisions on the shipped door, album, guest list and review queue, phone first.",
+      "Round one ruled four and held all four on his own May have to relitigate. This round drops the six and draws the shape they imply, whole: what a typed address does, who pays once the gate is gone, what a guest sees, his case 2, and what the host's switch becomes. The wall is re-measured.",
   },
   context:
-    "Today Postgres refuses: `create_guest` raises when the event requires an account and the caller's address is not confirmed, so a code that never arrives is a guest who never contributes. The address on a guest row is read from `auth.users`, never from the client, and nothing anywhere says a guest is unverified, because today one cannot be. Every option below changes exactly one thing about that.",
-  bible: [1, 4, 15, 21],
+    "Identity has three jobs one email gate was doing at once: credit needs no proof, ownership needs proof only when ownership matters, and safety was the gate's and now needs something else. The key is the session, the device's own guest row, and it already ships. Proof is the code, later, from anywhere. Three ideas are refused on the frames with the cost that refused them, so they are not proposed again.",
+  bible: [1, 4, 20, 22],
   carried: [
-    {
-      id: "mechanism",
-      question:
-        "What is an unverified account, when the only way to a session today is the code that confirms it?",
-      taken:
-        "This browser's anonymous guest row, plus one nullable claimed-address column. No change to Supabase Auth at all.",
-      overrule:
-        "A real unconfirmed auth session means turning Confirm-email off platform-wide, which un-proves every host too.",
-    },
-    {
-      id: "badge-audience",
-      question:
-        'His note put the badge "on avatars". Does the board recommend putting it there?',
-      taken:
-        "No. Both guest-visible forms are drawn with their cost on the frame, and the recommendation is host-only.",
-      overrule:
-        "Answer `mark` or `ring` and the state rides every guest's screen, five faces in twenty-three.",
-    },
     {
       id: "numbers",
       question:
-        "Are the rate limits on the wall this project's configured numbers or Supabase's defaults?",
+        "Are the rate limits drawn here this project's configured numbers, or Supabase's documented defaults?",
       taken:
-        "Supabase's current documented defaults, labelled as such. The shapes (per IP, project-wide) are exact.",
+        "The documented defaults, labelled as documented, re-read this round. Round one drew them wrong and read as a wall.",
       overrule:
-        "The dashboard's real figures are one read away, and only the send cap can be raised; the verify cap cannot.",
+        "Three reads in the dashboard (Authentication, Rate Limits) replace them, and the board swaps them in without redrawing anything.",
+    },
+    {
+      id: "handful",
+      question:
+        "How many photographs is a handful, on the allowance the gate leaves behind?",
+      taken:
+        "Ten a session, no video. A room of 120 who all stay unproven spends 4.8 GB of a Free host's 20 GB month.",
+      overrule:
+        "It is one constant and any number fits the same shape; only open has no number at all.",
+    },
+    {
+      id: "vouch",
+      question:
+        "May a host clear an unconfirmed mark themselves, for a guest they know?",
+      taken:
+        "Yes, once, inside that one event. It grants no verified state, no profile, no claim and no extra reach.",
+      overrule:
+        "Drop it and a guest whose mail never arrives wears the mark all night with nobody able to help.",
     },
   ],
   asks: [
     {
-      id: "gate",
-      label: "The gate",
+      id: "address",
+      label: "A typed address",
       question:
-        "When does a guest's email get confirmed: before their photograph is uploaded, or after it is already in?",
+        "What does a typed address do on a session that has proved nothing?",
       context:
-        "Drawn as the guest's own screen one second after they pressed Add, on the shipped door and the real album. All three use the same door and the same code; what moves is what has happened to the photograph by then.",
+        "Drawn as the door a guest meets and the three surfaces the string reaches: the guest list, the host's lightbox, their own photos. On all three the address authorises nothing, because the address as a key is a refusal drawn beside them.",
       options: [
         {
-          id: "before",
-          label: "Confirm first, as today",
+          id: "none",
+          label: "The door asks a name",
           means:
-            "The shipped gate. Nothing is uploaded until a code is typed, so a code that never arrives is a guest who never contributes.",
+            "No unproven address exists anywhere. The only field that takes one is the sign-in door, where the code proves it by construction.",
         },
         {
-          id: "after",
-          label: "Upload now, the photo marked",
+          id: "private",
+          label: "Typed, kept private, never mailed",
           means:
-            "The photograph goes live in the album straight away, wearing an unconfirmed mark until the code is typed.",
+            "Kept beside the session as a claim. The host sees it in a slot that says typed and unconfirmed; other guests never see it at all.",
+        },
+        {
+          id: "public",
+          label: "Typed, public credit, marked",
+          means:
+            "Whatever a guest types is their credit in the album, wearing the mark. Proof of that address anywhere then scrubs every unproven copy.",
+        },
+      ],
+      recommended: "none",
+      because:
+        "It answers his cases 1 and 3 by construction rather than by rule: there is no unproven address to reassign, and none for two people to share. It is also his own account=after ruling carried the rest of the way, and it is the only answer with no string a stranger can put in somebody else's name.",
+      overrule:
+        "If a host must be able to guess who an unconfirmed guest was, private keeps the hint, in a slot that can never be the verified one.",
+      lands:
+        "Whether guests.claimed_email is ever written, and what the host's lightbox is allowed to show beside a verified address.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+    {
+      id: "allowance",
+      label: "The allowance",
+      question:
+        "What may a session that has proved nothing add, now that a mail can no longer stop it?",
+      context:
+        "The host's month is the measurement on every frame, because it is invisible in the product: the meter counts bytes uploaded and never decrements, so a delete frees the storage cap and never the month.",
+      options: [
+        {
+          id: "handful",
+          label: "Ten photographs, then one tap",
+          means:
+            "A fixed count per session, no video, until an address is proved. Everything already added stays, and the ask arrives after ten rather than before one.",
+        },
+        {
+          id: "budget",
+          label: "A budget the host can raise",
+          means:
+            "A per-event pool of unconfirmed photographs on the settings sheet. The fiftieth guest can be stopped by the first, and the host is the only remedy.",
+        },
+        {
+          id: "open",
+          label: "No cap at all",
+          means:
+            "A session that proved nothing has the reach of one that proved everything. One script with a public link spends a Free host's whole month.",
+        },
+      ],
+      recommended: "handful",
+      today: "open",
+      because:
+        "It is the only bound that scales with the guest list rather than with the internet, needs no host to find a control mid-party, and asks the guest at the moment they are most willing: after ten photographs are safely in, not before the first.",
+      overrule:
+        "If any number at all is a guest stopped mid-party, open removes it, and the host pays for every stranger who ever scans the code.",
+      lands:
+        "Whether an unproven session has a bound at all, and whether the host's month has any per-person cost once the gate opens.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+    {
+      id: "unproven",
+      label: "What a guest sees",
+      question:
+        "Where does an unproven photograph go, and what does a guest see about the person who added it?",
+      context:
+        "Two of his held rulings meet here, so two answers change one and say so. Drawn on the album, the faces row, the tapped pop-up and the profile, the three surfaces his badge note named, with the host's queue beside them.",
+      options: [
+        {
+          id: "shown-marked",
+          label: "Live, with the subtle mark",
+          means:
+            "His two rulings drawn: it goes straight into the album, and a small dot with a tooltip rides the tile, the avatar, the pop-up and the profile.",
+        },
+        {
+          id: "shown-plain",
+          label: "Live, and nothing is said",
+          means:
+            "It goes into the album and no guest-facing surface says an address went unproven. The host's queue still names it.",
         },
         {
           id: "held",
-          label: "Upload now, held until confirmed",
+          label: "Held until a code lands",
           means:
-            "It is in and safe, and nobody sees it until the code is typed. It rides the `pending` status the review queue already has.",
+            "The host sees it at once; guests see it once proved, under a line saying how many are waiting. This changes gate=after for guests.",
         },
       ],
-      recommended: "held",
-      today: "before",
+      recommended: "shown-marked",
       because:
-        "It is the only answer that keeps both halves of his own sentence at once: the upload is never blocked, and nothing unproven ever reaches the party. The host's setting goes on meaning what it said, and no new media status is invented.",
+        "His own reason for the mark is the strongest argument here and it is not about safety: he expects a guest to see themselves marked and want to fix it. The mark is a prompt aimed at the one person who can clear it, and its tap is the door rather than an explanation.",
       overrule:
-        "If a photograph vanishing into a review a guest never asked for is worse than an unproven one on show, `after` puts it live with the mark.",
+        "If marking five of twenty-three reads as an accusation to the twenty-two who can do nothing, shown-plain keeps the fact with the host alone.",
       lands:
-        "Whether a failed email can stop an upload at all, and what a pending row can be waiting on.",
+        "Whether an avatar ever carries a trust state, which surfaces may draw it, and whether anything is ever pending on an email.",
       tile: "phone",
       configs: [SCREEN],
-    },
-    {
-      id: "badge",
-      label: "The badge",
-      question:
-        "What does an account whose address is not confirmed show, and who is shown it?",
-      context:
-        "His own idea, drawn literally, with its cost beside it: the album's guest list is twenty-three people a guest knows, five of them marked. Flip the gate on this strip; under `held` nothing unproven is here at all.",
-      options: [
-        {
-          id: "mark",
-          label: "A mark on the avatar, everywhere",
-          means:
-            "A small amber mark rides the five unconfirmed faces in the album's guest list, where every guest reads it.",
-        },
-        {
-          id: "ring",
-          label: "A dimmed, dashed rim, everywhere",
-          means:
-            "The same fact at its quietest: no glyph, a dashed rim only someone already looking for it will read.",
-        },
-        {
-          id: "host",
-          label: "The host sees it, guests never do",
-          means:
-            "A guest's album says nothing. The host's own guest list names the state in words, with a count beside it.",
-        },
-        {
-          id: "none",
-          label: "Nothing, anywhere",
-          means:
-            "Confirmation stays a gate and never becomes a label. No surface says an address went unproven.",
-        },
-      ],
-      recommended: "host",
-      today: "none",
-      because:
-        "Under the recommended gate nothing unproven reaches a guest's screen, so a guest-facing mark labels people whose photographs nobody has seen and hands nobody an action. The safety is the host's, and so is the fact.",
-      overrule:
-        "His own words put it on avatars. If a guest should judge whose photographs to trust, `ring` is the quietest form that still says so.",
-      lands:
-        "Whether an avatar ever carries a trust state, and which surfaces are allowed to draw it.",
-      tile: "phone",
-      configs: [SCREEN, GATE_MIRROR],
     },
     {
       id: "collision",
-      label: "The collision",
+      label: "The returning guest",
       question:
-        "Someone enters an address that already has an unconfirmed account waiting. Where do the photographs end up?",
+        "A guest who has an account, not signed in, adds photos at a second event. Are they uploading as themselves?",
       context:
-        "The one he flagged, and not a screen: all three look like an ordinary door to the person standing at it. What differs is where five photographs land, so it is the flow, with the second person's screen beside it.",
+        "His case 2. Cases 1 and 3 are settled by the session key and drawn beside it as fact, with the passed phone and the unproven string in the host's lightbox. The answer depends on decision one, and the frame says so.",
       options: [
         {
-          id: "session",
-          label: "The photos stay with the browser",
+          id: "offer",
+          label: "Offered to everyone, after the first photo",
           means:
-            "The address is a label on this browser's guest row. Confirming from the same browser claims them; from another, they stay anonymous.",
+            "Sign in to keep your photos together, shown to every guest whether or not an account exists, so the door reveals nothing by offering it.",
         },
         {
-          id: "email",
-          label: "The photos follow the address",
+          id: "label",
+          label: "A labelled session, merged later",
           means:
-            "They attach to the account for that address the moment it is typed, so whoever confirms it inherits them.",
+            "Nothing is offered and nothing is said. The code merges tonight's photographs the day she signs in from this same phone, and never from another.",
         },
         {
-          id: "refuse",
-          label: "The second person is turned away",
+          id: "require",
+          label: "An existing account must prove it first",
           means:
-            "An address with an unconfirmed account waiting is refused at the door, and that guest has to use another one.",
+            "The door says the address has an account and asks for the code. It is the enumeration oracle, drawn so its cost can be read.",
         },
       ],
-      recommended: "session",
+      recommended: "offer",
       because:
-        "It is the only answer where a stranger's photographs can never become Bob's, and it is the path we already ship: an anonymous guest row plus the claim that runs on sign-in. It adds a label, not a mechanism.",
+        "It is the only one that answers his question without the door learning anything about who exists: the same sentence is shown to everybody, so it cannot be used to test an address. Her photographs are in the album on all three answers; this is about whether they ever become part of hers.",
       overrule:
-        "If two people typing one address must be told so, `refuse` says it, at the cost of a dead end and a door that confirms the address exists.",
+        "If a guest should never be asked twice, label is silent, at the cost of a merge that only ever happens on one phone and is never mentioned.",
       lands:
-        "What an unproven address IS: a key, or a label. Every other answer on this board rests on it.",
+        "Whether a guest's photographs follow them across events, and whether any door in the product ever confirms an address exists.",
       tile: "phone",
-      configs: [SCREEN],
+      configs: [SCREEN, ADDRESS_MIRROR],
     },
     {
-      id: "outage",
-      label: "The outage",
+      id: "gate-switch",
+      label: "The host's switch",
       question:
-        "The codes stop arriving in the middle of a party. What gets everyone back in?",
+        "What becomes of Require accounts to upload, once uploading no longer requires an account?",
       context:
-        "Measured, not imagined, and drawn under all three: typing a code is capped PER IP and is the one row Supabase will not raise, while sending one is capped PROJECT-WIDE. A venue's Wi-Fi is one IP.",
+        "The switch has always done two jobs under one name: it gates the VIEW as well as the upload, so a signed-out visitor gets the teaser. His gate=after ruling retires the upload half by itself.",
       options: [
         {
-          id: "bypass",
-          label: "A switch the host sets beforehand",
+          id: "two",
+          label: "Two rows: to view, and to add",
           means:
-            "The shipped “Require accounts” switch, turned off. It costs nothing to build and everything to remember.",
+            "Both jobs, named apart. The second row lets a host block an upload on a mail arriving again, which is what his ruling was for.",
         },
         {
-          id: "window",
-          label: "A door the host opens for a few hours",
+          id: "one",
+          label: "One row, gating the view",
           means:
-            "A live, time-boxed control on the settings sheet: let everyone in for three hours, and it closes itself.",
+            "The job it was really doing. Adding is always open under the allowance, which no host has to know exists.",
         },
         {
-          id: "channel",
-          label: "A code by text instead",
+          id: "none",
+          label: "The switch retires",
           means:
-            "A second delivery path for when email fails. It costs money per message and a phone number we have never held.",
+            "Private, password and open govern the view; the allowance and the queue are the protection. Every event already gated this way opens.",
         },
       ],
-      recommended: "window",
-      today: "bypass",
+      recommended: "one",
       because:
-        "The failure is discovered at the party, never before it. A switch already flipped is not a remedy and a permanent one never gets flipped back, so a door that shuts itself is the only one that is both reachable and temporary.",
+        "The upload half is dead the moment his ruling lands, and the view half is a real and separate promise a host made: none of the three visibility states is an identity gate, so retiring it leaves a host a shared secret or nothing, and opens every album already set this way.",
       overrule:
-        "If the host is holding a microphone rather than a phone, `bypass` is the only remedy that needs nobody at the moment it fails.",
+        "If a host should still be able to insist on an account before a photo, two keeps that, and with it the blocked guest his gate ruling was meant to end.",
       lands:
-        "Whether an event can ever have a time-boxed open door, and where a host reaches for it.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "host-lens",
-      label: "The host's lens",
-      question:
-        "What does the host's review queue say about who sent each photograph?",
-      context:
-        "Under the recommended gate the queue holds two things: uploads waiting for the host, and uploads waiting for a code no tap of theirs can hurry. Drawn on nine real items, four of them unproven.",
-      options: [
-        {
-          id: "today",
-          label: "One queue, as today",
-          means:
-            "Nine items in one grid. Nothing on the screen says which four are waiting on a code rather than on the host.",
-        },
-        {
-          id: "badge",
-          label: "Every card says who, and whether",
-          means:
-            "The queue stays one list, and each tile carries the uploader's name and their confirmed state.",
-        },
-        {
-          id: "split",
-          label: "Two piles, each with its own count",
-          means:
-            "“Waiting for you” and “waiting for an email”. The second empties itself and asks the host for nothing.",
-        },
-      ],
-      recommended: "split",
-      today: "today",
-      because:
-        "It is the only one that tells a host what their workload actually is. A mark on each card answers “who” one card at a time; the split answers “how much of this is mine”, which is the question a host opens the queue with.",
-      overrule:
-        "If the queue should only ever be one list in time order, `badge` keeps it whole and still says who sent what.",
-      lands:
-        "Whether the review queue ever splits, and what a host's pending count is counting.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "expiry",
-      label: "The expiry",
-      question:
-        "A guest uploads and never confirms. What happens to the photograph?",
-      context:
-        "The one question here with a data-loss cost, drawn as the pair that decides it: the sentence a guest is told at the upload, and what day seven does to a Free host's two gigabytes.",
-      options: [
-        {
-          id: "seven",
-          label: "Held seven days, then removed",
-          means:
-            "A deadline the guest is told at the upload and reminded of on day six. A guest who confirms on day eight finds nothing.",
-        },
-        {
-          id: "keep",
-          label: "Kept, pending, for ever",
-          means:
-            "Nothing is ever destroyed. Nobody ever sees it either, and the bytes count against the host's cap the whole time.",
-        },
-        {
-          id: "host",
-          label: "The address drops, the host's setting decides",
-          means:
-            "On day seven it becomes an ordinary anonymous upload: an open event keeps it, an account-required event removes it.",
-        },
-      ],
-      recommended: "host",
-      because:
-        "It invents no policy. The host already answered “does an upload with no email behind it belong in my album” when they set the event up, and this applies that answer at the deadline instead of asking it a second time.",
-      overrule:
-        "If “we deleted your photograph” is a sentence Partyreel should never have to say, `keep` destroys nothing, at the cost of a cap full of invisible bytes.",
-      lands:
-        "Whether the purge cron ever removes a guest's photograph, and on whose authority it does.",
+        "Whether an event can ask a visitor who they are before showing the album, and what the settings sheet's uploads section holds.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -362,7 +322,7 @@ const DRAFT = defineExploration({
  * job). `defineExploration` already dedupes by id, so this filter is belt and
  * braces the other boards carry and this one keeps: deduping twice is deduping
  * once, and the day the constructor changes, the screen knob does not arrive
- * six times in the dock.
+ * five times in the dock.
  */
 export const GUEST_VERIFY: typeof DRAFT = {
   ...DRAFT,
