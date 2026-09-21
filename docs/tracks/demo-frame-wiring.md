@@ -1,6 +1,6 @@
 ---
 track: demo-frame-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ece02b97"          # the launch-prep SHA the branch was cut from
 board: demo-event      # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -218,30 +218,110 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **The corner code's size trades scannability for proportion at `hero`/`heroCompact`/`footer`.** The brief named the
+  object's SIZE as his to overrule but said nothing about the code's own pixel size within it; building `FrameObject`'s
+  reviewed ratio at the hero's real scale first (144px code, a mat sized to hold it "tucked in a corner") produced a
+  badge WIDER than the photograph — a QR code with a photo leaking out from behind it, not a photograph with a code in
+  its corner. Recommended and built: `hero`/`heroCompact` drop to the RETIRED ticket's own precedent (92px/72px,
+  2.24/1.76px per module, under `QR_FLOOR_PX_PER_MODULE`'s 3px floor — a code that reads as a tap target and a symbol,
+  never assumed scannable at arm's length, exactly the retired ticket's own stance at its nav size); `footer` keeps a
+  bigger badge (108px, 2.63px/module) because its copy explicitly promises a scan ("Scan the code… on your phone") and
+  the footer carries none of the hero's tight vertical budget. Full numbers and the measured tiles are in the Handoff.
+- **`DemoTicket` is a wrapper around `DemoFrame`, not a literal re-export.** The brief's words ("kept as a re-export of
+  the same object") read as `export const DemoTicket = DemoFrame`, but the two lab callers (`gallery-demos.tsx`'s bare
+  `<DemoTicket />` / `<DemoTicket layout="column" />`, `site-chrome/chrome.tsx`'s bare `<DemoTicket layout="column" />`)
+  need a complete door (a `<Link>`, an aria-label, an env gate) with no surrounding door of their own, while the four
+  real mounts each already own a door and would double-nest an `<a>` if `DemoFrame` carried one too. Recommended and
+  built: `DemoFrame` stays presentational (no link, no gate); `DemoTicket` is the thin, self-contained wrapper the two
+  lab callers need, unchanged in name and its `layout` prop. Same DRY visual, no double anchors.
+- **The stream does not pause or dim under the object.** The brief allowed either, "his to overrule" either way, and
+  named `hero-stream.ts` read-only "beyond a prop if one exists" — none does, and adding one would mean editing the
+  single-source engine this lane only reads. Recommended and built: neither. Noticeability comes from size (past the
+  shipped corridor's busiest cluster, measured) and the mat's own `shadow-layer`, which the browser check found
+  sufficient without touching the engine.
+- **Text-free, no party name printed on the object.** The board's own carried call (`doors.tsx`'s header note,
+  inherited into this round's spec): showing the party (`pile`) beat naming it in round one, and "text-free but the
+  demo's name" printed on the frame was flagged as a possible alternate reading, never built. Recommended and built:
+  text-free, matching every other door on the site and round one's own finding.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/marketing-content.md`, the "Interactive demo (marketing side)" section: the stale `doors=pile`
+  paragraph (the footer's pile as the rule every door works toward, the nav pane left empty, round two queued)
+  replaced with `door=frame`'s shipped state — one `DemoFrame` at all four places and the corner-code proportion
+  trade-off. Applied after syncing past `pricing-split-wiring`'s own merge to this file (landed first, as its brief
+  anticipated); commit `6095f7b2`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the `.mkt-stack` / `.mkt-stack-card` hover-fan recipe in `src/app/(marketing)/marketing.css` has no consumer
+  left (`footer-demo.tsx` was its only production caller; the retired pile's own sandbox copy is gone too) — dead CSS,
+  harmless, for whoever next owns that sheet to prune.
+- Now: the Library's own `gallery-demos.tsx` (`(dev)/design/(shell)/library/marketing/gallery-demos.tsx`, "demo-ticket"
+  entry) still describes the retired two-look ticket ("row is the hero's dark glass, column the opaque nav panel's
+  card") — outside this lane's `owns`, so left as found; the specimen still renders correctly (verified in the
+  browser), only its prose caption is stale.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `0f44a93f`, pushed (the actual wiring, gated green on its own before any sync). Synced with
+  `launch-prep` across three merges as this batch's sibling lanes landed one after another: `e9320fd4` (past
+  `pricing-split-wiring`, `overtaken-4`), `9528267e` (past `welcome-film-wiring`, `app-pricing-wiring`), `d1da0f17`
+  (past `avatar-mesh-wiring` — the last of the six sibling lanes cut together). `docs/systems/marketing-content.md`'s
+  exception applied at `6095f7b2`, after the first sync. `d1da0f17` is HEAD; `git merge-base --is-ancestor
+  origin/launch-prep HEAD` confirms fully caught up as of this Handoff.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree (all re-run after the third and final sync, `d1da0f17`): `design:rules` ok (194 components,
+  95 indexed); the specimen collector ok (140 specimens on 101 entries); `typecheck` ok; `lint` ok (8 known warnings,
+  0 errors); `test` ok (3181 passed, 1 skipped, 307 files); `build` ok (255 pages, exit 0); `pnpm lab:smoke --base
+  http://localhost:3133` ok (413 checks, 0 failing — the one non-2xx, `/design/lab/tools/boom`, is that tool's own
+  deliberate 500 and not counted by the script). This is a production/marketing lane; no `lab:demo` (the board is
+  retired, not a standing lab surface).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly `src/components/marketing/system/demo-ticket.tsx`,
+  `src/components/marketing/sections/home/cinema-hero.tsx`, `src/components/marketing/chrome/footer-demo.tsx`,
+  `src/components/marketing/system/demo-cta-link.tsx`, `src/components/marketing/chrome/mega-panel.tsx`, the five
+  deleted `src/app/(dev)/design/sandbox/demo-event/*` files (all `owns`), plus this manifest, and five exceptions with
+  why: `src/app/(dev)/design/touchpoints.ts` + `src/app/(dev)/design/sandbox/registry.ts` +
+  `src/app/(dev)/design/(shell)/lab/boards.ts` (the board-retirement convention stated in each file's own header
+  comment: the RulingId row's `ruled`/`shipped` filled and its `board` block dropped, the id dropped from `SandboxId` /
+  `DESK_ORDER` / `REGISTERED` / `BOARD_COMPONENTS` together); `src/app/(dev)/design/rules/component-notes.ts` (the
+  standing "every new/changed component gets its `for` line" convention — `demo-ticket.tsx`'s entry rewritten for
+  `DemoFrame`); `docs/design/library.md` + `rules.generated.json` regenerated by `pnpm design:rules` rather than
+  hand-merged, per the batch-wide instruction; `docs/systems/marketing-content.md` (this lane's one named exception,
+  applied after syncing past `pricing-split-wiring`, see System-doc edits above).
+- The item: `door=frame`: one `DemoFrame` (a photograph in a plain mat, the code tucked into its corner) at all four
+  places, overriding round one's `doors=pile`; it becomes the Library entry at `/design/library/demo-ticket` (still
+  named for the file, `demo-ticket.tsx`; the specimen title reads "DemoFrame" from the export order). Measured on the
+  shipped hero (`pnpm dev`, a browser console sweep, 2026-09-21): at 1440 the visible corridor tiles run 48-253px tall
+  (busiest cluster 60-204) against the frame's own 218×258; at 375 they run 24-137px against 162×191. Axis-to-headline
+  clearance left over once the frame stands: 39px at 1440 (was 168px total), 17.5px at 375 (was 113px total) — both
+  positive at every viewport height tried down to 680px (the shortest a real laptop window is likely to hit), where
+  the frame still clears the sticky header with air to spare (checked at 1440×680 and 1440×750).
+- Calls his to overrule, one line each (also in Questions above, in full):
+  1. The corner code's size at `hero` (92px) / `heroCompact` (72px) / `footer` (108px) — smaller than the hero's old
+     bare-QR pixels (144/128px), traded for a photograph-forward object rather than a QR-forward one.
+  2. The stream does not pause or dim under the object (size and shadow alone carry the noticeability the note asked
+     for; `hero-stream.ts` stayed untouched, no prop existed to hook this without editing the engine).
+  3. `DemoTicket` wraps `DemoFrame` rather than being a literal `=` re-export (function preserved, DRY preserved, no
+     double-nested anchors on the two bare lab callers).
+  4. Text-free, no party name on the object (round one's own finding, carried forward, never re-opened by round two).
+- The help articles this lane makes stale: none found (`grep` across `content/help/` and `content/blog/` for the
+  retired fan pile / ticket visuals turned up nothing — no article describes the demo door's look, only its function).
+- Assets requested from Will: none (every frame reuses the `wedding-arch` marketing still already on disk, the same
+  fixture the board's own reviewed drawing used).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the home hero at 1440 and 375 (`pnpm dev`, or the alias once this lane is on it) — the object's size
+  is the one call most likely to need a second look; then the footer; then a feature page (e.g. `/features`) for the
+  small line-side frame; then hover Features in the header nav for the mega-panel pane.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `demo-frame-wiring` wired round two's `door=frame`: one `DemoFrame`
+(a photograph in a plain mat, the code tucked into its corner) replaced four different demo-door treatments — the
+hero's bare QR, the footer's four-photo fan, a feature page's bare text line, and the nav mega-panel's empty featured
+pane — with a single shared object, sized past the shipped hero's own corridor tiles (measured, not asserted) rather
+than the lab board's flat mock. The corner code traded the hero's prior scannable pixel size for proportion (his to
+overrule); `DemoTicket` survives as the frame's complete door for the Library specimen and the site-chrome sandbox.
+The `demo-event` board retired (touchpoints.ts keeps its `RulingId` with final `ruled`/`shipped` text, no `board`
+block); `docs/systems/marketing-content.md`'s demo line refined after syncing past `pricing-split-wiring`. Gate green
+throughout three successive syncs as the batch's five sibling lanes landed.
