@@ -43,9 +43,10 @@ share from the main dashboard separately rather than from the event itself").
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token` = the single DB-generated link, `moderation_mode`,
-`visibility` + `event_password_hash`, `accepting_uploads`, `allow_anonymous_uploads`, `max_upload_bytes` (host
-per-upload cap for GUEST uploads, 25 MiB–10 GB or null; the host's own uploads are exempt), `qr_style`,
-`custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
+`visibility` + `event_password_hash`, `accepting_uploads`, `require_verified_email` (the identity
+reshape, 2026-09-21; the legacy `allow_anonymous_uploads` stays beside it, synced exactly opposite by
+a DB trigger for old code paths), `max_upload_bytes` (host per-upload cap for GUEST uploads, 25 MiB–10 GB
+or null; the host's own uploads are exempt), `qr_style`, `custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)), rebuilt on the
 `first-event` board's ruling (Will, 2026-09-21): **Name → Style → the beat**. Step 1 is ONE borderless field
 on a rule at the size the name will be (`asks=one`, his "bigger name edit field"); the note and the date
@@ -89,20 +90,22 @@ unreachable. Copy comes from the number ("holds one event" / "holds 3 events"), 
   because the real `qr_token` doesn't exist pre-insert.
 - **Settings are NOT auto-save**: toggles (e.g. moderation mode) persist only on **Save changes**. When
   verifying a settings change, click Save and confirm the DB; don't assume the toggle wrote on change.
-- **The "Require accounts to upload" toggle is `allow_anonymous_uploads` shown INVERTED** (switch ON =
-  accounts required = `allow_anonymous_uploads:false`). **FREE for any tier + DEFAULT-ON:**
-  requiring accounts captures guest emails (the growth loop) and is safer, so it is not Pro-gated and new
-  events default to it ON (no `enforce_event_pro_gates` trigger; the column default is
-  `false`). Turning it OFF (allowing anonymous uploads) first opens a **consequence-confirm Dialog** via the
-  shared [`ConfirmSwitch`](../../src/components/ui/confirm-switch.tsx) (`app-vocabulary` r1,
+- **The "Require verified emails" toggle reads `events.require_verified_email` directly, NO INVERSION**
+  (switch ON = `require_verified_email:true`; renamed from "Require accounts to upload" /
+  `allow_anonymous_uploads` in the identity reshape, 2026-09-21 — anonymity left the product, so OFF no
+  longer means anonymous: a guest types a display name at the door and uploads under it with a small
+  unverified mark). **FREE for any tier + DEFAULT-ON:** a verified email captures a real address (the
+  growth loop) and is safer, so it is not Pro-gated and new events default to it ON (the column default
+  is `true`). Turning it OFF (skipping email verification) first opens a **consequence-confirm Dialog**
+  via the shared [`ConfirmSwitch`](../../src/components/ui/confirm-switch.tsx) (`app-vocabulary` r1,
   `confirm-switch=primitive`: one primitive owns the glyph beside the label and the deferred-open dance — the
   open is deferred a tick so radix's dismissable-layer doesn't catch the switch's own click and auto-close it
   — for any consequential switch, not hand-rolled per field); turning it back ON is instant. ENFORCEMENT is
   the gated gallery (→
   [guest-flow.md](guest-flow.md)): `resolveGalleryAccess` teaser-gates an unverified
   guest + `create_guest` checks the email. A live "what your guests will experience" line under the access
-  controls + the dashboard event-detail access line both render the SAME `guestExperienceSummary()`
-  ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)) - one source, no drift.
+  controls renders `guestExperienceSummary()`
+  ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)).
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
 - **The events list draws two ways, and the choice is a COOKIE** (`density=cover`, Will 2026-09-20:
   "let's do both"). Cover cards by default; a row view (the cover behind at 12%, the counts in columns,

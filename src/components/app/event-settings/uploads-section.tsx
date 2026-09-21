@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 
-// Settings · Guest uploads. The accepting/cap/moderation/accounts controls + the
+// Settings · Guest uploads. The accepting/cap/moderation/verified-email controls + the
 // live "what your guests will experience" preview (re-keyed so it crossfades on each
 // change) + the read-only video status. Consumes the shared form via useFormContext.
 export function UploadsSection({
@@ -49,17 +49,16 @@ export function UploadsSection({
   >();
 
   // Live "what your guests will experience" summary — recomputed as the host flips the
-  // access toggles (visibility/password + accounts + uploads). Shares one source with
-  // the dashboard access line.
+  // access toggles (visibility/password + verified emails + uploads). Shares one source
+  // with the dashboard access line.
   const visibility = useWatch({ control, name: "visibility" }) ?? "open";
-  const accountRequired = !(
-    useWatch({ control, name: "allow_anonymous_uploads" }) ?? true
-  );
+  const requireVerifiedEmail =
+    useWatch({ control, name: "require_verified_email" }) ?? true;
   const acceptingUploads =
     useWatch({ control, name: "accepting_uploads" }) ?? event.accepting_uploads;
   const guestSummary = guestExperienceSummary({
     visibility,
-    accountRequired,
+    requireVerifiedEmail,
     acceptingUploads,
   });
 
@@ -164,22 +163,23 @@ export function UploadsSection({
             />
           )}
         />
-        {/* checked = "require accounts" = !allow_anonymous_uploads. Turning it OFF (allowing anonymous)
-            is the consequential direction, so ConfirmSwitch asks first; turning it back ON is instant. */}
+        {/* No inversion: the field IS what the switch asks. Turning it OFF (skipping email
+            verification) is the consequential direction, so ConfirmSwitch asks first; turning
+            it back ON is instant. */}
         <FormField
           control={control}
-          name="allow_anonymous_uploads"
+          name="require_verified_email"
           render={({ field }) => (
             <ConfirmSwitch
-              label="Require accounts to upload"
-              description="On (recommended): guests verify a free account to see the full gallery and add photos (a few previews show first), so every upload is tied to an email. Off lets anyone with the link view and add anonymously."
-              checked={!field.value}
-              onCheckedChange={(checked) => field.onChange(!checked)}
+              label="Require verified emails"
+              description="On (recommended): guests confirm their email to see the full gallery and add photos (a few previews show first). Off, guests choose a display name before adding photos, shown with a small unverified mark."
+              checked={field.value}
+              onCheckedChange={field.onChange}
               confirmWhen={(next) => !next}
-              dialogTitle="Allow anonymous uploads?"
-              dialogDescription="Anyone with the link will be able to add photos without creating an account. Their uploads won’t be tied to a verified email, so abuse is harder to trace and you won’t capture contributors. You can turn this back on anytime."
-              confirmLabel="Allow anyone to upload"
-              cancelLabel="Keep accounts required"
+              dialogTitle="Let guests upload without verifying?"
+              dialogDescription="Guests will type a display name instead of confirming an email. Their photos carry a small unverified mark, abuse is harder to trace, and you won’t capture their email. You can turn this back on anytime."
+              confirmLabel="Allow unverified uploads"
+              cancelLabel="Keep emails required"
             />
           )}
         />

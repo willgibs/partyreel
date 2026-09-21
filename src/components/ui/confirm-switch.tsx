@@ -22,7 +22,7 @@ import { Switch } from "@/components/ui/switch"
  * component owns the GLYPH and the DEFERRED-OPEN DANCE once. Three switches
  * shared one settings card and one behaviour, written out by hand twice:
  * `accepting_uploads` flips at once, `moderation_mode` and
- * `allow_anonymous_uploads` each open a confirm dialog on their consequential
+ * `require_verified_email` each open a confirm dialog on their consequential
  * direction via `setTimeout(() => setOpen(true), 0)` — the same radix
  * dismissable-layer race, dodged the same way, in two files. This is that fix
  * named once: `uploads-section.tsx`'s two hand-rolled pairs retire into it.
@@ -80,9 +80,9 @@ export function ConfirmSwitch({
 
   const [open, setOpen] = React.useState(false)
   // What the switch is ABOUT to become, captured at the moment the confirm
-  // opens — never assumed to be `!checked`, so a caller whose `checked` is
-  // itself an inverted read (allow_anonymous_uploads shown as "require
-  // accounts") is still asked about the value IT will apply, not a guess.
+  // opens — never assumed to be `!checked`, so a caller whose `checked` maps
+  // through non-identity logic (moderation_mode's hold_for_approval/live) is
+  // still asked about the value IT will apply, not a guess.
   const [pendingValue, setPendingValue] = React.useState<boolean | null>(null)
 
   function handleCheckedChange(next: boolean) {

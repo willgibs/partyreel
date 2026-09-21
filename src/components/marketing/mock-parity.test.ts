@@ -239,11 +239,11 @@ const ENTRIES: ParityEntry[] = [
   },
   // Privacy page (/features/privacy) <-> the host's real upload settings.
   {
-    label: "privacy page require-accounts toggle label",
+    label: "privacy page require-verified-emails toggle label",
     marketingFile:
       "src/components/marketing/sections/features/privacy/never-rides-along.tsx",
     appFile: "src/components/app/event-settings/uploads-section.tsx",
-    literal: "Require accounts to upload",
+    literal: "Require verified emails",
   },
 ];
 

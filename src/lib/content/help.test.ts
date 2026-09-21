@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { HELP_REDIRECTS } from "@/lib/content/help-redirects";
 import {
   extractHeadings,
   getAllArticles,
@@ -242,5 +243,17 @@ describe("slugify / extractHeadings", () => {
   it("ignores ## inside fenced code", () => {
     const headings = extractHeadings("## Real\n\n```\n## not a heading\n```\n");
     expect(headings.map((heading) => heading.text)).toEqual(["Real"]);
+  });
+});
+
+describe("retired slugs", () => {
+  it("every redirect lands on a live article, and no retired slug is still live", () => {
+    const live = new Set(getAllSlugs());
+    for (const { from, to } of HELP_REDIRECTS) {
+      expect(live.has(to), `${from} -> ${to} (target is not a live article)`).toBe(
+        true,
+      );
+      expect(live.has(from), `${from} is still a live article`).toBe(false);
+    }
   });
 });

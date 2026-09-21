@@ -142,8 +142,10 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         </>,
         <>
           If you sign in as a guest, the display-name rule for hosts applies to
-          you. Uploads made without signing in, where a host allows them, carry
-          no name and are attributed to &ldquo;Anonymous&rdquo;.
+          you. Where a host turns off the verified-email requirement, a guest
+          instead provides a typed display name; uploads are attributed to
+          that name, shown with a small unverified mark rather than a
+          confirmed one.
         </>,
       ),
       sub("events", "Events and media"),
@@ -285,12 +287,12 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         "Event links are excluded from search engines by our site settings and by instructions on every event page, and media files are never served from public addresses: the album hands out short-lived signed links as you browse, and a guest's access reaches only the event they joined.",
       ),
       p(
-        "Inside an album, your uploads are attributed to your display name, or to Anonymous. The host of an event can see the email address of each signed-in uploader; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
+        "Inside an album, your uploads are attributed to your confirmed display name, or to a typed display name wearing a small unverified mark. The host of an event can see the email address of each guest who verified one; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
       ),
       // profiles-social.md: host-controlled guest list, no per-guest opt-in; the escape
       // hatches are the ones the ADR names.
       p(
-        "Hosts can turn on a guest list for an event. When it is on, every signed-in uploader is listed by display name to everyone who can see the album. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, upload without signing in where the host allows it, or do not upload to that event. You can also hide any event from your own public profile.",
+        "Hosts can turn on a guest list for an event. When it is on, every guest who added photos is listed by display name to everyone who can see the album, a confirmed name or one wearing a small unverified mark. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, do not upload to that event. You can also hide any event from your own public profile.",
       ),
       // profiles-social.md: public by existence, indexable, no emails, no
       // follower counts; blocks filtered server-side.
@@ -513,7 +515,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           or the whole album at once.
         </>,
         // remove_my_upload (signed in, the album or the dashboard's Uploads tab) and
-        // remove_my_upload_by_session (anonymous, the same device and browser only).
+        // remove_my_upload_by_session (unverified, the same device and browser only).
         <>
           <strong className="text-foreground">Delete your uploads.</strong> Open
           any photo or video you added and remove it, right on the album,
@@ -530,7 +532,8 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         <>
           <strong className="text-foreground">Stay out of view.</strong> Hide
           any event from your public profile, and stay off an event’s guest list
-          by not uploading to it while signed in.
+          by not uploading to it at all: every upload is listed, a confirmed
+          name or one wearing the small unverified mark.
         </>,
         // Self-serve since 2026-09-02: the /account danger zone (request path in
         // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).

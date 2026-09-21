@@ -157,7 +157,6 @@ export function deriveAlbumFill(
   const names = new Set<string>();
   seeds.forEach((f) => names.add(f.by));
   for (let i = 0; i < landed; i++) names.add(arrival(i).by);
-  names.delete("Anonymous");
 
   return {
     columns: bounded,

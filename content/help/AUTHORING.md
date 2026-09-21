@@ -229,7 +229,7 @@ Ten categories in lifecycle order; the article order within each is the
 
 1. who-can-see-your-event
 2. password-protect-your-event
-3. require-accounts-to-upload-explained
+3. require-verified-emails-explained
 4. photo-metadata-and-location
 5. how-long-media-is-kept
 6. reporting-and-safety

@@ -53,8 +53,13 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // 1.2 (2026-09-20): a guest may now remove their own upload right on the
     // album, signed in or anonymous by device, final for the host too; it is
     // no longer "ask the host" for an anonymous upload.
-    version: "1.2",
-    lastUpdated: "2026-09-20",
+    // 1.3 (2026-09-21): the identity reshape retired anonymous uploads. A
+    // guest at an event without a verified-email requirement now types a
+    // display name instead, and is listed on the guest list the same as a
+    // confirmed name, wearing a small unverified mark; "upload without
+    // signing in" is no longer a way to stay off that list.
+    version: "1.3",
+    lastUpdated: "2026-09-21",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -73,8 +78,13 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // our own images and videos.
     // 1.3 (2026-09-20): a guest may delete their own upload directly, signed
     // in or not, without asking the host; that deletion is final either way.
-    version: "1.3",
-    lastUpdated: "2026-09-20",
+    // 1.4 (2026-09-21): the identity reshape retired anonymous uploads. A
+    // guest at an event without a verified-email requirement now types a
+    // display name instead, subject to the same display-name rule as a
+    // host's, and is listed the same as a confirmed name, wearing a small
+    // unverified mark.
+    version: "1.4",
+    lastUpdated: "2026-09-21",
     status: "pending-review",
     effectiveDate: null,
   },

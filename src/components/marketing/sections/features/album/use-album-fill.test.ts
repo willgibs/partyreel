@@ -18,7 +18,7 @@ describe("the filling album's derivation", () => {
     // Oldest at the BOTTOM: the first fixture is the last tile of its column.
     const col0 = v.columns[0];
     expect(col0[col0.length - 1].fixture.id).toBe(HERO_FIXTURES[0].id);
-    expect(v.guests).toBe(4); // Maya, Jay, Priya, Sam; Anonymous is not a guest
+    expect(v.guests).toBe(5); // Maya, Jay, Priya, Sam, Theo
   });
 
   it("mounts the next arrival at the HEAD of its column on the odd tick, then lands it on the same key", () => {
@@ -52,7 +52,7 @@ describe("the filling album's derivation", () => {
     expect(first?.check).toBe(false);
     // Two arrivals by Jay add no second guest.
     const all = deriveAlbumFill(endTick(hero), hero);
-    expect(all.guests).toBe(6);
+    expect(all.guests).toBe(7);
     expect(all.photos).toBe(HERO_FIXTURES.length);
     expect(all.done).toBe(true);
     expect(all.columns.flat().some((t) => t.check)).toBe(false);

@@ -51,8 +51,9 @@ mode; the live cutover is a launch task).
   that's a year out (never lost; special-case only if it ever feels wrong in practice).
 
 - **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
-  Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "require accounts to upload" became FREE + default-on
-  2026-06-21 — allowing anonymous uploads is the opt-in), and **video is Pro-only** (a free event is
+  Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "Require verified emails" (renamed from "require accounts
+  to upload" in the identity reshape, 2026-09-21) became FREE + default-on 2026-06-21 — allowing a
+  typed, unverified name is the opt-in), and **video is Pro-only** (a free event is
   photos-only for guests AND the host; enforced at upload in `create_media`/`create_media_as_host`,
   mirrored client-side by `videosAllowedForTier`). **Reel length is tier-capped** (`MAX_REEL_SECONDS`:
   30s Free / 60s paid); reel generation itself is free for every tier (watermark on Free). 30s is the
@@ -62,7 +63,8 @@ mode; the live cutover is a launch task).
   2nd event, outgrowing event #1's storage, wanting video, or password/custom-slug controls.
 - **Saving events is FREE** (Phase 3): any signed-in visitor can save an event to
   their dashboard. Deliberately ungated — it's the account-creation growth driver (a saved event
-  is the reason a guest makes a free account), not a paid perk.
+  is the reason a guest makes a free account, whether they arrive with one or confirm the email
+  behind a typed name later, on the identity reshape's capture flow), not a paid perk.
 - **Event Pass economics v2 (ruled + BUILT 2026-08-27):** passes **STACK** (each purchase
   is a ledger row granting +1 event slot and +75 GB for its own ~1-yr window; `event_passes` +
   `profiles.event_slots`), and moving to Pro converts every live pass as **PRORATED CREDIT**
