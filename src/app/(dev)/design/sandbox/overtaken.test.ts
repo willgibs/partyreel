@@ -47,13 +47,15 @@ import { BOARDS } from "./registry";
  * hold and the clause he wrote, and nothing the lane thinks: weighing an
  * option against a ruling that may not survive is precisely what the hold
  * refuses. These never concede, never append, and the badge says "held" in its
- * first word so the walk cannot read one as law. A hold ends one of two ways,
- * and the second arrived the same night: round two rules, or he answers the
- * question the hold was badging, which retires the badge with the ask
- * (`badge=mark` on `seed-avatar.look`, spent by `look=mesh`; then `gate=after`
- * on `first-event.first`, spent by `first=live` in the third batch). Both holds
- * ended the second way, so the map carries none today and the grammar is proven
- * below on the note the last one wrote rather than on a live entry.
+ * first word so the walk cannot read one as law. A hold ends three ways, and
+ * all three have now happened: round two rules; he answers the question the
+ * hold was badging, which retires the badge with the ask (`badge=mark` on
+ * `seed-avatar.look`, spent by `look=mesh`; `gate=after` on
+ * `first-event.first`, spent by `first=live`); or his own next shape
+ * supersedes the held ruling outright, which is what `address=none` did to all
+ * four of them on 2026-09-21 (overtaken.ts, the HELD note). The map carries no
+ * hold today, so the grammar is proven below on the note the last one wrote
+ * rather than on a live entry.
  *
  * ★ AND THE MECHANISM OUTLIVES THE ENTRIES (the overtaken audit and the
  * identity reshape, 2026-09-21). Will asked for every badged question to be

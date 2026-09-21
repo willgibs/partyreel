@@ -99,9 +99,27 @@ export const ALSO_REACHED = " Also reached by ";
  * the identity board's badges were spent by his own answers rather than by
  * round two, which is the second way a hold ends arriving twice before the
  * first ever did. The map holds no held badge today; the words below and the
- * shape the test proves stay exactly as written, because round two rules on a
- * board whose four rulings are still held and the next question one of them
- * reaches will be badged this way and no other.
+ * shape the test proves stay exactly as written, because the next question a
+ * held ruling reaches will be badged this way and no other.
+ *
+ * ★ AND THE THIRD WAY A HOLD ENDS: HIS OWN NEXT SHAPE SUPERSEDES IT (the
+ * identity reshape, Will, 2026-09-21). `gate=after` was neither lifted by round
+ * two nor spent by an answer to the question it badged: `address=none` removed
+ * anonymity from the product and the host's switch became Require verified
+ * emails, so verification is BEFORE access in the one mode and absent in the
+ * other, and nothing waits on a mail for a photograph to go live. The held
+ * ruling did not lose an argument, the ground it was standing on went, and its
+ * three siblings went the same way in the same paste (`expiry=host` moot,
+ * `badge=mark` and `host-lens=badge` carried onto the unverified name). A
+ * succession is recorded where his words are (docs/design/rulings.md, "the
+ * identity reshape") and NEVER as a badge here, because a hold that has been
+ * superseded leaves no question to badge: this file only says which earlier
+ * ruling a still-open question must be read against. Which is also why the
+ * reshape's own reach, every upload carrying a name, adds nothing below: the
+ * overtaken audit folded that context into the fourteen standing boards'
+ * questions themselves, and a badge would tell him a settled thing twice. One
+ * caveat for whoever writes the next hold: `HELD` still names the round two
+ * that has now happened, and wants renaming with that hold, not before it.
  */
 export const HELD = "held for guest-verify round two: ";
 
