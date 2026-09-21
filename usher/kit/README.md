@@ -76,3 +76,5 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   `<board>.<ask>.<option>-<width>.png`, through the lab's own demo runner (`pnpm lab:demo --save-shots <dir>`, the one
   additive flag the Orchestrator added to `scripts/lab-demo.mjs`) on a dev server the script starts and stops; the
   pictures feed `review-sheet.mjs --captures <dir>`. `capture-all.sh <dir>` does the whole desk on one server.
+
+**A chain gates on the test's exit, never on a grep (2026-09-20 20:10 EDT, `73e0f253`):** `pnpm -s vitest run <files> 2>&1 | grep -E "Test Files|FAIL"` exits 0 whenever grep MATCHES, including on a FAIL line, so a `set -e` chain sails past a red test. Read `${pipestatus[1]}` (zsh) into a variable and test it, or run the test without a pipe and let `set -e` see its exit. The manifest test went red and was pushed once this way; the fix took one commit, the lesson is the same one the merge script taught: a printed word is a tail.
