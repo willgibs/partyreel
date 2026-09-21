@@ -60,7 +60,7 @@ try {
         walk(kids, depth + 1); } };
       walk(list, 0);
       // replies to MY comments anywhere in the tree
-      const walk2 = (items, parentAuthor) => { for (const c of items) { if (parentAuthor === ME && name(c.author) !== ME && !(c.replies || []).some((k) => name(k.author) === ME)) console.log(`\n${pid.slice(0, 8)} <- (reply to me) ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, 420)}`); walk2(c.replies || [], name(c.author)); } };
+      const walk2 = (items, parentAuthor) => { for (const c of items) { if (parentAuthor === ME && name(c.author) !== ME && !(c.replies || []).some((k) => name(k.author) === ME)) console.log(`\n${pid.slice(0, 8)} <- (reply to me) ${name(c.author)} ${c.id} [${c.verification_status ?? "?"}]\n  ${(c.content || "").replace(/\s+/g, " ").slice(0, a[0] ? +a[0] : 420)}`); walk2(c.replies || [], name(c.author)); } };
       walk2(list, null);
     }
   }
