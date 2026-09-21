@@ -30,7 +30,39 @@ const name = (x) => (x && typeof x === "object" ? x.name : x) ?? "?";
 const line = (p) => `${String(p.upvotes ?? p.score ?? 0).padStart(4)} up ${String(p.comment_count ?? 0).padStart(5)} c  m/${name(p.submolt).padEnd(16)} ${name(p.author).padEnd(20)} ${p.id}\n       ${(p.title || "").slice(0, 110)}`;
 // Moltbook's anti-spam challenge for content: an obfuscated math word problem the AGENT must read and answer within five
 // minutes (POST /verify); ten failures in a row suspend the account, so the script prints it and the session answers it.
-const challenge = (c) => { const v = c?.verification; if (v) { console.log(`CHALLENGE_CODE=${v.verification_code}`); console.log(`CHALLENGE_TEXT=${v.challenge_text}`); console.log(`CHALLENGE_EXPIRES=${v.expires_at}`); } };
+// The challenge is arithmetic over the numbers in its text, obfuscated by case, junk characters and doubled letters
+// (2026-09-21: the physics answer to "a lobster swims at 23 cm/s and grips with 5 N, what's the total force" was refused
+// and the sum accepted; one answer per challenge). This prints the numbers it can read and the operation the wording
+// names, as a HINT beneath the text; the answer stays the session's decision and is never sent from here.
+const NUM = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19, twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90, hundred:100 };
+const hint = (text) => {
+  // junk lives INSIDE words (Twen-Ty, S^hAs) and between them; strip it without adding spaces, keep the real spaces,
+  // keep * and + which the puzzle uses as operators; a time unit after "per" is a unit, not a multiplication.
+  const plain = String(text || "").toLowerCase().replace(/[^a-z0-9*+\s]/g, "").replace(/\s+/g, " ").replace(/\bper s+e+c+o+n+d+s*\b|\bper m+i+n+u+t+e+s*\b|\bper h+o+u+r+s*\b|\bper d+a+y+s*\b/g, "");
+  const words = Object.entries(NUM).sort((a, b) => b[0].length - a[0].length);
+  const loose = (w, bounded) => new RegExp((bounded ? "\\b" : "") + [...w].map((ch) => ch + "+").join("") + (bounded ? "\\b" : ""));
+  // one greedy pass over the tokens: at each position try three, then two, then one token joined ("f if ty" is
+  // fifty, "fou rteen" is fourteen), matched as a whole word, so nothing is ever read from inside a real word
+  const tokens = plain.split(" ").filter(Boolean); const found = [];
+  for (let k = 0; k < tokens.length; ) {
+    let took = 0;
+    for (const span of [3, 2, 1]) {
+      if (k + span > tokens.length) continue;
+      const cand = tokens.slice(k, k + span).join("");
+      if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false }); took = 1; break; }
+      const hit = words.find(([w]) => loose(w, true).test(cand));
+      if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100 }); took = span; break; }
+    }
+    k += took || 1;
+  }
+  const nums = [];
+  for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10) { last.v += n.v; last.tens = false; } else nums.push({ ...n }); }
+  const vals = nums.map((n) => n.v);
+  const op = /\*|\btimes\b|\bper\b|\beach\b|multipl/.test(plain) ? "*" : /fewer|\bless\b|\bleft\b|remaining|loses|\blost\b|minus|drops/.test(plain) ? "-" : /\+|total|combined|gains|adds|plus|altogether|in all|\bnow\b|\bsum\b|together/.test(plain) ? "+" : "?";
+  const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
+  return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
+};
+const challenge = (c) => { const v = c?.verification; if (v) { console.log(`CHALLENGE_CODE=${v.verification_code}`); console.log(`CHALLENGE_TEXT=${v.challenge_text}`); console.log(`CHALLENGE_HINT=${hint(v.challenge_text)}`); console.log(`CHALLENGE_EXPIRES=${v.expires_at}`); } };
 const out = (x) => console.log(typeof x === "string" ? x : JSON.stringify(x, null, 2));
 try {
   if (cmd === "posts") out((await call(`/posts?sort=${a[0] || "hot"}&limit=${a[1] || 20}`)).posts.map(line).join("\n"));
@@ -65,6 +97,7 @@ try {
     }
   }
   else if (cmd === "notifications") out(await call(`/notifications?limit=${a[0] || 30}`, { auth: true }));
+  else if (cmd === "hint") console.log(hint(a.join(" ")));
   else if (cmd === "verify") out(await call("/verify", { method: "POST", auth: true, body: { verification_code: a[0], answer: a[1] } }));
   else if (cmd === "delete") out(await call(`/posts/${a[0]}`, { method: "DELETE", auth: true }));
   else if (cmd === "upvote") out(await call(`/posts/${a[0]}/upvote`, { method: "POST", auth: true }));
