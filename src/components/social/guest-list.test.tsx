@@ -1,10 +1,20 @@
 // @contract-for: src/components/social/guest-list.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 import { GUEST_LIST_FACES_THRESHOLD, GuestList } from "./guest-list";
+
+// A chip's Follow is the real FollowButton, which reaches the profile's server
+// actions (server-only) and the app router; neither exists in jsdom.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+  unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+}));
 
 /**
  * THE GUEST LIST'S CONTRACT (the profile wiring, 2026-09-19).
@@ -86,6 +96,62 @@ describe("GuestList", () => {
     // [] is "on, empty"; null (the key is OFF) never reaches this component,
     // because both callers gate on it. That distinction is load-bearing.
     render(<GuestList items={[]} />);
-    expect(screen.getByText(/no signed-in guests/i)).toBeInTheDocument();
+    expect(screen.getByText(/nobody has added photos yet/i)).toBeInTheDocument();
+  });
+});
+
+/**
+ * THE IDENTITY RESHAPE'S PINS (2026-09-21, his "Listed, with the mark").
+ * Function, not look: that a name nobody proved is NAMED and MARKED and links
+ * nowhere, and that the one act a guest list is for is reachable from it.
+ */
+describe("GuestList: unverified guests", () => {
+  const unverified = {
+    kind: "unverified" as const,
+    id: "g1",
+    displayName: "Sam",
+  };
+
+  it("names an unverified guest, marks the name, and links nowhere", () => {
+    render(<GuestList items={[unverified]} />);
+    expect(screen.getByText("Sam")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /name not verified/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
+  it("offers a Follow on a HANDLED chip for a signed-in viewer, and never on an unverified one", () => {
+    render(
+      <GuestList
+        items={[
+          { ...guests(1)[0], id: "a", displayName: "Maya", slug: "maya" },
+          unverified,
+        ]}
+        viewerId="me"
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
+  });
+
+  it("offers no Follow to a signed-out viewer, to themselves, or to somebody already followed", () => {
+    const items = [
+      { ...guests(1)[0], id: "a", displayName: "Maya", slug: "maya" },
+      { ...guests(1)[0], id: "me", displayName: "Me", slug: "me" },
+      { ...guests(1)[0], id: "b", displayName: "Priya", slug: "priya" },
+    ];
+    const { unmount } = render(<GuestList items={items} />);
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+    unmount();
+
+    render(
+      <GuestList
+        items={items}
+        viewerId="me"
+        followingIds={new Set(["b"])}
+      />,
+    );
+    // Only Maya is left: "me" is the viewer, "b" is already followed.
+    expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
   });
 });

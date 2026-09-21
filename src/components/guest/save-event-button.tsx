@@ -43,6 +43,7 @@ export function SaveEventButton({
   sessionToken,
   offerNewsletter = false,
   onSaved,
+  onDoorOpen,
   triggerClassName,
   triggerLabel,
 }: {
@@ -61,6 +62,13 @@ export function SaveEventButton({
   offerNewsletter?: boolean;
   /** Fires after a successful save (any path) — e.g. to dismiss the post-upload card. */
   onSaved?: () => void;
+  /**
+   * Fires the instant the create-account dialog OPENS (the identity reshape,
+   * 2026-09-21). The capture flow's offer card uses it to write its own pending
+   * marker, so the beat that follows a confirmation is the same one whether the
+   * guest typed the code here or left for a magic link and came back.
+   */
+  onDoorOpen?: () => void;
 }) {
   const [signedIn, setSignedIn] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -172,6 +180,7 @@ export function SaveEventButton({
     // create-account-to-save dialog.
     if (typeof window !== "undefined")
       localStorage.setItem(pendingKey(eventId), "1");
+    onDoorOpen?.();
     setOpen(true);
   }
 
@@ -221,10 +230,18 @@ export function SaveEventButton({
             chrome="none"
             intent="create"
             onVerified={async () => {
-              // In-page OTP verify (no reload) -> claim this browser's anonymous uploads directly. Silent:
+              // In-page OTP verify (no reload) -> claim this browser's uploads directly. Silent:
               // the "Saved to your dashboard." toast below is the feedback here. The redirect paths (Google /
               // magic link) reload /e/ and are covered by the EventExperience claim mount instead.
-              void claimAnonymousUploads({ silent: true });
+              //
+              // ★ AWAITED, NOT FIRED AND FORGOTTEN (the identity reshape,
+              // 2026-09-21). The save writes a row keyed on this account and the
+              // page refreshes behind it; a claim still in flight when that
+              // happens redraws the album with the guest's own photographs still
+              // credited to a name nobody proved, which is the one thing they
+              // just paid an email to fix. It is best-effort and never throws,
+              // so awaiting it costs an ordinary round trip and nothing else.
+              await claimAnonymousUploads({ silent: true });
               const ok = await save();
               if (offerNewsletter && optIn) await captureNewsletter();
               setOpen(false);

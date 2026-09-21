@@ -395,109 +395,63 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // `cap.bite`, `object.link`), and the surface redrawn as the one responsive
   // sheet `guest-shape` r1 ruled the guest's dialogs onto.
 
-  /* ── admin-triage ────────────────────────────────────────────────────── */
-  "admin-triage.look": {
-    ...ADMIN,
-    ruling:
-      "the portal is a table for data and a list beside the message for a prose inbox",
-    line: "concedes: a prose inbox is ruled a list beside the message, which is this ask's frame beside the reason, a row each.",
-  },
-  "admin-triage.reason": {
-    ...APP_SHAPE_2,
-    ruling: "a band with nothing real in it is absent, never drawn empty",
-    line: "concedes: an empty block is ruled absent rather than drawn hollow, which is this ask's nothing-said-so-nothing-drawn option.",
-  },
-  "admin-triage.verdict": {
-    ...ADMIN,
-    ruling:
-      "a destructive act opens one sheet sized to the damage, and only a permanent act makes you type",
-    line: "stands: typing is reserved for the permanent act now, which is the half of this his own sheet rule already argues against.",
-  },
-  "admin-triage.closed": {
-    ...ADMIN,
-    ruling:
-      "the portal is a table for data and a list beside the message for a prose inbox",
-    line: "stands: history is data and the portal's data is a table now, so the log option has the component it was asking for.",
-  },
-  "admin-triage.escalate": {
-    ...ADMIN,
-    ruling: "a destructive act opens one sheet sized to the damage",
-    line: "stands: the preserve panel is one of those sheets now, so a door from the report opens a surface that already exists.",
-  },
-  "admin-triage.phone": {
-    ...ADMIN,
-    ruling:
-      "the portal wears a 44 px tool bar with a crumb, a live tag, a health chip and an initial",
-    line: "stands: the portal's bar is measured for a thumb now, so the shell already reaches 375 and only the verbs are left to pick.",
-  },
-  "admin-triage.idiom": {
-    ...ADMIN,
-    ruling: "a prose inbox is a list beside the message, on every one of them",
-    line: "stands: the inboxes share one shape now, which leaves this asking about their words and their statuses, not their furniture. Also reached by app-vocabulary r2, 20 Sep: the album folds its sort and filter behind one button, which a filter bar does not.",
-  },
-  "admin-triage.notice": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a guest may delete any photograph they uploaded, and the host cannot restore it",
-    line: "stands: a host already meets one silent gap in the album now, so this asks whether the portal is allowed to make a second. Also reached by guest-upload r1, 21 Sep: he refuses a gap a person has to notice themselves, which is the case against silence here.",
-  },
+  /* ── admin-triage ─────────────────────────────────────────────────────────
+   * The overtaken audit's reshape (`reshape-admin-help-emails`, 2026-09-21):
+   * all eight badges (look, reason, verdict, closed, escalate, phone, idiom,
+   * notice) are gone with the questions they named, on the app-vocabulary
+   * precedent above (a badge pointing at a question nobody is asking any
+   * more is worse than an answer left orphaned): every reached ruling now
+   * lives inside its ask's own reworded question and context rather than
+   * sitting beside it as a badge (admin r1, app-shape r2, guest-shape and
+   * guest-upload r1). Unlike that precedent the BOARD does not retire: it
+   * stays open, unanswered, at round one, with `round.changed` saying what
+   * moved. `reason` narrows from three options to two (`same` and `quiet`
+   * both leave; a new `chrono` stands for "keeps its place"); `verdict`,
+   * `closed` and `phone` each drop one option a ruling made incoherent
+   * (`required`, `card`, `none`); `look` drops `card` the same way; escalate,
+   * idiom and notice keep their option sets and reword only the question,
+   * the context and, on notice, the recommendation (silence to host). */
 
-  /* ── help-center ─────────────────────────────────────────────────────── */
-  "help-center.from-product": {
-    ...GUEST_SHAPE,
-    ruling:
-      "the guest's actions dock at the foot of the album, and go to a second round",
-    line: "stands: the guest's own action block is still being redrawn, so a standing Help row would be joining something unfinished. Also reached by guest-shape r2, 20 Sep: the block is ruled now, a row on landing and a dock once it scrolls away. Also reached by app-pricing r1, 20 Sep: a surface now opens on the reason it was opened, which is the contextual link's own argument. Also reached by guest-upload r1, 21 Sep: a failure has a surface of its own at the end of a run now, which is where a contextual link would sit.",
-  },
-  "help-center.hub": {
-    ...APP_PRICING,
-    ruling:
-      "the in-app surface holds the plans and a price, with the whole argument one click away",
-    line: "stands: he took the short surface with everything else one click away, which is this ask's doors option argued on another screen. Also reached by first-event r1, 21 Sep: he took the shortest front door and left the rest for later screens, which is the doors option's case.",
-  },
-  "help-center.article": {
-    ...DOOR_2,
-    ruling:
-      "the welcome tour is five screens of bespoke pictures, not the product's real screens",
-    line: "stands: he took drawn pictures over the real screens for the tour, and a how-to is the one place the real screen is the whole point. Also reached by first-event r1, 21 Sep: he moved the teaching inside the act itself, so a how-to answers what the flow did not.",
-  },
-  "help-center.feedback": {
-    ...ADMIN,
-    ruling:
-      "the portal opens on four figures and a fortnight's trend, the queue beneath",
-    line: "stands: the portal's home is numbers now, so a per-article miss rate has a page to land on rather than needing one of its own.",
-  },
-  "help-center.search": {
-    ...ADMIN,
-    ruling:
-      "the portal gets a rail and a command palette, built on the help palette if it can be",
-    line: "stands: the portal is ruled to build on this very palette, so where it mounts is now a question with a second tenant.",
-  },
+  /* ── help-center ──────────────────────────────────────────────────────────
+   * The overtaken audit's reshape (`reshape-admin-help-emails`, 2026-09-21):
+   * all five badges (from-product, hub, article, feedback, search) are gone
+   * with the questions they named, the same convention as admin-triage
+   * above: each reached ruling (guest-shape r2, app-pricing r1, first-event
+   * r1, app-door r2, admin r1) now lives inside its ask's own reworded
+   * question rather than beside it as a badge. Every option set stands as
+   * drawn; only the question, the context and the reasoning changed.
+   * `who-first` and `dead-end` carried no badge and are untouched. The
+   * board does not retire: it stays open, unanswered, at round one. */
 
-  /* ── emails ──────────────────────────────────────────────────────────── */
-  "emails.shell": {
-    ...VOCABULARY,
-    ruling:
-      "a repeated control becomes one component with props, never four hand-rolled copies",
-    line: "stands: the batch folded four near-identical components into one apiece, which is this ask's own wrapper argument made elsewhere.",
-  },
-  "emails.code": {
-    ...DOOR,
-    ruling: "one email field, and the code is the way in for everybody",
-    line: "stands: the code is the product's one door now, so the button alone is gone and this asks only what rides under the digits. Also reached by first-event r1, 21 Sep: the product typesets a code for a person to read off an object now, so a mail's digits have a house treatment.",
-  },
-  "emails.moments": {
-    ...APP_SHAPE_2,
-    ruling:
-      "a control with nothing real behind it is absent, never drawn empty",
-    line: "concedes: a switch with nothing behind it is ruled absent, which is the four dormant rows leaving until each mail is really wired. Also reached by first-event r1, 21 Sep: the moment an event exists is marked by a screen of its own now, which is one moment needing no mail.",
-  },
-  "emails.guest": {
-    ...GUEST_SHAPE,
-    ruling:
-      "keeping the album becomes a one-tap offer after a guest's first photograph",
-    line: "stands: the address is taken on a promise to keep the album now, and this mail is the only thing that would keep it. Also reached by guest-upload r1, 21 Sep: a held photograph is known only to the device that sent it, so a mail is the one thing that outlives the tab.",
-  },
+  /* ── emails ───────────────────────────────────────────────────────────────
+   * The overtaken audit's reshape (`reshape-admin-help-emails`, 2026-09-21):
+   * all four badges (shell, code, moments, guest) are gone with the
+   * questions they named, the same convention as admin-triage and
+   * help-center above: each reached ruling (app-vocabulary r1, app-door r1,
+   * first-event r1, app-shape r2, and now the identity reshape) lives
+   * inside its ask's own reworded question. `code` drops the now-incoherent
+   * `button` option (a mail with no code is no longer real once app-door r1
+   * makes the code everybody's door); `moments` drops `today` (a dead
+   * switch is ruled absent, never drawn) and gains a new option, `identity`,
+   * for the moment the identity reshape's capture flow implies; `shell` and
+   * `guest` keep their option sets. `brand`, `sender`, `foot` and `dark`
+   * carried no badge and are untouched. The board does not retire: it stays
+   * open, unanswered, at round one.
+   *
+   * ── site-chrome, profile-page, privacy-hero, album-motion, loose-ends,
+   * contact-page, press-page ──────────────────────────────────────────────
+   * The overtaken audit's reshape (`reshape-marketing-boards`, 2026-09-21):
+   * all nineteen badges these seven boards carried are gone with the
+   * questions they named, the same convention as admin-triage, help-center
+   * and emails above: each reached ruling now lives inside its ask's own
+   * reworded question and context. Two redraws (site-chrome.foot-after,
+   * album-motion.fall) and two new concepts (privacy-hero.concept's
+   * `sweep`, loose-ends.everywhere-pill's `sweep` replacing the dropped
+   * `hover`) beyond the reshape alone; every other option set stands as
+   * drawn. None of the seven boards retires: all seven stay open,
+   * unanswered, at their own round, with `round.changed` saying what
+   * moved. See each board's own `spec.ts` and the track's manifest
+   * (deleted at this lane's merge) for the full reading. */
 };
 
 /** The key a board and ask are filed under; `stepId`'s spelling, deliberately. */

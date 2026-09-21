@@ -15,6 +15,10 @@ import { initial } from "@/components/app/user-menu";
 import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
+import {
+  GuestNameStep,
+  guestNameCopy,
+} from "@/components/guest/guest-name-step";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,7 +32,16 @@ import { formatEventDate } from "@/lib/utils";
 // Stable no-op subscribe for the hydration flag (useSyncExternalStore wants a stable subscribe).
 const subscribeNoop = () => () => {};
 
-export type EntryModalHandle = { openToGate: () => void };
+export type EntryModalHandle = {
+  openToGate: () => void;
+  /**
+   * THE NAME STEP (the identity reshape, 2026-09-21). Imperative ONLY: it is
+   * never one of `computeEntry`'s ordered steps and never auto-opens, because it
+   * is asked at the first Add rather than at arrival. `join` mints this device's
+   * session under a typed name; `edit` renames the row it already holds.
+   */
+  openToName: (mode: "join" | "edit") => void;
+};
 
 /**
  * The unified guest ENTRY surface: one shell (a Vaul drawer on phones, the
@@ -76,6 +89,16 @@ export const EntryModal = forwardRef<
      *  mounted header/gallery wait at their pre-entrance state while the
      *  beat holds, then rise AS the sheet exits (event-experience). */
     onHoldingChange?: (holding: boolean) => void;
+    /** This device's guest capability, needed only to RENAME its row. */
+    sessionToken?: string | null;
+    /** The name this device already typed at this event (the step's prefill). */
+    storedName?: string | null;
+    /** The row now carries a name: the shell closes and the caller decides what
+     *  follows (the intent sheet, on the Add this step interrupted). */
+    onNamed?: (result: {
+      sessionToken: string | null;
+      displayName: string;
+    }) => void;
   }
 >(function EntryModal(
   {
@@ -90,10 +113,18 @@ export const EntryModal = forwardRef<
     hostAvatarUrl,
     hostSeed,
     onHoldingChange,
+    sessionToken,
+    storedName,
+    onNamed,
   },
   ref,
 ) {
   const [seen, markSeen] = useWelcomeSeen(qrToken);
+  // THE NAME STEP's own open state (the identity reshape). It is a SECOND door
+  // through the same shell rather than a step in the ordered machine: the
+  // machine is server-driven and drops a step when the RSC says it is satisfied,
+  // and nothing on the server knows this browser typed a name. null = closed.
+  const [nameOpen, setNameOpen] = useState<"join" | "edit" | null>(null);
   // `proceeded` = the guest advanced past the welcome into the gate (keeps a non-auto-opening account
   // gate open). `manuallyClosed` = they closed the account step back to the teaser.
   const [proceeded, setProceeded] = useState(false);
@@ -152,7 +183,11 @@ export const EntryModal = forwardRef<
       current !== null &&
       ((autoOpen && beatReady) || proceeded) &&
       !manuallyClosed) ||
-    holding;
+    holding ||
+    // The name step's own door. ORed in rather than folded into the machine, so
+    // an event with no gate at all (the whole point of a name-only event) can
+    // still raise this one surface on a guest's first Add.
+    (hydrated && nameOpen !== null);
 
   // THE BACK AFFORDANCE (Phase 4.5 S3): `reviewing` is a transient client
   // view OVER the server-driven machine - a gate step's chevron re-shows the
@@ -180,8 +215,15 @@ export const EntryModal = forwardRef<
         setManuallyClosed(false);
         setProceeded(true);
       },
+      // ★ NEVER IN THE DEMO, as a belt under the caller's own guard: nothing a
+      // demo visitor adds is persisted, so there is no row to name and a form
+      // between the tap and the picture would be the one lie the demo tells.
+      openToName: (mode) => {
+        if (holding || isDemo) return;
+        setNameOpen(mode);
+      },
     }),
-    [holding],
+    [holding, isDemo],
   );
 
   // THE HELD VIEW + EXIT LATCH (Phase 4.5 audit fixes): while a PASSWORD hold
@@ -197,9 +239,11 @@ export const EntryModal = forwardRef<
     ? heldStep === "password"
       ? "password"
       : "success"
-    : isReviewing
-      ? "welcome-review"
-      : (current ?? "none");
+    : nameOpen
+      ? `name-${nameOpen}`
+      : isReviewing
+        ? "welcome-review"
+        : (current ?? "none");
   const [lastKey, setLastKey] = useState(stepKey);
   if (open && stepKey !== lastKey) setLastKey(stepKey);
   const displayKey = open ? stepKey : lastKey;
@@ -212,16 +256,28 @@ export const EntryModal = forwardRef<
   // over the "You're in" view and a dismissal could corrupt the release),
   // and a CLOSED/exiting shell is held so affordances can't pop in mid-exit.
   const dismissMode: DismissMode =
-    !open ||
-    holding ||
-    current === "password" ||
-    (current === "welcome" && steps[1] === "password")
+    !open || holding
       ? "held"
-      : "free";
+      : // ★ THE NAME STEP IS ALWAYS FREE, even on a password event: the album
+        // behind it is already unlocked and already browsable (it is opened at
+        // the first Add, not at the door), so there IS something to dismiss to.
+        // Closing it posts nothing, which is what makes "just looking" free.
+        nameOpen
+        ? "free"
+        : current === "password" ||
+            (current === "welcome" && steps[1] === "password")
+          ? "held"
+          : "free";
 
   // Fired by the shell ONLY for a user dismissal of a "free" surface.
   function handleDismiss() {
     if (holding) return; // defense in depth; the hold is never dismissable
+    if (nameOpen) {
+      // Nothing was sent, so nothing is undone: no row was minted and no name
+      // was stored. The guest is back on the album exactly as they were.
+      setNameOpen(null);
+      return;
+    }
     if (current === "welcome") {
       // Dismissing the welcome marks it seen; re-derivation decides what shows: an account gate
       // closes to the teaser, public closes to the gallery (password welcomes are held, never here).
@@ -251,7 +307,9 @@ export const EntryModal = forwardRef<
       title={
         holding
           ? "You're in"
-          : current === "welcome" && !isReviewing && isDemo
+          : nameOpen
+            ? guestNameCopy(nameOpen, hostName).title
+            : current === "welcome" && !isReviewing && isDemo
             ? "You're trying a live demo"
             : isReviewing || current === "welcome"
               ? `Welcome to ${eventName}`
@@ -268,13 +326,18 @@ export const EntryModal = forwardRef<
       description={
         holding
           ? "Opening the album."
-          : current === "welcome" && !isReviewing && isDemo
-            ? "A real album, running exactly as a guest would see it."
-            : isReviewing || current === "welcome"
-              ? "A shared album for the whole event."
-              : current === "password"
-                ? "Enter the event password to view it."
-                : "Create a free account to see the full album and add your own photos."
+          : nameOpen
+            ? guestNameCopy(nameOpen, hostName).reason
+            : current === "welcome" && !isReviewing && isDemo
+              ? "A real album, running exactly as a guest would see it."
+              : isReviewing || current === "welcome"
+                ? "A shared album for the whole event."
+                : current === "password"
+                  ? "Enter the event password to view it."
+                  : // ★ THE GATE LINE, RESHAPED (2026-09-21): an account is not
+                    // what is being asked for, a confirmed address is, and the
+                    // free account is what confirming makes.
+                    "Confirm your email to see the full album and add your own photos."
       }
     >
       <EntryStepTransition stepKey={displayKey} direction={direction}>
@@ -323,6 +386,31 @@ export const EntryModal = forwardRef<
                 <ChevronLeft className="size-5" />
               </button>
             )}
+          {/* THE NAME STEP (the identity reshape): the whole door on a name-only
+              event. It carries no back chevron, because there is no step behind
+              it: it was opened by an Add on an album the guest is already
+              standing in, and the X goes back to exactly that. */}
+          {(displayKey === "name-join" || displayKey === "name-edit") && (
+            <GuestNameStep
+              qrToken={qrToken}
+              mode={displayKey === "name-edit" ? "edit" : "join"}
+              hostName={hostName}
+              storedName={storedName}
+              sessionToken={sessionToken}
+              onNamed={(result) => {
+                setNameOpen(null);
+                onNamed?.(result);
+              }}
+              onVerificationRequired={() => {
+                // The host turned Require verified emails ON while this guest
+                // stood at the door. The name is worth nothing now, so the step
+                // closes and the page's own refresh re-gates to the account
+                // step, which is the honest surface for what just changed.
+                setNameOpen(null);
+                router.refresh();
+              }}
+            />
+          )}
           {displayKey === "welcome" && isDemo && (
             <RoleStep
               eventName={eventName}

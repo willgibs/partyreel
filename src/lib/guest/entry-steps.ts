@@ -49,6 +49,17 @@ export function computeEntry(input: {
  * password-before-account ordering falls out of the access progression. Owner/demo both resolve to
  * `full` (an owner is gated out of the modal entirely upstream; the demo takes the welcome step above).
  */
+/*
+ * ★ THE `account` STEP IS THE VERIFIED-EMAIL GATE, AND ONLY THAT (the identity
+ * reshape, 2026-09-21). The host's switch is `require_verified_email` now: ON,
+ * an un-confirmed viewer resolves to `teaser` and meets this step, which is the
+ * one place a gate exists at all. OFF (names mode) resolves every viewer to
+ * `full`, so this returns [] and the door a guest meets is the NAME step
+ * instead, raised imperatively at the first Add (`entry-modal.tsx`) and
+ * deliberately absent from these ordered steps: nothing on the server knows
+ * whether this browser has typed a name, so a server-driven machine could
+ * never derive it. `entry-steps.test.ts` pins the pair.
+ */
 export function gateStepsForAccess(access: GalleryAccess): GateStep[] {
   if (access === "none") return ["password"];
   if (access === "teaser") return ["account"];

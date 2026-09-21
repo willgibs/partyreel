@@ -6,10 +6,12 @@
  * them ever reaches a guest). Real, unmodified subjects for the ten shipped
  * kinds (drawn from the fixtures, which call the real templates); the four
  * dormant switches' subjects are hand-labelled mocks, marked as such, since
- * nothing behind them exists to call.
+ * nothing behind them exists to call; `identity` is the same kind of mock,
+ * for the moment the identity reshape's capture flow implies (`moments=
+ * identity`), which nothing has built either.
  */
 
-export type Kind = "host" | "operator" | "guest" | "dormant";
+export type Kind = "host" | "operator" | "guest" | "dormant" | "identity";
 
 export type MomentRow = {
   subject: string;
@@ -22,6 +24,7 @@ export const KIND_LABEL: Record<Kind, string> = {
   operator: "Operator",
   guest: "Guest",
   dormant: "Dormant",
+  identity: "Identity",
 };
 
 const KIND_DOT: Record<Kind, string> = {
@@ -29,6 +32,7 @@ const KIND_DOT: Record<Kind, string> = {
   operator: "bg-neutral-400",
   guest: "bg-green-600",
   dormant: "bg-amber-500",
+  identity: "bg-violet-600",
 };
 
 export function MomentsRoster({ rows }: { rows: MomentRow[] }) {
@@ -86,6 +90,20 @@ export const GUEST_ROSTER: MomentRow[] = [
   { subject: "Your photographs are in", trigger: "after the party", kind: "guest" },
 ];
 
+/**
+ * The one row the identity reshape's capture flow implies (`moments=
+ * identity`): confirming an email no longer just stores an address, it makes
+ * the account, which is a moment the original four dormant switches never
+ * anticipated.
+ */
+export const IDENTITY_ROSTER: MomentRow[] = [
+  {
+    subject: "Your photos and event are saved to your account",
+    trigger: "email confirmed",
+    kind: "identity",
+  },
+];
+
 /** A settings-panel stub for `moments=retired`: the four switches gone, the one real one left standing. */
 export function RetiredSwitchesStub() {
   return (
@@ -113,35 +131,3 @@ export function RetiredSwitchesStub() {
   );
 }
 
-/** The settings panel as it stands today: four live-looking switches, none of
- * them sending anything (the `moments=today` option's own evidence). */
-export function DormantSwitchesStub() {
-  const rows = [
-    "Your highlight reel is ready",
-    "An album you joined was shared",
-    "New uploads to your events",
-    "Someone followed you",
-  ];
-  return (
-    <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
-      <p className="text-xs font-medium text-neutral-500">
-        Account · Email preferences
-      </p>
-      <ul className="divide-y divide-neutral-200">
-        {rows.map((label) => (
-          <li key={label} className="flex items-center justify-between gap-4 py-2">
-            <span className="text-sm text-neutral-900">{label}</span>
-            <span
-              data-inbox-dormant-switch
-              aria-hidden
-              className="h-4 w-7 rounded-full bg-neutral-900"
-            />
-          </li>
-        ))}
-      </ul>
-      <p className="border-t border-neutral-200 pt-3 text-xs text-amber-600">
-        All four read on. None of these mails exist yet.
-      </p>
-    </div>
-  );
-}

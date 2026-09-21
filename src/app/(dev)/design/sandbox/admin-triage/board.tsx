@@ -263,15 +263,15 @@ const worldOf = (s: BoardState, over: Partial<World> = {}): World => ({
  * ★ TWO AXES STAY AT TODAY'S VALUE EVERYWHERE BUT ON THEIR OWN QUESTION.
  * `reason` and `verdict` are both drawn on every report on this board, so
  * letting them follow the board's live state would answer them quietly on six
- * other steps: the first capture pass had "Either one asks for a line first."
- * on the verdict buttons of the step about the CARD, which is the recommended
+ * other steps: the first capture pass had a verdict hint meant for one shape
+ * bleeding onto the step about a different one, which is the recommended
  * answer to a question he had not been asked. They are independent roots, not
  * ancestors, so on anyone else's step they draw as today. Every other axis
  * follows the live state, which is what makes a staged decision wear its
  * parent's answer. (`guest-upload` pinned its `words` axis for the same
  * reason.)
  */
-const TODAY = { reason: "same", verdict: "two" } as const;
+const TODAY = { reason: "chrono", verdict: "two" } as const;
 
 /**
  * ★ AT 375 THE BOARD COLLAPSES THE RAIL, AND THAT IS NOT AN ANSWER TO ANYTHING.
@@ -322,11 +322,10 @@ function reportsScreen(
 /* ── The first look, and the two questions it unlocks ────────────────────── */
 
 const LOOK_CAPTION: Record<LookShape, string> = {
-  card: "Today. The album's name is the headline and the thing being judged is a thumbnail.",
   frame:
     "The reported frame at the card's full width, the sentence under it, the verdict beneath that.",
   split:
-    "A row each: the frame on the left at a size you can judge, the words and the verdict on the right.",
+    "The ruled shape: a row each, the frame on the left at a size you can judge, the words and the verdict on the right.",
 };
 
 function lookScreen(v: LookShape, s: BoardState) {
@@ -343,9 +342,8 @@ function lookScreen(v: LookShape, s: BoardState) {
 }
 
 const REASON_CAPTION: Record<ReasonShape, string> = {
-  same: "Today. A sentence saying nothing was said, the same size as one somebody wrote.",
-  quiet:
-    "The wordless report keeps its place and loses its paragraph, so it is visibly shorter.",
+  chrono:
+    "Nothing drawn where the reason would be, and no reordering: the wordless report keeps its place.",
   last: "The wordless report falls under both written ones and says why it is there.",
 };
 
@@ -417,8 +415,6 @@ function escalateScreen(v: EscalateShape, s: BoardState) {
 const VERDICT_CAPTION: Record<VerdictShape, string> = {
   two: "Today. Two presses, nothing typed, and the record is a status and a time.",
   note: "The same two verbs with Add a note beside them, open on the one being answered.",
-  required:
-    "The verb opens one line before it commits, and nothing closes without it.",
 };
 
 function verdictScreen(v: VerdictShape, s: BoardState) {
@@ -436,8 +432,7 @@ function verdictScreen(v: VerdictShape, s: BoardState) {
 }
 
 const CLOSED_CAPTION: Record<ClosedShape, string> = {
-  card: "Today, in the All view. Three answered reports as tall as the three that are not.",
-  line: "The three still open, then the answered ones as a log under them.",
+  line: "The three still open, then the answered ones as a log under them, on the table the portal already draws.",
   undo: "The same log, with a day's way back on the one removal that is not held.",
 };
 
@@ -456,13 +451,11 @@ function closedScreen(v: ClosedShape, s: BoardState) {
 /* ── The phone, which ignores the knob ───────────────────────────────────── */
 
 const PHONE_CAPTION: Record<PhoneShape, string> = {
-  none: "Today. The desk page folded into 375, with the verbs somewhere below the fold.",
   act: "The frame, the sentence and the one verb that cannot wait until morning.",
   all: "Everything the desk can do, in a column, typed with a thumb at a party.",
 };
 
-function phoneScreen(v: PhoneShape, s: BoardState) {
-  const w = worldOf(s, TODAY);
+function phoneScreen(v: PhoneShape) {
   return (
     <Screen
       id={`phone-${v}`}
@@ -470,20 +463,12 @@ function phoneScreen(v: PhoneShape, s: BoardState) {
       caption={PHONE_CAPTION[v]}
       read={queueRead}
     >
-      {/* The first option is today: the desk portal, rail and all, at 375. */}
-      {v === "none" ? (
-        // Today, exactly: the desk portal with its rail, drawing the card shape
-        // that ships, at 375. Drawing the picked row shape here would blame
-        // today's page for a layout today's page does not have.
-        <Portal active={REPORTS_SURFACE}>
-          <SurfaceHead title="Reports" lede={REPORTS_LEDE} />
-          <PhoneQueue shape={v} look="card" />
-        </Portal>
-      ) : (
-        <PhonePortal active={REPORTS_SURFACE}>
-          <PhoneQueue shape={v} look={w.look} />
-        </PhonePortal>
-      )}
+      {/* Admin r1 already measures the shell for a thumb, so both options wear
+          the ruled bar rather than a folded desk page: neither depends on the
+          board's live state any more. */}
+      <PhonePortal active={REPORTS_SURFACE}>
+        <PhoneQueue shape={v} />
+      </PhonePortal>
     </Screen>
   );
 }
@@ -543,19 +528,15 @@ function noticeScreen(v: NoticeShape, s: BoardState) {
 /* ── The map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof ADMIN_TRIAGE> = {
-  "look.card": (s) => lookScreen("card", s),
   "look.frame": (s) => lookScreen("frame", s),
   "look.split": (s) => lookScreen("split", s),
 
-  "reason.same": (s) => reasonScreen("same", s),
-  "reason.quiet": (s) => reasonScreen("quiet", s),
+  "reason.chrono": (s) => reasonScreen("chrono", s),
   "reason.last": (s) => reasonScreen("last", s),
 
   "verdict.two": (s) => verdictScreen("two", s),
   "verdict.note": (s) => verdictScreen("note", s),
-  "verdict.required": (s) => verdictScreen("required", s),
 
-  "closed.card": (s) => closedScreen("card", s),
   "closed.line": (s) => closedScreen("line", s),
   "closed.undo": (s) => closedScreen("undo", s),
 
@@ -563,9 +544,8 @@ const PREVIEWS: PreviewsFor<typeof ADMIN_TRIAGE> = {
   "escalate.copy": (s) => escalateScreen("copy", s),
   "escalate.door": (s) => escalateScreen("door", s),
 
-  "phone.none": (s) => phoneScreen("none", s),
-  "phone.act": (s) => phoneScreen("act", s),
-  "phone.all": (s) => phoneScreen("all", s),
+  "phone.act": () => phoneScreen("act"),
+  "phone.all": () => phoneScreen("all"),
 
   "idiom.three": (s) => idiomScreen("three", s),
   "idiom.shape": (s) => idiomScreen("shape", s),

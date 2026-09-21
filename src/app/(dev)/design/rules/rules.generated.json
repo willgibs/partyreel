@@ -3820,44 +3820,52 @@
       "indexed": false,
       "contracts": [
         {
-          "title": "draws the login wear's own heading and reason",
+          "title": "gives every wear a heading and a reason of its own",
           "suite": [
-            "the four wears"
+            "the wears"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 96
+          "line": 102
+        },
+        {
+          "title": "draws the login wear's own heading and reason",
+          "suite": [
+            "the wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 114
         },
         {
           "title": "leaves heading and reason to the surface when it owns them",
           "suite": [
-            "the four wears"
-          ],
-          "file": "src/components/auth/account-door.test.tsx",
-          "line": 109
-        },
-        {
-          "title": "carries the Terms line on every wear that asks for it",
-          "suite": [
-            "the four wears"
+            "the wears"
           ],
           "file": "src/components/auth/account-door.test.tsx",
           "line": 127
         },
         {
-          "title": "drops it only where the surface above already said it",
+          "title": "carries the Terms line on every wear that asks for it",
           "suite": [
-            "the four wears"
+            "the wears"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 143
+          "line": 145
+        },
+        {
+          "title": "drops it only where the surface above already said it",
+          "suite": [
+            "the wears"
+          ],
+          "file": "src/components/auth/account-door.test.tsx",
+          "line": 161
         },
         {
           "title": "offers a password only where the surface says there is one",
           "suite": [
-            "the four wears"
+            "the wears"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 157
+          "line": 175
         },
         {
           "title": "says nothing before a code is verified",
@@ -3865,7 +3873,7 @@
             "the account the address already had"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 198
+          "line": 216
         },
         {
           "title": "names the account after a verified code, under a create intent",
@@ -3873,7 +3881,7 @@
             "the account the address already had"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 203
+          "line": 221
         },
         {
           "title": "offers a way out when it was a mistake",
@@ -3881,7 +3889,7 @@
             "the account the address already had"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 214
+          "line": 232
         },
         {
           "title": "stays silent for a brand-new account",
@@ -3889,7 +3897,7 @@
             "the account the address already had"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 222
+          "line": 240
         },
         {
           "title": "stays silent on a plain sign-in, where every host already had one",
@@ -3897,7 +3905,7 @@
             "the account the address already had"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 234
+          "line": 252
         },
         {
           "title": "is absent with the flag off, even with a hint and a browser that can",
@@ -3905,7 +3913,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 260
+          "line": 278
         },
         {
           "title": "is absent with the flag on but nothing registered here",
@@ -3913,7 +3921,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 270
+          "line": 288
         },
         {
           "title": "is absent on a browser with no WebAuthn at all",
@@ -3921,7 +3929,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 280
+          "line": 298
         },
         {
           "title": "appears with the flag, the hint and a browser that can",
@@ -3929,7 +3937,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 290
+          "line": 308
         },
         {
           "title": "never remembers an address on a surface a stranger's phone can reach",
@@ -3937,7 +3945,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 303
+          "line": 321
         },
         {
           "title": "prefills the remembered address on /login",
@@ -3945,7 +3953,7 @@
             "the one press"
           ],
           "file": "src/components/auth/account-door.test.tsx",
-          "line": 321
+          "line": 339
         }
       ]
     },
@@ -3964,7 +3972,7 @@
             "ClaimHandlePrompt"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 58
+          "line": 93
         },
         {
           "title": "signed in without a handle: the claim offer, with a door to the account",
@@ -3972,7 +3980,7 @@
             "ClaimHandlePrompt"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 65
+          "line": 100
         },
         {
           "title": "signed in with a handle: nothing at all",
@@ -3980,7 +3988,7 @@
             "ClaimHandlePrompt"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 73
+          "line": 108
         },
         {
           "title": "counts the photographs that landed",
@@ -3988,7 +3996,39 @@
             "ClaimHandlePrompt"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 82
+          "line": 117
+        },
+        {
+          "title": "consumes the pending-offer marker and stands the follow moment up, once",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 131
+        },
+        {
+          "title": "with no host card resolved there is no host row, and the handle line still stands",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "a profile that already has a handle gets no second line",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "names a nameless profile from the name this device typed, and never overwrites one",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 164
         }
       ]
     },
@@ -4032,6 +4072,81 @@
           ],
           "file": "src/components/guest/entry-shell.test.tsx",
           "line": 76
+        }
+      ]
+    },
+    {
+      "id": "follow-moment-card",
+      "file": "src/components/guest/follow-moment-card.tsx",
+      "names": [
+        "FollowMomentCard"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "signed out: the save-account prompt stands, and no handle is mentioned",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 93
+        },
+        {
+          "title": "signed in without a handle: the claim offer, with a door to the account",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "signed in with a handle: nothing at all",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 108
+        },
+        {
+          "title": "counts the photographs that landed",
+          "suite": [
+            "ClaimHandlePrompt"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "consumes the pending-offer marker and stands the follow moment up, once",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 131
+        },
+        {
+          "title": "with no host card resolved there is no host row, and the handle line still stands",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 147
+        },
+        {
+          "title": "a profile that already has a handle gets no second line",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 156
+        },
+        {
+          "title": "names a nameless profile from the name this device typed, and never overwrites one",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 164
         }
       ]
     },
@@ -4327,7 +4442,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 29
+          "line": 30
         },
         {
           "title": "appears beside the wordmark for the demo",
@@ -4335,7 +4450,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 34
+          "line": 35
         },
         {
           "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
@@ -4343,7 +4458,31 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 39
+          "line": 40
+        },
+        {
+          "title": "wears the stranger's CTA until this device has typed a name",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "names them, marks the name, and offers the three moves",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "never claims a name on a page with no event behind it (/u/[slug])",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 84
         }
       ]
     },
@@ -4395,6 +4534,284 @@
           ],
           "file": "src/components/guest/guest-masonry.test.tsx",
           "line": 122
+        }
+      ]
+    },
+    {
+      "id": "guest-name-menu",
+      "file": "src/components/guest/guest-name-menu.tsx",
+      "names": [
+        "GuestNameMenu"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "never appears for a real event",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 30
+        },
+        {
+          "title": "appears beside the wordmark for the demo",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 35
+        },
+        {
+          "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
+          "suite": [
+            "GuestHeader: the Demo mark"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 40
+        },
+        {
+          "title": "wears the stranger's CTA until this device has typed a name",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "names them, marks the name, and offers the three moves",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "never claims a name on a page with no event behind it (/u/[slug])",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 84
+        }
+      ]
+    },
+    {
+      "id": "guest-name-step",
+      "file": "src/components/guest/guest-name-step.tsx",
+      "names": [
+        "GuestNameStep"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "HOLDS the welcome before a password gate (no X; Continue is the path)",
+          "suite": [
+            "the honest-affordance table"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 69
+        },
+        {
+          "title": "HOLDS the password step (no X, Escape inert)",
+          "suite": [
+            "the honest-affordance table"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 79
+        },
+        {
+          "title": "frees the welcome before an account gate (X + Just browsing)",
+          "suite": [
+            "the honest-affordance table"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 88
+        },
+        {
+          "title": "dismissing a free welcome marks it seen and closes to the teaser",
+          "suite": [
+            "the honest-affordance table"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 94
+        },
+        {
+          "title": "frees the account step: X closes to the teaser, openToGate reopens",
+          "suite": [
+            "the honest-affordance table"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 103
+        },
+        {
+          "title": "Continue advances welcome -> password and marks the welcome seen",
+          "suite": [
+            "flow wiring"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 115
+        },
+        {
+          "title": "a returning guest (welcome seen) lands straight on the password gate",
+          "suite": [
+            "flow wiring"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 122
+        },
+        {
+          "title": "the owner never sees the surface, gate or no",
+          "suite": [
+            "flow wiring"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 129
+        },
+        {
+          "title": "a public event's welcome dismisses to the album (no gate behind)",
+          "suite": [
+            "flow wiring"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 135
+        },
+        {
+          "title": "sees a surface of its own, never the guest's invitation copy",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 151
+        },
+        {
+          "title": "names the host in its own words when one is set",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "degrades to a hostless line when the event has no host name",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 164
+        },
+        {
+          "title": "\"Look around\" dismisses it to the album, exactly like a real welcome",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "offers \"Start your own\" as a real link out, never a dead end",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 178
+        },
+        {
+          "title": "never shows the legal consent line (looking around agrees to nothing)",
+          "suite": [
+            "the demo's own arrival (arrival=role)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 184
+        },
+        {
+          "title": "the gate's chevron re-shows the welcome and returns without touching the machine",
+          "suite": [
+            "the back affordance (reviewing the welcome)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 191
+        },
+        {
+          "title": "no chevron on the welcome itself",
+          "suite": [
+            "the back affordance (reviewing the welcome)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 211
+        },
+        {
+          "title": "the success hold is dismissal-proof, even on a free step",
+          "suite": [
+            "the back affordance (reviewing the welcome)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 218
+        },
+        {
+          "title": "the lighter path hands a RETURNING guest forward to the account step",
+          "suite": [
+            "the back affordance (reviewing the welcome)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 234
+        },
+        {
+          "title": "the surface closes mid-review when the flow resolves server-side",
+          "suite": [
+            "the back affordance (reviewing the welcome)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 272
+        },
+        {
+          "title": "NEVER auto-opens: a guest looking at an album is asked nothing",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 312
+        },
+        {
+          "title": "opens on the handle, and dismissing it POSTs nothing",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 318
+        },
+        {
+          "title": "Add photos POSTs the qr_token AND the name, and hands the token up",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 330
+        },
+        {
+          "title": "refuses a reserved name IN PLACE, before anything is sent",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 365
+        },
+        {
+          "title": "edit mode renames the row this device holds, and never mints a second one",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 378
+        },
+        {
+          "title": "the demo never opens it: nothing it adds is real",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 405
         }
       ]
     },
@@ -4463,7 +4880,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 276
+          "line": 277
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -4471,7 +4888,31 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 295
+          "line": 297
+        },
+        {
+          "title": "a stored session never joins again: the name was answered once",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 317
+        },
+        {
+          "title": "the silent join carries NO name: the door is the only place one is typed",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 330
+        },
+        {
+          "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 351
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -4479,7 +4920,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 311
+          "line": 383
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -4487,7 +4928,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 335
+          "line": 407
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -4495,7 +4936,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 356
+          "line": 428
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -4503,7 +4944,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 379
+          "line": 451
         },
         {
           "title": "stays shut when the run is clean",
@@ -4511,7 +4952,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 400
+          "line": 472
         },
         {
           "title": "its Retry re-queues the file",
@@ -4519,7 +4960,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 415
+          "line": 487
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -4527,7 +4968,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 445
+          "line": 517
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -4535,7 +4976,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 471
+          "line": 543
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -4543,7 +4984,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 524
+          "line": 596
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -4551,7 +4992,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 559
+          "line": 631
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -4559,7 +5000,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 587
+          "line": 659
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -4567,7 +5008,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 600
+          "line": 672
         },
         {
           "title": "a rejected upload is still retryable",
@@ -4575,7 +5016,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 625
+          "line": 697
         }
       ]
     },
@@ -4699,6 +5140,49 @@
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
           "line": 230
+        }
+      ]
+    },
+    {
+      "id": "save-account-prompt",
+      "file": "src/components/guest/save-account-prompt.tsx",
+      "names": [
+        "SaveAccountPrompt"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts what landed, and says one photograph in the singular",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "asks for a confirmed email, which is what the door behind it does",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 62
+        },
+        {
+          "title": "Maybe later is final for this event",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 69
+        },
+        {
+          "title": "marks the door's opening, so a redirect sign-in lands the same beat",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 79
         }
       ]
     },
@@ -13182,6 +13666,306 @@
       ]
     },
     {
+      "id": "unverified-mark",
+      "file": "src/components/shared/unverified-mark.tsx",
+      "names": [
+        "UNVERIFIED_LABEL",
+        "UnverifiedMark"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders centered: the track sits at -100% with zero offset",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 135
+        },
+        {
+          "title": "mouse pointers never engage the finger-follow",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "a sub-10px wiggle stays unlocked (tap territory)",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 152
+        },
+        {
+          "title": "a vertical move releases the gesture to the browser",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "a horizontal lock engages: data-dragging + 1:1 follow",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 169
+        },
+        {
+          "title": "clamps a long pull toward a real neighbor to one slide width",
+          "suite": [
+            "MediaLightbox: friction at the edges"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 180
+        },
+        {
+          "title": "damps the pull past the FIRST item (no prev)",
+          "suite": [
+            "MediaLightbox: friction at the edges"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 187
+        },
+        {
+          "title": "slow short drag springs back (200ms settle, no index change)",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 199
+        },
+        {
+          "title": "a long slow drag commits by DISTANCE (20% of width)",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 210
+        },
+        {
+          "title": "a quick flick commits by VELOCITY regardless of distance",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 224
+        },
+        {
+          "title": "a commit toward a missing neighbor cannot happen at the END of the set",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 233
+        },
+        {
+          "title": "pointercancel snaps back to center",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 242
+        },
+        {
+          "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 251
+        },
+        {
+          "title": "arrow keys step through the set within bounds",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 264
+        },
+        {
+          "title": "arrow keys at the edges do nothing",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 272
+        },
+        {
+          "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 278
+        },
+        {
+          "title": "a clean CENTER-third tap on the letterbox closes the viewer",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 290
+        },
+        {
+          "title": "a LEFT-third letterbox tap steps to the previous item (no close)",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 300
+        },
+        {
+          "title": "a RIGHT-third letterbox tap steps to the next item (no close)",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 308
+        },
+        {
+          "title": "a side tap at an edge is a NO-OP (never an accidental close)",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 316
+        },
+        {
+          "title": "the position counter reflects the controlled index (pill format)",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 324
+        },
+        {
+          "title": "a drag starting in a PLAYING video's scrubber strip never swipes",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 331
+        },
+        {
+          "title": "the same drag swipes once the video is PAUSED",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 347
+        },
+        {
+          "title": "the GUEST pill carries NO curate controls, even with a status",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 385
+        },
+        {
+          "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 395
+        },
+        {
+          "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 406
+        },
+        {
+          "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 415
+        },
+        {
+          "title": "host Remove is behind a modal confirm (no accidental delete)",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 425
+        },
+        {
+          "title": "shows the Trash on the item it allows and never on another",
+          "suite": [
+            "canDelete gates the personal Delete per item"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 447
+        },
+        {
+          "title": "draws the album on its own element, with the media never inside it",
+          "suite": [
+            "the lightbox's ground is separate from the photograph"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 492
+        },
+        {
+          "title": "wears the ONE material on the pill, the capsule and the close",
+          "suite": [
+            "the lightbox's ground is separate from the photograph"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 513
+        },
+        {
+          "title": "a confirmed name stands plain, with no mark",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 557
+        },
+        {
+          "title": "a name nobody proved is named AND marked",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 565
+        },
+        {
+          "title": "a legacy nameless row reads \"A guest\", never a blank credit",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 573
+        },
+        {
+          "title": "the mark offers the way out on the viewer's OWN upload only",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 578
+        },
+        {
+          "title": "says nothing about proof it was never given: an item with no flag is plain",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 598
+        }
+      ]
+    },
+    {
       "id": "upload-thumbnail",
       "file": "src/components/shared/upload-thumbnail.tsx",
       "names": [
@@ -13258,7 +14042,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 35
+          "line": 45
         },
         {
           "title": "condenses to ONE button past the threshold, and the button carries the count",
@@ -13266,7 +14050,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 43
+          "line": 53
         },
         {
           "title": "opens IN PLACE, one page at a time, never the whole list at once",
@@ -13274,7 +14058,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 52
+          "line": 62
         },
         {
           "title": "links a guest WITH a handle and leaves one without unlinked",
@@ -13282,7 +14066,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 69
+          "line": 79
         },
         {
           "title": "says so when the host's key is on and nobody has added a photo yet",
@@ -13290,7 +14074,31 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 85
+          "line": 95
+        },
+        {
+          "title": "names an unverified guest, marks the name, and links nowhere",
+          "suite": [
+            "GuestList: unverified guests"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 115
+        },
+        {
+          "title": "offers a Follow on a HANDLED chip for a signed-in viewer, and never on an unverified one",
+          "suite": [
+            "GuestList: unverified guests"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "offers no Follow to a signed-out viewer, to themselves, or to somebody already followed",
+          "suite": [
+            "GuestList: unverified guests"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 137
         }
       ]
     },
@@ -15302,6 +16110,95 @@
       ]
     },
     {
+      "id": "join",
+      "file": "src/lib/guest/join.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "refuses an empty field as name_required, never as a complaint",
+          "suite": [
+            "checkDisplayName"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 30
+        },
+        {
+          "title": "refuses a RESERVED name in place, before a round trip",
+          "suite": [
+            "checkDisplayName"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 36
+        },
+        {
+          "title": "trims what it accepts, so the row stores what the album shows",
+          "suite": [
+            "checkDisplayName"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 43
+        },
+        {
+          "title": "omits display_name entirely when none is given (the silent join)",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 50
+        },
+        {
+          "title": "carries the name, and hands back the row's OWN name and proof",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 59
+        },
+        {
+          "title": "maps the route's 422 kinds, and keeps the server's own sentence",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 73
+        },
+        {
+          "title": "reads an unknown code as `other`, so a new refusal can never be mistaken for a name problem",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 89
+        },
+        {
+          "title": "survives a dead network and an HTML error page alike",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 99
+        },
+        {
+          "title": "sends the token in the BODY, never a URL",
+          "suite": [
+            "renameGuest"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 116
+        },
+        {
+          "title": "maps a refusal the same way the join does",
+          "suite": [
+            "renameGuest"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 133
+        }
+      ]
+    },
+    {
       "id": "use-upload-queue",
       "file": "src/lib/guest/use-upload-queue.ts",
       "names": [],
@@ -15362,7 +16259,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 276
+          "line": 277
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -15370,7 +16267,31 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 295
+          "line": 297
+        },
+        {
+          "title": "a stored session never joins again: the name was answered once",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 317
+        },
+        {
+          "title": "the silent join carries NO name: the door is the only place one is typed",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 330
+        },
+        {
+          "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
+          "suite": [
+            "GuestUpload: the identity reshape"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 351
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -15378,7 +16299,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 311
+          "line": 383
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -15386,7 +16307,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 335
+          "line": 407
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -15394,7 +16315,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 356
+          "line": 428
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -15402,7 +16323,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 379
+          "line": 451
         },
         {
           "title": "stays shut when the run is clean",
@@ -15410,7 +16331,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 400
+          "line": 472
         },
         {
           "title": "its Retry re-queues the file",
@@ -15418,7 +16339,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 415
+          "line": 487
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -15426,7 +16347,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 445
+          "line": 517
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -15434,7 +16355,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 471
+          "line": 543
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -15442,7 +16363,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 524
+          "line": 596
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -15450,7 +16371,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 559
+          "line": 631
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -15458,7 +16379,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 587
+          "line": 659
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -15466,7 +16387,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 600
+          "line": 672
         },
         {
           "title": "a rejected upload is still retryable",
@@ -15474,7 +16395,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 625
+          "line": 697
         }
       ]
     },

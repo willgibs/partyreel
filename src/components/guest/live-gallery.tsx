@@ -715,12 +715,15 @@ export function LiveGallery({
       )}
       {access === "teaser" && (
         // The teaser boundary CTA: re-opens the entry modal to the account step
-        // (the soft paywall).
+        // (the soft paywall). ★ Its fallback line moved with the rest of the
+        // identity words (2026-09-21): an account is not what the host asked
+        // for, a confirmed email is, and that is what the door behind this
+        // button actually does.
         <div className="mt-5 flex justify-center">
           <Button onClick={onOpenGate} className="active:scale-[0.99]">
             {seed.teaserTotal !== null && seed.teaserTotal > items.length
               ? `See all ${seed.teaserTotal} photos`
-              : "Create a free account to see everything"}
+              : "Confirm your email to see everything"}
           </Button>
         </div>
       )}

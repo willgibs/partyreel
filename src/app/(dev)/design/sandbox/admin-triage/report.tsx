@@ -3,16 +3,14 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import { Copy, Play, ShieldAlert, Undo2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import {
   CLOSED_REPORTS,
   frameOf,
   OPEN_REPORTS,
-  REPORTS,
   type ReportRow,
 } from "./fixtures";
 import { StateChip } from "./shell";
@@ -38,19 +36,19 @@ import { StateChip } from "./shell";
  * primitives: same `Button` variants, same sizes, same words.
  */
 
-export type LookShape = "card" | "frame" | "split";
-export type ReasonShape = "same" | "quiet" | "last";
-export type VerdictShape = "two" | "note" | "required";
-export type ClosedShape = "card" | "line" | "undo";
+export type LookShape = "frame" | "split";
+export type ReasonShape = "last" | "chrono";
+export type VerdictShape = "two" | "note";
+export type ClosedShape = "line" | "undo";
 
 export const lookOf = (v: string | undefined): LookShape =>
-  v === "card" || v === "frame" || v === "split" ? v : "split";
+  v === "frame" ? v : "split";
 export const reasonOf = (v: string | undefined): ReasonShape =>
-  v === "same" || v === "quiet" || v === "last" ? v : "quiet";
+  v === "last" ? v : "chrono";
 export const verdictOf = (v: string | undefined): VerdictShape =>
-  v === "two" || v === "note" || v === "required" ? v : "required";
+  v === "two" ? v : "note";
 export const closedOf = (v: string | undefined): ClosedShape =>
-  v === "card" || v === "line" || v === "undo" ? v : "undo";
+  v === "line" ? v : "undo";
 
 /* ── The parts a card is made of ─────────────────────────────────────────── */
 
@@ -139,13 +137,15 @@ function Meta({ row, className }: { row: ReportRow; className?: string }) {
 }
 
 /**
- * The reason, three ways. `same` is today: a sentence saying nothing was said,
- * at the size of a sentence that was. `quiet` draws nothing at all, so a
- * wordless report is visibly shorter than one somebody wrote.
+ * The reason, two ways, now that an empty block is ruled absent rather than
+ * drawn hollow (app-shape r2): neither answer here ever fakes a sentence
+ * where none was typed. `chrono` draws nothing at all, keeping the wordless
+ * report's place in the queue. `last` draws one small line explaining why the
+ * report sank to the foot, which is a status note rather than a stand-in
+ * reason.
  */
 function Reason({ row, shape }: { row: ReportRow; shape: ReasonShape }) {
   if (row.reason) return <p className="text-sm">{row.reason}</p>;
-  if (shape === "quiet") return null;
   if (shape === "last")
     return (
       <p className="text-sm text-muted-foreground">
@@ -153,10 +153,10 @@ function Reason({ row, shape }: { row: ReportRow; shape: ReasonShape }) {
         under every report that carries a sentence.
       </p>
     );
-  return <p className="text-sm text-muted-foreground">No reason provided.</p>;
+  return null;
 }
 
-/* ── The verdict, three ways ─────────────────────────────────────────────── */
+/* ── The verdict, two ways ───────────────────────────────────────────────── */
 
 function VerdictBar({
   row,
@@ -187,27 +187,6 @@ function VerdictBar({
       </div>
     );
 
-  if (shape === "required" && acting)
-    return (
-      <div className="w-full space-y-2">
-        <label className="block text-xs font-medium text-muted-foreground">
-          Why, in one line. It is the record.
-        </label>
-        <div className="rounded-md border bg-background px-3 py-2 text-sm">
-          Child in frame, reporter is the parent. Removed, host not contacted.
-          <span className="ml-0.5 inline-block h-4 w-px animate-pulse bg-foreground align-text-bottom" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="destructive" size="sm">
-            {remove}
-          </Button>
-          <Button type="button" variant="ghost" size="sm">
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-
   return (
     <div className="flex w-full flex-wrap items-center gap-2">
       <Button type="button" variant="outline" size="sm">
@@ -219,11 +198,6 @@ function VerdictBar({
       {shape === "note" ? (
         <span className="text-xs text-muted-foreground underline underline-offset-4">
           Add a note
-        </span>
-      ) : null}
-      {shape === "required" ? (
-        <span className="text-xs text-muted-foreground">
-          Either one asks for a line first.
         </span>
       ) : null}
     </div>
@@ -248,30 +222,6 @@ export type CardWorld = {
 export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld }) {
   const { look, reason, verdict, escalate, acting } = world;
   const hold = escalate?.(row) ?? null;
-
-  // TODAY, exactly: the event's name is the title, the badge is a `Badge`, the
-  // reported frame is a 160 px square under a timestamp, and the reason is body
-  // text beneath it. Redrawn rather than imported for the module-scope action.
-  if (look === "card")
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="font-semibold">{row.event}</h3>
-            <Badge variant="default">Open</Badge>
-          </div>
-          <Meta row={row} />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Shot row={row} size={160} />
-          <Reason row={row} shape={reason} />
-          {hold}
-        </CardContent>
-        <CardFooter>
-          <VerdictBar row={row} shape={verdict} acting={acting} />
-        </CardFooter>
-      </Card>
-    );
 
   // THE PICTURE FIRST: the reported frame takes the card's whole width and the
   // words sit under it, which is the shape of every product whose operator is
@@ -323,38 +273,15 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
   );
 }
 
-/* ── A closed report, three ways ─────────────────────────────────────────── */
+/* ── A closed report, two ways ───────────────────────────────────────────── */
 
 function ClosedReport({
   row,
   shape,
-  look,
 }: {
   row: ReportRow;
   shape: ClosedShape;
-  look: LookShape;
 }) {
-  // TODAY: the same full card as an open one, forever, minus its buttons.
-  if (shape === "card")
-    return (
-      <Card data-tri-closed>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="font-semibold">{row.event}</h3>
-            <StatusChip row={row} />
-          </div>
-          <Meta row={row} />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {row.media ? <Shot row={row} size={look === "card" ? 160 : 200} /> : null}
-          <p className="text-sm">{row.reason ?? "No reason provided."}</p>
-          <p className="text-xs text-muted-foreground">
-            Resolved {row.resolved?.when} by {row.resolved?.by}
-          </p>
-        </CardContent>
-      </Card>
-    );
-
   // A CLOSED REPORT IS ONE LINE: the verdict, the note it left, and who took
   // it. The queue reads as a log, and the thumbnail is small because the
   // decision has already been taken on it.
@@ -428,7 +355,7 @@ function Filters({ active }: { active: "open" | "all" }) {
 
 export function ReportsSurface({
   world,
-  reason = "same",
+  reason = "chrono",
   /** Which report is drawn mid-act, by index in the open queue. */
   acting,
   /**
@@ -517,92 +444,46 @@ export function HistorySurface({
     <>
       <ScrollToHistory />
       <Filters active="all" />
-      {shape === "card" ? (
+      <div className="space-y-6">
         <div className="space-y-4">
-          {REPORTS.map((row) =>
-            row.status === "open" ? (
-              <OpenReport
-                key={row.id}
-                row={row}
-                world={{ look, reason: "same", verdict: "two" }}
-              />
-            ) : (
-              <ClosedReport key={row.id} row={row} shape={shape} look={look} />
-            ),
-          )}
+          {OPEN_REPORTS.map((row) => (
+            <OpenReport
+              key={row.id}
+              row={row}
+              world={{ look, reason: "chrono", verdict: "two" }}
+            />
+          ))}
         </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="space-y-4">
-            {OPEN_REPORTS.map((row) => (
-              <OpenReport
-                key={row.id}
-                row={row}
-                world={{ look, reason: "same", verdict: "two" }}
-              />
+        <div>
+          <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Closed
+          </p>
+          <div className="rounded-xl border bg-card">
+            {CLOSED_REPORTS.map((row) => (
+              <ClosedReport key={row.id} row={row} shape={shape} />
             ))}
           </div>
-          <div>
-            <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Closed
+          {shape === "undo" ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              An Undo restores the item and reopens the report for a day. A
+              held item has no Undo: only Forensics releases a hold.
             </p>
-            <div className="rounded-xl border bg-card">
-              {CLOSED_REPORTS.map((row) => (
-                <ClosedReport
-                  key={row.id}
-                  row={row}
-                  shape={shape}
-                  look={look}
-                />
-              ))}
-            </div>
-            {shape === "undo" ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                An Undo restores the item and reopens the report for a day. A
-                held item has no Undo: only Forensics releases a hold.
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
-      )}
+      </div>
     </>
   );
 }
 
 /* ── The same act in a hand ──────────────────────────────────────────────── */
 
-export type PhoneShape = "none" | "act" | "all";
+export type PhoneShape = "act" | "all";
 
 export const phoneOf = (v: string | undefined): PhoneShape =>
-  v === "none" || v === "act" || v === "all" ? v : "act";
+  v === "all" ? v : "act";
 
-export function PhoneQueue({
-  shape,
-  look,
-}: {
-  shape: PhoneShape;
-  look: LookShape;
-}) {
+export function PhoneQueue({ shape }: { shape: PhoneShape }) {
   const row = OPEN_REPORTS[0];
-
-  // NOTHING TODAY: the laptop surface at 375, which is what an operator opening
-  // this on a phone actually meets. The 200 px frame of the row shape has no
-  // room beside the words, so the card wraps and the verbs land at its foot.
-  if (shape === "none")
-    return (
-      <>
-        <Filters active="open" />
-        <div className="space-y-4">
-          {OPEN_REPORTS.map((r) => (
-            <OpenReport
-              key={r.id}
-              row={r}
-              world={{ look, reason: "same", verdict: "two" }}
-            />
-          ))}
-        </div>
-      </>
-    );
 
   // SEE IT AND STOP IT: the frame, the reason, and the one verb that cannot
   // wait. The report stays open until the record is written on a laptop, which
