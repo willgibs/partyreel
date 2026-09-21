@@ -26,21 +26,27 @@ export const TEASER_LIMIT = 9;
  *
  * - owner (the host), or any viewer who already cleared every gate -> `full`
  * - password event, not yet unlocked -> `none` (no real teaser before the password is proven)
- * - account-required event, viewer not signed in -> `teaser` (real photos, capped server-side)
+ * - verified-email event, viewer not signed in -> `teaser` (real photos, capped server-side)
  * - otherwise -> `full`
+ *
+ * ★ Keyed on `require_verified_email` since the identity reshape (2026-09-21). It replaces the
+ * inverted read of `allow_anonymous_uploads` with the flag's own truth, and the switch's meaning
+ * for the VIEW is unchanged: the host who asks for a proved email asks for it before the album as
+ * well as before an upload. The two columns are held opposite by a DB trigger, so this is the same
+ * decision expressed once, in the name the product now uses.
  */
 export function resolveGalleryAccess(
-  event: Pick<GuestEvent, "visibility" | "allow_anonymous_uploads">,
+  event: Pick<GuestEvent, "visibility" | "require_verified_email">,
   ctx: { isOwner: boolean; isAuthed: boolean; isUnlocked: boolean },
 ): GalleryAccess {
   if (ctx.isOwner) return "full";
 
-  const accountRequired = !event.allow_anonymous_uploads;
+  const accountRequired = event.require_verified_email;
 
   if (event.visibility === "password") {
     // Password is the FIRST gate: reveal nothing real until it's proven (privacy of a locked album).
     if (!ctx.isUnlocked) return "none";
-    // Unlocked. If an account is ALSO required, an un-signed-in viewer still gets only the teaser.
+    // Unlocked. If a verified email is ALSO required, an un-signed-in viewer still gets the teaser.
     return accountRequired && !ctx.isAuthed ? "teaser" : "full";
   }
 

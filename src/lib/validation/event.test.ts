@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { eventSlugSchema } from "@/lib/validation/event";
+import { createEventSchema, eventSlugSchema } from "@/lib/validation/event";
 
 function parse(slug: string) {
   return eventSlugSchema.safeParse({ slug });
@@ -50,5 +50,31 @@ describe("eventSlugSchema", () => {
     expect(parse("admin").success).toBe(false);
     expect(parse("pricing").success).toBe(false);
     expect(parse("dashboard").success).toBe(false);
+  });
+});
+
+describe("createEventSchema: the host's identity switch", () => {
+  it("requires a verified email BY DEFAULT (Will, the identity reshape, 2026-09-21)", () => {
+    // The default is the whole ruling in one line: a host who never touches the switch runs an
+    // event where every guest proves an email. It mirrors the events.require_verified_email column
+    // default, so an event created with only a name lands identically whether the client or the
+    // server applied it.
+    const parsed = createEventSchema.parse({ name: "Sarah's wedding" });
+    expect(parsed.require_verified_email).toBe(true);
+  });
+
+  it("keeps the legacy twin's default OPPOSITE, so a row naming either is consistent", () => {
+    const parsed = createEventSchema.parse({ name: "Sarah's wedding" });
+    expect(parsed.allow_anonymous_uploads).toBe(
+      !parsed.require_verified_email,
+    );
+  });
+
+  it("takes the switch off when the host asks", () => {
+    const parsed = createEventSchema.parse({
+      name: "Backyard party",
+      require_verified_email: false,
+    });
+    expect(parsed.require_verified_email).toBe(false);
   });
 });

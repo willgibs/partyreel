@@ -120,6 +120,7 @@ export function galleryEtagFor(
         type: r.type,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
+        isVerified: who?.isVerified ?? false,
         isAnonymous: who?.isAnonymous ?? false,
       };
     }),

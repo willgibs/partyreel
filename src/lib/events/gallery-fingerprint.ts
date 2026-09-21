@@ -28,6 +28,8 @@ export type GalleryFingerprintItem = {
   type: string;
   uploaderName: string | null;
   isHost: boolean;
+  /** Inside the hash: a guest can prove an email later, so this CAN change for an existing id. */
+  isVerified: boolean;
   isAnonymous: boolean;
 };
 
@@ -47,6 +49,7 @@ export function galleryEtag(input: {
       i.type,
       i.uploaderName,
       i.isHost,
+      i.isVerified,
       i.isAnonymous,
     ]),
   ]);
@@ -54,7 +57,8 @@ export function galleryEtag(input: {
     .update(canonical)
     .digest("base64url")
     .slice(0, 27);
-  // Strong, quoted, version-prefixed: a future shape change bumps g1 -> g2 so
-  // stale clients can never false-match.
-  return `"g1-${hash}"`;
+  // Strong, quoted, version-prefixed: a shape change bumps the version so stale clients can never
+  // false-match. g1 -> g2 at the identity reshape (2026-09-21), when isVerified joined the item
+  // tuple: a client holding a g1 ETag must re-pull rather than 304 past a mark appearing.
+  return `"g2-${hash}"`;
 }

@@ -2,22 +2,24 @@ import { describe, expect, it } from "vitest";
 
 import { resolveGalleryAccess } from "@/lib/events/gallery-access";
 
-// Minimal event shapes (only the two fields the resolver reads).
-const open = { visibility: "open" as const, allow_anonymous_uploads: true };
-const openAcct = { visibility: "open" as const, allow_anonymous_uploads: false };
-const pw = { visibility: "password" as const, allow_anonymous_uploads: true };
-const pwAcct = { visibility: "password" as const, allow_anonymous_uploads: false };
+// Minimal event shapes (only the two fields the resolver reads). Keyed on the host's switch since
+// the identity reshape (2026-09-21): `require_verified_email` false is a name-only event, true is
+// one that asks a guest to prove an email before the album as well as before an upload.
+const open = { visibility: "open" as const, require_verified_email: false };
+const openAcct = { visibility: "open" as const, require_verified_email: true };
+const pw = { visibility: "password" as const, require_verified_email: false };
+const pwAcct = { visibility: "password" as const, require_verified_email: true };
 
 // An anonymous, not-unlocked, non-owner viewer (the strictest context).
 const anon = { isOwner: false, isAuthed: false, isUnlocked: false };
 
 describe("resolveGalleryAccess", () => {
-  it("open + anonymous-allowed: always full (unchanged from today)", () => {
+  it("open + name-only: always full (no gate to clear)", () => {
     expect(resolveGalleryAccess(open, anon)).toBe("full");
     expect(resolveGalleryAccess(open, { ...anon, isAuthed: true })).toBe("full");
   });
 
-  it("open + account-required: teaser when signed out, full when signed in", () => {
+  it("open + verified-email required: teaser when signed out, full when signed in", () => {
     expect(resolveGalleryAccess(openAcct, anon)).toBe("teaser");
     expect(resolveGalleryAccess(openAcct, { ...anon, isAuthed: true })).toBe(
       "full",
@@ -32,11 +34,11 @@ describe("resolveGalleryAccess", () => {
     );
   });
 
-  it("password + unlocked, anonymous-allowed: full", () => {
+  it("password + unlocked, name-only: full", () => {
     expect(resolveGalleryAccess(pw, { ...anon, isUnlocked: true })).toBe("full");
   });
 
-  it("password + unlocked, account-required: teaser until signed in, then full", () => {
+  it("password + unlocked, verified-email required: teaser until signed in, then full", () => {
     expect(resolveGalleryAccess(pwAcct, { ...anon, isUnlocked: true })).toBe(
       "teaser",
     );

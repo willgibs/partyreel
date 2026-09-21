@@ -154,8 +154,8 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
   at access `none`** (`host_display_name` + `description` + `event_date` blanked) so they never reach the
   RSC flight payload: a locked page leaks the event NAME + COUNT only, zero media URLs. The date is
   blanked too, because the welcome byline renders it.
-- **`open`** → the full experience, UNLESS account-required (`allow_anonymous_uploads=false`): a signed-out
-  viewer then gets a teaser (see "Gallery access" below). ★ **The OG description is ONE invitation for every
+- **`open`** → the full experience, UNLESS a verified email is required (`require_verified_email=true`): a
+  signed-out viewer then gets a teaser (see "Gallery access" below). ★ **The OG description is ONE invitation for every
   open event** — "Photos and videos from the day. Add yours." It used to fork on `allow_anonymous_uploads`
   and announce the email step in the chat; Will's `unfurl=join` pick (2026-09-17) dropped that warning WITH
   its cost in front of him ("More taps, and a share of them bounce at the email step"), so a pasted link
@@ -170,12 +170,12 @@ Viewing is no longer all-or-nothing. A pure `resolveGalleryAccess(event, {isOwne
 IDENTICALLY by the RSC and the poll via the server-only `loadGalleryForAccess`
 ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)):
 
-- **`full`** — the whole gallery. The owner (host), any signed-in viewer of an account-required event, an
-  unlocked viewer of a password event with no account gate, and the demo. Open + anonymous-allowed is always
-  full (unchanged).
+- **`full`** — the whole gallery. The owner (host), any signed-in viewer of a `require_verified_email`
+  event, an unlocked viewer of a password event with no identity gate, and the demo. Open + name-only is
+  always full.
 - **`teaser`** — the newest `TEASER_LIMIT` (9) approved PHOTOS + a total count (a "+N more" caption); the rest
-  withheld. Shown to a NOT-signed-in viewer of an account-required event (open, or password AFTER unlock). The
-  account is the incentive to see the rest.
+  withheld. Shown to a viewer with no confirmed email on a `require_verified_email` event (open, or password
+  AFTER unlock). Seeing the rest is what the confirmed email buys.
 - **`none`** — nothing real. A password event BEFORE the unlock cookie. The privacy rule: real teaser photos
   appear ONLY once the password is proven (never before it).
 
@@ -303,28 +303,60 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
 
 ## Joining + identity
 
-- **Silent, just-in-time, field-less for the common case:** a first-time guest picks files → `POST
-  /api/guests {qr_token}` → `create_guest` issues a `session_token` (localStorage, returning-guest) behind
-  the scenes → upload. Guest display names were REMOVED (cut 2b); `create_guest` is 2-arg.
+★ **ANONYMITY LEFT THE PRODUCT** (Will, `address=none`, 2026-09-21, verbatim in
+[rulings.md](../design/rulings.md) under "the identity reshape"). Every upload made from here on carries
+an identity; the host's switch decides which kind. It is **`events.require_verified_email`**, ON by
+default: on, a guest confirms an email before the full album and any upload; off, a guest types a display
+name at the door and uploads under it with a small unverified mark. `allow_anonymous_uploads` survives
+only as the compatibility twin the `events_sync_verified_email_flags` trigger holds exactly opposite
+(→ [database-security.md](database-security.md)); nothing new reads it, and only rows minted BEFORE the
+reshape can still read as "A guest".
+
+- **The join carries the identity:** `POST /api/guests {qr_token, display_name?}` → `create_guest`
+  (4-arg) issues a `session_token` (localStorage, returning-guest) and returns `{display_name, verified}`
+  — what the row was actually minted with, never an echo of the request. The ROUTE owns the refusals:
+  422 `verification_required` (the switch is on and nothing was proved), `name_required`, `name_invalid`
+  (over 60, a reserved name, or profanity, which is checked server-side because the obscenity matcher
+  must never ship to a browser). ★ **The DB deliberately still accepts a NAMELESS mint** — wave 0's
+  expand migration had to keep production minting for the hours before this code existed — **so the name
+  requirement is the route's and nothing else's.**
+- ★ **VERIFIED MEANS `guests.verified_at`, NEVER A `user_id`.** An unconfirmed sign-up carries a real
+  `user.id` and keeps its typed name, so `user !== null` is not the test: the route reads
+  `user.email_confirmed_at`, and `create_guest` stamps `verified_at` from `auth.users` itself. The ONE
+  precedence rule ([`uploader-identity.ts`](../../src/lib/media/uploader-identity.ts)) reads the same way:
+  host → `verified_at` set means the PROFILE's name, verified → else the typed `guests.display_name`,
+  unverified → else "A guest". `isAnonymous` survives narrowed to that last case alone.
+- **Naming a row afterwards:** `POST /api/guests/name {qr_token, session_token, display_name}` over
+  `set_guest_display_name` — for a row minted before the reshape, one minted without a name, and a guest
+  who wants a different one. Its own limiter kind (`rename`), tighter than `join` and still venue-sized.
+  A VERIFIED guest is refused (403): their name is their profile's, and one row never carries two.
+- ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries
+  `require_verified_email` + `guest_verified`, so presign and complete both answer 403
+  `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a
+  session minted before the switch moved upload forever; `create_media` stays authoritative and its
+  refusal maps to the same code.
 - **The localStorage `session_token` is the dedupe, and `guests` deliberately has NO unique
   `(event_id, user_id)`.** One person may join the same event more than once (a second device, a cleared
-  browser), and an account is optional, so a uniqueness constraint there would break anonymous multi-join
-  rather than tidy anything.
+  browser), and an account is optional, so a uniqueness constraint there would break multi-join rather
+  than tidy anything.
 - **Supabase anonymous sign-ins stay OFF.** Capability tokens already give a guest immediate, scoped use,
   so a per-scan `auth.users` row would be pure DB bloat; and an anonymous session carries no email, so it
-  could not satisfy the account gate it would supposedly serve. The account layer AUGMENTS the anonymous
-  flow and never replaces it: the contribution pipeline runs identically whether the uploader is anonymous
-  or signed in.
-- **`allow_anonymous_uploads = false` ⇒ an account is required to SEE the full gallery AND to upload** (P1
-  gated the VIEW too: a signed-out viewer gets the teaser, see "Gallery access"; renamed + inverted from
-  `require_email`; the default is ON and FREE on every tier, see [host-app.md](host-app.md);
-  turning it off is the opt-in, behind a consequence-confirm, not a paid feature). The account step lives in the entry
-  modal (P2) as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
-  [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with a
-  secondary password login; the teaser shows behind it. `create_guest` derives identity (`user_id` + `email`)
-  from `auth.uid()`, NEVER the client, and raises when `not allow_anonymous_uploads` and there's no confirmed
-  session; on a session it stamps `guests.user_id` (account-from-guest). No verification-only paths exist — an
-  account simply proves ownership. A signed-in uploader with no `display_name` then hits the required name step.
+  could not satisfy the gate it would supposedly serve. The account layer AUGMENTS the guest flow and
+  never replaces it: the contribution pipeline runs identically whichever identity the uploader carries.
+- **`require_verified_email = true` ⇒ a confirmed email is required to SEE the full gallery AND to
+  upload** (the VIEW is gated too: a signed-out viewer gets the teaser, see "Gallery access";
+  `resolveGalleryAccess` keys on this flag. Free on every tier, see [host-app.md](host-app.md); turning it
+  OFF is the opt-in, behind a consequence-confirm, not a paid feature). The step lives in the entry modal
+  as `<EnterEventPrompt>` — an email-primary "See all the photos" (the shared
+  [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx); one tap = create account OR log in) with
+  a secondary password login; the teaser shows behind it. `create_guest` derives identity (`user_id`,
+  `email`, `verified_at`) from the trusted uid, NEVER the client.
+- **The named unverified are LISTED, with the mark** (Will, `unproven=shown-marked` + "Listed, with the
+  mark"): `getEventGuestList(id, {includeUnverified: true})` appends them after the profile cards, one
+  entry per guest row (without an account there is nothing to de-duplicate by, so two people who both
+  typed "Sam" are two entries), and the union splits before hydration in
+  [`social/cards.ts`](../../src/lib/social/cards.ts) because they have no avatar to resolve. The host hub
+  keeps the default and its narrow list.
 - **Claiming anonymous uploads on sign-in (P3):** an anonymous upload is a `guests` row with `user_id IS
   NULL`; the browser still holds its `session_token` in `localStorage` (`pr_session_{qr_token}`). When the
   visitor later authenticates, a client helper ([`claim-uploads.ts`](../../src/lib/guest/claim-uploads.ts))

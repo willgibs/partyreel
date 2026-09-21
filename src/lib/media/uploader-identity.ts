@@ -1,22 +1,40 @@
 /**
- * Per-media uploader identity resolution (Phase 2 attribution).
+ * Per-media uploader identity resolution — THE ONE PRECEDENCE RULE.
  *
- * The CASE logic is a PURE function so it's unit-testable without a DB. The three scenarios
- * (confirmed against the schema): a HOST upload has no guest row (`media.guest_id IS NULL`) -> the
- * host's name, `isHost`; an ANONYMOUS upload has a guest row with no account (`guests.user_id IS
- * NULL`) -> "Anonymous"; a LOGGED-IN guest (`guests.user_id` set, account-from-guest) -> their
- * `profiles.display_name` + the verified `guests.email`.
+ * The identity reshape (Will, 2026-09-21) ended anonymity as a product concept: every upload made
+ * from here on carries a name, and the only question is whether an email was proved behind it. This
+ * pure function is where that is decided for every surface (the album, the lightbox caption, the
+ * host gallery, the ETag), so the answer can never differ between two of them.
  *
- * `email` is resolved here but is HOST-GALLERY-ONLY downstream: guest call sites simply never copy
- * it onto the client-facing GridMedia (email-safety by construction, not a runtime flag). Names are
- * public (same trust model as the "Hosted by" byline). Defensive: a guest with an account but a
- * null display_name (shouldn't happen post-Phase-1) yields a null name + NOT anonymous, so the
- * caption renders nothing rather than mislabeling them "Anonymous".
+ * THE RULE, in order, and the ORDER is the security property:
+ *   1. No guest row at all (`media.guest_id IS NULL`) -> the HOST uploaded it: the host's name.
+ *   2. `guests.verified_at` set -> a proved email: the PROFILE's display_name, verified.
+ *   3. else a typed `guests.display_name` -> the name they entered at the door, UNVERIFIED.
+ *   4. else -> nameless. "A guest": a row minted before the reshape, and nothing else.
+ *
+ * ★ NEVER KEY ON `user_id` ALONE (wave 0's finding, measured against the applied schema). An
+ * UNCONFIRMED sign-up carries a perfectly real `guests.user_id` and keeps its typed name, so a
+ * `user_id !== null` test would silently promote an unproven person to "verified, with a profile
+ * name" — which is the exact claim this whole reshape exists to stop anyone making. `verified_at`
+ * is stamped by create_guest from `auth.users.email_confirmed_at` at the mint, server-side, and is
+ * the only thing that means verified.
+ *
+ * ★ `isAnonymous` SURVIVES, NARROWED. It now means exactly one thing: case 4, a NAMELESS LEGACY
+ * ROW. It is no longer "a guest without an account" (that guest has a name now), and no new row can
+ * ever be one. It stays on the type because the lab's fixtures and the retired boards still draw it.
+ *
+ * `email` is resolved here but is HOST-GALLERY-ONLY downstream: guest call sites copy name/isHost/
+ * isVerified/isAnonymous onto the client-facing GridMedia and never the email (email-safety by
+ * construction, not a runtime flag — and grid-items.email-safety.test.ts stands guard). Names are
+ * public, the same trust model as the "Hosted by" byline.
  */
 export type UploaderIdentity = {
   displayName: string | null;
   email: string | null;
   isHost: boolean;
+  /** An email was proved (guests.verified_at). False renders the unverified mark. */
+  isVerified: boolean;
+  /** Case 4 ONLY: a nameless row from before the reshape. Never true for anything minted since. */
   isAnonymous: boolean;
 };
 
@@ -26,6 +44,10 @@ export type UploaderRow = {
   guests: {
     user_id: string | null;
     email: string | null;
+    /** The name typed at the door of a name-only event; NULL for a verified guest, by construction. */
+    display_name: string | null;
+    /** auth.users.email_confirmed_at as it stood at the mint. NULL = unverified. */
+    verified_at: string | null;
     profiles: { display_name: string | null } | null;
   } | null;
 };
@@ -34,22 +56,60 @@ export function resolveUploaderIdentity(
   row: UploaderRow,
   hostName: string | null,
 ): UploaderIdentity {
-  // Host upload: no guest row at all (create_media_as_host inserts guest_id NULL).
+  // 1. Host upload: no guest row at all (create_media_as_host inserts guest_id NULL). The host is
+  // an account with a confirmed email by definition of having one, and `isHost` suppresses the
+  // mark anyway — but saying `isVerified: true` here keeps "unverified" meaning one thing.
   if (row.guest_id === null) {
-    return { displayName: hostName, email: null, isHost: true, isAnonymous: false };
+    return {
+      displayName: hostName,
+      email: null,
+      isHost: true,
+      isVerified: true,
+      isAnonymous: false,
+    };
   }
   const guest = row.guests;
-  // Anonymous: a guest row with no linked account. Also the defensive fallback if the guest row
-  // didn't resolve (e.g. an over-eager delete) -> attribute as anonymous, never as the host.
-  if (!guest || guest.user_id === null) {
-    return { displayName: null, email: null, isHost: false, isAnonymous: true };
+  // The defensive fallback (an over-eager delete left the media without its guest row) lands in
+  // case 4 with the legacy label — attribute it as nameless, NEVER as the host.
+  if (!guest) {
+    return {
+      displayName: null,
+      email: null,
+      isHost: false,
+      isVerified: false,
+      isAnonymous: true,
+    };
   }
-  // Logged-in guest (account-from-guest): public name from their profile, email from the guest row
-  // (the event-relevant verified email, not necessarily profiles.email).
+  // 2. A proved email: the identity is the PROFILE's name, never a second name stored beside it.
+  // A verified guest with a null profile name keeps isAnonymous false, so the caption renders
+  // nothing rather than mislabeling a real person.
+  if (guest.verified_at !== null) {
+    return {
+      displayName: guest.profiles?.display_name ?? null,
+      email: guest.email ?? null,
+      isHost: false,
+      isVerified: true,
+      isAnonymous: false,
+    };
+  }
+  // 3. A typed name, unproven. The email (if the row carries one from an unconfirmed sign-up) is
+  // still the event-relevant address for the host gallery; the mark is what tells the truth about
+  // whether anyone proved it.
+  if (guest.display_name !== null && guest.display_name.trim() !== "") {
+    return {
+      displayName: guest.display_name,
+      email: guest.email ?? null,
+      isHost: false,
+      isVerified: false,
+      isAnonymous: false,
+    };
+  }
+  // 4. Nameless: minted before the reshape. "A guest" (Will's to overrule).
   return {
-    displayName: guest.profiles?.display_name ?? null,
-    email: guest.email ?? null,
+    displayName: null,
+    email: null,
     isHost: false,
-    isAnonymous: false,
+    isVerified: false,
+    isAnonymous: true,
   };
 }

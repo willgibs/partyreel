@@ -437,7 +437,12 @@ async function resolveEvent(hostId) {
       visibility: "open",
       moderation_mode: "live",
       accepting_uploads: true,
+      // The identity reshape (20260921150000): the demo album asks nothing of a visitor, so the
+      // switch is OFF. BOTH columns are named while the legacy twin still exists — the trigger
+      // would derive either from the other, but a seed script is read as documentation of the
+      // shape, and naming both says plainly that they are one setting until the column drops.
       allow_anonymous_uploads: true,
+      require_verified_email: false,
     })
     .select(
       "id, name, qr_token, visibility, moderation_mode, accepting_uploads",

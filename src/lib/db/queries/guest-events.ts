@@ -27,8 +27,15 @@ export type GuestEvent = {
   visibility: Database["public"]["Enums"]["event_visibility"];
   has_password: boolean;
   accepting_uploads: boolean;
-  // ON by default. When false the host requires an account (a verified session) to upload; the
-  // /e/ page shows the "Enter event" account-or-login flow instead of the anonymous upload panel.
+  // ★ THE HOST'S SWITCH (the identity reshape, 2026-09-21). ON by default: a guest confirms an
+  // email before the full album and any upload. OFF: a guest types a display name at the door and
+  // uploads under it with an unverified mark. This is the flag every new read keys on.
+  require_verified_email: boolean;
+  // Its LEGACY TWIN, kept exactly opposite by the events_sync_verified_email_flags trigger. It is
+  // still returned because the milestone build on `main` reads it and because
+  // get_public_profile's attended-arm clause is still written on it (QA #36). Nothing new should
+  // key on it; it goes when the column does, and that change re-points that clause in the same
+  // breath (database-security.md).
   allow_anonymous_uploads: boolean;
   event_date: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
@@ -132,6 +139,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     visibility: row.visibility,
     has_password: row.has_password,
     accepting_uploads: row.accepting_uploads,
+    require_verified_email: row.require_verified_email,
     allow_anonymous_uploads: row.allow_anonymous_uploads,
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
