@@ -322,11 +322,6 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
     count: 1,
     why: "a drawn phone's status bar clock (the file's real toggle chip took the caption step)",
   },
-  "src/components/marketing/sections/pricing/calculator.tsx": {
-    kind: "depicted",
-    count: 1,
-    why: "a clip's running time printed inside a drawn thumbnail (the slider's own labels took the floor)",
-  },
   "src/components/marketing/sections/features/privacy/access-switch.tsx": {
     kind: "depicted",
     count: 1,

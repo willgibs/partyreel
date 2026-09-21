@@ -25,6 +25,14 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE MONEY PAGE'S CONFIGURATOR (lp/pricing-split-wiring, 2026-09-20), at the
+  // head like the blocks below it, so several lanes adding `for` lines in one
+  // round land on distinct hunks instead of on each other.
+  "src/components/marketing/sections/pricing/configurator.tsx": {
+    for: "the block that sizes an event and answers with a plan (`pricing-page` r2, `fit=split`): the controls recessed on `bg-muted`, one photographed card elevated on the page's own white beside them, and `recommendPlan` the only thing deciding which plan that is. It closes the paper chapter directly under the pair, which is the half of his verdict a look cannot carry",
+    unspecimened:
+      "a page block rather than a component, and a live one: the whole thing it is FOR is a slider moving a recommendation, which a still specimen cannot show. /pricing is where it is seen, and its contract sits beside it",
+  },
   // THE APP'S ONE VIEW MENU (lp/controls-home-wiring, 2026-09-20), at the head
   // like the block below it, so several lanes adding `for` lines in one round
   // land on distinct hunks instead of on each other.
@@ -37,7 +45,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   // the same reason as the block below it: several lanes add `for` lines this
   // round, and prepending keeps each lane's on its own hunk.
   "src/components/app/dashboard/next-step-band.tsx": {
-    for: "the pulse's first band: one next-best-step chip per event, and past three the top three by tone with the rest folded behind an \"N more\" chip that expands in place",
+    for: 'the pulse\'s first band: one next-best-step chip per event, and past three the top three by tone with the rest folded behind an "N more" chip that expands in place',
   },
   // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
   // block below it, so several lanes adding `for` lines in one round land on
