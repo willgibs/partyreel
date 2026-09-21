@@ -262,6 +262,14 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the guest event page's one header: the wordmark, an auth-aware CTA/account-menu swap, and (`isDemo`) the Demo mark that pins it to the top of the screen for the whole visit",
   },
 
+  // guest-view-menu (2026-09-20): its own new contract (the View menu's
+  // wiring) pulled the guest live gallery into the index for the first time.
+  "src/components/guest/live-gallery.tsx": {
+    for: "the guest album's live state end to end: the doorbell/poll refresh, a guest's own removable photographs (the fourth mark's Yours filter), and the ONE View menu (Tile size beside Showing) beside Download all, its tile size server-resolved from the shared `pr_tile_size` cookie so the first paint is already the size a returning guest picked",
+    unspecimened:
+      "needs a real gallery promise, a live doorbell subscription and an event behind it; the guest event page (/e/[token]) is where it actually renders",
+  },
+
   /* the two session-less failure chromes (errors-wiring, 2026-09-19): outside
      the library's directories, here because the failure contract names them. */
   "src/components/guest/guest-bar.tsx": {

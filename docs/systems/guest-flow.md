@@ -376,8 +376,19 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   to that set under a "Showing yours · Show all" line, the event's own count line keeps saying how big the
   WHOLE album is, and the filter cannot stay live once the guest owns nothing in the list — removing your
   last photograph can never strand you in an empty view. A LINE and not a chip, on his own note: "rather
-  than just adding more and more configs here"; Yours joins tile size inside the View menu
-  (`controls-home=view-menu`) when that lands on the guest row, and this line stays as the state's receipt.
+  than just adding more and more configs here"; Yours now joins tile size inside the ONE View menu
+  (`controls-home=view-menu`, [`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host
+  gallery's own object) mounted beside "Download all" in
+  [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx): a Showing group (Everyone's / Yours (n))
+  present only while the guest owns something on the album, beside a Tile size group disabled below 640 with
+  the hint "Wider screens" (`masonry.tsx`'s `PHONE_MAX` forces two columns there regardless of
+  `--album-column`, so the control would otherwise be dead) — this line stays as the filter's own receipt and
+  its only exit besides tapping a mark again. ★ **THE SIZE ITSELF IS SERVER-RESOLVED, NEVER A CLIENT-ONLY
+  READ**: the guest page reads the same shared `pr_tile_size` cookie the host dashboard does
+  ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts)'s `resolveTileSize`) and threads it down
+  as `initialTileSize` through `EventExperience` to `LiveGallery`, so the first paint is already the size a
+  returning guest picked; the write rides `setTileSizeAction`
+  ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)), the host action's mirror on the guest page.
   Omitted wherever Remove is (the demo, a locked gallery), so a surface with no removal has no marks either.
 
 ## Auth-aware header island

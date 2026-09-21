@@ -2921,6 +2921,129 @@
       ]
     },
     {
+      "id": "live-gallery",
+      "file": "src/components/guest/live-gallery.tsx",
+      "names": [
+        "LiveGallery"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "is Tile size alone when the guest owns nothing on the album",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 119
+        },
+        {
+          "title": "adds Showing once the guest owns something, the count inside Yours' own label",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 124
+        },
+        {
+          "title": "Showing's value follows the live intent, never a stale snapshot",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 133
+        },
+        {
+          "title": "routes Showing's onChange to setShowingMine as a boolean, never the raw string",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 142
+        },
+        {
+          "title": "reserves Tile size below 640 rather than removing it",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 153
+        },
+        {
+          "title": "is live at 640 and up, with no hint",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 159
+        },
+        {
+          "title": "routes Tile size's onChange to setTileSize as a number, never the raw string",
+          "suite": [
+            "buildGuestViewGroups: the guest album's View menu, as arithmetic"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 165
+        },
+        {
+          "title": "paints --album-column from the server-resolved initialTileSize on first render",
+          "suite": [
+            "LiveGallery: the cookie's value reaches the album's wrapper"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 174
+        },
+        {
+          "title": "falls back to the wired default when the cookie was missing",
+          "suite": [
+            "LiveGallery: the cookie's value reaches the album's wrapper"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 180
+        },
+        {
+          "title": "checks the matching option in the View menu, never just the CSS",
+          "suite": [
+            "LiveGallery: the cookie's value reaches the album's wrapper"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 186
+        },
+        {
+          "title": "omits Showing when the guest owns nothing on the album",
+          "suite": [
+            "LiveGallery: the Showing group's own gate"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 198
+        },
+        {
+          "title": "adds Showing, with the owned count in Yours, once something is theirs",
+          "suite": [
+            "LiveGallery: the Showing group's own gate"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 205
+        },
+        {
+          "title": "disables the group with the Wider screens hint under 640",
+          "suite": [
+            "LiveGallery: Tile size reserved below 640"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 218
+        },
+        {
+          "title": "is live at 640 and up, with no hint",
+          "suite": [
+            "LiveGallery: Tile size reserved below 640"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 230
+        }
+      ]
+    },
+    {
       "id": "yours-filter",
       "file": "src/components/guest/yours-filter.ts",
       "names": [],

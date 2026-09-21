@@ -51,6 +51,7 @@ import type { GalleryAccess } from "@/lib/events/gallery-access";
 import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
+import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
@@ -115,6 +116,7 @@ export function EventExperience({
   guestReel,
   canDeleteIds,
   isAuthed,
+  initialTileSize,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -157,6 +159,10 @@ export function EventExperience({
   /** Viewer holds an account -> the signed-in remove path (a Server Function on
    *  `remove_my_upload`); otherwise the anonymous one (the session token). */
   isAuthed: boolean;
+  /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
+   *  through to LiveGallery's own View menu (`controls-home=view-menu`); this
+   *  shell holds no tile-size state of its own. */
+  initialTileSize?: TileSize;
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
@@ -716,6 +722,7 @@ export function EventExperience({
                 canDeleteIds={canDeleteIds}
                 isAuthed={isAuthed}
                 sessionToken={sessionToken}
+                initialTileSize={initialTileSize}
               />
             </div>
           </Suspense>

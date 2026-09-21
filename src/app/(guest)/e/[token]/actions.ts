@@ -3,7 +3,7 @@
 /**
  * The guest event page's Server Functions.
  *
- * ONE, so far: a SIGNED-IN guest removing a photograph they uploaded (Will,
+ * ONE until now: a SIGNED-IN guest removing a photograph they uploaded (Will,
  * `yours`, 2026-09-20 — "A guest can delete any photo they've personally
  * uploaded, ever"; final for the host too, his answer at approval).
  *
@@ -25,9 +25,22 @@
  * reconciles itself: the gallery drops the tile optimistically and the next
  * poll (or the doorbell's ping) is the server agreeing. A `revalidatePath` on a
  * guest link would re-run the whole presign-heavy page for one removed tile.
+ *
+ * TWO, now: persisting the album's tile size (`controls-home=view-menu`), the
+ * host's `setTileSizeAction` precedent (dashboard/[eventId]/actions.ts) on the
+ * one shared cookie (`lib/shared/tile-size-cookie.ts`) so a guest and a host
+ * picking "Large" both write the same name — the size itself is per-device,
+ * never a profile column, on either surface.
  */
+import { cookies } from "next/headers";
+
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { captureError } from "@/lib/observability/sentry";
+import {
+  resolveTileSize,
+  TILE_SIZE_COOKIE,
+  TILE_SIZE_COOKIE_MAX_AGE,
+} from "@/lib/shared/tile-size-cookie";
 
 export type GuestRemoveResult = { ok: true } | { ok: false; message: string };
 
@@ -47,4 +60,17 @@ export async function removeMyUploadGuestAction(
     });
   }
   return { ok: false, message: result.message };
+}
+
+/** The guest album's View menu, Tile size group — re-validated through
+ *  `resolveTileSize` rather than trusted raw off the client, exactly like the
+ *  host action it mirrors. */
+export async function setTileSizeAction(size: number): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(TILE_SIZE_COOKIE, String(resolveTileSize(String(size))), {
+    maxAge: TILE_SIZE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    path: "/",
+    httpOnly: false,
+  });
 }

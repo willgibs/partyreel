@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
@@ -32,6 +32,7 @@ import {
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { getGuestReelContext } from "@/lib/reel/guest-reel";
+import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { needsDisplayName } from "@/lib/welcome";
@@ -227,13 +228,19 @@ export default async function GuestEventPage({
   // identity is a session token in the browser's own storage, so LiveGallery
   // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
   // rendered to remove) and in the demo (nothing there is real).
-  const [stats, guestReel, canDeleteIds] = await Promise.all([
+  const [stats, guestReel, canDeleteIds, cookieJar] = await Promise.all([
     getGalleryStats(event),
     getGuestReelContext(event, access),
     userId && !isDemo && access !== "none"
       ? listAccountMediaIds({ eventId: event.id, userId })
       : Promise.resolve<string[]>([]),
+    cookies(),
   ]);
+  // The album's tile size (`controls-home=view-menu`), painted inline from the
+  // cookie (the host page's `tileSize` precedent, dashboard/[eventId]/page.tsx)
+  // so the first paint is already the size a returning guest picked — never a
+  // client-only read, which would resize the whole album after hydration.
+  const tileSize = resolveTileSize(cookieJar.get(TILE_SIZE_COOKIE)?.value);
 
   // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
   // access `none` the page must reveal the event NAME + media COUNT only, and
@@ -330,6 +337,7 @@ export default async function GuestEventPage({
         guestReel={guestReel}
         canDeleteIds={canDeleteIds}
         isAuthed={Boolean(userId)}
+        initialTileSize={tileSize}
       />
     </div>
   );
