@@ -33,6 +33,34 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a page block rather than a component, and a live one: the whole thing it is FOR is a slider moving a recommendation, which a still specimen cannot show. /pricing is where it is seen, and its contract sits beside it",
   },
+  // PRICING INSIDE THE APP (lp/app-pricing-wiring, 2026-09-20), at the head like
+  // the blocks below it, so several lanes adding `for` lines in one round land
+  // on distinct hunks instead of on each other.
+  "src/components/app/pricing/pricing-sheet.tsx": {
+    for: "what every pricing click in the host app opens (`app-pricing` r1, `object=sheet`): the ONE responsive Sheet, led by the TRIGGER it was given (a locked feature names itself, running out of room opens on the smallest Pro that clears the bytes, a subscriber is told she subscribes and handed the portal). It carries Free beside one Pro size and nothing else (`carry=cards` overruled the selector and the cadence toggle), the Event Pass on one line, and a quiet foot that opens /pricing in a NEW tab. Pass a trigger child for a door that is a button; drive `open` for a door that is a toast action",
+    unspecimened:
+      "a surface whose whole subject is the host it opened for: every frame needs a server-derived tier and a trigger, and the buy buttons POST to /api/stripe/checkout, so the honest demo is the shipped account page rather than fixture plans invented for the Library",
+  },
+  "src/components/app/pricing/return-path.ts": {
+    for: "the ALLOW-LIST behind Stripe's `success_url` (`back=finish`): the exact same-origin app paths a purchase may come back to, plus the `welcome=pro` marker the returning page reads. It is a list of shapes rather than a sanitizer because a blocklist loses to `//evil.example`, a backslash host and an encoded slash pair, and every path on it is a page that actually mounts the welcome modal. Pure strings, so the checkout route and the client button share one source",
+    unspecimened: "pure string functions; return-path.test.ts is its demo",
+  },
+  "src/components/app/pricing/lock-chip.tsx": {
+    for: "the one component behind every gated control (`words=chip`, his \"Convert, not block\"): a BUTTON showing the control's own name and the plan that opens it, with a tooltip saying why it is locked and what unlocks it, opening the pricing sheet led by that feature. It replaced four sentences that worded one rule four ways; a fifth gated control is a row in `pricing/triggers.ts`, never a fifth sentence",
+    unspecimened:
+      "it opens a sheet that POSTs to Checkout, and its tooltip rides the root TooltipProvider; the four shipped gates (the password panel, the visibility line, the video row, the custom link) are the demo",
+  },
+  "src/components/app/pricing/welcome-to-pro.tsx": {
+    for: "the first second after paying us (`back=finish`, his \"They should be excited to join Pro\"): the receipt as a modal on the page Checkout returned to, with ONE primary door. It says only what the SERVER can see, because the Stripe webhook is the sole writer of `profiles.tier` and the redirect routinely beats it, and it re-reads a bounded number of times so a pending receipt turns into a real one by itself",
+    unspecimened:
+      "it exists for one URL marker on three app pages and drives the router on close; a Library frame would be a screenshot of a state nothing in the lab can reach",
+  },
+  // THE WELCOME TOUR AS A FILM (lp/welcome-film-wiring, 2026-09-20), at the
+  // head for the same reason as the block below it: several lanes add `for`
+  // lines this round, and prepending keeps each lane's on its own hunk.
+  "src/components/app/welcome-flow.tsx": {
+    for: "the required name step then the four-screen tour between a new account and the app (`app-door` r2, `tour=film`): three of the marketing site's own bespoke how-it-works pictures breathing under an overlapping copy plate, then a closing beat into the same primary-and-skippable pair as always",
+  },
   // THE APP'S ONE VIEW MENU (lp/controls-home-wiring, 2026-09-20), at the head
   // like the block below it, so several lanes adding `for` lines in one round
   // land on distinct hunks instead of on each other.

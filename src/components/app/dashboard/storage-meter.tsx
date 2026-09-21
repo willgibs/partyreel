@@ -1,15 +1,18 @@
 "use client";
 
-import Link from "next/link";
-
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { friendlyCapacity } from "@/lib/constants/tiers";
+import {
+  DEFAULT_TIER,
+  friendlyCapacity,
+  toBillingTier,
+} from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
 /**
@@ -32,6 +35,7 @@ export function StorageMeter({
   planName,
   hasBilling,
   isEventPass,
+  tier,
 }: {
   storageUsed: number;
   storageCap: number | null;
@@ -42,6 +46,12 @@ export function StorageMeter({
   planName: string;
   hasBilling: boolean;
   isEventPass: boolean;
+  /**
+   * The host's tier, server-derived (`profiles.tier` through the dashboard's
+   * RLS-scoped read). Optional so the lab's fixtures keep compiling; it only
+   * ever decides which sentence the pricing sheet leads with.
+   */
+  tier?: string;
 }) {
   // Amber only when it MATTERS (near the cap, or over the recovery budget); else
   // quiet neutral telemetry.
@@ -49,6 +59,7 @@ export function StorageMeter({
   const usedLabel = formatBytes(storageUsed);
   const capLabel = storageCap ? formatBytes(storageCap) : null;
   const capacity = storageCap ? friendlyCapacity(storageCap) : null;
+  const billingTier = toBillingTier(tier ?? DEFAULT_TIER);
 
   return (
     <Popover>
@@ -93,12 +104,21 @@ export function StorageMeter({
             Your {planName} plan holds about{" "}
             {capacity.photos.toLocaleString()} photos or{" "}
             {capacity.videoMinutes.toLocaleString()} min of video.{" "}
-            <Link
-              href="/pricing"
-              className="font-medium text-foreground underline underline-offset-4"
+            {/* "Need more?" used to LEAVE the app for a static, tier-blind
+                page. It opens the sheet on `room` now (`first=trigger`), which
+                is the one door here that already knows how full the host is. */}
+            <PricingSheet
+              trigger={{ kind: "room", needed: storageUsed }}
+              plan={{ tier: billingTier, hasBilling, passExpiry }}
+              returnTo="/dashboard"
             >
-              Need more?
-            </Link>
+              <button
+                type="button"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                Need more?
+              </button>
+            </PricingSheet>
           </p>
         )}
         {standbyBytes > 0 && (

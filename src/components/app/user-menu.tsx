@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   Check,
+  CreditCard,
   LifeBuoy,
   LogOut,
   Monitor,
@@ -48,6 +49,16 @@ type UserMenuProps = {
    * hold). Paints the account's colour until a real photo replaces it.
    */
   seed?: string | null;
+  /**
+   * The host's plan, by name, from `TIER_NAMES` over the SERVER's tier
+   * (`(app)/layout.tsx`). Optional so the menu still renders in the lab's
+   * fixtures; when absent the row is still there, just without the label.
+   *
+   * ★ IT IS A LABEL, NOT AN ENTITLEMENT. Nothing in this menu decides what a
+   * host may do; it points at the account page's Plan card, which reads every
+   * plan fact from the profile row itself (billing-caps.md).
+   */
+  planName?: string | null;
 };
 
 // Theme picker options. Each mode has its own icon; the active one gets a trailing
@@ -118,6 +129,7 @@ export function UserMenu({
   avatarUrl,
   slug = null,
   seed = null,
+  planName = null,
 }: UserMenuProps) {
   // ★ THE HANDLE-LESS DOOR. /u/<slug> does not exist until a handle is claimed,
   // and claiming it is free, so the door leads to the claim card rather than
@@ -196,8 +208,24 @@ export function UserMenu({
               <UserRound /> Your profile
             </Link>
           </DropdownMenuItem>
-          {/* DOOR TWO — the money and the settings: plan, billing, password,
-              sign-in. Same-tab, unlike the external links below. */}
+          {/* DOOR TWO — the money (`doors=menu`, Will 2026-09-20: "The avatar
+              gains Plan and storage above Account, carrying the plan's name.
+              One row, and money has a door that is not a refusal"). Billing
+              used to be reachable only by being REFUSED: a lock, a toast or a
+              banner. #plan is the id on /account's Plan card, which is billing's
+              home (his `doors` note: no dedicated page unless it earns one). */}
+          <DropdownMenuItem asChild>
+            <Link href="/account#plan">
+              <CreditCard /> Plan and storage
+              {planName ? (
+                <span className="ml-auto text-xs font-normal text-muted-foreground">
+                  {planName}
+                </span>
+              ) : null}
+            </Link>
+          </DropdownMenuItem>
+          {/* DOOR THREE — the settings: password, sign-in, email preferences.
+              Same-tab, unlike the external links below. */}
           <DropdownMenuItem asChild>
             <Link href="/account">
               <Settings /> Account

@@ -26,10 +26,15 @@ import {
 } from "@/components/ui/card";
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
+import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
+import { PRO_LINE } from "@/lib/constants/marketing-voice";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
   TIER_NAMES,
+  planById,
   effectiveStorageCap,
   formatLimit,
   friendlyCapacity,
@@ -102,16 +107,21 @@ function PersonRow({
 // Account settings (auth-accounts.md + the profiles-social.md profile surface). Renders under the
 // (app) gate, so getUser() already ran; getProfile re-checks defensively. Next
 // 16: searchParams is a Promise. ?reset=1 arrives from the forgot-password flow
-// (after a fresh OTP verify) and forces the Security form into "set" mode.
+// (after a fresh OTP verify) and forces the Security form into "set" mode;
+// ?welcome=pro is where Stripe lands a buyer who started here (`back=finish`).
+//
+// ★ NEITHER PARAM MAY EVER DECIDE A PLAN. They open a form mode and a modal;
+// every entitlement on this page is read from the RLS-scoped profile row below,
+// and plan-card.test.ts pins the searchParams type for exactly that reason.
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string; welcome?: string }>;
 }) {
   const [
     profile,
     passwordSet,
-    { reset },
+    { reset, welcome },
     slug,
     attendedEvents,
     following,
@@ -183,6 +193,18 @@ export default async function AccountPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {welcome === WELCOME_VALUE && (
+        <WelcomeToPro
+          // The webhook is the sole writer of profiles.tier and Stripe can land
+          // the buyer before it fires, so the claim is scoped to what THIS
+          // render can see (`tier` is derived from the profile row above).
+          applied={tier !== "free"}
+          planName={planName}
+          capBytes={planCap}
+          nextUrl="/account"
+          door={{ label: "Go to your dashboard", href: "/dashboard" }}
+        />
+      )}
       <div>
         <PageHeading>Account</PageHeading>
         <p className="text-sm text-muted-foreground">
@@ -190,13 +212,14 @@ export default async function AccountPage({
         </p>
       </div>
 
-      {/* BILLING'S FIRST DOOR (`you=?`, Will 2026-09-20: "plans, billing, etc
-          should live under an account page"). Until now the only path to a plan
-          in the whole app was a popover on the storage strip on the dashboard,
-          and the only path to the Billing Portal was a button inside it. First
-          on the page because it is the one card a host arrives here looking
+      {/* BILLING'S HOME (`doors=menu`, Will 2026-09-20, and his note: "If we're
+          going to have a dedicated 'Billing' page (better name), we need to
+          ensure the page has enough settings to justify it. Else we can drop it
+          back into the account page."). There is no dedicated page: this card is
+          it, and the user menu's Plan and storage row is the door to this anchor.
+          First on the page because it is the one card a host arrives here looking
           for; the profile they came to edit is one scroll down and always was. */}
-      <Card>
+      <Card id="plan" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Plan</CardTitle>
           <CardDescription>
@@ -235,38 +258,59 @@ export default async function AccountPage({
 
           {tier === "free" && (
             <p className="text-sm text-muted-foreground">
-              {/* ★ SINGLE-SOURCE FOLLOW-UP. This is the ruled Pro line
-                  (`pro-line=video`, his words: "For videos and unlimited
-                  events."). Its HOME is `lib/constants/marketing-voice.ts`
-                  beside the other ruled lines, and `voice-wiring` is the lane
-                  adding it there — it does not exist yet, so importing it would
-                  not compile. When that lane lands, swap this literal for the
-                  import; it is one line in the handoff, not a second home. */}
+              {/* The ruled Pro line (`pro-line=video`, his words: "For videos
+                  and unlimited events."), from its one home now that
+                  voice-wiring has landed it there. */}
               <strong className="font-medium text-foreground">
-                For videos and unlimited events.
+                {PRO_LINE}
               </strong>{" "}
-              <Link
-                href="/pricing"
-                className="underline underline-offset-4 hover:text-foreground"
-              >
-                See plans
-              </Link>
+              Everything paid adds is in the sheet below, and the full
+              comparison is on the pricing page.
             </p>
           )}
 
           <div className="flex flex-wrap gap-2">
+            {/* UPGRADE OPENS THE SHEET, not the marketing page (`object=sheet`):
+                this card is where a host looks at what they pay, so the buying
+                decision happens in the same breath rather than a tab away. */}
+            {tier !== "pro" && (
+              <PricingSheet
+                trigger={{ kind: "plan" }}
+                plan={{ tier, hasBilling, passExpiry }}
+                returnTo="/account"
+              >
+                <Button size="sm">
+                  {tier === "free" ? "Upgrade" : "Change plan"}
+                </Button>
+              </PricingSheet>
+            )}
             {hasBilling && <ManageBillingButton />}
             {tier === "event_pass" && (
-              <CheckoutButton planId="event_pass" renewal variant="outline">
-                Renew Event Pass
+              <CheckoutButton
+                planId="event_pass"
+                renewal
+                next="/account"
+                variant="outline"
+              >
+                Renew {planById("event_pass").name}
               </CheckoutButton>
             )}
-            {!hasBilling && tier === "free" && (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/pricing">See plans</Link>
-              </Button>
-            )}
           </div>
+
+          {/* THE PASS ON ONE LINE (`pass=line`), on the card as well as in the
+              sheet: a host reading their plan should see the cheaper door to
+              the same gates without being sold two billing models at equal
+              weight. A second purchase STACKS (billing-caps.md). */}
+          {tier !== "pro" && (
+            <p className="border-t border-border/60 pt-4 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {planById("event_pass").name}
+              </span>{" "}
+              covers one event, paid once:{" "}
+              {planById("event_pass").priceLabel.replace(" one-time", "")} for{" "}
+              {formatBytes(planById("event_pass").storageBytes)}.
+            </p>
+          )}
         </CardContent>
       </Card>
 

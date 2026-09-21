@@ -46,10 +46,32 @@ describe("the plan card's tier read", () => {
     }
   });
 
-  it("keeps ?reset as this page's only search param", () => {
+  it("admits only ?reset and ?welcome, and neither may carry a plan", () => {
     // Widening the searchParams type is the change that would let a plan claim
-    // in via the URL, so the type itself is the tripwire.
-    expect(page).toMatch(/searchParams:\s*Promise<\{\s*reset\?:\s*string;?\s*\}>/);
+    // in via the URL, so the type itself is the tripwire. `welcome` was added by
+    // app-pricing-wiring (`back=finish`): it opens the receipt modal and nothing
+    // else, and the modal's own claim is `tier !== "free"` read from the profile
+    // row below. EXTENDED, never loosened: a third param needs a reason here.
+    expect(page).toMatch(
+      /searchParams:\s*Promise<\{\s*reset\?:\s*string;\s*welcome\?:\s*string;?\s*\}>/,
+    );
+  });
+
+  it("decides the receipt's claim from the tier, never from the marker", () => {
+    // The Stripe webhook is the sole writer of profiles.tier and Stripe
+    // redirects the instant payment succeeds, so `?welcome=pro` proves a
+    // payment and never a plan. `applied={tier !== "free"}` is the whole of the
+    // difference between an honest receipt and a lie that looks like a bug.
+    expect(page).toContain('applied={tier !== "free"}');
+    // And the marker itself is compared to the one value the route sends.
+    expect(page).toContain("welcome === WELCOME_VALUE");
+  });
+
+  it("keeps billing on this card, which is the only home it has", () => {
+    // `doors=menu` and his note: no dedicated Billing page unless it earns one,
+    // so the user menu's Plan and storage row points at #plan HERE. Losing the
+    // anchor turns that row into a scroll to the top of a five-card page.
+    expect(page).toContain('id="plan"');
   });
 
   it("single-sources every limit from tiers.ts", () => {

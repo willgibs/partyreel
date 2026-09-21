@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 888 contracts on 124 components · 20 standing boards.**
+**22 laws · 18 policies · 928 contracts on 129 components · 18 standing boards.**
 
 ## What binds you
 
@@ -341,7 +341,7 @@ function. A contract never freezes a look.
 
 Contracted but outside the library's directories:
 
-- `src/app/(app)/account/page.tsx` (4 guards)
+- `src/app/(app)/account/page.tsx` (6 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
@@ -360,6 +360,10 @@ Contracted but outside the library's directories:
 - `src/components/app/event-feed/event-gallery.tsx` (10 guards)
 - `src/components/app/event-feed/review-room.tsx` (10 guards)
 - `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/pricing/lock-chip.tsx` (6 guards)
+- `src/components/app/pricing/pricing-sheet.tsx` (12 guards)
+- `src/components/app/pricing/return-path.ts` (7 guards)
+- `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
 - `src/components/app/share/event-code-door.tsx` (12 guards)
 - `src/components/app/share/event-code-modal.tsx` (12 guards)
 - `src/components/app/share/event-link-row.tsx` (12 guards)
@@ -367,6 +371,7 @@ Contracted but outside the library's directories:
 - `src/components/app/share/event-share-sheet.tsx` (12 guards)
 - `src/components/app/share/event-sheets.tsx` (12 guards)
 - `src/components/app/share/use-copy-link.ts` (12 guards)
+- `src/components/app/welcome-flow.tsx` (7 guards)
 - `src/components/auth/account-door.tsx` (16 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/entry-shell.tsx` (4 guards)
@@ -454,8 +459,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
-| `app-door` | host | Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all |
-| `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |

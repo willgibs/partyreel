@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { type CSSProperties, useTransition } from "react";
+import { type CSSProperties, useState, useTransition } from "react";
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,6 +9,7 @@ import {
   restoreMediaAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { GLASS, GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -44,11 +45,13 @@ export type BinMedia = GridMedia & { countdownDays: number };
 function BinTileOverlay({
   eventId,
   item,
+  onOutOfRoom,
 }: {
   eventId: string;
   item: BinMedia;
+  /** The grid's ONE pricing sheet, opened by this tile's cap refusal. */
+  onOutOfRoom: () => void;
 }) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function onRestore() {
@@ -58,13 +61,15 @@ function BinTileOverlay({
         toast.success("Restored. It's back in the album.");
         return;
       }
-      // insufficient_space is the expected at-cap refusal -> offer the upgrade path.
+      // insufficient_space is the expected at-cap refusal -> offer the upgrade
+      // path. It opens the pricing sheet on `room` rather than leaving for a
+      // static /pricing (`first=trigger`, Will 2026-09-20).
       if (
         result.code === "insufficient_space" ||
         result.code === "event_limit"
       ) {
         toast.error(result.message, {
-          action: { label: "Upgrade", onClick: () => router.push("/pricing") },
+          action: { label: "Upgrade", onClick: onOutOfRoom },
         });
         return;
       }
@@ -173,17 +178,39 @@ const BIN_ACTION =
 export function RecentlyDeletedGrid({
   eventId,
   items,
+  /** Server-derived (`profiles.tier`); it only picks the sheet's headline. */
+  tier,
 }: {
   eventId: string;
   items: BinMedia[];
+  tier?: string;
 }) {
+  // ONE sheet for the whole bin, not one per tile: a bin holds dozens of tiles
+  // and each mounted sheet is a portal, a focus trap and a scroll lock waiting
+  // to exist. The tiles raise the refusal; the grid owns the surface.
+  const [pricingOpen, setPricingOpen] = useState(false);
   // clampAspect keeps the countdown + restore/purge controls legible on extreme
   // ratios (same moderation-ergonomics reason as the main host grid).
   return (
-    <MasonryColumns
-      items={items}
-      clampAspect
-      renderOverlay={(item) => <BinTileOverlay eventId={eventId} item={item} />}
-    />
+    <>
+      <MasonryColumns
+        items={items}
+        clampAspect
+        renderOverlay={(item) => (
+          <BinTileOverlay
+            eventId={eventId}
+            item={item}
+            onOutOfRoom={() => setPricingOpen(true)}
+          />
+        )}
+      />
+      <PricingSheet
+        open={pricingOpen}
+        onOpenChange={setPricingOpen}
+        trigger={{ kind: "room" }}
+        plan={{ tier: toBillingTier(tier ?? DEFAULT_TIER), hasBilling: false }}
+        returnTo={`/dashboard/${eventId}`}
+      />
+    </>
   );
 }

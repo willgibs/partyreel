@@ -14,8 +14,12 @@ import { EventShareProvider } from "@/components/app/share/event-share-provider"
 import { EventSheets } from "@/components/app/share/event-sheets";
 import { PageHeading } from "@/components/shared/page-heading";
 import { SetCrumbs } from "@/components/shared/crumbs";
+import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
+import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import {
   DEFAULT_TIER,
+  TIER_NAMES,
+  effectiveStorageCap,
   isSettingLocked,
   toBillingTier,
   videosAllowedForTier,
@@ -52,6 +56,8 @@ type PageProps = {
     /** The retired feed filter, kept alive as a redirect into the rooms. */
     section?: string;
     eventTab?: string;
+    /** `pro` after Checkout returns a buyer to the control that refused them. */
+    welcome?: string;
   }>;
 };
 
@@ -87,7 +93,7 @@ export default async function EventDetailPage({
   searchParams,
 }: PageProps) {
   const { eventId } = await params;
-  const { room, section, eventTab } = await searchParams;
+  const { room, section, eventTab, welcome } = await searchParams;
 
   // A `?section=` deep link predates the rooms. Send it to the room that holds
   // that section now, rather than to a filter that no longer exists. Gallery
@@ -213,6 +219,20 @@ export default async function EventDetailPage({
     // code, the cards row and the album's first column all start on ONE left
     // line. The words keep the app's measure, pinned left.
     <div data-route-fade data-app-wide className="space-y-6">
+      {/* app-pricing-wiring's one block on this page (`back=finish`, Will
+          2026-09-20): Checkout returns a buyer to the very control that refused
+          them, with `?room=` already reopening its sheet, and this is the
+          receipt above it. `applied` is the SERVER's tier (the webhook is its
+          sole writer and can lag the redirect by a second), never the marker. */}
+      {welcome === WELCOME_VALUE && (
+        <WelcomeToPro
+          applied={tier !== "free"}
+          planName={TIER_NAMES[tier]}
+          capBytes={effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null)}
+          nextUrl={`/dashboard/${event.id}${room ? `?room=${room}` : ""}`}
+          door={{ label: "Back to what you were doing" }}
+        />
+      )}
       <SetCrumbs
         trail={[
           { label: "Partyreel", href: "/dashboard" },

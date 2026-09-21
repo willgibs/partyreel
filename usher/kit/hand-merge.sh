@@ -36,22 +36,51 @@ s2,n=re.subn(r"<<<<<<< [^\n]*\n(.*?)=======\n(.*?)>>>>>>> [^\n]*\n", keep, s, fl
 PY
       ;;
     "$TP"|"$NOTES") git show ":1:$f" > "$S/hm-base"; git show ":2:$f" > "$S/hm-ours"; git show ":3:$f" > "$S/hm-theirs"
-      git merge-file --union -p "$S/hm-ours" "$S/hm-base" "$S/hm-theirs" > "$f"; echo "union: $f" ;;
+      git merge-file --union -p "$S/hm-ours" "$S/hm-base" "$S/hm-theirs" > "$f"; echo "union: $f"
+      # A union prints a line both sides END on once: two lanes' head blocks in component-notes.ts both end on
+      # "  }," so the first block lost its closer (2026-09-21, app-pricing-wiring). Close any entry whose next key
+      # arrives without one; the comment lines above a key belong to that key.
+      [ "$f" = "$NOTES" ] && python3 - "$f" <<'PY'
+import re,sys
+p=sys.argv[1]; lines=open(p).read().split("\n"); out=[]; fixed=0
+for i,l in enumerate(lines):
+    if re.match(r'^  "[^"]+": \{\s*$', l):
+        k=len(out)
+        while k>0:
+            s=out[k-1].strip()
+            if s=="" or s.startswith("//"): k-=1; continue
+            if s.endswith("*/"):
+                while k>0 and "/*" not in out[k-1]: k-=1
+                k-=1; continue
+            break
+        prev=out[k-1].rstrip() if k>0 else ""
+        if not (prev.endswith("},") or prev.endswith("= {")):
+            out.insert(k, "  },"); fixed+=1
+    out.append(l)
+open(p,"w").write("\n".join(out)); print("component-notes: closers inserted", fixed)
+PY
+      ;;
     "$LIB"|"$GEN") echo "regenerate: $f" ;;
     *) echo "STOP: $f conflicts and no resolver owns it; the merge is left in progress"; exit 3 ;;
   esac
 done
-# retired ids the union re-added: a SandboxId member gone from the union type but still named in DESK_ORDER
-python3 - "$TP" <<'PY'
+# retired ids the union re-added (2026-09-21: the union restores the deleted `| "id"` line of the SandboxId type as
+# well as the DESK_ORDER entry, so the type is no oracle): the standing set is what registry.ts still imports after
+# the intersection, and every other id leaves BOTH the SandboxId union and DESK_ORDER (RulingId keeps it).
+python3 - "$TP" "$REG" <<'PY'
 import re,sys
-p=sys.argv[1]; s=open(p).read()
-m=re.search(r"export type SandboxId\s*=\s*(.*?);", s, re.S)
-members=set(re.findall(r'"([a-z0-9-]+)"', m.group(1))) if m else set()
+tp,reg=sys.argv[1],sys.argv[2]; s=open(tp).read()
+standing=set(re.findall(r'from "\./([a-z0-9-]+)/spec"', open(reg).read()))
+if not standing: sys.exit("STOP: registry.ts imports no spec")
+a=s.index("export type SandboxId"); b=s.index(";", a); u=s[a:b]
+gone=[x for x in re.findall(r'"([a-z0-9-]+)"', u) if x not in standing]
+for x in gone: u=re.sub(r'^\s*\|\s*"'+x+r'"\s*\n', "", u, flags=re.M)
+s=s[:a]+u+s[b:]
 i=s.index("export const DESK_ORDER"); j=s.index("];", i); block=s[i:j]
 ids=re.findall(r'^\s*"([a-z0-9-]+)",\s*$', block, re.M)
-drop=[x for x in ids if members and x not in members]
+drop=[x for x in ids if x not in standing]
 for x in drop: block=re.sub(r'^\s*"'+x+r'",\s*\n', "", block, flags=re.M)
-open(p,"w").write(s[:i]+block+s[j:]); print("DESK_ORDER: dropped", drop if drop else "nothing")
+open(tp,"w").write(s[:i]+block+s[j:]); print("SandboxId: dropped", gone or "nothing", "| DESK_ORDER: dropped", drop or "nothing")
 PY
 grep -l "<<<<<<<" "$REG" "$BOARDS" "$TP" "$NOTES" 2>/dev/null && { echo "STOP: markers remain"; exit 3; }
 pnpm -s design:rules >/dev/null 2>&1 || { echo "STOP: design:rules failed"; exit 3; }
