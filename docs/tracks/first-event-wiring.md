@@ -1,6 +1,6 @@
 ---
 track: first-event-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "40e2c2c1"          # the launch-prep SHA the branch was cut from
 board: first-event     # wired by this lane; the board retires (its eight asks ruled whole)
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -338,30 +338,166 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none opened. Every call the brief left to the lane was taken on its recommendation and is listed under
+  "Calls his to overrule" below. One decision the brief did not anticipate is recorded there rather than
+  asked, because it is not a one-way door: the PRINTED code is the classic SHAPE whatever preset the event
+  carries, because paper is rendered by the zero-JS server renderer. Same data, same scan, no corner tint on
+  paper. Reversible the day somebody wants a print-capable styled renderer.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md` `## Events & the create flow`: the wizard's three beats rewritten (Name, Style,
+  the beat), the note and the date named as having LEFT it, the beat described with its two doors, and the
+  cap door replacing the "disabled New event button" line. Its invariant grew the second half of the same
+  fact: no eligibility redirect AND no eligibility prop read live on a route whose post-Server-Action
+  refresh must show a success state; `useState(() => atCap)` is named as the answer and the contract test
+  that holds it.
+- `docs/systems/host-app.md` `## QR designer`: the chain line corrected (`EventQr` is the plate,
+  `QrDownloadMenu` is beside it), two new invariants (a code's size is CSS, never a re-render; the module,
+  not the code, decides whether it scans, with the 3 px screen and 0.5 mm paper floors and where the two
+  renderers' quiet zones differ), and a NEW subsection "The paper the app prints" holding the route group's
+  reason, the auth re-declaration, the zero-JS rule and its cost, the millimetre rule and the one sheet box
+  that fits Letter and A4 with no `@page`.
+- `docs/systems/host-app.md` `## The event page`: the Share bullet rewritten for the redrawn sheet and the
+  DELETED dialog (the stale "survives as a thin wrapper with all nine props" line is gone); two new bullets
+  before the album's, one for the launch list and one for the live hub (the two signals, why the poll is not
+  redundant with the doorbell, the first-200-seeds rule, the id-not-url diff and `stagger` staying off).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: a GALLERY of printable QR designs, not one design in three pieces (his `venue` note verbatim: "We
+  should have a full gallery of printable QR designs ready to go... rather than always requiring the host to
+  design the rest of the assets"). A board once the desk is closed, by his own no-new-board rule; the stock
+  module is already a record-per-piece so a second design is data, not a rewrite.
+- Now: the printed code cannot wear a preset. `FooterQr` draws square ink modules only, and `StyledQr` is a
+  client island that cannot ship on a zero-JS sheet. A print-capable styled renderer (or a server-side
+  rasterisation of the chosen preset) is the fix.
+- Now: widen the `media_gallery_doorbell` trigger so a PENDING arrival rings a host-only channel. It is a
+  migration, and until it lands the host hears held uploads through the `/live` poll alone (12 s / 60 s).
+- Later: the host album's arrival GLOW lands with `guest-upload-wiring`'s shared stylesheet. This lane ships
+  the attribute and the clock (`data-arrived` on the tile, `--arrival-glow-ms` on the album box, the id
+  diff); the moment `src/components/shared/arrival.css` is imported product-wide the host lights up with no
+  further edit here.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The board commit is `2ead8afd` (the eight verdicts wired, the sandbox deleted) and the SYNC-MERGE commit is
+  `bb903919` (`origin/launch-prep` at `578927e8`, which had moved: `overtaken-5` landed). The docs and the
+  Library's lines are `77a5565f`. The head is in the chat line, not here.
+- Every claim below names its artifact (a commit, a log line, a file path), so the Orchestrator checks rather
+  than believes.
+- **Gates on the synced tree, each on its own exit code:** `pnpm design:rules` ok (0) · specimen collector ok
+  (0, 140 specimens on 101 entries) · `pnpm typecheck` ok (0) · `pnpm lint` ok (0, **10 warnings**, the
+  corrected baseline the Orchestrator announced; none of the ten is in a file this lane touched: they are in
+  `_desk/review-session.tsx`, `sandbox/home-hero/shared.tsx`, `sandbox/overtaken.ts`, `contact-form.tsx`,
+  `album-fill-grid.tsx`, `review-switch.tsx`, `lib/db/queries/jobs.ts`, `lib/shared/use-flip.ts`) ·
+  `pnpm test` ok (0, **3234 passed**, 1 skipped, 311 files) · `pnpm build` ok (0, **255 pages**;
+  `/dashboard/[eventId]/print` and `/api/events/[eventId]/live` both present as dynamic routes) ·
+  `pnpm lab:smoke --base http://localhost:3131` ok (0, **406 checks, 0 failing**, every board inside its
+  reading budget). `pnpm lab:demo` NOT run and cannot be: this lane RETIRES its board, so there is no
+  `--board first-event` to press by the time the gate runs.
+- **Lane check** — `git diff --name-only origin/launch-prep...HEAD` is 45 files: every one is an owned path
+  except the four below, each listed with why.
+  - `src/app/(dev)/design/touchpoints.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+    `src/app/(dev)/design/(shell)/lab/boards.ts` — the RETIREMENT exception, this board's lines only:
+    `SandboxId` and `DESK_ORDER` lose `first-event`, `RulingId` keeps it, the row's `ruled`/`shipped` are
+    rewritten as shipped with a refreshed `lives` list and no `board` block, and the sandbox is deleted.
+    `sandbox/overtaken.ts` is NOT in the diff: `overtaken-5` had already removed the same fifteen entries on
+    `launch-prep`, and the merge resolved to its version. `_desk/queue.test.ts` was never touched.
+  - `src/app/(dev)/design/rules/component-notes.ts` — the `for` lines the ownership rules require of every
+    new component, plus the share sheet's rewritten line. Eleven entries added at the HEAD of the map, which
+    is the convention for a lane, so concurrent lanes land on distinct hunks.
+  - `src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx` — **the lane's one real
+    exception, four lines.** Two `file:` declarations (`qr-preset-picker`, `host-media-grid`) had to go
+    because `gallery.test.ts` forbids an entry from declaring its own file once the component is in the
+    design-rules artifact, and a `for` line is what put both there. The other two lines are a `lede` and a
+    specimen `hint` that told a reader the card chip "opens the share dialog" — a component this lane
+    deletes. Leaving the Library naming a deleted file was worse than the edit.
+  - `docs/design/library.md` and the two generated artifacts are `pnpm design:rules` / the collector's output.
+- **The items, one line each** (the ask, what shipped, what it lands as in the Library):
+  - `asks=one` + his "bigger name edit field": step 1 is ONE borderless field on a rule at the section step,
+    autofocus, the placeholder unchanged; the note and the date left the wizard entirely. Lands as
+    `create-event-wizard.tsx`'s Library entry. Contract: `create-flow.test.tsx` ("asks for a name and nothing
+    else" counts the textboxes, so a field coming back is a red test, not a longer form).
+  - `style=step` + "The picker needs a redesign": four swatches on a CONTAINER query, each sized by CSS
+    rather than a re-render, each saying what it is, with the step's own line that the choice is not final.
+    Measured in the Library at three real container widths: 544 px (the wizard at a desk) → 2 up, **160 px**
+    codes, up from 96; 460 px (the designer dialog) → 2 up, 160 px, no clipping; 311 px (the wizard at 375)
+    → 2 up, 105 px, no overflow; 806 px → 4 up. Lands as `qr-preset-picker.tsx`.
+  - `limit=door`: `/dashboard/new` computes `atCap` with the dashboard's own math and passes the events at
+    the cap; the wizard SNAPSHOTS the prop at mount and renders the refusal instead of the form. The copy
+    comes from the number ("holds one event" / "holds 3 events"), never a literal one. The dashboard's
+    disabled New event button is a live link again. Contract: the starred case re-renders with `atCap`
+    flipped AFTER a creation and asserts the beat survives.
+  - `venue=sheet`: `src/app/(print)/` — a route group with its own bare layout and its own `getUser()`, the
+    page reading the event through RLS. Three pieces in one face at real millimetres, nine cards to a page.
+    Lands as `print-stock.tsx` + `lib/qr/stock.ts` + `lib/qr/module-floor.ts`.
+  - `landing=beat`: step 3, reachable only by pressing Create, with the real code in a borrowed mat, Print
+    and Share as its two doors and one primary door out. `EventSlugControl` left it for the share sheet.
+  - `hand=same` + "could be improved a lot": the sheet redrawn — one-line title, the code at the sheet's own
+    width, then ONE row (Copy · Share · Open · Print), then the quiet doors, then the readable link. The
+    legacy `event-share-dialog.tsx` is DELETED and the card chip is a `<Link>` to `?room=share`.
+    `event-share.test.tsx`'s twelve pins are green unchanged.
+  - `empty=list`: `launch-list.tsx`, the items derived from the event's own nulls, the print row always last,
+    Share as a fourth door only while the list has fewer than three, and the section header renamed "Before
+    the first photo" with the outstanding count until a photograph lands.
+  - `first=live`: `EventLive` (exported from `event-gallery.tsx`), the doorbell plus `/api/events/<id>/live`,
+    `router.refresh()` on a ping or a changed validator and never on a timer, the pip silent until the
+    channel is subscribed, and `HostMediaGrid` diffing its own ids for `arrivedIds`.
+- **The cost per refresh, measured**: the `/live` route is ONE RLS-scoped select and answers a bodiless 304
+  when nothing moved, so an idle hub costs one cheap query every 60 s while the socket is up and every 12 s
+  when it is down (the guest album's own cadence), paused while the tab is hidden. A CHANGED answer spends
+  one `router.refresh()`, which is the hub's whole RSC: eleven queries plus three presigns an item. That
+  asymmetry is the design. Measured signed out on `:3131`: `/api/events/<uuid>/live` → **401**
+  (`{"ok":false,"code":"unauthorized"}`), `/dashboard/<uuid>/print` → **307 to /login**, which is the new
+  group's OWN gate rather than an inherited one.
+- **Calls his to overrule on the alias**, one line each:
+  - The printed code is the classic SHAPE whatever the event's preset is (zero-JS paper; the styled presets
+    are a client renderer). Same data, same scan, no corner tint on paper; the page says so rather than
+    hiding it.
+  - The table card is 62 × 84 mm and is NOT A7. Nine A7 cards are 222 × 315 mm and have never fitted one
+    sheet; the board's caption said they did.
+  - Three pieces and one design (his "full gallery" is a ROADMAP line under his own no-new-board rule).
+  - The launch list's three items, and Share as a fourth door only below three.
+  - `router.refresh()` as the live mechanism, and the beat's composition with no photograph.
+  - The swatches keep previewing the placeholder link at the real density (the row does not exist pre-insert).
+  - The door's two actions: "Delete it" opens the event's settings sheet, where delete lives, rather than
+    deleting from the refusal.
+  - The mini-modal stays (app-shape r1's ruling, untouched here).
+  - The wizard's stepper labels are Name · Style · Ready.
+- **Help articles this lane makes stale** (a `help-sync` lane rewrites them):
+  - Anything describing the create flow as Details → QR design → Share, or naming a description/date field
+    on the create form.
+  - Anything telling a host to download the QR and lay out their own signage: the app prints stock now.
+  - Anything describing sharing as a dialog opened from the dashboard card.
+  - Anything describing the empty event page, which is a launch list before the first photograph.
+  - Anything saying the host's page needs a refresh to see new photos.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. One migration is NAMED as a
+  ROADMAP line and deliberately not written: widening `media_gallery_doorbell` so a PENDING arrival rings a
+  host-only channel.
+- **Look at first** (signed in, on the alias — localhost cannot sign in: `.env.local` points
+  `NEXT_PUBLIC_SITE_URL` at production, so the OAuth round trip leaves localhost, which is the carve-out
+  CLAUDE.md names):
+  1. `/dashboard/<event>/print` at Letter AND A4 in the browser's print PREVIEW, at 100% with no scaling.
+     This is the one surface no screenshot shows and the arithmetic is only half the answer; the type's
+     scale on paper is the judgement.
+  2. `/dashboard/new` as `willg97` end to end at 1440 and 375: the big name field, the swatches, Create, the
+     beat, and the beat's Print door opening the sheet in a new tab.
+  3. `/dashboard/new` signed in as the FREE host (`hi@willgibs`, one event): the door before the form, both
+     its actions, and the dashboard's New event button now live at the cap.
+  4. The share sheet at 375 from the event's `?room=share`, and the dashboard card's chip landing on it.
+  5. An empty event's launch list, then a guest's upload arriving on the hub while it is open (the count
+     moves, the list gives way to the album, the Live pip shows).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The `first-event` board's eight verdicts were wired and
+the board retired. Creating an event became one borderless name field, a redesigned style step and a beat
+that happens once by construction; a Free host at the cap now meets the refusal before the form, from a prop
+the island snapshots at mount so the post-create refresh cannot take the beat back. The app prints its own
+stock at real millimetres from a route group outside the app shell, through the zero-JS server renderer,
+under one print hook with no `@page`. Sharing became one surface again: the legacy dialog was deleted and the
+sheet redrawn at 375 with the code at its own width and four verbs in a row. An empty event became a launch
+list of what is left, and the hub went live on the guest's own doorbell plus a cheap host fingerprint,
+refreshing only on a ping or a changed validator.
