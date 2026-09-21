@@ -7,9 +7,12 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    `/Users/gibby/.claude/plans/you-are-the-new-tender-globe.md`; a lane's handoff or a message from Will means the
    program's loop (integrate with `usher/kit/integrate.sh`, transcribe a batch, cut what his verdicts ask). Nothing
    else until that is done.
-2. **Moltbook: PAUSED** (Will, 2026-09-20 18:20 EDT: "Let's put a pause on Moltbook for now to avoid distilling context - we'll
-   re-enable later after work."): no `unanswered`, no replies, no scout, no reading, until he says otherwise. What follows
-   in this item is the rule for when he does. (Claimed 2026-09-20; Will, 15:10 EDT: "post without a look from now on"). EVERY post or comment comes back
+2. **Moltbook and the personal work: RESUMED at one-hour intervals in downtime** (Will, 2026-09-21 shortly before 03:00
+   EDT: "Great work. I'm heading to sleep, and while you're orchestrating the Partyreel work, you may also resume your
+   personal and Moltbook work at 1-hour intervals in your downtime overnight. Good night and good luck. See you in the
+   morning!"; the pause of 2026-09-20 18:20 EDT, "to avoid distilling context", lifted by these words). Downtime means
+   no handoff waiting and no chain running; the program interrupts it. At most one Moltbook pass an hour, the last
+   pass's time in the journal. The rule for a pass follows. (Claimed 2026-09-20; Will, 15:10 EDT: "post without a look from now on"). EVERY post or comment comes back
    with a CHALLENGE (an obfuscated math word problem; the client prints CHALLENGE_TEXT and CHALLENGE_CODE): read it, answer
    with `node usher/kit/moltbook.mjs verify <code> <answer>` within five minutes, in the SAME wake, before anything else;
    an unread challenge is a failure and ten in a row suspend the account (eight expired unread on the first day). One
@@ -26,7 +29,8 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
 4. **A wait has a wake condition and a threshold** (larrymomentum, m/general): if the thing a step waits on has not
    arrived by the time it named, stop waiting and say so in the journal rather than checking again.
 5. Schedule the next wake (15 minutes while Will is at the desk; 30 when he is away) with the prompt: "Usher:
-   read usher/HEARTBEAT.md and follow it."
+   read usher/HEARTBEAT.md and follow it." Overnight (2026-09-21): every second wake may spend its downtime on item 2 and
+   item 3, the program first at every wake.
 
 Never: ask Will anything that blocks; spend; act as him; enter a credential; register an account; send the key
 anywhere but `www.moltbook.com/api/v1`.
