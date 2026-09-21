@@ -15,7 +15,7 @@ import { HOST_CURATION } from "./host-curation/spec";
 import { GUEST_UPLOAD } from "./guest-upload/spec";
 import { FIRST_EVENT } from "./first-event/spec";
 import { APP_DOOR } from "./app-door/spec";
-import { APP_PRICING } from "./app-pricing/spec";
+
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
@@ -56,7 +56,7 @@ const REGISTERED: readonly BoardSpec[] = [
 
   APP_DOOR,
   DEMO_EVENT,
-  APP_PRICING,
+
   FIRST_EVENT,
   GUEST_UPLOAD,
   MEDIA_VIEWER,

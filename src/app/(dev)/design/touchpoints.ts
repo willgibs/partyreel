@@ -125,7 +125,6 @@ export type SandboxId =
   | "guest-upload"
   | "first-event"
   | "app-door"
-  | "app-pricing"
   | "press-page"
   | "contact-page"
   | "demo-event"
@@ -1129,27 +1128,19 @@ export const RULINGS: Ruling[] = [
     id: "app-pricing",
     title: "Pricing in the app",
     surface: "host",
-    ruled:
-      "open (Will, 2026-09-19: \"an in-app pricing modal so we don't take users out of the app to the marketing site by default every pricing click... The marketing site can be a more comprehensive 'Learn More' second-layer resource\")",
-    shipped: null,
-    why: "Every pricing click in the host app leaves it for a static, tier-blind marketing page; this round asks what opens instead, and what the marketing page becomes.",
+    ruled: "2026-09-20 (all eight: the object, the first view, how much it carries, the second layer, the pass, the doors, the words at a gate, coming back)",
+    shipped:
+      "One pricing sheet on the responsive Sheet, led by the trigger (a locked feature names itself, running out of room opens on the smallest plan that clears it, a subscriber is told she subscribes), carrying Free beside one Pro size with three benefit lines, the Event Pass on one line, and a quiet foot to /pricing in a new tab; one lock chip behind every gated control, a button with a tooltip rather than a dead sentence; Plan and storage in the user menu and the account page's Plan card as billing's home; Checkout returning to the control that refused you with a welcome-to-Pro modal",
+    why: "Every pricing click used to leave the app for a tier-blind page that could not name the control that refused you; the trigger is what keeping it inside buys.",
     lives: [
       "docs/PRICING.md",
       "docs/systems/billing-caps.md",
       "src/lib/constants/tiers.ts",
+      "src/components/app/pricing/",
       "src/components/app/dashboard/storage-meter.tsx",
-      "src/components/app/event-password-control.tsx",
-      "src/app/(marketing)/(cinema)/pricing/page.tsx",
+      "src/app/(app)/account/page.tsx",
+      "src/app/api/stripe/checkout/route.ts",
     ],
-    board: {
-      note: "Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to",
-      variants: [
-        "The object",
-        "The first view",
-        "How much it carries",
-        "The second layer",
-      ],
-    },
   },
   {
     id: "demo-event",
@@ -1605,7 +1596,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "seed-avatar",
   "app-door",
   "demo-event",
-  "app-pricing",
   "first-event",
   "guest-upload",
   "media-viewer",

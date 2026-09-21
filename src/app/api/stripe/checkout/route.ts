@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  safeReturnPath,
+  withWelcomeMarker,
+} from "@/components/app/pricing/return-path";
 import { activeNowPasses, passProCreditCents } from "@/lib/billing/passes";
 import { planById } from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
@@ -163,6 +167,16 @@ export async function POST(request: Request) {
   // metadata.renewal to chain the window, and metadata.pass_credit_cents to honor
   // the prorated credit.
   const siteUrl = await getSiteUrl();
+  // ── WHERE THE BUYER LANDS (`back=finish`, Will 2026-09-20) ──────────────────
+  // "Checkout returns to the exact control that was locked, now open and
+  // waiting." The caller names that control's page in `next`; `safeReturnPath`
+  // answers with the dashboard for ANYTHING it does not recognise, so this line
+  // can never become an open redirect no matter what a client POSTs. Parsed off
+  // the raw body rather than through `checkoutSchema`, which is the shared shape
+  // of a PLAN and has no business knowing about return paths.
+  const returnPath = withWelcomeMarker(
+    safeReturnPath((body as { next?: unknown })?.next),
+  );
   const session = await stripe.checkout.sessions.create({
     mode: plan.billing === "one_time" ? "payment" : "subscription",
     customer: customerId,
@@ -172,7 +186,7 @@ export async function POST(request: Request) {
     // client_reference_id is a belt-and-suspenders link the webhook can use to bind
     // the customer to the host (we also already persisted stripe_customer_id above).
     client_reference_id: user.id,
-    success_url: `${siteUrl}/dashboard?upgraded=1`,
+    success_url: `${siteUrl}${returnPath}`,
     cancel_url: `${siteUrl}/pricing`,
   });
 

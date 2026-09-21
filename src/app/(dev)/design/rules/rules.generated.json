@@ -27,7 +27,7 @@
           "line": 34
         },
         {
-          "title": "keeps ?reset as this page's only search param",
+          "title": "admits only ?reset and ?welcome, and neither may carry a plan",
           "suite": [
             "the plan card's tier read"
           ],
@@ -35,12 +35,28 @@
           "line": 49
         },
         {
+          "title": "decides the receipt's claim from the tier, never from the marker",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 60
+        },
+        {
+          "title": "keeps billing on this card, which is the only home it has",
+          "suite": [
+            "the plan card's tier read"
+          ],
+          "file": "src/app/(app)/account/plan-card.test.ts",
+          "line": 70
+        },
+        {
           "title": "single-sources every limit from tiers.ts",
           "suite": [
             "the plan card's tier read"
           ],
           "file": "src/app/(app)/account/plan-card.test.ts",
-          "line": 55
+          "line": 77
         }
       ]
     },
@@ -1631,6 +1647,300 @@
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
           "line": 176
+        }
+      ]
+    },
+    {
+      "id": "lock-chip",
+      "file": "src/components/app/pricing/lock-chip.tsx",
+      "names": [
+        "LockChip"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "%s",
+          "suite": [
+            "every locked control wears the one chip"
+          ],
+          "file": "src/components/app/pricing/gated-sites.test.ts",
+          "line": 51
+        },
+        {
+          "title": "%s opens the sheet instead of routing to /pricing",
+          "suite": [
+            "nothing in the host app leaves for the marketing page"
+          ],
+          "file": "src/components/app/pricing/gated-sites.test.ts",
+          "line": 74
+        },
+        {
+          "title": "%s is a pressable button, never a disabled label",
+          "suite": [
+            "every gated control wears the same chip"
+          ],
+          "file": "src/components/app/pricing/lock-chip.test.tsx",
+          "line": 48
+        },
+        {
+          "title": "%s names itself and the plan to a screen reader",
+          "suite": [
+            "every gated control wears the same chip"
+          ],
+          "file": "src/components/app/pricing/lock-chip.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "opens the pricing sheet led by this feature",
+          "suite": [
+            "pressing it opens the surface that explains and sells"
+          ],
+          "file": "src/components/app/pricing/lock-chip.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "hands the sheet the control's page, so Checkout can finish the job",
+          "suite": [
+            "pressing it opens the surface that explains and sells"
+          ],
+          "file": "src/components/app/pricing/lock-chip.test.tsx",
+          "line": 74
+        }
+      ]
+    },
+    {
+      "id": "pricing-sheet",
+      "file": "src/components/app/pricing/pricing-sheet.tsx",
+      "names": [
+        "PricingSheet"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "names the locked control, on the control that refused you",
+          "suite": [
+            "it opens on the reason it opened"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 69
+        },
+        {
+          "title": "opens on the SMALLEST Pro plan that clears the bytes, never a bigger one",
+          "suite": [
+            "it opens on the reason it opened"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 81
+        },
+        {
+          "title": "falls back to the smallest Pro when the refusal was events, not bytes",
+          "suite": [
+            "it opens on the reason it opened"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 90
+        },
+        {
+          "title": "tells a subscriber she subscribes, and sells her nothing",
+          "suite": [
+            "it opens on the reason it opened"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 95
+        },
+        {
+          "title": "draws exactly Free and one Pro size",
+          "suite": [
+            "it carries two cards and a price, and not the marketing page"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 112
+        },
+        {
+          "title": "offers no storage selector and no cadence toggle (his `carry` overrule)",
+          "suite": [
+            "it carries two cards and a price, and not the marketing page"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 119
+        },
+        {
+          "title": "carries three benefit lines on the Pro card, derived from tiers.ts",
+          "suite": [
+            "it carries two cards and a price, and not the marketing page"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "prices every card from tiers.ts",
+          "suite": [
+            "it carries two cards and a price, and not the marketing page"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 138
+        },
+        {
+          "title": "offers a first pass to a Free host",
+          "suite": [
+            "the Event Pass is one line and a button, at every tier that may buy one"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 146
+        },
+        {
+          "title": "offers a STACKING second pass to a holder, never a refusal",
+          "suite": [
+            "the Event Pass is one line and a button, at every tier that may buy one"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 153
+        },
+        {
+          "title": "links /pricing in a new tab so the host keeps their place",
+          "suite": [
+            "the second layer stays one click away, and leaves on purpose"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 163
+        },
+        {
+          "title": "opens from a trigger child without the caller owning any state",
+          "suite": [
+            "a door that is a button opens it itself"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 173
+        }
+      ]
+    },
+    {
+      "id": "return-path",
+      "file": "src/components/app/pricing/return-path.ts",
+      "names": [
+        "DEFAULT_RETURN_PATH",
+        "WELCOME_PARAM",
+        "WELCOME_VALUE"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "accepts the three app pages that mount the welcome modal",
+          "suite": [
+            "the paths a purchase may come back to"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 25
+        },
+        {
+          "title": "accepts an uppercase event id, because Postgres prints uuids either way",
+          "suite": [
+            "the paths a purchase may come back to"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 38
+        },
+        {
+          "title": "refuses %j",
+          "suite": [
+            "everything else becomes the dashboard, silently"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 67
+        },
+        {
+          "title": "refuses a control character even inside an otherwise legal path",
+          "suite": [
+            "everything else becomes the dashboard, silently"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 72
+        },
+        {
+          "title": "refuses anything that is not a string",
+          "suite": [
+            "everything else becomes the dashboard, silently"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 79
+        },
+        {
+          "title": "joins with ? or & depending on what the path already carries",
+          "suite": [
+            "the marker that opens the modal once"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 88
+        },
+        {
+          "title": "round-trips: stripping it leaves exactly the path we started from",
+          "suite": [
+            "the marker that opens the modal once"
+          ],
+          "file": "src/components/app/pricing/return-path.test.ts",
+          "line": 95
+        }
+      ]
+    },
+    {
+      "id": "welcome-to-pro",
+      "file": "src/components/app/pricing/welcome-to-pro.tsx",
+      "names": [
+        "WelcomeToPro"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "celebrates the plan once the tier has actually moved",
+          "suite": [
+            "it says only what the server can see"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 57
+        },
+        {
+          "title": "claims the PAYMENT and never the plan while the webhook is in flight",
+          "suite": [
+            "it says only what the server can see"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "re-reads the server while the tier has not landed",
+          "suite": [
+            "a pending receipt heals itself, and a settled one rests"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "never re-reads once the tier is applied",
+          "suite": [
+            "a pending receipt heals itself, and a settled one rests"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "strips the marker on CLOSE, not on mount",
+          "suite": [
+            "once per arrival"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "gives a door that really leaves an href instead of a close",
+          "suite": [
+            "once per arrival"
+          ],
+          "file": "src/components/app/pricing/welcome-to-pro.test.tsx",
+          "line": 102
         }
       ]
     },

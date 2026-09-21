@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +8,7 @@ import {
   clearEventPasswordAction,
   setEventPasswordAction,
 } from "@/app/(app)/dashboard/actions";
+import { LockChip } from "@/components/app/pricing/lock-chip";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,19 +77,16 @@ export function EventPasswordControl({
     });
   }
 
-  // Free + no password yet: can't create one — surface the upgrade affordance.
+  // Free + no password yet: can't create one. The chip is the control now
+  // (`words=chip`, Will 2026-09-20: "Convert, not block"): it names itself, says
+  // what opens it in its tooltip, and opens the pricing sheet led by this
+  // feature. Checkout comes back HERE, with the settings sheet reopened.
   if (locked && !hasPassword) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Password-protected albums are a paid feature.{" "}
-        <Link
-          href="/pricing"
-          className="font-medium text-foreground underline underline-offset-4"
-        >
-          Upgrade to enable
-        </Link>
-        .
-      </p>
+      <LockChip
+        feature="password"
+        returnTo={`/dashboard/${eventId}?room=settings`}
+      />
     );
   }
 

@@ -8,7 +8,9 @@ import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
 import { NextStepBand } from "@/components/app/dashboard/next-step-band";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
-import { UpgradedToast } from "@/app/(app)/dashboard/upgraded-toast";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
+import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import {
@@ -73,15 +75,18 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage({
   searchParams,
 }: {
-  // `upgraded=1` is where Stripe Checkout lands a buyer (the route's success_url).
-  // The legacy ?tab= / ?filter= deep links are gone with the chips they drove;
-  // an old bookmark simply lands on the pulse, which is the page they wanted.
-  searchParams: Promise<{ upgraded?: string }>;
+  // `welcome=pro` is where Stripe Checkout lands a buyer with nothing to go back
+  // and finish (`back=finish`, Will 2026-09-20). It replaces the old `upgraded=1`
+  // receipt toast. The legacy ?tab= / ?filter= deep links are gone with the chips
+  // they drove; an old bookmark simply lands on the pulse, which is the page they
+  // wanted.
+  searchParams: Promise<{ welcome?: string }>;
 }) {
-  const { upgraded } = await searchParams;
-  // Exactly "1", the only value the checkout route sends: a hand-typed ?upgraded=x
-  // must never manufacture a payment confirmation.
-  const justUpgraded = upgraded === "1";
+  const { welcome } = await searchParams;
+  // Exactly the one value the checkout route sends: a hand-typed ?welcome=x must
+  // never manufacture a payment confirmation, and the modal's own claim is
+  // decided by the SERVER's tier below, never by this marker.
+  const justBought = welcome === WELCOME_VALUE;
 
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here. Kept
@@ -260,14 +265,19 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
-      {justUpgraded && (
-        <UpgradedToast
+      {justBought && (
+        <WelcomeToPro
           // The webhook is the only writer of profiles.tier, and Stripe can land the
           // buyer here before it fires, so the claim is scoped to what this render can
           // actually see. `tier` is read fresh above on every dashboard render.
           applied={tier !== "free"}
           planName={planName}
+          capBytes={storageCap}
           nextUrl="/dashboard"
+          // Nobody was in the middle of anything: this is the purchase that
+          // started somewhere with no control to return to (his own words), so
+          // the door simply puts them on the home they are already looking at.
+          door={{ label: "Go to your dashboard" }}
         />
       )}
 
@@ -310,12 +320,18 @@ export default async function DashboardPage({
             <strong className="text-foreground">{graceDeadline}</strong>. After
             that we&rsquo;ll automatically reduce your storage (largest files
             first).{" "}
-            <Link
-              href="/pricing"
-              className="font-medium text-foreground underline underline-offset-4"
+            <PricingSheet
+              trigger={{ kind: "room", needed: storageUsed }}
+              plan={{ tier, hasBilling }}
+              returnTo="/dashboard"
             >
-              See plans
-            </Link>
+              <button
+                type="button"
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                See plans
+              </button>
+            </PricingSheet>
             .
           </p>
         </div>
@@ -337,18 +353,25 @@ export default async function DashboardPage({
         planName={planName}
         hasBilling={hasBilling}
         isEventPass={tier === "event_pass"}
+        tier={tier}
       />
 
       {atCap && (
         <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
           You&rsquo;ve used every event on the {planName} plan. Delete one to
           free a slot, or{" "}
-          <Link
-            href="/pricing"
-            className="font-medium text-foreground underline underline-offset-4"
+          <PricingSheet
+            trigger={{ kind: "room" }}
+            plan={{ tier, hasBilling }}
+            returnTo="/dashboard"
           >
-            upgrade for more
-          </Link>
+            <button
+              type="button"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              upgrade for more
+            </button>
+          </PricingSheet>
           .
         </p>
       )}
