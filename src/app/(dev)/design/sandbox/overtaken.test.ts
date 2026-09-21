@@ -300,13 +300,22 @@ describe("the overtaken map", () => {
   });
 
   it("speaks the badge in plain words with the date", () => {
-    // The example was guest-shape.dialogs until round two replaced that ask,
-    // then first-event.hand until his answers retired that whole board
-    // (2026-09-21); media-viewer.opening has carried a badge since the first
-    // pass and its board is the desk's oldest standing one.
-    const note = overtakenFor("media-viewer", "opening");
-    expect(note).toBeDefined();
-    const text = badgeText(note!);
+    // ★ THE EXAMPLE IS DERIVED, NOT NAMED. It was guest-shape.dialogs until
+    // round two replaced that ask, then first-event.hand until his answers
+    // retired that board, then media-viewer.opening until the overtaken audit
+    // folded that badge into its own question (2026-09-21). Three rewrites of
+    // one line by three lanes that had no business in this file is enough: the
+    // reading is taken off the first LIVE entry, and where the audit has
+    // emptied the map it is proven on a literal, exactly as the hold above is.
+    // The grammar has to outlive the entries.
+    const live = Object.values(OVERTAKEN)[0];
+    const note: OvertakenNote = live ?? {
+      by: "glass",
+      since: "glass r1, 19 Sep",
+      ruling: "the album sits blurred at half brightness behind the lightbox",
+      line: "stands: the ruling fixes the ground behind a photograph, never the way a photograph opens onto it.",
+    };
+    const text = badgeText(note);
     expect(text).toMatch(/^Ruled since [a-z-]+ r\d, \d{1,2} [A-Z][a-z]{2}: /);
     expect(text).not.toMatch(/[a-z-]+=[a-z-]+/); // plain words, never the paste clause
   });
@@ -337,8 +346,11 @@ describe("the overtaken map", () => {
     // The board a batch answered whole: six badges, all six overridden by his
     // own answers, all six gone with the asks.
     expect(overtakenOn("app-pricing")).toBe(0);
-    // The sixth batch ruled the portal's whole shell, one board over.
-    expect(overtakenOn("admin-triage")).toBe(8);
+    // The overtaken audit's reshape (reshape-admin-help-emails, 2026-09-21):
+    // all eight badges retired with the reshaped asks they named, the same
+    // convention as app-vocabulary and toasts above. The board itself stays
+    // open, unanswered, at round one: only the badges left, not the board.
+    expect(overtakenOn("admin-triage")).toBe(0);
     // The desk's last board, reached for the first time by the closing
     // sitting's second batch and again by its third; it was the example of a
     // board nothing had reached, which is why the zero case moved to a made-up
@@ -366,14 +378,18 @@ describe("the overtaken map", () => {
         (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
       );
     });
-    // A floor, never a census: three in four of these questions were drawn
-    // with a baseline that has since moved, and the map has quadrupled since
-    // the first pass set this at fifteen. It survived fifteen entries leaving
-    // at once, which is what a floor is for.
-    expect(glossed.length).toBeGreaterThanOrEqual(40);
-    expect(glossed).toContain("media-viewer.opening");
-    // And a badge written this pass is glossed on exactly the same reading.
-    expect(glossed).toContain("contact-page.topic");
+    // ★ A PROPORTION READ OFF THE MAP, NEVER A CENSUS OF A MAP THAT HAS GONE.
+    // This was a floor of forty keys, measured when the map held seventy, and
+    // it named two of them by id. The overtaken audit (2026-09-21) is emptying
+    // the map a board at a time, folding each badge into the question it
+    // annotated, so a fixed count and a named key both fail on whichever lane
+    // happens to cross them, in a file no lane owns. What stays true is the
+    // proportion: most of what a badge reaches was drawn against a baseline
+    // that has since moved. Held to half, and skipped once the map is too
+    // small to measure, which is where the audit is walking this file.
+    if (KEYS.length >= 10) {
+      expect(glossed.length * 2).toBeGreaterThanOrEqual(KEYS.length);
+    }
     // And the gloss says which way to read them.
     expect(AS_TODAY_GLOSS).toContain("before that ruling");
     expect(saysAsToday("The dark room, as today")).toBe(true);

@@ -31,8 +31,8 @@ import {
 } from "./mock";
 import {
   DORMANT_ROSTER,
-  DormantSwitchesStub,
   GUEST_ROSTER,
+  IDENTITY_ROSTER,
   MomentsRoster,
   RetiredSwitchesStub,
   TODAY_ROSTER,
@@ -417,7 +417,6 @@ const CODE_CAPTION: Record<CodeShape, string> = {
   digits: "Large digits alone; nothing else to tap.",
   "digits-button":
     "The digits lead; a button carries the link path beneath them.",
-  button: "No digits at all: a single button, the code path gone from view.",
 };
 
 const codeRead: Reader = (root, win) => {
@@ -452,14 +451,14 @@ function codeScreen(shape: CodeShape, s: BoardState) {
 
 /* ── 6. the moments ───────────────────────────────────────────────────────  */
 
-type MomentsShape = "today" | "shipped" | "retired";
+type MomentsShape = "shipped" | "retired" | "identity";
 
 const MOMENTS_CAPTION: Record<MomentsShape, string> = {
-  today:
-    "Ten real rows; the switches below the roster promise four more that never fire.",
   shipped: "Fourteen rows: the four dormant switches now have a real subject each.",
   retired:
     "Ten rows stand; Account settings drops to the one switch that is real.",
+  identity:
+    "Ten rows, plus one new: an account confirmed, the moment the four dormant switches never anticipated.",
 };
 
 const momentsRead: Reader = (root) => {
@@ -471,7 +470,11 @@ const momentsRead: Reader = (root) => {
 function momentsScreen(shape: MomentsShape, s: BoardState) {
   const screen = screenFor(s);
   const rows =
-    shape === "shipped" ? [...TODAY_ROSTER, ...DORMANT_ROSTER] : TODAY_ROSTER;
+    shape === "shipped"
+      ? [...TODAY_ROSTER, ...DORMANT_ROSTER]
+      : shape === "identity"
+        ? [...TODAY_ROSTER, ...IDENTITY_ROSTER]
+        : TODAY_ROSTER;
   return (
     <Stage
       id={`moments-${shape}`}
@@ -489,9 +492,10 @@ function momentsScreen(shape: MomentsShape, s: BoardState) {
             }}
           >
             <MomentsRoster rows={rows} />
-            {shape === "today" ? (
-              <DormantSwitchesStub />
-            ) : shape === "retired" ? (
+            {/* Both `retired` and `identity` drop the four dead switches: the
+                only difference between them is which rows the roster above
+                already carries. */}
+            {shape === "retired" || shape === "identity" ? (
               <RetiredSwitchesStub />
             ) : null}
           </div>
@@ -602,11 +606,10 @@ const PREVIEWS: PreviewsFor<typeof EMAILS> = {
 
   "code.digits": (s) => codeScreen("digits", s),
   "code.digits-button": (s) => codeScreen("digits-button", s),
-  "code.button": (s) => codeScreen("button", s),
 
-  "moments.today": (s) => momentsScreen("today", s),
   "moments.shipped": (s) => momentsScreen("shipped", s),
   "moments.retired": (s) => momentsScreen("retired", s),
+  "moments.identity": (s) => momentsScreen("identity", s),
 
   "guest.none": (s) => guestScreen("none", s),
   "guest.link": (s) => guestScreen("link", s),

@@ -43,9 +43,9 @@ const DRAFT = defineExploration({
   title: "Every email Partyreel sends",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox.",
+      "The overtaken audit's reshape: four questions reframed with app-vocabulary r1, app-door r1, first-event r1, app-shape r2 and the identity reshape folded in; moments gains a new option, the set the identity door implies.",
   },
   context:
     "Ten templates ship today, all from one address, none to a guest, in two hand-maintained wrappers. Every option here is the real function in templates.ts, read inside an inbox mock at a phone's width and a laptop's.",
@@ -55,9 +55,10 @@ const DRAFT = defineExploration({
     {
       id: "shell",
       label: "One shell",
-      question: "Should every Partyreel email share one wrapper?",
+      question:
+        "Should every Partyreel email share one wrapper, now a repeated control is ruled into one component elsewhere?",
       context:
-        "Host mail wraps in one 480px card with a CTA button; four operator alerts (contact, careers, both circuit-breaker warnings) each hand-roll a near-identical 560px div. Drawn on the real over-cap mail beside the real contact-form alert.",
+        "App-vocabulary r1 turns a repeated control into one component with props, though his note leaves unifying discretionary for genuinely different purposes. Mail's four alerts hand-roll the same div, the case the ruling was written for.",
       options: [
         {
           id: "today",
@@ -80,7 +81,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "unified",
       because:
-        "Four senders hand-roll the same div today; one wrapper removes that duplication and gives every mail one brand pass for the cost of a single foot parameter.",
+        "The batch already folded four near-identical components into one apiece elsewhere; mail's four hand-rolled alerts are the same duplication with the same fix, one wrapper and a foot parameter.",
       overrule:
         "If nobody but Will ever opens an operator alert, plain text is honestly less to maintain.",
       lands: "Whether layout() gains a foot parameter, or the two idioms stay two code paths.",
@@ -201,9 +202,10 @@ const DRAFT = defineExploration({
     {
       id: "code",
       label: "The code",
-      question: "What should the sign-in mail show first?",
+      question:
+        "What should the sign-in mail show first, now the code is the product's one door?",
       context:
-        "The real template lives in the Supabase dashboard, out of this repo; one mail carries a code and a magic link, and the product deliberately leads with the code (auth-accounts.md). Drawn as a labelled mock only.",
+        "App-door r1 makes the code the way in for everybody, so a mail with a button and no code is no longer real. First-event r1 gives the code its own house treatment too, typeset to be read off a printed object.",
       options: [
         {
           id: "digits",
@@ -215,15 +217,10 @@ const DRAFT = defineExploration({
           label: "Digits, and a button beneath",
           means: "The digits lead; a Continue button sits under them for the link path.",
         },
-        {
-          id: "button",
-          label: "The button alone",
-          means: "No visible digits, a Sign in button only.",
-        },
       ],
       recommended: "digits-button",
       because:
-        "The product deliberately keeps both paths alive (an iPhone PWA strands a tapped link outside the app); showing only one hides the other.",
+        "The product deliberately keeps both paths alive (an iPhone PWA strands a tapped link outside the app), so the digits have to lead; the only live question is whether a Continue button still rides beneath them.",
       overrule: "If the dashboard editor can't style a button, the digits alone are the honest ceiling.",
       lands: "What the dashboard template's HTML could hold, if it's ever redrawn; nothing here is wired.",
       tile: "phone",
@@ -234,32 +231,33 @@ const DRAFT = defineExploration({
     {
       id: "moments",
       label: "The moments",
-      question: "Which moments should actually send a mail?",
+      question:
+        "Which moments should really send a mail now: the four as drawn, nothing yet, or the set the new door implies?",
       context:
-        "Ten sends today, none to a guest. Account settings shows four more switches (reel ready, an album shared, a digest, a follower) for mails that do not exist. Drawn as the full roster.",
+        "A dead switch is ruled absent, never drawn empty (app-shape r2), so the four dormant rows leave either way. What's open is what gets built for real; identity adds a candidate the four never saw: an email that makes the account.",
       options: [
         {
-          id: "today",
-          label: "Today's ten, switches stay",
-          means: "No change: ten real sends, four live-looking switches with nothing behind them.",
-        },
-        {
           id: "shipped",
-          label: "Build the four dormant mails",
+          label: "The four as drawn",
           means: "The four switches gain real sends, drawn here as labelled subjects.",
         },
         {
           id: "retired",
-          label: "Retire the four switches",
-          means: "The switches leave Account settings until each is really wired.",
+          label: "Build nothing yet",
+          means: "The dead switches leave; no replacement mail ships this round, the roster stays at ten.",
+        },
+        {
+          id: "identity",
+          label: "The set the new door implies",
+          means: "Retire the four as drawn; wire the moment the identity reshape's capture flow creates instead, an email confirmed into an account.",
         },
       ],
-      recommended: "retired",
+      recommended: "identity",
       because:
-        "A switch for a mail that never sends is a broken promise live in production right now; building four real sends is its own round, not a side effect of a shell exploration.",
+        "The four as drawn were written before an email could ever make an account; the identity reshape's own door is the moment most worth a real send right now, and it costs no more than one of the four it replaces.",
       overrule:
-        "If reel-ready and following both land next round anyway, building their mail alongside costs less than retiring now and re-adding later.",
-      lands: "Whether notification-prefs-form.tsx keeps its four dormant rows.",
+        "If guest-capture's own board draws the offer differently once it runs, wire whatever moment that board settles on instead, or fall back to the four as drawn.",
+      lands: "Whether notification-prefs-form.tsx keeps any dormant rows, and which template templates.ts gains next.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -268,9 +266,10 @@ const DRAFT = defineExploration({
     {
       id: "guest",
       label: "The guest's",
-      question: "Should a guest ever get a mail from Partyreel?",
+      question:
+        "Should a guest ever get a mail from Partyreel, now confirming an email makes the account?",
       context:
-        "None today: capture-email only stores an address. Drawn as a guest's own inbox, empty, then with what each option adds to it.",
+        "Guest-shape r1 takes the address on a promise to keep the album; guest-upload r1 notes a held photo known only to its device, so a mail outlives the tab. Identity raises the stakes: confirming the address now creates the account.",
       options: [
         {
           id: "none",
@@ -290,7 +289,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "link",
       because:
-        "Already named as deferred, half-specified work; the second mail needs a \"the party is over\" signal the product doesn't have (events have no end date, by design).",
+        "The second mail still needs a \"the party is over\" signal the product doesn't have (events have no end date, by design), so the one thing worth sending stays the link, whether it rides inside the verification or right after it.",
       overrule: "If a real end-of-event signal ever lands, the second mail becomes cheap.",
       lands: "Whether the capture-email route gains a sendOnce call and a new template.",
       after: { ask: "moments" },
