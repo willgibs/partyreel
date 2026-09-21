@@ -8,6 +8,30 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-21 · the overtaken audit: reshape or remove, and the stacking rule
+
+Will, after the identity reshape was cut (15:12 EDT), with a flow chart of his own ("decision outcomes": from the options, an early question picks the better option, while a later question down the other branch gives the best outcome), verbatim:
+
+> Fantastic work! While that's running, let's also update our board to be more current.
+>
+> In general, we have two general work cycles: focused or token burn. We usually work in a focused mode (board reviews, agent orchestration, feature builds, etc) where we're both busy in parallel at an even pace (I'm reviewing/requesting while you're handling old reviews or building the next explorations for review), then switch to a token burn ahead of our weekly token limit resetting where we stack the board with explorations so no unused tokens go to waste on expiry, allowing us to bank ideas or work for later.
+>
+> This dual mode workflow has been working incredibly for the last week or so. The only downfall is in our token burn cycles that create deep boards, some later/deeper explorations get overtaken by earlier selections. An immediate solution is that as we stack boards in the future, we attempt to avoid potential overlap across open boards. 
+>
+> However, I'd like to clean up our existing boards in the lab that we're working to complete. We've done a good job marking some as overtaken or ruled, but many of the stated rulings don't actually answer the question that was supposedly "overtaken", so let's ensure we're more careful in this next approach. For any open questions that have been "overtaken", please evaluate whether they should be reshaped or removed. I'll add some helpful criteria.
+>
+> Reshape: I've attached a flow chart I created of my biggest concern right now. For any question that has been marked 'overtaken', but fits the attached image's flow of potentially offering a better solution than the earlier selection that overtook it, it should be reshaped to be a more current question with updated context to continue offering its ideal solution once reached. These are the opportunities we do not want to drop. If reshaped, these questions may also come up with new or improved concepts within their explorations as well.
+>
+> Removal: Any overtaken question that you're 100% sure has been solved optimally by an earlier selection, and offers no potential additional value, may be deleted. Effectively, these offer zero potential value at all. Questions that have been 100% answered by an earlier selection, but feel they offer a better overall solution, are not removal candidates. Example: reshaping our guest accounts just now removed open questions about "unproven photographs". I'd rather you lean into reshape if you aren't confident in removal.
+>
+> I would enter plan mode for this, but don't want to immediately pause your running agent. If you'd like to enter plan mode for deeper thinking, please go for it.
+
+And then, verbatim:
+
+> As an additional note, remember everything is unprotected and anything may be re-litigated to offer better solutions. However, I want to get rid of questions that offer zero potential value now.
+
+**Became:** the sixty-six badged questions on the fourteen standing boards were read one by one against the ruling each badge names (the audit, sent to him as a file): the rulings answer six of them, touch forty-four and do not reach sixteen, and none of the six leaves a question with zero value, so NO question is removed whole; every one is RESHAPED into a current question with the reached rulings and today's identity reshape folded into its context, fourteen dead options are dropped (an option a ruling forbids outright), four new concepts are added where a ruling made one possible, and every badge is deleted from the map, whose file, type, test and desk badge stay as the mechanism for a future overlap. Four lanes (`reshape-viewer-curation`, `reshape-studio-export` on Opus; `reshape-admin-help-emails`, `reshape-marketing-boards` on Sonnet) carry it, each board's folder to one lane; the identity reshape's lab lane adds no badge for the reshape's reach. His stacking rule is a program line (PROGRAM.md): in a burn cycle the boards stacked never overlap in what they ask. Every reshaped framing and every dropped option is his to overrule on the boards themselves.
+
 ## 2026-09-21 · the identity reshape: Require verified emails
 
 Will, after the third batch's fixes were verified on the alias (13:40 EDT), one verdict on the desk's head board and a note that reshapes the foundation. His framing, verbatim: "Nice work. This is only 1 new answer, but it helps reshape our login/verification/etc."

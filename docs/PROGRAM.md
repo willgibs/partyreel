@@ -78,7 +78,7 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    contenders for the one decision, and two that land on the same answer is a finding, not a debt.
 7. **The record is what is active**: the manifest is deleted in the merge commit, its Record joins
    the round's CHANGELOG entry, STATUS is replaced, the Library and the desk show the live state;
-   git holds everything older.
+   git holds everything older. **A burn cycle stacks boards that never overlap in what they ask** (Will, 2026-09-21: "as we stack boards in the future, we attempt to avoid potential overlap across open boards"): an exploration's brief names the open asks nearest its surface on the standing boards and asks nothing they ask, and the Orchestrator checks that list at the cut; a question an earlier ruling still reaches is reshaped with the ruling in its context or removed only when it holds no value at all, never left badged.
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
