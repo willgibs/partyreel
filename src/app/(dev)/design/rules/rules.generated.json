@@ -575,96 +575,6 @@
       ]
     },
     {
-      "id": "looks",
-      "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.ts",
-      "names": [
-        "LOOK_STATS",
-        "SAMPLE_SEEDS"
-      ],
-      "specimens": [],
-      "indexed": false,
-      "contracts": [
-        {
-          "title": "is the same thousand every time this module loads",
-          "suite": [
-            "the seeds are fixed"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 30
-        },
-        {
-          "title": "emits a background image with no undefined or NaN, for any seed",
-          "suite": [
-            "every look paints"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 46
-        },
-        {
-          "title": "returns the identical paint for the identical seed",
-          "suite": [
-            "every look paints"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 56
-        },
-        {
-          "title": "interpolates every gradient layer in oklab, never sRGB",
-          "suite": [
-            "every look paints"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 63
-        },
-        {
-          "title": "names at least one colour to measure the disc against, and a finite letter reading",
-          "suite": [
-            "every look paints"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 72
-        },
-        {
-          "title": "holds a stat for every look, each a real percentage over the full thousand",
-          "suite": [
-            "the stats are real, not decorative"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 85
-        },
-        {
-          "title": "finds the same lit-pole gap the production contract already accepts at a looser bound",
-          "suite": [
-            "the stats are real, not decorative"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 117
-        },
-        {
-          "title": "holds the control's letter reading close to the production contract's own body/ink promise",
-          "suite": [
-            "the stats are real, not decorative"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 123
-        },
-        {
-          "title": "writes a caption naming all four floors for every look",
-          "suite": [
-            "the stats are real, not decorative"
-          ],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 133
-        },
-        {
-          "title": "prints LOOK_STATS for the spec's own drafting",
-          "suite": [],
-          "file": "src/app/(dev)/design/sandbox/seed-avatar/looks.test.ts",
-          "line": 146
-        }
-      ]
-    },
-    {
       "id": "owner-sections",
       "file": "src/app/(guest)/u/[slug]/owner-sections.tsx",
       "names": [
@@ -11753,12 +11663,12 @@
           "line": 83
         },
         {
-          "title": "sets a two-hue backgroundImage on the root",
+          "title": "sets mesh's own backgroundBlendMode on the root",
           "suite": [
             "a seed paints the root and threads through to the fallback"
           ],
           "file": "src/components/ui/avatar.test.tsx",
-          "line": 100
+          "line": 117
         },
         {
           "title": "drops bg-muted for a transparent ground, and colours the initial",
@@ -11766,23 +11676,23 @@
             "a seed paints the root and threads through to the fallback"
           ],
           "file": "src/components/ui/avatar.test.tsx",
-          "line": 111
+          "line": 128
         },
         {
-          "title": "the SAME seed paints the SAME colour on two different avatars",
+          "title": "the SAME seed paints the fallback the SAME ink on two different avatars",
           "suite": [
             "a seed paints the root and threads through to the fallback"
           ],
           "file": "src/components/ui/avatar.test.tsx",
-          "line": 123
+          "line": 140
         },
         {
-          "title": "a DIFFERENT seed paints a different colour",
+          "title": "a DIFFERENT seed paints the fallback a different ink",
           "suite": [
             "a seed paints the root and threads through to the fallback"
           ],
           "file": "src/components/ui/avatar.test.tsx",
-          "line": 139
+          "line": 156
         },
         {
           "title": "with no seed, the root paints nothing and the fallback stays today's grey",
@@ -11790,7 +11700,7 @@
             "a seed paints the root and threads through to the fallback"
           ],
           "file": "src/components/ui/avatar.test.tsx",
-          "line": 155
+          "line": 172
         }
       ]
     },
@@ -12995,7 +12905,7 @@
             "the seed, hashed"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 48
+          "line": 57
         },
         {
           "title": "sends neighbouring strings nowhere near each other",
@@ -13003,7 +12913,7 @@
             "the seed, hashed"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 55
+          "line": 64
         },
         {
           "title": "returns an identical orb on every call",
@@ -13011,7 +12921,7 @@
             "the same seed gives the same colours"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 63
+          "line": 72
         },
         {
           "title": "returns an identical background string on every call",
@@ -13019,7 +12929,7 @@
             "the same seed gives the same colours"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 69
+          "line": 78
         },
         {
           "title": "gives two different accounts two different colours",
@@ -13027,7 +12937,7 @@
             "the same seed gives the same colours"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 77
+          "line": 86
         },
         {
           "title": "fills every one of twelve 30 degree buckets, and never concentrates in one or two",
@@ -13035,7 +12945,7 @@
             "a thousand seeds spread across the wheel"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 86
+          "line": 95
         },
         {
           "title": "keeps the curated set to its twelve, and the warm arc to its arc",
@@ -13043,7 +12953,7 @@
             "a thousand seeds spread across the wheel"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 105
+          "line": 114
         },
         {
           "title": "reads under the initial at 24, 32 and 40px",
@@ -13051,7 +12961,7 @@
             "every colour clears its floor"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 116
+          "line": 125
         },
         {
           "title": "separates from the page on paper and on ink",
@@ -13059,7 +12969,7 @@
             "every colour clears its floor"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 129
+          "line": 138
         },
         {
           "title": "never matches the ring drawn over it",
@@ -13067,7 +12977,7 @@
             "every colour clears its floor"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 144
+          "line": 153
         },
         {
           "title": "keeps the lit pole and the shadow inside the disc's own range",
@@ -13075,7 +12985,7 @@
             "every colour clears its floor"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 151
+          "line": 160
         },
         {
           "title": "is one CSS value a server component can hand to a style attribute",
@@ -13083,7 +12993,7 @@
             "the background it emits"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 165
+          "line": 174
         },
         {
           "title": "interpolates in oklab wherever it ramps between two colours",
@@ -13091,7 +13001,40 @@
             "the background it emits"
           ],
           "file": "src/lib/avatar/gradient.test.ts",
-          "line": 173
+          "line": 182
+        }
+      ]
+    },
+    {
+      "id": "measure",
+      "file": "src/lib/avatar/measure.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "clears the letter floor at the disc's true centre, across a thousand seeds",
+          "suite": [
+            "the shipped look's true centre pixel, not a proxy"
+          ],
+          "file": "src/lib/avatar/measure.test.ts",
+          "line": 44
+        },
+        {
+          "title": "reads better at that true centre than the diagonal it replaced",
+          "suite": [
+            "the shipped look's true centre pixel, not a proxy"
+          ],
+          "file": "src/lib/avatar/measure.test.ts",
+          "line": 58
+        },
+        {
+          "title": "keeps mesh's own highlight inside the same paper gap gradient.test.ts already accepts for lit",
+          "suite": [
+            "the shipped look's true centre pixel, not a proxy"
+          ],
+          "file": "src/lib/avatar/measure.test.ts",
+          "line": 85
         }
       ]
     },

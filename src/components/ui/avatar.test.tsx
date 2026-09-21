@@ -97,14 +97,31 @@ describe("the children carry no rounding of their own", () => {
 })
 
 describe("a seed paints the root and threads through to the fallback", () => {
-  it("sets a two-hue backgroundImage on the root", () => {
+  /**
+   * ★ jsdom/cssstyle CANNOT STORE `mesh`'s backgroundImage (found wiring
+   * `seed-avatar` r2, `avatar-mesh-wiring`, 2026-09-20): `radial-gradient(in
+   * oklab 122% 118% at 22% 14%, ...)` — a percentage-pair ending shape with
+   * a `<color-interpolation-method>` prefix and no explicit shape keyword —
+   * is valid CSS every real browser paints correctly (`linear-gradient(in
+   * oklab ...)`, `diagonal`'s own shape, parses fine in the SAME engine;
+   * dropping "in oklab" or adding an explicit `circle`/`ellipse` keyword
+   * also parses fine), but jsdom's `cssstyle` rejects the combination and
+   * silently drops the WHOLE property to `""` rather than the one layer.
+   * `gradient.test.ts` already holds the string itself to
+   * `/gradient\(in oklab/` and to being parseable CSS-shaped output; what is
+   * left to prove here is only that `Avatar` WIRES a seed through to the
+   * DOM at all, so these three tests read `backgroundBlendMode` (a plain
+   * value list jsdom parses fine, and one only the `mesh` branch ever sets)
+   * and the fallback's `ink`, never the gradient string itself.
+   */
+  it("sets mesh's own backgroundBlendMode on the root", () => {
     render(
       <Avatar seed="account-1" data-testid="root">
         <AvatarFallback>A</AvatarFallback>
       </Avatar>,
     )
-    expect(screen.getByTestId("root").style.backgroundImage).toMatch(
-      /gradient\(in oklab/,
+    expect(screen.getByTestId("root").style.backgroundBlendMode).toBe(
+      "overlay, soft-light, normal, normal",
     )
   })
 
@@ -120,35 +137,35 @@ describe("a seed paints the root and threads through to the fallback", () => {
     expect(fallback.style.color).toMatch(/oklch/)
   })
 
-  it("the SAME seed paints the SAME colour on two different avatars", () => {
+  it("the SAME seed paints the fallback the SAME ink on two different avatars", () => {
     render(
       <>
-        <Avatar seed="account-1" data-testid="a">
-          <AvatarFallback>A</AvatarFallback>
+        <Avatar seed="account-1">
+          <AvatarFallback data-testid="a">A</AvatarFallback>
         </Avatar>
-        <Avatar seed="account-1" data-testid="b">
-          <AvatarFallback>A</AvatarFallback>
+        <Avatar seed="account-1">
+          <AvatarFallback data-testid="b">A</AvatarFallback>
         </Avatar>
       </>,
     )
-    expect(screen.getByTestId("a").style.backgroundImage).toBe(
-      screen.getByTestId("b").style.backgroundImage,
+    expect(screen.getByTestId("a").style.color).toBe(
+      screen.getByTestId("b").style.color,
     )
   })
 
-  it("a DIFFERENT seed paints a different colour", () => {
+  it("a DIFFERENT seed paints the fallback a different ink", () => {
     render(
       <>
-        <Avatar seed="account-1" data-testid="a">
-          <AvatarFallback>A</AvatarFallback>
+        <Avatar seed="account-1">
+          <AvatarFallback data-testid="a">A</AvatarFallback>
         </Avatar>
-        <Avatar seed="account-2" data-testid="b">
-          <AvatarFallback>A</AvatarFallback>
+        <Avatar seed="account-2">
+          <AvatarFallback data-testid="b">A</AvatarFallback>
         </Avatar>
       </>,
     )
-    expect(screen.getByTestId("a").style.backgroundImage).not.toBe(
-      screen.getByTestId("b").style.backgroundImage,
+    expect(screen.getByTestId("a").style.color).not.toBe(
+      screen.getByTestId("b").style.color,
     )
   })
 

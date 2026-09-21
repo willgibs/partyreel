@@ -174,8 +174,10 @@ trigger creates one `profiles` row per signup.
   service-role admin client, which bypasses storage RLS — so the bucket needs no policies). Upload uses
   `upsert` ⇒ exactly one object per user ⇒ zero orphans; DELETE removes the object **then** clears the marker
   (object-first). ★ A profile with no photograph wears a SEEDED colour, never a grey disc (`seed-avatar`, wired
-  2026-09-20): the generator `src/lib/avatar/gradient.ts` (hashvatar's register, zero dependencies, three contrast floors) fed
-  `seedFor(profiles.id)` (`src/lib/avatar/seed.ts`, a server-side SHA-256, so one person is one colour on every surface and a
+  2026-09-20, round two's `mesh` the same day): the generator `src/lib/avatar/gradient.ts` (hashvatar's own register
+  read from its source — one identity hue read at four diffused, blended tonal depths — zero dependencies, three
+  contrast floors held at the disc's true composited centre by `src/lib/avatar/measure.ts`) fed `seedFor(profiles.id)`
+  (`src/lib/avatar/seed.ts`, a server-side SHA-256, so one person is one colour on every surface and a
   client never seeds from a raw id), painted by `Avatar`'s `seed` prop under the initial and under the photograph.
   (object-first). `profiles.avatar_updated_at` (service-role-write-only) is the existence marker AND the
   `?v=` cache-bust on the stable public CDN URL, so a replace busts caches without a per-render presign. The

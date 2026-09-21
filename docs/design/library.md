@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 928 contracts on 129 components · 19 standing boards.**
+**22 laws · 18 policies · 921 contracts on 129 components · 18 standing boards.**
 
 ## What binds you
 
@@ -311,7 +311,7 @@ function. A contract never freezes a look.
 | `src/components/shared/tooltip-slide.tsx` | the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide) | none |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
 | `src/components/shared/view-menu.tsx` | the one dropdown every gallery's crowded controls move behind (`app-vocabulary` r2, `controls-home=view-menu`): a caller hands it arbitrary radio `groups` (a label, options, a value, a handler), so the host gallery's tile size/sort/filter and the guest album's tile size/Yours are the same object worn twice. A `disabled` group renders every option inert with a `hint` explaining why, rather than hiding a control he explicitly asked to stop being invisible | renders every group as a radio group named after its own label; calls the picked group's own handler with the chosen value, and no other group's; never fires a disabled group's handler, and says the row is reserved; closes once a real choice lands; names the trigger with the caller's own word |
-| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets a two-hue backgroundImage on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the SAME colour on two different avatars; a DIFFERENT seed paints a different colour; with no seed, the root paints nothing and the fallback stays today's grey |
+| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets mesh's own backgroundBlendMode on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the fallback the SAME ink on two different avatars; a DIFFERENT seed paints the fallback a different ink; with no seed, the root paints nothing and the fallback stays today's grey |
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
 | `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | size=%s reads %s with an icon of size-%s; size=%s (%s's height) carries an explicit icon of size-%s; size=%s keeps %s; size=%s keeps its box at %s; size=%s carries its own icon selector, not the base's fallback |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
@@ -346,7 +346,6 @@ Contracted but outside the library's directories:
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
-- `src/app/(dev)/design/sandbox/seed-avatar/looks.ts` (10 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/app/globals.css` (6 guards)
 - `src/components/admin/admin-not-found-screen.tsx` (15 guards)
@@ -430,6 +429,7 @@ Contracted but outside the library's directories:
 - `src/lib/auth/door-failure.ts` (13 guards)
 - `src/lib/auth/remembered-email.ts` (9 guards)
 - `src/lib/avatar/gradient.ts` (13 guards)
+- `src/lib/avatar/measure.ts` (3 guards)
 - `src/lib/avatar/seed.ts` (5 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
@@ -448,7 +448,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | board | surface | the question |
 | --- | --- | --- |
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
-| `seed-avatar` | shared | Three fresh readings measured against the wired diagonal on the real Avatar (24, 32, 40 and 80px), the guest list, the user menu and a profile, phone first at 375 with 1440 on the knob; every option measured against the generator's own three contrast floors across a thousand real UUIDs, the numbers on every frame |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
 | `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
