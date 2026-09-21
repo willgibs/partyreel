@@ -10739,6 +10739,57 @@
       "contracts": []
     },
     {
+      "id": "view-menu",
+      "file": "src/components/shared/view-menu.tsx",
+      "names": [
+        "ViewMenu"
+      ],
+      "specimens": [],
+      "indexed": true,
+      "contracts": [
+        {
+          "title": "renders every group as a radio group named after its own label",
+          "suite": [
+            "ViewMenu"
+          ],
+          "file": "src/components/shared/view-menu.test.tsx",
+          "line": 59
+        },
+        {
+          "title": "calls the picked group's own handler with the chosen value, and no other group's",
+          "suite": [
+            "ViewMenu"
+          ],
+          "file": "src/components/shared/view-menu.test.tsx",
+          "line": 66
+        },
+        {
+          "title": "never fires a disabled group's handler, and says the row is reserved",
+          "suite": [
+            "ViewMenu"
+          ],
+          "file": "src/components/shared/view-menu.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "closes once a real choice lands",
+          "suite": [
+            "ViewMenu"
+          ],
+          "file": "src/components/shared/view-menu.test.tsx",
+          "line": 86
+        },
+        {
+          "title": "names the trigger with the caller's own word",
+          "suite": [
+            "ViewMenu"
+          ],
+          "file": "src/components/shared/view-menu.test.tsx",
+          "line": 94
+        }
+      ]
+    },
+    {
       "id": "guest-list",
       "file": "src/components/social/guest-list.tsx",
       "names": [
@@ -12659,7 +12710,8 @@
         "DEFAULT_TILE_SIZE",
         "TILE_SIZES",
         "TILE_SIZE_COOKIE",
-        "TILE_SIZE_COOKIE_MAX_AGE"
+        "TILE_SIZE_COOKIE_MAX_AGE",
+        "TILE_SIZE_LABEL"
       ],
       "specimens": [
         "/design/library/patterns"

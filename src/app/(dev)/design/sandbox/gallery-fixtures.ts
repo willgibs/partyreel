@@ -4,18 +4,30 @@ import type { HostEvent } from "@/lib/db/queries/events";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
 /**
- * THE STAND-IN CONTENT for `app-vocabulary`: one event, and the four media
- * pools its five decisions draw on (the gallery, the review queue, the bin,
- * the cross-event Uploads feed). Every image is one of the fourteen bootstrap
- * stills every other board already reuses (`MARKETING_IMAGES`) — no new asset,
- * no rights to track (Will, 2026-09-17/18). A tile's declared width/height is
- * free to vary from the still's own pixels (`MediaTile` is `object-cover`), so
- * the masonry gets the natural mix of shapes the real album has without
- * needing eighteen different source photographs.
+ * ONE STAND-IN EVENT, AND ITS FOUR MEDIA POOLS (the gallery, the review
+ * queue, the bin, the cross-event Uploads feed), shared by every board that
+ * needs a believable album rather than its own invented one.
  *
- * ★ COPY IS PLACEHOLDER, JUDGED FOR SIZE AND WRAPPING ONLY (the manifest's
- * `copy=page`): the event name and description run to the length a real one
- * does, so a caption or a header wraps the way it will in production.
+ * ★ NOT A BOARD. This is a plain file directly under `sandbox/`, never a
+ * directory with a `spec.ts` (`registry.test.ts`'s own scan only requires
+ * registration for a directory that has one), so no board owns its
+ * lifecycle: it outlives any one board's ruling. Extracted from
+ * `app-vocabulary/fixtures.ts` when that board retired at its wiring
+ * (`controls-home-wiring`, `app-vocabulary` r2, 2026-09-20) — `host-curation`
+ * was already reusing these six pools verbatim, so the board's own
+ * retirement (its directory going with it, `registry.ts`'s own rule) would
+ * otherwise have taken host-curation's fixtures down with it.
+ *
+ * Every image is one of the fourteen bootstrap stills every other board
+ * already reuses (`MARKETING_IMAGES`) — no new asset, no rights to track
+ * (Will, 2026-09-17/18). A tile's declared width/height is free to vary from
+ * the still's own pixels (`MediaTile` is `object-cover`), so the masonry
+ * gets the natural mix of shapes a real album has without needing eighteen
+ * different source photographs.
+ *
+ * ★ COPY IS PLACEHOLDER, JUDGED FOR SIZE AND WRAPPING ONLY: the event name
+ * and description run to the length a real one does, so a caption or a
+ * header wraps the way it will in production.
  */
 
 export const EVENT = {
