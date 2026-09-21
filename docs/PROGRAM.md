@@ -33,7 +33,7 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
 - **Succession-ready close:** every handed-off track integrated and its manifest deleted; the
   round's CHANGELOG entry written and the third-oldest deleted; STATUS replaced; In flight in
   [`tracks/orchestrator.md`](tracks/orchestrator.md) current; worktrees and `lp/*` branches pruned;
-  the gate green at the tip; the alias READY at the round's `[preview]` push; Vercel pruned
+  the gate green at the tip; the alias READY at the round's `[preview]` record (created by API: no push deploys); Vercel pruned
   (`node scripts/prune-vercel-deployments.mjs --apply`); `new` and `updated` badges cleared; Will's
   rulings appended to `docs/design/rulings.md` and his review lines transcribed (`pnpm lab:review`).
 
@@ -54,7 +54,7 @@ Every top-level session is an **Agent** unless Will's first prompt designates it
    starts too far down, or whose dock leaves the screen, and prints how much of the sitting asks with
    nothing to press. Handoff is one line per decision plus the questions it needs
    answered.
-4. **Integration**, and one alias build per round close (`[preview]` on that push alone).
+4. **Integration**, and one alias build per round close (`[preview]` on the record commit; the Orchestrator creates the deployment by API, since no push to `launch-prep` creates one).
 5. **Will reviews on the desk** (`/design/lab?key=`), which is ordered BY LEVERAGE across boards (Will,
    2026-09-19: "if a question/group compounds into a later question/group, the more atomic question is
    handled first"; the Orchestrator keeps that order in `DESK_ORDER` (`touchpoints.ts`), a board whose answer changes

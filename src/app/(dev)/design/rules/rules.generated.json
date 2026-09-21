@@ -323,7 +323,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 103
+          "line": 108
         },
         {
           "title": "never lets a board overtake its own question",
@@ -331,7 +331,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 121
+          "line": 126
         },
         {
           "title": "credits a ruled board with every ruling",
@@ -339,7 +339,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 130
+          "line": 135
         },
         {
           "title": "holds every judgment to one line, in the two words or the hold",
@@ -347,7 +347,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 148
+          "line": 153
         },
         {
           "title": "weighs nothing against a ruling he may relitigate",
@@ -355,7 +355,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 181
+          "line": 186
         },
         {
           "title": "appends a later ruling behind the first, named and dated",
@@ -363,7 +363,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 218
+          "line": 223
         },
         {
           "title": "reads a concession off the line it is written on",
@@ -371,7 +371,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 256
+          "line": 265
         },
         {
           "title": "speaks the badge in plain words with the date",
@@ -379,7 +379,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 267
+          "line": 276
         },
         {
           "title": "counts a board's overtaken asks for the desk",
@@ -387,7 +387,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 277
+          "line": 286
         },
         {
           "title": "finds the options whose 'as today' now means something else",
@@ -395,7 +395,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 308
+          "line": 326
         },
         {
           "title": "derives what became of an overtaken ask from the ledger alone",
@@ -403,7 +403,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 333
+          "line": 353
         },
         {
           "title": "names the reserved word and the words that ride with it",
@@ -411,7 +411,7 @@
             "the overtaken map"
           ],
           "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 342
+          "line": 362
         }
       ]
     },

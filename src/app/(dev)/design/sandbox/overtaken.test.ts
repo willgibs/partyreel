@@ -46,7 +46,10 @@ import { BOARDS } from "./registry";
  * hold and the clause he wrote, and nothing the lane thinks: weighing an
  * option against a ruling that may not survive is precisely what the hold
  * refuses. These never concede, never append, and the badge says "held" in its
- * first word so the walk cannot read one as law.
+ * first word so the walk cannot read one as law. A hold ends one of two ways,
+ * and the second arrived the same night: round two rules, or he answers the
+ * question the hold was badging, which retires the badge with the ask
+ * (`badge=mark` on `seed-avatar.look`, spent by `look=mesh`).
  *
  * It is deliberately NOT a published contract (`@contract-for:`): the collector
  * indexes every file a marker names and an indexed file owes a `for` line in
@@ -77,6 +80,7 @@ const RULED = [
   "app-door",
   "demo-event",
   "pricing-page",
+  "app-pricing",
 ];
 /** One line, readable at a glance on the way past a question. */
 const LINE_CAP = 160;
@@ -84,12 +88,13 @@ const LINE_CAP = 160;
 const CLAUSE_CAP = 150;
 /**
  * ★ ONE CLAUSE PER PASS, so counting the clauses counts the rounds of rulings
- * that have landed on a judgment since it was written. Two passes have appended
- * (the sixth batch's and the closing sitting's), so two is the cap today and it
- * rises by exactly one the next time a pass appends. A line carrying three
- * clauses before a third pass has run is a lane rewriting history in place.
+ * that have landed on a judgment since it was written. Three passes have
+ * appended (the sixth batch's, and the closing sitting's two), so three is the
+ * cap today and it rises by exactly one the next time a pass appends. A line
+ * carrying four clauses before a fourth pass has run is a lane rewriting
+ * history in place.
  */
-const MAX_CLAUSES = 2;
+const MAX_CLAUSES = 3;
 
 const askOf = (board: string, ask: string) =>
   BOARDS.find((b) => b.id === board)?.asks.find((a) => a.id === ask);
@@ -180,12 +185,12 @@ describe("the overtaken map", () => {
    */
   it("weighs nothing against a ruling he may relitigate", () => {
     const held = Object.entries(OVERTAKEN).filter(([, n]) => isHeld(n));
-    // Was two: `seed-avatar.look` retired with its board (avatar-mesh-wiring,
-    // 2026-09-20, `look=mesh`), the same convention as toasts and
-    // app-vocabulary below.
+    // Two the night they were written; one since he answered the other's
+    // question outright (`seed-avatar.look=mesh`, the second batch), which
+    // retired the badge with the ask and spent that hold without round two.
     expect(
       held.length,
-      "his four held answers reached one question nothing else had",
+      "one held answer still reaches a question nothing else had",
     ).toBe(1);
     for (const [key, note] of held) {
       expect(note.by, `${key}: only guest-verify's answers are held`).toBe(
@@ -246,10 +251,14 @@ describe("the overtaken map", () => {
       // The earlier pass's judgment is left exactly as it was written.
       expect(judgment(note.line)).toMatch(/^(stands|concedes): .+\.$/);
     }
-    // The closing sitting's pass appended to lines that already carried one.
+    // Each pass has appended behind the clauses the last one left.
     expect(
       appended.filter(([, n]) => clausesOf(n.line).length === 2).length,
       "a third ruling reached questions two had already reached",
+    ).toBeGreaterThan(0);
+    expect(
+      appended.filter(([, n]) => clausesOf(n.line).length === 3).length,
+      "a fourth ruling reached questions three had already reached",
     ).toBeGreaterThan(0);
   });
 
@@ -275,9 +284,11 @@ describe("the overtaken map", () => {
   });
 
   it("counts a board's overtaken asks for the desk", () => {
-    // Six since the desk's queue test began deriving its numbers from here
-    // rather than restating them (overtaken-3's granted exception).
-    expect(overtakenOn("first-event")).toBe(6);
+    // Seven since the desk's queue test began deriving its numbers from here
+    // rather than restating them (overtaken-3's granted exception); `venue` is
+    // the one this board keeps unreached, which is what makes that join's
+    // "and no other" half provable at all.
+    expect(overtakenOn("first-event")).toBe(7);
     // Round one's five badges retired with the asks they named (album-controls,
     // 2026-09-20): the board's round two is too new for anything to overtake yet.
     expect(overtakenOn("app-vocabulary")).toBe(0);
@@ -286,14 +297,21 @@ describe("the overtaken map", () => {
     // above (a badge pointing at a question nobody is asking any more is
     // worse than an answer left orphaned).
     expect(overtakenOn("toasts")).toBe(0);
-    // Ruled whole and wired (avatar-mesh-wiring, 2026-09-20): its one held
-    // badge retired with the board itself, the same convention as toasts
-    // and app-vocabulary above.
+    // Its one badge retired with the ask when he answered `look` outright
+    // (the closing sitting's second batch), and the board retires at its
+    // wiring: the same convention as app-vocabulary and toasts above.
     expect(overtakenOn("seed-avatar")).toBe(0);
+    // The board a batch answered whole: six badges, all six overridden by his
+    // own answers, all six gone with the asks.
+    expect(overtakenOn("app-pricing")).toBe(0);
     // The sixth batch ruled the portal's whole shell, one board over.
     expect(overtakenOn("admin-triage")).toBe(8);
+    // The desk's last board, reached for the first time by the closing
+    // sitting's second batch; it was the example of a board nothing had
+    // reached until then, which is why the zero case moved to a made-up id.
+    expect(overtakenOn("press-page")).toBe(1);
     // A board nothing reached counts none, and never throws for asking.
-    expect(overtakenOn("press-page")).toBe(0);
+    expect(overtakenOn("a-board-nobody-drew")).toBe(0);
     expect(overtakenKey("a", "b")).toBe("a.b");
     expect(overtakenFor("press-page", "nothing")).toBeUndefined();
   });
@@ -313,8 +331,10 @@ describe("the overtaken map", () => {
         (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
       );
     });
-    // Two thirds of these questions were drawn with a baseline that has moved.
-    expect(glossed.length).toBeGreaterThanOrEqual(15);
+    // A floor, never a census: three in four of these questions were drawn
+    // with a baseline that has since moved, and the map has quadrupled since
+    // the first pass set this at fifteen.
+    expect(glossed.length).toBeGreaterThanOrEqual(40);
     expect(glossed).toContain("first-event.hand");
     expect(glossed).toContain("media-viewer.opening");
     // And the gloss says which way to read them.

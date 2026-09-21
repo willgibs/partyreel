@@ -38,8 +38,9 @@ minutes in two days. Read a failed run with `gh run list --branch launch-prep` t
 `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only env `next build` requires)
 and skips with an annotation naming them until they are set; the other three always run.
 
-**Confirming a deploy is READY at the SHA you pushed** (the Vercel MCP lists deployments, but a
-one-line poll is faster and scriptable): `curl -s -H "Authorization: Bearer $VERCEL_TOKEN"
+**Confirming a deploy is READY at the SHA you pushed** (a `main` push deploys; a `launch-prep` deployment
+exists only when the Orchestrator created it by API at a record, `usher/kit/alias-ensure.mjs`; the Vercel MCP
+lists deployments, but a one-line poll is faster and scriptable): `curl -s -H "Authorization: Bearer $VERCEL_TOKEN"
 "https://api.vercel.com/v6/deployments?projectId=prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB&teamId=team_ht9qAVBQVZf60dpGNJUwmaj5&limit=12"`
 (add `&target=production` for prod), match `meta.githubCommitSha` to your SHA and wait for `state`
 READY; `/v3/deployments/<uid>/events` carries the build log, including the build gate's own
