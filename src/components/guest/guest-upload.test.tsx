@@ -241,6 +241,7 @@ describe("GuestUpload: queue", () => {
 describe("GuestUpload: just-in-time join", () => {
   it("no session: POSTs /api/guests with the qr_token, then uploads the stash", async () => {
     vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ ok: true, session_token: "fresh-token" }),
     } as Response);
     mockUploadFile.mockResolvedValue({
@@ -275,6 +276,7 @@ describe("GuestUpload: just-in-time join", () => {
 
   it("join rejection: toasts and clears the stash, nothing uploads", async () => {
     vi.mocked(global.fetch).mockResolvedValue({
+      ok: false,
       json: () => Promise.resolve({ ok: false, message: "Bad token" }),
     } as Response);
 
@@ -304,6 +306,76 @@ describe("GuestUpload: just-in-time join", () => {
       }),
     );
     expect(mockUploadFile).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE IDENTITY RESHAPE'S PINS (2026-09-21). Three facts about WHO a queue
+ * uploads as, all of them behaviour the door cannot see.
+ */
+describe("GuestUpload: the identity reshape", () => {
+  it("a stored session never joins again: the name was answered once", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "med-1",
+      kind: "photo",
+    });
+    const { addFiles } = mount({ sessionToken: "sess-1" });
+    addFiles([makeFile()]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(1));
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("the silent join carries NO name: the door is the only place one is typed", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ok: true, session_token: "fresh-token" }),
+    } as Response);
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "med-1",
+      kind: "photo",
+    });
+    const { addFiles } = mount({ sessionToken: null, isVerified: true });
+    addFiles([makeFile()]);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    const body = JSON.parse(
+      (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+    );
+    expect(body).toEqual({ qr_token: "qr-token-1" });
+    expect(body).not.toHaveProperty("display_name");
+  });
+
+  it("a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line", async () => {
+    // Three files: the first goes, the second meets the flip, and the third
+    // must never be tried — the session is spent for all of them.
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-1",
+        kind: "photo",
+      })
+      .mockResolvedValue({
+        ok: false,
+        code: "verification_required",
+        message: "This event now needs a confirmed email.",
+      });
+
+    const { addFiles, onSession } = mount({ sessionToken: "sess-1" });
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg"), makeFile("c.jpg")]);
+
+    await waitFor(() => expect(onSession).toHaveBeenCalledWith(null));
+    // The run ENDED here rather than walking into a third refusal.
+    expect(mockUploadFile).toHaveBeenCalledTimes(2);
+    // One sheet, both remaining files on it, one true sentence.
+    const sheet = await screen.findByText("2 files did not go");
+    expect(sheet).toBeInTheDocument();
+    expect(
+      screen.getAllByText("This event now needs a confirmed email."),
+    ).toHaveLength(2);
   });
 });
 

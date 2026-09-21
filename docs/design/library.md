@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1038 contracts on 150 components · 15 standing boards.**
+**22 laws · 18 policies · 1128 contracts on 156 components · 15 standing boards.**
 
 ## What binds you
 
@@ -284,7 +284,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/tilt-card.tsx` | the 3D pointer tilt; mouse only, because a finger on a card must scroll the page | none |
 | `src/components/marketing/system/web-analytics.tsx` | the analytics singleton and the data-track listener | none |
 | `src/components/shared/action-tooltip.tsx` | the lightbox's icon tooltips; never on the SSR'd gallery tiles, which use native title | none |
-| `src/components/shared/anonymous-info.tsx` | the (i) beside an Anonymous credit; tap to open, because guests are on phones | none |
+| `src/components/shared/anonymous-info.tsx` | RETIRED at the identity reshape (2026-09-21) and drawn only by this gallery now: the (i) beside an Anonymous credit, whose concept left the product; a marked name wears unverified-mark.tsx instead | none |
 | `src/components/shared/app-shell.tsx` | the signed-in app frame | none |
 | `src/components/shared/claim-uploads-on-auth.tsx` | claims a guest's uploads onto the account that just signed in | none |
 | `src/components/shared/container.tsx` | the centered page gutter: the single source of horizontal rhythm | none |
@@ -309,6 +309,7 @@ function. A contract never freezes a look.
 | `src/components/shared/set-name-step.tsx` | the one required add-your-name step, reused at every gate that asks for one | none |
 | `src/components/shared/tile-size-control.tsx` | the gallery's r1 tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Superseded in production by ViewMenu's Tile size group (`app-vocabulary` r2), which is where those two reserved slots actually landed; kept on disk, unmounted, for the lab. Controlled: the caller owns the persistence | accepts exactly the three wired steps; falls back to the wired default on anything else; starts at the server-resolved size and updates optimistically; never persists a no-op pick; draws exactly the three wired steps, the current one pressed; calls onChange with the pressed step; names Sort and Filter as reserved, inert slots |
 | `src/components/shared/tooltip-slide.tsx` | the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide) | none |
+| `src/components/shared/unverified-mark.tsx` | the quiet mark beside a name nobody proved, in MineMark's material, carrying its own explanation and, on your own credit, the way out | renders centered: the track sits at -100% with zero offset; mouse pointers never engage the finger-follow; a sub-10px wiggle stays unlocked (tap territory); a vertical move releases the gesture to the browser; a horizontal lock engages: data-dragging + 1:1 follow; clamps a long pull toward a real neighbor to one slide width; damps the pull past the FIRST item (no prev); slow short drag springs back (200ms settle, no index change); a long slow drag commits by DISTANCE (20% of width); a quick flick commits by VELOCITY regardless of distance; a commit toward a missing neighbor cannot happen at the END of the set; pointercancel snaps back to center; reduced motion: a commit lands INSTANTLY, no transition round-trip; arrow keys step through the set within bounds; arrow keys at the edges do nothing; a CENTER tap on the letterbox closes; the click trailing a drag does NOT; a clean CENTER-third tap on the letterbox closes the viewer; a LEFT-third letterbox tap steps to the previous item (no close); a RIGHT-third letterbox tap steps to the next item (no close); a side tap at an edge is a NO-OP (never an accidental close); the position counter reflects the controlled index (pill format); a drag starting in a PLAYING video's scrubber strip never swipes; the same drag swipes once the video is PAUSED; the GUEST pill carries NO curate controls, even with a status; an APPROVED host item shows Hide + Remove (not Approve/Show); a PENDING host item shows Approve + Hide; Approve sets approved; a HIDDEN host item shows Show (not Hide/Approve); Show sets approved; host Remove is behind a modal confirm (no accidental delete); shows the Trash on the item it allows and never on another; draws the album on its own element, with the media never inside it; wears the ONE material on the pill, the capsule and the close; a confirmed name stands plain, with no mark; a name nobody proved is named AND marked; a legacy nameless row reads "A guest", never a blank credit; the mark offers the way out on the viewer's OWN upload only; says nothing about proof it was never given: an item with no flag is plain |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
 | `src/components/shared/view-menu.tsx` | the one dropdown every gallery's crowded controls move behind (`app-vocabulary` r2, `controls-home=view-menu`): a caller hands it arbitrary radio `groups` (a label, options, a value, a handler), so the host gallery's tile size/sort/filter and the guest album's tile size/Yours are the same object worn twice. A `disabled` group renders every option inert with a `hint` explaining why, rather than hiding a control he explicitly asked to stop being invisible | renders every group as a radio group named after its own label; calls the picked group's own handler with the chosen value, and no other group's; never fires a disabled group's handler, and says the row is reserved; closes once a real choice lands; names the trigger with the caller's own word |
 | `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets mesh's own backgroundBlendMode on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the fallback the SAME ink on two different avatars; a DIFFERENT seed paints the fallback a different ink; with no seed, the root paints nothing and the fallback stays today's grey |
@@ -380,16 +381,20 @@ Contracted but outside the library's directories:
 - `src/components/app/share/event-sheets.tsx` (12 guards)
 - `src/components/app/share/use-copy-link.ts` (12 guards)
 - `src/components/app/welcome-flow.tsx` (7 guards)
-- `src/components/auth/account-door.tsx` (16 guards)
-- `src/components/guest/claim-handle-prompt.tsx` (4 guards)
+- `src/components/auth/account-door.tsx` (17 guards)
+- `src/components/guest/claim-handle-prompt.tsx` (8 guards)
 - `src/components/guest/entry-shell.tsx` (4 guards)
+- `src/components/guest/follow-moment-card.tsx` (8 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-action-dock.tsx` (7 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
-- `src/components/guest/guest-header.tsx` (3 guards)
+- `src/components/guest/guest-header.tsx` (6 guards)
 - `src/components/guest/guest-masonry.tsx` (5 guards)
-- `src/components/guest/guest-upload.tsx` (21 guards)
+- `src/components/guest/guest-name-menu.tsx` (6 guards)
+- `src/components/guest/guest-name-step.tsx` (26 guards)
+- `src/components/guest/guest-upload.tsx` (24 guards)
 - `src/components/guest/live-gallery.tsx` (14 guards)
+- `src/components/guest/save-account-prompt.tsx` (4 guards)
 - `src/components/guest/upload/failure-sheet.tsx` (6 guards)
 - `src/components/guest/upload/intent-sheet.tsx` (9 guards)
 - `src/components/guest/upload/review-step.tsx` (9 guards)
@@ -436,7 +441,7 @@ Contracted but outside the library's directories:
 - `src/components/shared/trail/trail-engine.ts` (57 guards)
 - `src/components/shared/trail/trail-frames.ts` (57 guards)
 - `src/components/shared/trail/trail.tsx` (17 guards)
-- `src/components/social/guest-list.tsx` (5 guards)
+- `src/components/social/guest-list.tsx` (8 guards)
 - `src/components/social/profile-actions-menu.tsx` (4 guards)
 - `src/lib/admin/kpi.ts` (10 guards)
 - `src/lib/admin/palette.ts` (11 guards)
@@ -453,7 +458,8 @@ Contracted but outside the library's directories:
 - `src/lib/dashboard/next-step.ts` (15 guards)
 - `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)
-- `src/lib/guest/use-upload-queue.ts` (21 guards)
+- `src/lib/guest/join.ts` (10 guards)
+- `src/lib/guest/use-upload-queue.ts` (24 guards)
 - `src/lib/qr/module-floor.ts` (9 guards)
 - `src/lib/qr/stock.ts` (9 guards)
 - `src/lib/shared/arrival.ts` (6 guards)

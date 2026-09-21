@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `allow_anonymous_uploads` account gate ("Enter event"), silent join, the auth-aware header island, the live gallery (doorbell + conditional poll), the guest reel (card / overlay / download), demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config + reel curation/Studio (→ [host-app.md](host-app.md)).
+> BELONGS HERE: the `/e/[token]` page, the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the `require_verified_email` switch (its gate and its name-only door), silent join, the auth-aware header island, the live gallery (doorbell + conditional poll), the guest reel (card / overlay / download), demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), saved-events internals (→ [notifications-analytics-growth.md](notifications-analytics-growth.md)), host-side event config + reel curation/Studio (→ [host-app.md](host-app.md)).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -48,6 +48,20 @@ and keeping the album is a one-tap offer AFTER a guest's first photograph lands
 ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx) → `ClaimHandlePrompt` → `SaveAccountPrompt`,
 wearing `SaveEventButton`), never a form above the album. Where a guest's actions finally live is `chrome`
 round two, which draws this block with Save already gone.
+★ **THAT OFFER IS THE CAPTURE FLOW NOW** (the identity reshape, 2026-09-21; Will's `collision=offer`: "a flow
+for us to capture non-user guests after their uploads to save the event/uploads to a profile, follow
+host/other guests"). `ClaimHandlePrompt` owns the whole post-upload slot, ONE card at a time, and the ladder
+is: signed out → the offer card, counting what just landed; **just confirmed** →
+[`follow-moment-card.tsx`](../../src/components/guest/follow-moment-card.tsx) (what they now hold, the host
+to follow, "Claim your handle" folded in as its second line); signed in without a handle → the handle card
+as before; with one → nothing. ★ **"Just confirmed" is a MARKER, not a guess**: `SaveAccountPrompt` writes
+`pr_pending_offer_<qr_token>` when the door OPENS (as `pr_pending_save_` already does, and for the same
+reason — once a magic link or Google redirect happens, no code of ours is running), and the slot's owner
+consumes it on the next mount and deletes it in the same breath, so the in-page code and a full reload land
+the SAME beat, exactly once. ★ The follow moment offers the HOST alone: the other guests are already on this
+page with their own Follow on each handled chip ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)),
+and a second copy of those names inside the card would be one list twice on one screen. Its card comes from
+`getHostCard(eventId)` resolved in the page RSC; no card resolved means no host row, never a stub.
 ★ **THE GUEST'S OVERLAYS WEAR THE ONE RESPONSIVE SHEET** (`dialogs=stands`, 2026-09-20, deferring to
 `settings=sheet`'s "apply this sheet concept everywhere"): `SheetContent responsive`
 ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)) — a side panel at a desk, a bottom sheet in a hand.
@@ -116,6 +130,14 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
     failure once dismissed cannot resurrect itself on a later, unrelated run's end. `dismiss` re-checks each
     id's LIVE status rather than trusting the list it was called with, which is what keeps it from also
     eating the ids `Retry all` just re-queued a moment earlier in the same close.
+  - ★ **THE FLIP, MID-RUN** (the identity reshape, 2026-09-21). A host can turn Require verified emails ON
+    while a guest is halfway through twelve files; the routes then answer 403 `verification_required`, which
+    the uploader carries up as `UploadOutcome.code` (the ONE code the queue reads by name). It is a spent
+    SESSION, not one refused file, so: a CONFIRMED viewer re-joins silently ONCE (their uid mints a verified
+    row and the run continues on the new token, and they never learn it happened, because nothing about them
+    changed); a name-only guest cannot, so the session is dropped, everything still queued is failed in place
+    with the SERVER's own sentence, the failure sheet opens once for all of it, and the page refreshes so the
+    NEXT Add meets the gate rather than a token that cannot work.
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id, re-keyed to the media id at
   approved completion (`UploadedItem.queueId`) — the SAME URL object, so the `<img src>` never changes
   (zero flicker as an in-flight tile becomes the optimistic tile).
@@ -129,8 +151,17 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
   (`nothing=river`) and two copies of the fade are how the two screens drifted apart the first time.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
   full-bleed media, a floating top-right close, a bottom ACTION PILL (Like / Save / Share /
-  Delete) over an ATTRIBUTION PILL ("[name] [Host] / Anonymous(i) · i+1 of N" — the counter always
-  renders). ~30% side tap zones NAVIGATE via thirds logic in `onBackdropClick` (left→prev, right→next,
+  Delete) over an ATTRIBUTION PILL ("[name] [mark] [Host] · i+1 of N" — the counter always
+  renders). ★ **EVERY UPLOAD CARRIES A NAME** (the identity reshape, 2026-09-21): a confirmed guest's
+  profile name stands plain, a typed one wears [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx)
+  (MineMark's material, tap to open, the host's own extra sentence, and on YOUR OWN credit a "Confirm your
+  email" that opens the `save` wear), and a row minted before the reshape reads **"A guest"** (his to
+  overrule; nothing minted after it can reach that branch). "Anonymous" and its `(i)` are gone with the
+  concept; [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) stays on disk for the
+  Library gallery alone. ★ The mark carries its OWN door rather than a prop, because the credit sits
+  three modules deep under `shared/masonry.tsx` and a way out threaded through all of them would simply
+  not exist where Will expects a guest to want it; "is this mine" is the `canDelete` seam the lightbox
+  already has, never a second one. ~30% side tap zones NAVIGATE via thirds logic in `onBackdropClick` (left→prev, right→next,
   edge→no-op, center→close); whisper scrims are pointer-events-none so they never kill the swipe. The
   **gesture machinery is verbatim** (the 17 physics pins). ★ The Share button is guest-only and shares
   the event JOIN url (`shareUrl` prop) — NEVER a presigned media URL; absent on host/personal surfaces.
@@ -457,8 +488,20 @@ CTA (the SSR default → zero flash for the anonymous majority); logged-in → t
 is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out** clears the guest
 capability (`setStoredSession(qrToken, null)` via the module-singleton `emit()` in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts)), signs out, then `router.refresh()`s —
-so the visitor STAYS on the event page and an account-required event re-gates to `<EnterEventPrompt>` (the
+so the visitor STAYS on the event page and a verified-email event re-gates to `<EnterEventPrompt>` (the
 shared-device-bleed fix).
+
+★ **A THIRD STATE, for the commonest person at a name-only party** (the identity reshape, 2026-09-21):
+signed out WITH a stored name, the header wears
+[`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the stranger's CTA —
+the name, "Name not verified" (read from the mark, so the two cannot drift), then Confirm your email
+(the `save` wear), Change name, and Sign in (the new `signin` wear). An ACCOUNT always wins the slot: a
+signed-in visitor's menu is the truer answer to "who am I here" and their credit is not marked at all.
+**No Sign out row**, because there is no session to end: the capability is a token in this browser's
+storage, and clearing it would orphan the photographs this device can still remove. ★ Change name cannot
+reach the entry modal's handle (this header is a SIBLING island of `EventExperience`), so it goes through
+[`name-door.ts`](../../src/lib/guest/name-door.ts) — the same module-singleton shape, for the same reason,
+as the stored session's own `emit()`.
 
 ## Demo mode
 

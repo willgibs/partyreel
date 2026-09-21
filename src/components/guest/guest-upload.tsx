@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
+import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
@@ -60,6 +61,9 @@ export function GuestUpload({
   onUploaded,
   onQueueChange,
   isDemo,
+  isVerified = false,
+  onVerificationRequired,
+  host,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -73,6 +77,12 @@ export function GuestUpload({
   onQueueChange?: (items: QueueItem[]) => void;
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
+  /** The viewer holds a CONFIRMED account (decides what a mid-run flip costs). */
+  isVerified?: boolean;
+  /** The host turned Require verified emails ON mid-visit (the identity reshape). */
+  onVerificationRequired?: (message: string) => void;
+  /** The event's host as a public card, for the capture flow's follow moment. */
+  host?: FollowMomentHost | null;
 }) {
   const { items, addFiles, retry, dismiss } = useUploadQueue({
     qrToken,
@@ -80,6 +90,8 @@ export function GuestUpload({
     onSession,
     onUploaded,
     isDemo,
+    isVerified,
+    onVerificationRequired,
   });
 
   useEffect(() => {
@@ -168,20 +180,23 @@ export function GuestUpload({
       )}
 
       {/* The post-upload slot, one card at a time (Will, `claim=after`,
-          2026-09-19). ClaimHandlePrompt resolves the viewer and decides: signed
-          out gets the save-account card exactly as before (account first, the
-          newsletter opt-in folded into its dialog), signed in without a handle
-          gets the claim line, and somebody who already has a page gets neither.
+          2026-09-19; the capture flow folded in at the identity reshape,
+          2026-09-21). ClaimHandlePrompt resolves the viewer and decides: signed
+          out gets the offer card counting what just landed, a guest who has just
+          CONFIRMED gets the follow moment, signed in without a handle gets the
+          claim line, and somebody who already has a page gets none of them.
           Shown once a guest has contributed, never in the demo. */}
       {doneCount > 0 && !isDemo && (
         <ClaimHandlePrompt
           doneCount={doneCount}
           qrToken={qrToken}
+          host={host}
           savePrompt={
             <SaveAccountPrompt
               eventId={event.id}
               qrToken={qrToken}
               sessionToken={sessionToken ?? ""}
+              count={doneCount}
             />
           }
         />

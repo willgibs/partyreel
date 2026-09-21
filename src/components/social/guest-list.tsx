@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import { UnverifiedMark } from "@/components/shared/unverified-mark";
+import { FollowButton } from "@/components/social/follow-button";
 import {
   Avatar,
   AvatarFallback,
@@ -14,13 +16,29 @@ import type { ProfileCardItem } from "@/lib/social/cards";
 
 /**
  * The named "Guests" list (profiles-social.md: renders ONLY when the host turned on
- * show_guest_list; the server query already enforced that + excluded anonymous
- * uploads). One presentational component for BOTH surfaces (the host event page
- * section and the guest album), so the two can never drift. Items arrive fully
+ * show_guest_list). One presentational component for BOTH surfaces (the host event
+ * page section and the guest album), so the two can never drift. Items arrive fully
  * hydrated (avatar URLs, never storage paths).
  *
  * A guest WITH a handle links to /u/<slug>; one without renders as a plain chip
  * (no dead link, no "claim a handle" nudge on someone else's album).
+ *
+ * ★ NAME-ONLY GUESTS ARE ON IT NOW, MARKED (Will, at the identity reshape's
+ * approval, 2026-09-21, verbatim: "Listed, with the mark"). Anonymity left the
+ * product, so the old exclusion ("anonymous uploads never appear") excludes
+ * nothing that still exists: what it would exclude today is a person who typed a
+ * name and put twelve photographs in the album, which is the opposite of what a
+ * guest list is for. They arrive as `{ kind: "unverified" }` entries after the
+ * profile cards (`getEventGuestList(id, { includeUnverified })`), wear the mark
+ * with its own explanation, and link nowhere: there is no page behind a name
+ * nobody proved. ★ ONE ENTRY PER GUEST ROW, not per person, which is his
+ * `allowance=open` world showing through: two people can type one name and they
+ * are two guests until one of them proves otherwise (his to overrule).
+ *
+ * ★ AND A HANDLED CHIP CAN BE FOLLOWED, by a signed-in viewer who is not already
+ * following them and is not themselves. The album is where a guest meets the
+ * other guests; making them open a profile first to do the one thing a profile
+ * is for was a door with nothing behind it.
  *
  * ★ ABOVE TWELVE IT BECOMES A ROW OF FACES (Will, `list=faces`, 2026-09-19:
  * "This is the condensed version once we exceed a certain count, but let's add
@@ -47,6 +65,27 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * both server callers pass what they always passed.
  */
 
+/** A guest with no proof: a `guests` row carrying a typed name and nothing else. */
+export type UnverifiedGuestEntry = {
+  kind: "unverified";
+  id: string;
+  displayName: string | null;
+};
+
+/**
+ * What the list renders. The profile half is left EXACTLY as it was, with `kind`
+ * optional, because the retired `profile-page` sandbox board still feeds this
+ * component its own fixtures and a wiring lane never breaks the props of a
+ * module the lab imports.
+ */
+export type GuestListItem =
+  | (ProfileCardItem & { kind?: "profile" })
+  | UnverifiedGuestEntry;
+
+function isUnverified(item: GuestListItem): item is UnverifiedGuestEntry {
+  return item.kind === "unverified";
+}
+
 /** Above this many uploaders the list condenses to the faces row. Exported so
  *  the CALLERS can drop their own count from the heading: the row says the
  *  number itself, and it must render once rather than twice. */
@@ -64,11 +103,14 @@ const CHIP =
 // item.seed is seedFor(item.id), hydrated onto every ProfileCardItem by
 // withAvatarUrls (lib/social/cards.ts) — one colour per person, the same
 // place avatarUrl is resolved, so a guest list of two dozen strangers is
-// two dozen distinct hues rather than one repeated grey disc.
-function Face({ item }: { item: ProfileCardItem }) {
+// two dozen distinct hues rather than one repeated grey disc. An unverified
+// entry carries no seed and wears the plain disc: a colour is an identity on
+// every other surface, and this one has not been proven.
+function Face({ item }: { item: GuestListItem }) {
+  const unverified = isUnverified(item);
   return (
-    <Avatar size="sm" seed={item.seed}>
-      <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
+    <Avatar size="sm" seed={unverified ? undefined : item.seed}>
+      {!unverified && <AvatarImage src={item.avatarUrl ?? undefined} alt="" />}
       <AvatarFallback className="text-[10px]">
         {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
       </AvatarFallback>
@@ -76,10 +118,34 @@ function Face({ item }: { item: ProfileCardItem }) {
   );
 }
 
-function Chips({ items }: { items: ProfileCardItem[] }) {
+function Chips({
+  items,
+  viewerId,
+  followingIds,
+}: {
+  items: GuestListItem[];
+  viewerId?: string | null;
+  followingIds?: ReadonlySet<string>;
+}) {
   return (
-    <ul className="flex flex-wrap gap-1.5">
+    <ul className="flex flex-wrap items-center gap-1.5">
       {items.map((item) => {
+        if (isUnverified(item)) {
+          return (
+            <li key={item.id}>
+              {/* No link, and no nudge: there is no page behind a name nobody
+                  proved, and telling somebody else's guest to go and prove it
+                  is not this album's business. The mark carries the why. */}
+              <span className={`${CHIP} text-muted-foreground`}>
+                <Face item={item} />
+                <span className="max-w-40 truncate">
+                  {item.displayName ?? "A guest"}
+                </span>
+                <UnverifiedMark name={item.displayName} />
+              </span>
+            </li>
+          );
+        }
         const chip = (
           <>
             <Face item={item} />
@@ -88,8 +154,16 @@ function Chips({ items }: { items: ProfileCardItem[] }) {
             </span>
           </>
         );
+        // Only where it earns its space: a signed-in viewer, somebody else, a
+        // real page to follow, and not one they already follow.
+        const canFollow = Boolean(
+          viewerId &&
+            item.slug &&
+            item.id !== viewerId &&
+            !followingIds?.has(item.id),
+        );
         return (
-          <li key={item.id}>
+          <li key={item.id} className="flex items-center gap-1.5">
             {item.slug ? (
               <Link
                 href={`/u/${item.slug}`}
@@ -100,6 +174,13 @@ function Chips({ items }: { items: ProfileCardItem[] }) {
             ) : (
               <span className={`${CHIP} text-muted-foreground`}>{chip}</span>
             )}
+            {canFollow && item.slug && (
+              <FollowButton
+                profileId={item.id}
+                slug={item.slug}
+                initialFollowing={false}
+              />
+            )}
           </li>
         );
       })}
@@ -107,24 +188,39 @@ function Chips({ items }: { items: ProfileCardItem[] }) {
   );
 }
 
-export function GuestList({ items }: { items: ProfileCardItem[] }) {
+export function GuestList({
+  items,
+  viewerId,
+  followingIds,
+}: {
+  items: GuestListItem[];
+  /** The signed-in viewer, so a Follow can appear on somebody else's chip. */
+  viewerId?: string | null;
+  /** Who this viewer already follows: no Follow on a chip that would be a no-op. */
+  followingIds?: ReadonlySet<string>;
+}) {
   // How many names are showing. 0 = the condensed row (the list is past the
   // threshold and nobody has opened it yet).
   const [shown, setShown] = useState(0);
 
   if (items.length === 0) {
-    // [] means the host's key is ON and nobody signed in has added a photograph
-    // yet. null (the key is off) never reaches this component: both callers gate
-    // on it, which is what getEventGuestList's null-against-[] return is for.
+    // [] means the host's key is ON and nobody has added a photograph yet. null
+    // (the key is off) never reaches this component: both callers gate on it,
+    // which is what getEventGuestList's null-against-[] return is for. ★ The
+    // line dropped "signed-in" at the identity reshape: every uploader carries a
+    // name now, so the old qualifier described a distinction the product no
+    // longer has.
     return (
       <p className="text-sm text-muted-foreground">
-        No signed-in guests have added photos yet.
+        Nobody has added photos yet.
       </p>
     );
   }
 
   if (items.length <= GUEST_LIST_FACES_THRESHOLD) {
-    return <Chips items={items} />;
+    return (
+      <Chips items={items} viewerId={viewerId} followingIds={followingIds} />
+    );
   }
 
   if (shown === 0) {
@@ -158,7 +254,7 @@ export function GuestList({ items }: { items: ProfileCardItem[] }) {
   const rest = items.length - page.length;
   return (
     <div className="space-y-2">
-      <Chips items={page} />
+      <Chips items={page} viewerId={viewerId} followingIds={followingIds} />
       {rest > 0 && (
         <button
           type="button"

@@ -1,3 +1,4 @@
+// @contract-for: src/components/guest/guest-name-step.tsx
 /**
  * Behavior pins for the entry surface's HONEST-AFFORDANCE table (Phase 4.5
  * S2) + the flow wiring that must survive the shell swap. Pins run the
@@ -7,8 +8,8 @@
  * classes, no animation timings.
  */
 import { createRef } from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EntryModal,
@@ -291,5 +292,119 @@ describe("the back affordance (reviewing the welcome)", () => {
     );
     expect(screen.queryByLabelText("Event password")).toBeNull();
     expect(screen.queryByText(/You(’|')re invited/)).toBeNull();
+  });
+});
+
+/**
+ * THE NAME STEP'S PINS (the identity reshape, 2026-09-21).
+ *
+ * The step is a SECOND door through the same shell rather than a step in the
+ * server-driven machine, and every pin here is about that difference: it never
+ * arrives on its own, closing it costs nothing, and the one thing it does send
+ * is the pair the route needs. Copy is precedent; `guest-capture` (wave 2)
+ * refines this surface.
+ */
+describe("the name step (address=none)", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  it("NEVER auto-opens: a guest looking at an album is asked nothing", () => {
+    renderModal({ gateSteps: [] });
+    fireEvent.click(screen.getByRole("button", { name: "View the album" }));
+    expect(screen.queryByLabelText(/what should we call you/i)).toBeNull();
+  });
+
+  it("opens on the handle, and dismissing it POSTs nothing", () => {
+    const { ref } = renderModal({ gateSteps: [] });
+    act(() => ref.current!.openToName("join"));
+    expect(
+      screen.getByLabelText(/what should we call you/i),
+    ).toBeInTheDocument();
+    // Free, even though it is a door: the album behind it is already open.
+    fireEvent.click(closeButton()!);
+    expect(screen.queryByLabelText(/what should we call you/i)).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("Add photos POSTs the qr_token AND the name, and hands the token up", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          ok: true,
+          session_token: "tok-9",
+          display_name: "Sam",
+          verified: false,
+        }),
+    } as Response);
+    const onNamed = vi.fn();
+    const { ref } = renderModal({ gateSteps: [], onNamed });
+    act(() => ref.current!.openToName("join"));
+    fireEvent.change(screen.getByLabelText(/what should we call you/i), {
+      target: { value: "Sam" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add photos" }));
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
+      "/api/guests",
+      expect.objectContaining({
+        body: JSON.stringify({ qr_token: QR, display_name: "Sam" }),
+      }),
+    ));
+    await waitFor(() =>
+      expect(onNamed).toHaveBeenCalledWith({
+        sessionToken: "tok-9",
+        displayName: "Sam",
+      }),
+    );
+    // The name is this device's now, beside the session it belongs to.
+    expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBe("Sam");
+  });
+
+  it("refuses a reserved name IN PLACE, before anything is sent", async () => {
+    const { ref } = renderModal({ gateSteps: [] });
+    act(() => ref.current!.openToName("join"));
+    fireEvent.change(screen.getByLabelText(/what should we call you/i), {
+      target: { value: "Partyreel" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add photos" }));
+    expect(
+      await screen.findByText(/that name isn't available/i),
+    ).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("edit mode renames the row this device holds, and never mints a second one", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ok: true, display_name: "Samantha" }),
+    } as Response);
+    const { ref } = renderModal({
+      gateSteps: [],
+      sessionToken: "tok-1",
+      storedName: "Sam",
+    });
+    act(() => ref.current!.openToName("edit"));
+    const field = screen.getByLabelText(/what should we call you/i);
+    expect(field).toHaveValue("Sam");
+    fireEvent.change(field, { target: { value: "Samantha" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/guests/name",
+        expect.anything(),
+      ),
+    );
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      "/api/guests",
+      expect.anything(),
+    );
+  });
+
+  it("the demo never opens it: nothing it adds is real", () => {
+    const { ref } = renderModal({ gateSteps: [], isDemo: true });
+    act(() => ref.current!.openToName("join"));
+    expect(screen.queryByLabelText(/what should we call you/i)).toBeNull();
   });
 });

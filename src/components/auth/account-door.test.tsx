@@ -92,7 +92,25 @@ afterEach(() => {
   localStorage.clear();
 });
 
-describe("the four wears", () => {
+describe("the wears", () => {
+  /**
+   * ★ EVERY WEAR HAS BOTH HALVES, AND THEY DIFFER (the identity reshape,
+   * 2026-09-21, which added `signin` as the fifth). The table exists so a
+   * surface cannot drift from the door it stands over; two wears sharing a
+   * sentence would mean one of them is not really a reason.
+   */
+  it("gives every wear a heading and a reason of its own", () => {
+    const wears = Object.keys(DOOR_WEAR) as DoorWear[];
+    expect(wears.length).toBeGreaterThanOrEqual(5);
+    const reasons = new Set<string>();
+    for (const wear of wears) {
+      expect(DOOR_WEAR[wear].heading.trim().length).toBeGreaterThan(0);
+      expect(DOOR_WEAR[wear].reason.trim().length).toBeGreaterThan(0);
+      reasons.add(DOOR_WEAR[wear].reason);
+    }
+    expect(reasons.size).toBe(wears.length);
+  });
+
   it("draws the login wear's own heading and reason", () => {
     render(
       <AccountDoor
@@ -109,7 +127,7 @@ describe("the four wears", () => {
   it("leaves heading and reason to the surface when it owns them", () => {
     // The gate, Save and Likes each carry a semantic title of their own (the
     // gate's ruled framing, a DialogTitle), so the door must not draw a second.
-    for (const wear of ["gate", "save", "like"] as const) {
+    for (const wear of ["gate", "save", "like", "signin"] as const) {
       const { unmount } = render(
         <AccountDoor
           wear={wear}
@@ -125,7 +143,7 @@ describe("the four wears", () => {
   });
 
   it("carries the Terms line on every wear that asks for it", () => {
-    for (const wear of ["login", "save", "like"] as DoorWear[]) {
+    for (const wear of ["login", "save", "like", "signin"] as DoorWear[]) {
       const { unmount } = render(
         <AccountDoor
           wear={wear}

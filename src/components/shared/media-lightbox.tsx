@@ -26,8 +26,8 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
 import { ReelButton } from "@/components/reel/reel-button";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
-import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
+import { UnverifiedMark } from "@/components/shared/unverified-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,23 +121,41 @@ function prefersReducedMotion() {
 }
 
 // THE ATTRIBUTION PILL (Phase 4): a floating capsule under the action pill —
-// bare name (no "Uploaded by"); host uploads add a "Host" badge; anonymous
-// shows "Anonymous" + a tap (i) explainer; the host-gallery-only email line
-// renders when present. The position COUNTER always renders ("i+1 of N"), so
-// the pill exists even on a bare item (no attribution) and the counter pin
-// stays satisfiable. `pointer-events-none` shell so it never blocks a swipe;
-// the (i), email, and event link re-enable taps.
+// bare name (no "Uploaded by"); host uploads add a "Host" badge; the
+// host-gallery-only email line renders when present. The position COUNTER always
+// renders ("i+1 of N"), so the pill exists even on a bare item (no attribution)
+// and the counter pin stays satisfiable. `pointer-events-none` shell so it never
+// blocks a swipe; the mark, email, and event link re-enable taps.
+//
+// ★ EVERY UPLOAD CARRIES A NAME NOW (the identity reshape, 2026-09-21).
+// "Anonymous" and its (i) explainer are gone with the concept: a guest either
+// confirmed an email (their profile name, plain) or typed one at the door (that
+// name, with `UnverifiedMark` beside it). ★ "A GUEST" IS THE LEGACY LABEL, and
+// only that: rows minted before the reshape carry no name at all, and the one
+// thing the album must not do is invent one or leave the credit blank. His to
+// overrule; there is no other row it can ever describe, because nothing minted
+// after the reshape reaches this branch.
 function AttributionPill({
   item,
   viewerIsHost,
+  isOwn,
   position,
 }: {
   item: GridMedia;
   viewerIsHost: boolean;
+  /** This viewer uploaded it: the mark grows its way out ("Confirm your email"). */
+  isOwn: boolean;
   position: string;
 }) {
   const name = item.uploaderName?.trim() || null;
-  const hasAttribution = item.isAnonymous || item.isHost || name !== null;
+  // `isVerified` lands on GridMedia in the identity reshape's server lane; read
+  // structurally so this file is correct on both sides of that merge. Undefined
+  // (a surface that has not been rebuilt, a lab fixture) reads as VERIFIED, so a
+  // name is never marked on a guess.
+  const unverified =
+    (item as { isVerified?: boolean }).isVerified === false && name !== null;
+  const legacy = item.isAnonymous && name === null;
+  const hasAttribution = legacy || item.isHost || name !== null;
   const eventName = item.eventName?.trim() || null;
   const eventLabel =
     eventName &&
@@ -165,16 +183,21 @@ function AttributionPill({
         )}
       >
         {hasAttribution &&
-          (item.isAnonymous ? (
-            <>
-              Anonymous
-              <span className="pointer-events-auto">
-                <AnonymousInfo viewerIsHost={viewerIsHost} />
-              </span>
-            </>
+          (legacy ? (
+            <span>A guest</span>
           ) : (
             <>
               {name && <span>{name}</span>}
+              {unverified && (
+                <span className="pointer-events-auto">
+                  <UnverifiedMark
+                    name={name}
+                    tone="lit"
+                    own={isOwn}
+                    viewerIsHost={viewerIsHost}
+                  />
+                </span>
+              )}
               {item.isHost && (
                 <Badge
                   variant="secondary"
@@ -966,6 +989,14 @@ export function MediaLightbox({
                     <AttributionPill
                       item={current}
                       viewerIsHost={viewerIsHost}
+                      // ★ THE "MINE" SEAM, REUSED RATHER THAN A SECOND ONE.
+                      // `canDelete` already answers "this viewer uploaded this
+                      // one" on every surface that can say so (the guest album
+                      // resolves it server-side on both identities), and a
+                      // second prop meaning the same thing is a second thing to
+                      // keep in step. A surface that passes none (the demo, a
+                      // locked album) simply gets the stranger's wording.
+                      isOwn={canDelete?.(current) ?? false}
                       position={`${index! + 1} of ${items.length}`}
                     />
                   </div>
