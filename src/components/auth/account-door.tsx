@@ -63,15 +63,29 @@ import { cn } from "@/lib/utils";
  * last guest's address to the next one (lib/auth/remembered-email.ts).
  */
 
-export type DoorWear = "login" | "gate" | "save" | "like";
+export type DoorWear = "login" | "gate" | "save" | "like" | "signin";
 
 /**
- * THE FOUR WEARS' WORDS, in one table, so a place's heading and its reason line
+ * THE WEARS' WORDS, in one table, so a place's heading and its reason line
  * cannot drift from the door they stand over. `/login` renders them itself
- * (`chrome="full"`); the three surfaces that already have a semantic title of
+ * (`chrome="full"`); the surfaces that already have a semantic title of
  * their own — a DialogTitle, the gate's ruled framing — read the same strings
  * into that slot and pass `chrome="none"`, so the a11y-correct element stays
  * with the surface and the copy stays here.
+ *
+ * ★ THE WORDS MOVED TO "CONFIRM YOUR EMAIL" (the identity reshape, 2026-09-21).
+ * Anonymity left the product on Will's `address=none`, and with it the framing
+ * where an ACCOUNT was the thing being asked for: what is asked for is a
+ * confirmed address, and the free account is what confirming MAKES, which is
+ * also the order a guest meets it in. `gate` alone keeps its sentence untouched,
+ * because he ruled that one verbatim (`voice` r1 `gate=ask`) and it already says
+ * exactly this.
+ *
+ * ★ AND `signin` IS THE FIFTH, for the one person the other four do not fit: a
+ * name-only guest at a party who ALREADY has an account. Nothing is being
+ * created and nothing is being kept, so neither `save`'s promise nor `login`'s
+ * host framing is true for them; what they want is their own photographs to end
+ * up in the one place they keep everything.
  */
 export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = {
   login: {
@@ -87,15 +101,25 @@ export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = 
     reason:
       "For safety, the host has requested you confirm your email. One tap and you're in.",
   },
+  // The capture moment's words (the identity reshape): a guest who has just put
+  // photographs into somebody's album is not shopping for an account, so the
+  // heading names the thing they already care about and the reason says what
+  // confirming does with it. "Confirming makes a free account" is the whole
+  // price, said last.
   save: {
-    heading: "Save this event",
+    heading: "Keep your photos",
     reason:
-      "Create a free account to keep this event on your dashboard and come back to it anytime. No app, just your email.",
+      "Confirm your email and this event stays on your profile, with every photo you added. Confirming makes a free account.",
   },
   like: {
     heading: "Like this",
     reason:
-      "Create a free account to save your favorites and find them on your dashboard. No app, just your email.",
+      "Confirm your email to keep your favorites and find them again on your dashboard. Confirming makes a free account.",
+  },
+  signin: {
+    heading: "Sign in",
+    reason:
+      "Already on Partyreel? Sign in and the photos you added here join everything else you have added.",
   },
 };
 

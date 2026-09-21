@@ -15,6 +15,7 @@ import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 
 import { initial } from "@/components/app/user-menu";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
+import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GhostRiver } from "@/components/guest/gallery-empty-state";
@@ -52,7 +53,9 @@ import { gateStepsForAccess } from "@/lib/guest/entry-steps";
 import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { TileSize } from "@/lib/shared/tile-size-cookie";
+import { onNameDoorRequest } from "@/lib/guest/name-door";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { useStoredName } from "@/lib/guest/use-stored-name";
 import { useStoredSession } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
 import { cn, formatEventDate } from "@/lib/utils";
@@ -116,6 +119,9 @@ export function EventExperience({
   guestReel,
   canDeleteIds,
   isAuthed,
+  isVerified = false,
+  namesMode = false,
+  hostCard = null,
   initialTileSize,
 }: {
   event: GuestEvent;
@@ -159,6 +165,21 @@ export function EventExperience({
   /** Viewer holds an account -> the signed-in remove path (a Server Function on
    *  `remove_my_upload`); otherwise the anonymous one (the session token). */
   isAuthed: boolean;
+  /**
+   * Viewer holds a CONFIRMED account, which is a different question from
+   * `isAuthed` and the one identity keys on (wave 0's finding, the identity
+   * reshape 2026-09-21: an unconfirmed session carries a uid and still keeps a
+   * typed name, so `user_id` alone is never the test).
+   */
+  isVerified?: boolean;
+  /**
+   * The host's switch is OFF: a guest types a display name at the door and
+   * uploads under it, marked. ON (the default everywhere) is the account gate,
+   * unchanged. Resolved server-side from `events.require_verified_email`.
+   */
+  namesMode?: boolean;
+  /** The event's host as a public card, for the capture flow's follow moment. */
+  hostCard?: FollowMomentHost | null;
   /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
    *  through to LiveGallery's own View menu (`controls-home=view-menu`); this
    *  shell holds no tile-size state of its own. */
@@ -166,6 +187,9 @@ export function EventExperience({
 }) {
   const router = useRouter();
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
+  // The name this device typed at this event (the identity reshape). Beside the
+  // session, never instead of it: the token is the capability, this is the label.
+  const [storedName] = useStoredName(qrToken);
   const entryRef = useRef<EntryModalHandle>(null);
   // The gate(s) for this access level (none -> password; teaser -> account); drives the entry modal.
   const gateSteps = gateStepsForAccess(access);
@@ -193,6 +217,44 @@ export function EventExperience({
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads && !needsName;
+
+  /* ────────────────────────────────────────────────────────────────────────
+     EVERY ADD GOES THROUGH ONE DOOR (the identity reshape, 2026-09-21).
+
+     Three affordances open the add sheet (the row, the dock, the empty album's
+     CTA) and on a NAME-ONLY event each of them may have to ask a name first, so
+     the decision lives here once rather than three times.
+
+     ★ IT ASKS AT MOST ONCE PER DEVICE PER EVENT. A device that already holds a
+     session AND a name has already answered; a CONFIRMED account never answers
+     at all (their profile name is the identity, and `create_guest` nulls a typed
+     name on a confirmed session anyway); the demo never answers, because nothing
+     it adds is real. A session with NO name is the one that still has to: that
+     is a row minted before the reshape, or by the queue's own silent join.
+
+     ★ AND THE ADD IS HELD, NOT LOST. `pendingAdd` remembers that a tap was on
+     its way to the picker, so naming yourself lands exactly where tapping Add
+     was going to land, instead of closing onto an album and making the guest tap
+     it again.
+     ──────────────────────────────────────────────────────────────────────── */
+  const pendingAdd = useRef(false);
+  const needsNameDoor =
+    namesMode && !isDemo && !isVerified && (!sessionToken || !storedName);
+  const openAdd = useCallback(() => {
+    if (needsNameDoor) {
+      pendingAdd.current = true;
+      entryRef.current?.openToName("join");
+      return;
+    }
+    uploadRef.current?.openAdd();
+  }, [needsNameDoor]);
+
+  // The header's own name menu is a SIBLING island and cannot reach the modal's
+  // handle; `lib/guest/name-door.ts` is the one channel between them (the same
+  // module-singleton shape the stored session uses for the same reason).
+  useEffect(() => onNameDoorRequest((mode) => {
+    entryRef.current?.openToName(mode);
+  }), []);
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
@@ -411,6 +473,18 @@ export function EventExperience({
           hostAvatarUrl={hostAvatarUrl}
           hostSeed={hostSeed}
           onHoldingChange={setHoldCurtain}
+          sessionToken={sessionToken}
+          storedName={storedName}
+          onNamed={({ sessionToken: token }) => {
+            // The row carries a name now. Adopt the session this device just
+            // minted (a rename hands back the one it already had) and, if a tap
+            // on Add was what raised the door, finish that tap.
+            if (token) setSessionToken(token);
+            if (pendingAdd.current) {
+              pendingAdd.current = false;
+              uploadRef.current?.openAdd();
+            }
+          }}
         />
       </Suspense>
       {/* THE WORDS. One box, on the left line, holding everything above the
@@ -597,7 +671,7 @@ export function EventExperience({
                   type="button"
                   size="lg"
                   className="w-full"
-                  onClick={() => uploadRef.current?.openAdd()}
+                  onClick={openAdd}
                 >
                   <ImageUp /> Add photos
                 </Button>
@@ -668,6 +742,16 @@ export function EventExperience({
                       onUploaded={handleUploaded}
                       onQueueChange={setQueue}
                       isDemo={isDemo}
+                      isVerified={isVerified}
+                      host={hostCard}
+                      // The host flipped Require verified emails ON mid-visit.
+                      // The queue has already dropped the spent session and
+                      // failed what was still waiting with the server's own
+                      // sentence (the failure sheet says it once, for all of
+                      // them); the refresh re-resolves access, so the NEXT Add
+                      // meets the account gate rather than a door that cannot
+                      // work.
+                      onVerificationRequired={() => router.refresh()}
                     />
                   )}
                 </div>
@@ -721,9 +805,7 @@ export function EventExperience({
                 onOpenGate={() => entryRef.current?.openToGate()}
                 onCountChange={setMediaCount}
                 pendingUploads={inFlightUploads}
-                onAddFirst={
-                  canUpload ? () => uploadRef.current?.openAdd() : undefined
-                }
+                onAddFirst={canUpload ? openAdd : undefined}
                 joinUrl={joinUrl}
                 canDeleteIds={canDeleteIds}
                 isAuthed={isAuthed}
@@ -747,11 +829,7 @@ export function EventExperience({
           <GuestActionDock
             hidden={headerActionsInView}
             uploadingCount={uploadingCount}
-            onAdd={
-              canUpload && !galleryEmpty
-                ? () => uploadRef.current?.openAdd()
-                : undefined
-            }
+            onAdd={canUpload && !galleryEmpty ? openAdd : undefined}
             invite={
               <GuestShare
                 joinUrl={shareUrl}

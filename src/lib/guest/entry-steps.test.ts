@@ -8,6 +8,20 @@ describe("gateStepsForAccess", () => {
     expect(gateStepsForAccess("teaser")).toEqual(["account"]);
     expect(gateStepsForAccess("full")).toEqual([]);
   });
+
+  /**
+   * ★ THE HOST'S FLAG REACHES THIS MACHINE ONLY THROUGH `teaser` (the identity
+   * reshape, 2026-09-21). Require verified emails ON puts an unconfirmed viewer
+   * at `teaser`, which is the ONE access level that produces the account gate;
+   * OFF resolves every viewer to `full`, so there is no gate at all and the door
+   * a guest meets is the imperative NAME step instead. If a future change ever
+   * makes a names-mode event produce an `account` step, this fails.
+   */
+  it("a names-mode event (full for everyone) produces NO gate, so the name step is the only door", () => {
+    expect(gateStepsForAccess("full")).toEqual([]);
+    expect(gateStepsForAccess("teaser")).toEqual(["account"]);
+    expect(gateStepsForAccess("full")).not.toContain("account");
+  });
 });
 
 describe("computeEntry", () => {

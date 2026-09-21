@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { GuestAccountMenu } from "@/components/guest/guest-account-menu";
+import { GuestNameMenu } from "@/components/guest/guest-name-menu";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { useStoredName } from "@/lib/guest/use-stored-name";
 import { setStoredSession } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -62,6 +64,12 @@ export function GuestHeader({
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
   const router = useRouter();
+  // ★ THE THIRD STATE (the identity reshape, 2026-09-21): a name-only guest.
+  // Read through the store's own hook rather than a prop, because the NAME is
+  // written by the entry modal inside the SIBLING island next door and this one
+  // has to notice (the same module-singleton subscription the guest session uses
+  // for the same reason). Empty on `/u/[slug]`, which has no event to be named at.
+  const [guestName] = useStoredName(qrToken ?? "");
 
   useEffect(() => {
     let active = true;
@@ -173,6 +181,12 @@ export function GuestHeader({
             eventId={eventId ?? ""}
             onSignOut={handleSignOut}
           />
+        ) : qrToken && guestName ? (
+          // Somebody, but not an account: the name they typed, marked, with the
+          // three moves it opens. An ACCOUNT always wins this slot above,
+          // because a signed-in visitor's menu is the truer answer to "who am
+          // I here" and their credit is not marked at all.
+          <GuestNameMenu name={guestName} onRenamed={() => router.refresh()} />
         ) : (
           <Button asChild variant="ghost" size="sm">
             <Link href="/">Start for free</Link>
