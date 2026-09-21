@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 883 contracts on 123 components · 22 standing boards.**
+**22 laws · 18 policies · 890 contracts on 124 components · 21 standing boards.**
 
 ## What binds you
 
@@ -367,6 +367,7 @@ Contracted but outside the library's directories:
 - `src/components/app/share/event-share-sheet.tsx` (12 guards)
 - `src/components/app/share/event-sheets.tsx` (12 guards)
 - `src/components/app/share/use-copy-link.ts` (12 guards)
+- `src/components/app/welcome-flow.tsx` (7 guards)
 - `src/components/auth/account-door.tsx` (16 guards)
 - `src/components/guest/claim-handle-prompt.tsx` (4 guards)
 - `src/components/guest/entry-shell.tsx` (4 guards)
@@ -453,7 +454,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
-| `app-door` | host | Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all |
 | `pricing-page` | marketing | Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed |
 | `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |
 | `demo-event` | marketing | One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440. |

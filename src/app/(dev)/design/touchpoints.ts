@@ -124,7 +124,6 @@ export type SandboxId =
   | "host-curation"
   | "guest-upload"
   | "first-event"
-  | "app-door"
   | "pricing-page"
   | "app-pricing"
   | "press-page"
@@ -1097,19 +1096,19 @@ export const RULINGS: Ruling[] = [
     title: "The door into the host app",
     surface: "host",
     ruled:
-      'round one ruled whole (Will, 2026-09-20, the sixth batch): six of its seven asks wired at `f7075a73` (`door-wiring`): lead=code, surfaces=one, page=beside, existing=tell, failure=paths; return=tap flagged ("a press that signs anyone in without a credential is never acceptable") and shipped as back, passkeys dark behind a flag. Round two is open on welcome alone, his ask by name: "this welcome tour could use a huge redesign to feel more alive"',
-    shipped: null,
-    why: "Round two asks what the tour itself should be, four whole shapes drawn on the real /welcome from the shipped cards to no tour at all; the wiring lane follows its ruling.",
+      "2026-09-20 (both rounds; round two answered `tour=film`, and round one's other six stand from `door-wiring`, f7075a73: lead=code, surfaces=one, page=beside, existing=tell, failure=paths, return=tap flagged and shipped as back)",
+    shipped:
+      "One AccountDoor worn four ways (the /login page, the guest gate, Save, a like), leading with a single email field and its code, Google beside it, a password on a quiet link; an existing account named only after a verified code; failures as one table of six kinds behind real buttons; /login beside a wall of marketing frames; passkeys wired dark behind a flag. The welcome tour is five screens: the required name untouched, three of the marketing site's own bespoke how-it-works pictures (StepPicture, quoted rather than redrawn) breathing under a copy plate that overlaps each one, a closing beat on ReelPicture into the same primary-and-skippable pair as always",
+    why: "One account object rather than four login pages (round one); the tour wears the site's own pictures under a slow drift, not a fourth invented register (round two).",
     lives: [
+      "src/components/auth/account-door.tsx",
       "src/app/(app)/welcome/page.tsx",
       "src/components/app/welcome-flow.tsx",
+      "src/components/app/welcome-flow.css",
       "src/lib/constants/how-it-works.ts",
+      "docs/systems/auth-accounts.md",
       "docs/systems/host-app.md",
     ],
-    board: {
-      note: "Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all",
-      variants: ["The tour"],
-    },
   },
   {
     id: "pricing-page",
@@ -1607,7 +1606,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
   "seed-avatar",
-  "app-door",
   "demo-event",
   "pricing-page",
   "app-pricing",

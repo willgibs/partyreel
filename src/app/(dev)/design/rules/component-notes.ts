@@ -25,6 +25,12 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE WELCOME TOUR AS A FILM (lp/welcome-film-wiring, 2026-09-20), at the
+  // head for the same reason as the block below it: several lanes add `for`
+  // lines this round, and prepending keeps each lane's on its own hunk.
+  "src/components/app/welcome-flow.tsx": {
+    for: "the required name step then the four-screen tour between a new account and the app (`app-door` r2, `tour=film`): three of the marketing site's own bespoke how-it-works pictures breathing under an overlapping copy plate, then a closing beat into the same primary-and-skippable pair as always",
+  },
   // THE APP'S ONE VIEW MENU (lp/controls-home-wiring, 2026-09-20), at the head
   // like the block below it, so several lanes adding `for` lines in one round
   // land on distinct hunks instead of on each other.

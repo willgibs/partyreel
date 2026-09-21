@@ -1,0 +1,42 @@
+/* THE TOUR'S AMBIENT LIFE (app-door round two, `tour=film`, Will 2026-09-20:
+   "Five screens: the name, three bespoke pictures in motion with copy
+   overlapping each, then a fourth closing it. The pictures exist; only the
+   motion is new."). A component-local sheet imported by the component that
+   needs it, the shipped pattern (share/share.css, shared/river/river.css,
+   shared/trail/trail.css): plain (unlayered) rules on purpose, so this wins
+   over a shipped picture's own class without a specificity war.
+
+   ★ LINEAR, THE HOUSE'S OWN RULE FOR AMBIENT DRIFT, NOT THE LAB'S "ease-in-
+   out" (the board drew the SCREENS, not this keyword). marketing.css's own
+   photograph drifts (`mkt-kenburns`, `mkt-wall-drift`) are already this exact
+   shape - a slow alternating scale/position loop on a picture nobody
+   touches - and its comment says why: "ambient, linear on purpose (constant
+   motion, the conveyor rule)". Bible 12 reserves custom eased curves for what
+   a person TOUCHES; a passive breath behind a copy plate is scenery, not a
+   control, so the constant-velocity drift that reads as film rather than UI
+   is the house's answer, not a plain default that slipped past the rule.
+
+   ★ THE RARE, SLOW EXCEPTION BIBLE 12 NAMES BY HAND: "high-frequency instant,
+   occasional standard and under 300ms, rare delightful." Sixteen seconds is
+   the rare case, an ambient breath rather than a control's feedback, so the
+   300ms ceiling for what a person touches does not bind it.
+
+   ★ GATED ON ITS OWN (bible 14: every animation lives inside the preference
+   block). Reduced motion drops the class's only declaration and the picture
+   is simply still, never `none`d over the top of it. Small and slow on
+   purpose (16s, 4.5 percent): a scale a host can feel and never quite catch
+   moving. */
+@media (prefers-reduced-motion: no-preference) {
+  .welcome-film-live {
+    animation: welcome-film-drift 16s linear infinite alternate;
+  }
+}
+
+@keyframes welcome-film-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.045);
+  }
+}

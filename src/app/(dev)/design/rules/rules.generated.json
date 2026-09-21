@@ -2383,6 +2383,73 @@
       ]
     },
     {
+      "id": "welcome-flow",
+      "file": "src/components/app/welcome-flow.tsx",
+      "names": [
+        "WelcomeFlow"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "shows the required, untouched name step first when the account has none",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 56
+        },
+        {
+          "title": "walks the three live beats in the how-it-works order, then the close",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "back returns to the previous beat and never navigates",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 90
+        },
+        {
+          "title": "has no back door on the first beat or the closing screen",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 100
+        },
+        {
+          "title": "marks welcomed before navigating to /dashboard on skip",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 110
+        },
+        {
+          "title": "marks welcomed before navigating to the wizard on the primary close door",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 117
+        },
+        {
+          "title": "marks welcomed before navigating to /dashboard on the skippable close door",
+          "suite": [
+            "WelcomeFlow"
+          ],
+          "file": "src/components/app/welcome-flow.test.tsx",
+          "line": 129
+        }
+      ]
+    },
+    {
       "id": "account-door",
       "file": "src/components/auth/account-door.tsx",
       "names": [
