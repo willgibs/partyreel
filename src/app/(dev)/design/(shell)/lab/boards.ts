@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
@@ -9,7 +10,6 @@ import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
-
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
@@ -35,6 +35,8 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "guest-capture": { Component: GuestCaptureBoard },
+
   "site-chrome": { Component: SiteChromeBoard },
   "profile-page": { Component: ProfilePageBoard },
   "export-flow": { Component: ExportFlowBoard },
@@ -44,7 +46,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "reel-studio": { Component: ReelStudioBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },
-
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
