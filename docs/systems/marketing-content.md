@@ -198,21 +198,36 @@ for a picture to land".
   with a real code encoding `/demo` rather than a reel; one folded close. The pair is named apart: the
   spine's foot and the mega panel's Resources card link the article as "Read the full how-to", the help
   hub links this page as "See the loop, start to finish".
-- **`/pricing`** — THE MONEY PAGE, and the one (cinema) page with NO dark hero (`pricing-wiring`,
-  2026-09-20, wiring six of `pricing-page` r1's eight answers). Chapters: ONE paper chapter (the
-  words at the chapter step, the Free/Pro pair, the Event Pass beneath), then one unbroken dark room
-  (the four unlock tiles as its opener, the album-fill calculator, the comparison matrix, the folded
-  FAQ, the band). ★ It stays in **(cinema)** although it opens on paper, because bible 16's "a page
-  cannot flip its header from inside" cuts both ways and globals.css refuses `.dark` inside
-  `.surface-paper`: the paper group would buy a white bar and cost every dark chapter below it. The
-  reader therefore meets the cinema bar over a paper chapter. Pro's size is a **slider whose stops are
-  `plansForTier("pro")`** (never a typed range), with the cadence toggle above it; the Pass is a wide
-  **ticket**: one photograph down its left edge, the pair's own `StatRow` (imported from
-  `plan-cards.tsx`, never a second copy) and a dashed stub rule with a punched notch at each end. The
-  FAQ is **six** questions in
+- **`/pricing`** — THE MONEY PAGE, and the one (cinema) page with NO dark hero (`pricing-wiring` then
+  `pricing-split-wiring`, 2026-09-20, wiring all eight of `pricing-page`'s answers across its two
+  rounds). Chapters: ONE paper chapter (the words at the chapter step, the Free/Pro pair, the Event
+  Pass beneath, **the configurator closing it**), then one unbroken dark room (the four unlock tiles as
+  its opener, the comparison matrix, the folded FAQ, the band). ★ THE ORDER IS HIS, AND IT SUPERSEDES
+  ROUND ONE'S ("the configurator section directly beneath the plan cards feels much better... The
+  upgrade section can start the next chapter as an overview, then table next, then FAQ"): a reader
+  sizes their event while the pair is still in their eye, and "Where Free ends and paid begins."
+  introduces the room that proves it. Both halves are pinned in `pricing-page.test.ts`. ★ It stays in
+  **(cinema)** although it opens on paper, because bible 16's "a page cannot flip its header from
+  inside" cuts both ways and globals.css refuses `.dark` inside `.surface-paper`: the paper group would
+  buy a white bar and cost every dark chapter below it. The reader therefore meets the cinema bar over
+  a paper chapter. Pro's size is a **slider whose stops are `plansForTier("pro")`** (never a typed
+  range), with the cadence toggle above it; the Pass is a wide **ticket**: one photograph down its left
+  edge, the pair's own `StatRow` (imported from `plan-cards.tsx`, never a second copy) and a dashed
+  stub rule with a punched notch at each end. **The configurator**
+  ([`configurator.tsx`](../../src/components/marketing/sections/pricing/configurator.tsx), the file the
+  album-fill calculator became) is two planes in one bordered panel: the controls recessed on
+  `bg-muted`, each of them on the page's own white, and the elevated half the frame around one
+  photographed plan card. Recessed and elevated CANNOT be two card fills here, because on Pearl
+  `--card` and `--background` are the same white and `bg-muted` is the only real step.
+  [`recommend.ts`](../../src/components/marketing/sections/pricing/recommend.ts) (pure, unit-tested) is
+  the only thing that picks a plan; the card wears the pair's own `PhotoStack` and its deck fans one
+  print at a time as the slider climbs, which is the album wall's delight kept after the wall itself
+  went. The FAQ is **six** questions in
   [`pricing-faq-data.ts`](../../src/components/marketing/sections/pricing/pricing-faq-data.ts), the one
   list the accordion AND the `FAQPage` JSON-LD read; the guest-pays and upload-size questions moved to
-  Help. `shared-band.tsx` is retired on disk (the lab's `pricing-page` board still draws it).
+  Help. At 375 the plans stay the stack production already shipped (`phone=stack`: "Scrolling is a much
+  more common action than swiping, and the swipe cards may be missed"). `shared-band.tsx` stays on disk,
+  unimported, the one retired file of this page.
 - **`/privacy` + `/terms`** — THE LEGAL DOCUMENTS (v1.0; formal but readable, on a two-register
   contract: every section carries an "In
   short" line beside the formal text). Single-sources: [`legal.ts`](../../src/lib/constants/legal.ts)

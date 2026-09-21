@@ -5773,9 +5773,62 @@
       ]
     },
     {
+      "id": "configurator",
+      "file": "src/components/marketing/sections/pricing/configurator.tsx",
+      "names": [
+        "Configurator",
+        "STOP_GB"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "rises, and stops exactly on the Free cap and a single pass's room",
+          "suite": [
+            "the storage ladder"
+          ],
+          "file": "src/components/marketing/sections/pricing/configurator-contract.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "wires the control to the ladder and announces the room, not the index",
+          "suite": [
+            "the storage ladder"
+          ],
+          "file": "src/components/marketing/sections/pricing/configurator-contract.test.tsx",
+          "line": 86
+        },
+        {
+          "title": "names the plan recommendPlan names, on both sides of the hosting fork",
+          "suite": [
+            "the result card"
+          ],
+          "file": "src/components/marketing/sections/pricing/configurator-contract.test.tsx",
+          "line": 102
+        },
+        {
+          "title": "opens /login for Free and Checkout for anything paid",
+          "suite": [
+            "the result card"
+          ],
+          "file": "src/components/marketing/sections/pricing/configurator-contract.test.tsx",
+          "line": 127
+        },
+        {
+          "title": "lays at least one print and never more than the deck holds",
+          "suite": [
+            "the fanned deck"
+          ],
+          "file": "src/components/marketing/sections/pricing/configurator-contract.test.tsx",
+          "line": 152
+        }
+      ]
+    },
+    {
       "id": "plan-cards",
       "file": "src/components/marketing/sections/pricing/plan-cards.tsx",
       "names": [
+        "PhotoStack",
         "PlanPair",
         "StatRow"
       ],

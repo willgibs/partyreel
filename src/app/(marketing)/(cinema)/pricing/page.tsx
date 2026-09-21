@@ -3,8 +3,8 @@ import type { CSSProperties } from "react";
 
 import { FaqPageJsonLd, PricingJsonLd } from "@/components/marketing/jsonld";
 import { HomeFaqAccordion } from "@/components/marketing/sections/home/faq-accordion";
-import { Calculator } from "@/components/marketing/sections/pricing/calculator";
 import { ComparisonTable } from "@/components/marketing/sections/pricing/comparison-table";
+import { Configurator } from "@/components/marketing/sections/pricing/configurator";
 import { PassCard } from "@/components/marketing/sections/pricing/pass-card";
 import { PlanPair } from "@/components/marketing/sections/pricing/plan-cards";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
@@ -23,11 +23,22 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE PRICING PAGE (the money page, re-cut from `pricing-page` r1's six
- * answers, 2026-09-20):
+ * THE PRICING PAGE (the money page: `pricing-page` r1's six answers re-cut by
+ * r2's `fit=split`, Will 2026-09-20):
  *
- *   PAPER (the words, the pair, the pass) -> dark unlock tiles -> dark
- *   calculator -> dark matrix -> dark FAQ -> CtaBand.
+ *   PAPER (the words, the pair, the pass, the configurator) -> dark unlock
+ *   tiles -> dark matrix -> dark FAQ -> CtaBand.
+ *
+ * ★ THE CONFIGURATOR CLOSES THE PAPER CHAPTER AND THE TILES OPEN THE DARK ONE
+ * (r2, his note verbatim): "This will override a previous note, but the
+ * configurator section directly beneath the plan cards feels much better. We
+ * should swap the configurator section and the 'Where Free ends and paid
+ * begins.' upgrade section above. The upgrade section can start the next
+ * chapter as an overview, then table next, then FAQ." So the reading is: pick
+ * a plan, size it while the pair is still in your eye, and THEN be shown what
+ * paid unlocks as the overview of the room that proves it. His round-one line
+ * ("Tiles stay above Find your plan size") is superseded by this one, which he
+ * said it would be; the chapter order is pinned in `pricing-page.test.ts`.
  *
  * ★ THE PLANS ARE THE OPENING (`opening=plans`, Will overruling `fork`): the
  * dark hero above the cards is gone and the page opens ON paper, the same
@@ -49,10 +60,11 @@ export const metadata: Metadata = {
  *
  * ★ THE BAND IS DEAD AND THE TABLE IS DARK (`sheet`, his own answer, verbatim:
  * "keep the tiles and the table, kill the band... Let's make the table dark so
- * there's not a harsh back-to-back chapter transition"). The tiles now open the
- * dark chapter that Find your size sits inside, and the matrix lost its
- * PaperChapter so the run from the tiles to the band is one unbroken room.
- * SharedBand stays on disk for the board that still draws it.
+ * there's not a harsh back-to-back chapter transition"). The dark room is now
+ * the tiles, the matrix and the questions with nothing between them turning
+ * the page back to paper, and it is one section shorter than it was because
+ * Find your size moved up into the paper. `shared-band.tsx` stays on disk,
+ * unimported, as the retired file the r1 board used to draw.
  *
  * Every number on this page renders from tiers.ts / limits.ts (the DRY single
  * sources that server-side enforcement also reads). Copy rules: no em-dashes,
@@ -84,14 +96,16 @@ export default function PricingPage() {
             <PassCard />
           </div>
         </SectionShell>
+
+        {/* Directly beneath the plans, and still on paper: the size question
+            belongs beside the cards it answers, not a chapter away. */}
+        <Configurator />
       </PaperChapter>
 
-      {/* The dark chapter, opened by the tiles (his ruling: the tiles are the
-          "dark chapter intro section" above Find your size) and closed by the
-          band. Nothing between them turns the page back to paper. */}
+      {/* The dark chapter, opened by the tiles as its overview (r2: "The
+          upgrade section can start the next chapter as an overview, then table
+          next, then FAQ"). Nothing in it turns the page back to paper. */}
       <UnlockGrid />
-
-      <Calculator />
 
       <ComparisonTable />
 

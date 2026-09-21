@@ -125,7 +125,6 @@ export type SandboxId =
   | "guest-upload"
   | "first-event"
   | "app-door"
-  | "pricing-page"
   | "app-pricing"
   | "press-page"
   | "contact-page"
@@ -383,9 +382,9 @@ export const RULINGS: Ruling[] = [
     id: "pricing-calculator",
     title: "Pricing calculator",
     surface: "marketing",
-    ruled: "2026-08-27",
-    shipped: "V1 Album fill",
-    why: "Album fill: the wall fills as you slide, on the real gallery grammar; the receipt line stays the accessible summary.",
+    ruled: "2026-08-27, superseded 2026-09-20 by pricing-page r2 (fit=split)",
+    shipped: "V2 The split configurator (V1 Album fill retired)",
+    why: "The controls recessed beside one photographed plan card; its deck fans as the slider climbs, which is the album-fill delight the wall was ruled for, kept.",
     lives: [
       "src/app/(marketing)/(cinema)/pricing/",
       "docs/systems/marketing-content.md",
@@ -1116,18 +1115,15 @@ export const RULINGS: Ruling[] = [
     title: "The pricing page",
     surface: "marketing",
     ruled:
-      "2026-09-20: six of eight decisions ruled and landed on the real page by pricing-wiring (the paper opening, Free and Pro side by side with Pro's own slider, the Event Pass a wide ticket, one dark room from the tiles to the table, six FAQ items). Two stay open for round two, his ask by name: Find your size (a couple more explorations, naming Higgsfield's configurator-and-result shape) and the phone row (its demo repaired first, proven with lab:demo)",
-    shipped: null,
-    why: "Round two re-asks Find your size and the phone row on the real shipped pair and ticket; the other six are ruled and shipped by pricing-wiring.",
+      'ruled whole over two rounds (Will, 2026-09-20). r1\'s six: the paper opening, Free and Pro side by side with Pro\'s own slider, the Event Pass a wide ticket, one dark room from the tiles to the table, six FAQ items. r2\'s two: fit=split ("the configurator section directly beneath the plan cards feels much better... The upgrade section can start the next chapter as an overview, then table next, then FAQ", which he said himself overrides his r1 note) and phone=stack ("Scrolling is a much more common action than swiping, and the swipe cards may be missed")',
+    shipped:
+      "The album wall replaced by the split configurator: the slider, the video switch and the once-or-again fork recessed on bg-muted, one photographed plan card elevated on the page's own white beside them, its deck of prints fanning out as the slider climbs. It closes the PAPER chapter directly under the pair and the ticket, and the unlock tiles open the dark one as its overview, then the matrix, then the questions. 375 is the stack production already shipped; the swipe row is banked for future gallery-type sections",
+    why: "Round two re-asked Find your size and the phone row on the real shipped pair and ticket; the other six were ruled and shipped by pricing-wiring.",
     lives: [
       "src/app/(marketing)/(cinema)/pricing/page.tsx",
       "src/components/marketing/sections/pricing/",
       "docs/systems/marketing-content.md",
     ],
-    board: {
-      note: "Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed",
-      variants: ["Find your size", "The page in a hand"],
-    },
   },
   {
     id: "app-pricing",
@@ -1295,7 +1291,7 @@ export const RULINGS: Ruling[] = [
     title: "Verify, or badge",
     surface: "guest",
     ruled:
-      "round one ruled in part (Will, 2026-09-20, the closing sitting's first batch) and all four are HELD, not wired, on his own \"May have to relitigate\": gate=after (the photo goes live wearing a mark), badge=mark (subtler than a warning icon, with a tooltip, and on the pop-up and the profile too), host-lens=badge (one queue, every card saying who), expiry=host (nothing removed on a deadline). collision and outage came back `?` with his three cases and a summing-up that re-opened everything: \"Consider all of our ideas and systems up until now unprotected and open to relitigation for best overall idea to streamline account identity.\" Both are re-asked inside round two, collision as its own decision and outage inside what a guest sees; the ruled gate SENTENCE is wired and untouched",
+      'round one ruled in part (Will, 2026-09-20, the closing sitting\'s first batch) and all four are HELD, not wired, on his own "May have to relitigate": gate=after (the photo goes live wearing a mark), badge=mark (subtler than a warning icon, with a tooltip, and on the pop-up and the profile too), host-lens=badge (one queue, every card saying who), expiry=host (nothing removed on a deadline). collision and outage came back `?` with his three cases and a summing-up that re-opened everything: "Consider all of our ideas and systems up until now unprotected and open to relitigation for best overall idea to streamline account identity." Both are re-asked inside round two, collision as its own decision and outage inside what a guest sees; the ruled gate SENTENCE is wired and untouched',
     shipped: null,
     why: "Round two, on top of the four held rulings: what a typed address does, who pays once the gate is gone, what a guest sees, and what the host's switch becomes.",
     lives: [
@@ -1609,7 +1605,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "seed-avatar",
   "app-door",
   "demo-event",
-  "pricing-page",
   "app-pricing",
   "first-event",
   "guest-upload",
