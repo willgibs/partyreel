@@ -32,7 +32,10 @@ import type { CSSProperties, Ref } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
-import { removeMyUploadGuestAction } from "@/app/(guest)/e/[token]/actions";
+import {
+  removeMyUploadGuestAction,
+  setTileSizeAction,
+} from "@/app/(guest)/e/[token]/actions";
 import { ExportDialog } from "@/components/app/export/export-dialog";
 import type { GridMedia } from "@/components/app/media-grid";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
@@ -42,6 +45,7 @@ import {
 } from "@/components/guest/guest-masonry";
 import type { UploadedItem } from "@/components/guest/guest-upload";
 import { yoursView } from "@/components/guest/yours-filter";
+import { ViewMenu, type ViewMenuGroup } from "@/components/shared/view-menu";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
@@ -53,6 +57,14 @@ import {
   reconcileGalleryItems,
 } from "@/lib/guest/reconcile-gallery-items";
 import { useGalleryDoorbell } from "@/lib/guest/use-gallery-doorbell";
+import {
+  DEFAULT_TILE_SIZE,
+  TILE_SIZE_LABEL,
+  TILE_SIZES,
+  type TileSize,
+} from "@/lib/shared/tile-size-cookie";
+import { useTileSize } from "@/lib/shared/use-tile-size";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 // The hybrid doorbell cadence (Phase 3): while the Realtime channel is live,
 // pings drive refreshes and the poll is just a 60s safety net; if the socket
@@ -65,6 +77,77 @@ export type GalleryPayload = {
   teaserTotal: number | null;
   etag: string;
 };
+
+/**
+ * THE GUEST ALBUM'S VIEW MENU (`controls-home=view-menu`; `theirs=mark`'s own
+ * note, Will 2026-09-20: "We could likely combine this new filter with the
+ * tile size filter to create a new parent dropdown, rather than just adding
+ * more and more configs here"). The host gallery passes tile size, sort and
+ * filter (`event-gallery.tsx`); the guest album passes tile size and Yours —
+ * `ViewMenu` itself already anticipated the shape (its own head comment).
+ *
+ * Pure, and exported, so the two gates (disabled below 640, present only with
+ * something of the guest's own on the album) are unit-testable without
+ * standing up the whole live gallery — its fetches, its doorbell, its poll.
+ *
+ *   1. TILE SIZE IS RESERVED, NOT REMOVED, BELOW 640. `masonry.tsx`'s
+ *      `PHONE_MAX` forces two columns under that width regardless of
+ *      `--album-column`, so a live control there would silently do nothing —
+ *      the group still renders (an honest vocabulary, `event-gallery.tsx`'s
+ *      own Sort precedent) with every option disabled and the hint saying why.
+ *   2. SHOWING JOINS ONLY WHEN THERE IS SOMETHING TO SHOW. An album the guest
+ *      has added nothing to gets no second group at all — the same rule
+ *      `yoursView` already enforces for the filter itself, read here off the
+ *      same count so the two can never disagree.
+ */
+export function buildGuestViewGroups({
+  tileSize,
+  setTileSize,
+  wideEnough,
+  showingMine,
+  setShowingMine,
+  ownedCount,
+}: {
+  tileSize: TileSize;
+  setTileSize: (size: TileSize) => void;
+  /** `useMediaQuery("(min-width: 640px)")` — false on the server and until
+   *  hydration measures the real viewport (the house hydration-safe default). */
+  wideEnough: boolean;
+  showingMine: boolean;
+  setShowingMine: (mine: boolean) => void;
+  /** How many of the WHOLE album are the guest's own (`yoursView`'s own
+   *  count) — zero omits the group entirely rather than offering a filter
+   *  with nothing behind it. */
+  ownedCount: number;
+}): ViewMenuGroup[] {
+  const groups: ViewMenuGroup[] = [
+    {
+      id: "tile-size",
+      label: "Tile size",
+      value: String(tileSize),
+      onChange: (v) => setTileSize(Number(v) as TileSize),
+      options: TILE_SIZES.map((size) => ({
+        value: String(size),
+        label: TILE_SIZE_LABEL[size],
+      })),
+      disabled: !wideEnough,
+      hint: wideEnough ? undefined : "Wider screens",
+    },
+  ];
+  if (ownedCount > 0) {
+    groups.push({
+      id: "showing",
+      label: "Showing",
+      value: showingMine ? "mine" : "all",
+      onChange: (v) => setShowingMine(v === "mine"),
+      options: [
+        { value: "all", label: "Everyone's" },
+        { value: "mine", label: `Yours (${ownedCount})` },
+      ],
+    });
+  }
+  return groups;
+}
 
 export type LiveGalleryHandle = {
   /** An upload finished: optimistic tile (approved only) + a refresh. */
@@ -86,6 +169,7 @@ export function LiveGallery({
   canDeleteIds = [],
   isAuthed = false,
   sessionToken = null,
+  initialTileSize,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -116,6 +200,10 @@ export function LiveGallery({
   /** The anonymous guest's device-bound capability, from the browser's storage.
    *  Null before a join (nothing uploaded yet -> nothing of theirs to remove). */
   sessionToken?: string | null;
+  /** Server-resolved from the `pr_tile_size` cookie (page.tsx, the host page's
+   *  precedent) — never a client-only read, so the first paint is already the
+   *  size a returning guest picked instead of a resize after hydration. */
+  initialTileSize?: TileSize;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -528,6 +616,32 @@ export function LiveGallery({
   const [showMine, setShowMine] = useState(false);
   const yours = yoursView(items, ownIds, showMine);
 
+  // THE VIEW MENU (`controls-home=view-menu`). Server-resolved so the first
+  // paint is already the size a returning guest picked (never a client-only
+  // cookie read) — the persisted write rides the guest page's own Server
+  // Action, `setTileSizeAction` (the host's `setTileSizeAction` precedent).
+  const { size: tileSize, setTileSize } = useTileSize(
+    initialTileSize ?? DEFAULT_TILE_SIZE,
+    setTileSizeAction,
+  );
+  // `masonry.tsx`'s PHONE_MAX: below 640 the grid is always two columns and
+  // --album-column has nothing to do, so the control says so rather than
+  // pretending to work.
+  const wideEnough = useMediaQuery("(min-width: 640px)");
+  // Not wrapped in useMemo: `yours` is a fresh object every render (yoursView
+  // is plain arithmetic, never memoized itself), so a manual dependency array
+  // narrowed to its two fields is exactly the shape the React Compiler cannot
+  // verify against — the array's own build is cheap enough that the compiler's
+  // own pass is left to memoize the JSX that reads it.
+  const viewGroups = buildGuestViewGroups({
+    tileSize,
+    setTileSize,
+    wideEnough,
+    showingMine: yours.on,
+    setShowingMine: setShowMine,
+    ownedCount: yours.count,
+  });
+
   return (
     <section
       className="mt-3"
@@ -540,11 +654,13 @@ export function LiveGallery({
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
-          {/* A subtle gallery-level "Download all" (the album doubles as the shareable copy). Hidden in
-              demo mode (simulated tiles aren't real downloads) + on a locked gallery. The modal's summary
-              re-derives the real downloadable set server-side (a teaser downloads exactly its visible set). */}
+          {/* A subtle gallery-level "Download all" (the album doubles as the shareable copy) beside the
+              ONE View menu (`controls-home=view-menu`; `theirs=mark`'s own note against a spread of
+              configs). Both hidden in demo mode (simulated tiles aren't real downloads; there is no
+              cookie to persist) + on a locked gallery. The download modal's summary re-derives the real
+              downloadable set server-side (a teaser downloads exactly its visible set). */}
           {!isDemo && access !== "none" && items.length > 0 && (
-            <div className="mb-3 flex justify-end">
+            <div className="mb-3 flex flex-wrap items-center justify-end gap-1.5">
               <ExportDialog scope="guest" albumKey={qrToken}>
                 <button
                   type="button"
@@ -553,6 +669,7 @@ export function LiveGallery({
                   <Download className="size-4" /> Download all
                 </button>
               </ExportDialog>
+              <ViewMenu groups={viewGroups} />
             </div>
           )}
           {/* THE YOURS LINE (`theirs=mark`, Will 2026-09-20). A LINE and not a
@@ -560,9 +677,9 @@ export function LiveGallery({
               than just adding more and more configs here". It appears only
               while the filter is live, so an album a guest has added nothing to
               carries no extra chrome at all, and it is the filter's only exit
-              besides tapping a mark again. When the View menu lands
-              (`controls-home=view-menu`, its own lane this round), Yours joins
-              tile size inside it and this line stays as the state's receipt. */}
+              besides tapping a mark again. Yours also joins tile size inside
+              the View menu above (`controls-home=view-menu`), and this line
+              stays as the state's own receipt. */}
           {yours.on && (
             <div className="mb-3 flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">
@@ -583,29 +700,39 @@ export function LiveGallery({
               </button>
             </div>
           )}
-          <GuestMasonry
-            items={yours.items}
-            pending={pendingTiles}
-            justLandedIds={justLandedIds}
-            onRetryPending={onRetryUpload}
-            shareUrl={joinUrl}
-            // The arrival's mark (`data-arrived` on the tile box) — the glow is
-            // live-gallery.css, the growth the tile's own mount entrance.
-            arrivedIds={arrivedIds}
-            // A guest removes THEIR OWN photograph and no other: `canDelete`
-            // gates the lightbox's Trash per item, so a tile that is not theirs
-            // never shows the control. Both are omitted where the feature does
-            // not apply (the demo, a locked gallery) rather than being passed
-            // with an empty set, so nothing downstream has to know about it.
-            canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
-            onDeleteItem={canRemove ? (id) => void handleDelete(id) : undefined}
-            // THE FOURTH MARK, and what its tap does. Same gate as Remove: the
-            // set is the server's answer about this viewer's own uploads, on
-            // either identity, so a surface with no removal has no marks either.
-            mineIds={canRemove && ownIds.size > 0 ? ownIds : undefined}
-            onSelectMine={() => setShowMine((on) => !on)}
-            mineSelected={yours.on}
-          />
+          {/* --album-column is the knob masonry.tsx's grid reads (the seam its own
+              comment describes); the View menu's Tile size group sets it here, on
+              the ancestor wrapping the grid, never on the grid component itself —
+              exactly as event-gallery.tsx does for the host. */}
+          <div
+            style={{ "--album-column": `${tileSize}px` } as CSSProperties}
+          >
+            <GuestMasonry
+              items={yours.items}
+              pending={pendingTiles}
+              justLandedIds={justLandedIds}
+              onRetryPending={onRetryUpload}
+              shareUrl={joinUrl}
+              // The arrival's mark (`data-arrived` on the tile box) — the glow is
+              // live-gallery.css, the growth the tile's own mount entrance.
+              arrivedIds={arrivedIds}
+              // A guest removes THEIR OWN photograph and no other: `canDelete`
+              // gates the lightbox's Trash per item, so a tile that is not theirs
+              // never shows the control. Both are omitted where the feature does
+              // not apply (the demo, a locked gallery) rather than being passed
+              // with an empty set, so nothing downstream has to know about it.
+              canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
+              onDeleteItem={
+                canRemove ? (id) => void handleDelete(id) : undefined
+              }
+              // THE FOURTH MARK, and what its tap does. Same gate as Remove: the
+              // set is the server's answer about this viewer's own uploads, on
+              // either identity, so a surface with no removal has no marks either.
+              mineIds={canRemove && ownIds.size > 0 ? ownIds : undefined}
+              onSelectMine={() => setShowMine((on) => !on)}
+              mineSelected={yours.on}
+            />
+          </div>
         </LikesProvider>
       ) : (
         // The photographic-promise empty state (full/teaser with nothing yet).
