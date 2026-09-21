@@ -16,15 +16,20 @@ const TARGETS = [
   { label: "admin", id: ADMIN, name: "partyreel-admin", alias: "partyreel-admin-git-launch-prep-partyreel.vercel.app" },
 ];
 const find = async (t) => ((await call("GET", `/v6/deployments?projectId=${t.id}&limit=10`)).json?.deployments || []).find((d) => (d.meta?.githubCommitSha || "").startsWith(SHORT) && d.meta?.githubCommitRef === "launch-prep");
+// DRY=1: report what exists for the sha and where each alias points, create nothing, exit 0 (2026-09-21: the window
+// after a cap is checked without spending a creation on the check itself).
+const DRY = Boolean(process.env.DRY);
 // 1. Find or create, both projects (a creation is the only thing the cap counts; nothing is retried).
 for (const t of TARGETS) {
   t.dpl = await find(t);
+  if (DRY) { const rec = (await call("GET", `/v4/aliases/${t.alias}`)).json; console.log(`${t.label}: ${t.dpl ? `deployment exists ${t.dpl.uid} (${t.dpl.state})` : `no deployment for ${SHORT}; a run would create one`}; the alias record names ${rec?.deploymentId || "nothing"}${t.dpl && rec?.deploymentId === t.dpl.uid ? " (this build)" : ""}`); continue; }
   if (t.dpl) { console.log(`${t.label}: deployment exists ${t.dpl.uid} (${t.dpl.state})`); continue; }
   const proj = (await call("GET", `/v9/projects/${t.id}`)).json;
   const c = await call("POST", `/v13/deployments`, { name: t.name, project: t.id, gitSource: { type: "github", repoId: proj?.link?.repoId, ref: "launch-prep", sha: FULL } });
   console.log(`${t.label}: created by API:`, c.status, c.status < 300 ? c.json.id : err(c.json));
   if (c.status < 300) t.dpl = { uid: c.json.id, state: c.json.readyState || "QUEUED" }; else t.failed = `creation refused (${c.status} ${err(c.json)})`;
 }
+if (DRY) { console.log("dry run: nothing created, nothing aliased"); process.exit(0); }
 // 2. Wait for READY (both builds run at once; a build takes about four minutes).
 const t0 = Date.now();
 for (const t of TARGETS) {
