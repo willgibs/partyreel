@@ -1137,6 +1137,57 @@
       ]
     },
     {
+      "id": "next-step-band",
+      "file": "src/components/app/dashboard/next-step-band.tsx",
+      "names": [
+        "NextStepBand"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "reads calm rather than rendering nothing",
+          "suite": [
+            "a settled band"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 28
+        },
+        {
+          "title": "shows every step with no fold control",
+          "suite": [
+            "a band of three or fewer"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 36
+        },
+        {
+          "title": "folds to the top three by tone, behind a closed count",
+          "suite": [
+            "a busy band, past three"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 62
+        },
+        {
+          "title": "expands in place on a click, and the control reflects it",
+          "suite": [
+            "a busy band, past three"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "reverses on a second click",
+          "suite": [
+            "a busy band, past three"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 86
+        }
+      ]
+    },
+    {
       "id": "bulk-bar",
       "file": "src/components/app/event-feed/bulk-bar.tsx",
       "names": [
@@ -12677,6 +12728,7 @@
       "id": "next-step",
       "file": "src/lib/dashboard/next-step.ts",
       "names": [
+        "NEXT_STEP_BAND_LIMIT",
         "STORAGE_STEP_PCT"
       ],
       "specimens": [],
@@ -12688,7 +12740,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 42
+          "line": 44
         },
         {
           "title": "puts a waiting queue first, above every other claim on the host",
@@ -12696,7 +12748,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 46
+          "line": 48
         },
         {
           "title": "falls to paused uploads once the queue is clear",
@@ -12704,7 +12756,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 60
+          "line": 62
         },
         {
           "title": "offers the reel only for a live album that has something to cut",
@@ -12712,7 +12764,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 68
+          "line": 70
         },
         {
           "title": "offers the code the day before, and not on the day or after",
@@ -12720,7 +12772,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "crosses a year boundary without losing a day",
@@ -12728,7 +12780,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 87
+          "line": 89
         },
         {
           "title": "links the reel step at the reel, not at the event",
@@ -12736,7 +12788,7 @@
             "the next best step, per event"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 95
+          "line": 97
         },
         {
           "title": "gives each event exactly one step, in the order it was handed them",
@@ -12744,7 +12796,7 @@
             "the band as a whole"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 107
+          "line": 109
         },
         {
           "title": "adds the storage step last, and only over the threshold",
@@ -12752,7 +12804,7 @@
             "the band as a whole"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 112
+          "line": 114
         },
         {
           "title": "returns an empty band for a settled host rather than inventing work",
@@ -12760,7 +12812,47 @@
             "the band as a whole"
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
-          "line": 126
+          "line": 128
+        },
+        {
+          "title": "ranks a waiting queue over a full shelf over a quiet suggestion",
+          "suite": [
+            "the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 159
+        },
+        {
+          "title": "keeps two steps of the same tone in their own order rather than re-ranking them",
+          "suite": [
+            "the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 167
+        },
+        {
+          "title": "folds nothing when the band already fits",
+          "suite": [
+            "the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 179
+        },
+        {
+          "title": "never re-ranks a band that already fits, even out of tone order",
+          "suite": [
+            "the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 185
+        },
+        {
+          "title": "folds nothing on an empty band either",
+          "suite": [
+            "the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 199
         }
       ]
     },

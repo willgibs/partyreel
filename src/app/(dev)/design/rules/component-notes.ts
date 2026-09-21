@@ -33,6 +33,15 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a thin dropdown wrapper over caller-owned groups and handlers; event-gallery.tsx's own View button (src/components/app/event-feed, outside the library) is the real caller and the honest demo, not fixture groups invented for the Library",
   },
+  // THE HOME'S COLLAPSE (lp/home-states-wiring, 2026-09-20), at the head for
+  // the same reason as the block below it: several lanes add `for` lines this
+  // round, and prepending keeps each lane's on its own hunk.
+  "src/components/app/dashboard/next-step-band.tsx": {
+    for: "the pulse's first band: one next-best-step chip per event, and past three the top three by tone with the rest folded behind an \"N more\" chip that expands in place",
+  },
+  // THE OPERATIONS PORTAL (lp/admin-wiring, 2026-09-20), at the head like the
+  // block below it, so several lanes adding `for` lines in one round land on
+  // distinct hunks instead of on each other.
   "src/components/ui/table.tsx": {
     for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
   },

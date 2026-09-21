@@ -2,8 +2,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  foldNextSteps,
   nextStepForEvent,
   resolveNextSteps,
+  type NextStep,
   type NextStepEvent,
 } from "./next-step";
 
@@ -129,5 +131,72 @@ describe("the band as a whole", () => {
     expect(
       resolveNextSteps({ events: [base], storagePct: 3, today: TODAY }),
     ).toEqual([]);
+  });
+});
+
+describe("the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)", () => {
+  const step = (over: Partial<NextStep>): NextStep => ({
+    kind: "review",
+    eventId: null,
+    label: "step",
+    short: "step",
+    href: "/dashboard",
+    tone: "quiet",
+    ...over,
+  });
+
+  // Maya's Saturday, stress-tested: two queues waiting, a shelf at 96%, and
+  // three quiet suggestions — six steps, the whole reason the fold exists.
+  const busy: NextStep[] = [
+    step({ eventId: "wedding", label: "A", tone: "waiting" }),
+    step({ eventId: "trivia", label: "B", tone: "waiting" }),
+    step({ eventId: "rooftop", label: "C", tone: "quiet", kind: "reel" }),
+    step({ eventId: "sixtieth", label: "D", tone: "quiet", kind: "paused" }),
+    step({ eventId: "bonfire", label: "E", tone: "quiet", kind: "print" }),
+    step({ eventId: null, label: "F", tone: "warning", kind: "storage" }),
+  ];
+
+  it("ranks a waiting queue over a full shelf over a quiet suggestion", () => {
+    const { head, rest } = foldNextSteps(busy);
+    // The two waiting queues, then the storage warning: exactly Will's picture
+    // ("12 waiting…", "5 waiting…", "96% of your storage used", "+3 more").
+    expect(head.map((s) => s.label)).toEqual(["A", "B", "F"]);
+    expect(rest.map((s) => s.label)).toEqual(["C", "D", "E"]);
+  });
+
+  it("keeps two steps of the same tone in their own order rather than re-ranking them", () => {
+    const sameTone = [
+      step({ eventId: "w", label: "W", tone: "waiting" }),
+      step({ eventId: "x", label: "X", tone: "waiting" }),
+      step({ eventId: "y", label: "Y", tone: "waiting" }),
+      step({ eventId: "z", label: "Z", tone: "waiting" }),
+    ];
+    const { head, rest } = foldNextSteps(sameTone);
+    expect(head.map((s) => s.label)).toEqual(["W", "X", "Y"]);
+    expect(rest.map((s) => s.label)).toEqual(["Z"]);
+  });
+
+  it("folds nothing when the band already fits", () => {
+    const { head, rest } = foldNextSteps(busy.slice(0, 3));
+    expect(head).toHaveLength(3);
+    expect(rest).toEqual([]);
+  });
+
+  it("never re-ranks a band that already fits, even out of tone order", () => {
+    // A quiet suggestion from the newer event, then a waiting queue from an
+    // older one: today's order, untouched, because nothing here needs to
+    // fold. Tone only enters once folding is real (`empty`/`first` stay
+    // exactly as they render today, which is this case).
+    const two = [
+      step({ eventId: "new", label: "Newer", tone: "quiet" }),
+      step({ eventId: "old", label: "Older", tone: "waiting" }),
+    ];
+    const { head, rest } = foldNextSteps(two);
+    expect(head.map((s) => s.label)).toEqual(["Newer", "Older"]);
+    expect(rest).toEqual([]);
+  });
+
+  it("folds nothing on an empty band either", () => {
+    expect(foldNextSteps([])).toEqual({ head: [], rest: [] });
   });
 });

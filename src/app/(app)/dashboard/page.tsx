@@ -46,24 +46,29 @@ import { PageHeading } from "@/components/shared/page-heading";
 export const metadata: Metadata = { title: "Dashboard" };
 
 /**
- * THE HOST'S HOME, AS A PULSE (`home=pulse`, Will 2026-09-20).
+ * THE HOST'S HOME, AS A PULSE (`home=pulse`, Will 2026-09-20; the band order
+ * by `busy=collapsed`'s note, app-shape round two, 2026-09-20).
  *
- * "What needs you, then what just arrived": the steps first, then the
- * photographs of the last hour, then the storage line, then your events. The
- * five-chip inbox is gone and so are the personal feeds — your uploads, your
- * likes and the people you follow now live in the profile's owner mode, where
- * everything else about the PERSON rather than the PARTY already lives
- * (`you=?`, his own answer in the note).
+ * "What needs you, then what just arrived": the steps first, then the storage
+ * line, then your events, then what just arrived — beneath them, not above.
+ * His words ruling the order: "I like 'just arrived' underneath the events.
+ * Notices & storage are more helpful above, more global and immediately
+ * helpful." The five-chip inbox is gone and so are the personal feeds — your
+ * uploads, your likes and the people you follow now live in the profile's
+ * owner mode, where everything else about the PERSON rather than the PARTY
+ * already lives (`you=?`, his own answer in the note).
  *
- * ★ THE BAND ORDER IS ANSWERING A WORRY, NOT A TASTE. He approved this shape
+ * ★ THE BAND ORDER IS ANSWERING A WORRY, NOT A TASTE. He approved the pulse
  * while warning that the old inbox existed to stop the app feeling "limited
  * and empty... until more things start to happen (which creates a very boring
  * and bland initial host experience sometimes)". So band one is a RULE over
- * real state that always has something to say, the arrivals band WIDENS its
- * window rather than going blank, and the storage line and the create door are
- * unconditional. Nothing on this page is allowed to render as a void.
- * `home-states` (app-shape round two) draws the three host states properly and
- * inherits these rules rather than re-inventing them.
+ * real state that always has something to say (past three steps, folded
+ * behind an "N more" chip — `busy=collapsed`, `NextStepBand`'s own fold), the
+ * arrivals band WIDENS its window rather than going blank, and the storage
+ * line and the create door are unconditional. Nothing on this page is allowed
+ * to render as a void. `home-states` (app-shape round two) drew the three host
+ * states on this composition: the zero-event and one-event pages hold
+ * unchanged, and a busy host's band now actually folds.
  */
 export default async function DashboardPage({
   searchParams,
@@ -319,10 +324,7 @@ export default async function DashboardPage({
       {/* BAND 1 — what needs you. Never empty: it says so calmly instead. */}
       {used > 0 && <NextStepBand steps={steps} />}
 
-      {/* BAND 2 — what just arrived, in whichever window holds twelve. */}
-      <JustArrived tiles={pulse.arrivals} caption={pulse.caption} />
-
-      {/* BAND 3 — the storage line, always. It was gated on having an event;
+      {/* BAND 2 — the storage line, always. It was gated on having an event;
           the pulse promises it unconditionally, and a host with no events
           still has a plan and a shelf. */}
       <StorageMeter
@@ -351,13 +353,18 @@ export default async function DashboardPage({
         </p>
       )}
 
-      {/* BAND 4 — your events, cover cards or rows, the choice remembered. */}
+      {/* BAND 3 — your events, cover cards or rows, the choice remembered. */}
       <EventsSection
         rows={rows}
         newestByEvent={pulse.newestByEvent}
         initialView={resolveEventsView(jar.get(EVENTS_VIEW_COOKIE)?.value)}
         siteUrl={siteUrl}
       />
+
+      {/* BAND 4 — what just arrived, beneath your events (his `busy` note:
+          notices and storage are the more global, immediately helpful ones,
+          above), in whichever window holds twelve. */}
+      <JustArrived tiles={pulse.arrivals} caption={pulse.caption} />
     </div>
   );
 }
