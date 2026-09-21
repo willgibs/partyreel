@@ -1,6 +1,6 @@
 ---
 track: avatar-mesh-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ece02b97"          # the launch-prep SHA the branch was cut from
 board: seed-avatar     # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -201,30 +201,123 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None new. The brief's one open point ("his to overrule: the diffusion's strength at 24 px") is not a decision to
+  relay: the recommended `mesh` construction ships unchanged at every size, and the point is carried below under
+  "Calls his to overrule" for his eye on the alias, not blocked on here.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/auth-accounts.md`, the "Avatars are deterministic + orphan-free" bullet: the seeded-colour sentence
+  now names the shipped `mesh` look (one identity hue at four diffused, blended tonal depths, hashvatar's own
+  register read from its source) and `src/lib/avatar/measure.ts` (the contrast floors held at the disc's true
+  composited centre), replacing the round-one wording that just said "hashvatar's register, zero dependencies,
+  three contrast floors" with no look named.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Bucket "Now": ROADMAP.md's `avatar-look` line ("measured with real compositing at the exact centre pixel, EVERY
+  avatar look including the wired diagonal misses the letter floor on some seeds... the winner's wiring lands the
+  stricter measurement in the production contract or names why not") is RESOLVED and can be removed at the record:
+  `src/lib/avatar/measure.ts` lands the board's `centreLuminance` compositor beside the generator, and
+  `gradient.test.ts` + `measure.test.ts` hold `mesh` to 4.5:1 at the disc's TRUE composited centre across a
+  thousand real UUIDs (100% clearing it, worst 4.69:1; `diagonal`, the look it replaced, is kept failing on the
+  same measure as the record, never re-asserted as a floor).
+- Bucket "Now", new: jsdom's `cssstyle` silently drops an ENTIRE `background-image` value when one layer pairs a
+  percentage-sized radial-gradient ending shape with an `in <color-space>` prefix
+  (`radial-gradient(in oklab 122% 118% at 22% 14%, ...)`, `mesh`'s own shape) — a real browser (the one that
+  rendered Will's approved screenshot, and this lane's own local dev server, checked live) parses it correctly;
+  dropping `in oklab` or adding an explicit `circle`/`ellipse` keyword also parses fine in jsdom, so the gap is
+  narrow and specific. `src/components/ui/avatar.test.tsx`'s two affected assertions moved off `backgroundImage`
+  readback onto `backgroundBlendMode` and the fallback's `ink` colour (both of which jsdom parses correctly).
+  Worth a line in `testing-verification.md`'s blind spots if a future CSS-gradient contract test hits the same gap.
+- Cosmetic only, not urgent: ROADMAP.md's `guest-verify` lab-bug line (the pinned stage's head crushing at 375 with
+  one config row) reproduces it "on `seed-avatar.look`", a board this lane retired; the underlying bug is
+  `src/components/lab/`'s own and untouched by this lane, so only the repro example's board name is now stale.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `af9af05c` ("avatar: hashvatar's mesh register wired, seed-avatar retires"), pushed to
+  `lp/avatar-mesh-wiring`. `origin/launch-prep` had moved since the cut (overtaken-4, app-pricing-wiring and
+  others integrated); synced by merge commit `f9d17a02`, pushed. Real conflicts were exactly the ones expected
+  from a sibling lane touching the same mechanism (`overtaken-4` also retired `seed-avatar.look`'s held badge,
+  independently, in `src/app/(dev)/design/sandbox/overtaken.ts` + `overtaken.test.ts`): resolved by keeping
+  `overtaken-4`'s fuller version (it also adds `guest-verify.unproven`/`guest-verify.allowance` citations this
+  lane has no basis to judge); `rules.generated.json`'s conflict resolved by regenerating fresh with
+  `pnpm design:rules` on the merged tree rather than hand-merging, per the sync rule.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree (commit `f9d17a02`), each its own exit code, all 0: `pnpm design:rules` ok (188
+  components, 95 indexed, 1355 contracts on 123 components, 90 contract tests, 18 policies); the specimen
+  collector ok (140 specimens on 101 entries, unchanged); `pnpm typecheck` ok; `pnpm lint` ok (8 known warnings,
+  0 errors — one new warning appeared mid-lane, `gradient.ts`'s unused `hue` in `diagonalStops`, fixed before
+  this count); `pnpm test` ok (300 files, 3127 passed, 1 skipped); `pnpm build` ok (255 pages); `pnpm lab:smoke
+  --base http://localhost:3131` ok (419 checks, 0 failing, run twice: once before the sync, once after). No
+  `lab:demo`: this is a production lane wiring `ui/avatar.tsx`/`src/lib/avatar/*` directly, and its one board
+  retires in this same lane, so there is no standing board left to demo by the time the retirement lands (the
+  manifest's own "Verify on" names `lab:demo` for a lab lane only).
+- Live verification (local, since the avatar's CSS carries no responsive variant to check separately at 375):
+  `pnpm dev -p 3131`, `/u/willg` (a real profile with no photograph) rendered the mesh orb at its 80px identity
+  row; `getComputedStyle` on `[data-slot="avatar"]` showed all four layers and `backgroundBlendMode: "overlay,
+  soft-light, normal, normal"` exactly matching `background()`/`blendMode()`'s output; a hand-built 24/32/40/80px
+  strip of the identical CSS, screenshotted, reads as a rich warm orb at every size with the letter legible,
+  matching the texture in Will's approved review screenshot (`seed-avatar.look.mesh-1440.png` in the sheet's
+  captures) rather than the flat two-tone `diagonal` beside it in the same folder.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` (after the sync) = owned paths
+  (`docs/systems/auth-accounts.md`; `src/app/(dev)/design/sandbox/seed-avatar/*`, deleted; `src/components/ui/avatar.tsx`;
+  `src/lib/avatar/gradient.ts`, `gradient.test.ts`, and the new `measure.ts`/`measure.test.ts`) plus this manifest,
+  plus six retirement-exception files, each below with why. `overtaken.ts`/`overtaken.test.ts` do NOT appear in
+  the post-sync diff at all: this lane's edit there ended up superseded by `overtaken-4`'s fuller one during the
+  merge, so the final tree carries no net difference from `origin/launch-prep` in those two files.
+  - `src/app/(dev)/design/touchpoints.ts`: removed `seed-avatar` from the `SandboxId` union and `DESK_ORDER`;
+    the `seed-avatar` `RULINGS` row lost its `board` block and gained the final `ruled`/`shipped`/`lives` text
+    (the house retirement convention, `RulingId` kept).
+  - `src/app/(dev)/design/(shell)/lab/boards.ts`: removed the `SeedAvatarBoard` import and its `BOARD_COMPONENTS`
+    entry (same convention, atomic with the above per that file's own header comment).
+  - `src/app/(dev)/design/sandbox/registry.ts`: removed the `SEED_AVATAR` import and its `REGISTERED` entry
+    (same convention, third of the three files that file's own header names as atomic).
+  - `src/app/(dev)/design/rules/component-notes.ts`: removed the deleted `sandbox/seed-avatar/looks.ts` note,
+    added one for the new `src/lib/avatar/measure.ts` (an ownership rule every lane follows: a new component
+    earns its `for` line).
+  - `docs/design/library.md`, `src/app/(dev)/design/rules/rules.generated.json`: regenerated by
+    `pnpm design:rules` after the above (never hand-edited).
+  - `src/components/ui/avatar.test.tsx`: NOT in my `owns`, edited under the single-line exception. Necessary,
+    not optional: jsdom cannot store `mesh`'s `backgroundImage` at all (the jsdom finding above), so the two
+    tests asserting on it failed outright; fixed by asserting `backgroundBlendMode` (mesh-specific, jsdom-safe)
+    and the fallback's `ink` colour instead. Every other test in the file is untouched.
+- The items, one line each: `look`: `mesh`, matching the board's own recommendation and his verdict exactly (no
+  override); the register lands in `src/lib/avatar/gradient.ts`'s `background()`/`meshDepths()`/`blendMode()` and
+  `src/lib/avatar/measure.ts` (the generator itself, not a separate component, so no new Library entry beyond the
+  `for` lines already on `gradient.ts` and the new one on `measure.ts`).
+- Calls his to overrule on the alias, one line each:
+  - The diffusion's strength at 24 px (his own note): shipped the same `meshDepths()` formula at every size,
+    unconditionally; if the guest list's 24px chips read muddy or too subtle in person, the fix is the depth/
+    chroma constants in `meshDepths()`, not a size-conditional branch.
+  - Blend modes kept, not approximated away: `ui/avatar.tsx` sets `backgroundBlendMode` alongside
+    `backgroundImage` (a second style property, via the new `blendMode(look)` export) so the shipped avatar
+    matches the exact blend-mode-driven texture the board measured and he approved, rather than a flatter
+    normal-compositing-only reading that would have kept `ui/avatar.tsx`'s edit to strictly one changed token
+    (the brief's own words: "that ONE line becomes mesh"). Judged necessary for visual fidelity to the approved
+    screenshot; flagged since it is a real, if small, deviation from the brief's literal framing.
+- The help articles this lane makes stale: none. Checked both mentions of "avatar" in `content/help/`
+  (`your-dashboard-explained.mdx:51`, `display-name-and-profile-photo.mdx:13`); both are functional ("your avatar
+  opens the account menu", a keyword tag) and name no specific look, so neither goes stale from a colour-register
+  change.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: any signed-in, no-photo account's avatar — `/u/willg` (his own profile, no photo, the 80px
+  identity row) or a real event's guest list (24px chips); the account menu (32px) is the same generator at a
+  third size.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `seed-avatar` r2 ruled `look=mesh` (overrules the wired `diagonal`);
+`avatar-mesh-wiring` grew a mesh register in `src/lib/avatar/gradient.ts` (one identity hue read at four diffused,
+blended tonal depths, hashvatar's own register read from its source) and swapped `ui/avatar.tsx`'s one
+`background(orb, "diagonal")` call for `"mesh"` plus its now-required `backgroundBlendMode`. The board's stricter
+centre-pixel compositor moved beside the generator as `src/lib/avatar/measure.ts` (its own contract test) and
+`gradient.test.ts` now holds the shipped look to 4.5:1 at the disc's true centre across a thousand real UUIDs,
+closing the `avatar-look` ROADMAP line. The board retired under the retirement exception (its sandbox directory,
+`touchpoints.ts`'s `SandboxId`/`DESK_ORDER`/board block, `boards.ts`'s and `registry.ts`'s registration lines,
+`component-notes.ts`'s note all gone with it); `auth-accounts.md`'s avatar line refined. Found live: a narrow
+jsdom/cssstyle CSS-parsing gap on a percentage-sized radial-gradient paired with a colour-interpolation-method
+prefix (real browsers parse it fine), worked around in `avatar.test.tsx`, a candidate line for
+`testing-verification.md`.
