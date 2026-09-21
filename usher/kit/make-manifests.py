@@ -257,8 +257,9 @@ READS.update({
 BOARD.update({"first-event-wiring":"first-event     # wired by this lane; the board retires (its eight asks ruled whole)","guest-upload-wiring":"guest-upload    # wired by this lane; the board retires (its eight asks ruled whole)","overtaken-5":"none            # lab infrastructure: the judgment lines for the closing sitting's third batch; merges first; no board of its own"})
 LANE_SECTION.update({"first-event-wiring":r"Lane 52: `first-event-wiring`","guest-upload-wiring":r"Lane 53: `guest-upload-wiring`","overtaken-5":r"Lane 54: `overtaken-5`"})
 
-FIXES={"third-batch-fixes"}
+FIXES={"third-batch-fixes","identity-fixes"}
 FIX_TEXT="**Goal.** A production follow-up cut by the Orchestrator from the red-team on the `launch-prep` alias (2026-09-21, build `5e210ef8`, the third batch whole): the defects it found in the third batch's wiring, fixed in place. No board, no new ruling, nothing reopened: the rulings this wiring answers are in `docs/design/rulings.md` under \"the closing sitting's third batch\", and every one stands as wired. The lane's brief follows; read it end to end before the first edit."
+FIX_TEXTS={"identity-fixes":"**Goal.** A production follow-up cut by the Orchestrator from the red-team on the `launch-prep` alias (2026-09-21, build `c7015a26`, the identity reshape and the overtaken audit whole): the three defects and three polish items it found in the identity reshape's wiring, fixed in place. No board, no new ruling, nothing reopened: the rulings this wiring answers are in `docs/design/rulings.md` under \"the identity reshape: Require verified emails\", and every one stands as wired. The lane's brief follows; read it end to end before the first edit."}
 OWNS.update({
 "third-batch-fixes":["src/components/guest/upload/","src/components/guest/guest-upload.tsx","src/components/guest/guest-upload.test.tsx","src/components/guest/event-experience.tsx","src/lib/guest/use-upload-queue.ts","src/components/app/print/","docs/systems/guest-flow.md"],
 })
@@ -267,6 +268,10 @@ READS.update({
 })
 BOARD.update({"third-batch-fixes":"none            # production follow-up: the alias red-team's two defects and one polish item on the third batch's wiring; no board"})
 LANE_SECTION.update({"third-batch-fixes":r"Lane 55: `third-batch-fixes`"})
+OWNS.update({"identity-fixes":["src/components/guest/","src/lib/guest/","src/lib/observability/","docs/systems/guest-flow.md","docs/systems/admin-observability.md"]})
+READS.update({"identity-fixes":["src/app/api/guests/route.ts","src/app/api/guests/name/route.ts","src/app/api/r2/presign-upload/route.ts","src/app/api/r2/complete-upload/route.ts","src/lib/events/gallery-access.server.ts","src/components/shared/media-lightbox.tsx","src/app/error.tsx","src/components/shared/route-error.tsx","docs/design/rulings.md"]})
+BOARD.update({"identity-fixes":"none            # production follow-up: the alias red-team's three defects and three polish items on the identity reshape's wiring; no board"})
+LANE_SECTION.update({"identity-fixes":r"Lane 66: `identity-fixes`"})
 
 SIXTH={"glass-wiring","guest-wiring","door-wiring","admin-wiring","vocab-wiring","avatar-wiring"}
 OWNS.update({
@@ -324,7 +329,7 @@ def goal_text(track):
     if track in RESHAPE: return RESHAPE_TEXT[track]
     if track in CLEANUP: return CLEANUP_TEXT
     if track in EXPLORE: return EXPLORE_TEXT
-    if track in FIXES: return FIX_TEXT
+    if track in FIXES: return FIX_TEXTS.get(track, FIX_TEXT)
     tail=(" His verdicts and every note are in `docs/reviews/<board>.json` and verbatim in `docs/design/rulings.md` (the\nsection "+('"the sixth batch"' if track in SIXTH else '"the fifth batch"')+"); the Orchestrator's reading of every verdict is below under \"The verdict map\", and this lane's\nbrief follows it. Read the brief end to end before the first edit; where it says \"his to overrule\", build the recommended\nanswer and list it in the Handoff.")
     if track in QUEUE: return QUEUE_TEXT+tail
     return "**Goal.** "+("Will's sixth batch (2026-09-20, build `806695d`) answered the next five boards on the desk and glass round two, and a second paste the same hour answered the demo and the pricing page; this lane is one of eight cut from them, on the seam the Orchestrator landed first." if track in SIXTH else "Will's fifth batch (2026-09-19, build `69a9a17`) answered the four boards at the head of the desk; this lane is one of ten cut from it.")+tail
