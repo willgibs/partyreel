@@ -47,17 +47,36 @@ const buttonVariants = cva(
       // box, at 45 call sites. It is a size now, on the same rule as the rest:
       // 1.1x of the 40px button's corner (17.6px), derived, so the one knob
       // still moves it. Never force another size up to h-11; use this.
+      //
+      // ★ THE ICON PAIRING (Will, `body-type` r2, 2026-09-20, `pairs=step-up`):
+      // every icon sits ONE Tailwind icon-step over its own text (12/14,
+      // 14/16, 16/18), turning "the download and select buttons felt
+      // mismatched between their icon sizes and new font size" into a stated
+      // rule. `xs`/`sm` read 12 (`text-xs`, on the caption rung) so their icon
+      // grows to `size-3.5`; `default`/`lg` inherit the base's `text-sm` (14)
+      // so their icon is `size-4`; `cta`'s `text-base` (16) grows its icon to
+      // `size-4.5`. EVERY size below sets its OWN icon selector explicitly,
+      // even where the number equals the base's `size-4` fallback above
+      // (`default`, `lg`, `icon`, `icon-lg`): before this only `xs`, `sm` and
+      // `icon-xs` did, and `icon-sm` silently fell through to the base's
+      // `size-4` (16) with no size of its own to hold it there — the exact
+      // mismatch he saw. The four icon-only sizes pair by the HEIGHT they
+      // share with a text size (`icon-xs`↔`xs`, `icon-sm`↔`sm`, `icon`↔`default`,
+      // `icon-lg`↔`lg`), so `icon-sm` reads 14 too, not 16 (measured on the
+      // approved board's own probe, `body-type/surfaces.tsx`'s `iconClass`).
+      // Heights never move: every icon this round proposes still fits its
+      // current box with room on every side.
       size: {
         default:
-          "h-8 gap-1.5 rounded-action-sm px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-[0.8rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 rounded-[calc(var(--radius-action)*0.9)] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        cta: `h-11 gap-1.5 ${ctaCorner} px-6 text-base has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5`,
-        icon: "size-8 rounded-action-sm",
-        "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)]",
-        "icon-lg": "size-9 rounded-[calc(var(--radius-action)*0.9)]",
+          "h-8 gap-1.5 rounded-action-sm px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
+        xs: "h-6 gap-1 rounded-[calc(var(--radius-action)*0.6)] px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-7 gap-1 rounded-[calc(var(--radius-action)*0.7)] px-2.5 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-9 gap-1.5 rounded-[calc(var(--radius-action)*0.9)] px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
+        cta: `h-11 gap-1.5 ${ctaCorner} px-6 text-base has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5 [&_svg:not([class*='size-'])]:size-4.5`,
+        icon: "size-8 rounded-action-sm [&_svg:not([class*='size-'])]:size-4",
+        "icon-xs": "size-6 rounded-[calc(var(--radius-action)*0.6)] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-sm": "size-7 rounded-[calc(var(--radius-action)*0.7)] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-lg": "size-9 rounded-[calc(var(--radius-action)*0.9)] [&_svg:not([class*='size-'])]:size-4",
       },
     },
     defaultVariants: {
