@@ -42,23 +42,39 @@ import { BOARDS } from "./registry";
  * judgment and again on every clause behind it.
  *
  * ★ AND THE THIRD GRAMMAR IS NO JUDGMENT AT ALL (the closing sitting,
- * 2026-09-20). Four of `guest-verify`'s answers are recorded and HELD on his
+ * 2026-09-20). Four of `guest-verify`'s answers were recorded and HELD on his
  * own "May have to relitigate", so a question one of them reaches carries the
  * hold and the clause he wrote, and nothing the lane thinks: weighing an
  * option against a ruling that may not survive is precisely what the hold
  * refuses. These never concede, never append, and the badge says "held" in its
- * first word so the walk cannot read one as law. A hold ends one of two ways,
- * and the second arrived the same night: round two rules, or he answers the
- * question the hold was badging, which retires the badge with the ask
- * (`badge=mark` on `seed-avatar.look`, spent by `look=mesh`; then `gate=after`
- * on `first-event.first`, spent by `first=live` in the third batch). Both holds
- * ended the second way, so the map carries none today and the grammar is proven
- * below on the note the last one wrote rather than on a live entry.
+ * first word so the walk cannot read one as law. A hold ends three ways, and
+ * all three have now happened: round two rules; he answers the question the
+ * hold was badging, which retires the badge with the ask (`badge=mark` on
+ * `seed-avatar.look`, spent by `look=mesh`; `gate=after` on
+ * `first-event.first`, spent by `first=live`); or his own next shape
+ * supersedes the held ruling outright, which is what `address=none` did to all
+ * four of them on 2026-09-21 (overtaken.ts, the HELD note). The map carries no
+ * hold today, so the grammar is proven below on the note the last one wrote
+ * rather than on a live entry.
  *
- * It is deliberately NOT a published contract (`@contract-for:`): the collector
- * indexes every file a marker names and an indexed file owes a `for` line in
- * `rules/component-notes.ts`, which is not this lane's to edit. The exact line
- * is proposed in the Handoff; these tests run either way.
+ * ★ AND THE MECHANISM OUTLIVES THE ENTRIES (the overtaken audit and the
+ * identity reshape, 2026-09-21). Will asked for every badged question to be
+ * reshaped into a current one with its context folded in and the badge deleted;
+ * five lanes empty this map between them, and the file, its type, this test and
+ * the desk's badge stay as the mechanism for the next overlap (which the
+ * stacking rule, PROGRAM.md, exists to avoid needing). So nothing below is a
+ * CENSUS. Every assertion is either a per-entry invariant, exact while entries
+ * remain and vacuous when they are gone, or a grammar proved on a constructed
+ * note, which the HELD block already did before this was a general rule. A
+ * floor like "thirty-one lines carry two clauses" was a true sentence about one
+ * afternoon, not a fact about the mechanism, and it would fail the day the
+ * audit landed while proving nothing on the day it passed.
+ *
+ * It IS a published contract now (the marker on line one): the collector
+ * indexes every file a marker names, an indexed file owes a `for` line in
+ * `rules/component-notes.ts`, and overtaken.ts has had one since the mechanism
+ * landed. So a change here moves the Library, and `pnpm design:rules` belongs
+ * in the same commit.
  */
 
 const KEYS = Object.keys(OVERTAKEN);
@@ -247,13 +263,23 @@ describe("the overtaken map", () => {
    * find the words in rulings.md without asking anybody.
    */
   it("appends a later ruling behind the first, named and dated", () => {
+    // The grammar on a constructed note, so it outlives the entries: two
+    // rulings landing on one judgment, the first left exactly as written.
+    const twice: OvertakenNote = {
+      by: "app-shape",
+      since: "app-shape r1, 19 Sep",
+      ruling: "the event page is one page with its own header, not a tab strip",
+      line: `stands: the option still buys a way back to the list.${ALSO_REACHED}glass r2, 20 Sep: and the header it sits under is one material now.`,
+    };
+    expect(judgment(twice.line)).toMatch(/^(stands|concedes): .+\.$/);
+    expect(clausesOf(twice.line)).toHaveLength(1);
+    expect(clausesOf(twice.line)[0]).toMatch(
+      /^[a-z-]+ r\d+, \d{1,2} \w{3}: .+\.$/,
+    );
+
     const appended = Object.entries(OVERTAKEN).filter(([, n]) =>
       n.line.includes(ALSO_REACHED),
     );
-    expect(
-      appended.length,
-      "later batches reached questions an earlier pass had badged",
-    ).toBeGreaterThan(0);
     for (const [key, note] of appended) {
       const clauses = clausesOf(note.line);
       expect(
@@ -277,83 +303,85 @@ describe("the overtaken map", () => {
       // The earlier pass's judgment is left exactly as it was written.
       expect(judgment(note.line)).toMatch(/^(stands|concedes): .+\.$/);
     }
-    // Each pass has appended behind the clauses the last one left.
-    expect(
-      appended.filter(([, n]) => clausesOf(n.line).length === 2).length,
-      "a third ruling reached questions two had already reached",
-    ).toBeGreaterThan(0);
-    expect(
-      appended.filter(([, n]) => clausesOf(n.line).length === 3).length,
-      "a fourth ruling reached questions three had already reached",
-    ).toBeGreaterThan(0);
+    // The tallest stack the map actually carries is read off it, never
+    // asserted at a number a pass happened to build: a line deeper than any
+    // pass has built is a lane rewriting history in place, and an empty map
+    // is a map the audit has finished with.
+    const deepest = Math.max(
+      0,
+      ...appended.map(([, n]) => clausesOf(n.line).length),
+    );
+    expect(deepest, "no line is deeper than a pass has built").toBeLessThanOrEqual(
+      MAX_CLAUSES,
+    );
   });
 
   it("reads a concession off the line it is written on", () => {
-    const conceded = Object.values(OVERTAKEN).filter(concedes);
-    expect(
-      conceded.length,
-      "his notes answered several outright",
-    ).toBeGreaterThan(0);
+    // Read off the line and nothing else, which is why it is proved on two
+    // constructed ones as well as on whatever the map is carrying today.
+    const base = { by: "glass", since: "glass r1, 19 Sep", ruling: "one material" };
+    expect(concedes({ ...base, line: "concedes: the ruling covers it." })).toBe(
+      true,
+    );
+    expect(concedes({ ...base, line: "stands: it may still beat it." })).toBe(
+      false,
+    );
     for (const note of Object.values(OVERTAKEN)) {
       expect(concedes(note)).toBe(note.line.startsWith("concedes:"));
     }
   });
 
   it("speaks the badge in plain words with the date", () => {
-    // ★ THE EXAMPLE IS DERIVED, NOT NAMED. It was guest-shape.dialogs until
-    // round two replaced that ask, then first-event.hand until his answers
-    // retired that board, then media-viewer.opening until the overtaken audit
-    // folded that badge into its own question (2026-09-21). Three rewrites of
-    // one line by three lanes that had no business in this file is enough: the
-    // reading is taken off the first LIVE entry, and where the audit has
-    // emptied the map it is proven on a literal, exactly as the hold above is.
-    // The grammar has to outlive the entries.
-    const live = Object.values(OVERTAKEN)[0];
-    const note: OvertakenNote = live ?? {
-      by: "glass",
-      since: "glass r1, 19 Sep",
-      ruling: "the album sits blurred at half brightness behind the lightbox",
-      line: "stands: the ruling fixes the ground behind a photograph, never the way a photograph opens onto it.",
+    // The example was guest-shape.dialogs until round two replaced that ask,
+    // then first-event.hand, then media-viewer.opening, each retiring with the
+    // board it was named on. It is DERIVED now for the same reason the desk's
+    // queue test derives its board (overtaken-5): a badge the map still carries
+    // if there is one, and the shape proved on a constructed note either way,
+    // because the audit takes the last real one with it.
+    const shaped = (note: OvertakenNote) => {
+      const text = badgeText(note);
+      expect(text).toMatch(/^Ruled since [a-z-]+ r\d, \d{1,2} [A-Z][a-z]{2}: /);
+      // Plain words, never the paste clause.
+      expect(text).not.toMatch(/[a-z-]+=[a-z-]+/);
     };
-    const text = badgeText(note);
-    expect(text).toMatch(/^Ruled since [a-z-]+ r\d, \d{1,2} [A-Z][a-z]{2}: /);
-    expect(text).not.toMatch(/[a-z-]+=[a-z-]+/); // plain words, never the paste clause
+    shaped({
+      by: "app-vocabulary",
+      since: "app-vocabulary r2, 20 Sep",
+      ruling: "one View menu holds the gallery's verbs behind a single button",
+      line: "stands: the menu is where a size would live, not whether it has one.",
+    });
+    const live = Object.values(OVERTAKEN).find((n) => !isHeld(n));
+    if (live) shaped(live);
   });
 
+  /**
+   * ★ COUNTED AGAINST THE MAP, NEVER AGAINST A MEMORY OF IT. This block used
+   * to pin `admin-triage` at eight and `press-page` at two, with a row of
+   * retired boards at zero. Every one of those numbers was a fact about one
+   * afternoon: five of the zeros arrived because a board retired, and the audit
+   * (2026-09-21) sends the rest of them to zero on Will's own cleanup. So the
+   * counter is proved against the keys it counts, which is the only thing it
+   * claims to do, and the zero cases stay because they are the interesting
+   * ones: a board may go back to nothing, and asking about a board nobody drew
+   * must never throw.
+   */
   it("counts a board's overtaken asks for the desk", () => {
-    // Seven until he answered all eight in one paste (the closing sitting's
-    // third batch): six badges his own answers overrode, and the seventh the
-    // last HELD one in the file, all gone with the asks they named. The board
-    // retires at `first-event-wiring`, and the desk's queue test, which proved
-    // its join on this board by name, now derives the board it proves on from
-    // this map (overtaken-5's one exception line).
+    for (const board of BOARDS) {
+      const mine = KEYS.filter((k) => k.startsWith(`${board.id}.`));
+      expect(overtakenOn(board.id), `${board.id}`).toBe(mine.length);
+    }
+    // Every key the map holds belongs to a board it counts, so no entry can
+    // hide from the desk behind a spelling.
+    expect(
+      BOARDS.reduce((n, b) => n + overtakenOn(b.id), 0),
+      "every key is counted on some standing board",
+    ).toBe(KEYS.length);
+    // A retired board counts none: its badges left with the asks they named
+    // (app-vocabulary, toasts, seed-avatar, app-pricing, first-event,
+    // guest-upload, and guest-verify with the identity reshape).
+    expect(overtakenOn("guest-verify")).toBe(0);
     expect(overtakenOn("first-event")).toBe(0);
-    // The second board of the same paste, and the only one this map ever held
-    // with no unreached ask at all: eight badges, eight answers, none left.
     expect(overtakenOn("guest-upload")).toBe(0);
-    // Round one's five badges retired with the asks they named (album-controls,
-    // 2026-09-20): the board's round two is too new for anything to overtake yet.
-    expect(overtakenOn("app-vocabulary")).toBe(0);
-    // Ruled whole and wired (toasts-wiring, 2026-09-20): its two badges
-    // retired with the board itself, the same convention as app-vocabulary
-    // above (a badge pointing at a question nobody is asking any more is
-    // worse than an answer left orphaned).
-    expect(overtakenOn("toasts")).toBe(0);
-    // Its one badge retired with the ask when he answered `look` outright
-    // (the closing sitting's second batch), and the board retires at its
-    // wiring: the same convention as app-vocabulary and toasts above.
-    expect(overtakenOn("seed-avatar")).toBe(0);
-    // The board a batch answered whole: six badges, all six overridden by his
-    // own answers, all six gone with the asks.
-    expect(overtakenOn("app-pricing")).toBe(0);
-    // The sixth batch ruled the portal's whole shell, one board over.
-    expect(overtakenOn("admin-triage")).toBe(8);
-    // The desk's last board, reached for the first time by the closing
-    // sitting's second batch and again by its third; it was the example of a
-    // board nothing had reached, which is why the zero case moved to a made-up
-    // id. The retired boards above are the real zeros now, and they are the
-    // stronger case: a board may go back to nothing.
-    expect(overtakenOn("press-page")).toBe(2);
     // A board nothing reached counts none, and never throws for asking.
     expect(overtakenOn("a-board-nobody-drew")).toBe(0);
     expect(overtakenKey("a", "b")).toBe("a.b");
@@ -375,18 +403,13 @@ describe("the overtaken map", () => {
         (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
       );
     });
-    // ★ A PROPORTION READ OFF THE MAP, NEVER A CENSUS OF A MAP THAT HAS GONE.
-    // This was a floor of forty keys, measured when the map held seventy, and
-    // it named two of them by id. The overtaken audit (2026-09-21) is emptying
-    // the map a board at a time, folding each badge into the question it
-    // annotated, so a fixed count and a named key both fail on whichever lane
-    // happens to cross them, in a file no lane owns. What stays true is the
-    // proportion: most of what a badge reaches was drawn against a baseline
-    // that has since moved. Held to half, and skipped once the map is too
-    // small to measure, which is where the audit is walking this file.
-    if (KEYS.length >= 10) {
-      expect(glossed.length * 2).toBeGreaterThanOrEqual(KEYS.length);
-    }
+    // The detector fires on the real ones while there are real ones to fire
+    // on. The floor used to be forty, which held from the first pass until the
+    // audit began deleting badges on Will's cleanup; what it was ever proving
+    // is that the reading works on a live board's own options, and that is
+    // true of one entry as of forty.
+    if (KEYS.length > 0) expect(glossed.length).toBeGreaterThan(0);
+    for (const key of glossed) expect(KEYS).toContain(key);
     // And the gloss says which way to read them.
     expect(AS_TODAY_GLOSS).toContain("before that ruling");
     expect(saysAsToday("The dark room, as today")).toBe(true);
