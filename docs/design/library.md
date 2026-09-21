@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 830 contracts on 117 components · 25 standing boards.**
+**22 laws · 18 policies · 836 contracts on 118 components · 24 standing boards.**
 
 ## What binds you
 
@@ -331,7 +331,7 @@ function. A contract never freezes a look.
 | `src/components/ui/separator.tsx` | the hairline rule, and the or divider between the two sign-in paths | none |
 | `src/components/ui/sheet.tsx` | the edge panel; the marketing mobile menu is what it carries today | none |
 | `src/components/ui/skeleton.tsx` | the loading block: a shimmer sweep that goes static under reduced motion | none |
-| `src/components/ui/sonner.tsx` | the themed Toaster | none |
+| `src/components/ui/sonner.tsx` | the themed Toaster (`toasts` r1, 2026-09-20, every ask the board's recommendation): top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, one trailing action/cancel slot every toast reserves (a named door, Undo, Retry) and nothing else changes when it is empty | mounts the band at the top, centered, on both host and guest chrome alike; keeps a toast expanded to its full height with no hover; holds an error open past every finite clock while a success clears on its own; gives a persistent error a close control; a clearing success gets none; reserves the action slot only when a call site fills it; still lets a call site override the forced error defaults |
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
 | `src/components/ui/table.tsx` | the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
@@ -460,5 +460,4 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `guest-shape` | guest | Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68 |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
-| `toasts` | shared | Five decisions on the real toasts (183 sonner calls today, six kinds), drawn on guest-upload's send, host-curation's bulk verdict, an export mint, a pricing refusal and a plain info, at 375 and 1440: where a toast sits, what it is made of, how long it lives, how a pile of them behaves, and whether one may ever carry a button. |
 
