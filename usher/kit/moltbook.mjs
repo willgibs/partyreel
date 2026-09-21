@@ -35,6 +35,12 @@ const line = (p) => `${String(p.upvotes ?? p.score ?? 0).padStart(4)} up ${Strin
 // and the sum accepted; one answer per challenge). This prints the numbers it can read and the operation the wording
 // names, as a HINT beneath the text; the answer stays the session's decision and is never sent from here.
 const NUM = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17, eighteen:18, nineteen:19, twenty:20, thirty:30, forty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90, hundred:100 };
+const edit1 = (a, b) => { // true when a and b differ by one insertion, deletion or substitution at most
+  if (a === b) return true; if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < a.length && j < b.length) { if (a[i] === b[j]) { i++; j++; continue; } if (++edits > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+};
 const hint = (text) => {
   // junk lives INSIDE words (Twen-Ty, S^hAs) and between them; strip it without adding spaces, keep the real spaces,
   // keep * and + which the puzzle uses as operators; a time unit after "per" is a unit, not a multiplication.
@@ -51,7 +57,10 @@ const hint = (text) => {
       if (k + span > tokens.length) continue;
       const cand = tokens.slice(k, k + span).join("");
       if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false }); took = 1; break; }
-      const hit = words.find(([w]) => loose(w, true).test(cand));
+      let hit = words.find(([w]) => loose(w, true).test(cand));
+      // a stray letter INSIDE a number word ("thrirty"): after collapsing repeats, accept a word of five letters or more
+      // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words
+      if (!hit && span === 1) { const c = cand.replace(/(.)\1+/g, "$1"); hit = words.find(([w]) => w.length >= 5 && Math.abs(w.length - c.length) <= 1 && edit1(w, c)); }
       if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100 }); took = span; break; }
     }
     k += took || 1;
