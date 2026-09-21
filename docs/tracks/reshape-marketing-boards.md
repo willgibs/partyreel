@@ -1,6 +1,6 @@
 ---
 track: reshape-marketing-boards
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5143c87e"          # the launch-prep SHA the branch was cut from
 board: site-chrome     # and profile-page, privacy-hero, album-motion, loose-ends, contact-page, press-page: reshaped in place inside their open rounds; no retirement, no new board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -125,22 +125,159 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab tides: `overtaken.ts` cleanup, ready NOW rather than pending — the fourth and final overtaken-audit lane
+  (`reshape-admin-help-emails`) landed inside this lane's own second sync, so the `OVERTAKEN` map is genuinely
+  empty (every board's badges gone) and all sixteen per-batch constants (`APP_SHAPE`, `GUEST_SHAPE`, `VOCABULARY`,
+  `ADMIN`, `DOOR`, `CRYSTAL`, `DEMO`, `PRICING`, `APP_SHAPE_2`, `GUEST_SHAPE_2`, `DOOR_2`, `DEMO_2`, `PRICING_2`,
+  `APP_PRICING`, `CREATE`, `UPLOAD`) are dead (24 lint warnings up from 10). A short follow-up (any seat): delete
+  the sixteen constants and the now-answered-for-good `RULED`/`HELD` machinery's own reach, or leave the map as the
+  empty mechanism its own test file already treats it as ("an empty map is a map the audit has finished with") —
+  his call whether the mechanism stays standing for a future overlap or retires with this audit. Not swept by this
+  lane per "never anything else in that file."
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `eab11e0a` (the reshape itself); synced with launch-prep TWICE, at `d53a73f2` then at `15baa54f`
+  (launch-prep moved 30 commits past the `5143c87e` cut for the first sync, then 12 more while this lane ran its
+  gate and its live Chrome pass for the second: the other three overtaken-audit lanes and the identity reshape's
+  waves 0-1 all landed first, `reshape-admin-help-emails` last of the three siblings, merging while this lane's own
+  gate was running). `15baa54f` is the tree every number below is measured on.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok; specimen collector ok; `pnpm typecheck`
+  ok; `pnpm lint` ok, 0 errors, 24 warnings (baseline 10 in unrelated files, unchanged; +16 new, every one of them
+  `overtaken.ts`'s own now-dead per-batch constants — `APP_SHAPE`, `GUEST_SHAPE`, `VOCABULARY`, `ADMIN`, `DOOR`,
+  `CRYSTAL`, `DEMO`, `PRICING`, `APP_SHAPE_2`, `GUEST_SHAPE_2`, `DOOR_2`, `DEMO_2`, `PRICING_2`, `APP_PRICING`,
+  `CREATE`, `UPLOAD` — since the fourth and final overtaken-audit lane landed inside this lane's own sync and the
+  `OVERTAKEN` map is now genuinely empty, no `...CONST` spread anywhere in the file: left in place, not swept, per
+  "never anything else in that file" — see Deferred, updated for this); `pnpm test` ok, 3396 passed, 2 skipped, 0
+  failed; `pnpm build` ok, 255 static pages, no errors. `pnpm lab:smoke
+  --base :3139` ok, 413 checks, 0 failing, every one of this lane's seven boards inside its 1200-word reading budget
+  (site-chrome 343, profile-page 262, privacy-hero 220, album-motion 244, loose-ends 442, contact-page 359,
+  press-page 413). `pnpm lab:demo --board <board> --base :3139` ok on all seven, 0 failing on every step: site-chrome
+  3 steps, profile-page 3, privacy-hero 1, album-motion 1, loose-ends 7, contact-page 6, press-page 7 (28 steps
+  total). No backdrop-filter step in this lane's boards; nothing needed a by-hand capture.
+- Local visual pass (Chrome MCP against `:3139`, both live and via computed-style inspection through the lab's own
+  iframes) on the newest pieces at 1440 and 375: privacy-hero's `sweep` concept (confirmed the band's
+  `animation-name: swp-pass` fires, one tile clears in true colour at a time in a clean rotation, both breakpoints);
+  loose-ends' `everywhere-pill.sweep` badge (confirmed `animation-name: evp-pass`, visible mid-pass on the newest
+  tile); profile-page's `quick-look.sheet` (confirmed the desk frame renders a true right-edge panel, `x:1056,
+  w:384, h:900` inside a 1440 frame, never full-width) and `.mini-modal` (confirmed centred both axes, capped,
+  distinct from the sheet); profile-page's `view-all.centred` (renders correctly, capped and centred, at 375);
+  press-page's `the-sheet.brand-in-use` new "On the printed stock" swatches (Table cards, Welcome sign, Poster, real
+  `62 × 84mm` / `186 × 252mm` labels straight off `lib/qr/stock.ts`); site-chrome's `foot-after.today` (the real
+  `FooterDemo`/`DemoFrame` object, a photograph in a mat with the code in its corner, confirmed rendering under a
+  real CtaBand). Reduced motion was not toggled live in the browser (no emulation control exposed on this pane for
+  it); both new CSS additions follow the codebase's own proven pattern exactly (privacy-hero: animation lives only
+  inside `@media (prefers-reduced-motion: no-preference)`, matching `ACCESS`/`SEAL`/`APERTURE` in the same file
+  verbatim; loose-ends: the same guard plus an explicit `content: none` belt, matching
+  `components/shared/arrival.css`'s own real mark) — read by eye, not exercised live.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` (on `15baa54f`, the second sync) = the seven owned
+  board folders (`site-chrome/`, `profile-page/`, `privacy-hero/`, `album-motion/`, `loose-ends/`, `contact-page/`,
+  `press-page/`, every file inside each touched or added) plus this manifest, plus ONE exception line:
+  - `src/app/(dev)/design/sandbox/overtaken.ts`: the nineteen badge entries this lane's boards carried, deleted (one
+    per entry; listed below), exactly as the manifest and Will's own ruling (rulings.md, "the overtaken audit")
+    direct — "the badge entries for your boards are deleted from `overtaken.ts` as exception lines... never anything
+    else in that file." Nothing else in the file touched by this lane (its own header-comment growth for the
+    already-merged sibling lanes' sections, and the `emails`/`site-chrome` conflict this lane's second sync hit and
+    resolved onto origin's own newer text, are the other three overtaken-audit lanes' and the Orchestrator's, not
+    this lane's content). The map is now fully empty (every board's badges gone, all four lanes landed) — see
+    Deferred for the sixteen now-dead per-batch constants this leaves, none of them this lane's to sweep.
+  - `overtaken.test.ts` picked up a real merge conflict on the FIRST sync only (origin had already rewritten the two
+    tests this lane's deletions touched into a board-count-agnostic shape, presumably hit by a sibling lane first;
+    resolved by taking origin's version whole, no line of this lane's surviving in it) and `rules.generated.json` /
+    `docs/design/library.md` needed a `pnpm design:rules` re-run after it (this lane's own gate step, on a derived
+    build artifact, never hand-edited). None of the three carries a diff against origin/launch-prep on the FINAL
+    synced tree (`15baa54f`): the second sync's own regeneration converged exactly back onto origin's own
+    committed copy, `git diff --stat origin/launch-prep HEAD -- overtaken.test.ts rules.generated.json library.md`
+    empty. Worth one note for the Orchestrator regardless: partway through this lane's work, `library.md`'s own
+    committed copy was briefly stale against its real source on origin/launch-prep (a contract test's own case
+    count, a row for a component a prior wave had deleted) — self-corrected by the next lane's `design:rules` run
+    (this one's), so nothing to act on, but a sign a prior merge skipped re-running it.
+- The items, one line each (every asked question still open; no wiring, no Library entry — a lab board's verdict is
+  Will's, not built until he answers):
+  - `site-chrome.foot-after`: REDRAWN — the "today" register is the shipped framed photograph (demo-event r2), not
+    the photo pile it was written against; the choice is now framed-object-vs-quiet-vs-merged-vs-tucked, not
+    pile-vs-quiet-vs-merged-vs-tucked. Recommendation unchanged (`quiet`).
+  - `site-chrome.foot-alone`: pricing-page's own folded-questions close named as a fifth bare route beside `/about`,
+    `/press`, `/careers`, the 404. Recommendation unchanged (`full`).
+  - `site-chrome.foot-phone`: `small` explicitly named the weaker option now a code's real home is ruled printed
+    stock (first-event r1); the live tension is `hidden` vs `none`. Recommendation unchanged (`hidden`).
+  - `profile-page.view-all`: reordered around the Sheet's real desk shape (a right-edge panel at 1440, confirmed
+    live, never full-width); `modal` renamed `centred` and re-argued off the shipped welcome-to-Pro precedent
+    (app-pricing r1) rather than "as drawn"; `inline` moved last as the named cheap fourth. Recommendation unchanged
+    (`sheet`).
+  - `profile-page.quick-look`: narrowed from three options to the app's two real ruled objects (the responsive
+    Sheet, the QR's mini-modal — app-shape r1); the bespoke "popover at 1440" is gone. Recommendation FLIPS,
+    `adaptive` to `sheet`: the Sheet's real desk shape already answers the objection that used to motivate a split.
+  - `profile-page.way-back`: context corrected (the crumb trail rides the HOST's bar, out of a scanned guest's
+    reach) and folds in the guest's own second-round chrome and the account menu's standing-row precedent.
+    Recommendation unchanged (`pill`).
+  - `privacy-hero.concept`: NEW fourth concept, `sweep` — the access grid's own tiles, cleared by the product's real
+    arrival sweep (guest-upload r1, `components/shared/arrival.css`) instead of a bespoke crossfade; built, wired
+    into the board and verified live. Recommendation FLIPS, `access` to `sweep`: it is the one concept built
+    entirely from what the product now ships (Crystal's frost, the real sweep) rather than a mechanism invented
+    before that grammar existed.
+  - `album-motion.fall`: REDRAWN — the same three trips (glide/gather/cascade, engine untouched, out of this lane's
+    owns), re-argued against the arrival the product has since ruled (grows into its column under a fading glow,
+    guest-shape r1 + guest-upload r1) rather than "the album is what acts". Recommendation FLIPS, `glide` to
+    `cascade`: cascade is the one whose own numbers already grow-then-hold-then-fade in place; `glide` is still what
+    ships until he answers.
+  - `loose-ends.chart-light` / `chart-dark`: context now names the admin portal's home page as the daily reader of
+    these five tones (admin r1). Recommendation unchanged both (`graphite`).
+  - `loose-ends.faq-look`: context now names pricing-page's FAQ as folded and closing its page last (pricing-page
+    r1, r2), raising what is at stake in the look it shares. Recommendation unchanged (`heading`).
+  - `loose-ends.review-photo`: the queue plate's frame redrawn on the real waiting tile (`WaitingTile`,
+    `guest/upload/stack-tile.tsx`, guest-upload r1) — the queued photo now dims and carries a small clock badge;
+    ranked against his own legibility test (demo-event r2), named explicitly. Recommendation unchanged (`rings`).
+  - `loose-ends.everywhere-pill`: `hover` DROPPED (ruled a desk-only verb, app-vocabulary r1 — a fiction on the
+    phone half of this very stage); NEW option `sweep` replaces it, the product's real arrival sweep quoted at a
+    small corner badge (sized as a badge, not the full tile — `AlbumFillGrid`'s tile boxes are a live CSS-grid
+    layout this board does not own or measure); built and verified live. Recommendation unchanged (`corner`).
+  - `contact-page.page`: context now names pricing-page's own real order (a paper hero softening the seam above its
+    own dark chapter, pricing-page r1/r2) as the precedent for this ask's `chapter` option. Recommendation
+    unchanged (`chapter`).
+  - `contact-page.topic`: context now names first-event's real precedent for "ask one thing up front, defer the
+    rest" (`style=step`, first-event r1). Recommendation unchanged (`required`).
+  - `contact-page.urgency`: premise now confirmed directly by a shipped surface (guest-upload r1's end-of-run
+    failure sheet, built for exactly the mid-event failure this ask assumes). Recommendation unchanged (`stated`).
+  - `contact-page.receipt`: context/overrule now name the app's own precedent for "a confirmation worth feeling"
+    (a modal, app-pricing r1's welcome-to-Pro) as the lean; no fourth option added (a modal isn't one of the three
+    on offer here, and the brief did not ask for a new concept on this ask). Recommendation unchanged (`card`).
+  - `press-page.the-sheet`: `brand-in-use` gains a second addendum, the app's own printed stock (`lib/qr/stock.ts`,
+    first-event r1) — three real swatches (table cards, welcome sign, poster) at their real relative proportions and
+    real mm captions, beside the existing "in the app" screen mockup; built and verified live. Recommendation
+    unchanged (`eight-plates`).
+  - `press-page.the-arc`: context now names pricing-page's own re-cut chapter order (overview, then the detail
+    table, then the questions, pricing-page r2) as this ask's own precedent. Recommendation unchanged
+    (`today-order`).
+- Calls his to overrule, one line each (every reshaped framing is his by the audit's own terms; these are the ones
+  where this lane's own judgment changed a recommendation, added a concept, or dropped an option, called out by name
+  per the manifest's own "His to overrule" line):
+  - `profile-page.quick-look`'s recommendation flip, `adaptive` to `sheet` (the Sheet's real desk shape already
+    keeps the rest of the list in view).
+  - `album-motion.fall`'s recommendation flip, `glide` to `cascade` (the honest read of "which tells the real
+    arrival truly" moves it; `glide` is still what ships).
+  - `privacy-hero.concept`'s recommendation flip, `access` to `sweep`, and the new concept itself.
+  - `loose-ends.everywhere-pill`'s new `sweep` concept and the dropped `hover`.
+  - `site-chrome.foot-after` and `album-motion.fall`'s redraws (both explicitly named redraws in the brief).
+- The help articles this lane makes stale: none. Nothing here changed a shipped surface's behaviour; every asked
+  question is still open on its own lab board.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `privacy-hero.concept` (the new `sweep`, now recommended over `access`); `profile-page.quick-look`
+  (the recommendation flip to the Sheet); `album-motion.fall` (the recommendation flip to `cascade`, the redraw's
+  own honest read against the shipped arrival); `press-page.the-sheet`'s `brand-in-use` (the new printed-stock
+  swatches).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The overtaken audit's marketing-boards lane reshaped nineteen
+badged questions across site-chrome, profile-page, privacy-hero, album-motion, loose-ends, contact-page and
+press-page into current ones carrying the rulings that reached them, none removed whole: two redraws (site-chrome's
+footer onto the shipped framed photograph, album-motion's three trips against the product's own ruled arrival,
+flipping its recommendation to cascade); two new concepts built from the product's real arrival sweep (privacy-hero's
+fourth, now recommended; loose-ends' replacement for the dropped desk-only hover); profile-page's quick-look flipped
+onto the shipped Sheet and its view-all reordered around the Sheet's real desk shape; the rest gained their badge's
+precedent in context, recommendations otherwise unchanged. Every badge these boards carried is gone from
+`overtaken.ts`; `overtaken.test.ts` resolved onto the sync's own already-generalized rewrite of the two tests this
+lane's deletions touched.
