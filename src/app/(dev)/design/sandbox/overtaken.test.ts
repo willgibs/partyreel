@@ -180,10 +180,13 @@ describe("the overtaken map", () => {
    */
   it("weighs nothing against a ruling he may relitigate", () => {
     const held = Object.entries(OVERTAKEN).filter(([, n]) => isHeld(n));
+    // Was two: `seed-avatar.look` retired with its board (avatar-mesh-wiring,
+    // 2026-09-20, `look=mesh`), the same convention as toasts and
+    // app-vocabulary below.
     expect(
       held.length,
-      "his four held answers reached two questions nothing else had",
-    ).toBe(2);
+      "his four held answers reached one question nothing else had",
+    ).toBe(1);
     for (const [key, note] of held) {
       expect(note.by, `${key}: only guest-verify's answers are held`).toBe(
         "guest-verify",
@@ -283,8 +286,10 @@ describe("the overtaken map", () => {
     // above (a badge pointing at a question nobody is asking any more is
     // worse than an answer left orphaned).
     expect(overtakenOn("toasts")).toBe(0);
-    // A board whose round two only a HELD ruling reaches.
-    expect(overtakenOn("seed-avatar")).toBe(1);
+    // Ruled whole and wired (avatar-mesh-wiring, 2026-09-20): its one held
+    // badge retired with the board itself, the same convention as toasts
+    // and app-vocabulary above.
+    expect(overtakenOn("seed-avatar")).toBe(0);
     // The sixth batch ruled the portal's whole shell, one board over.
     expect(overtakenOn("admin-triage")).toBe(8);
     // A board nothing reached counts none, and never throws for asking.

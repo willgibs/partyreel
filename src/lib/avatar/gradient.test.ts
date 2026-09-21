@@ -37,12 +37,21 @@ import {
  * real UUIDs, not the `u-N-acct` shape the board's exploration used — `seed=account`
  * feeds the account id straight to `orbFor` (through `seedFor`, `seed.test.ts`'s own
  * contract), so this is the shape a concentration would actually show up on.
+ *
+ * ★ `measure.test.ts` HOLDS A FOURTH PROMISE (2026-09-20, `avatar-mesh-wiring`,
+ * `seed-avatar` r2): the shipped `mesh` look's TRUE composited centre pixel
+ * clears the letter floor, not the `contrast(orb.ink, orb.body)` proxy below,
+ * which is a promise about `fitBody`'s own fitted window and holds for every
+ * look by construction but is not what a reader's eye meets at the centre of
+ * four blended layers. It is a separate file, not a describe block here,
+ * because the design-rules collector only tracks `measure.ts` as a component
+ * when its own `@contract-for:` marker names it.
  */
 
 /** A crowd big enough to find a hole in: a thousand real account-id-shaped seeds. */
 const SEEDS = Array.from({ length: 1000 }, () => randomUUID());
 const MODES: PaletteMode[] = ["wheel", "curated", "warm"];
-const LOOKS: Look[] = ["orb", "diagonal", "aurora", "flat"];
+const LOOKS: Look[] = ["orb", "diagonal", "aurora", "flat", "mesh"];
 
 describe("the seed, hashed", () => {
   it("gives the same numbers for the same string, every time", () => {

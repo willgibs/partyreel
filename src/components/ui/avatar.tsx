@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Avatar as AvatarPrimitive } from "radix-ui"
 
-import { background, css, orbFor } from "@/lib/avatar/gradient"
+import { background, blendMode, css, orbFor } from "@/lib/avatar/gradient"
 import { cn } from "@/lib/utils"
 
 /**
@@ -30,8 +30,9 @@ function Avatar({
    * A stable per-person identity string — `seedFor(profiles.id)` from
    * `src/lib/avatar/seed.ts`, never a raw account id a viewer should not
    * already hold (docs/systems/profiles-social.md). When set, paints a
-   * deterministic two-hue colour on the root: `AvatarFallback` turns
-   * transparent so it shows through behind the initial, and `AvatarImage`
+   * deterministic seeded colour on the root (`mesh`, `seed-avatar` r2:
+   * one identity hue read at several diffused, blended depths): `AvatarFallback`
+   * turns transparent so it shows through behind the initial, and `AvatarImage`
    * (always `size-full`, never inset) simply covers it once a real photo
    * loads — the colour waits UNDER the photograph rather than being
    * replaced by it, so a slow presign shows a person's hue instead of a
@@ -43,8 +44,8 @@ function Avatar({
   // few hundred contrast probes); memoized so a parent re-render — a large
   // guest list is exactly the case — doesn't redo it for an unchanged seed.
   // No second argument: the default palette IS "wheel" (`palette=wheel`,
-  // the whole 360 degrees) — "diagonal" is a `look`, background()'s
-  // argument below, never orbFor's own PaletteMode parameter.
+  // the whole 360 degrees) — "mesh" is a `look`, background()'s argument
+  // below, never orbFor's own PaletteMode parameter.
   const orb = React.useMemo(() => (seed ? orbFor(seed) : null), [seed])
   return (
     <AvatarSeedContext.Provider value={orb ? css(orb.ink) : null}>
@@ -53,7 +54,14 @@ function Avatar({
         data-size={size}
         style={
           orb
-            ? { ...style, backgroundImage: background(orb, "diagonal") }
+            ? {
+                ...style,
+                backgroundImage: background(orb, "mesh"),
+                // mesh paints four layers that only read as one hue at
+                // several diffused depths WITH this blend mode; every
+                // earlier look composited correctly with nothing set here.
+                backgroundBlendMode: blendMode("mesh"),
+              }
             : style
         }
         className={cn(

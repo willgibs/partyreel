@@ -754,11 +754,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/app/(dev)/design/sandbox/overtaken.ts": {
     for: "The questions a later ruling reached: which ruling, when, in plain words, and the lane's one line about whether the options may still beat it. The desk badges from it; the ledger says what became of each.",
   },
-  "src/app/(dev)/design/sandbox/seed-avatar/looks.ts": {
-    for: "Round two's three candidate looks over the wired orb (hashvatar's own register reproduced from its source, two further readings), each measured against the generator's own three contrast floors across a thousand real UUIDs.",
-  },
   "src/lib/avatar/gradient.ts": {
     for: "a string in, a deterministic OKLCH orb out: the seeded default avatar, fitted to a contrast floor under the letter and against both grounds",
+  },
+  "src/lib/avatar/measure.ts": {
+    for: "the exact composited colour under a centred initial for the two looks ever held to it (the shipped mesh, the diagonal it replaced): a browser's own compositing arithmetic, not a nearby stop standing in for it",
   },
   "src/lib/avatar/seed.ts": {
     for: "profiles.id -> the seed every avatar surface paints: a server-side SHA-256, so a raw account id never crosses into a browser that should not hold it",

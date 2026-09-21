@@ -193,15 +193,11 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // orphaned).
 
   /* ── seed-avatar ─────────────────────────────────────────────────────── */
-  // His `badge` answer is HELD (above): the look is badged with the hold and
-  // no line, because measuring four backgrounds against a mark that may not
-  // survive round two is exactly the concession the hold exists to refuse.
-  "seed-avatar.look": {
-    ...VERIFY,
-    ruling:
-      "an unconfirmed account wears a small mark on its avatar, on every surface",
-    line: HELD + "badge=mark",
-  },
+  // Ruled whole and wired (avatar-mesh-wiring, 2026-09-20): round two
+  // answered `look=mesh` and the board retired, so the held `look` badge is
+  // gone with it, the same convention as toasts and app-vocabulary above (a
+  // badge pointing at a question nobody is asking any more is worse than an
+  // answer left orphaned).
 
   /* ── admin ───────────────────────────────────────────────────────────── */
 
