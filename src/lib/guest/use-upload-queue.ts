@@ -252,5 +252,33 @@ export function useUploadQueue({
     [patch, runQueue],
   );
 
-  return { items, addFiles, retry };
+  /**
+   * Drop the named ERRORED items from the queue for good (the failure sheet's
+   * "Not now" and its own close, `failed=sheet` follow-up). Without this a
+   * dismissed failure just sat in `items` forever: the sheet's own list is a
+   * live filter over `items`, so the NEXT run's end saw the same old error
+   * still there and reopened on it (reproduced: refuse `notes.txt`, Not now,
+   * a clean twelve-file run still ended on "1 file did not go - notes.txt").
+   * ★ Status-gated, not id-alone: `retryAll` re-queues each listed id (flips
+   * it to "queued" via `patch`, synchronously through the `itemsRef` mirror)
+   * and THEN closes the sheet, which is the same `dismiss` call reaching the
+   * very ids it just retried. Checking the LIVE status here (not the status
+   * implied by the id being on the list) means a retried item already reads
+   * "queued" by the time this runs and survives; only an id still sitting at
+   * "error" is actually dropped.
+   */
+  const dismiss = useCallback(
+    (ids: readonly string[]) => {
+      if (ids.length === 0) return;
+      const dismissed = new Set(ids);
+      sync(
+        itemsRef.current.filter(
+          (it) => !(dismissed.has(it.id) && it.status === "error"),
+        ),
+      );
+    },
+    [sync],
+  );
+
+  return { items, addFiles, retry, dismiss };
 }

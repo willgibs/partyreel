@@ -2724,11 +2724,53 @@
       "id": "print-stock",
       "file": "src/components/app/print/print-stock.tsx",
       "names": [
-        "PrintStock"
+        "LINK_STEP_DOWN",
+        "PrintStock",
+        "WRAP_RISK_CHARS"
       ],
       "specimens": [],
       "indexed": false,
       "contracts": [
+        {
+          "title": "carries the wrap rule and is bound to the face's own width",
+          "suite": [
+            "the link line wraps inside its own face, never past it"
+          ],
+          "file": "src/components/app/print/print-stock.test.tsx",
+          "line": 30
+        },
+        {
+          "title": "applies the same rule to every piece, not only the cards",
+          "suite": [
+            "the link line wraps inside its own face, never past it"
+          ],
+          "file": "src/components/app/print/print-stock.test.tsx",
+          "line": 49
+        },
+        {
+          "title": "keeps the piece's normal size at or under the risk length",
+          "suite": [
+            "past WRAP_RISK_CHARS the face steps its link line down once"
+          ],
+          "file": "src/components/app/print/print-stock.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "steps down, rounded to 2dp, one character past the risk length",
+          "suite": [
+            "past WRAP_RISK_CHARS the face steps its link line down once"
+          ],
+          "file": "src/components/app/print/print-stock.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "never shrinks the title or the event name, only the link",
+          "suite": [
+            "past WRAP_RISK_CHARS the face steps its link line down once"
+          ],
+          "file": "src/components/app/print/print-stock.test.tsx",
+          "line": 99
+        },
         {
           "title": "counts more modules for the higher error correction the soft presets use",
           "suite": [
@@ -4480,12 +4522,28 @@
           "line": 415
         },
         {
+          "title": "Not now drops it: a later clean run never resurrects it",
+          "suite": [
+            "GuestUpload: dismissing a failure retires it for good"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 445
+        },
+        {
+          "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
+          "suite": [
+            "GuestUpload: dismissing a failure retires it for good"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 471
+        },
+        {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
           "suite": [
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 454
+          "line": 524
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -4493,7 +4551,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 489
+          "line": 559
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -4501,7 +4559,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 587
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -4509,7 +4567,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 530
+          "line": 600
         },
         {
           "title": "a rejected upload is still retryable",
@@ -4517,7 +4575,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 555
+          "line": 625
         }
       ]
     },
@@ -4775,6 +4833,14 @@
           ],
           "file": "src/components/guest/upload/intent-sheet.test.tsx",
           "line": 138
+        },
+        {
+          "title": "after Send, with open still true, the review step is still what renders",
+          "suite": [
+            "the review step survives its own sheet closing"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 158
         }
       ]
     },
@@ -4850,6 +4916,14 @@
           ],
           "file": "src/components/guest/upload/intent-sheet.test.tsx",
           "line": 138
+        },
+        {
+          "title": "after Send, with open still true, the review step is still what renders",
+          "suite": [
+            "the review step survives its own sheet closing"
+          ],
+          "file": "src/components/guest/upload/intent-sheet.test.tsx",
+          "line": 158
         }
       ]
     },
@@ -15347,12 +15421,28 @@
           "line": 415
         },
         {
+          "title": "Not now drops it: a later clean run never resurrects it",
+          "suite": [
+            "GuestUpload: dismissing a failure retires it for good"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 445
+        },
+        {
+          "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
+          "suite": [
+            "GuestUpload: dismissing a failure retires it for good"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 471
+        },
+        {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
           "suite": [
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 454
+          "line": 524
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -15360,7 +15450,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 489
+          "line": 559
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -15368,7 +15458,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 587
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -15376,7 +15466,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 530
+          "line": 600
         },
         {
           "title": "a rejected upload is still retryable",
@@ -15384,7 +15474,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 555
+          "line": 625
         }
       ]
     },

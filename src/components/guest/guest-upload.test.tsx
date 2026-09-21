@@ -435,6 +435,76 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
   });
 });
 
+/* ── A dismissed failure is GONE, not hidden (the alias red-team's DEFECT 1,
+   2026-09-21): "Not now" used to close the sheet without ever touching the
+   queue, so the same errored item sat there forever and the NEXT run's end -
+   however clean - saw it and reopened on it (reproduced: refuse notes.txt,
+   Not now, a clean twelve-file run still ended on "1 file did not go"). ── */
+
+describe("GuestUpload: dismissing a failure retires it for good", () => {
+  it("Not now drops it: a later clean run never resurrects it", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "That upload failed." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-2",
+        kind: "photo",
+      });
+    const { addFiles } = mount();
+    addFiles([makeFile("notes.txt")]);
+
+    await waitFor(() =>
+      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+    expect(screen.queryByText("1 file did not go")).not.toBeInTheDocument();
+
+    // A second, unrelated run - clean end to end - must judge itself only by
+    // what is STILL in the queue, not by the failure dismissed a moment ago.
+    addFiles([makeFile("clean.jpg")]);
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(screen.queryByText(/did not go/)).toBeNull();
+  });
+
+  it("Retry all still re-queues every listed file (the close behind it never eats them)", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({ ok: false, message: "Nope A." })
+      .mockResolvedValueOnce({ ok: false, message: "Nope B." })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-a",
+        kind: "photo",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-b",
+        kind: "photo",
+      });
+    const { addFiles, snapshots } = mountWithQueue();
+    addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
+
+    await waitFor(() =>
+      expect(screen.getByText("2 files did not go")).toBeInTheDocument(),
+    );
+    // Retry all closes the sheet on top of the very ids it just re-queued -
+    // the same `dismiss` DEFECT 1 needed must not treat a retried id as an
+    // abandoned one.
+    fireEvent.click(screen.getByRole("button", { name: /Retry all/ }));
+
+    await waitFor(() => {
+      const last = snapshots.at(-1)!;
+      expect(last).toHaveLength(2);
+      expect(last.every((it) => it.status === "done")).toBe(true);
+    });
+    expect(mockUploadFile).toHaveBeenCalledTimes(4);
+    expect(screen.queryByText(/did not go/)).toBeNull();
+  });
+});
+
 // ─── Phase 4 contracts: the lifted queue + the imperative handle ─────────────
 // These pin the subscriber surface (onQueueChange snapshots + handle.retry),
 // which the in-gallery tiles read.
