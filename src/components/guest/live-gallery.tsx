@@ -41,6 +41,7 @@ import {
   type PendingTile,
 } from "@/components/guest/guest-masonry";
 import type { UploadedItem } from "@/components/guest/guest-upload";
+import { yoursView } from "@/components/guest/yours-filter";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
@@ -512,11 +513,20 @@ export function LiveGallery({
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
-  // The header owns the visible count line (Phase 4); keep it current.
+  // The header owns the visible count line (Phase 4); keep it current. It is
+  // the WHOLE album's count and stays that way under the Yours filter: the
+  // event's line says how big the album is, never how much of it is on screen.
   const count = items.length;
   useEffect(() => {
     onCountChange?.(count);
   }, [count, onCountChange]);
+
+  // THE YOURS FILTER (`theirs=mark`). The intent is this tab's alone (a filter
+  // is a way of looking, not a setting — `gallery-controls-persistence=device`
+  // stores what a HOST chooses, and a guest's album has no such row), and
+  // `yoursView` refuses to keep it live once the guest owns nothing here.
+  const [showMine, setShowMine] = useState(false);
+  const yours = yoursView(items, ownIds, showMine);
 
   return (
     <section
@@ -545,8 +555,36 @@ export function LiveGallery({
               </ExportDialog>
             </div>
           )}
+          {/* THE YOURS LINE (`theirs=mark`, Will 2026-09-20). A LINE and not a
+              chip, on his own note against the option he did not take: "rather
+              than just adding more and more configs here". It appears only
+              while the filter is live, so an album a guest has added nothing to
+              carries no extra chrome at all, and it is the filter's only exit
+              besides tapping a mark again. When the View menu lands
+              (`controls-home=view-menu`, its own lane this round), Yours joins
+              tile size inside it and this line stays as the state's receipt. */}
+          {yours.on && (
+            <div className="mb-3 flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">
+                Showing yours
+                <span className="ml-1.5 text-faint tabular-nums">
+                  {yours.count}
+                </span>
+              </span>
+              <span aria-hidden className="text-faint">
+                ·
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowMine(false)}
+                className="rounded-md font-medium underline-offset-4 transition-colors hover:underline active:scale-[0.98] motion-reduce:active:scale-100"
+              >
+                Show all
+              </button>
+            </div>
+          )}
           <GuestMasonry
-            items={items}
+            items={yours.items}
             pending={pendingTiles}
             justLandedIds={justLandedIds}
             onRetryPending={onRetryUpload}
@@ -561,6 +599,12 @@ export function LiveGallery({
             // with an empty set, so nothing downstream has to know about it.
             canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
             onDeleteItem={canRemove ? (id) => void handleDelete(id) : undefined}
+            // THE FOURTH MARK, and what its tap does. Same gate as Remove: the
+            // set is the server's answer about this viewer's own uploads, on
+            // either identity, so a surface with no removal has no marks either.
+            mineIds={canRemove && ownIds.size > 0 ? ownIds : undefined}
+            onSelectMine={() => setShowMine((on) => !on)}
+            mineSelected={yours.on}
           />
         </LikesProvider>
       ) : (

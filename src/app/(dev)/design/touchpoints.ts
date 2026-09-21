@@ -131,7 +131,6 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "demo-event"
-  | "guest-shape"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero"
@@ -1330,20 +1329,18 @@ export const RULINGS: Ruling[] = [
     title: "The guest experience's shape",
     surface: "guest",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch): door=today (the welcome-then-gate sequence, not the sheet design), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after, dialogs=stands; `guest-wiring` wires five of seven; round two open on the chrome (his \"warrants a second round\"), the welcome's shell on a real gate and the demo's own arrival, and where a guest finds their own photographs at scale",
-    shipped: null,
-    why: "Round two: where Add and Invite live so the top action is found landing and reachable deep, the door's shell, and where a guest finds their own photographs at scale.",
+      "whole: round one (Will, 2026-09-20, the sixth batch) ruled door=today (the welcome-then-gate SEQUENCE, not its shell), nothing=river, live=land, yours (a guest's own upload, removable for ever, final for the host too), account=after and dialogs=stands, five of them wired at `7f4f2ffe` (`guest-wiring`); round two, the two he sent back plus where a guest finds their own photographs, ruled chrome=both, welcome=sheet and theirs=mark at the closing sitting's first batch (2026-09-20) and wired at `guest-chrome-wiring`",
+    shipped:
+      "The row under the event's name on landing and a dock of the same two actions at the foot once it scrolls away (the floating Add pill retired), the door on the one responsive Sheet from 640 up with vaul keeping the phone, and a fourth tile mark on a guest's own photographs whose tap filters the album to theirs",
+    why: "His criterion held both halves at once, found on landing AND reachable at any depth, so the row he liked first becomes the dock he trusted.",
     lives: [
       "docs/systems/guest-flow.md",
-      "src/app/(guest)/e/[token]/page.tsx",
       "src/components/guest/event-experience.tsx",
+      "src/components/guest/guest-action-dock.tsx",
       "src/components/guest/entry-shell.tsx",
-      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/guest/live-gallery.tsx",
+      "src/components/shared/masonry.tsx",
     ],
-    board: {
-      note: "Three decisions on the wired guest album, phone first at 375 with 1440 on the knob: where Add and Invite live so they are found on landing and reachable at every depth, the door's shell and the welcome screen's design on a real gated event and the demo's own arrival, and where a guest finds their own photographs among 68",
-      variants: ["The chrome", "The welcome", "Theirs"],
-    },
   },
   // RULED AND RETIRED (round one, 2026-09-18). Will answered every step
   // (full-quality, the plate, the band with its rail, the slide, the rhythm as
@@ -1571,7 +1568,7 @@ export const RULINGS: Ruling[] = [
     title: "The toast, as a system",
     surface: "shared",
     ruled:
-      "open (Will, 2026-09-19, the fifth batch, `moment=today`: \"This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I'd like to redesign our toasts.\")",
+      'open (Will, 2026-09-19, the fifth batch, `moment=today`: "This provides the same context as your recommended option 3 without getting too long for a temporary toast. If no exploration has handled this already, I\'d like to redesign our toasts.")',
     shipped: null,
     why: "Six boards already decided a toast's words; this asks the system underneath: if the control can show it, no toast halves the count before anything else is asked.",
     lives: [
@@ -1615,7 +1612,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "app-shape",
-  "guest-shape",
   "guest-verify",
   "toasts",
   "seed-avatar",

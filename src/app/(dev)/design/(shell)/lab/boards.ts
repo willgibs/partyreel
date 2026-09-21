@@ -22,7 +22,6 @@ import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board"
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { AppShapeBoard } from "@/app/(dev)/design/sandbox/app-shape/board";
 import { DemoEventBoard } from "@/app/(dev)/design/sandbox/demo-event/board";
-import { GuestShapeBoard } from "@/app/(dev)/design/sandbox/guest-shape/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
@@ -64,7 +63,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
   "demo-event": { Component: DemoEventBoard },
-  "guest-shape": { Component: GuestShapeBoard },
   "album-motion": { Component: AlbumMotionBoard },
   "app-shape": { Component: AppShapeBoard },
   "loose-ends": { Component: LooseEndsBoard },

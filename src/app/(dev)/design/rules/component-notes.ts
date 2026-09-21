@@ -194,6 +194,20 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
   },
 
+  /* the guest's chrome and its door (guest-chrome-wiring, 2026-09-20). */
+  "src/components/guest/guest-action-dock.tsx": {
+    for: "the guest's two actions once the row under the event's name has scrolled away: Add beside Invite, at the foot, over a scrim rather than a hairline. It carries what the ROW carries and never invents one, and it is `inert` rather than unmounted while the row is still on screen, so it travels in and out",
+  },
+  "src/components/guest/entry-shell.tsx": {
+    for: "the shell every guest's first screen wears: vaul below 640 (the drag physics and the keyboard lift the gates type into) and the one responsive Sheet above it, both at the same ceiling so the album shows above the door. It owns no flow state and no copy, and `held` versus `free` is the whole of its table",
+    unspecimened:
+      "furniture with no content of its own; entry-modal.tsx is what stands inside it",
+  },
+  "src/components/guest/yours-filter.ts": {
+    for: "whether a guest's album is showing all of it or only theirs, and how many of theirs there are. The filter refuses to stay live once the guest owns nothing in the list, so removing your last photograph can never strand you in an empty view",
+    unspecimened: "one pure function; the album above it is the specimen",
+  },
+
   /* the door into an account (door-wiring, 2026-09-20): one object worn four
      ways, and the two pure modules underneath it. */
   "src/components/auth/account-door.tsx": {
@@ -469,7 +483,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the neutral placeholder for an empty gallery, dashboard or list",
   },
   "src/components/shared/floating-add-button.tsx": {
-    for: "the floating Add photos pill, shown only while the header's Add button is off screen",
+    for: "the floating Add photos pill, RETIRED from the product by `chrome=both` (the guest album's deep-scroll chrome is `guest/guest-action-dock.tsx`, which carries Invite beside Add); it stays on disk only because three lab surfaces still draw it, so never mount it in a new surface",
   },
   "src/components/shared/glow-filter.tsx": {
     for: "the turbulence field every Glow warps through",

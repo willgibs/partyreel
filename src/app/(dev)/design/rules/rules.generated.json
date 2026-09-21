@@ -2515,6 +2515,49 @@
       ]
     },
     {
+      "id": "entry-shell",
+      "file": "src/components/guest/entry-shell.tsx",
+      "names": [
+        "EntryShell"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "wears the responsive posture rather than a centred float",
+          "suite": [
+            "from 640 up: the one product Sheet, from the right edge"
+          ],
+          "file": "src/components/guest/entry-shell.test.tsx",
+          "line": 44
+        },
+        {
+          "title": "keeps the honest-affordance table: free shows the X, held shows none",
+          "suite": [
+            "from 640 up: the one product Sheet, from the right edge"
+          ],
+          "file": "src/components/guest/entry-shell.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "renders the drawer engine, not a Radix panel",
+          "suite": [
+            "below 640: still vaul, and now at the Sheet's own ceiling"
+          ],
+          "file": "src/components/guest/entry-shell.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "stops short of the top edge, so the album still shows above it",
+          "suite": [
+            "below 640: still vaul, and now at the Sheet's own ceiling"
+          ],
+          "file": "src/components/guest/entry-shell.test.tsx",
+          "line": 76
+        }
+      ]
+    },
+    {
       "id": "gallery-empty-state",
       "file": "src/components/guest/gallery-empty-state.tsx",
       "names": [
@@ -2590,6 +2633,73 @@
           ],
           "file": "src/components/guest/gallery-empty-state.test.tsx",
           "line": 166
+        }
+      ]
+    },
+    {
+      "id": "guest-action-dock",
+      "file": "src/components/guest/guest-action-dock.tsx",
+      "names": [
+        "GuestActionDock"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "groups Add beside Invite",
+          "suite": [
+            "the dock carries the row's own two actions"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 23
+        },
+        {
+          "title": "drops Add exactly where the row drops it (uploads closed, empty album)",
+          "suite": [
+            "the dock carries the row's own two actions"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 45
+        },
+        {
+          "title": "draws nothing at all — scrim included — when there is nothing to dock",
+          "suite": [
+            "the dock carries the row's own two actions"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 53
+        },
+        {
+          "title": "says how many uploads are in flight, and nothing at zero",
+          "suite": [
+            "the dock carries the row's own two actions"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "opens the picker on a tap",
+          "suite": [
+            "the dock carries the row's own two actions"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 69
+        },
+        {
+          "title": "is inert while the row is still on screen, and live once it leaves",
+          "suite": [
+            "hidden means GONE, not merely invisible"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 78
+        },
+        {
+          "title": "stays MOUNTED while hidden, so it travels rather than appears",
+          "suite": [
+            "hidden means GONE, not merely invisible"
+          ],
+          "file": "src/components/guest/guest-action-dock.test.tsx",
+          "line": 105
         }
       ]
     },
@@ -2756,6 +2866,63 @@
           ],
           "file": "src/components/guest/guest-header.test.tsx",
           "line": 39
+        }
+      ]
+    },
+    {
+      "id": "yours-filter",
+      "file": "src/components/guest/yours-filter.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "passes everything through with the filter off",
+          "suite": [
+            "the whole album, until a guest asks for theirs"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 20
+        },
+        {
+          "title": "narrows to this guest's own, in the album's own order",
+          "suite": [
+            "the whole album, until a guest asks for theirs"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 26
+        },
+        {
+          "title": "counts the WHOLE album's share of yours, filtered or not",
+          "suite": [
+            "the whole album, until a guest asks for theirs"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 32
+        },
+        {
+          "title": "refuses the filter for a guest who owns nothing here",
+          "suite": [
+            "it cannot be live with nothing to show"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 39
+        },
+        {
+          "title": "falls back to the whole album when the last of yours is removed",
+          "suite": [
+            "it cannot be live with nothing to show"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 45
+        },
+        {
+          "title": "never hands back the caller's own array to mutate",
+          "suite": [
+            "it cannot be live with nothing to show"
+          ],
+          "file": "src/components/guest/yours-filter.test.ts",
+          "line": 55
         }
       ]
     },
@@ -8691,12 +8858,52 @@
           "line": 162
         },
         {
+          "title": "marks exactly the ids the surface names, and no tile without them",
+          "suite": [
+            "the yours mark rides only a viewer's own tiles"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 183
+        },
+        {
+          "title": "is a MARKER with no tap, and a button only where a filter exists",
+          "suite": [
+            "the yours mark rides only a viewer's own tiles"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 200
+        },
+        {
+          "title": "fires the filter without opening the lightbox underneath it",
+          "suite": [
+            "the yours mark rides only a viewer's own tiles"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 220
+        },
+        {
+          "title": "carries the filter's state, so the mark is never a one-way door",
+          "suite": [
+            "the yours mark rides only a viewer's own tiles"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 239
+        },
+        {
+          "title": "leaves the other three marks exactly as they were",
+          "suite": [
+            "the yours mark rides only a viewer's own tiles"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 264
+        },
+        {
           "title": "writes data-arrived on exactly the ids the surface names",
           "suite": [
             "the arrival mark rides the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 175
+          "line": 280
         },
         {
           "title": "leaves every existing tile where it was when a newer one is prepended",
@@ -8704,7 +8911,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 208
+          "line": 313
         },
         {
           "title": "balances: no column runs away from the shortest",
@@ -8712,7 +8919,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 227
+          "line": 332
         },
         {
           "title": "puts a newly landed photograph at the HEAD of the column it joins",
@@ -8720,7 +8927,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 236
+          "line": 341
         }
       ]
     },
