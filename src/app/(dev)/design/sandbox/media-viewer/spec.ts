@@ -2,7 +2,7 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * WHAT A PHOTOGRAPH OPENS AS, ROUND ONE (2026-09-19).
+ * WHAT A PHOTOGRAPH OPENS AS, ROUND ONE (2026-09-19; RESHAPED 2026-09-21).
  *
  * Will (docs/design/rulings.md, 2026-09-19): the app and the guest pages are
  * unprotected, "absolutely everything is up for relitigation or reconcepting
@@ -11,6 +11,32 @@ import { defineExploration } from "@/components/lab/exploration";
  * foundation and PHONE FIRST: 375 by 812 is the default on every decision,
  * because a guest is standing at a party holding a phone, and 1440 is the knob,
  * because the host curating on Sunday morning is not.
+ *
+ * ★ RESHAPED, NEVER ANSWERED BY PRECEDENT (the overtaken audit, Will
+ * 2026-09-21: a question that "fits the flow of potentially offering a better
+ * solution than the earlier selection that overtook it ... should be reshaped
+ * to be a more current question with updated context"). Seven of these eight
+ * questions wore a badge naming a ruling that had landed on top of them since
+ * they were drawn. Every one of those badges is now FOLDED INTO ITS QUESTION:
+ * the ruling is stated as the ground the answer stands on rather than as a note
+ * beside it. The board stays at round one and stays unanswered. `closeup` was
+ * never reached by anything and is untouched.
+ *
+ * ★ WHAT THE FOLD CHANGED, BESIDES WORDS. One option went, because a ruling
+ * forbids it outright: `who=none` ("no name on the photograph") cannot survive
+ * an identity shape where every upload carries a name, verified or marked. One
+ * concept arrived, because two rulings made it possible: `who=face`, the credit
+ * led by the seeded avatar every account now has and pressable as the door to
+ * that person's page, which is what the shipped capsule's own comment says it
+ * is waiting to become. And one option was redrawn rather than reworded: see
+ * the ground below.
+ *
+ * ★ THE GROUND IS RULED; THE ARRIVAL IS NOT. `glass` r1 `behind=album` put the
+ * album blurred at half brightness behind the lightbox and it SHIPPED, so the
+ * opening is no longer a question about a dark room: all three options stand on
+ * that ground and what is asked is how the photograph gets there. The option
+ * that used to be "the dark room, as today" is drawn on the ruled ground and
+ * named for what it actually is, a centred fade.
  *
  * ★ THE ORDER IS THE SURFACE. Four decisions are roots and can be taken in any
  * order (what a tap opens, how the next photograph comes, how a video meets a
@@ -21,16 +47,16 @@ import { defineExploration } from "@/components/lab/exploration";
  * gesture with the chrome (a centre tap cannot both close and summon); and how
  * close a guest may get shares an axis with how the next one arrives.
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED. The MATERIAL is `glass`'s round, already on
- * the desk: the backdrop behind the photograph, the pills' blur and their
- * grades are its `behind`, `recipe` and `grades`, so every option here wears
- * the shipped material and none of them answers that question sideways.
- * Whether a guest can take a photograph back is `guest-shape`'s `yours`; the
- * tile grammar and the bulk toolbar are `app-vocabulary`'s; the album's column
- * rule is ruled (`gallery-width`) and worn here as law; the reel is its own
- * board. Nor is the pipeline a design variable: the presign, the capability
- * token and the rule that raw R2 keys never reach the browser are untouched by
- * every shape below.
+ * ★ WHAT IS DELIBERATELY NOT ASKED. The MATERIAL is `glass`'s, ruled whole
+ * (Crystal, the double edge, the album behind): the backdrop, the pills' blur
+ * and their grades are settled, and every option here wears the shipped
+ * material rather than answering that question sideways. Whether a guest can
+ * take a photograph back is ruled (`guest-shape`: theirs, for ever); the tile
+ * grammar and the bulk toolbar are `app-vocabulary`'s; the album's column rule
+ * is ruled (`gallery-width`) and worn here as law; the reel is its own board.
+ * Nor is the pipeline a design variable: the presign, the capability token and
+ * the rule that raw R2 keys never reach the browser are untouched by every
+ * shape below.
  *
  * ★ AND THE GESTURE PINS SURVIVE EVERY OPTION. `media-lightbox.test.tsx` holds
  * seventeen pins on the physics (the 10 px axis lock, 20 percent or 0.25 px/ms
@@ -81,32 +107,33 @@ const DRAFT = defineExploration({
   title: "Opening a photograph",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close to one, how a video meets them, how they get back to the album, and whether an open photograph has an address.",
+      "Reshaped by the overtaken audit: seven questions now carry the rulings that reached them as their own context, the opening is asked on the ruled ground rather than against a dark room, the no-name option is gone, and a face-led credit is added.",
   },
   context:
-    "Every album click in the product ends here, and one component serves all six galleries. Every option is drawn on the real pieces over one open wedding, twenty-six items from nine guests, at 375 by 812 with 1440 on the knob, because a guest is at a party holding a phone. The album underneath never moves: the ruled column rule and the shipped tile. Nothing here opens a real dialog, mounts a provider or touches the network beyond the album's own stills and one committed clip.",
+    "Every album click in the product ends here, and one component serves all six galleries. Every option is drawn on the real pieces over one open wedding, twenty-six items from nine guests, at 375 by 812 with 1440 on the knob, because a guest is at a party holding a phone. Two things underneath never move and are worn as law: the ruled column rule with the shipped tile, and the ruled ground, the album blurred at half brightness behind the photograph.",
   bible: [1, 4, 14, 15, 18],
   asks: [
     {
       id: "opening",
       label: "The opening",
-      question: "What should a tap on a photograph open?",
+      question:
+        "How should a photograph arrive on the ground the album makes behind it?",
       context:
-        "A tap opens a dialog over the page: the album goes behind a black wash at 90 percent and the photograph appears wherever it fits, with a close circle, two pills and a counter. Nothing says which tile it came from.",
+        "The ground is ruled and shipped: the album blurred at half brightness behind the lightbox. The arrival is not. Today a photograph fades in centred inside a margin, with nothing to say which tile it came from.",
       options: [
         {
-          id: "dialog",
-          label: "The dark room, as today",
+          id: "fade",
+          label: "It fades in centred, as wired",
           means:
-            "The album dims behind a black wash and the photograph floats in the middle of it, with a margin all round.",
+            "The photograph appears in the middle of the blurred album inside a margin, with nothing to say where it came from.",
         },
         {
           id: "grow",
           label: "The photograph grows out of its tile",
           means:
-            "The tile itself expands to fill the screen on solid black, and closing puts it back where it was in the grid.",
+            "The tile itself expands to fill the screen over the blurred album, and closing puts it back where it was in the grid.",
         },
         {
           id: "sheet",
@@ -117,24 +144,25 @@ const DRAFT = defineExploration({
       ],
       recommended: "grow",
       because:
-        "The album is the product and the viewer is a page-sized hole punched in it. A photograph that comes out of its own tile says which one opened, gives the arrival the one beat the product never gave it, and puts it back where the eye left it.",
+        "The ground already says the album is still there. What it cannot say is which photograph opened. A picture that comes out of its own tile says that, gives the arrival the one beat the product never gave it, and puts it back where the eye left it.",
       overrule:
         "If a guest should keep browsing the album while a photograph is open, the sheet is the only answer that leaves it reachable.",
       lands:
-        "What a tap builds, what the ground behind a photograph is, and whether the album survives the viewer.",
+        "What a tap builds on the ruled ground, and whether a photograph knows which tile it came from.",
       tile: "phone",
       configs: [SCREEN, SHOT],
     },
     {
       id: "holds",
       label: "What it holds",
-      question: "What should stand on the screen beside the photograph?",
+      question:
+        "What shape should the chrome take at rest, now that it carries every action?",
       context:
-        "Today: a close circle, an action pill of five icons, an attribution capsule under it, a counter inside that, and a chevron at each edge. All of it is on from the first frame to the last and none of it ever leaves.",
+        "Ruled: on a phone every action on a photograph lives here, never on its tile; and a crowded top level folds its extras behind one button. Today it is a five-icon capsule over a second capsule, both always on, and a host carries six.",
       options: [
         {
           id: "pills",
-          label: "Two capsules and a counter, as today",
+          label: "Two capsules and a counter, as wired",
           means:
             "Five icons in one capsule over a second capsule carrying the name and the position, both on at all times.",
         },
@@ -153,11 +181,11 @@ const DRAFT = defineExploration({
       ],
       recommended: "strip",
       because:
-        "Two stacked capsules is furniture around what is one sentence and one row of icons. A strip also has room for the fact the viewer has never carried at all: when the photograph was taken.",
+        "Two stacked capsules is furniture around one sentence and one row of icons, and it is the shape with the least room for the host's six. A strip also has room for the fact the viewer has never carried at all: when the photograph was taken.",
       overrule:
         "If a photograph deserves the whole screen with nothing on it, chrome that arrives on a tap is what every serious photo viewer does.",
       lands:
-        "How much of a photograph is chrome at rest, and whether a guest must tap before they can act on one.",
+        "How much of a photograph is chrome at rest, and what room the extras have to fold into.",
       after: { ask: "opening" },
       tile: "phone",
       configs: [SCREEN, ROLE],
@@ -165,36 +193,37 @@ const DRAFT = defineExploration({
     {
       id: "who",
       label: "Who took it",
-      question: "How should a photograph say who took it?",
+      question:
+        "Where should the name, the face and the unverified mark sit on an open photograph?",
       context:
-        "The name sits in a capsule of its own under the actions at 11 px, with a Host badge, Anonymous and an info tip, the host-only email, and the counter on the same line. Half of this album is from people the host has never met.",
+        "Every upload carries a name now, verified or marked, and every account has a seeded face of its own. Today one capsule under the icons carries the name, a Host badge, the position and the host's email, at the smallest size.",
       options: [
         {
           id: "pill",
-          label: "A capsule of its own, as today",
+          label: "A capsule of its own, as wired",
           means:
-            "The name, the badge and the position together in a second capsule below the icons, at the page's smallest size.",
+            "The name, the badge, the mark and the position together in a second capsule below the icons, at the smallest size.",
         },
         {
           id: "foot",
           label: "The name and the time, on the chrome's line",
           means:
-            "Priya, 11:42 pm, at one end of whatever the chrome is, with nothing built around it.",
+            "Priya, 11:42 pm and the mark at one end of whatever the chrome is, with nothing built around them.",
         },
         {
-          id: "none",
-          label: "No name on the photograph",
+          id: "face",
+          label: "A face-led credit at the top, pressable",
           means:
-            "The album is the host's and the photographs are the album's; who pressed the shutter is not on the picture.",
+            "The seeded avatar, the name beside it and the mark on its corner, opposite the close circle, opening the person's page.",
         },
       ],
-      recommended: "foot",
+      recommended: "face",
       because:
-        "Twenty-six photographs from nine people is what a guest album IS, and the name is what makes it a party rather than a folder. It does not need a capsule of its own to say one word.",
+        "Every account has a face now and every name carries a proof state, so a credit is three things rather than one word. A face reads all three at a glance, at reading size, and the shipped capsule's own comment says it is waiting to become a door.",
       overrule:
-        "If a name on a photograph makes a guest think twice before sending one, no name is the answer that protects the uploads.",
+        "If a photograph should carry as little as possible, the name and the time on the chrome's own line says as much with no new furniture.",
       lands:
-        "Whether a guest's name rides their photograph, and where a host reads the email behind an upload.",
+        "Whether a face rides a photograph, where the unverified mark is read, and whether a credit opens a person's page.",
       after: { ask: "holds" },
       tile: "phone",
       configs: [SCREEN, ROLE],
@@ -205,11 +234,11 @@ const DRAFT = defineExploration({
       question:
         "How should the next photograph come, and how should a guest know where they are?",
       context:
-        "A finger drags the photograph and the neighbour follows it in; a mouse gets a chevron at each edge and the arrow keys. The position is spelled out at the foot at all times, in an album that can run to hundreds.",
+        "A finger drags the photograph and the neighbour follows; a mouse gets a chevron at each edge, and the position is written at the foot in an album of hundreds. He kept the swipe for galleries by name, and the upload act draws a strip.",
       options: [
         {
           id: "swipe",
-          label: "Swipe, chevrons and a count, as today",
+          label: "Swipe, chevrons and a count, as wired",
           means:
             "The neighbour follows the finger, a chevron sits in each 30 percent band, and the foot says 17 of 26 at all times.",
         },
@@ -230,7 +259,7 @@ const DRAFT = defineExploration({
       because:
         "The counter's whole job is to say there is more and roughly where you are, and a sliver of the next photograph says both in the album's own material, at no reading cost. It draws the gesture for a first-time guest as well.",
       overrule:
-        "If browsing three hundred photographs is the act rather than looking at one, the filmstrip is the only option a guest can jump with.",
+        "If browsing three hundred is the act rather than looking at one, the filmstrip is the only option a guest can jump with, and the upload act draws one.",
       lands:
         "What the viewer draws at its edges, whether a counter survives, and how a guest reaches a photograph nine along.",
       tile: "phone",
@@ -276,13 +305,14 @@ const DRAFT = defineExploration({
     {
       id: "video",
       label: "A video",
-      question: "How should a video meet a guest?",
+      question:
+        "How should a video meet a guest: playing, waiting, or wearing the browser's bar?",
       context:
-        "A video in the viewer is a native element with the browser's own controls: the OS bar sits on the picture from the first frame, 64 px of the foot is taken out of the swipe for it, and nothing plays until it is pressed.",
+        "A video here is a native element with the browser's own controls: the OS bar sits on the picture from the first frame and 64 px of the foot leaves the swipe for it. One tile draws every grid now and carries the play mark as state.",
       options: [
         {
           id: "controls",
-          label: "The browser's own controls, as today",
+          label: "The browser's own controls, as wired",
           means:
             "Another company's bar, in another company's style, on the photograph, before anything has played.",
         },
@@ -294,14 +324,14 @@ const DRAFT = defineExploration({
         },
         {
           id: "badge",
-          label: "A play button alone",
+          label: "The tile's own play mark, grown up",
           means:
-            "The first frame with one round play button on it, as the tile has, and controls that arrive only once it plays.",
+            "The first frame wearing the shipped play badge exactly as every tile wears it, and controls only once it is playing.",
         },
       ],
       recommended: "badge",
       because:
-        "A video nobody has played is a photograph and should look like one. The browser's bar is the only piece of someone else's design language anywhere in the product, and it sits on the picture.",
+        "A video nobody has played is a photograph and should look like one. The badge is not a new mark: it is the one glyph every tile in the product already carries, at the size a full screen needs.",
       overrule:
         "If an album should feel like the night moving rather than a wall of stills, muted autoplay is what every social viewer does.",
       lands:
@@ -314,7 +344,7 @@ const DRAFT = defineExploration({
       label: "The way out",
       question: "How should a guest get back to the album?",
       context:
-        "Three ways out, and they are not equally findable: a 32 px circle at the top right, a tap on the middle third that nothing announces, and Escape. The outer thirds step forward and back, so a tap meant for back often goes on instead.",
+        "Three ways out, unequally findable: a 32 px circle, a tap on the middle third that nothing announces, and Escape, with the outer thirds stepping on and back. The product teaches a drag back down in a hand now: the guest's sheet.",
       options: [
         {
           id: "three",
@@ -337,7 +367,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "down",
       because:
-        "Every full-screen thing a phone opens closes this way, and it is the only way out on the same finger as the way through. It answers where you were as well: the tile it lands on is your place in the album.",
+        "Every full-screen thing a phone opens closes this way, and the product has the gesture now: the guest's sheet teaches it. It is the only way out on the same finger as the way through, and the tile it lands on is your place in the album.",
       overrule:
         "If a swipe down has to share its axis with a pinch, one circle in one place beats three ways out that argue with each other.",
       lands:
@@ -349,13 +379,14 @@ const DRAFT = defineExploration({
     {
       id: "link",
       label: "A link",
-      question: "Should an open photograph have an address of its own?",
+      question:
+        "Should an open photograph have an address of its own, and what should Share hand on?",
       context:
-        "Nothing about an open photograph reaches the URL. A refresh at a party on bad Wi-Fi puts a guest back at the top of the album, and Share sends the album's link, so whoever opens it lands on the grid and has to hunt for the picture.",
+        "Nothing about an open photograph reaches the URL: a refresh puts a guest back at the top of the album, and Share sends the album's link. The host's share sheet carries that link for a guest to pass on themselves now.",
       options: [
         {
           id: "none",
-          label: "No address, as today",
+          label: "No address, as wired",
           means:
             "The album's link is the only link there is. A refresh loses the photograph and Share sends the whole album.",
         },

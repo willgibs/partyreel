@@ -43,11 +43,12 @@ export async function captureUploadForensics(args: {
       id: string;
       user_id: string | null;
       email: string | null;
+      display_name: string | null;
     } | null = null;
     if (identity.kind === "guest") {
       const { data, error } = await admin
         .from("guests")
-        .select("id, user_id, email")
+        .select("id, user_id, email, display_name")
         .eq("session_token", identity.sessionToken)
         .maybeSingle();
       if (error) throw new Error(`guest lookup: ${error.message}`);
@@ -66,6 +67,11 @@ export async function captureUploadForensics(args: {
         guest_id: guest?.id ?? null,
         guest_user_id: guest?.user_id ?? null,
         guest_email: guest?.email ?? null,
+        // ★ THE TYPED NAME IS PART OF THE EVIDENCE NOW (the identity reshape, 2026-09-21). For a
+        // guest who proved no email it is the WHOLE identity of the uploader, so a lawful process
+        // response that omitted it would describe an upload by nobody. Denormalized at capture
+        // like every other field here: a later rename must not rewrite what was true at the time.
+        guest_display_name: guest?.display_name ?? null,
         device_uuid: deviceUuid,
         ip: facts.ip,
         user_agent: facts.userAgent,

@@ -225,6 +225,10 @@ describe("buildReelProps over guest-shaped items", () => {
       status: "approved",
       uploaderName: "Sam",
       isHost: false,
+      // The identity reshape: a guest item now carries its standing too (unverified here, the
+      // name-only shape). The reel filters on `status`, never on identity, and this fixture is the
+      // guard that adding a field to the guest payload did not change that.
+      isVerified: false,
       isAnonymous: false,
       width: 3024,
       height: 4032,

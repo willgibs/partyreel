@@ -99,9 +99,27 @@ export const ALSO_REACHED = " Also reached by ";
  * the identity board's badges were spent by his own answers rather than by
  * round two, which is the second way a hold ends arriving twice before the
  * first ever did. The map holds no held badge today; the words below and the
- * shape the test proves stay exactly as written, because round two rules on a
- * board whose four rulings are still held and the next question one of them
- * reaches will be badged this way and no other.
+ * shape the test proves stay exactly as written, because the next question a
+ * held ruling reaches will be badged this way and no other.
+ *
+ * ★ AND THE THIRD WAY A HOLD ENDS: HIS OWN NEXT SHAPE SUPERSEDES IT (the
+ * identity reshape, Will, 2026-09-21). `gate=after` was neither lifted by round
+ * two nor spent by an answer to the question it badged: `address=none` removed
+ * anonymity from the product and the host's switch became Require verified
+ * emails, so verification is BEFORE access in the one mode and absent in the
+ * other, and nothing waits on a mail for a photograph to go live. The held
+ * ruling did not lose an argument, the ground it was standing on went, and its
+ * three siblings went the same way in the same paste (`expiry=host` moot,
+ * `badge=mark` and `host-lens=badge` carried onto the unverified name). A
+ * succession is recorded where his words are (docs/design/rulings.md, "the
+ * identity reshape") and NEVER as a badge here, because a hold that has been
+ * superseded leaves no question to badge: this file only says which earlier
+ * ruling a still-open question must be read against. Which is also why the
+ * reshape's own reach, every upload carrying a name, adds nothing below: the
+ * overtaken audit folded that context into the fourteen standing boards'
+ * questions themselves, and a badge would tell him a settled thing twice. One
+ * caveat for whoever writes the next hold: `HELD` still names the round two
+ * that has now happened, and wants renaming with that hold, not before it.
  */
 export const HELD = "held for guest-verify round two: ";
 
@@ -112,9 +130,12 @@ export const isHeld = (note: OvertakenNote): boolean =>
 /** What the ledger says happened to an overtaken ask. Derived, never stored. */
 export type Outcome = "open" | "stood" | "overrode";
 
-/* The fifth batch (2026-09-19): four boards ruled, thirteen reached. */
+/* The fifth batch (2026-09-19): four boards ruled, thirteen reached.
+   `glass` r1's own handle went with the last three badges it wrote, which the
+   overtaken audit folded into their questions (2026-09-21); its round two,
+   `CRYSTAL` below, still reaches. A handle is declared by the pass that needs
+   it and leaves with the last entry that spreads it. */
 const APP_SHAPE = { by: "app-shape", since: "app-shape r1, 19 Sep" } as const;
-const GLASS = { by: "glass", since: "glass r1, 19 Sep" } as const;
 
 /* The sixth batch and its second paste (2026-09-20): eight boards ruled. */
 const GUEST_SHAPE = {
@@ -125,7 +146,6 @@ const VOCABULARY = {
   by: "app-vocabulary",
   since: "app-vocabulary r1, 20 Sep",
 } as const;
-const AVATAR = { by: "seed-avatar", since: "seed-avatar r1, 20 Sep" } as const;
 const ADMIN = { by: "admin", since: "admin r1, 20 Sep" } as const;
 const DOOR = { by: "app-door", since: "app-door r1, 20 Sep" } as const;
 const CRYSTAL = { by: "glass", since: "glass r2, 20 Sep" } as const;
@@ -138,29 +158,23 @@ const PRICING = {
 /* The closing sitting's first batch (2026-09-20, 18:20 EDT): five boards, four
    of them a round two. `body-type` r2 is deliberately absent: a rung that pairs
    an icon with its text is mechanical, it reaches no open question, and round
-   one reached none either. `guest-verify`'s four are HELD (above). */
+   one reached none either. `guest-verify`'s four were HELD (above) and are
+   superseded now, so nothing spreads them; `app-vocabulary` r2's marker went
+   the same way when round one's badges retired with its asks. A BATCH KEEPS ONLY
+   THE MARKERS SOMETHING SPREADS: an unused one is a warning in the gate, and the
+   batch it belonged to is written above it in words either way. */
 const APP_SHAPE_2 = { by: "app-shape", since: "app-shape r2, 20 Sep" } as const;
 const GUEST_SHAPE_2 = {
   by: "guest-shape",
   since: "guest-shape r2, 20 Sep",
 } as const;
-const VOCABULARY_2 = {
-  by: "app-vocabulary",
-  since: "app-vocabulary r2, 20 Sep",
-} as const;
-const VERIFY = {
-  by: "guest-verify",
-  since: "guest-verify r1, 20 Sep",
-} as const;
 
 /* The closing sitting's second batch (2026-09-20, 22:45 EDT; 21 Sep in the
    ledgers, which stamp UTC): thirteen verdicts, four of them a round two and
    `app-pricing` a whole round one. Every one of the five boards retires at its
-   wiring, and a retiring board's ruling goes on reaching from here. */
-const AVATAR_2 = {
-  by: "seed-avatar",
-  since: "seed-avatar r2, 20 Sep",
-} as const;
+   wiring, and a retiring board's ruling goes on reaching from here (`seed-avatar`
+   r2's marker excepted: the one question it reached was `guest-verify.unproven`,
+   which left with that board). */
 const DOOR_2 = { by: "app-door", since: "app-door r2, 20 Sep" } as const;
 const DEMO_2 = { by: "demo-event", since: "demo-event r2, 20 Sep" } as const;
 const PRICING_2 = {
@@ -256,29 +270,15 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // question nobody is asking any more is worse than an answer left
   // orphaned).
 
-  /* ── guest-verify ────────────────────────────────────────────────────── */
-  // Round two relitigates the identity shape whole, so its five asks are the
-  // newest questions on the desk; two of them already have a backdrop that
-  // moved. His own round one answers are HELD (above) and reach from there,
-  // never onto this board: a board never overtakes its own question.
-  "guest-verify.unproven": {
-    ...AVATAR_2,
-    ruling:
-      "a seeded avatar is one identity hue at four tonal depths, hashvatar's own register",
-    line: "stands: the face a mark would ride is a blended mesh now, so a small dot has a busier ground to clear than the flat ramp it was drawn on. Also reached by guest-upload r1, 21 Sep: a photograph waiting on somebody else is a drawn tile now, which is the held option's own mechanism.",
-  },
-  "guest-verify.gate-switch": {
-    ...UPLOAD,
-    ruling:
-      "a photograph held for the host waits at the album's head, dimmed under a clock, on its own device",
-    line: "stands: the uploads section's other switch has a drawn guest side now, so this picks what the account row produces, not whether it has rows.",
-  },
-  "guest-verify.allowance": {
-    ...APP_PRICING,
-    ruling:
-      "a locked control says why it is locked and offers the way through, never just sits unusable",
-    line: "stands: a bound that only refuses is ruled out, so whichever cap wins has to arrive as an offer, and the size of it is still unpicked. Also reached by guest-upload r1, 21 Sep: the act now states its terms before the files fly, which is where a bound would first be said.",
-  },
+  /* ── guest-verify ──────────────────────────────────────────────────
+   * RULED WHOLE AND RETIRED (2026-09-21, `verified-email-lab`). Round two's
+   * `address=none` removed anonymity from the product, which answered the rest
+   * of the board with it, so the three badges this section carried (`unproven`,
+   * `gate-switch`, `allowance`) are gone with the asks they named: a badge
+   * pointing at a question nobody is asking any more is worse than an answer
+   * left orphaned, the same convention as `app-vocabulary`, `toasts` and
+   * `seed-avatar` below. His own round one rulings reached nothing from here in
+   * the end, and the HELD note above says why they never will now. */
 
   /* ── seed-avatar ─────────────────────────────────────────────────────────
    * `look` was the one question a HELD ruling reached and nothing else had
@@ -349,185 +349,51 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * option: one arrival grammar for a guest and a host alike, and a review step
    * before the send. Both reach questions on the standing boards below. */
 
-  /* ── media-viewer ────────────────────────────────────────────────────── */
-  "media-viewer.opening": {
-    ...GLASS,
-    ruling: "the album sits blurred at half brightness behind the lightbox",
-    line: "stands: the ruling fixes the ground behind a photograph, never the way it opens, and growing from its tile still says which one. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, which is the dark room's own shape. Also reached by app-pricing r1, 20 Sep: his pricing object centres at a laptop, so a centred surface is alive again at a desk. Also reached by guest-upload r1, 21 Sep: a tile is where a photograph's own moment is said now, which is the grow option's whole argument.",
-  },
-  "media-viewer.holds": {
-    ...GLASS,
-    ruling: "every action on a photograph lives in the lightbox's controls",
-    line: "stands: the rule says the controls carry every action, not what shape they take, and one strip holds more than two capsules. Also reached by app-vocabulary r1, 20 Sep: he narrowed that rule to a phone. Also reached by app-vocabulary r2, 20 Sep: he refuses a crowded top level and folds the extras behind one button.",
-  },
-  "media-viewer.who": {
-    ...AVATAR,
-    ruling:
-      "every account wears a colour of its own, with the initial at every size",
-    line: "stands: attribution has a face to ride now, so this asks where the name sits rather than whether it has anything to sit on. Also reached by seed-avatar r2, 20 Sep: that face is a four-depth mesh now, so what a name would sit beside got richer rather than plainer. Also reached by guest-upload r1, 21 Sep: what a guest most needs is ruled up to reading size, so a name at the page's smallest argues against that.",
-  },
-  "media-viewer.next": {
-    ...PRICING_2,
-    ruling:
-      "the plans stay a stack at a phone, because a swipe row is the thing a visitor misses",
-    line: "stands: he refused a swipe row for plans and kept the gesture for galleries, which is exactly what a neighbour at the viewer's edge is. Also reached by guest-upload r1, 21 Sep: the act gains a review step before the send, whose thumbnails are the filmstrip's own furniture.",
-  },
-  "media-viewer.video": {
-    ...VOCABULARY,
-    ruling:
-      "one media tile draws every album grid, carrying a play mark as state",
-    line: "stands: the play mark is one component on every tile now, so the badge is the tile's own glyph grown up rather than a new one.",
-  },
-  "media-viewer.link": {
-    ...CREATE,
-    ruling:
-      "the host hands the code over from the share surface, so a guest can pass the link on themselves",
-    line: "stands: he took the surface that lets a guest pass a link on, which is exactly what an address for one photograph would buy.",
-  },
-  "media-viewer.wayout": {
-    ...GUEST_SHAPE,
-    ruling:
-      "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the sheet teaches a drag back down in a hand now, so swiping a photograph into the grid is a gesture the product has. Also reached by pricing-page r2, 20 Sep: he reads a swipe as the thing a visitor misses, so a way out that is only a swipe keeps the circle.",
-  },
-
-  /* ── host-curation ───────────────────────────────────────────────────── */
-  "host-curation.queue": {
-    ...VOCABULARY,
-    ruling:
-      "one media tile draws every album grid, from the guest's to the bin",
-    line: "stands: one tile draws every grid now, so the queue inherits the album's own shapes and the square crop is the exception to build. Also reached by guest-upload r1, 21 Sep: the guest's side of a waiting photograph is drawn now, so the host's queue has a shape to answer.",
-  },
-  "host-curation.verb": {
-    ...GUEST_SHAPE_2,
-    ruling:
-      "a guest's own tiles carry a mark, and a tap on it filters the album to theirs",
-    line: "stands: a tile is ruled to carry a fourth mark now, so the Hidden chip has its precedent and the word on the bar is still unpicked.",
-  },
-  "host-curation.peek": {
-    ...GLASS,
-    ruling: "every action on a photograph lives in the lightbox's controls",
-    line: "concedes: his tiles rule puts every action in the one lightbox, which is this ask's media-viewer option. Also reached by app-vocabulary r1, 20 Sep: he narrowed that rule to a phone, so the desk's half is open again.",
-  },
-  "host-curation.undo": {
-    ...VOCABULARY,
-    ruling:
-      "the review bar and the gallery's bulk bar become one bar with an actions prop",
-    line: "stands: both bulk bars are one component now, so whatever this answers lands on the gallery's bar in the same breath. Also reached by guest-upload r1, 21 Sep: the outcome of a run is ruled onto one surface at its end, which is where a bulk act's way back would sit.",
-  },
-  "host-curation.arrivals": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a new photograph grows into its column and the album re-flows around it",
-    line: "stands: the guest's album already takes an arrival without moving anything else, so the machinery is built and this sets its manners. Also reached by app-shape r2, 20 Sep: a busy band folds its overflow behind one chip that expands in place. Also reached by first-event r1, 21 Sep: the host's page is ruled live, so arrivals in the queue are a matter of manners now, never of capability.",
-  },
-  "host-curation.count": {
-    ...APP_SHAPE,
-    ruling: "the dashboard opens on what needs you: the waiting queues first",
-    line: "stands: the pulse answers the aggregate count, leaving the bell and the chip to agree or go, which is still this question. Also reached by app-shape r2, 20 Sep: he refuses a single event's prompt on the dashboard, which is what the bell is. Also reached by first-event r1, 21 Sep: the header's count is ruled to move as a photograph lands, so one of the three is already live.",
-  },
-  "host-curation.told": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a guest may delete any photograph they uploaded, for ever, and the host cannot restore it",
-    line: "stands: a guest owns their own photographs for good now, which gives the quiet line in their own feed a claim it never had. Also reached by guest-shape r2, 20 Sep: a guest's own tiles carry a mark, which is that line's mechanism already built. Also reached by guest-upload r1, 21 Sep: a guest is told on one surface what did not make it, so telling them has both a place and a precedent.",
-  },
+  /* ── media-viewer, and host-curation ─────────────────────────────────────
+   * ★ FOURTEEN BADGES FOLDED INTO THEIR QUESTIONS AND DELETED (the overtaken
+   * audit, Will 2026-09-21: "for any open questions that have been 'overtaken',
+   * please evaluate whether they should be reshaped or removed"). Seven asks on
+   * each board wore one. None of them was removable: his own criterion is that
+   * a question is deleted only when an earlier selection "has solved it
+   * optimally and offers no potential additional value", and every one of these
+   * fourteen still had a better answer available than the ruling that reached
+   * it. So each was RESHAPED in its own spec, with the ruling written into the
+   * question as the ground its answer stands on, which is where the badge's
+   * context now lives. A badge and a question that already carries the same
+   * fact would say it twice, and the second copy is the one that rots.
+   *
+   * ★ WHAT THE FOLD DID BESIDES MOVE WORDS. `media-viewer.opening` was redrawn
+   * on the ruled ground rather than reworded (the album blurred at half
+   * brightness; the dark room it used to draw was the option `behind=album`
+   * had already killed). `media-viewer.who` LOST an option, the only one this
+   * lane dropped: "no name on the photograph" cannot survive an identity shape
+   * where every upload carries a name, verified or marked. And it GAINED one,
+   * because two rulings made it possible: a credit led by the seeded face every
+   * account now has, pressable as a door to that person's page.
+   *
+   * ★ AND `host-curation.peek` IS THE AUDIT'S OWN CASE, MADE TWICE. It was the
+   * one entry here that CONCEDED, to the rule that every action on a photograph
+   * lives in the lightbox's controls; he then narrowed that rule to a phone in
+   * his own words. A question that had conceded whole is open again on the half
+   * the narrowing left, which is exactly the outcome his flow chart asks for:
+   * an earlier selection must not kill what could have been a better idea. */
 
   /* ── reel-studio ─────────────────────────────────────────────────────── */
-  "reel-studio.door": {
-    ...APP_SHAPE,
-    ruling: "the event is a row of cards: Review, Reel, Guests, Settings",
-    line: "concedes: the Reel card in the hub's row is the door now, and it is none of these three.",
-  },
-  "reel-studio.room": {
-    ...CRYSTAL,
-    ruling:
-      "one glass material everywhere, and the reel's own controls are one pane of it",
-    line: "stands: a control floating over the reel has a ruled material now, so the room's shape is the only thing this still picks.",
-  },
-  "reel-studio.styles": {
-    ...GUEST_SHAPE_2,
-    ruling:
-      "even a guest's first screen wears the one sheet, and no centred float survives at a desk",
-    line: "stands: the sheet is a side panel at a desk now, so the wall stops covering the reel it is picking for, and the rail's case is its size. Also reached by pricing-page r2, 20 Sep: a row a visitor has to swipe is the thing he says gets missed, which is the rail's own risk. Also reached by first-event r1, 21 Sep: he asked for a whole gallery of printed designs, so offering a host many looks is owed twice over.",
-  },
-  "reel-studio.moments": {
-    ...GUEST_SHAPE,
-    ruling:
-      "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the one sheet is a side panel at a desk, so it stops covering the reel there and only a hand still pays this option's price.",
-  },
-  "reel-studio.blocked": {
-    ...VOCABULARY,
-    ruling:
-      "the product's own tooltip opens the instant a pointer arrives, never delayed",
-    line: "stands: our tooltip is ruled and instant now, which replaces the native one at a mouse and still says nothing at all to a thumb.",
-  },
-  "reel-studio.sharing": {
-    ...APP_SHAPE,
-    ruling: "sharing gets one comprehensive sheet, reached from the event",
-    line: "stands: the sheet holds where sharing is asked, never what taking it back costs, which is all this ask decides.",
-  },
-  "reel-studio.wait": {
-    ...APP_PRICING,
-    ruling:
-      "a moment worth celebrating opens a modal, rather than a box at the top of the page",
-    line: "stands: the modal he took is for a moment worth feeling, not a minute of waiting, so a bar on the reel itself keeps its case. Also reached by guest-upload r1, 21 Sep: a stacked tile counting down is the house idiom for a run in progress, and it sits in the grid.",
-  },
-  "reel-studio.guests": {
-    ...DEMO_2,
-    ruling:
-      "the site's demo door is a plain framed still, never the falling engine's own frame",
-    line: "stands: he took a still over a running engine at the site's own door, which is this ask's case against paying for a player on first paint. Also reached by guest-upload r1, 21 Sep: the album's head is ruled to carry a guest's own waiting tile, so a player on first paint wants that room.",
-  },
+  // All eight badges (door, room, styles, moments, blocked, sharing, wait,
+  // guests) were deleted by the overtaken audit (2026-09-21), not by an answer:
+  // Will asked for an overtaken question to be RESHAPED or REMOVED rather than
+  // left standing with a badge on it, and every one of these was reshaped. The
+  // ruling each badge named is now folded into the question's own context, the
+  // door is redrawn onto the event hub's Reel card (`event=hub` deleted the
+  // status row its three options lived in) and `wait` gained the stack the
+  // rulings made possible. Nothing was answered, so nothing is recorded.
 
   /* ── export-flow ─────────────────────────────────────────────────────── */
-  "export-flow.means": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a guest may delete any photograph they personally uploaded, for ever",
-    line: "stands: the product has to know a guest's own photographs for good now, so leading the bundle with them costs nothing new. Also reached by guest-shape r2, 20 Sep: their own tiles carry a mark whose tap is already this bundle's filter. Also reached by first-event r1, 21 Sep: the app makes a PDF of printable stock now, so Download already means more than one kind of file.",
-  },
-  "export-flow.chips": {
-    ...APP_SHAPE_2,
-    ruling: "a band with nothing real in it is absent, never drawn empty",
-    line: "stands: the rule kills the chip that renders a zero and takes the tap, and whether a guest is told of video they cannot have is still open. Also reached by app-pricing r1, 20 Sep: a locked control must say why and offer the way up, never sit there unusable. Also reached by guest-upload r1, 21 Sep: a guest is told the limits of what they may add, so the limits of what they may take are the same manners.",
-  },
-  "export-flow.wait": {
-    ...GUEST_SHAPE,
-    ruling: "the guest's Download wears the one responsive sheet",
-    line: "stands: Download wears the one sheet now, so holding it open until the bytes land is a decision about that sheet. Also reached by guest-upload r1, 21 Sep: bytes in flight are ruled to be narrated in place and silently, which is what watching a zip would be.",
-  },
-  "export-flow.stuck": {
-    ...DOOR,
-    ruling:
-      "a failure keeps its line short and puts the ways out on real buttons",
-    line: "stands: the ways out of a failure are real buttons now, which is Try again by another name, leaving only the timer to pick. Also reached by guest-upload r1, 21 Sep: a run that did not finish is ruled onto one surface at its end, so a hung one has a place to be said.",
-  },
-  "export-flow.hollow": {
-    ...UPLOAD,
-    ruling:
-      "a failed run is read on one surface at its end, never card by card",
-    line: "stands: he refuses a gap a person has to check for themselves, which is this ask's whole case and leaves only how much the file says.",
-  },
-  "export-flow.cap": {
-    ...APP_PRICING,
-    ruling:
-      "a locked control says why and offers the way through, never simply refuses",
-    line: "stands: a refusal that names no number is ruled out, so the limit has to speak before it bites, and whether a zip ever splits is still open. Also reached by guest-upload r1, 21 Sep: the upload act states its terms before the files fly, which is the same manners one step later.",
-  },
-  "export-flow.phone": {
-    ...UPLOAD,
-    ruling:
-      "Add opens our own sheet naming both ways in, never the browser's own chooser",
-    line: "stands: he took our own surface over the system's on the way in, and this asks the same question about the way out.",
-  },
-  "export-flow.object": {
-    ...APP_SHAPE,
-    ruling:
-      "the album's link and a copy button sit under the event's metadata and in the share sheet",
-    line: "concedes: the share ruling already places the link and its copy twice, which is what this ask wanted the dialog to lead with. Also reached by guest-shape r1, 20 Sep: Download is one of the four dialogs on the one sheet. Also reached by app-vocabulary r2, 20 Sep: Download stays a top-level verb beside Select, above the View menu. Also reached by first-event r1, 21 Sep: he took the share surface because a guest can pass the link on, which is this ask's link-first case.",
-  },
+  // The same, for all eight (means, chips, wait, stuck, hollow, cap, object,
+  // phone): every ruling folded into its question, five options a ruling
+  // forbids outright dropped (`chips.three`, `stuck.forever`, `hollow.silence`,
+  // `cap.bite`, `object.link`), and the surface redrawn as the one responsive
+  // sheet `guest-shape` r1 ruled the guest's dialogs onto.
 
   /* ── admin-triage ────────────────────────────────────────────────────── */
   "admin-triage.look": {

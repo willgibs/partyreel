@@ -75,11 +75,37 @@ const WHO: readonly (Pick<
   { uploaderName: "Sam", at: "11:04 pm" },
   { uploaderName: "Dan", at: "9:18 pm" },
   { uploaderName: "Aunt Bev", at: "8:31 pm" },
-  { uploaderName: null, isAnonymous: true, at: "10:05 pm" },
+  { uploaderName: "Nina", at: "10:05 pm" },
   { uploaderName: "Leah", at: "7:47 pm" },
   { uploaderName: "Priya", at: "11:42 pm" },
   { uploaderName: "Ife", at: "9:52 pm" },
 ];
+
+/**
+ * ★ NOBODY IS ANONYMOUS ANY MORE (the identity reshape, Will 2026-09-21:
+ * "we remove the concept of 'anonymous' entirely ... a guest can either upload
+ * with an unverified display name, or must actually verify their email"). The
+ * sixth guest used to be `isAnonymous` and is a typed name with no proof
+ * behind it instead, which is the shape `who` is now asked on: every upload
+ * carries a name, and the ones that have not confirmed an address carry a mark
+ * with it. Priya took the photograph the board opens on, so the mark is on the
+ * stage rather than three tiles down it.
+ */
+const UNPROVEN = new Set(["Priya", "Nina"]);
+
+/** Whether this upload's name is a typed one nobody has proved. */
+export const isUnproven = (item: GridMedia) =>
+  !item.isHost && UNPROVEN.has(item.uploaderName ?? "");
+
+/**
+ * The seed behind the face every account now wears (`seed-avatar` r1 and r2).
+ * A fixture NAME rather than an id: `seedFor` is server-only by design and a
+ * raw account id must never reach a browser that does not already hold it
+ * (src/lib/avatar/seed.ts), so a board that only needs a stable hue per person
+ * hashes something it invented.
+ */
+export const seedOf = (item: GridMedia) =>
+  `mv-${(item.uploaderName ?? "guest").toLowerCase()}`;
 
 /** The index the board opens on: a portrait, sent late, by a guest with a name. */
 export const OPENED = 16;

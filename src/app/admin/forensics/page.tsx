@@ -82,8 +82,9 @@ export default async function ForensicsPage() {
           </div>
           <CardDescription>
             Every completed upload should write one forensic record (IP, agent,
-            geo, device). A gap means the capture seam is failing; check Sentry
-            for forensic_capture_failed.
+            geo, device, and the uploader identity as it stood: account, email,
+            or the name a guest typed at the door). A gap means the capture seam
+            is failing; check Sentry for forensic_capture_failed.
           </CardDescription>
         </CardHeader>
         <CardContent>

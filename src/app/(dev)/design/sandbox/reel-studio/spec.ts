@@ -2,7 +2,8 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE HIGHLIGHT REEL, ROUND ONE (2026-09-19).
+ * THE HIGHLIGHT REEL, ROUND ONE (2026-09-19; reshaped by the overtaken audit,
+ * 2026-09-21).
  *
  * Will (docs/design/rulings.md, 2026-09-19): the app and the guest pages are
  * unprotected, "absolutely everything is up for relitigation or reconcepting
@@ -24,6 +25,17 @@ import { defineExploration } from "@/components/lab/exploration";
  * answerable once it is settled: where fourteen looks live and what the export's
  * minute looks like are both questions about a room that has not been chosen
  * yet, and a blocked tile has no shape until the picker does.
+ *
+ * ★ THE OVERTAKEN AUDIT (Will, 2026-09-21: "For any open questions that have
+ * been 'overtaken', please evaluate whether they should be reshaped or
+ * removed... I'd rather you lean into reshape if you aren't confident in
+ * removal"). All eight questions were badged by a later ruling; none is
+ * removed and no option is dropped. Each one carries the ruling that reached it
+ * INSIDE its own context; `door` is REDRAWN, because `event=hub` took away the
+ * status row its three options lived in and made the Reel card the only door,
+ * so the question is now what that card shows and round one's poster idea moves
+ * onto it; and `wait` gains a fourth answer the rulings made possible, the
+ * reel's own frame stacking and counting down. The round is still round one.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option touches the engine: the fourteen
  * styles are drawn, never re-authored; there is no music, no timeline, no
@@ -90,55 +102,51 @@ const DRAFT = defineExploration({
   title: "The highlight reel",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: the door into the studio, the room at a laptop, where fourteen looks live, where moments are picked, what a tile the reel cannot take says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel.",
+      "The overtaken audit: the door redrawn onto the event hub's Reel card, a fourth answer for the wait in the house's own idiom, and every question reshaped with the ruling that reached it folded in. Nothing answered, no option dropped.",
   },
   context:
-    "A host curates their event's best moments and gets a shareable highlight video. Everything that shapes it lives in one room at /dashboard/[eventId]/reel, and everything in that room was composed for a phone. Every picture here is that room, or the surfaces on either side of it, at 1440 by 900 with 375 on the knob, over one wedding: 148 photographs, eight in the cut. Every reel frame is the real engine drawing the real fixture clips. Nothing on this board presigns, encodes, publishes or writes anything.",
+    "A host curates their event's best moments and gets a shareable highlight video. Everything that shapes it lives in one room at /dashboard/[eventId]/reel, and everything in that room was composed for a phone. Every picture here is that room, the event hub on one side of it or the guest's album on the other, at 1440 by 900 with 375 on the knob, over one wedding: 148 photographs, eight in the cut. Every reel frame is the real engine drawing the real fixture clips. Nothing on this board presigns, encodes, publishes or writes anything.",
   bible: [1, 12, 15, 22],
   asks: [
     {
       id: "door",
       label: "The door",
-      question: "How should a host get into the studio?",
+      question: "What should the event hub's Reel card show?",
       context:
-        "The Studio is the only room with any control over the reel, and the only visible way in from the event page is an 11 px underlined link beside the status chip. The poster below it, which is the reel's own face, is not tappable at all.",
+        "The event page is a hub: a row of cards into Review, Reel, Guests and Settings, with the album beneath them. The Reel card is the only door into the Studio, and it is a 160 by 96 px card with an icon, a word and a count.",
       options: [
         {
-          id: "link",
-          label: "The 11 px link, as today",
+          id: "card",
+          label: "The labelled card, as shipped",
           means:
-            "A text link in the status row, at the page's smallest size, carrying the whole room behind it.",
+            "A clapperboard, the word Reel and the clip count, matching the three cards beside it exactly. The reel's own face is nowhere on the page.",
         },
         {
-          id: "button",
-          label: "A button beside the chip",
+          id: "face",
+          label: "The reel's own face is the card",
           means:
-            "The same row, a real control with the clapperboard on it. One more piece of furniture over the poster.",
-        },
-        {
-          id: "poster",
-          label: "The poster is the door",
-          means:
-            "The reel's own face is the tap, with Edit reel at its corner; the link stays for a keyboard and a screen reader.",
+            "The same footprint, filled with a frame of the reel, Edit reel at its corner and the count on the picture. One card stops matching its neighbours.",
         },
       ],
-      recommended: "poster",
+      recommended: "face",
       because:
-        "The reel's face is the object a host reaches for and it is inert, while the door to every control is a footnote beside it. Making the picture the door costs no furniture and puts the largest thing in the section to work.",
+        "The reel is the product's North Star and the hub shows no sign of it: one of four identical cards says a room exists, where the reel's own frame says what is in it. Round one's poster idea costs no furniture now that the card is the door.",
       overrule:
-        "If a live poster is a strange thing to make a button, the real button is the honest middle.",
+        "If the row reads as one set of doors and a photograph in it breaks the rhythm, the labelled card is the honest one.",
       lands:
-        "What the event page's Reel section offers, and how big the door into the only room with controls is.",
-      configs: [SCREEN, SHARED],
+        "What the event hub shows of the reel, and how big the door into the only room with controls is.",
+      // No `shared` knob: the hub's Reel card reads the clip count and nothing
+      // about sharing, so a knob here would move nothing on the stage.
+      configs: [SCREEN],
     },
     {
       id: "room",
       label: "The room",
       question: "What should the studio be on a laptop?",
       context:
-        "The Studio is a near-black room built for a hand: the reel is capped at 360 px and every control slides up over it. On a 1440 by 900 laptop that same frame sits in a room a thousand pixels wider.",
+        "The Studio is a near black room built for a hand: the reel is capped at 360 px and every control slides over it. At 1440 that frame sits in a room a thousand pixels wider. A pane floating over it now has a ruled material.",
       options: [
         {
           id: "capped",
@@ -150,7 +158,7 @@ const DRAFT = defineExploration({
           id: "float",
           label: "The reel takes the whole room",
           means:
-            "Both caps removed: the reel fills the room, and the header, the dock and the tray float over the black it already stood on.",
+            "Both caps removed: the reel fills the room, and the header, the dock and the tray float over it on the one ruled glass.",
         },
         {
           id: "bench",
@@ -163,7 +171,7 @@ const DRAFT = defineExploration({
       because:
         "Every control here slides over the thing it changes, which is only forgivable in a hand. A laptop has the room to put the work beside the reel, and then picking a look means watching the reel change rather than remembering it.",
       overrule:
-        "If the Studio must read as one room at every size, giving the reel the whole room is most of the win and no second layout.",
+        "If the Studio must read as one room at every size, the reel taking the room on the ruled glass is most of the win and no second layout.",
       lands:
         "The Studio's shape at a laptop, where the reel's frame is capped, and whether a control may cover it.",
       configs: [SCREEN, SHARED, LOOK],
@@ -173,32 +181,32 @@ const DRAFT = defineExploration({
       label: "The looks",
       question: "How should fourteen looks be offered?",
       context:
-        "Fourteen designed looks, each drawn here as a real engine frame of this host's own cut. Today they are a four-column wall in a sheet over the reel, and a finished scrolling rail sits in the code with no caller.",
+        "Fourteen designed looks, each a real engine frame of this host's own cut. Today they are a four column wall in a sheet over the reel. The one sheet is ruled a side panel at a desk, so only a hand still pays that price.",
       options: [
         {
           id: "wall",
-          label: "The four-column wall, as today",
+          label: "The four column wall, in the ruled sheet",
           means:
-            "Fourteen at once, small, in a sheet. Reopening it is cheap; seeing what you just picked is not.",
+            "Fourteen at once: a panel beside the reel at a desk, where it covers nothing, and the same wall over the reel in a hand.",
         },
         {
           id: "rail",
-          label: "One scrolling row, the reel still visible",
+          label: "One scrolling row, the reel always visible",
           means:
-            "The dead rail, resurrected: bigger frames, four or five in view, the reel uncovered above them.",
+            "The dead rail, resurrected: bigger frames, four or five in view, and nothing covering the reel at either size.",
         },
         {
           id: "three",
           label: "Three to start, the rest behind More",
           means:
-            "One look per family at a size you can actually read, and eleven more a tap away.",
+            "One look per family at a size you can actually read, and eleven more a tap away, in whichever posture the sheet takes.",
         },
       ],
-      recommended: "rail",
+      recommended: "wall",
       because:
-        "A look is judged against the reel, so a picker that covers the reel cannot answer its own question. A row keeps it on screen and makes each frame big enough to tell Noir from Editorial.",
+        "The ruled panel answers the old objection where it mattered: at a desk the wall stops covering the reel it is picking for, and fourteen at once is the gallery of designs he asked for after the printed codes. A hand pays what every dialog pays.",
       overrule:
-        "If the room becomes a workbench, the wall covers nothing any more and fourteen at once is the better grid.",
+        "If a look cannot be judged while a bottom sheet covers the reel in a hand, only the rail never covers it.",
       lands:
         "Where the fourteen looks live, how big one is, and whether the reel is visible while a host chooses.",
       after: { ask: "room" },
@@ -209,13 +217,13 @@ const DRAFT = defineExploration({
       label: "The moments",
       question: "Where should a host choose what is in the reel?",
       context:
-        "A tap writes, the dock reshuffles and the player re-cuts. The case for picking inside the Studio is that the reel plays two inches above, but the sheet is 70 percent of the room's height. Drawn in the room you chose.",
+        "A tap writes, the dock reshuffles and the player re cuts. In a hand the sheet is 70 percent of the room's height; at a desk the ruled sheet is already a column beside the reel. The album now sits under the hub's cards.",
       options: [
         {
           id: "sheet",
           label: "The sheet over the reel, as today",
           means:
-            "The album's pool in a tall dark sheet. The reel re-cuts behind it, where it cannot be seen.",
+            "The album's pool in the ruled sheet: a column beside the reel at a desk, and a tall sheet over it in a hand.",
         },
         {
           id: "pool",
@@ -227,14 +235,14 @@ const DRAFT = defineExploration({
           id: "tray",
           label: "The album, with the cut in a tray",
           means:
-            "Picking happens where the photographs are big, on the event page, under a tray holding the cut and the way into the room.",
+            "Picking happens on the hub, where the photographs are full size, under a tray holding the cut and the way into the room.",
         },
       ],
       recommended: "pool",
       because:
-        "The whole case for picking inside the Studio is that the reel answers every tap. A sheet that covers nearly all of it keeps the cost of being in the room and gives none of the benefit.",
+        "This is a long act rather than one pick, and its whole case is that the reel answers every tap. A band under the reel keeps it visible in a hand too, which the ruled sheet cannot: at a desk the two are the same column.",
       overrule:
-        "If a phone cannot spare the height for both at once, the sheet is the honest way to give the pool the screen.",
+        "If a hand cannot spare the height for both, the ruled sheet is what every other dialog does and the tray is where the photographs are big.",
       lands:
         "Where membership is chosen, whether the reel is visible while it is, and what the dock's job becomes.",
       after: { ask: "room" },
@@ -243,15 +251,15 @@ const DRAFT = defineExploration({
     {
       id: "blocked",
       label: "A tile it cannot take",
-      question: "How should a photograph the reel cannot take explain itself?",
+      question: "How should a photograph the reel cannot take answer a thumb?",
       context:
-        "A hidden photograph stays in the pool but cannot be added: the RPC refuses anything unapproved. Today its tile is disabled and the reason rides a native tooltip, which never fires on a touch screen.",
+        "A hidden photograph stays in the pool but cannot be added. Our own tooltip is ruled to open the instant a pointer arrives, so a mouse is answered and a thumb, in the room this was designed for, still is not.",
       options: [
         {
           id: "title",
-          label: "A native tooltip, as today",
+          label: "The ruled tooltip, and nothing else",
           means:
-            "A sentence only a mouse can reach. On the phone this room was designed for, the tile simply does not answer.",
+            "The tile is disabled and the reason lives in the tooltip a pointer gets instantly. A thumb taps and nothing at all answers.",
         },
         {
           id: "toast",
@@ -281,7 +289,7 @@ const DRAFT = defineExploration({
       label: "Sharing",
       question: "How should sharing, and unsharing, be answered?",
       context:
-        "Share is the room's one loud action, and a shared reel rests lit from behind for as long as it is shared. Unshare is that same control tapped again: silent, instant, no confirm and no way back on screen, while guests may have the reel open.",
+        "Share is the room's one loud action and a shared reel rests lit. Unshare is that control tapped again: silent, instant, no way back, while guests may be watching. Sharing is ruled to have one comprehensive sheet.",
       options: [
         {
           id: "silent",
@@ -293,7 +301,7 @@ const DRAFT = defineExploration({
           id: "undo",
           label: "An Undo on the way out",
           means:
-            "Sharing stays one tap and keeps its light. Unsharing lands, then holds the way back for a few seconds.",
+            "Sharing stays one tap and keeps its light. Unsharing lands, then holds the way back in the toast's own action slot.",
         },
         {
           id: "confirm",
@@ -304,9 +312,9 @@ const DRAFT = defineExploration({
       ],
       recommended: "undo",
       because:
-        "Sharing is the celebrated half and should stay one tap; unsharing takes something away from people who may be looking at it right then. Undo is the house answer for a reversible act, and it costs the share nothing.",
+        "Sharing is the celebrated half and should stay one tap; unsharing takes something away from people who may be looking at it right then. Undo is the house answer for a reversible act, and every toast already carries the slot for it.",
       overrule:
-        "If a host needs to know who loses the reel before they take it away, only the panel says it.",
+        "If a host needs to know who loses the reel before they take it away, only the panel says it at the moment of the tap.",
       lands:
         "What unsharing costs, whether the way back is ever on screen, and where the guest count is said.",
       configs: [SCREEN, SHARED],
@@ -316,7 +324,7 @@ const DRAFT = defineExploration({
       label: "The wait",
       question: "What should a host see while their video is being made?",
       context:
-        "Download encodes the mp4 on the host's own device, frame by frame, with real progress. Today a modal covers the room with a spinning clapperboard and a percentage, so the one thing actually being made is hidden behind a description of it.",
+        "Download encodes the mp4 on the host's own device, frame by frame, with real progress; today a modal covers the room. A modal is ruled for a moment worth feeling, and a tile stacked and counting down is the house idiom for a run.",
       options: [
         {
           id: "dialog",
@@ -331,17 +339,23 @@ const DRAFT = defineExploration({
             "A bar across the reel's foot and the percent beside it. The reel keeps playing, and one X cancels.",
         },
         {
+          id: "stack",
+          label: "The reel's own frame becomes the stack",
+          means:
+            "The house idiom, in place: the frame stacks, counts down the moments still to draw, and holds Cancel. It stops playing, because the device is busy.",
+        },
+        {
           id: "quiet",
           label: "It happens behind you",
           means:
             "The tap answers with a line at the foot and the host carries on working; the file arrives with a notice.",
         },
       ],
-      recommended: "player",
+      recommended: "stack",
       because:
-        "The thing being made is on the screen. Covering it to announce that it is being made is backwards, and the dialog's one unique job, cancelling, is a gesture nobody would guess.",
+        "The room's one object is the reel, and the house already says a run in progress by stacking the thing being made and counting it down. It is honest too: the device is drawing those frames, so a reel that claims to keep playing is a fiction.",
       overrule:
-        "If the encode makes the room unusable anyway, the modal is at least honest about what it is costing.",
+        "If the preview really can keep running through the encode, a bar on a playing reel says the same thing with no new furniture.",
       lands:
         "What the export's minute looks like, whether the reel stays visible, and how a host cancels one.",
       after: { ask: "room" },
@@ -352,7 +366,7 @@ const DRAFT = defineExploration({
       label: "How a guest watches",
       question: "How should a guest meet the reel on the album page?",
       context:
-        "On the album the reel is a still poster with a play badge; tapping it opens a full bleed cinema with a flash, the event's name, then the reel looping without chrome. The whole canvas engine loads on that first tap and never before it.",
+        "On the album the reel is a still poster; the tap opens a full bleed cinema, and the canvas engine loads then and never before. The site's demo door is ruled a plain framed still, and the album's head carries a waiting tile.",
       options: [
         {
           id: "overlay",
@@ -375,7 +389,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "overlay",
       because:
-        "The cinema is the product's one theatrical beat and it is built on the swap from a small still. The other two spend the whole canvas engine on the first paint of every album, including for the guests who came only to upload.",
+        "He took a plain framed still over the running engine at the site's own door, and the head of the album is already spoken for by a guest's own waiting tile. The other two spend the whole canvas engine on the first paint of every album.",
       overrule:
         "If the reel is the point of a finished album, playing in place beats a card that has to be found and tapped.",
       lands:

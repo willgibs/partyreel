@@ -1,53 +1,92 @@
 ---
-track: reshape-studio-export
+track: verified-email-guest
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5143c87e"          # the launch-prep SHA the branch was cut from
-board: reel-studio     # and export-flow: both reshaped in place, unanswered, at their round; no retirement, no new board
+cut: "bc28580b"          # the launch-prep SHA the branch was cut from
+board: none            # the identity reshape, wave 1: the door, the credit, the capture flow; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/reel-studio/
-  - src/app/(dev)/design/sandbox/export-flow/
+  - src/components/guest/
+  - src/lib/guest/
+  - src/app/(guest)/
+  - src/components/shared/media-lightbox.tsx
+  - src/components/shared/media-lightbox.test.tsx
+  - src/components/shared/anonymous-info.tsx
+  - src/components/shared/unverified-mark.tsx
+  - src/components/social/guest-list.tsx
+  - src/components/social/guest-list.test.tsx
+  - src/components/auth/account-door.tsx
+  - src/components/auth/account-door.test.tsx
+  - docs/systems/guest-flow.md
+  - docs/systems/auth-accounts.md
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/app/(dev)/design/sandbox/overtaken.ts
-  - src/components/lab/exploration.ts
-  - src/components/lab/board-spec.ts
-  - src/app/(dev)/design/touchpoints.ts
+  - src/lib/validation/profile.ts
+  - src/lib/validation/upload.ts
+  - src/lib/events/gallery-access.ts
+  - src/lib/media/uploader-identity.ts
+  - src/lib/db/queries/guest-events.ts
+  - src/lib/db/queries/social.ts
+  - src/components/app/media-grid.tsx
+  - src/components/app/user-menu.tsx
+  - src/components/shared/masonry.tsx
+  - src/components/shared/set-name-step.tsx
+  - src/components/social/follow-button.tsx
+  - src/components/ui/
+  - src/lib/constants/marketing-voice.ts
   - docs/design/rulings.md
-  - docs/STATUS.md
-  - src/app/(app)/dashboard/[eventId]/reel/
-  - src/components/app/export/
-  - src/components/guest/live-gallery.tsx
 ---
 
-# lp/reshape-studio-export
+# lp/verified-email-guest
 
-**Goal.** A lane of the overtaken audit (Will, 2026-09-21, verbatim in `docs/design/rulings.md` under "the overtaken audit: reshape or remove, and the stacking rule"): "For any open questions that have been 'overtaken', please evaluate whether they should be reshaped or removed", with his criteria (reshape a question that could still offer a better solution than the earlier selection that overtook it, with updated context; remove only a question with zero potential value; "I'd rather you lean into reshape if you aren't confident in removal"; "everything is unprotected and anything may be re-litigated"). The Orchestrator read every badged question against the ruling its badge names and judged each: the verdicts for this lane's boards are the brief below, one line per question, and are the whole reading. This is lab work on the boards' own folders: no production byte.
+**Goal.** Wave 1 of the identity reshape: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. This lane is the guest's door, the credit and the capture flow, on the applied schema. The brief below is the whole reading.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `5143c87e`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `bc28580b`)
 
-- What this is: as Lane 62's first line, for these two boards (the same rules: reshape with the context folded in, dead options dropped, new concepts where a ruling made one possible, the badges deleted as exception lines in `overtaken.ts`, the boards unanswered at their round with `round.changed` saying what moved).
-- reel-studio.door (redraw): the event hub's Reel card is the door (app-shape r1 event=hub), so the status-row link the three options sat in is gone. Ask what the card shows: a labelled card as shipped, or the reel's own face as the door with Edit reel at its corner (the poster idea moved onto the card).
-- reel-studio.room: floating panes wear the ruled glass material (glass r2). Ask the laptop room's shape as before.
-- reel-studio.styles: the sheet is a side panel at a desk (guest-shape r2), so the wall no longer covers the reel there; a whole gallery of printed designs is owed (first-event r1). Ask wall vs rail vs three with a hand as the place the wall still covers the reel.
-- reel-studio.moments: the same posture rule; ask sheet vs pool vs tray with a desk already served by the panel and a hand still paying the sheet's price.
-- reel-studio.blocked: the product's tooltip is instant at a mouse (app-vocabulary r1). Ask the touch half only: what a thumb reads on a blocked tile.
-- reel-studio.sharing: sharing lives on the share sheet (app-shape r1). Ask what unsharing costs and where the count is said, on that sheet.
-- reel-studio.wait (new): the celebration modal is for a moment worth feeling, not a minute of waiting (app-pricing r1); the stack tile counting down is the house idiom for a run in progress (guest-upload r1). Ask what a host sees while the video is made, with a new option: the reel's own frame as a stack counting down in place.
-- reel-studio.guests: the site's demo door is a plain framed still (demo-event r2); the album's head carries a guest's own waiting tile (guest-upload r1). Ask how a guest meets the reel on the album, with first paint's cost and the head's room named.
-- export-flow.means: a guest's own photographs are known and marked and the Yours filter exists (guest-shape r1 and r2); the app makes a PDF of printed stock (first-event r1). Ask what Download hands a guest, with own-first as a bundle the filter already defines.
-- export-flow.chips (dropped `three`): a chip that renders a zero and takes the tap is out (app-shape r2); a lock says why and offers the way (app-pricing r1); a guest is told the limits of what they may add (guest-upload r1). Ask two chips vs the chip that says why.
-- export-flow.wait: Download wears the one sheet (guest-shape r1); bytes in flight are narrated in place and silently (guest-upload r1). Ask whether the sheet holds until the bytes land, a line, or a toast.
-- export-flow.stuck (dropped `forever`): a failure's ways out are real buttons (app-door r1); a run that did not finish is read on one surface at its end (guest-upload r1). Ask timeout vs cancel.
-- export-flow.hollow (dropped `silence`): he refuses a gap a person has to check for themselves (guest-upload r1). Ask after vs refuse.
-- export-flow.cap (dropped `bite`): a refusal that names no number is out (app-pricing r1); the act states its terms before the files fly (guest-upload r1). Ask near vs split.
-- export-flow.phone: he took our own surface over the system's on the way in (guest-upload r1). Ask the way out with that lean named.
-- export-flow.object (dropped `link`): the album's link and its copy sit twice on the page (app-shape r1). Ask whether Download opens a dialog of bundles or just starts.
-- Owns: `src/app/(dev)/design/sandbox/reel-studio/`, `src/app/(dev)/design/sandbox/export-flow/`. Reads: `src/app/(dev)/design/sandbox/overtaken.ts`, `src/components/lab/exploration.ts`, `src/components/lab/board-spec.ts`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/STATUS.md`, `src/app/(app)/dashboard/[eventId]/reel/`, `src/components/app/export/`, `src/components/guest/live-gallery.tsx` (the guest's Download dialog lives in it).
-- Verify: the registry tests and `overtaken.test.ts` green (the sixteen entries deleted); `lab:smoke` whole; `lab:demo --board reel-studio` and `--board export-flow`; both boards at 375 and 1440; the gate.
-- His to overrule: every reshaped framing; the five dropped options; the new stack option; the door's redraw.
+- The name step (`entry-modal.tsx`: `EntryModalHandle.openToName("join" | "edit")`, `nameOpen` ORed into `open`;
+  `EventExperience.openAdd` routes a signed-out visitor at a names-mode event to it when there is no session OR a
+  session with no stored name, holds `pendingAdd`, and never for the demo; `onNamed` closes the shell and opens the
+  intent sheet programmatically), `src/lib/guest/join.ts` (`joinEvent({qrToken, displayName?})`, `renameGuest`; the
+  queue's silent join calls the first without a name), `use-stored-name.ts` (`pr_guest_name_<qr_token>` beside the
+  session and `pr_guest_name_last` as the prefill; `collectStoredSessionTokens` skips both), the guest header's
+  third state (`GuestNameMenu`: the name, "Name not verified", "Confirm your email", "Change name", "Sign in" over a
+  new `DOOR_WEAR.signin`), the reworded gate line and teaser pill, `DOOR_WEAR.save` (heading "Keep your photos";
+  reason "Confirm your email and this event stays on your profile, with every photo you added. Confirming makes a
+  free account.") and `.like`, the pill's mark (`unverified-mark.tsx`: the `MineMark` material; the popover copy;
+  "Confirm your email" on the guest's own credit; the host's extra sentence), `anonymous-info.tsx` deleted, "A guest"
+  for legacy rows, the guest list (`guest-list.tsx`: the unverified chip with the mark and no link; a Follow on
+  handled chips for a signed-in viewer; the empty line "Nobody has added photos yet."), the offer card
+  (`save-account-prompt.tsx` with `{n}` threaded; `pr_pending_offer_<qr_token>` written when the door opens and
+  consumed on the next mount by the slot's owner, `claim-handle-prompt.tsx`, so the redirect paths land the same
+  sequence; the claim awaited before `save_event`; the typed name lands on the profile through `updateDisplayNameAction` when the
+  profile has none, since wave 0 left `claim_anonymous_uploads` unchanged), the follow moment (`follow-moment-card.tsx`; the host's card from
+  `getHostCard` resolved in `page.tsx`; "Claim your handle" folded in as its second line), the 403
+  `verification_required` handling (the failure sheet's line for the remaining files, the session dropped, the gate
+  at the next Add; signed in, a silent re-join). `guest-flow.md` ("Upload lives IN the gallery", the door, the
+  identity block minus the server lane's lines) and `auth-accounts.md:4,112-114` refined in place.
+- Tests (each new file opens with `// @contract-for:`): `entry-modal.test.tsx` (the name step never auto-opens; free
+  dismiss POSTs nothing; Add photos POSTs qr_token and display_name and hands the token up; a reserved name refused
+  in place; edit mode; the demo never opens it), `entry-steps.test.ts` (the flag maps to `teaser`),
+  `guest-upload.test.tsx` (a stored session with a name never joins; a signed-in silent join carries no name; the
+  403 path fills the failure sheet and drops the session), `join.test.ts`, `session-tokens.test.ts` (ignores the name
+  keys), `save-account-prompt.test.tsx` (the sentences; Maybe later; the pending flag consumed on mount; the follow
+  card once; no host card; the handle line when the profile has none), `media-lightbox.test.tsx` (unverified marked
+  with the action on one's own, verified plain, legacy "A guest"; the host's sentence), `guest-list.test.tsx` (the
+  unverified chip, the Follow on a handled chip), `guest-header.test.tsx` (the third state's four items),
+  `account-door.test.tsx` (the three wears). No new floating primitive (said in the Handoff).
+- Owns: `src/components/guest/`, `src/lib/guest/`, `src/app/(guest)/`, `src/components/shared/media-lightbox.tsx`
+  (+ test), `src/components/shared/anonymous-info.tsx` (deleted), `src/components/shared/unverified-mark.tsx` (new),
+  `src/components/social/guest-list.tsx` (+ test), `src/components/auth/account-door.tsx` (+ test),
+  `docs/systems/guest-flow.md`, `docs/systems/auth-accounts.md`. Reads: `src/lib/validation/profile.ts`,
+  `src/lib/validation/upload.ts`, `src/lib/events/gallery-access.ts`, `src/lib/media/uploader-identity.ts`,
+  `src/lib/db/queries/guest-events.ts`, `src/lib/db/queries/social.ts`, `src/components/app/media-grid.tsx`,
+  `src/components/app/user-menu.tsx`, `src/components/shared/masonry.tsx`, `src/components/shared/set-name-step.tsx`,
+  `src/components/social/follow-button.tsx`, `src/components/ui/`, `src/lib/constants/marketing-voice.ts`,
+  `docs/design/rulings.md`. The drawn door and offer (`sandbox/guest-verify/address.tsx`, `collision.tsx`) are read
+  at boot and never listed as reads: the lab lane deletes the folder (R2.14).
+- His to overrule: the name step at the first Add rather than at arrival; the code-led mail; the teaser kept; the
+  tile unmarked; the follow moment's words; "A guest"; the failure sheet as the flip's surface.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
-(no verdict map: the audit's verdicts for this lane's boards are the brief above, one line per question; the rulings they fold in are verbatim in docs/design/rulings.md)
+(no verdict map: one verdict and a note, verbatim in docs/design/rulings.md under "the identity reshape", and his four answers at approval; the brief above is the Orchestrator's whole reading)
 
 ## The ownership rules every lane follows this round
 

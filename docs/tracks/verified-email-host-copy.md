@@ -1,47 +1,89 @@
 ---
-track: verified-email-migration
+track: verified-email-host-copy
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "9c90bc61"          # the launch-prep SHA the branch was cut from
-board: none            # the identity reshape, wave 0: the schema alone; no board
+cut: "bc28580b"          # the launch-prep SHA the branch was cut from
+board: none            # the identity reshape, wave 1: the switch and every sentence; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - supabase/migrations/
-  - src/lib/db/migration-guards.test.ts
-  - src/lib/social/public-profile-visibility.test.ts
-  - src/lib/constants/tiers.test.ts
-  - docs/systems/database-security.md
+  - src/components/app/event-settings/
+  - src/components/app/event-settings-form.tsx
+  - src/components/app/checkout-button.tsx
+  - src/app/(app)/dashboard/[eventId]/guests/
+  - src/lib/events/guest-experience-summary.ts
+  - src/lib/events/guest-experience-summary.test.ts
+  - src/lib/reel/quick-add.ts
+  - src/lib/reel/quick-add.test.ts
+  - src/lib/reel/engine/assets.ts
+  - src/components/ui/confirm-switch.tsx
+  - src/components/ui/confirm-switch.test.tsx
+  - src/components/marketing/sections/
+  - src/components/marketing/faq-data.ts
+  - src/components/marketing/mock-parity.test.ts
+  - src/app/(marketing)/(cinema)/features/guests/page.tsx
+  - src/lib/constants/marketing-voice.ts
+  - src/lib/constants/legal-terms.tsx
+  - src/lib/constants/legal-privacy.tsx
+  - src/lib/constants/legal.ts
+  - src/lib/content/llms.ts
+  - src/lib/content/help-redirects.ts
+  - content/help/
+  - content/blog/
+  - docs/PRD.md
+  - docs/PRICING.md
+  - docs/systems/host-app.md
+  - docs/systems/profiles-social.md
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/lib/validation/profile.ts
-  - src/lib/db/mutations/guest.ts
-  - src/lib/db/mutations/events.ts
-  - src/app/api/guests/route.ts
-  - src/lib/guest/claim-uploads.ts
-  - src/lib/forensics/capture.ts
-  - docs/systems/guest-flow.md
+  - src/lib/media/uploader-identity.ts
+  - src/lib/validation/event.ts
+  - src/lib/db/queries/social.ts
+  - src/components/shared/media-lightbox.tsx
+  - src/components/social/guest-list.tsx
+  - src/lib/content/blog-redirects.ts
+  - src/lib/content-policy.test.ts
+  - src/lib/no-em-dash-policy.test.ts
+  - next.config.ts
   - docs/design/rulings.md
 ---
 
-# lp/verified-email-migration
+# lp/verified-email-host-copy
 
-**Goal.** WAVE 0 of the identity reshape, alone: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. This lane writes the schema and nothing else (the migration, the rolled-back contract check, the tests that parse migration text); the Orchestrator applies it before any other lane is cut, so every function body is carried verbatim from its latest definition and changed only where the brief says. The brief below is the whole reading.
+**Goal.** Wave 1 of the identity reshape: Will's `address=none` on `guest-verify` round two and his note (2026-09-21, build `5e210ef`), verbatim in `docs/design/rulings.md` under "the identity reshape", with his four answers at approval: anonymity leaves the product; the host's switch becomes Require verified emails (on by default); off, a guest types a display name at the door and uploads under it with a small unverified mark; the capture flow after a name-only guest's first upload is wired as the working version. This lane is the host's switch, the host's surfaces and every sentence in the product, the marketing, the help and the legal pages that named the old concept. The brief below is the whole reading.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `9c90bc61`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `bc28580b`)
 
-- The migration in the schema section, whole, every function carried verbatim from its latest definition (the lane
-  hands off the `pg_get_functiondef` diffs it started from) and changed only where the schema section says; every
-  grant and revoke re-asserted (R1.8); the rolled-back contract check as a SQL file in its scratch folder and pasted
-  whole into the Handoff; the text-parity tests: the latest-wins guards in `migration-guards.test.ts` (`create_guest`'s
-  new raise, the nulled name, `verified_at`; `create_media`'s "not accepting" raise; `get_upload_context`'s two keys;
-  `set_guest_display_name`'s revoke and grant; the trigger function's revoke; the claim's update never naming `email`;
-  a new latest-wins guard for `get_event_by_qr_token`'s QA #40 clauses and anon grant; the existing pins carried:
-  `'private'`, `p_unlock_proven`, `'password'`, `'visibility', v_event.visibility`, the exact `get_upload_context` grant
-  string, `for update`), `public-profile-visibility.test.ts` repointed with its gated negative, the `between 1 and 60`
-  parity with `DISPLAY_NAME_MAX_LENGTH`, `tiers.test.ts:201-203` extended. No TypeScript beyond the tests; no docs
-  beyond `database-security.md`'s RPC inventory (the two new functions, the trigger, the forensics column, the
-  profanity note).
-- Owns: `supabase/migrations/`, `src/lib/db/migration-guards.test.ts`, `src/lib/social/public-profile-visibility.test.ts`,
-  `src/lib/constants/tiers.test.ts`, `docs/systems/database-security.md`. Reads: `src/lib/validation/profile.ts`,
-  `src/lib/db/mutations/guest.ts`, `src/lib/db/mutations/events.ts`, `src/app/api/guests/route.ts`,
-  `src/lib/guest/claim-uploads.ts`, `src/lib/forensics/capture.ts`, `docs/systems/guest-flow.md`, `docs/design/rulings.md`.
+- The switch (`uploads-section.tsx`: no inversion; `name="require_verified_email"`, `confirmWhen` on OFF; the copy
+  above; `useWatch` renamed), `event-settings-form.tsx:80`, `confirm-switch.tsx:84` and its test fixture,
+  `guest-experience-summary.ts` (+ test: eight sentences, "confirm their email" / "under a name they choose"), the
+  Guests room (`guests/page.tsx` opting the room into unverified names and its line; `event-settings/profile-social-card.tsx:141-145`:
+  "When this is on, every guest who added photos is listed by name on the album, for anyone who can open it. A name
+  with no verified email behind it wears a small mark."), `host-app.md:46,92-96`, `profiles-social.md:21`, the reel's
+  bucket rename (`quick-add.ts:57-66` + test :225; `engine/assets.ts`'s word). Marketing (the inventory in the facts;
+  every sentence em-dash free; `marketing-voice.ts` gains "NEVER WRITE 'ANONYMOUS': every upload carries a name,
+  verified or marked"; `mock-parity.test.ts` and `use-album-fill.test.ts` re-pinned), the album section's "Anonymous"
+  fixtures become a named, marked guest, the blog posts (eight, `family-reunion-photo-sharing.mdx` included),
+  `llms.ts:101`, `checkout-button.tsx`'s word. Help: `require-accounts-to-upload-explained.mdx` renamed
+  `require-verified-emails-explained.mdx` and rewritten whole, a `help-redirects.ts` on the `blog-redirects.ts`
+  pattern with one spread in `next.config.ts` (an exception line) and a test on the `blog.test.ts:448` pattern; the
+  thirteen other articles reworded; "reports are anonymous" untouched. Legal: Terms 1.2 and Privacy 1.3 (`legal.ts:32`),
+  `legal-terms.tsx:109` (the display-name paragraph gains the event-typed name), `:120`, `:123`, `legal-privacy.tsx:146`,
+  `:288`, `:293` (the opt-out "upload without signing in where the host allows it" goes, since a name-only guest is
+  listed too; "do not upload to that event" stays); the no-rights-tracking rule untouched. `PRD.md:10,19,27,32`,
+  `PRICING.md:54-55,64-65`. THE SWEEP, last: `git grep -in anonymous` across `src/`, `content/`, `docs/`, every hit
+  in the Handoff with its fate (rewritten here; another lane's, named; another sense, left), so the word leaves the
+  product by inspection, not by memory.
+- Owns: `src/components/app/event-settings/`, `src/components/app/event-settings-form.tsx`,
+  `src/components/app/checkout-button.tsx`, `src/app/(app)/dashboard/[eventId]/guests/`,
+  `src/lib/events/guest-experience-summary.ts` (+ test), `src/lib/reel/quick-add.ts` (+ test),
+  `src/lib/reel/engine/assets.ts`, `src/components/ui/confirm-switch.tsx` (+ test), `src/components/marketing/sections/`,
+  `src/components/marketing/faq-data.ts`, `src/components/marketing/mock-parity.test.ts` (never
+  `src/components/marketing/mdx/` or `mdx-components.tsx`: the Orchestrator's), `src/app/(marketing)/(cinema)/features/guests/page.tsx`,
+  `src/lib/constants/marketing-voice.ts`, `src/lib/constants/legal-terms.tsx`, `src/lib/constants/legal-privacy.tsx`,
+  `src/lib/constants/legal.ts`, `src/lib/content/llms.ts`, `src/lib/content/help-redirects.ts` (new), `content/help/`,
+  `content/blog/`, `docs/PRD.md`, `docs/PRICING.md`, `docs/systems/host-app.md`, `docs/systems/profiles-social.md`.
+  Reads: `src/lib/media/uploader-identity.ts`, `src/lib/validation/event.ts`, `src/lib/db/queries/social.ts`,
+  `src/components/shared/media-lightbox.tsx`, `src/components/social/guest-list.tsx`, `src/lib/content/blog-redirects.ts`,
+  `src/lib/content-policy.test.ts`, `src/lib/no-em-dash-policy.test.ts`, `next.config.ts`, `docs/design/rulings.md`.
+  Help and legal are written last, against the two production lanes' merged truth (a sync before the handoff).
+- His to overrule: "Use names only" and the dialog's sentences; the help article's new slug; the legal versions bumped.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

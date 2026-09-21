@@ -181,6 +181,7 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          require_verified_email: boolean
           show_guest_list: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
@@ -203,6 +204,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          require_verified_email?: boolean
           show_guest_list?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -225,6 +227,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          require_verified_email?: boolean
           show_guest_list?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
@@ -317,27 +320,33 @@ export type Database = {
       guests: {
         Row: {
           created_at: string
+          display_name: string | null
           email: string | null
           event_id: string
           id: string
           session_token: string
           user_id: string | null
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           email?: string | null
           event_id: string
           id?: string
           session_token: string
           user_id?: string | null
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           email?: string | null
           event_id?: string
           id?: string
           session_token?: string
           user_id?: string | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -1175,6 +1184,7 @@ export type Database = {
           device_uuid: string | null
           event_id: string
           geo: Json | null
+          guest_display_name: string | null
           guest_email: string | null
           guest_id: string | null
           guest_user_id: string | null
@@ -1195,6 +1205,7 @@ export type Database = {
           device_uuid?: string | null
           event_id: string
           geo?: Json | null
+          guest_display_name?: string | null
           guest_email?: string | null
           guest_id?: string | null
           guest_user_id?: string | null
@@ -1215,6 +1226,7 @@ export type Database = {
           device_uuid?: string | null
           event_id?: string
           geo?: Json | null
+          guest_display_name?: string | null
           guest_email?: string | null
           guest_id?: string | null
           guest_user_id?: string | null
@@ -1342,6 +1354,7 @@ export type Database = {
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
         Args: {
+          p_display_name?: string
           p_qr_token: string
           p_unlock_proven?: boolean
           p_user_id?: string
@@ -1397,6 +1410,7 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
+          require_verified_email: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
@@ -1543,6 +1557,10 @@ export type Database = {
       set_event_slug: {
         Args: { p_event_id: string; p_slug: string }
         Returns: undefined
+      }
+      set_guest_display_name: {
+        Args: { p_display_name: string; p_session_token: string }
+        Returns: Json
       }
       set_reel_guest_visible: {
         Args: { p_event_id: string; p_visible: boolean }

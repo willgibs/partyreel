@@ -39,9 +39,16 @@ export const createEventSchema = z.object({
   // password itself is set/cleared by its own RPC (set_event_password).
   visibility: z.enum(Constants.public.Enums.event_visibility).default("open"),
   accepting_uploads: z.boolean().default(true),
-  // Require accounts to upload by DEFAULT (allow_anonymous_uploads = false): safety + guest-email
-  // capture grows the platform. Free for any tier; turning anon back ON is an opt-in toggle with a
-  // confirm (UploadsSection). Mirrors the events.allow_anonymous_uploads column default (false).
+  // ★ REQUIRE VERIFIED EMAILS, ON BY DEFAULT (the identity reshape, Will 2026-09-21). On, a guest
+  // confirms an email before the full album and any upload; off, they type a display name at the
+  // door and upload under it with an unverified mark. Free on every tier; turning it OFF is the
+  // opt-in, behind a consequence-confirm (UploadsSection). Mirrors the
+  // events.require_verified_email column default (true).
+  require_verified_email: z.boolean().default(true),
+  // ITS LEGACY TWIN, kept for the deploy window only. A DB trigger holds the two exactly opposite
+  // in both directions, so a form that still submits this one lands a consistent row; the new flag
+  // WINS when a write moves both. It leaves with the column (host-app.md), and nothing new should
+  // read or send it. Mirrors the events.allow_anonymous_uploads column default (false).
   allow_anonymous_uploads: z.boolean().default(false),
   // Host-configurable per-upload size cap for GUEST uploads (bytes). null = no host cap
   // (the universal MAX_UPLOAD_BYTES applies). Bounds MIRROR the events_max_upload_bytes_range
