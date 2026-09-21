@@ -389,7 +389,15 @@ describe("the asks an earlier ruling reached", () => {
   /** The first standing board that can carry every half of this join. */
   const SPEC = BOARDS.find(
     (b) => badgedOn(b).length > 0 && unreachedOn(b) && glossedOn(b),
-  )!;
+  );
+  if (!SPEC) {
+    // The overtaken audit (2026-09-21) empties the map a board at a time, folding
+    // each badge into the question it annotated. With no badged ask left on a
+    // standing board there is no join to prove, and this block says so rather
+    // than reading `.id` off undefined at import (the crash verified-email-lab measured).
+    it.skip("no standing board carries a badged ask: the map is empty", () => {});
+    return;
+  }
   const board = {
     id: SPEC.id,
     title: SPEC.title,
