@@ -481,7 +481,7 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 ## Operating facts no other doc holds (the Orchestrator's, carried across sessions)
 
 - **A function replaced by a lane starts from its NEWEST definition (2026-09-19, `profile-wiring`):** the bio migration rebuilt `get_public_profile` from the June file and dropped the July anonymous-viewer gate (`20260729180000`, QA #36); the doc's expected-set paragraph is what caught it at the apply, and `20260919140000` restored it. Before applying any `create or replace function`, diff the file's body against `pg_get_functiondef()` on the live project; the visibility guard now reads the newest file and asserts the clause.
-- **An alias rebuild needs `[preview]` IN THE COMMIT (2026-09-19):** a deployment created by API for a commit whose message lacks it is CANCELED by `vercel-ignore-build.mjs` like any push (one creation wasted on `304a813b`). So a batch's record commit carries `[preview]` from now on (the push already creates the deployment, so the rebuild costs nothing extra), and `alias-force.mjs` is only for a commit that already says it.
+- **An alias rebuild needs `[preview]` IN THE COMMIT (2026-09-19):** a deployment created by API for a commit whose message lacks it is CANCELED by `vercel-ignore-build.mjs` like any push (one creation wasted on `304a813b`). So a batch's record commit carries `[preview]`, and since 2026-09-20 that API creation is the only launch-prep deployment there is (the push creates none).
 - **Two lane incidents (2026-09-19, `profile-wiring`, self-reported):** one force-push to its own branch to amend a manifest SHA (nothing lost; the rule stands: a wrong SHA is fixed by a new commit, now in the spawn brief), and the preview key echoed once into the lane's own terminal (its transcript on this machine; never committed). Will decides whether the key rotates.
 - **Phone widths in Will's Chrome do not take (2026-09-19):** the extension's `resize_window` reports success at 375 but the
   tab's inner width stays 1440, so a 375 pass of a public surface runs in the built-in pane (`resize_window` preset `mobile`,
@@ -560,17 +560,25 @@ templates for one act; a soft-deleted event 404s like a missing one (by design) 
 - **The deployment cap.** Vercel's Hobby team allows 100 deployment CREATIONS per trailing day, and a canceled one
   counts: with six lanes pushing working states and TWO projects on the repo, every lane push created two, and the
   cap hit on 2026-09-19 (`api-deployments-free-per-day`, a 402 on the API too), so the desk sat on `89548cbb`
-  while `app-shape` waited. Since then `vercel.json` carries `git.deploymentEnabled: { "lp/*": false }` (glob keys
-  are supported), so a lane push creates nothing on either project; only `launch-prep` and `main` deploy. The
-  cap is a rolling window: creations age out one by one, and the `[preview]` build resumes when the count drops.
+  while `app-shape` waited; `vercel.json` then took `git.deploymentEnabled: { "lp/*": false }` (glob keys are
+  supported). It hit again on 2026-09-20 on the Orchestrator's OWN pushes (about forty to `launch-prep` by the
+  evening, most of them `[skip ci]` journal and kit commits, each creating two deployments the ignore step
+  canceled at once, and the prune deleting the canceled ones so the dashboard showed almost none), pinning the
+  alias at `c75734b9` from 20:03 EDT. So since 2026-09-20 `launch-prep` is off in `vercel.json` too: NO PUSH
+  CREATES A DEPLOYMENT on either project; `usher/kit/alias-ensure.mjs` creates one per project by API at each
+  record (`SHA=<short> FULL=<full>`), waits for READY, assigns both launch-prep aliases by hand, and the prune covers
+  both projects. A day of records costs about twenty creations. Will's review-branch alternative (a `review` branch
+  fast-forwarded per round) was not taken because the allow-listed URL is the launch-prep alias itself; if an API
+  creation for a disabled branch is ever refused, that alternative is the fallback. The window is rolling:
+  creations age out one by one, and a git creation blocked by the cap fails silently (nothing appears; no error).
 - **Seats.** Six agents at once from 2026-09-19 (Will: "I think we can try +1 agent slot. My computer hasn't felt
   challenged yet today... Seems the concurrent local dev builds may be where it gets dicey", then "let's go +1 agent slot
   again... If we ever start going too fast for your preference, that's your call, and let me know"): the machine has 36 GB,
   a dev server holds 3 to 9 GB, and a `pnpm build` is the spike, so the Orchestrator runs its own gate builds only
   between lane builds where it can and watches `memory_pressure` before a fifth spawn; back to four if a build
   starves. Ports 3131 to 3136.
-- **The alias check.** launch-prep builds only when the pushed head commit carries `[preview]` (a build takes
-  about four minutes). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
+- **The alias check.** A launch-prep deployment exists only because `alias-ensure.mjs` created it for a `[preview]`
+  record commit (a build takes about four minutes; the two projects build at once). Two checks that work (2026-09-18): the Vercel MCP's `list_deployments` shows READY for
   the sha on `launch-prep`; and `curl "<alias>/design/lab?key=<key>"` contains the sha7 (the page prints "Serving build",
   and the stamp rides the RSC payload with ESCAPED quotes, `\"build\":\"<sha7>`, so grep for the bare sha7,
   never for `"build":"`; a poll on the quoted form watched a READY alias for 15 minutes and never matched). The

@@ -248,9 +248,9 @@ The app:
   hook — audience/transport design lands here, and late joiners see the card meanwhile, no catch-up mail).
   Build the foundational features first so
   we know what needs notifying. Extension point: [`systems/notifications-analytics-growth.md`](systems/notifications-analytics-growth.md).
-- **Admin deployment, deferred from `admin-split` (2026-09-18):** revisit the admin project's preview builds if
-  deployment storage bites again (pause its git deployments between rounds; never a path-based skip in
-  `scripts/vercel-ignore-build.mjs`) · give the admin deployment its own Sentry project (it shares `partyreel`'s DSN).
+- **Admin deployment, deferred from `admin-split` (2026-09-18):** give the admin deployment its own Sentry project (it
+  shares `partyreel`'s DSN). (Its preview builds are settled: since 2026-09-20 no push creates one and the record's
+  API creation builds both projects; never a path-based skip in `scripts/vercel-ignore-build.mjs`.)
 - **Admin / operations portal** — the portal is being rethought from the ground up via the lab (`admin` round one, cut 2026-09-18: the shape first; an on-brand devtool per Will's ruling) and split into its own deployment (`admin-split`, integrated 2026-09-18; the cutover complete the same night, `admin.partyreel.com` on its own project). **Found by the `admin` board in the shipped portal (2026-09-18):** `DistributionChart` hard-codes `YAxis width={28}`, so a four-digit tick renders as its last three characters (`/admin/metrics` hits it the day a count reaches 1,000); the home's card grid and the nav list two different portals (Exports has a card and no nav entry; Reels, Forensics and Jobs have a nav entry and no card); four destructive grammars whose friction does not track the damage (pausing the purge sweep is a bare switch, deleting one account retypes an email). **Deferred from the board:** the portal at a phone, for an operator glancing at health away from a desk; an operator audit log (what was done, by whom, with an Undo where one exists), only if the arm-in-place grammar wins decision 5. **P8 backend-ops & observability (the priority piece; the four jobs with no heartbeat are `admin-jobs`, cut 2026-09-18):** every backend
   job (the cron sweeps, the media-backup Worker + DLQ, the **weekly backup prune**, the DB backup)
   manageable + health-surfaced in `/admin` with zero silent failures (a missing nightly backup pages,

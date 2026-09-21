@@ -34,13 +34,20 @@
  * a build for eighty minutes that evening); a finished deployment past its keep count goes
  * whatever its age.
  *
+ * Both projects on the repository are pruned by the same rules, `partyreel` and `partyreel-admin` (the
+ * admin split, 2026-09-18): until 2026-09-20 only the app project was, and the admin project had kept
+ * forty deployments, most of them canceled, that counted against the same team-wide daily cap.
+ *
  * Auth: VERCEL_TOKEN from the environment, or from .env.local, the same team-scoped token the rest
  * of the program uses. Never printed, never committed.
  */
 
 import { execFileSync } from "node:child_process";
 
-const PROJECT_ID = "prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB";
+const PROJECTS = [
+  { name: "partyreel", id: "prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB" },
+  { name: "partyreel-admin", id: "prj_gJhEa7ul4ehpQljDI1EIm6d9jd9D" },
+];
 const TEAM_ID = "team_ht9qAVBQVZf60dpGNJUwmaj5";
 const API = "https://api.vercel.com";
 
@@ -146,12 +153,12 @@ function liveBranches() {
   );
 }
 
-async function allDeployments() {
+async function allDeployments(projectId) {
   const rows = [];
   let until;
   for (;;) {
     const q = new URLSearchParams({
-      projectId: PROJECT_ID,
+      projectId,
       teamId: TEAM_ID,
       limit: "100",
     });
@@ -167,107 +174,117 @@ async function allDeployments() {
 }
 
 const live = liveBranches();
-const deployments = await allDeployments();
-const production = await api(
-  `/v6/deployments?projectId=${PROJECT_ID}&teamId=${TEAM_ID}&limit=1&target=production&state=READY`,
-);
-const productionId = production.deployments?.[0]?.uid ?? null;
-// Guard 0: every deployment an alias of this project points at RIGHT NOW. The branch alias is not
-// always on the newest build: Vercel reported `aliasAssigned: true` for a build whose alias still
-// targeted the previous one, and the first run of the three-per-branch policy (2026-09-18) deleted
-// that target, so the desk answered DEPLOYMENT_NOT_FOUND until the alias was reassigned by hand.
-const aliased = new Set();
-for (let next = null, i = 0; i < 10; i++) {
-  const page = await api(
-    `/v4/aliases?projectId=${PROJECT_ID}&teamId=${TEAM_ID}&limit=100${next ? `&until=${next}` : ""}`,
-  );
-  for (const a of page.aliases ?? []) if (a.deploymentId) aliased.add(a.deploymentId);
-  next = page.pagination?.next ?? null;
-  if (!next) break;
-}
-
-const now = Date.now();
-const branchOf = (d) => d.meta?.githubCommitRef ?? "";
-const newestPerBranch = new Map();
-for (const d of [...deployments].sort(
-  (a, b) => (b.created ?? 0) - (a.created ?? 0),
-)) {
-  const b = branchOf(d);
-  if (b && !newestPerBranch.has(b)) newestPerBranch.set(b, d.uid);
-}
-
-// Newest first within each branch, so "past the keep count" means "older than the ones we keep".
-const seenOnBranch = new Map();
-const keep = [];
-const drop = [];
-for (const d of [...deployments].sort(
-  (a, b) => (b.created ?? 0) - (a.created ?? 0),
-)) {
-  const branch = branchOf(d);
-  const isLive = live.has(branch);
-  const seen = (seenOnBranch.get(branch) ?? 0) + 1;
-  seenOnBranch.set(branch, seen);
-  const limit = keepOverride ?? KEEP_PER_BRANCH[branch] ?? DEFAULT_KEEP;
-
-  let verdict = null;
-  if (d.uid === productionId) verdict = ["keep", "serves production"];
-  else if (aliased.has(d.uid)) verdict = ["keep", "an alias points at it"];
-  else if (now - (d.created ?? 0) < MIN_AGE_MS && !TERMINAL.has(d.state))
-    verdict = ["keep", "in flight, younger than 24h"];
-  else if (newestPerBranch.get(branch) === d.uid && isLive)
-    verdict = ["keep", `newest on ${branch}`];
-  else if (!isLive)
-    verdict = ["drop", `branch "${branch || "(none)"}" no longer exists`];
-  else if (d.state === "CANCELED" || d.state === "ERROR")
-    verdict = ["drop", d.state.toLowerCase()];
-  else if (seen > limit)
-    verdict = ["drop", `#${seen} on ${branch}, past keep ${limit}`];
-  else verdict = ["keep", `#${seen} on ${branch}, within keep ${limit}`];
-
-  (verdict[0] === "keep" ? keep : drop).push({ d, why: verdict[1] });
-}
-
-const day = (ms) => new Date(ms ?? 0).toISOString().slice(0, 10);
 console.log(`live branches: ${[...live].sort().join(", ") || "(none)"}`);
-console.log(
-  `deployments: ${deployments.length} | keep ${keep.length} | delete ${drop.length}`,
-);
-console.log(`production deployment: ${productionId ?? "(none found)"}\n`);
 
-console.log("KEEPING:");
-for (const { d, why } of keep) {
-  console.log(`  ${day(d.created)}  ${d.uid.slice(0, 24).padEnd(26)} ${why}`);
-}
-
-const byReason = new Map();
-for (const { why } of drop) {
-  const bucket = why.replace(/"[^"]*"/, '"…"').replace(/#\d+ on/, "# on");
-  byReason.set(bucket, (byReason.get(bucket) ?? 0) + 1);
-}
-console.log("\nDELETING, by reason:");
-for (const [reason, n] of [...byReason].sort((a, b) => b[1] - a[1])) {
-  console.log(`  ${String(n).padStart(4)}  ${reason}`);
-}
-
-if (!apply) {
-  console.log(
-    "\nDry run. Nothing was deleted. Re-run with --apply to perform it.",
+/** One project's classification and, with --apply, its deletions. */
+async function prune(project) {
+  const deployments = await allDeployments(project.id);
+  const production = await api(
+    `/v6/deployments?projectId=${project.id}&teamId=${TEAM_ID}&limit=1&target=production&state=READY`,
   );
-  process.exit(0);
+  const productionId = production.deployments?.[0]?.uid ?? null;
+  // Guard 0: every deployment an alias of this project points at RIGHT NOW. The branch alias is not
+  // always on the newest build: Vercel reported `aliasAssigned: true` for a build whose alias still
+  // targeted the previous one, and the first run of the three-per-branch policy (2026-09-18) deleted
+  // that target, so the desk answered DEPLOYMENT_NOT_FOUND until the alias was reassigned by hand.
+  const aliased = new Set();
+  for (let next = null, i = 0; i < 10; i++) {
+    const page = await api(
+      `/v4/aliases?projectId=${project.id}&teamId=${TEAM_ID}&limit=100${next ? `&until=${next}` : ""}`,
+    );
+    for (const a of page.aliases ?? []) if (a.deploymentId) aliased.add(a.deploymentId);
+    next = page.pagination?.next ?? null;
+    if (!next) break;
+  }
+
+  const now = Date.now();
+  const branchOf = (d) => d.meta?.githubCommitRef ?? "";
+  const newestPerBranch = new Map();
+  for (const d of [...deployments].sort(
+    (a, b) => (b.created ?? 0) - (a.created ?? 0),
+  )) {
+    const b = branchOf(d);
+    if (b && !newestPerBranch.has(b)) newestPerBranch.set(b, d.uid);
+  }
+
+  // Newest first within each branch, so "past the keep count" means "older than the ones we keep".
+  const seenOnBranch = new Map();
+  const keep = [];
+  const drop = [];
+  for (const d of [...deployments].sort(
+    (a, b) => (b.created ?? 0) - (a.created ?? 0),
+  )) {
+    const branch = branchOf(d);
+    const isLive = live.has(branch);
+    // A canceled or errored deployment is dropped below whatever its rank, so it takes no keep slot:
+    // counting it pushed a READY build past the three (2026-09-20, the admin project's first prune).
+    const takesASlot = d.state !== "CANCELED" && d.state !== "ERROR";
+    const seen = (seenOnBranch.get(branch) ?? 0) + (takesASlot ? 1 : 0);
+    if (takesASlot) seenOnBranch.set(branch, seen);
+    const limit = keepOverride ?? KEEP_PER_BRANCH[branch] ?? DEFAULT_KEEP;
+
+    let verdict = null;
+    if (d.uid === productionId) verdict = ["keep", "serves production"];
+    else if (aliased.has(d.uid)) verdict = ["keep", "an alias points at it"];
+    else if (now - (d.created ?? 0) < MIN_AGE_MS && !TERMINAL.has(d.state))
+      verdict = ["keep", "in flight, younger than 24h"];
+    else if (newestPerBranch.get(branch) === d.uid && isLive)
+      verdict = ["keep", `newest on ${branch}`];
+    else if (!isLive)
+      verdict = ["drop", `branch "${branch || "(none)"}" no longer exists`];
+    else if (d.state === "CANCELED" || d.state === "ERROR")
+      verdict = ["drop", d.state.toLowerCase()];
+    else if (seen > limit)
+      verdict = ["drop", `#${seen} on ${branch}, past keep ${limit}`];
+    else verdict = ["keep", `#${seen} on ${branch}, within keep ${limit}`];
+
+    (verdict[0] === "keep" ? keep : drop).push({ d, why: verdict[1] });
+  }
+
+  const day = (ms) => new Date(ms ?? 0).toISOString().slice(0, 10);
+  console.log(`\n=== ${project.name}`);
+  console.log(
+    `deployments: ${deployments.length} | keep ${keep.length} | delete ${drop.length}`,
+  );
+  console.log(`production deployment: ${productionId ?? "(none found)"}\n`);
+
+  console.log("KEEPING:");
+  for (const { d, why } of keep) {
+    console.log(`  ${day(d.created)}  ${d.uid.slice(0, 24).padEnd(26)} ${why}`);
+  }
+
+  const byReason = new Map();
+  for (const { why } of drop) {
+    const bucket = why.replace(/"[^"]*"/, '"…"').replace(/#\d+ on/, "# on");
+    byReason.set(bucket, (byReason.get(bucket) ?? 0) + 1);
+  }
+  console.log("\nDELETING, by reason:");
+  for (const [reason, n] of [...byReason].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${String(n).padStart(4)}  ${reason}`);
+  }
+
+  if (!apply) {
+    console.log(
+      "\nDry run. Nothing was deleted. Re-run with --apply to perform it.",
+    );
+    return;
+  }
+
+  console.log(`\nDeleting ${drop.length} deployments...`);
+  let done = 0;
+  let failed = 0;
+  for (const { d } of drop) {
+    try {
+      await deleteOne(d.uid);
+      done += 1;
+      if (done % 25 === 0) console.log(`  ${done}/${drop.length}`);
+    } catch (err) {
+      failed += 1;
+      console.error(`  failed ${d.uid}: ${err.message.slice(0, 140)}`);
+    }
+    await sleep(DELETE_DELAY_MS);
+  }
+  console.log(`\nDeleted ${done}, failed ${failed}, kept ${keep.length}.`);
 }
 
-console.log(`\nDeleting ${drop.length} deployments...`);
-let done = 0;
-let failed = 0;
-for (const { d } of drop) {
-  try {
-    await deleteOne(d.uid);
-    done += 1;
-    if (done % 25 === 0) console.log(`  ${done}/${drop.length}`);
-  } catch (err) {
-    failed += 1;
-    console.error(`  failed ${d.uid}: ${err.message.slice(0, 140)}`);
-  }
-  await sleep(DELETE_DELAY_MS);
-}
-console.log(`\nDeleted ${done}, failed ${failed}, kept ${keep.length}.`);
+for (const project of PROJECTS) await prune(project);

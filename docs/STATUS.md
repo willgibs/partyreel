@@ -79,8 +79,8 @@ same night. Its record is the CHANGELOG's second entry.
   `partyreel` (`=app`, so `/admin` is a 404 there); the cron runs on the app surface only; every runbook check is done.
   **The `launch-prep` alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves the fifth
   batch's wave and glass round two (`806695d1`, 2026-09-20; the sixth batch's record moves it next); Will reviews on it as well as his local `pnpm dev`, so **the alias is rebuilt whenever a board changes**. Vercel's cap is
-  100 deployment creations per trailing day (canceled ones included): on 2026-09-19 it held the alias at `89548cbb` for a
-  day, so lane branches no longer create deployments (`vercel.json`), `[preview]` stays the Orchestrator's and the prune runs after every integration. The wiring lanes' surfaces were
+  100 deployment creations per trailing day (canceled ones included, both projects): on 2026-09-19 it held the alias at `89548cbb` for a
+  day, and on 2026-09-20 at `c75734b9` (the Orchestrator's own pushes), so no push to `launch-prep` or a lane creates a deployment any more (`vercel.json`); the Orchestrator creates one per project by API at each `[preview]` record (`usher/kit/alias-ensure.mjs`) and the prune runs on both projects after every integration. The wiring lanes' surfaces were
   red-teamed on it on 2026-09-19 signed out and, in Will's Chrome session, signed in (the album page, the QR door, `/demo`, the
   guest album at 1280 / 1512 / 1920 / 375 both ways, the host event page at 1440 and 375, the dashboard, the root 404): clean;
   batch three's surfaces the same evening (`/how-it-works` both sides and the home's stepper at 1440 and 375, the mega panel's card, the help hub's link, the footer heading; the root, paper, cinema, guest and host 404s, the private lock, the host crash with its copyable code, the admin host's `/nope` and `/features` on its own launch-prep alias; Sentry one `render:app` per crash and none per 404): clean.
