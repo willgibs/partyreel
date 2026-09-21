@@ -1,0 +1,66 @@
+{
+  "board": "app-pricing",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-21",
+      "answers": [
+        {
+          "ask": "object",
+          "choice": "sheet",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "first",
+          "choice": "trigger",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "carry",
+          "choice": "cards",
+          "note": "This is a much cleaner design. It feels more intuitive about what to do next without all the complex toggles getting in the way. We still have the full pricing page for full information. We could include a couple of benefits (Unlimited events, videos, more storage maybe? phrased better)in this more minimal version, though.",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "learn",
+          "choice": "foot",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "pass",
+          "choice": "line",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "doors",
+          "choice": "menu",
+          "note": "If we're going to have a dedicated 'Billing' page (better name), we need to ensure the page has enough settings to justify it. Else we can drop it back into the account page.",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "words",
+          "choice": "chip",
+          "note": "However, the lock chip should also provide context on why it's locked and provide action to upgrade, rather than simply appear unusable. Convert, not block.",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "back",
+          "choice": "finish",
+          "note": "I think a modal could be a more delightful confirmation than the box up top. They should be excited to join Pro. If they did not upgrade from being blocked by a locked action (so they can't be returned to finish the job), this could return them to the dashboard with the upgrade delight 'welcome to pro' modal.",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

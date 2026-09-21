@@ -8,6 +8,21 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-20 · the closing sitting's second batch: the avatar's mesh, the tour as a film, the demo's frame, the pricing page's split and stack, and pricing inside the app
+
+Will, ~22:45 EDT, on the alias's `c75734b9` (pinned there by Vercel's daily cap; none of the five boards changed since), with the instruction "Yes, take the components gallery duplicate key the same way. Next review batch below." The paste verbatim, one line per board:
+
+```
+# build c75734b
+review seed-avatar r2: look=mesh
+review app-door r2: tour=film
+review demo-event r2: door=frame "However, this visual is the same height as the image banner behind, and isn't as noticeable as it could be"
+review pricing-page r2: fit=split "This will override a previous note, but the configurator section directly beneath the plan cards feels much better. We should swap the configurator section and the \"Where Free ends and paid begins.\" upgrade section above. The upgrade section can start the next chapter as an overview, then table next, then FAQ."; phone=stack "Scrolling is a much more common action than swiping, and the swipe cards may be missed. However, we could use swipe cards for mobile elsewhere in the marketing site, such as future gallery-type sections.."
+review app-pricing r1: object=sheet; first=trigger; carry=cards "This is a much cleaner design. It feels more intuitive about what to do next without all the complex toggles getting in the way. We still have the full pricing page for full information. We could include a couple of benefits (Unlimited events, videos, more storage maybe? phrased better)in this more minimal version, though."; learn=foot; pass=line; doors=menu "If we're going to have a dedicated 'Billing' page (better name), we need to ensure the page has enough settings to justify it. Else we can drop it back into the account page."; words=chip "However, the lock chip should also provide context on why it's locked and provide action to upgrade, rather than simply appear unusable. Convert, not block."; back=finish "I think a modal could be a more delightful confirmation than the box up top. They should be excited to join Pro. If they did not upgrade from being blocked by a locked action (so they can't be returned to finish the job), this could return them to the dashboard with the upgrade delight 'welcome to pro' modal."
+```
+
+**Became:** five wiring lanes that retire their boards (`avatar-mesh-wiring`: hashvatar's mesh register in the generator and on every seeded avatar; `welcome-film-wiring`: the tour as five screens, three of the site's bespoke pictures breathing under the copy; `demo-frame-wiring`: one framed photograph with the code in its corner at the hero, the footer, the feature page's line and the nav panel's pane, standing apart from the hero's stream by his note; `pricing-split-wiring`: the split configurator directly beneath the plans, the upgrade section opening the dark chapter, then the table, then the FAQ, the phone row the stack it already is; `app-pricing-wiring`: the pricing sheet opening on its trigger with two cards and a price, the pass line, the quiet foot, a Plan and storage row in the menu, the lock chip that converts rather than blocks, the checkout returning to the locked control with a welcome-to-Pro modal); the desk pass `overtaken-4`; seven of his answers override badges earlier rulings had set (echoed in `_window.json`) and the lanes reconcile with each. No dedicated Billing page: the account page's Plan card is billing's home, and what a page would need to justify itself is listed for his later call. The components gallery's duplicate key: the Orchestrator's, the same way as the library index.
+
 ## 2026-09-20 · the toasts board: five verdicts, every one the board's recommendation
 
 Will, 20:05 EDT, on the alias's `c75734b9` (the paste verbatim, no notes):

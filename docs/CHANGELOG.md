@@ -49,6 +49,8 @@ scratchpad path and the heartbeat pauses Moltbook (`87ede4da`).
 
 - **The library index's duplicate key fixed at `ae20259b`** (2026-09-20, the Orchestrator; Will's report: `/design/library` threw React's "two children with the same key" for `src/components/shared`): the index grouped rows by consecutive runs of `dir` while the rules artifact lists a directory's files in several runs; `groupRowsByDir` (an insertion-ordered map, the artifact's order kept) merges every row of a directory into one group; three unit cases; verified in headless Chrome against the dev tree (188 rows, 38 groups, no console error; a control proves the collector sees a same-key error). The sibling `/design/library/components` still logs its own duplicate key (the ROADMAP's `admin-wiring` line, two Surfaces blocks), untouched.
 
+- **The closing sitting's second batch** (2026-09-20 ~22:45 EDT, build `c75734b`; the paste verbatim in rulings.md): thirteen verdicts on the four drawn round twos and on `app-pricing` whole (eleven the boards' recommendations, two overrules: `phone=stack`, `carry=cards`), seven of them overriding badges earlier rulings had set (echoed in `_window.json`); six lanes cut at this record: `avatar-mesh-wiring`, `welcome-film-wiring`, `demo-frame-wiring` (Sonnet), `pricing-split-wiring`, `app-pricing-wiring`, `overtaken-4` (Opus); five boards retire at their merges. His word on the components gallery's duplicate key: taken the Orchestrator's way, after the cut.
+
 **Next.** The handoffs in the program's order (gate 66 onward), each recorded here through `usher/kit/record.py`; the
 identity board's Handoff read against the invariants before its message; the wiring of `guest-verify` after round two
 rules; no new board.

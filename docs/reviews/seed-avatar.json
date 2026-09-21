@@ -55,6 +55,21 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-21",
+      "answers": [
+        {
+          "ask": "look",
+          "choice": "mesh",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

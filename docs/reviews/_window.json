@@ -169,6 +169,48 @@
           "text": "overridden by app-door.page=beside, 2026-09-20",
           "by": "Will",
           "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "guest-verify",
+          "text": "overridden by seed-avatar.look=mesh, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by app-pricing.object=sheet, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-door",
+          "text": "overridden by app-pricing.first=trigger, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "pricing-page",
+          "text": "overridden by app-pricing.carry=cards, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "pricing-page",
+          "text": "overridden by app-pricing.pass=line, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-pricing.doors=menu, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-vocabulary",
+          "text": "overridden by app-pricing.words=chip, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
         }
       ]
     }

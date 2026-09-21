@@ -65,6 +65,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-21",
+      "answers": [
+        {
+          "ask": "fit",
+          "choice": "split",
+          "note": "This will override a previous note, but the configurator section directly beneath the plan cards feels much better. We should swap the configurator section and the \"Where Free ends and paid begins.\" upgrade section above. The upgrade section can start the next chapter as an overview, then table next, then FAQ.",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "ask": "phone",
+          "choice": "stack",
+          "note": "Scrolling is a much more common action than swiping, and the swipe cards may be missed. However, we could use swipe cards for mobile elsewhere in the marketing site, such as future gallery-type sections..",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
