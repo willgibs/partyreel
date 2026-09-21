@@ -214,6 +214,13 @@ READS.update({"toasts-wiring":["src/components/ui/floating-layer.ts","src/compon
 BOARD.update({"toasts-wiring":"toasts          # wired by this lane; the board retires (its five asks ruled whole)"})
 LANE_SECTION.update({"toasts-wiring":r"Lane 48: `toasts-wiring`"})
 
+# the guest View menu follow-up (2026-09-20 20:25 EDT): the mount guest-chrome-wiring lost with its worktree
+QUEUE.update({"guest-view-menu"})
+OWNS.update({"guest-view-menu":["src/components/guest/live-gallery.tsx","src/app/(guest)/e/[token]/page.tsx","src/app/(guest)/e/[token]/actions.ts","docs/systems/guest-flow.md"]})
+READS.update({"guest-view-menu":["src/components/shared/view-menu.tsx","src/lib/shared/tile-size-cookie.ts","src/components/app/event-feed/event-gallery.tsx","src/app/(app)/dashboard/[eventId]/page.tsx","src/components/shared/masonry.tsx","src/components/guest/guest-masonry.tsx","docs/design/rulings.md"]})
+BOARD.update({"guest-view-menu":"none            # a production follow-up of guest-chrome-wiring (guest-shape retired at fd42c759); no board"})
+LANE_SECTION.update({"guest-view-menu":r"Lane 49: `guest-view-menu`"})
+
 SIXTH={"glass-wiring","guest-wiring","door-wiring","admin-wiring","vocab-wiring","avatar-wiring"}
 OWNS.update({
 "pricing-wiring":["src/app/(marketing)/(cinema)/pricing/","src/components/marketing/sections/pricing/","docs/systems/marketing-content.md"],
