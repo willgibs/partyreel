@@ -366,11 +366,11 @@ describe("the overtaken map", () => {
         (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
       );
     });
-    // A floor, never a census: three in four of these questions were drawn
-    // with a baseline that has since moved, and the map has quadrupled since
-    // the first pass set this at fifteen. It survived fifteen entries leaving
-    // at once, which is what a floor is for.
-    expect(glossed.length).toBeGreaterThanOrEqual(40);
+    // ★ A PROPORTION, NOT A COUNT (the overtaken audit, 2026-09-21): a fixed
+    // floor of 40 fails the day a lane deletes its board's badges rather than
+    // the day the detector breaks. The reading it protects is the RATIO (three
+    // in four drawn against a baseline that moved), which survives an emptying map.
+    expect(glossed.length * 2).toBeGreaterThanOrEqual(KEYS.length);
     expect(glossed).toContain("media-viewer.opening");
     // And a badge written this pass is glossed on exactly the same reading.
     expect(glossed).toContain("contact-page.topic");

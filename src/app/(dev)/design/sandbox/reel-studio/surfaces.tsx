@@ -1,33 +1,32 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import {
   Clapperboard,
+  Copy,
   Download,
-  ExternalLink,
   ImageUp,
+  ListChecks,
+  type LucideIcon,
   Play,
   QrCode,
   RotateCcw,
+  Settings,
   Share2,
   TriangleAlert,
   Undo2,
+  Users,
 } from "lucide-react";
 
 import { MediaTile } from "@/components/app/media-grid";
-import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import {
   formatReelDuration,
   formatReelMeta,
   PosterCard,
   PosterCardChip,
 } from "@/components/reel/poster-card";
-import {
-  ReelShareCard,
-  ReelStatusChip,
-  type ReelPublishController,
-} from "@/components/reel/reel-share-card";
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
+import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { resolveStyleEntry } from "@/lib/reel/engine/style-registry";
@@ -37,29 +36,21 @@ import { EVENT, POOL, REEL, TIMELINE } from "./fixtures";
 import { ReelStill } from "./stills";
 
 /**
- * THE TWO SURFACES ON EITHER SIDE OF THE STUDIO: the host's event page, where
+ * THE TWO SURFACES ON EITHER SIDE OF THE STUDIO: the host's event hub, where
  * the door is, and the guest's album, where the reel ends up.
  *
- * ★ THESE ARE MOSTLY SHIPPED COMPONENTS, NOT REPLICAS. `FeedSectionHeader`,
- * `ReelStatusChip`, `PosterCard`, `ReelShareCard` (and through it the real
- * `ShareCardPublishLight`), `MediaTile` and `GALLERY_COLUMNS` are imported and
- * never edited, so the section Will judges is the section that ships. The share
- * card takes a `ReelPublishController`, which is an ordinary object: the one
- * below holds a state and a `flip` that does nothing, so no action, no RPC and
- * no row is ever touched.
+ * ★ THESE ARE MOSTLY SHIPPED COMPONENTS, NOT REPLICAS. `PosterCard`,
+ * `PosterCardChip`, `MediaTile`, `GALLERY_COLUMNS` and the reel's own
+ * formatters are imported and never edited, so what Will judges on the guest's
+ * side is what ships. The hub's cards row is the one thing copied rather than
+ * mounted, and its own note below says why.
  *
  * ★ WHAT THE CARD REALLY MEASURES AT A LAPTOP. `CanvasReelPlayer` caps itself
  * at `max-w-[360px] mx-auto`, and `PosterCard` is a full-width block around it,
- * so on the event page's `max-w-7xl` column the poster card is over a thousand
- * pixels wide with a 360 px reel floating in the middle of it and the event's
- * name at the far left. That is not a claim this board makes; it is what the
- * stage draws and what the caption reads back.
+ * so a poster in a wide column is over a thousand pixels wide with a 360 px
+ * reel floating in the middle of it. That is not a claim this board makes; it
+ * is what the stage draws and what the caption reads back.
  */
-
-/** A publish controller that holds a state and writes nothing. */
-export function stillController(shared: boolean): ReelPublishController {
-  return { shared, sharedHere: false, pending: false, flip: () => {} };
-}
 
 export const meta = (styleId: string) =>
   formatReelMeta({
@@ -68,103 +59,132 @@ export const meta = (styleId: string) =>
     momentCount: TIMELINE.length,
   });
 
-/* ── the host's event page ───────────────────────────────────────────────── */
+/* ── the host's event hub ───────────────────────────────────────────────── */
 
-/** How a host reaches the room: the `door` decision's option ids. */
-export type DoorShape = "link" | "button" | "poster";
+/** What the hub's Reel card shows: the `door` decision's option ids. */
+export type DoorShape = "card" | "face";
 export const doorOf = (v: string | undefined): DoorShape =>
-  v === "button" || v === "poster" ? v : "link";
+  v === "face" ? "face" : "card";
 
-/** The shipped text link, quoted with its 11px and its underline. */
-function StudioLink() {
-  return (
-    <span
-      data-rs-door
-      className="flex items-center gap-1 rounded text-[11px] font-medium text-muted-foreground underline underline-offset-2"
-    >
-      Open studio
-      <ExternalLink className="size-3" aria-hidden />
-    </span>
-  );
-}
+/**
+ * THE HUB'S CARDS ROW, quoted class for class rather than imported.
+ *
+ * ★ WHY THE DOOR MOVED AT ALL (the overtaken audit, 2026-09-21). Round one
+ * asked about an 11 px link in a status row beside a poster card. `event=hub`
+ * (Will, 2026-09-20: "I love this view. The additional controls feel much more
+ * beautiful, actionable, and intuitive to hosts than the album-heavy page")
+ * deleted that row: the Reel SECTION became a Reel CARD and a room behind it,
+ * and the poster now lives inside the room. So the three options are gone with
+ * the surface they sat on, and the question is what the card shows.
+ *
+ * ★ THE ROW IS COPIED, NOT MOUNTED. `EventCardsRow` is a client component that
+ * calls `useEventShare` (a provider this board has no business standing up),
+ * observes its own stickiness and renders a `next/link` per card. This decision
+ * is about the row AT REST, so the geometry, the ladder step and the three
+ * neighbouring cards are taken verbatim from event-cards-row.tsx (`h-24 w-36
+ * sm:w-40`, `font-heading text-card-title`, the `text-xs` value line) and
+ * nothing here navigates.
+ */
+const CARD_SHELL =
+  "flex h-24 w-36 shrink-0 flex-col justify-between gap-1 rounded-xl border p-3 sm:w-40";
 
-export function EventReelSection({
-  door,
-  shared,
-  still,
-  styleId,
+function RoomCard({
+  label,
+  value,
+  Icon,
 }: {
-  door: DoorShape;
-  shared: boolean;
-  still: string | null;
-  styleId: string;
+  label: string;
+  value: string;
+  Icon: LucideIcon;
 }) {
-  const hugs = door === "poster";
-  const poster = (
-    <div data-rs-poster className="relative">
-      <PosterCard
-        eventName={EVENT.name}
-        meta={meta(styleId)}
-        media={
-          <div className="mx-auto w-full max-w-[360px]">
-            <ReelStill src={still} label="The reel, one frame" />
-          </div>
-        }
-      />
-      {hugs ? (
-        // The corner affordance, so the picture says it is a control rather
-        // than only behaving like one.
-        <span className="pointer-events-none absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/45 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-          <Clapperboard className="size-2.5 text-[oklch(0.8_0.14_300)]" />
-          Edit reel
-        </span>
-      ) : null}
+  return (
+    <div data-rs-card-room className={cn(CARD_SHELL, "border-border")}>
+      <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+      <span className="font-heading text-card-title font-medium">{label}</span>
+      <span className="truncate text-xs text-muted-foreground tabular-nums">
+        {value}
+      </span>
     </div>
   );
+}
 
-  return (
-    <section aria-label="Reel" className="space-y-2.5">
-      <FeedSectionHeader label="Reel" count={TIMELINE.length} />
-      <div className="space-y-3">
-        <div className="flex min-h-7 items-center justify-between gap-2">
-          <ReelStatusChip shared={shared} />
-          {door === "link" ? <StudioLink /> : null}
-          {door === "button" ? (
-            <span data-rs-door>
-              <Button size="sm" variant="outline" className="h-7">
-                <Clapperboard />
-                Open studio
-              </Button>
-            </span>
-          ) : null}
-          {door === "poster" ? (
-            // The link stays for a keyboard and a screen reader; the picture is
-            // the tap. It is quieter than today's because it is no longer the
-            // only way in.
-            <span className="text-[11px] text-muted-foreground underline underline-offset-2">
-              Open studio
-            </span>
-          ) : null}
-        </div>
-        {door === "poster" ? (
-          <button
-            type="button"
-            data-rs-door
-            className="mx-auto block w-full max-w-[360px] text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {poster}
-          </button>
-        ) : (
-          poster
-        )}
-        <ReelShareCard publish={stillController(shared)} />
+/** The one card this decision is about, in whichever shape is being judged. */
+function ReelCard({
+  door,
+  still,
+}: {
+  door: DoorShape;
+  still: string | null;
+}) {
+  const clips = `${TIMELINE.length} clips`;
+  if (door === "card") {
+    return (
+      <div data-rs-door className={cn(CARD_SHELL, "border-border")}>
+        <Clapperboard
+          className="size-4 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+        <span className="font-heading text-card-title font-medium">Reel</span>
+        <span className="truncate text-xs text-muted-foreground tabular-nums">
+          {clips}
+        </span>
       </div>
-    </section>
+    );
+  }
+  return (
+    <div
+      data-rs-door
+      className={cn(
+        CARD_SHELL,
+        "relative justify-between overflow-hidden border-transparent p-0",
+      )}
+    >
+      <div data-rs-face className="absolute inset-0 bg-[oklch(0.16_0_0)]">
+        {still ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a data url the engine just drew
+          <img src={still} alt="The reel" className="size-full object-cover" />
+        ) : null}
+        {/* The wash is what keeps the corner chip and the count legible over a
+            frame nobody chose: the picture is the host's own cut, so it can be
+            any grade at all. */}
+        <span
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/40"
+        />
+      </div>
+      <span className="relative m-2 flex items-center gap-1 self-start rounded-full bg-black/45 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+        <Clapperboard
+          className="size-2.5 text-[oklch(0.8_0.14_300)]"
+          aria-hidden
+        />
+        Edit reel
+      </span>
+      <span className="relative mx-3 mb-3 truncate text-xs font-medium text-white tabular-nums">
+        {clips}
+      </span>
+    </div>
   );
 }
 
-/** Enough of the event page around the section that the door has a place. */
-export function EventPage({ children }: { children: ReactNode }) {
+/**
+ * The event hub the door lives on: the live code at the left of the title, the
+ * row of cards into the rooms, and the album beneath them.
+ *
+ * ★ THE CODE IS HELD, NOT DRAWN. `EventCodeDoor` mounts `StyledQr`, which
+ * dynamically imports `qr-code-styling` and builds an SVG in an effect; inside
+ * a lab frame that lands after the capture and this decision is not about it.
+ * Its 112 px square is held exactly, so the header's geometry, which is what
+ * the cards row sits under, is true.
+ */
+export function EventPage({
+  door = "card",
+  still = null,
+  children,
+}: {
+  door?: DoorShape;
+  still?: string | null;
+  children?: ReactNode;
+}) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-3 sm:px-6">
@@ -173,29 +193,41 @@ export function EventPage({ children }: { children: ReactNode }) {
       </header>
       <div className="flex-1 px-4 py-6 sm:px-6">
         <div className="max-w-7xl space-y-4">
-          <div>
-            <h1 className="font-heading text-page text-balance">
-              {EVENT.name}
-            </h1>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {formatEventDate(EVENT.date)} · {EVENT.photos} photos from{" "}
-              {EVENT.guests} guests
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="flex size-28 shrink-0 items-center justify-center rounded-xl border border-border bg-card">
+              <QrCode className="size-16 text-foreground/85" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-heading text-page text-balance">
+                {EVENT.name}
+              </h1>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatEventDate(EVENT.date)} · {EVENT.photos} photos from{" "}
+                {EVENT.guests} guests
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-[11px] text-faint">
+                partyreel.com/e/{EVENT.token}
+                <Copy className="size-3" aria-hidden />
+              </p>
+            </div>
           </div>
-          <div className="flex gap-1.5">
-            {["All", "Review", "Gallery", "Reel"].map((p) => (
-              <span
-                key={p}
-                className={cn(
-                  "flex h-7 items-center rounded-full border px-3 text-[11px] font-medium",
-                  p === "Reel"
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {p}
-              </span>
-            ))}
+          <div
+            role="group"
+            aria-label="This event"
+            className="flex gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <RoomCard
+              label="Review"
+              value="All caught up"
+              Icon={ListChecks}
+            />
+            <ReelCard door={door} still={still} />
+            <RoomCard
+              label="Guests"
+              value={`${EVENT.guests} guests`}
+              Icon={Users}
+            />
+            <RoomCard label="Settings" value="Public" Icon={Settings} />
           </div>
           {children}
         </div>
@@ -319,6 +351,71 @@ export function FrameProgress({ progress }: { progress: number }) {
       </span>
       <span className="shrink-0 text-[11px] text-white/60">Cancel</span>
     </div>
+  );
+}
+
+/**
+ * THE HOUSE IDIOM, ON THE REEL'S OWN FRAME (the overtaken audit, 2026-09-21:
+ * `app-pricing` r1 ruled the celebration modal for a moment worth FEELING, and
+ * `guest-upload` r1 ruled a stacked tile counting down as what a run in
+ * progress looks like).
+ *
+ * Quoted from `UploadStackTile` rather than invented: two ghost edges behind the
+ * object being made (bible 10's lift, which is really one thing sitting on
+ * several), everything the tile SAYS in one strip at its foot, and that strip on
+ * the ONE material at the marks' blur with the tint re-pointed to 0.34, which is
+ * the measured number that puts white at 4.78:1 over the brightest frame a reel
+ * could draw. What changes is what is being counted: not files still to send,
+ * but moments still to draw.
+ */
+const READING_PANE = { "--glass-tint": "0.34" } as CSSProperties;
+
+export function StackProgress({
+  remaining,
+  progress,
+}: {
+  /** Moments of the cut still to be drawn, this one included. */
+  remaining: number;
+  progress: number;
+}) {
+  return (
+    <>
+      {/* The edge is two boxes, not a shadow: they sit BEHIND the frame inside
+          its own isolate, so only the offset stubs show. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-1.5 -right-1.5 -z-10 size-full rounded-xl bg-white/12"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-[3px] -right-[3px] -z-10 size-full rounded-xl bg-white/20"
+      />
+      <div
+        data-rs-wait
+        style={READING_PANE}
+        className={cn(
+          GLASS_MARK,
+          "absolute inset-x-0 bottom-0 flex items-center gap-2 rounded-b-xl px-2.5 py-2",
+        )}
+      >
+        <span
+          data-rs-said
+          className={cn(
+            GLASS_MARK_LIT,
+            "shrink-0 text-[11px] font-medium text-white tabular-nums",
+          )}
+        >
+          {remaining} to go
+        </span>
+        <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
+          <span
+            className="block h-full rounded-full bg-white"
+            style={{ width: `${progress}%` }}
+          />
+        </span>
+        <span className="shrink-0 text-[11px] text-white/70">Cancel</span>
+      </div>
+    </>
   );
 }
 
