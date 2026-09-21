@@ -73,22 +73,55 @@ const STACK_IDS = {
   ],
 } as const;
 
-/** The ratified V2 stack. aria-hidden: pure identity, the copy carries meaning. */
-function PhotoStack({ ink }: { ink?: boolean }) {
-  const ids = ink ? STACK_IDS.pro : STACK_IDS.free;
-  const n = ids.length;
+/**
+ * The ratified V2 stack. aria-hidden: pure identity, the copy carries meaning.
+ *
+ * EXPORTED for the same reason `StatRow` is: the configurator's result card
+ * answers in this grammar too (`pricing-page` r2, `fit=split`), and a second
+ * copy of a fan of prints is how two decks drift apart one degree at a time.
+ * The three added props all DEFAULT to what the pair has always drawn, so its
+ * two call sites below are untouched by their existence:
+ *
+ *   ids     which prints, head to toe (the pair's own two decks otherwise);
+ *   shown   how many are FANNED OUT. The rest stay folded on the centre at
+ *           zero opacity, which is what makes a deck grow under a slider
+ *           rather than pop a new element in. Keys are the ids, so nothing
+ *           remounts and the transform simply travels;
+ *   faded   Free's grayscale-and-85% treatment. It rides `!ink` by default
+ *           (the pair's own rule: paper is quiet, ink is vivid) and is set
+ *           false by the configurator, where greying the photographs would
+ *           say "Free is lesser" in pictures while the copy says otherwise.
+ */
+export function PhotoStack({
+  ink,
+  ids,
+  shown,
+  faded = !ink,
+}: {
+  ink?: boolean;
+  ids?: readonly string[];
+  shown?: number;
+  faded?: boolean;
+}) {
+  const deck = ids ?? (ink ? STACK_IDS.pro : STACK_IDS.free);
+  const n = deck.length;
+  const out = shown ?? n;
   return (
     <div aria-hidden className="relative h-24">
       <div className="absolute inset-x-0 top-1 flex justify-center">
-        {ids.map((id, i) => {
+        {deck.map((id, i) => {
           const m = marketingImage(id);
           const off = i - (n - 1) / 2;
+          const laid = i < out;
           return (
             <div
               key={id}
-              className="absolute"
+              className="absolute transition-[transform,opacity] duration-300 ease-emphasis motion-reduce:transition-none"
               style={{
-                transform: `rotate(${off * (ink ? 9 : 7)}deg) translateX(${off * 16}px)`,
+                transform: laid
+                  ? `rotate(${off * (ink ? 9 : 7)}deg) translateX(${off * 16}px)`
+                  : "rotate(0deg) translateX(0px) scale(0.92)",
+                opacity: laid ? 1 : 0,
               }}
             >
               <Image
@@ -101,9 +134,8 @@ function PhotoStack({ ink }: { ink?: boolean }) {
                   "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
-                  ink
-                    ? "border-background/90"
-                    : "border-background opacity-85 grayscale",
+                  ink ? "border-background/90" : "border-background",
+                  faded && "opacity-85 grayscale",
                 )}
                 style={
                   {
@@ -264,7 +296,7 @@ function SizeSlider({
           "[&::-webkit-slider-thumb]:-mt-[0.4375rem] [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background",
           "[&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-background",
           "[&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:ease-emphasis",
-          "active:[&::-webkit-slider-thumb]:scale-110 active:[&::-moz-range-thumb]:scale-110",
+          "active:[&::-moz-range-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-110",
           "motion-reduce:[&::-webkit-slider-thumb]:transition-none",
         )}
       />

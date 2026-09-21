@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 883 contracts on 123 components · 22 standing boards.**
+**22 laws · 18 policies · 888 contracts on 124 components · 21 standing boards.**
 
 ## What binds you
 
@@ -333,7 +333,7 @@ function. A contract never freezes a look.
 | `src/components/ui/skeleton.tsx` | the loading block: a shimmer sweep that goes static under reduced motion | none |
 | `src/components/ui/sonner.tsx` | the themed Toaster (`toasts` r1, 2026-09-20, every ask the board's recommendation): top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, one trailing action/cancel slot every toast reserves (a named door, Undo, Retry) and nothing else changes when it is empty | mounts the band at the top, centered, on both host and guest chrome alike; keeps a toast expanded to its full height with no hover; holds an error open past every finite clock while a success clears on its own; gives a persistent error a close control; a clearing success gets none; reserves the action slot only when a call site fills it; still lets a call site override the forced error defaults |
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
-| `src/components/ui/table.tsx` | the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
+| `src/components/ui/table.tsx` |  | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
 | `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
@@ -399,6 +399,7 @@ Contracted but outside the library's directories:
 - `src/components/marketing/sections/events/event-type-card.tsx` (6 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
+- `src/components/marketing/sections/pricing/configurator.tsx` (5 guards)
 - `src/components/marketing/sections/pricing/plan-cards.tsx` (3 guards)
 - `src/components/reel/publish-light.tsx` (26 guards)
 - `src/components/reel/reel-share-card.tsx` (26 guards)
@@ -454,7 +455,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
 | `app-door` | host | Round two, one decision: the tour itself, four whole shapes drawn on the real /welcome at 1440 and 375 with fixtures, the name step untouched and the closing CTA primary and skippable in every one: the three cards with dots as today, a staged tour on the product's own real screens, the twelve bespoke how-it-works pictures in motion, or one screen with no tour at all |
-| `pricing-page` | marketing | Round two, two decisions on the real shipped pair and ticket at 1440 and 375, every price read from tiers.ts and nothing able to reach Checkout: what the Find your size block should be, and what the plans do at 375 now that the swipe demo is repaired and lab:demo-pressed |
 | `app-pricing` | host | Eight decisions on the shipped app chrome with four real hosts (Free at a locked password, Free out of room, a Pro subscriber, an Event Pass holder) at 1440 and 375, every number read from tiers.ts and no preview reaching Stripe: what a pricing click opens, what it opens on, how much it carries, how the marketing page stays one click away, how much of the pass belongs inside, where the app opens it from, how a locked control asks, and what Checkout comes back to |
 | `demo-event` | marketing | One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440. |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
