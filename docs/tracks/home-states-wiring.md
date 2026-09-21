@@ -1,6 +1,6 @@
 ---
 track: home-states-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c75734b9"          # the launch-prep SHA the branch was cut from
 board: app-shape       # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -206,30 +206,108 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the brief's three asks (`empty`, `first`, `busy`) each had a clear ruled answer or an explicit "his to overrule"
+  fallback; nothing hit a genuinely new one-way-door decision.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md`, "Dashboard landing": the four-bullet order rewritten to next-step / storage / your events /
+  Just arrived (was next-step / Just arrived / storage / your events); the "What needs you" bullet gained the fold
+  (`foldNextSteps`, top three by tone, an "N more" chip); a new closing paragraph records `empty` and `first` as checked
+  against app-shape round two and unchanged.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Dead code found, not touched (Now/Cleanup): `src/components/app/dashboard/trash-section.tsx` exports `TrashSection`
+  with zero importers anywhere in the tree (lab or product) as of this lane — `git grep -rn "TrashSection"` finds only
+  its own definition. Kept on disk per this lane's own manifest instruction rather than deleted; a real deletion
+  candidate once an agent re-confirms that's still true.
+- A help article is fully stale (Now/Docs): `content/help/your-dashboard-explained.mdx` still documents the five-chip
+  All/Events/Following/Uploads/Likes/Deleted feed that `home-wiring` removed on 2026-09-20 (round one) — it predates
+  the pulse entirely, not only this round's reorder and fold. Needs a full rewrite, not a patch; flagged for
+  `help-sync` below too.
+- A pre-existing bug outside this lane's `owns`, flagged separately rather than fixed here: the Library index page
+  (`/design/library`) throws a React duplicate-key console error (`src/app/(dev)/design/(shell)/library/index-list.tsx`
+  line 86, two non-adjacent rows both grouped under `src/components/shared`). Reproduces on a clean `launch-prep`
+  checkout with none of this round's lanes' changes applied. Filed as a background task (`task_1ac8911d`).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `0040a0c0` (the wiring), pushed; synced with launch-prep at merge commit `28cff614` — it had moved
+  (`lp/buttons-wiring` and `lp/guest-verify-r2` both merged first). The sync touched three shared files this lane also
+  edits under the retirement exception (`touchpoints.ts`, `sandbox/registry.ts`, `(shell)/lab/boards.ts`): buttons-wiring
+  retired `body-type` on the line directly adjacent to this lane's `app-shape` removal in all three (the import list,
+  `DESK_ORDER`, the `SandboxId` union), so git flagged a real conflict rather than merging clean; resolved by removing
+  both boards' lines together (kept neither), then regenerated `docs/design/library.md` and `rules.generated.json` and
+  reran the whole gate on the synced tree before completing the merge commit.
+- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file
+  path), so the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
+- Gates on the synced tree, each its own exit code, all 0: `design:rules` ok (183 components, 94 indexed, 1314
+  contracts on 117 components from 84 contract tests, 18 policies); the specimen collector ok (140 specimens on 101
+  entries); `typecheck` ok; `lint` ok (8 known warnings, 0 errors — unchanged from baseline); `test` ok (3086 passed, 1
+  skipped, up from ~2805 at the last STATUS snapshot as every lane this round added coverage); `build` ok (255 pages).
+  `pnpm lab:smoke --base http://localhost:3133` ok (439 checks, 0 failing) on the synced tree.
+- No `lab:demo --board app-shape`: the board retires in this same commit (its whole sandbox directory is deleted), so
+  there is nothing left to demo by the time the gate runs. Verified instead, before deleting it: read the board's own
+  three fixture screenshots against the ruled options (`empty.wizard`, `first.pulse`, `busy.collapsed` — the last is
+  the exact picture Will approved: two waiting chips, the storage warning, then "+3 more"), traced `getPulse` and
+  `page.tsx`'s conditionals by hand to confirm `empty` and `first` render identically before and after this change (both
+  states have zero pulse arrivals regardless of band order, and `NextStepBand`/`JustArrived` are gated the same way),
+  and wrote unit tests replicating the exact busy fixture (`next-step.test.ts`, `next-step-band.test.tsx`) that assert
+  the same three chips shown and the same three folded. Also found, independent of any lane's changes, that the
+  app-shape board's own preview already rendered as an empty `<div>` in SSR on a clean `launch-prep` checkout (no
+  console error, no thrown exception — the Suspense boundary just resolved to nothing); moot now that the board is
+  gone, not chased further.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly the owned paths plus five exceptions, all
+  under the round's retirement/for-line exception, all touching ONLY this lane's own board's lines (verified with
+  `git diff origin/launch-prep -- <file>` on each before committing): `src/app/(dev)/design/touchpoints.ts` (removed
+  `app-shape` from `SandboxId` and `DESK_ORDER`, rewrote its `Ruling` as shipped, kept it a `RulingId`);
+  `src/app/(dev)/design/sandbox/registry.ts` and `src/app/(dev)/design/(shell)/lab/boards.ts` (removed `app-shape`'s
+  import and registration only); `src/app/(dev)/design/rules/component-notes.ts` (one new `for` line, for
+  `next-step-band.tsx`, which gained its first contract test); `docs/design/library.md` and
+  `src/app/(dev)/design/rules/rules.generated.json` (mechanically regenerated by `pnpm design:rules` after the edit
+  above, never hand-edited).
+- The items, one line each:
+  - `empty=wizard`: verified unchanged — the shipped zero-event page already renders exactly this (the create teaser
+    and the storage line, both other bands absent); no new Library entry, nothing new was built.
+  - `first=pulse`: verified unchanged — the shipped one-event page already renders today's exact pulse (the calm line,
+    no arrivals, one cover card), no share card added; nothing new was built.
+  - `busy=collapsed`: wired for real. Becomes the Library's own entry for `next-step-band.tsx` ("Contracted but
+    outside the library's directories", `docs/design/library.md`) and the pure `foldNextSteps` rule in
+    `src/lib/dashboard/next-step.ts`.
+- Calls his to overrule (the brief's own list, taken as instructed, plus what implementing it required deciding):
+  - The fold at exactly three chips (the board's own recommendation).
+  - The "+N more" / "Show fewer" wording (precedent, not contract — a real word choice).
+  - The storage line moved above Your events, by his `busy` note's own reading (the sole plausible one: "notices
+    [next-step] & storage are more helpful above" with "just arrived underneath the events").
+  - The pulse's own "Print the code" chip stays untouched (`next-step.ts`'s print branch was not touched at all).
+  - Not asked for either way, and taken as the more accessible reading of "`aria-expanded` on the control": the
+    disclosure REVERSES on a second click ("Show fewer" collapses back) rather than being a one-way reveal that
+    vanishes once pressed, as the lab's own draft did.
+  - One small delight, easily dropped: the "+N more" chip's chevron rotates 180° on expand (`ease-emphasis`, matching
+    the band's existing hover motion language), still under `motion-reduce:transition-none`.
+- Red-team: the dashboard is signed-in-gated and explicitly named in STATUS.md as a surface no lane can reach
+  ("the dashboard's order and collapse... are Will's on the alias") — not attempted here. Locally verified instead:
+  `/dashboard` correctly redirects to `/login` when signed out (no crash, no console error beyond the expected dev-mode
+  HMR noise); the busy fixture's exact chip set and fold behaviour is pinned by the two new test files above.
+- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them): `content/help/your-
+  dashboard-explained.mdx` (already fully stale from `home-wiring`'s round one — still describes the five-chip
+  All/Events/Following/Uploads/Likes/Deleted feed the pulse replaced; this lane's reorder and fold are one more layer
+  of drift on top, not the root cause).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the busy host's fold, signed in as a host with 4+ next-steps at once (`willg97`'s real account, or any
+  seeded equivalent) — press "+N more", confirm it expands in place and "Show fewer" collapses it back, and that the
+  band order reads next-step / storage / your events / Just arrived. The empty and one-event states are lower
+  priority: traced by hand and unit-tested to be pixel-for-pixel unchanged from before this lane touched anything.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). `home-states-wiring` verified the shipped dashboard's zero-event and
+one-event states hold unchanged against app-shape round two (`empty=wizard`, `first=pulse`), then wired `busy=collapsed`
+for real: a pure `foldNextSteps` rule (top three by tone, a stable sort) and `NextStepBand`'s own fold UI (an "N more"
+chip that expands in place, `aria-expanded`, `data-settings-reveal` for the reduced-motion-safe reveal), plus the page's
+band order corrected to next-step / storage / your events / Just arrived by his verbatim note. `app-shape` retires: its
+sandbox directory is gone and its own lines only left `touchpoints.ts`, `registry.ts` and `(shell)/lab/boards.ts`. One
+stale help article and one dead component (`TrashSection`, zero importers) flagged rather than touched; a pre-existing
+Library-index React key bug found and filed separately (`task_1ac8911d`), unrelated to this change.
