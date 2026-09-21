@@ -79,6 +79,11 @@ constants at their heads; a new session sets `$S` to its own scratchpad and runs
   unmatched ROADMAP retirement, the key's host guard); a refusal that has gone quiet is this script's own failure. Run it
   after any change to the kit and before the first integration of a day.
 
+- `cost-readings.mjs` (2026-09-21): re-reads the cost a refusal was written for from the system as it is now, with its
+  source and date (the first reading: the deployment cap, creations in the trailing day counted from both projects'
+  lists, a floor since the prune deletes canceled ones), and says whether the refusal still earns its keep; run at
+  the end of `negative.sh` as a report. A refusal whose cost cannot be re-read by a script has only the next mistake
+  as its staleness detector: the next readings to build are deployment storage and the merge replay.
 - `review-sheet.mjs <batch.txt> [out.html]` (2026-09-20): Will's paste as one page, each verdict beside the drawing it
   answered: the question, the chosen option's label and what it lands, confirms or overrules the recommendation, his note
   verbatim, the deep link to the live step, and the lane's own capture of that option when one exists in the scratchpad
