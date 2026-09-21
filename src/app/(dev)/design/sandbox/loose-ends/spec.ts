@@ -10,15 +10,24 @@ import { defineExploration } from "@/components/lab/exploration";
  * 1023, and the album page's three ambient pieces (the phone's screen cycle,
  * the Live | Review photograph, the lightbox pill). No production byte moves
  * here; a pick is wired later, most in one small sweep.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FIVE OF THE SIX. The
+ * charts' own context now names the admin portal that leads on them daily;
+ * `faq-look` names pricing's own FAQ folding and closing the page last;
+ * `review-photo`'s queue frame is redrawn on the real waiting tile
+ * (guest-upload r1) and ranked against his own legibility test (demo-event
+ * r2); `everywhere-pill` drops `hover` (ruled a desk verb, app-vocabulary
+ * r1) for a new option, the product's own sweep (guest-upload r1). Only
+ * `hero-tablet` and `phone-cycle` are untouched: no badge named them.
  */
 export const LOOSE_ENDS = defineExploration({
   id: "loose-ends",
   title: "Six loose ends",
   round: {
     n: 1,
-    date: "2026-09-18",
+    date: "2026-09-21",
     changed:
-      "The first round: the chart ramp's cast, one FAQ look, the hero at tablet widths, and the album's three ambient pieces, each drawn on its real surface with a recommendation.",
+      "The overtaken audit's reshape: the chart casts now name the portal's daily read (admin r1); faq-look notes pricing's FAQ folded and closing last; review-photo's queue box redrawn with the real waiting tile's dim and clock mark; everywhere-pill drops hover for the product's own sweep.",
   },
   bible: [1, 5, 12, 14],
   context:
@@ -30,7 +39,7 @@ export const LOOSE_ENDS = defineExploration({
       label: "Chart ramp, light",
       question: "How should the five chart tones read in light mode?",
       context:
-        "`--chart-1..5` is pure grey while every surface beside it, from the card to the hairline border, carries Graphite's cool cast. Drawn on the real MetricsCharts with a five-source distribution and a two-line trend.",
+        "`--chart-1..5` is pure grey while every surface beside it carries Graphite's cool cast. The portal now opens on these very charts, the first thing an operator reads every day (admin r1).",
       options: [
         {
           id: "today",
@@ -59,7 +68,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "graphite",
       because:
-        "It is the one option that makes the ramp agree with everything beside it, at a chroma nobody consciously sees.",
+        "It is the one option that makes the ramp agree with everything beside it, at a chroma nobody consciously sees, and that read now greets an operator daily rather than sitting on a settings page nobody opens.",
       overrule:
         "If a chart should read as its own instrument, today's pure grey or the single accent.",
       lands: "--chart-1..5 in globals.css, the light block.",
@@ -69,7 +78,7 @@ export const LOOSE_ENDS = defineExploration({
       label: "Chart ramp, dark",
       question: "How should the same five tones read in dark mode?",
       context:
-        "Dark re-ramps the same five steps brighter on near-black. Chosen separately from light, on the same two charts, the card on the room's own dark ground.",
+        "Dark re-ramps the same five steps brighter on near-black. The portal's own devtool chrome (a 44px bar, a health band: admin r1) is what an operator now lives in daily, chosen separately from light, on the same two charts.",
       options: [
         {
           id: "today",
@@ -97,7 +106,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "graphite",
       because:
-        "Dark leans on surface steps for depth; a cool cast already tells a card from the room, and the ramp joining it costs nothing legible.",
+        "Dark leans on surface steps for depth; a cool cast already tells a card from the room an operator now opens daily, and the ramp joining it costs nothing legible.",
       overrule:
         "Same reservations as light: an instrument reads on its own in pure grey, or with one accent.",
       lands: "--chart-1..5 in globals.css, the .dark block.",
@@ -109,7 +118,7 @@ export const LOOSE_ENDS = defineExploration({
       label: "One FAQ look",
       question: "Which look should every FAQ on the site share?",
       context:
-        "Home and pricing set a question as a 16/600 heading; /events and every /features page set it quieter at 14/500 in a <summary>, not a heading. Flip Source to compare pricing against the album page, both at 1440 and 375.",
+        "Home and pricing set a question as a 16/600 heading; /events and every /features page set it quieter at 14/500 in a <summary>. Pricing's FAQ is folded and now closes last, after the overview and table (pricing-page r1, r2).",
       options: [
         {
           id: "card",
@@ -132,7 +141,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "heading",
       because:
-        "It fixes the one real gap, a summary read by nothing as a heading, without making a nine-question feature page heavier.",
+        "It fixes the one real gap, a summary read by nothing as a heading, without making a nine-question feature page heavier; pricing's FAQ now carries more weight too, closing its page on this exact look last.",
       overrule:
         "If one visual weight matters more than list density, the card step everywhere.",
       lands:
@@ -227,7 +236,7 @@ export const LOOSE_ENDS = defineExploration({
       question:
         "Which photograph should travel through the Live | Review switch?",
       context:
-        "review-switch.tsx flies one photograph from the phone to the queue to the album, the same image throughout. Today's champagne toast is dim and busy at the queue's 56 px size. Drawn on the real switch, both positions.",
+        "review-switch.tsx flies one photo from phone to queue to album, now dimmed with a clock mark like the real waiting tile (guest-upload r1). His test since (demo-event r2): a visual no louder than what's behind it isn't noticeable.",
       options: [
         {
           id: "today",
@@ -249,7 +258,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "rings",
       because:
-        "It stays legible at the queue's 56 px size, where today's photo turns to a dark blur, and it is still a personal, candid frame rather than a decor shot.",
+        "It stays legible at the queue's 56px size under the new dim, where today's photo turns to a dark blur his own legibility test would fail; it is still a personal, candid frame rather than a decor shot.",
       overrule:
         "If every plate should share the album's own palette instead, today's photograph already matches it.",
       lands: "The UPLOAD constant in review-switch.tsx.",
@@ -259,9 +268,10 @@ export const LOOSE_ENDS = defineExploration({
     {
       id: "everywhere-pill",
       label: "The lightbox pill",
-      question: "Should a tile in the Everywhere stage hint that it opens?",
+      question:
+        "Should a tile in the Everywhere stage hint that it is a real photograph, not just decoration?",
       context:
-        "everywhere-stage.tsx shows the same photograph landing on a laptop and a phone at once; today no tile hints it is a real, openable photo. Drawn on the real stage, both devices.",
+        "everywhere-stage.tsx shows a photograph landing on a laptop and phone at once; no tile hints it's real or openable. Hover is ruled a desk verb (app-vocabulary r1); the newest tile now takes one pass of light (guest-upload r1).",
       options: [
         {
           id: "none",
@@ -275,17 +285,17 @@ export const LOOSE_ENDS = defineExploration({
             "A small expand glyph sits on the newest tile, always there, promising nothing on click.",
         },
         {
-          id: "hover",
-          label: "The real hover pill",
+          id: "sweep",
+          label: "The product's own sweep",
           means:
-            "The product's hover pill, shown revealed (it hides until pointed at) on the newest tile.",
+            "The same pass of light a real arrival wears (guest-upload r1), once across the newest tile: says this is real. Looped here; nothing on a demo ever really lands.",
         },
       ],
       recommended: "corner",
       because:
-        "It reads as a detail rather than a promise: the stage is decorative, and a hover pill that leads nowhere on a decorative demo is a broken affordance waiting to be clicked.",
+        "It reads as a detail, not a promise: the stage is decorative, so a mark implying a click it cannot honour is a broken affordance waiting to be tried. The sweep is real (guest-upload r1) but answers a different question, arrival, not interactivity.",
       overrule:
-        "If foreshadowing the real interaction matters more than restraint, the hover pill.",
+        "If feeling ALIVE matters more than hinting it opens, the sweep is the product's own truth, not an invented glyph, even if it marks arrival rather than a click.",
       lands: "everywhere-stage.tsx (a new prop or a copy, not yet wired).",
     },
   ],

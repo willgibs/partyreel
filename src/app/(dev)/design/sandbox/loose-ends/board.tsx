@@ -125,7 +125,7 @@ const reviewPhotoPreview = (option: keyof typeof REVIEW_PHOTO) => (
 
 /* ── 6. The lightbox pill ──────────────────────────────────────────────────── */
 
-const pillPreview = (pill: "none" | "corner" | "hover") => (
+const pillPreview = (pill: "none" | "corner" | "sweep") => (
   <Widths
     id={`pill-${pill}`}
     desktopH={420}
@@ -162,7 +162,7 @@ const PREVIEWS: PreviewsFor<typeof LOOSE_ENDS> = {
 
   "everywhere-pill.none": pillPreview("none"),
   "everywhere-pill.corner": pillPreview("corner"),
-  "everywhere-pill.hover": pillPreview("hover"),
+  "everywhere-pill.sweep": pillPreview("sweep"),
 };
 
 export function LooseEndsBoard() {

@@ -4,7 +4,14 @@ import { CANVAS, ExplorationBoard, Frame } from "@/components/lab";
 import type { Mode } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { ACCESS, APERTURE, type ConceptId, SEAL, sealStepMs } from "./concepts";
+import {
+  ACCESS,
+  APERTURE,
+  type ConceptId,
+  SEAL,
+  sealStepMs,
+  SWEEP,
+} from "./concepts";
 import { PrivacyHero } from "./hero";
 import { PRIVACY_HERO } from "./spec";
 
@@ -25,9 +32,11 @@ import { PRIVACY_HERO } from "./spec";
  * already throttles on a hidden tab, and reduced motion is a media query
  * rather than a read of one. Cheaper by construction, not by an omission.
  *
- * ★ ONE ASK, THREE OPTIONS, NO STAGED FOLLOW-UP. Round three is a concept
+ * ★ ONE ASK, FOUR OPTIONS, NO STAGED FOLLOW-UP. Round three is a concept
  * pick, not a refinement of one mechanism's dimensions, so nothing here
- * reads a prior answer the way round two's `look()` did.
+ * reads a prior answer the way round two's `look()` did. `sweep` (the
+ * overtaken audit's reshape, 2026-09-21) is the fourth, added once the
+ * product had its own arrival grammar to build the fourth concept from.
  */
 
 /** The numbers under each screen, measured off the same constants the
@@ -41,6 +50,10 @@ function captionFor(concept: ConceptId, mode: Mode): string {
   if (concept === "access") {
     const n = ACCESS.tiles[mode];
     return `${n} tiles at ${ACCESS.sizePx[mode]}px, frosted at ${Math.round(ACCESS.frosted.opacity * 100)}% · ${ACCESS.holdMs}ms clear, ${ACCESS.fadeMs}ms to fade · a turn every ${ACCESS.stepMs}ms, a full circuit in ${ACCESS.cycleMs / 1000}s`;
+  }
+  if (concept === "sweep") {
+    const n = SWEEP.tiles[mode];
+    return `${n} tiles at ${SWEEP.sizePx[mode]}px, frosted at ${Math.round(SWEEP.frosted.opacity * 100)}% · one ${SWEEP.sweepMs}ms pass of light clears each · a turn every ${SWEEP.stepMs}ms, a full circuit in ${SWEEP.cycleMs / 1000}s`;
   }
   const n = SEAL.cards[mode];
   const { w, h } = SEAL.size[mode];
@@ -77,6 +90,7 @@ const PREVIEWS: PreviewsFor<typeof PRIVACY_HERO> = {
   "concept.aperture": <Screens concept="aperture" />,
   "concept.access": <Screens concept="access" />,
   "concept.seal": <Screens concept="seal" />,
+  "concept.sweep": <Screens concept="sweep" />,
 };
 
 export function PrivacyHeroBoard() {

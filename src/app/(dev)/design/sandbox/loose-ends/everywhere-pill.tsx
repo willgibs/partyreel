@@ -1,5 +1,9 @@
 "use client";
 
+// This board's own sheet, no keyframe collision with any other
+// (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
+import "./everywhere-pill.css";
+
 import { Maximize2 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -15,8 +19,8 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 
 /**
  * DECISION 6: THE LIGHTBOX PILL, a copy of everywhere-stage.tsx with ONE
- * addition: `pill` overlays a small affordance on the top tile of each grid
- * (the newest arrival lands there by construction: `AlbumFillGrid` renders
+ * addition: `pill` overlays a small mark on the top tile of each grid (the
+ * newest arrival lands there by construction: `AlbumFillGrid` renders
  * newest-first per column). `AlbumFillGrid` and `useAlbumFill` are the
  * shipped hooks, imported unchanged; only the composition around them is
  * copied, to add the overlay.
@@ -26,16 +30,17 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  * own (frame.tsx), so `paused` is a flat `false` here rather than an
  * IntersectionObserver whose root would have to cross the board's own iframe.
  *
- * ★ "HOVER" IS SHOWN REVEALED, NEVER GATED ON A REAL :hover. A still capture
- * (this board's own verification, and every reviewer who does not happen to
- * rest a cursor there) can never see an opacity that only lifts on pointer
- * entry, so the option that ships hover-gated is drawn here in the state it
- * would reveal, which is the only state there is anything to judge. It is
- * also its own shape (a wider pill, the opposite corner) rather than a
- * fainter copy of "corner", so a still capture tells the two apart too.
+ * ★ "HOVER" IS GONE (the overtaken audit's reshape, 2026-09-21): ruled a
+ * desk verb (app-vocabulary r1), a fiction on the phone half of this very
+ * stage. `sweep` replaces it: the product's own arrival mark
+ * (`everywhere-pill.css`, quoting components/shared/arrival.css), looped
+ * here rather than played once, because nothing on a demo stage ever really
+ * lands. Looped is also why it needs no "shown revealed" workaround the way
+ * hover did: a still capture catches it mid-pass more often than not, and
+ * missing it once is the same honest gap a live reviewer would see too.
  */
 
-function PillMark({ pill }: { pill: "none" | "corner" | "hover" }) {
+function PillMark({ pill }: { pill: "none" | "corner" | "sweep" }) {
   if (pill === "none") return null;
   if (pill === "corner")
     return (
@@ -49,11 +54,8 @@ function PillMark({ pill }: { pill: "none" | "corner" | "hover" }) {
   return (
     <span
       aria-hidden
-      className="pointer-events-none absolute right-1.5 bottom-1.5 z-10 flex items-center gap-1 rounded-full bg-black/65 py-1 pr-2 pl-1.5 text-[10px] leading-none font-medium text-white backdrop-blur-sm"
-    >
-      <Maximize2 className="size-2.5" strokeWidth={2.5} />
-      Open
-    </span>
+      className="evp-sweep pointer-events-none absolute top-1.5 left-1.5 z-10 h-5 w-9 overflow-hidden rounded-full bg-black/55"
+    />
   );
 }
 
@@ -61,7 +63,7 @@ function GridWithPill({
   pill,
   children,
 }: {
-  pill: "none" | "corner" | "hover";
+  pill: "none" | "corner" | "sweep";
   children: ReactNode;
 }) {
   return (
@@ -75,7 +77,7 @@ function GridWithPill({
 export function EverywherePill({
   pill,
 }: {
-  pill: "none" | "corner" | "hover";
+  pill: "none" | "corner" | "sweep";
 }) {
   const reduced = usePrefersReducedMotion();
   const view = useAlbumFill({

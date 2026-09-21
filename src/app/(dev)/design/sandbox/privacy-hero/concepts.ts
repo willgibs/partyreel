@@ -1,7 +1,8 @@
 import { CANVAS, type Mode } from "@/components/lab";
 
 /**
- * THE PRIVACY HERO, ROUND THREE: THREE NEW CONCEPTS, PURE DATA (2026-09-19).
+ * THE PRIVACY HERO, ROUND THREE: THREE NEW CONCEPTS, PURE DATA (2026-09-19);
+ * A FOURTH ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21).
  *
  * Round two flew photographs through a figure (`paths.ts`, deleted with this
  * round: "I don't really like this arrival animation as part of the
@@ -11,8 +12,17 @@ import { CANVAS, type Mode } from "@/components/lab";
  *
  * ★ NOTHING HERE FLIES. Each concept sits still, or nearly still, and the
  * thing that moves is each one's own VISIBILITY: a breath, a turn taken, a
- * seal lifted. That is the theme in mechanism, not just in caption: privacy
- * is who can see a thing right now, not how fast it travels.
+ * seal lifted, a pass of light handing a tile over. That is the theme in
+ * mechanism, not just in caption: privacy is who can see a thing right now,
+ * not how fast it travels.
+ *
+ * ★ `sweep` IS THE RESHAPE'S OWN CONCEPT, NOT A FOURTH INVENTION. By the time
+ * this round was reopened, the product had ruled its own arrival grammar
+ * (`components/shared/arrival.css`, `landing=sweep`, guest-upload r1): a tile
+ * is handed over with one pass of light, once. `access`'s grid already asked
+ * the right question (who can see this right now); `sweep` answers it with
+ * the mechanism the product itself now uses, rather than a bespoke crossfade
+ * invented before that grammar existed.
  *
  * `field.ts`, `field-layer.tsx` and `field.css` stay in this directory only
  * because `album-page` still imports them for its own margins and motion
@@ -25,8 +35,13 @@ import { CANVAS, type Mode } from "@/components/lab";
  * driving the picture rather than a hand-typed guess beside it.
  */
 
-export type ConceptId = "aperture" | "access" | "seal";
-export const CONCEPTS: readonly ConceptId[] = ["aperture", "access", "seal"];
+export type ConceptId = "aperture" | "access" | "seal" | "sweep";
+export const CONCEPTS: readonly ConceptId[] = [
+  "aperture",
+  "access",
+  "seal",
+  "sweep",
+];
 
 /* ── A rectangle, and whether two of them miss ───────────────────────────── */
 
@@ -138,6 +153,36 @@ export function accessTiles(mode: Mode): { x: number; y: number }[] {
     ...xs.map((x) => ({ x, y: bottomY })),
   ];
 }
+
+/**
+ * ── Sweep: the access grid, cleared by the product's own arrival (new,
+ * the overtaken audit's reshape, 2026-09-21) ───────────────────────────────
+ *
+ * The same eight-and-six-tile grid `accessTiles` already solved: this concept
+ * changes only HOW a tile clears, from a bespoke crossfade to the one pass of
+ * light the product now uses for an arrival of its own (`data-landed` in
+ * `components/shared/arrival.css`, `landing=sweep`, guest-upload r1). A
+ * curated tile does not just fade into view here, it is HANDED OVER, the
+ * same way a photograph you just sent is.
+ *
+ * ★ THE PASS ITSELF IS THE SHIPPED NUMBER, HELD BY HAND. `ARRIVAL_SWEEP_MS`
+ * (`lib/shared/arrival.ts`) is 900; this module stays pure (no React, so
+ * `concepts.test.ts` can import it in Node) and does not import that "use
+ * client" file just for one constant, so `sweepMs` below is the same number,
+ * written down rather than imported, and this comment is what keeps the two
+ * from drifting apart. Everything else about the rotation (the grid, the
+ * cycle, the step, the frosted rest state) is `ACCESS`'s own, reused rather
+ * than re-solved, because the layout is not what this concept changes.
+ */
+export const SWEEP = {
+  tiles: ACCESS.tiles,
+  sizePx: ACCESS.sizePx,
+  cycleMs: ACCESS.cycleMs,
+  stepMs: ACCESS.stepMs,
+  /** The pass itself, ms: ARRIVAL_SWEEP_MS in lib/shared/arrival.ts. */
+  sweepMs: 900,
+  frosted: ACCESS.frosted,
+};
 
 /* ── Seal: a few photographs under a cover, one lifting at a time ───────── */
 

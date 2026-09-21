@@ -14,14 +14,16 @@ import {
   SEAL,
   sealCards,
   sealStepMs,
+  SWEEP,
 } from "./concepts";
 import { PRIVACY_HERO } from "./spec";
 
 /**
- * ROUND THREE'S WORDS AGAINST THE THREE CONCEPTS' OWN NUMBERS, and the one
+ * ROUND THREE'S WORDS AGAINST THE FOUR CONCEPTS' OWN NUMBERS, and the one
  * promise every option's geometry makes: nothing sits on the lockup's ink.
  * `paths.test.ts` did the first job for round two's engine (deleted with
- * it); this is the same discipline for three simpler, still concepts.
+ * it); this is the same discipline, `sweep` added by the overtaken audit's
+ * reshape (2026-09-21).
  */
 
 const MODES = ["desktop", "phone"] as const;
@@ -60,6 +62,13 @@ describe("the option tiles state the concepts' own numbers", () => {
     expect(t).toContain(`${ACCESS.cycleMs / 1000}s`);
   });
 
+  it("the sweep", () => {
+    const t = tile("sweep");
+    expect(t).toContain(`${SWEEP.tiles.desktop} small tiles`);
+    expect(t).toContain(`${(SWEEP.sweepMs / 1000).toFixed(1)}s`);
+    expect(t).toContain(`${SWEEP.cycleMs / 1000}s`);
+  });
+
   it("the sealed cards", () => {
     const t = tile("seal");
     expect(t).toContain(`${SEAL.cards.desktop} photographs`);
@@ -93,6 +102,10 @@ describe("the rotations land exactly one turn at a time", () => {
 });
 
 describe("every static element clears the lockup's ink and sits inside its canvas", () => {
+  // `sweep` needs no geometry test of its own here: `SWEEP.sizePx` IS
+  // `ACCESS.sizePx` and its tiles are `accessTiles(mode)`, the exact same
+  // function this test already calls, so a second block would only prove the
+  // same function returns the same answer twice.
   it("every access tile", () => {
     for (const mode of MODES) {
       const size = ACCESS.sizePx[mode];

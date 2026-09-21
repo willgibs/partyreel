@@ -16,15 +16,21 @@ import { defineExploration } from "@/components/lab/exploration";
  * someone real rather than an empty field. Not in this round: any
  * production byte; the email path, the rate limiter and the honeypot stay as
  * they are unless an option says what it changes.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FOUR OF SIX, TEXT
+ * ONLY. `page`, `topic`, `urgency` and `receipt` each gained a precedent a
+ * later ruling shipped since 19 Sep (named in their own context/because
+ * lines below); every option and every recommendation across all six asks
+ * is unchanged. `reach` and `beside` stand as drawn: no badge named them.
  */
 export const CONTACT_PAGE = defineExploration({
   id: "contact-page",
   title: "Reaching a person",
   round: {
     n: 1,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The first round: does reaching a person need a form at all, what the sender holds afterward, whether something urgent gets its own path, whether the topic picker stays required, the page's rhythm against the rest of the site, and what stands beside the form.",
+      "The overtaken audit's reshape touches four of six: page cites pricing-page's own paper-hero precedent; topic cites first-event's style=step; urgency's premise is confirmed by the shipped failure sheet; receipt names the app's own modal precedent. reach and beside stand unbadged.",
   },
   bible: [16, 19, 21, 22],
   context:
@@ -72,7 +78,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The page's identity",
       question: "Should /contact leave paper for the site's cinema rhythm?",
       context:
-        "/contact is the last (paper) page, forced light under a light header, while every sibling utility page (/help, /press, /careers) opens dark (bible 16). Drawn at the top fold: the hero, then what opens the body beneath it.",
+        "/contact is the last (paper) page, forced light, while /help, /press and /careers open dark (bible 16). pricing-page proved the fix the other way: a paper hero now opens above its own dark chapter (pricing-page r1, r2).",
       options: [
         {
           id: "desk",
@@ -95,7 +101,7 @@ export const CONTACT_PAGE = defineExploration({
       ],
       recommended: "chapter",
       because:
-        "It is the fix the ROADMAP already named, and it costs the page nothing it has: the desk moves into a PaperChapter exactly like /press's sheet, under a real dark hero instead of forced light.",
+        "It is the fix the ROADMAP already named, proven since on pricing-page's own real order (a paper hero, then a dark chapter, r1 and r2): the desk moves into a PaperChapter exactly like /press's sheet, under a real dark hero instead of forced light.",
       overrule:
         "If the desk reads as a physical object only because the page is paper, a dark hero is the thing that breaks it; today's chrome is the cheaper hold.",
       lands:
@@ -108,7 +114,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The topic picker",
       question: "Should picking a topic stay required before a note can send?",
       context:
-        "The first field is a required Select of seven topics; picking one reveals a fastest-path hint inside the form. Drawn on the real ContactForm, a reporter's fixture (Press & partnerships).",
+        "The first field is a required Select of seven topics; picking one reveals a fastest-path hint. first-event r1 has since ruled the same shape elsewhere: one classifier picked immediately (style=step), the rest deferred.",
       options: [
         {
           id: "required",
@@ -131,7 +137,7 @@ export const CONTACT_PAGE = defineExploration({
       ],
       recommended: "required",
       because:
-        "It costs one tap and it is what routes a note today (the admin support chip reads it); dropping it moves triage from a field to a person's read, the more expensive fix.",
+        "It costs one tap and it is what routes a note today; first-event r1 has since ruled the same trade elsewhere (style=step, picked up front, the rest deferred), which is this field's own case made for a different door.",
       overrule:
         "If most visitors arrive with no clear category, optional keeps the field for the ones who do know and drops the tax on the ones who do not.",
       lands:
@@ -145,7 +151,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "Something urgent",
       question: "Should something going wrong right now get its own path?",
       context:
-        "One inbox holds every note today, gated at 8 an hour per network regardless of subject. Drawn on the topic field's hint, the host's fixture: mid-event, uploads stuck.",
+        "One inbox holds every note today, gated at 8 an hour regardless of subject. guest-upload r1 has since confirmed the premise directly: a failure mid-event got its own end-of-run sheet, the worst hour named, not assumed.",
       options: [
         {
           id: "one",
@@ -182,7 +188,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The receipt",
       question: "What should the sender hold after they send a note?",
       context:
-        "Today: the card swaps for a drawn check and nothing else travels; the sender gets no receipt of any kind. Drawn on the real success state, the planner's fixture.",
+        "Today: the card swaps for a drawn check; the sender gets no receipt of any kind. The app's bar has moved since: a confirmation worth feeling now opens a modal, not a box up top (app-pricing r1's welcome-to-Pro).",
       options: [
         {
           id: "card",
@@ -205,9 +211,9 @@ export const CONTACT_PAGE = defineExploration({
       ],
       recommended: "card",
       because:
-        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing) that needs its own limit and a bounce story; the reference line gets most of the reassurance for one string.",
+        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing); the reference line gets most reassurance for one string, and a note is not the celebration a Pro upgrade is (app-pricing r1).",
       overrule:
-        "If a support habit forms around quoting a reference number, it is worth naming even before a status page exists.",
+        "If a note ever deserves that same feeling, the shipped precedent is a modal, not a bigger card: a fourth option this board does not draw yet.",
       lands:
         "Whether sendOnce gains a second recipient, and whether contact_submissions.id ever reaches a visitor.",
       after: { ask: "reach" },

@@ -155,7 +155,7 @@ export function ReadingGround({ phone }: { phone: boolean }) {
  * ROUND TWO'S TWO GROUNDS (2026-09-19): `foot-after` and `foot-alone` ask what
  * the footer should be in each of the two contexts every marketing route
  * actually ends in. Both import the real closing composition rather than
- * redrawing it, the same rule `foot.tsx` follows for the demo pile.
+ * redrawing it, the same rule `foot.tsx` follows for the demo frame.
  */
 
 /**

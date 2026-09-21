@@ -32,16 +32,31 @@ import { defineExploration } from "@/components/lab/exploration";
  * options ("the full sign-off regardless" against "whatever `foot-after`
  * picked") are only a real choice once `foot-after` has an answer to be
  * "whatever" about; `foot-phone` asks a third, independent thing (how the
- * pile travels to a screen nobody can scan) that carries no such dependency.
+ * frame travels to a screen nobody can scan) that carries no such dependency.
+ *
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `demo-event` round two
+ * (docs/design/rulings.md, "the closing sitting's second batch") retired the
+ * photo pile this round was written against: every demo door, the footer
+ * included, now shares ONE object, a photograph in a plain mat with the live
+ * code tucked into its corner (`FooterDemo` → `DemoFrame`,
+ * `components/marketing/system/demo-ticket.tsx`). `foot-after` is redrawn on
+ * that shipped object rather than the pile it was drawn against. `foot-alone`
+ * gains a fifth real route: `pricing-page` round two now closes on its own
+ * folded questions rather than an invitation, so it reaches the footer the
+ * same way `/about`, `/press`, `/careers` and the 404 already do.
+ * `foot-phone` leans harder toward the two options that commit either way,
+ * now that `first-event` round one has ruled a code's real home is printed
+ * stock: a phone's copy of it was always decoration, and that is no longer
+ * this ask's own guess.
  */
 export const SITE_CHROME = defineExploration({
   id: "site-chrome",
   title: "The site's chrome",
   round: {
     n: 2,
-    date: "2026-09-19",
+    date: "2026-09-21",
     changed:
-      "The footer alone, his ask by name: what register one should be right after a page's own closing CTA, whether a page with none deserves the same, and how the demo travels to a phone. The other seven decisions ship on the real chrome elsewhere (chrome-wiring); out of scope here.",
+      "foot-after redrawn for the shipped framed photograph, not the pile it was written against; foot-alone names pricing-page's folded close as a fifth bare route; foot-phone leans hidden vs none, small weakened now a code's home is ruled printed stock. The other seven stay out of scope (chrome-wiring).",
   },
   context:
     'Will, round one (docs/design/rulings.md, the fourth batch): he kept the sign-off over a bigger close because most pages now end on a CtaBand "in the same rough shape", and back to back "would feel very repetitive, would rather them work together"; his ask was "a couple additional explorations of footers that work well with that closing CTA pattern above". Three decisions, drawn under a real close and under a real page with none.',
@@ -53,13 +68,13 @@ export const SITE_CHROME = defineExploration({
       question:
         "What should the footer show directly under a page that already closes with its own invitation?",
       context:
-        "Most marketing pages now end on a CtaBand: a heading, a button, the demo link beneath it. Today the footer repeats a full sign-off of its own right after, pile and heading and all, on every one of them.",
+        "Most marketing pages end on a CtaBand. The register right after used to be a photo pile; it is one framed photograph now (demo-event r2). Does a second closing object belong right under a page that already asked once?",
       options: [
         {
           id: "today",
-          label: "The sign-off, unchanged",
+          label: "The framed photograph, unchanged",
           means:
-            "The same photo pile, the same heading and copy, directly under the page's own close. Today's shape, held up next to a real one.",
+            "The same framed photograph and its corner code, the same heading and copy, directly under the page's own close. The shipped shape, held up next to a real one.",
         },
         {
           id: "quiet",
@@ -82,19 +97,19 @@ export const SITE_CHROME = defineExploration({
       ],
       recommended: "quiet",
       because:
-        "A full repeat is the exact repetition he flagged, and dropping the mention entirely undersells the single best action on the site; a slim strip keeps it alive without competing with the close for the last word.",
+        "A single framed photograph is a smaller repeat than the old pile, but it is still a second closing object under a page that already asked once, which is the exact repetition he flagged; a slim strip keeps the mention alive without competing with the close for the last word.",
       overrule:
-        "If the close above already feels complete, dropping the mention (merged or tucked) is the cleaner cut, and the legal-bar line is enough of a safety net.",
+        "If the frame's restraint reads different enough from the close above, today is the cheaper hold; if the close feels complete, merged or tucked is cleaner.",
       lands:
-        "Whether the shipped sign-off register survives next to a real closing CTA, and in what shape.",
+        "Whether the shipped framed register survives next to a real closing CTA, and in what shape.",
     },
     {
       id: "foot-alone",
       label: "The foot where nothing closes the page",
       question:
-        "Should a page with no closing section of its own get a bigger footer than one that already closed?",
+        "Should a page with no closing invitation of its own get a bigger footer than one that already closed?",
       context:
-        "Not every route closes on a CtaBand: /about, /press, /careers and the 404 run straight from ordinary content into the footer, with nothing above it asking for anything.",
+        "Not every route closes on a CtaBand: /about, /press, /careers and the 404 reach the footer with nothing above it. pricing-page now joins them a different way (r1, r2): folded questions, neither silence nor invitation.",
       options: [
         {
           id: "full",
@@ -111,9 +126,9 @@ export const SITE_CHROME = defineExploration({
       ],
       recommended: "full",
       because:
-        "Four real routes currently end on nothing at all; the footer is the only closing gesture they have, so it should not go quiet there for the sake of consistency with pages that already have one.",
+        "Five real routes now reach the footer having asked nothing more of the reader, whether that is silence or a closed FAQ; the footer is the only closing gesture any of them have, so it should not go quiet for the sake of consistency with pages that already had one.",
       overrule:
-        "If those four routes are rare enough to matter less than one predictable footer everywhere, the same answer belongs on every page.",
+        "If those five routes are rare enough to matter less than one predictable footer everywhere, the same answer belongs on every page.",
       lands:
         "Whether the footer special-cases a page with no CtaBand above it, or draws one register everywhere.",
       after: { ask: "foot-after" },
@@ -123,11 +138,11 @@ export const SITE_CHROME = defineExploration({
       label: "The phone's foot",
       question: "How should the footer's demo invitation travel to a phone?",
       context:
-        "A QR is not really part of the mobile answer: nobody can scan their own screen. Today the pile hides below the code's own breakpoint and a plain link takes its place.",
+        "A QR is not part of the mobile answer: nobody scans their own screen. first-event r1 now rules a code's real home is printed stock, so a phone copy was always decoration; today the frame hides below its breakpoint, a link instead.",
       options: [
         {
           id: "hidden",
-          label: "The pile hidden, a link",
+          label: "The frame hidden, a link",
           means:
             "As today: no code at all here, a single tap-through line in its place.",
         },
@@ -135,7 +150,7 @@ export const SITE_CHROME = defineExploration({
           id: "small",
           label: "A small code",
           means:
-            "The code stays, small, beside the heading, even though it is only decoration on this device.",
+            "The code stays, small, beside the heading: decoration by his own ruling now (first-event r1), not just this board's guess, and the weakest of the three.",
         },
         {
           id: "none",
@@ -146,9 +161,9 @@ export const SITE_CHROME = defineExploration({
       ],
       recommended: "hidden",
       because:
-        "A code nobody can scan is dead weight on the one surface that cannot use it, and the tap-through link already gets a visitor to the demo in a single motion.",
+        "A code nobody can scan is dead weight on the one surface that cannot use it, more so now a code's real home is ruled to be printed stock rather than a phone screen; the tap-through link already gets a visitor to the demo in one motion.",
       overrule:
-        "If the code reads as a trust mark rather than a scan target, keeping it small costs little and never asks to be tapped.",
+        "If even a tap-through link is too much for a quiet close, none drops it outright; small is the weaker hold, its code now ruled to have no real home here.",
       lands:
         "Whether a phone ever shows a QR code in the footer, or only ever a link.",
       tile: "phone",

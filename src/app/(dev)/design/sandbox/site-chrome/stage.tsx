@@ -50,7 +50,7 @@ const EMPTY: Measured = { bar: -1, panel: -1, foot: -1 };
  * `ResizeObserver`: it fires when the copied stylesheets land (the first
  * layout is unstyled) and again whenever a new option reflows. A hidden option
  * on the step's stage is `visibility: hidden`, which keeps its layout, so it
- * measures true as well. The late timer is for the photographs: the pile and
+ * measures true as well. The late timer is for the photographs: the frame and
  * the wall both land after layout and both push a register's height.
  */
 function Measure({
