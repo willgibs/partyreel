@@ -1,6 +1,6 @@
 ---
 track: welcome-film-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ece02b97"          # the launch-prep SHA the branch was cut from
 board: app-door        # wired by this lane; the board retires unless his verdicts keep it open
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -209,30 +209,81 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the two items the brief named as his to overrule (the three pictures, the drift's 16s) were both taken exactly as
+  recommended; they are echoed under Handoff's "Calls his to overrule" rather than asked here, since nothing was left open.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/host-app.md`, "## First-time host welcome": refined in place for the five-screen film tour (the untouched
+  name step, then a four-screen tour: `StepPicture` for `create`/`share`/`fill` breathing under an overlapping copy plate,
+  a closing beat on `ReelPicture` into the unchanged primary-and-skippable pair); the drift's mechanics and its bible-12/14
+  reasoning named; the single-source note widened to cover the pictures as well as the copy.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: `tour` was the board's one ask and it is now ruled and wired whole; no round three is open on this board.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `edc5a5a7`, pushed; synced with `launch-prep` via merge commit `cf363ee2` (five sibling lanes' adjacent
+  `DESK_ORDER`/registry deletions merged clean, no conflict; `overtaken-4` landed first and had already reconciled the
+  app-door lines in the desk's overtaken map, so nothing here touches `sandbox/overtaken.ts`). One follow-up commit
+  regenerated `rules.generated.json` after the merge (`pnpm design:rules`, never merged by hand) and is pushed on top of
+  the merge; the branch tip is whatever `origin/lp/welcome-film-wiring` shows, not cited by its own sha per the house rule.
+- Every claim below names its artifact, so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code, all 0: `pnpm design:rules` ok (regenerated, committed); the specimen
+  collector ok (no diff: no Library gallery entry names this board); `pnpm typecheck` ok; `pnpm lint` ok (8 known warnings,
+  0 errors, unchanged baseline); `pnpm test` ok (301 files, 3140 passed, 1 skipped); `pnpm build` ok (255 pages, matching
+  the pre-lane baseline); `pnpm lab:smoke --base http://localhost:3132` ok (420 checks, 0 failing). No `lab:demo`: this is
+  a production lane and the board it wires is retired (deleted from `sandbox/`), so there is nothing left to demo.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is exactly: the owned paths (`welcome-flow.tsx`,
+  `welcome-flow.css`, the 8 deleted `sandbox/app-door/*` files, `docs/systems/host-app.md`) + the retirement exception
+  (`touchpoints.ts`: the `app-door` line off `SandboxId`, off `DESK_ORDER`, and its `RULINGS` row rewritten with `board`
+  dropped, nothing else touched, 16 lines total; `sandbox/registry.ts` and `(shell)/lab/boards.ts`: 2 lines removed each,
+  `APP_DOOR`/`AppDoorBoard` only) + one new `for` line in `rules/component-notes.ts` at the head (the "several lanes add
+  `for` lines this round" convention, since the new contract test names `welcome-flow.tsx`) + the generated
+  `docs/design/library.md` and `rules.generated.json` (`pnpm design:rules`) + this manifest. One file outside the LETTER
+  of `owns` (written as exact paths, "no globs"): `src/components/app/welcome-flow.test.tsx`, a contract test co-located
+  with the exact file `owns` already names, the standing component/test pairing this whole codebase follows; flagged here
+  for transparency rather than silently assumed.
+- The item, one line: `app-door.tour=film`: shipped as five real screens on `/welcome` (verified end to end, see below);
+  no Library entry, since `/welcome` is the production route itself and not a Library primitive — the `RULINGS` row in
+  `touchpoints.ts` is where the ruling now lives, `shipped` filled, `board` gone.
+- Calls his to overrule on the alias, one line each:
+  - The three pictures (create, share, fill) and the drift's 16s: both pre-flagged by the brief; both taken exactly as
+    the board drew and he confirmed (`app-door.tour.film-1440.png`), unchanged.
+  - The dots-and-Skip header (4 dots, a ghost Skip button) rides across all four tour screens, including the close,
+    matching the ORIGINAL shipped tutorial's own chrome — though the lab's `film.tsx`/`welcome.tsx` drew no header at all
+    (only a reviewer's own "n of 5" numbering caption, lab-only chrome). Dropping it would leave a host no way out until
+    the fourth screen; keeping it is the more conservative read of a ruling that redesigned the screens, not the exits.
+  - The closing screen's body copy ("Create your first event and share the code.") is the board's own shorter line,
+    replacing the old production sentence ("...share the QR with your guests. They'll start adding photos in seconds."):
+    copy is open (bible 21) and this is what he confirmed on screen.
+- The help articles this lane makes stale, one line: `content/help/create-your-first-event.mdx` line 25, "offers a
+  three-screen tour you can skip", is now a FOUR-screen tour (the name step was never counted in that three); the rest of
+  the article (the wizard's own three steps, Details/Design/Share) is untouched and still accurate.
+- Assets requested from Will: none. Every picture is quoted from the marketing site's own `sections/how-it-works/`;
+  nothing new was drawn.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/welcome` signed in as a brand-new, unwelcomed account (no display name, `welcomed_at` null) on the
+  alias, at 1440 and 375: the name step (untouched), then Continue through the three live beats and the close; confirm
+  the drift reads as a breath and not a jitter, and Skip/Back behave as `welcome-flow.test.tsx` pins. Verified locally
+  end to end (all four tour screens, both widths, the drift's computed animation confirmed live: `welcome-film-drift`,
+  16s, linear, infinite, alternate) via a throwaway, never-committed preview route rendering `WelcomeFlow` directly
+  (`(dev)/zz-preview-welcome`, deleted after use, never in any commit) since the real `/welcome` sits behind `getUser()`
+  and sign-in is an allow-list-gated flow local dev cannot complete; the gated route itself was not click-tested
+  signed in this round, so a quick real pass on the alias is worth the two minutes.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). app-door round two ruled `tour=film` (Will, confirming the recommendation):
+the welcome tour became five real screens on `/welcome` in place of the old three-card tutorial, the required name step
+untouched, three of the marketing site's own bespoke how-it-works pictures (`StepPicture` for create/share/fill, quoted
+rather than redrawn) breathing under an overlapping copy plate under a slow 16s linear drift (`welcome-flow.css`, a
+bible-12 exception named in its own comment; linear per the house's `mkt-kenburns`/`mkt-wall-drift` ambient-drift rule,
+not the lab board's ad-hoc ease-in-out), closing on `ReelPicture` into the unchanged primary-and-skippable pair. The
+app-door board retired: `sandbox/app-door` deleted, its registry/boards/`SandboxId`/`DESK_ORDER` lines gone, the
+`RULINGS` row rewritten as shipped combining both rounds. `docs/systems/host-app.md`'s welcome section refined in place.
+A new contract test (`welcome-flow.test.tsx`, `component-notes.ts`'s first `for` line this round) pins the tour's
+screens-and-exits function. Gate green on the synced tree (301 files, 3140 tests; build 255 pages; `lab:smoke` 420
+checks); `create-your-first-event.mdx` line 25 ("a three-screen tour") is now stale, flagged for `help-sync`.
