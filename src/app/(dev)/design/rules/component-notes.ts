@@ -456,7 +456,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
   },
   "src/components/marketing/system/demo-ticket.tsx": {
-    for: "RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone",
+    for: "DemoFrame, the one object every demo door wears (a photograph in a plain mat, the code tucked into its corner: `door=frame`, 2026-09-21, overriding `doors=pile`), presentational for the hero/footer/line/nav mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome sandbox alone",
   },
   "src/components/marketing/system/eyebrow.tsx": {
     for: "the section eyebrow atom: Inter, uppercase, tracked",

@@ -125,7 +125,6 @@ export type SandboxId =
   | "first-event"
   | "press-page"
   | "contact-page"
-  | "demo-event"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero";
@@ -1150,20 +1149,18 @@ export const RULINGS: Ruling[] = [
     title: "The live demo",
     surface: "marketing",
     ruled:
-      "round one ruled whole (Will, 2026-09-20, the sixth batch); demo-wiring wires all seven on the real site (the arrival, the Demo mark, the turn card, the way out, the pile as the rule, the phone pair, one party); round two open on the one he flagged: a better door object than reusing the footer, drawn at a fourth place too, the nav panel's pane left empty since its ticket retired",
-    shipped: null,
-    why: "Round two asks whether the object behind every demo door is the best a text-free page can show; the retired nav ticket's pane is its fourth place.",
+      "round one ruled whole (Will, 2026-09-20, the sixth batch); round two ruled `door=frame` 2026-09-20/21 (the closing sitting's second batch), his note verbatim: \"this visual is the same height as the image banner behind, and isn't as noticeable as it could be\"",
+    shipped:
+      "One DemoFrame (a photograph in a plain mat, the code tucked into its corner) at all four doors: the hero's plate (sized past the shipped corridor's own tiles, measured, with a `heroCompact` pair below `lg`), the footer's invitation, a feature page's line beside its words, and the nav panel's featured pane the retired ticket left empty; DemoTicket kept as the frame's own door for the Library's specimen and the site-chrome sandbox (demo-frame-wiring, 2026-09-21)",
+    why: "One photograph in a frame reads as intentional rather than reused, and stays legible from the hero's plate down to the nav pane's small slot.",
     lives: [
-      "src/lib/demo.ts",
-      "src/app/demo/route.ts",
+      "src/components/marketing/system/demo-ticket.tsx",
+      "src/components/marketing/sections/home/cinema-hero.tsx",
       "src/components/marketing/chrome/footer-demo.tsx",
       "src/components/marketing/system/demo-cta-link.tsx",
       "src/components/marketing/chrome/mega-panel.tsx",
+      "docs/systems/marketing-content.md",
     ],
-    board: {
-      note: "One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440.",
-      variants: ["The door"],
-    },
   },
   {
     id: "press-page",
@@ -1596,7 +1593,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes).
   "guest-verify",
-  "demo-event",
   "first-event",
   "guest-upload",
   "media-viewer",

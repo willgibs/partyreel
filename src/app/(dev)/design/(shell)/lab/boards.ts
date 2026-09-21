@@ -13,11 +13,9 @@ import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/boar
 import { GuestUploadBoard } from "@/app/(dev)/design/sandbox/guest-upload/board";
 import { FirstEventBoard } from "@/app/(dev)/design/sandbox/first-event/board";
 
-
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
-import { DemoEventBoard } from "@/app/(dev)/design/sandbox/demo-event/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
@@ -52,10 +50,8 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "guest-upload": { Component: GuestUploadBoard },
   "first-event": { Component: FirstEventBoard },
 
-
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
-  "demo-event": { Component: DemoEventBoard },
   "album-motion": { Component: AlbumMotionBoard },
   "loose-ends": { Component: LooseEndsBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },

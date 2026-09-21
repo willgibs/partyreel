@@ -6405,6 +6405,7 @@
       "id": "demo-ticket",
       "file": "src/components/marketing/system/demo-ticket.tsx",
       "names": [
+        "DemoFrame",
         "DemoTicket"
       ],
       "specimens": [

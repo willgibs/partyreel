@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 921 contracts on 129 components · 18 standing boards.**
+**22 laws · 18 policies · 921 contracts on 129 components · 17 standing boards.**
 
 ## What binds you
 
@@ -270,7 +270,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/conveyor.tsx` | the marquee shell: renders its children twice, and owns the loop-pause contract | none |
 | `src/components/marketing/system/cta-band.tsx` | the closing conversion band, with the credit line that ends a page | none |
 | `src/components/marketing/system/demo-cta-link.tsx` | the recurring live-demo link, gated on a configured demo event so it is never dead | none |
-| `src/components/marketing/system/demo-ticket.tsx` | RETIRED (`doors=pile`, 2026-09-20): a scannable QR beside the tap-through, once the Features mega-panel's featured pane. Nothing in the shipped site imports it now; kept for this specimen alone | none |
+| `src/components/marketing/system/demo-ticket.tsx` | DemoFrame, the one object every demo door wears (a photograph in a plain mat, the code tucked into its corner: `door=frame`, 2026-09-21, overriding `doors=pile`), presentational for the hero/footer/line/nav mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome sandbox alone | none |
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
@@ -458,7 +458,6 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
 | `guest-upload` | guest | Eight decisions on the real guest components with fixtures, phone first at 375 by 812 and again at 1440: what the tap opens, how one photograph reads while it flies, what a dozen at once does to the album's head, the moment it lands, what a held upload draws, what a refused file says, what a guest is told before anything flies, and how big the two smallest sentences are |
 | `first-event` | host | Eight decisions in three beats, every option drawn on the real create card, QR picker, code plates and event page with fixtures at 1440 and 375, every code's module edge measured in the frame: what creating asks for, where the code's style is chosen, what a Free host at their one event meets, how the code reaches a table, where a new host lands, what she holds out at the door, what the page says before the first photograph, and what marks it when it comes |
-| `demo-event` | marketing | One decision on four real places (the home hero, the footer, a feature page's line, the nav panel's empty pane): what one object should stand at all of them, text-free, drawn at 375 and 1440. |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
