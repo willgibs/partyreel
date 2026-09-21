@@ -112,9 +112,12 @@ export const isHeld = (note: OvertakenNote): boolean =>
 /** What the ledger says happened to an overtaken ask. Derived, never stored. */
 export type Outcome = "open" | "stood" | "overrode";
 
-/* The fifth batch (2026-09-19): four boards ruled, thirteen reached. */
+/* The fifth batch (2026-09-19): four boards ruled, thirteen reached.
+   `glass` r1's own handle went with the last three badges it wrote, which the
+   overtaken audit folded into their questions (2026-09-21); its round two,
+   `CRYSTAL` below, still reaches. A handle is declared by the pass that needs
+   it and leaves with the last entry that spreads it. */
 const APP_SHAPE = { by: "app-shape", since: "app-shape r1, 19 Sep" } as const;
-const GLASS = { by: "glass", since: "glass r1, 19 Sep" } as const;
 
 /* The sixth batch and its second paste (2026-09-20): eight boards ruled. */
 const GUEST_SHAPE = {
@@ -125,7 +128,6 @@ const VOCABULARY = {
   by: "app-vocabulary",
   since: "app-vocabulary r1, 20 Sep",
 } as const;
-const AVATAR = { by: "seed-avatar", since: "seed-avatar r1, 20 Sep" } as const;
 const ADMIN = { by: "admin", since: "admin r1, 20 Sep" } as const;
 const DOOR = { by: "app-door", since: "app-door r1, 20 Sep" } as const;
 const CRYSTAL = { by: "glass", since: "glass r2, 20 Sep" } as const;
@@ -349,89 +351,34 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * option: one arrival grammar for a guest and a host alike, and a review step
    * before the send. Both reach questions on the standing boards below. */
 
-  /* ── media-viewer ────────────────────────────────────────────────────── */
-  "media-viewer.opening": {
-    ...GLASS,
-    ruling: "the album sits blurred at half brightness behind the lightbox",
-    line: "stands: the ruling fixes the ground behind a photograph, never the way it opens, and growing from its tile still says which one. Also reached by guest-shape r2, 20 Sep: no centred float survives at a desk, which is the dark room's own shape. Also reached by app-pricing r1, 20 Sep: his pricing object centres at a laptop, so a centred surface is alive again at a desk. Also reached by guest-upload r1, 21 Sep: a tile is where a photograph's own moment is said now, which is the grow option's whole argument.",
-  },
-  "media-viewer.holds": {
-    ...GLASS,
-    ruling: "every action on a photograph lives in the lightbox's controls",
-    line: "stands: the rule says the controls carry every action, not what shape they take, and one strip holds more than two capsules. Also reached by app-vocabulary r1, 20 Sep: he narrowed that rule to a phone. Also reached by app-vocabulary r2, 20 Sep: he refuses a crowded top level and folds the extras behind one button.",
-  },
-  "media-viewer.who": {
-    ...AVATAR,
-    ruling:
-      "every account wears a colour of its own, with the initial at every size",
-    line: "stands: attribution has a face to ride now, so this asks where the name sits rather than whether it has anything to sit on. Also reached by seed-avatar r2, 20 Sep: that face is a four-depth mesh now, so what a name would sit beside got richer rather than plainer. Also reached by guest-upload r1, 21 Sep: what a guest most needs is ruled up to reading size, so a name at the page's smallest argues against that.",
-  },
-  "media-viewer.next": {
-    ...PRICING_2,
-    ruling:
-      "the plans stay a stack at a phone, because a swipe row is the thing a visitor misses",
-    line: "stands: he refused a swipe row for plans and kept the gesture for galleries, which is exactly what a neighbour at the viewer's edge is. Also reached by guest-upload r1, 21 Sep: the act gains a review step before the send, whose thumbnails are the filmstrip's own furniture.",
-  },
-  "media-viewer.video": {
-    ...VOCABULARY,
-    ruling:
-      "one media tile draws every album grid, carrying a play mark as state",
-    line: "stands: the play mark is one component on every tile now, so the badge is the tile's own glyph grown up rather than a new one.",
-  },
-  "media-viewer.link": {
-    ...CREATE,
-    ruling:
-      "the host hands the code over from the share surface, so a guest can pass the link on themselves",
-    line: "stands: he took the surface that lets a guest pass a link on, which is exactly what an address for one photograph would buy.",
-  },
-  "media-viewer.wayout": {
-    ...GUEST_SHAPE,
-    ruling:
-      "the guest's dialogs wear one sheet: a side panel at a desk, a bottom sheet in a hand",
-    line: "stands: the sheet teaches a drag back down in a hand now, so swiping a photograph into the grid is a gesture the product has. Also reached by pricing-page r2, 20 Sep: he reads a swipe as the thing a visitor misses, so a way out that is only a swipe keeps the circle.",
-  },
-
-  /* ── host-curation ───────────────────────────────────────────────────── */
-  "host-curation.queue": {
-    ...VOCABULARY,
-    ruling:
-      "one media tile draws every album grid, from the guest's to the bin",
-    line: "stands: one tile draws every grid now, so the queue inherits the album's own shapes and the square crop is the exception to build. Also reached by guest-upload r1, 21 Sep: the guest's side of a waiting photograph is drawn now, so the host's queue has a shape to answer.",
-  },
-  "host-curation.verb": {
-    ...GUEST_SHAPE_2,
-    ruling:
-      "a guest's own tiles carry a mark, and a tap on it filters the album to theirs",
-    line: "stands: a tile is ruled to carry a fourth mark now, so the Hidden chip has its precedent and the word on the bar is still unpicked.",
-  },
-  "host-curation.peek": {
-    ...GLASS,
-    ruling: "every action on a photograph lives in the lightbox's controls",
-    line: "concedes: his tiles rule puts every action in the one lightbox, which is this ask's media-viewer option. Also reached by app-vocabulary r1, 20 Sep: he narrowed that rule to a phone, so the desk's half is open again.",
-  },
-  "host-curation.undo": {
-    ...VOCABULARY,
-    ruling:
-      "the review bar and the gallery's bulk bar become one bar with an actions prop",
-    line: "stands: both bulk bars are one component now, so whatever this answers lands on the gallery's bar in the same breath. Also reached by guest-upload r1, 21 Sep: the outcome of a run is ruled onto one surface at its end, which is where a bulk act's way back would sit.",
-  },
-  "host-curation.arrivals": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a new photograph grows into its column and the album re-flows around it",
-    line: "stands: the guest's album already takes an arrival without moving anything else, so the machinery is built and this sets its manners. Also reached by app-shape r2, 20 Sep: a busy band folds its overflow behind one chip that expands in place. Also reached by first-event r1, 21 Sep: the host's page is ruled live, so arrivals in the queue are a matter of manners now, never of capability.",
-  },
-  "host-curation.count": {
-    ...APP_SHAPE,
-    ruling: "the dashboard opens on what needs you: the waiting queues first",
-    line: "stands: the pulse answers the aggregate count, leaving the bell and the chip to agree or go, which is still this question. Also reached by app-shape r2, 20 Sep: he refuses a single event's prompt on the dashboard, which is what the bell is. Also reached by first-event r1, 21 Sep: the header's count is ruled to move as a photograph lands, so one of the three is already live.",
-  },
-  "host-curation.told": {
-    ...GUEST_SHAPE,
-    ruling:
-      "a guest may delete any photograph they uploaded, for ever, and the host cannot restore it",
-    line: "stands: a guest owns their own photographs for good now, which gives the quiet line in their own feed a claim it never had. Also reached by guest-shape r2, 20 Sep: a guest's own tiles carry a mark, which is that line's mechanism already built. Also reached by guest-upload r1, 21 Sep: a guest is told on one surface what did not make it, so telling them has both a place and a precedent.",
-  },
+  /* ── media-viewer, and host-curation ─────────────────────────────────────
+   * ★ FOURTEEN BADGES FOLDED INTO THEIR QUESTIONS AND DELETED (the overtaken
+   * audit, Will 2026-09-21: "for any open questions that have been 'overtaken',
+   * please evaluate whether they should be reshaped or removed"). Seven asks on
+   * each board wore one. None of them was removable: his own criterion is that
+   * a question is deleted only when an earlier selection "has solved it
+   * optimally and offers no potential additional value", and every one of these
+   * fourteen still had a better answer available than the ruling that reached
+   * it. So each was RESHAPED in its own spec, with the ruling written into the
+   * question as the ground its answer stands on, which is where the badge's
+   * context now lives. A badge and a question that already carries the same
+   * fact would say it twice, and the second copy is the one that rots.
+   *
+   * ★ WHAT THE FOLD DID BESIDES MOVE WORDS. `media-viewer.opening` was redrawn
+   * on the ruled ground rather than reworded (the album blurred at half
+   * brightness; the dark room it used to draw was the option `behind=album`
+   * had already killed). `media-viewer.who` LOST an option, the only one this
+   * lane dropped: "no name on the photograph" cannot survive an identity shape
+   * where every upload carries a name, verified or marked. And it GAINED one,
+   * because two rulings made it possible: a credit led by the seeded face every
+   * account now has, pressable as a door to that person's page.
+   *
+   * ★ AND `host-curation.peek` IS THE AUDIT'S OWN CASE, MADE TWICE. It was the
+   * one entry here that CONCEDED, to the rule that every action on a photograph
+   * lives in the lightbox's controls; he then narrowed that rule to a phone in
+   * his own words. A question that had conceded whole is open again on the half
+   * the narrowing left, which is exactly the outcome his flow chart asks for:
+   * an earlier selection must not kill what could have been a better idea. */
 
   /* ── reel-studio ─────────────────────────────────────────────────────── */
   // All eight badges (door, room, styles, moments, blocked, sharing, wait,

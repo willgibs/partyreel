@@ -62,8 +62,9 @@ import {
  * control, so there is no "unanswered" value to read: before he answers
  * `opening`, `holds` is drawn inside the opening this board recommends. That is
  * what the staging is for, and it is why `who`'s three options are described as
- * PLACES ("a capsule of its own", "the chrome's own line") rather than as a
- * look: which chrome they sit in is the earlier question's to decide.
+ * PLACES ("a capsule of its own", "the chrome's own line", "the top edge")
+ * rather than as a look: which chrome two of them sit in is the earlier
+ * question's to decide.
  *
  * ★ EVERY NUMBER UNDER A FRAME IS MEASURED, NEVER COMPUTED. A board once drew
  * an option with its formula's sign backwards and the tile Will judged showed
@@ -209,17 +210,41 @@ function alphaOf(colour: string): number {
 }
 
 /**
- * The opening: how much screen the photograph takes, and what is left of the
- * album behind it.
+ * The opening: how much screen the photograph takes, and what the ground behind
+ * it really is.
  *
- * ★ THE ALBUM IS NOT "COVERED" OR "NOT COVERED". Today's ground is a wash at 90
- * percent, so the grid is still there at a tenth of itself; the sheet covers
- * part of the screen outright and leaves the rest at full light. The first
- * version of this reader tested the viewer's top edge alone, which called the
- * wash "no album left on the screen" and then reported the sheet's COVERED
- * share as the lit one, with the sign backwards. Both facts are read directly:
- * the ground's own alpha, and how much screen sits above a partial viewer.
+ * ★ THE GROUND IS THE RULED ONE AND THE READER HAS TO SAY SO (the overtaken
+ * audit, 2026-09-21). It used to report a wash percentage, which was the right
+ * reading of a `bg-black/90` dark room and the wrong reading of `glass-behind`:
+ * that utility's own background is only a 35 percent tint and the rest of the
+ * work is a backdrop FILTER, so an alpha-only reader called the ruled ground
+ * "the album at 65 percent" and said nothing about the blur or the half
+ * brightness that are the whole of it. The filter is read off the computed
+ * style, and the wash is kept for the sheet, which really is a plain tint.
+ *
+ * ★ AND THE ALBUM IS NOT "COVERED" OR "NOT COVERED". The sheet covers part of
+ * the screen outright and leaves the rest at full light. The first version of
+ * this reader tested the viewer's top edge alone, which reported the sheet's
+ * COVERED share as the lit one, with the sign backwards.
  */
+const groundRead = (ground: HTMLElement | null, win: Window): string => {
+  if (!ground) return "no ground behind it";
+  const style = win.getComputedStyle(ground);
+  const filter =
+    style.backdropFilter ||
+    (style as unknown as { webkitBackdropFilter?: string })
+      .webkitBackdropFilter ||
+    "none";
+  if (filter && filter !== "none") {
+    const blur = /blur\(([^)]+)\)/.exec(filter)?.[1] ?? "no blur";
+    const bright = /brightness\(([^)]+)\)/.exec(filter)?.[1];
+    const dim = bright ? `${Math.round(parseFloat(bright) * 100)} percent` : "full";
+    return `the album behind it blurred at ${blur} and ${dim} brightness, the ruled ground`;
+  }
+  const wash = Math.round(alphaOf(style.backgroundColor) * 100);
+  return `the album behind it at ${100 - wash} percent, unblurred`;
+};
+
 const openingRead: Reader = (root, win) => {
   const el = mediaEl(root);
   if (!el) return null;
@@ -227,15 +252,12 @@ const openingRead: Reader = (root, win) => {
   if (box.height < 8) return null;
   const share = pct(box.width * box.height, win.innerWidth * win.innerHeight);
   const ground = root.querySelector<HTMLElement>("[data-mv-ground]");
-  const wash = ground
-    ? Math.round(alphaOf(win.getComputedStyle(ground).backgroundColor) * 100)
-    : 0;
   const panel = root.querySelector<HTMLElement>("[data-mv-sheet-viewer]");
   const open = panel ? round(panel.getBoundingClientRect().top) : 0;
   const left =
     open > 4
       ? `${pct(open, win.innerHeight)} percent of the screen left to the album, at full light`
-      : `the album behind it at ${100 - wash} percent`;
+      : groundRead(ground, win);
   return `Measured: the photograph covers ${share} percent of the screen at ${round(box.width)} by ${round(box.height)} px, with ${left}.`;
 };
 
@@ -262,13 +284,24 @@ const holdsRead: Reader = (root, win) => {
   return `Measured: ${rows} row${rows === 1 ? "" : "s"} of chrome standing ${round(b.height)} px tall, ${pct(b.height, win.innerHeight)} percent of the screen, its words at ${size ?? "no"} px.`;
 };
 
-/** Who took it: what is said, and how big. */
+/**
+ * Who took it: what is said, and how big.
+ *
+ * ★ THE SIZE IS THE NAME'S, NOT ITS WRAPPER'S (the overtaken audit,
+ * 2026-09-21). Two of the three answers set the type on the box that holds the
+ * credit, so reading the box was reading the name; the face-led one sets it on
+ * the name inside a box that inherits, and the caption reported the inherited
+ * 16 px for a name rendering at 14. The name carries `data-mv-name` in all
+ * three now and the caption measures that, falling back to the box where a
+ * future option has only a box.
+ */
 const whoRead: Reader = (root, win) => {
   const said = root.querySelector<HTMLElement>("[data-mv-said]");
   if (!mediaEl(root)) return null;
   if (!said)
     return "Measured: nothing on the photograph says who took it or where it sits.";
-  const size = sizeOf(said, win);
+  const name = root.querySelector<HTMLElement>("[data-mv-name]");
+  const size = sizeOf(name ?? said, win);
   const words = (said.innerText || "").trim().replace(/\s+/g, " ");
   return `Measured: "${words}" at ${size} px, ${round(said.getBoundingClientRect().width)} px wide.`;
 };
@@ -392,11 +425,10 @@ const shotFor = (s: BoardState) =>
 /* ── 1. the opening ──────────────────────────────────────────────────────── */
 
 const OPENING_CAPTION: Record<OpeningShape, string> = {
-  dialog:
-    "Today. A wash at 90 percent leaves a tenth of the album behind the photograph, and the photograph floats inside a margin.",
-  grow: "Caught at 62 percent of its flight out of the tile that was tapped, measured from that tile's own box. It plays when the option is pressed.",
+  fade: "As wired, on the ruled ground: the album blurred at half brightness behind it, and the photograph centred inside a margin with nothing to say which tile it came from.",
+  grow: "Caught at 62 percent of its flight out of the tile that was tapped, measured from that tile's own box, over the same ruled ground. It plays when the option is pressed.",
   sheet:
-    "The sheet at rest, with the album above it keeping its own light and its own scroll position.",
+    "The sheet at rest, with the album above it keeping its own light and its own scroll position; only the gap is unblurred.",
 };
 
 function openingScreen(shape: OpeningShape, s: BoardState) {
@@ -452,9 +484,9 @@ function holdsScreen(shape: HoldsShape, s: BoardState) {
 /* ── 3. who took it ──────────────────────────────────────────────────────── */
 
 const WHO_CAPTION: Record<WhoShape, string> = {
-  pill: "Today. A capsule of its own under the actions, carrying the name, the badge and the position together at 11 px.",
-  foot: "The name and the time on the chrome's own line, with nothing built around them.",
-  none: "Nothing about the person. Whatever the chrome is, it carries only the actions and the place in the album.",
+  pill: "As wired. A capsule of its own under the actions, carrying the name, the mark, the badge and the position together at 11 px.",
+  foot: "The name, the mark and the time on the chrome's own line, with nothing built around them.",
+  face: "The seeded face leading a pressable credit at the top edge, opposite the close circle, with the unproven mark on the disc's corner. Priya has not confirmed an address.",
 };
 
 function whoScreen(shape: WhoShape, s: BoardState) {
@@ -670,7 +702,7 @@ function linkScreen(shape: LinkShape, s: BoardState) {
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof MEDIA_VIEWER> = {
-  "opening.dialog": (s) => openingScreen("dialog", s),
+  "opening.fade": (s) => openingScreen("fade", s),
   "opening.grow": (s) => openingScreen("grow", s),
   "opening.sheet": (s) => openingScreen("sheet", s),
 
@@ -680,7 +712,7 @@ const PREVIEWS: PreviewsFor<typeof MEDIA_VIEWER> = {
 
   "who.pill": (s) => whoScreen("pill", s),
   "who.foot": (s) => whoScreen("foot", s),
-  "who.none": (s) => whoScreen("none", s),
+  "who.face": (s) => whoScreen("face", s),
 
   "next.swipe": (s) => nextScreen("swipe", s),
   "next.film": (s) => nextScreen("film", s),
