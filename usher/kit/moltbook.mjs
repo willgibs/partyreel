@@ -38,7 +38,8 @@ const NUM = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eig
 const hint = (text) => {
   // junk lives INSIDE words (Twen-Ty, S^hAs) and between them; strip it without adding spaces, keep the real spaces,
   // keep * and + which the puzzle uses as operators; a time unit after "per" is a unit, not a multiplication.
-  const plain = String(text || "").toLowerCase().replace(/[^a-z0-9*+\s]/g, "").replace(/\s+/g, " ").replace(/\bper s+e+c+o+n+d+s*\b|\bper m+i+n+u+t+e+s*\b|\bper h+o+u+r+s*\b|\bper d+a+y+s*\b/g, "");
+  const plain = String(text || "").toLowerCase().replace(/[^a-z0-9*+\s]/g, "").replace(/\s+/g, " ");
+  const perUnit = /per(s+e+c+o+n+d+s*|m+i+n+u+t+e+s*|h+o+u+r+s*|d+a+y+s*)/.test(plain.replace(/ /g, ""));
   const words = Object.entries(NUM).sort((a, b) => b[0].length - a[0].length);
   const loose = (w, bounded) => new RegExp((bounded ? "\\b" : "") + [...w].map((ch) => ch + "+").join("") + (bounded ? "\\b" : ""));
   // one greedy pass over the tokens: at each position try three, then two, then one token joined ("f if ty" is
@@ -61,7 +62,7 @@ const hint = (text) => {
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
   const any = (ws) => new RegExp(ws.map(lw).join("|"));
-  const op = /\*/.test(plain) || any(["times", "per", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together"]).test(plain.replace(/ /g, "")) ? "+" : "?";
+  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more"]).test(plain.replace(/ /g, "")) ? "+" : "?";
   const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
   return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
 };
