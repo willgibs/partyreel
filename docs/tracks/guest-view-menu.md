@@ -1,6 +1,6 @@
 ---
 track: guest-view-menu
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9faf4218"          # the launch-prep SHA the branch was cut from
 board: none            # a production follow-up of guest-chrome-wiring (guest-shape retired at fd42c759); no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -198,30 +198,98 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every open call the brief left (the group names, the hint's words, Yours hidden when nothing is
+  owned) already carried a recommended answer to build; built as recommended, listed below under Handoff's
+  "Calls his to overrule" rather than re-asked here.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, the `theirs=mark` bullet: refined its closing sentence from the
+  forward-looking "Yours joins tile size inside the View menu... when that lands on the guest row" to the
+  landed fact (the View menu's two groups, the mount point, the 640 gate, the cookie round-trip through
+  `initialTileSize` / `setTileSizeAction`), since `controls-home=view-menu` has now landed on this row.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: no new one-way-door or product-shaping gap surfaced building the one mount the brief scoped.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- Head `62555b56`, pushed; synced with launch-prep at `902935ed` (`lp/home-states-wiring`'s merge + its
+  record commit; a clean merge, `docs/design/library.md`'s summary counts the only conflict, resolved by
+  regenerating rather than hand-editing).
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Gates on the synced tree (commit `62555b56`): design:rules ok (188 components, 122 contracted), specimens
+  ok (140 specimens), typecheck ok, lint ok (8 known warnings, 0 errors), test ok (3118 passed, 1 skipped,
+  297 files, incl. this lane's 14 new in `live-gallery.test.tsx`), build ok (255 pages); `pnpm lab:smoke
+  --base http://localhost:3134` ok (433 checks, 0 failing). No board this round (`board: none`), so no
+  `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/systems/guest-flow.md`,
+  `src/app/(guest)/e/[token]/actions.ts`, `src/app/(guest)/e/[token]/page.tsx`,
+  `src/components/guest/live-gallery.tsx` (all owned) plus four exceptions:
+  - `src/components/guest/live-gallery.test.tsx`: new, colocated with the owned file it contract-tests
+    (`live-gallery.tsx` is a single-file `owns` entry, not a directory prefix, but the brief's own Tests
+    line required a test and this codebase's universal convention is one contract test per file it guards).
+  - `src/components/guest/event-experience.tsx`: one small additive prop (`initialTileSize`, threaded
+    straight through to `LiveGallery`) — no open track currently owns this file (checked every manifest
+    under `docs/tracks/`), and it is the only file that mounts `LiveGallery`, so the cookie's value has no
+    other path down from `page.tsx`.
+  - `src/app/(dev)/design/rules/component-notes.ts`: one new entry (`live-gallery.tsx`'s `for` line) —
+    the round's own documented convention ("every new component gets its `for` line...", this manifest's
+    "ownership rules every lane follows this round"), needed because `gallery.test.ts` fails on a
+    contract-tested file with no entry.
+  - `docs/design/library.md` + `src/app/(dev)/design/rules/rules.generated.json`: generated output of
+    `pnpm design:rules`, regenerated after the component-notes.ts addition; never hand-edited.
+- The items: none (no board this round).
+- Calls his to overrule on the alias, one line each:
+  - The View menu's two group names, "Tile size" and "Showing" (brief's own words, built verbatim).
+  - The disabled hint's words, "Wider screens" (brief's own words, built verbatim).
+  - Yours hidden from the menu entirely (not shown-disabled) when the guest owns nothing on the album,
+    mirroring the existing mark/line's own rule exactly (never a filter with nothing behind it).
+  - The View menu shares the Download-all row's exact visibility gate (`!isDemo && access !== "none" &&
+    items.length > 0`) rather than its own — an edge case the brief didn't name (zero approved items with
+    an upload still in flight leaves neither control on screen); recommended as the more honest state
+    (nothing to size or filter yet) and built that way.
+- The help articles this lane makes stale: `content/help/browse-the-album.mdx` — describes the guest
+  album's controls (the gallery, the photo viewer, Download all, Invite) with no mention of the new View
+  menu (Tile size, Showing); a `help-sync` lane folds it in alongside the pre-existing gaps there (the
+  two-column claim, the Yours mark) that predate this lane.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first:
+  - The mount itself: `/e/<token>` beside "Download all" at 1440, then the View menu open (both groups,
+    the "Wider screens" hint at 375) — screenshotted locally; raw `curl` of the SSR HTML confirmed
+    `--album-column` is baked in from the cookie with no client JS at all (the "no pre-measure frame"
+    claim, at its strongest).
+  - The one piece of the brief's own red-team this lane could NOT run locally: "Yours present only with
+    an own upload." Local dev's guest upload PUTs straight to R2, and R2's CORS allow-list does not include
+    `localhost` (confirmed live: every PUT failed preflight, `net::ERR_FAILED`, distinct from a product
+    bug) — this is the allow-list-gated upload flow CLAUDE.md already names as untestable off the alias.
+    Verified instead by construction: the View menu's Showing group and the pre-existing "Showing yours /
+    Show all" line both read the identical `yours.on` / `yours.count` values in the same render (one
+    expression, not two), and `live-gallery.test.tsx` exercises the same wiring with a simulated
+    `canDeleteIds` in place of a real upload. The alias's own upload (a second tab, per the brief) is the
+    one confirmation this lane could not produce itself.
+  - Real Chrome MCP note (not a product bug, a tooling one worth knowing for the next lane touching a
+    Radix `DropdownMenu` trigger locally): the Browser pane's plain `left_click` never opened this trigger
+    or selected a radio item in it (`data-state` stayed `closed` through several retries) — a direct
+    `dispatchEvent(new PointerEvent("pointerdown", ...))` on the element opened and drove it reliably every
+    time. `view-menu.test.tsx`'s own jsdom pins already use `fireEvent.pointerDown` for the same reason.
+  - `event-experience.tsx`'s one exception hunk (four small pieces: an import, a prop, a JSDoc line, a
+    pass-through) — everything else in that file is untouched.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Mounted the shared `ViewMenu` in the guest album's control row
+beside "Download all" (`live-gallery.tsx`): a Tile size group (the three steps, disabled below 640 with a
+"Wider screens" hint, since `masonry.tsx` forces two columns there) and a Showing group (Everyone's / Yours
+(n)) joining the existing `theirs=mark` filter, present only once the guest owns something on the album — the
+"Showing yours / Show all" line stays as the state's own receipt. The size is server-resolved from the shared
+`pr_tile_size` cookie (`page.tsx`, the host dashboard's own precedent) and threaded through
+`event-experience.tsx` as `initialTileSize`, so the first paint carries a returning guest's chosen size with
+no client pre-measure frame (confirmed via a raw curl of the SSR HTML); the write rides `setTileSizeAction`
+(`actions.ts`), mirroring the host's own action onto the one shared cookie. `buildGuestViewGroups` is the
+pure seam under the wiring, with its own 14-case contract (`live-gallery.test.tsx`). Gate green on the synced
+tree (3118 tests, 433 smoke checks); the "Yours after a real upload" leg of the brief's red-team needs the
+alias (R2's CORS allow-list excludes localhost).
