@@ -1017,7 +1017,7 @@ export const RULINGS: Ruling[] = [
     ruled:
       "open (Will, 2026-09-22, THE REEL ROUND: the reel reconceived whole, rulings.md \"the reel, reconceived\")",
     shipped: null,
-    why: "Every marketing surface still sells the old host-made, post-event, stored reel. Seven asks retell it: the thesis line, the /reel page's arc, the home's teaser, the pricing rows, the how-it-works steps, the events' reel column, and the help category's name.",
+    why: "Every marketing surface still sells the old host-made, stored reel: seven asks retell the thesis, arc, teaser, pricing, steps, events column and help category name.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/lib/constants/marketing-voice.ts",

@@ -90,7 +90,7 @@ function pricingScreen(id: "renamed" | "one-row" | "footnote", s: BoardState) {
       id={`pricing-${id}`}
       screen={screen}
       h={id === "footnote" ? 340 : 300}
-      caption="The comparison matrix's own \"The reel\" group, real MAX_REEL_SECONDS numbers, on the table's dark ground."
+      caption={'The comparison matrix’s own "The reel" group, real MAX_REEL_SECONDS numbers, on the table’s dark ground.'}
     >
       <PricingPreview variant={id} />
     </Screen>
@@ -133,6 +133,7 @@ function helpScreen(id: "the-reel" | "reels-cuts" | "live-reel", s: BoardState) 
     <Screen
       id={`help-${id}`}
       screen={screen}
+      ground="paper"
       h={620}
       caption="The header panel's entry, the help hub's category strip cell, and its full pane: one name in three sizes."
     >

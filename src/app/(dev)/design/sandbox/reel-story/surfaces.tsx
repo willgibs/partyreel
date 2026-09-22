@@ -184,9 +184,9 @@ export function ThesisDoor({ line, phone }: { line: string; phone: boolean }) {
 export function ThesisPreview({ line, phone }: { line: string; phone: boolean }) {
   return (
     <div>
-      <Caption className="px-6 pt-4">The home's close</Caption>
+      <Caption className="px-6 pt-4">The home&rsquo;s close</Caption>
       <ThesisClose line={line} />
-      <Caption className="px-6 pt-6">The feature hub's reel door</Caption>
+      <Caption className="px-6 pt-6">The feature hub&rsquo;s reel door</Caption>
       <ThesisDoor line={line} phone={phone} />
     </div>
   );
@@ -626,7 +626,7 @@ function CategoryPane({ label }: { label: string }) {
         </div>
       </div>
       <p className="mt-3 text-sm text-pretty text-muted-foreground">
-        Your event's best moments, live on the wall and yours to cut.
+        Your event&rsquo;s best moments, live on the wall and yours to cut.
       </p>
     </div>
   );
