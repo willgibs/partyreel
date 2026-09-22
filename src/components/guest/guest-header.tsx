@@ -8,8 +8,14 @@ import { GuestAccountMenu } from "@/components/guest/guest-account-menu";
 import { GuestNameMenu } from "@/components/guest/guest-name-menu";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
-import { useStoredName } from "@/lib/guest/use-stored-name";
-import { leaveGuestSession } from "@/lib/guest/use-stored-session";
+import {
+  useStoredEmailAttached,
+  useStoredName,
+} from "@/lib/guest/use-stored-name";
+import {
+  leaveGuestSession,
+  useStoredSession,
+} from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +76,13 @@ export function GuestHeader({
   // has to notice (the same module-singleton subscription the guest session uses
   // for the same reason). Empty on `/u/[slug]`, which has no event to be named at.
   const [guestName] = useStoredName(qrToken ?? "");
+  /* The two facts the name menu needs beyond the name, read from the same
+     module singleton for the same reason: the door that writes them lives in
+     the SIBLING island next door. The flag says whether this device put an
+     unconfirmed address on this event's row (never which one — nothing stores
+     that); the token is the capability the add-email dialog attaches to. */
+  const emailAttached = useStoredEmailAttached(qrToken ?? "");
+  const [guestSession] = useStoredSession(qrToken ?? "");
 
   useEffect(() => {
     let active = true;
@@ -189,7 +202,13 @@ export function GuestHeader({
           // three moves it opens. An ACCOUNT always wins this slot above,
           // because a signed-in visitor's menu is the truer answer to "who am
           // I here" and their credit is not marked at all.
-          <GuestNameMenu name={guestName} onRenamed={() => router.refresh()} />
+          <GuestNameMenu
+            name={guestName}
+            qrToken={qrToken}
+            sessionToken={guestSession}
+            emailAttached={emailAttached}
+            onRenamed={() => router.refresh()}
+          />
         ) : (
           <Button asChild variant="ghost" size="sm">
             <Link href="/">Start for free</Link>

@@ -641,12 +641,16 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "supabase- and router-bound (it carries the real Follow control); it is drawn by the slot's own contract test",
   },
+  "src/components/guest/add-email-dialog.tsx": {
+    for: "the second chance at the door's optional email, from the guest's own menu: one field, one promise, and a way straight to confirming instead",
+    unspecimened: "posts to the guest email route; the menu that opens it owns its state",
+  },
   "src/components/guest/guest-name-menu.tsx": {
-    for: "the guest header's third state: a guest who typed a name and holds no account, their name marked, with confirm, rename and sign in",
+    for: "the guest header's third state: a guest who typed a name and holds no account, their name marked, with the email row, rename and sign in",
     unspecimened: "auth- and router-bound; the door it opens is the account door's own",
   },
   "src/components/guest/guest-name-step.tsx": {
-    for: "the door's name step: one field inside the entry shell, asked before the album in four modes (join, edit, held for a confirmation, an account's own profile name)",
+    for: "the door's name step: the name and an optional email inside the entry shell, asked before the album in four modes (join, edit, held for a confirmation, an account's own profile name)",
     unspecimened: "posts to the join route; the entry surface owns its framing",
   },
   "src/components/guest/upload-step.tsx": {

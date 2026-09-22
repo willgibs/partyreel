@@ -16,6 +16,10 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
+// The mark's one label constant, read rather than retyped (Will, 2026-09-22
+// re-ruled its word): the pill, the guest list and the menu move together, and
+// a regex copy of the old string here would have been the one thing that did not.
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { setReducedMotion } from "../../../vitest.setup";
@@ -558,7 +562,7 @@ describe("MediaLightbox: the uploader's credit", () => {
     mount(credited({ uploaderName: "Priya", isVerified: true }), 0);
     expect(screen.getByText("Priya")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /name not verified/i }),
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
     ).toBeNull();
   });
 
@@ -566,7 +570,7 @@ describe("MediaLightbox: the uploader's credit", () => {
     mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
     expect(screen.getByText("Sam")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /name not verified/i }),
+      screen.getByRole("button", { name: UNVERIFIED_LABEL }),
     ).toBeInTheDocument();
   });
 
@@ -578,7 +582,7 @@ describe("MediaLightbox: the uploader's credit", () => {
   it("the mark offers the way out on the viewer's OWN upload only", () => {
     // Somebody else's: the explanation, and no action.
     const others = mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
-    fireEvent.click(screen.getByRole("button", { name: /name not verified/i }));
+    fireEvent.click(screen.getByRole("button", { name: UNVERIFIED_LABEL }));
     expect(
       screen.queryByRole("button", { name: /confirm your email/i }),
     ).toBeNull();
@@ -589,7 +593,7 @@ describe("MediaLightbox: the uploader's credit", () => {
     mount(credited({ uploaderName: "Sam", isVerified: false }), 0, {
       canDelete: () => true,
     });
-    fireEvent.click(screen.getByRole("button", { name: /name not verified/i }));
+    fireEvent.click(screen.getByRole("button", { name: UNVERIFIED_LABEL }));
     expect(
       screen.getByRole("button", { name: /confirm your email/i }),
     ).toBeInTheDocument();
@@ -599,7 +603,7 @@ describe("MediaLightbox: the uploader's credit", () => {
     mount(credited({ uploaderName: "Priya" }), 0);
     expect(screen.getByText("Priya")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /name not verified/i }),
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
     ).toBeNull();
   });
 });

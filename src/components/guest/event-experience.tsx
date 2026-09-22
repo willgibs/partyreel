@@ -53,7 +53,10 @@ import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { useUploadQueue } from "@/lib/guest/use-upload-queue";
-import { useStoredName } from "@/lib/guest/use-stored-name";
+import {
+  setStoredEmailAttached,
+  useStoredName,
+} from "@/lib/guest/use-stored-name";
 import {
   readStoredSession,
   useStoredSession,
@@ -191,6 +194,14 @@ export function EventExperience({
   // The name this device typed at this event (the identity reshape). Beside the
   // session, never instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
+  /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER (the door's
+     optional field, 2026-09-22). It lives in React state on purpose: its ONE
+     job is to prefill the offer card's door, so a guest who has just typed it
+     under their name does not type it again three taps later. Writing it to
+     localStorage would hand it to the next person on a shared phone, which is
+     precisely what `lib/auth/remembered-email.ts` is `/login`-only to prevent;
+     a reload loses it and the door simply asks, which is the right cost. */
+  const [attachedEmail, setAttachedEmail] = useState<string | null>(null);
   const entryRef = useRef<EntryModalHandle>(null);
   /* ★ "RETURNING", SNAPSHOTTED ONCE AT MOUNT (the door as three steps, 2026-09-21): did this
      browser already hold a session for this event when the page loaded? It is what keeps the
@@ -648,11 +659,28 @@ export function EventExperience({
           onHoldingChange={setHoldCurtain}
           sessionToken={sessionToken}
           storedName={storedName}
-          onNamed={({ sessionToken: token, displayName, source }) => {
+          onNamed={({
+            sessionToken: token,
+            displayName,
+            source,
+            emailAttached,
+            email,
+          }) => {
             // The row carries a name now. Adopt the session this device just
             // minted (a rename hands back the one it already had) and, if a tap
             // on Add was what raised the door, finish that tap.
             if (token) setSessionToken(token);
+            /* The device flag and the in-memory address, in that order. The
+               FLAG is what the header's menu island reads (it subscribes to the
+               same store the name does); the ADDRESS never leaves this state.
+               Only a true attach writes either: a door that offered the field
+               and got nothing leaves both exactly as they were, so a guest who
+               added an address a week ago and skipped it tonight keeps the
+               menu row they earned. */
+            if (emailAttached) {
+              setStoredEmailAttached(qrToken, true);
+              setAttachedEmail(email);
+            }
             /* ──────────────────────────────────────────────────────────────
                POLISH 2 (the identity red-team, 2026-09-21): a rename used to
                reach the loaded credits only on the next poll — "Change name"
@@ -937,6 +965,9 @@ export function EventExperience({
                     onFailuresClosed={flushPendingVerification}
                     isDemo={isDemo}
                     host={hostCard}
+                    // The address typed at the door a few minutes ago, so the
+                    // offer card's door opens on it instead of asking twice.
+                    hintEmail={attachedEmail}
                   />
                 </div>
               ) : (

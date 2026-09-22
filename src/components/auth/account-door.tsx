@@ -93,13 +93,17 @@ export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = 
     reason:
       "Sign in to create events and collect photos from your guests. No app, no fuss.",
   },
-  // ★ RULED VERBATIM (Will, 2026-09-19, `voice` r1 `gate=ask`), his own
-  // adjustment to the winning candidate. It says WHY (safety), WHOSE call it is
-  // (the host's) and how much it costs (one tap). Do not reword.
+  // ★ RULED VERBATIM, TWICE. Will's `voice` r1 `gate=ask` (2026-09-19) set the
+  // first sentence; the identity ruling of 2026-09-22 SUPERSEDES it by name and
+  // puts the ask first, because the ask is the host's and the safety is the
+  // reason rather than the other way round. "Tap" is his too, relitigated off
+  // "click" in the same sitting: "'tap' is better than 'click', and I would
+  // prefer to use that." It says WHOSE call it is, WHY, and what it costs.
+  // "Almost in" is untouched. Do not reword.
   gate: {
     heading: "Almost in",
     reason:
-      "For safety, the host has requested you confirm your email. One tap and you're in.",
+      "The host has asked guests to confirm an email for safety. One tap and you're in.",
   },
   // The capture moment's words (the identity reshape): a guest who has just put
   // photographs into somebody's album is not shopping for an account, so the

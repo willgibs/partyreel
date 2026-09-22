@@ -56,9 +56,20 @@ import { cn } from "@/lib/utils";
  * the whole fact; nothing here calls a guest a liar and nothing implies the
  * photographs are worth less. The host gets one extra sentence, because the
  * switch is theirs and they may not know it exists.
+ *
+ * ★ AND THE WORD IS "UNVERIFIED" (Will, 2026-09-22, relitigating the mark
+ * himself, verbatim: "I don't like the verbiage 'name not verified' because it
+ * implies that we have verified the names of confirmed accounts. We haven't -
+ * names can be anything, only emails verified, very important distinction.
+ * However, I get that 'email not confirmed' doesn't work for name-only guests
+ * either."). So the PUBLIC mark is one word for both unconfirmed states, a
+ * typed name alone and a typed name with an address nobody has proved, because
+ * an address nobody has proved is worth nothing publicly and saying otherwise
+ * would leak that one exists. "Email not confirmed" is said in exactly one
+ * place, the guest's OWN menu (`guest-name-menu.tsx`), where it is about them.
  */
 
-export const UNVERIFIED_LABEL = "Name not verified";
+export const UNVERIFIED_LABEL = "Unverified";
 
 /**
  * The way out, as its own subtree: the `save` wear, so confirming from a mark
@@ -154,9 +165,13 @@ export function UnverifiedMark({
         <PopoverContent side="top" className="space-y-2">
           <p className="text-reading font-medium">{UNVERIFIED_LABEL}</p>
           <p className="text-reading text-pretty text-muted-foreground">
+            {/* ★ BOTH SENTENCES NAME THE THING THAT IS ACTUALLY MISSING (2026-09-22):
+                a CONFIRMED EMAIL, never a verified name. Neither of them says
+                whether an address was typed, because that is the guest's own
+                business and this popover is what everybody else sees. */}
             {own
-              ? "You added these with a name and no email, so the album shows your name unconfirmed."
-              : `${who} typed this name at the door. Anyone can type a name, so it is not proof of who they are.`}
+              ? "You added these with a name and no confirmed email, so the album shows you as unverified."
+              : `Anyone can type a name. ${who} has not confirmed an email, so this is not proof of who they are.`}
           </p>
           {viewerIsHost && !own && (
             <p className="text-reading text-pretty text-muted-foreground">

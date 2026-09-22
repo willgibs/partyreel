@@ -41,6 +41,7 @@ export function SaveEventButton({
   qrToken,
   tone = "default",
   sessionToken,
+  hintEmail,
   offerNewsletter = false,
   onSaved,
   onDoorOpen,
@@ -57,6 +58,13 @@ export function SaveEventButton({
   triggerLabel?: string;
   /** Guest capability token — enables the optional newsletter opt-in (post-upload card). */
   sessionToken?: string;
+  /**
+   * Prefill the door's address field with what this guest typed at the DOOR a
+   * few minutes ago (the optional field, 2026-09-22). It is a convenience and
+   * never an authorization: the code still has to land in that mailbox, so
+   * confirming here proves exactly as much as confirming from a blank field.
+   */
+  hintEmail?: string | null;
   /** Show a "send me updates" checkbox in the create-account dialog (folds the old
    *  newsletter capture into the account-first flow). Captured on the in-page code path. */
   offerNewsletter?: boolean;
@@ -229,6 +237,10 @@ export function SaveEventButton({
             emailRedirectTo={emailRedirectTo}
             chrome="none"
             intent="create"
+            // Undefined rather than null when there is nothing to hint: the
+            // door's own state seeds from this once, and a null would read as
+            // a hint of empty rather than as no hint.
+            hintEmail={hintEmail ?? undefined}
             onVerified={async () => {
               // In-page OTP verify (no reload) -> claim this browser's uploads directly. Silent:
               // the "Saved to your dashboard." toast below is the feedback here. The redirect paths (Google /

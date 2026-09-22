@@ -135,6 +135,14 @@ export const EntryModal = forwardRef<
       sessionToken: string | null;
       displayName: string;
       source: "step" | "edit" | "verified";
+      /**
+       * The row also carries an UNCONFIRMED address (the door's optional field,
+       * 2026-09-22). `emailAttached` is the device flag the guest's own menu
+       * reads; `email` rides up IN MEMORY for this visit alone, to prefill the
+       * offer card's door, and is never written to storage.
+       */
+      emailAttached: boolean;
+      email: string | null;
     }) => void;
     /* ── the upload step's half of the lifted queue (event-experience owns it) ── */
     queue: readonly QueueItem[];
@@ -400,6 +408,11 @@ export const EntryModal = forwardRef<
       sessionToken: mintedToken,
       displayName: landedName ?? "",
       source: "verified",
+      // A confirmed account has no pending address by construction: the RPC
+      // nulls `pending_email` beside a confirmed session, and the claim is what
+      // moves an old one onto the account.
+      emailAttached: false,
+      email: null,
     });
     router.refresh();
   }, [handleUnlocked, onNamed, qrToken, router, typedName]);
@@ -695,12 +708,15 @@ export function entrySheetCopy(input: {
       description: "Enter the event password to view it.",
     };
   }
-  // ★ THE GATE LINE, RESHAPED (2026-09-21): an account is not what is being asked for, a confirmed
-  // address is, and the free account is what confirming makes.
+  // ★ THE GATE LINE, RESHAPED (2026-09-21) AND THEN REPHRASED (2026-09-22): an account is not what
+  // is being asked for, a confirmed address is, and what it opens is the album plus a keepsake. The
+  // second sentence is the guest's own benefit, which is the rule every line of this door now
+  // follows ("in the welcome flow, all of this should be framed as either a benefit to the guest or
+  // event host... never bland or regulatory", Will, 2026-09-22).
   return {
     title: "See all the photos",
     description:
-      "Confirm your email to see the full album and add your own photos.",
+      "Confirm your email and the whole album opens. Your photos stay with you afterwards.",
   };
 }
 
