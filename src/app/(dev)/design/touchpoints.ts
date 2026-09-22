@@ -1749,18 +1749,18 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // after `guest-capture`, since it draws the same guest one step earlier in
   // her walk through the door; `identity-claims` after `identity-door` for the
   // same reason; `identity-profile` after `identity-claims`.
+  // `reel-cut` is placed HERE rather than at the head (its own manifest's
+  // instruction, three reel boards registering at once): the creator a guest
+  // reaches from the reel sits with the host's own curation of the same album.
   "media-viewer",
   "reel-view",
   "reel-screen",
+  "reel-cut",
   "guest-capture",
   "identity-door",
   "identity-claims",
   "identity-profile",
   "host-curation",
-  // `reel-cut` is placed HERE rather than at the head (its own manifest's
-  // instruction, three reel boards registering at once): the creator a guest
-  // reaches from the reel sits with the host's own curation of the same album.
-  "reel-cut",
   "export-flow",
   "admin-triage",
   "help-center",
