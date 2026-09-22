@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `reshape-guest-capture` (2026-09-21, lab fidelity): `guest-capture`'s `sheet-step` peek dims the album behind the sheet with a flat `opacity-40` instead of the entry shell's own `bg-black/10` backdrop blur; match it the next time the board is touched (a backdrop-filter step reports UNPAINTED in headless Chrome, so it costs a by-hand exception in `lab:demo`).
 - From `door-steps` (2026-09-21): a `help-sync` pass over four guest articles the door lane could not own: `how-guests-join-and-upload` (two surfaces retired by `guest-upload-wiring`: the dimmed "Tap to retry" tile and the approval toast), `add-your-own-photos` (a panel that is neither the intent sheet nor the door), `a-photo-is-missing-from-the-album` (the preview now has two causes), `day-of-checklist-for-hosts` (the door asks a name first).
 - From `upload-gate-host` (2026-09-21): a help-sync pass bumps the `order` of the four privacy-and-safety articles after `require-verified-emails-explained` by one so `require-an-upload-to-view-explained` (parked at `order: 7`) sits beside its identity sibling.
 - From the door ruling (2026-09-21): a profile-setup wizard when a new user first finds their profile page, claiming a unique handle and the rest the way the event wizard does; a lab exploration Will named at the ruling, cut when the desk is closed (no new board before then).
