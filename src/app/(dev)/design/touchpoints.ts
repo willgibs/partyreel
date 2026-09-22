@@ -1787,10 +1787,10 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // reaches from the reel sits with the host's own curation of the same album.
   "media-viewer",
   "reel-view",
+  "reel-front",
   "reel-screen",
   "reel-cut",
   "guest-capture",
-  "reel-front",
   "identity-door",
   "identity-claims",
   "identity-profile",
