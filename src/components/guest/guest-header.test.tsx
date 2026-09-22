@@ -61,24 +61,76 @@ describe("GuestHeader: a guest with a name and no account", () => {
     expect(screen.getByRole("link", { name: /start for free/i })).toBeVisible();
   });
 
-  it("names them, marks the name, and offers the three moves", async () => {
-    localStorage.setItem("pr_guest_name_tok-1", "Sam");
-    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+  /** Open the name menu; the trigger only appears once a name is stored. */
+  async function openMenu() {
     const trigger = await screen.findByRole("button", {
       name: /your name on this album/i,
     });
-    expect(screen.queryByRole("link", { name: /start for free/i })).toBeNull();
     fireEvent.pointerDown(trigger, { ctrlKey: false, button: 0 });
-    await waitFor(() =>
-      expect(screen.getByText(/name not verified/i)).toBeVisible(),
-    );
-    for (const row of [
-      /confirm your email/i,
-      /change name/i,
-      /^sign in$/i,
-    ]) {
+    return trigger;
+  }
+
+  it("names them, marks the name, and offers the three moves", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openMenu();
+    expect(screen.queryByRole("link", { name: /start for free/i })).toBeNull();
+    // The PUBLIC word, read from the mark itself so the two cannot drift.
+    await waitFor(() => expect(screen.getByText("Unverified")).toBeVisible());
+    for (const row of [/confirm your email/i, /change name/i, /^sign in$/i]) {
       expect(screen.getByRole("menuitem", { name: row })).toBeInTheDocument();
     }
+  });
+
+  /* ────────────────────────────────────────────────────────────────────────
+     THE TWO STATES OF A GUEST'S OWN MENU (Will, 2026-09-22). Publicly every
+     unconfirmed guest is one thing; here, and ONLY here, they are told whether
+     the address they typed is still unconfirmed. The pins are the two labels
+     and the two rows, both derived from one device flag and never from an
+     address, because no address is ever stored.
+     ──────────────────────────────────────────────────────────────────────── */
+  it("with no address: 'Unverified', and the row offers to ADD one", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    localStorage.setItem("pr_session_tok-1", "sess-1");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openMenu();
+    await waitFor(() => expect(screen.getByText("Unverified")).toBeVisible());
+    expect(
+      screen.getByRole("menuitem", { name: /add your email/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: /confirm your email/i }),
+    ).toBeNull();
+  });
+
+  it("with one attached: 'Email not confirmed', and the row offers to CONFIRM it", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    localStorage.setItem("pr_session_tok-1", "sess-1");
+    localStorage.setItem("pr_guest_email_attached_tok-1", "1");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openMenu();
+    await waitFor(() =>
+      expect(screen.getByText("Email not confirmed")).toBeVisible(),
+    );
+    expect(
+      screen.getByRole("menuitem", { name: /confirm your email/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: /add your email/i }),
+    ).toBeNull();
+    // ...and the public word is absent here, because this menu knows something
+    // the album deliberately does not.
+    expect(screen.queryByText("Unverified")).toBeNull();
+  });
+
+  it("never offers 'Add your email' without a row to put one on", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openMenu();
+    await waitFor(() => expect(screen.getByText("Unverified")).toBeVisible());
+    expect(
+      screen.queryByRole("menuitem", { name: /add your email/i }),
+    ).toBeNull();
   });
 
   it("never claims a name on a page with no event behind it (/u/[slug])", () => {

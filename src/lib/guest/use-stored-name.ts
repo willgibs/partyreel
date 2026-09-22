@@ -30,8 +30,28 @@ export const GUEST_NAME_PREFIX = "pr_guest_name_";
 /** The cross-event prefill: the last name typed at any door on this device. */
 export const GUEST_NAME_LAST_KEY = "pr_guest_name_last";
 
+/**
+ * ★ WHETHER THIS DEVICE PUT AN ADDRESS ON THIS EVENT'S ROW — AND NEVER WHICH ONE
+ * (the 2026-09-22 identity ruling). The flag is `"1"` or absent, and it decides
+ * exactly two things in the guest's OWN menu: the label under their name reads
+ * "Email not confirmed" instead of the public mark's word, and the row offers
+ * "Confirm your email" instead of "Add your email".
+ *
+ * ★ THE ADDRESS ITSELF IS NEVER WRITTEN HERE, and that is a rule rather than an
+ * omission: this is a phone that gets passed around a party, and the whole
+ * reason `lib/auth/remembered-email.ts` is `/login`-only is that the next person
+ * to hold it must not be shown the last one's address. It lives in the page's
+ * own React state for this visit (to prefill the offer card's door) and nowhere
+ * else, which is why the menu's confirm door opens with an EMPTY field.
+ */
+export const GUEST_EMAIL_ATTACHED_PREFIX = "pr_guest_email_attached_";
+
 function nameKey(qrToken: string) {
   return `${GUEST_NAME_PREFIX}${qrToken}`;
+}
+
+function emailAttachedKey(qrToken: string) {
+  return `${GUEST_EMAIL_ATTACHED_PREFIX}${qrToken}`;
 }
 
 // Same-tab subscribers — the native `storage` event only fires in OTHER tabs.
@@ -89,12 +109,26 @@ export function readLastName(): string | null {
   return read(GUEST_NAME_LAST_KEY);
 }
 
-export function useStoredName(
-  qrToken: string,
-): [string | null, (value: string | null) => void] {
-  const key = nameKey(qrToken);
+/**
+ * Record (or clear) that this device put an unconfirmed address on this event's
+ * row. `false` REMOVES the key rather than writing "0", so the flag reads the
+ * same whether a guest declined the field or has simply never met it.
+ */
+export function setStoredEmailAttached(qrToken: string, value: boolean) {
+  try {
+    if (value) localStorage.setItem(emailAttachedKey(qrToken), "1");
+    else localStorage.removeItem(emailAttachedKey(qrToken));
+  } catch {
+    // Storage unavailable: the menu falls back to the name-only rows, which is
+    // the harmless direction (a guest is offered "Add your email" again rather
+    // than being told an address is on a row they cannot see).
+  }
+  emit();
+}
 
-  const subscribe = useCallback((cb: () => void) => {
+/** One stable subscribe for both hooks (the same module singleton + the native event). */
+function useStoreSubscribe() {
+  return useCallback((cb: () => void) => {
     listeners.add(cb);
     window.addEventListener("storage", cb);
     return () => {
@@ -102,6 +136,30 @@ export function useStoredName(
       window.removeEventListener("storage", cb);
     };
   }, []);
+}
+
+/**
+ * The flag, live, for the header's menu island — which is a SIBLING of the page
+ * that writes it, exactly like the name beside it, so it subscribes rather than
+ * taking a prop. Server snapshot false: an unflagged menu is the state SSR can
+ * honestly render, and the truth swaps in after hydration with no mismatch.
+ */
+export function useStoredEmailAttached(qrToken: string): boolean {
+  const key = emailAttachedKey(qrToken);
+  const subscribe = useStoreSubscribe();
+  return useSyncExternalStore(
+    subscribe,
+    () => read(key) === "1",
+    () => false,
+  );
+}
+
+export function useStoredName(
+  qrToken: string,
+): [string | null, (value: string | null) => void] {
+  const key = nameKey(qrToken);
+
+  const subscribe = useStoreSubscribe();
 
   // Server snapshot is null, so SSR renders the nameless state and the stored
   // name swaps in on the client without a hydration mismatch.

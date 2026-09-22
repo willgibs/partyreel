@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  attachGuestEmail,
   checkDisplayName,
+  checkGuestEmail,
   joinEvent,
   renameGuest,
   type JoinRefusal,
@@ -19,10 +21,22 @@ import {
 } from "@/lib/guest/use-stored-name";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
+/** The address column's CHECK, and every mailbox an RFC allows. */
+const EMAIL_MAX_LENGTH = 254;
+
 /**
- * THE DOOR, ON A NAME-ONLY EVENT (the identity reshape, 2026-09-21; Will's
- * `address=none`: "the door asks a name, and the only place an address is ever
- * typed is inside the sign-in door, where the code proves it by construction").
+ * THE DOOR, ON A NAME-ONLY EVENT (the identity reshape, 2026-09-21; the optional
+ * address added by Will's ruling of 2026-09-22, "guest identity: name only,
+ * unconfirmed email, verified account").
+ *
+ * ★ AND IT ASKS FOR AN ADDRESS AGAIN, OPTIONALLY (Will, 2026-09-22, which
+ * SUPERSEDES `address=none`): "Agree with you that an optional email field under
+ * name for unverified events is more streamlined than its own screen." One
+ * compact field under the name, a benefit as its helper line, and nothing said
+ * about proving anything: what is typed is stored UNCONFIRMED, shown to nobody,
+ * mailed nothing, and exists so this guest can claim these photographs from any
+ * device the day they confirm it. Skipping it costs the guest nothing at all,
+ * which is why the field is last, unfocused and never prefilled.
  *
  * ★ IT IS ASKED BEFORE THE ALBUM NOW, NOT AT THE FIRST ADD (Will, 2026-09-21, "the door as three
  * steps", overruling the call this file used to carry): "if they can reach the album media without
@@ -31,16 +45,23 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * reward, so that uploading feels seamless once you're in the album." So the step is one of the
  * door's ordered steps with the album a step behind it, and the reward is what pays for the field.
  *
- * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION:
- *   `join`    names mode. A held session renames its row; otherwise the join mints one under the
- *             typed name. The machine advances to whatever is next.
+ * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
+ *   CARRIES THE ADDRESS FIELD:
+ *   `join`    names mode, and the ONLY mode with the optional email field. A held session renames
+ *             its row (then attaches the address on a second call); otherwise the join mints one
+ *             under the typed name and the address in ONE post. The machine advances to whatever
+ *             is next.
  *   `edit`    the album menu's "Change name", unchanged, and the one dismissible door left.
  *   `hold`    VERIFIED mode, before the confirmation. The join would answer 422 (nothing is
  *             proved yet), so nothing is sent: the name is validated locally, kept in the modal's
  *             own state as `typedName`, written to `pr_guest_name_last` ONLY (never the per-event
- *             key, which would claim a row that does not exist), and the email step follows.
+ *             key, which would claim a row that does not exist), and the email step follows. NO
+ *             field here: the very next step asks for an address and PROVES it, so offering an
+ *             unproven one a moment earlier would be asking the same question twice and meaning
+ *             less by it.
  *   `profile` a CONFIRMED account with no profile name. `updateDisplayNameAction`, which is what
- *             the inline `SetNameStep` panel used to do further down the page.
+ *             the inline `SetNameStep` panel used to do further down the page. No field: a
+ *             confirmed account already has the only address that counts.
  *
  * ★ THE PREFILL IS THE LAST NAME THIS DEVICE TYPED, at any event
  * (`pr_guest_name_last`). The second party a phone scans should not ask a
@@ -50,10 +71,12 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * ★ REFUSED IN PLACE, NEVER BY A TOAST. A reserved name and an empty field are
  * both answered under the input by `checkDisplayName` (the shared
  * `displayNameSchema`, so one policy) before anything is sent; the route's own
- * 422s (profanity, its own re-parse) land in the same slot. The one refusal that
- * is NOT this step's business is `verification_required`: the host flipped the
- * switch while the guest stood here, so the caller re-gates rather than this form
- * arguing with it.
+ * 422s (profanity, its own re-parse) land in the same slot. A mistyped address
+ * works the same way through `checkGuestEmail`, in its OWN slot under its own
+ * field, because a refusal under the name field would be pointing at the wrong
+ * question. The one refusal that is NOT this step's business is
+ * `verification_required`: the host flipped the switch while the guest stood
+ * here, so the caller re-gates rather than this form arguing with it.
  */
 /** The four doors that ask one question; see the head comment. */
 export type GuestNameMode = "join" | "edit" | "hold" | "profile";
@@ -70,24 +93,48 @@ export function GuestNameStep({
   qrToken: string;
   /** See the four modes in this file's head comment. */
   mode: GuestNameMode;
-  /** The host's name, so the reason line says whose album this joins. */
+  /**
+   * Kept for the callers and the lab's fixtures, and no longer read: the lede
+   * says "the host" whoever they are (Will, 2026-09-22). See `guestNameCopy`.
+   */
   hostName?: string | null;
   /** The name this device already typed at THIS event, if any. */
   storedName?: string | null;
   /** Required in `edit` mode: the capability whose row is renamed. */
   sessionToken?: string | null;
-  /** Fired with the live session token once the row carries the name. */
-  onNamed: (result: { sessionToken: string | null; displayName: string }) => void;
+  /**
+   * Fired with the live session token once the row carries the name.
+   * `emailAttached` says whether the row now holds an unconfirmed address (the
+   * device flag the guest's own menu reads); `email` is the address itself,
+   * handed up IN MEMORY for this visit alone so the offer card's door can
+   * prefill it. Nothing persists it, which is the whole shared-phone rule.
+   */
+  onNamed: (result: {
+    sessionToken: string | null;
+    displayName: string;
+    emailAttached: boolean;
+    email: string | null;
+  }) => void;
   /** The host turned Require verified emails ON mid-visit; the gate is the way in now. */
   onVerificationRequired?: (message: string) => void;
 }) {
   const [value, setValue] = useState(
     () => storedName ?? readLastName() ?? "",
   );
+  /* ★ NEVER PREFILLED, unlike the name beside it. The name's prefill is a
+     kindness at the second party a phone scans; an ADDRESS carried across
+     parties is the last guest's address shown to the next one, which is the
+     rule `lib/auth/remembered-email.ts` exists to keep. */
+  const [email, setEmail] = useState("");
   const [refusal, setRefusal] = useState<JoinRefusal | null>(null);
+  /* The address's refusal lives apart from the name's so each sits under the
+     field it is about; one slot would point a guest at the wrong question. */
+  const [emailRefusal, setEmailRefusal] = useState<JoinRefusal | null>(null);
   const [saving, startSave] = useTransition();
   const editing = mode === "edit";
   const copy = guestNameCopy(mode, hostName);
+  // The one mode that asks. See the head comment for why the other three do not.
+  const asksEmail = mode === "join";
 
   function submit() {
     const checked = checkDisplayName(value);
@@ -97,6 +144,18 @@ export function GuestNameStep({
     }
     const name = checked.name;
 
+    /* The optional address, parsed before anything is sent. A blank field is an
+       ANSWER (`email: null`), not a refusal: the question is optional and the
+       guest has already moved past it. */
+    const checkedEmail = asksEmail
+      ? checkGuestEmail(email)
+      : ({ ok: true, email: null } as const);
+    if (!checkedEmail.ok) {
+      setEmailRefusal(checkedEmail.refusal);
+      return;
+    }
+    const typedEmail = checkedEmail.email;
+
     /* ★ THE HELD NAME SENDS NOTHING (verified mode, before the confirmation). `create_guest`
        refuses an unverified join on this event with a 422, so asking it would be asking for a
        refusal. The name is validated by the SAME `checkDisplayName` every other mode uses, kept
@@ -104,7 +163,12 @@ export function GuestNameStep({
        means "this device is named at this event", which is not true until a row exists. */
     if (mode === "hold") {
       setLastName(name);
-      onNamed({ sessionToken: null, displayName: name });
+      onNamed({
+        sessionToken: null,
+        displayName: name,
+        emailAttached: false,
+        email: null,
+      });
       return;
     }
 
@@ -124,13 +188,19 @@ export function GuestNameStep({
           return;
         }
         setLastName(name);
-        onNamed({ sessionToken: sessionToken ?? null, displayName: name });
+        onNamed({
+          sessionToken: sessionToken ?? null,
+          displayName: name,
+          emailAttached: false,
+          email: null,
+        });
       });
       return;
     }
 
     startSave(async () => {
       setRefusal(null);
+      setEmailRefusal(null);
       /* ────────────────────────────────────────────────────────────────────
          A HELD SESSION NAMES ITS ROW (DEFECT 2, the alias red-team,
          2026-09-21). This used to gate on `editing && sessionToken`, so a
@@ -158,7 +228,33 @@ export function GuestNameStep({
         });
         if (renamed.ok) {
           setStoredName(qrToken, renamed.displayName);
-          onNamed({ sessionToken, displayName: renamed.displayName });
+          /* ★ THE HELD-SESSION PATH IS TWO CALLS, AND ONLY WHEN AN ADDRESS WAS
+             TYPED. A rename cannot carry one (its route names a row and nothing
+             else), so the address follows on `/api/guests/email`. A refusal
+             there costs the address and never the entry: the guest is named and
+             through the door either way, and the menu's "Add your email" is the
+             same act one tap away. */
+          let attached = false;
+          if (typedEmail) {
+            const put = await attachGuestEmail({
+              qrToken,
+              sessionToken,
+              email: typedEmail,
+            });
+            if (!put.ok && put.refusal.kind === "email_invalid") {
+              // The route disagreed with the local parse: say so under the
+              // field rather than swallowing it, since it is still fixable.
+              setEmailRefusal(put.refusal);
+              return;
+            }
+            attached = put.ok && put.emailAttached;
+          }
+          onNamed({
+            sessionToken,
+            displayName: renamed.displayName,
+            emailAttached: attached,
+            email: attached ? typedEmail : null,
+          });
           return;
         }
         if (
@@ -171,26 +267,56 @@ export function GuestNameStep({
         // A dead token or a (defensive) verified row: nothing left to rename,
         // so fall through to the same fresh join a session-less device takes.
       }
-      const joined = await joinEvent({ qrToken, displayName: name });
+      /* ★ A FRESH JOIN IS ONE POST, name and address together. The key is absent
+         when nothing was typed, so a guest who declined the field sends exactly
+         the body this door sent before the field existed. */
+      const joined = await joinEvent({
+        qrToken,
+        displayName: name,
+        ...(typedEmail ? { email: typedEmail } : {}),
+      });
       if (!joined.ok) {
         if (joined.refusal.kind === "verification_required") {
           onVerificationRequired?.(joined.refusal.message);
+          return;
+        }
+        // The address is the one refusal that belongs under the other field.
+        if (joined.refusal.kind === "email_invalid") {
+          setEmailRefusal(joined.refusal);
           return;
         }
         setRefusal(joined.refusal);
         return;
       }
       // The row's own name, never the typed string: the RPC trims it, and on a
-      // verified session it nulls it outright (one identity per row).
+      // verified session it nulls it outright (one identity per row). The same
+      // rule holds for the address: `email_attached` is what the ROW carries,
+      // so a verified-required event or a confirmed session reads false here
+      // even though something was typed.
       const landed = joined.guest.displayName ?? name;
       setStoredName(qrToken, landed);
-      onNamed({ sessionToken: joined.guest.sessionToken, displayName: landed });
+      onNamed({
+        sessionToken: joined.guest.sessionToken,
+        displayName: landed,
+        emailAttached: joined.guest.emailAttached,
+        email: joined.guest.emailAttached ? typedEmail : null,
+      });
     });
   }
 
   return (
     <form
       data-guest-name-step={mode}
+      /* ★ THE BROWSER NEVER GETS TO REFUSE THIS FORM. A native `type="email"`
+         field inside a form makes the browser run its own constraint check on
+         submit: it BLOCKS the submission and pops its own bubble ("Please enter
+         an email address"), so `onSubmit` never runs and the refusal slot under
+         the field never fills. That is a chrome-coloured, untranslated, unstyled
+         sentence about an OPTIONAL question, in place of ours — and it would
+         have stopped the name from being sent at all. `noValidate` hands the
+         whole job back to `checkGuestEmail`, which is where the door's one
+         refusal grammar lives. */
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -250,6 +376,50 @@ export function GuestNameStep({
           </p>
         )}
       </div>
+      {/* ★ THE OPTIONAL ADDRESS (Will, 2026-09-22). Under the name and its hint,
+          one compact field with a VISIBLE label, because unlike the name this
+          question is not the heading and "(optional)" is the most important
+          word on the step: a guest must be able to see that skipping it is a
+          real choice before they decide. No autofocus (the name keeps it, and
+          the keyboard is already up), a `type="email"` so the phone brings the
+          right keys, and a helper line that is a benefit to THEM rather than a
+          reason of ours. */}
+      {asksEmail && (
+        <div className="space-y-1.5">
+          <Label htmlFor="pr-guest-email">Email (optional)</Label>
+          <Input
+            id="pr-guest-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailRefusal) setEmailRefusal(null);
+            }}
+            placeholder="you@email.com"
+            maxLength={EMAIL_MAX_LENGTH}
+            enterKeyHint="go"
+            aria-invalid={emailRefusal ? true : undefined}
+            aria-describedby="pr-guest-email-hint"
+            className="h-11 text-base"
+          />
+          {emailRefusal ? (
+            <p id="pr-guest-email-hint" className="text-reading text-destructive">
+              {emailRefusal.message}
+            </p>
+          ) : (
+            // What the address BUYS them, and nothing about what it is for us.
+            // Nothing is sent to it, now or later, until they confirm it.
+            <p
+              id="pr-guest-email-hint"
+              className="text-reading text-muted-foreground"
+            >
+              Come back to this album anytime, with every photo you add.
+            </p>
+          )}
+        </div>
+      )}
       <Button
         type="submit"
         size="cta"
@@ -270,7 +440,8 @@ export function GuestNameStep({
  */
 export function guestNameCopy(
   mode: GuestNameMode,
-  hostName?: string | null,
+  /** Ignored since 2026-09-22 (see the `join` branch); kept so callers compile. */
+  _hostName?: string | null,
 ): { title: string; reason: string } {
   if (mode === "edit") {
     return {
@@ -286,8 +457,13 @@ export function guestNameCopy(
         "Your name goes on the photos you add. It becomes your Partyreel name too.",
     };
   }
+  /* ★ THE HOST GOES UNNAMED HERE NOW (Will, 2026-09-22, verbatim: "Let's lose
+     the lead on 'so Will Gibson knows who to thank' too. 'so the host knows who
+     to thank'."), which overrules the earlier call that named them with "the
+     host" only as a fallback. `hostName` stays in the signature, ignored, so
+     every caller and the lab's fixtures compile untouched. */
   return {
     title: "What should we call you?",
-    reason: `Your name goes on the photos you add, so ${hostName?.trim() || "the host"} knows who to thank.`,
+    reason: "Your name goes on the photos you add, so the host knows who to thank.",
   };
 }

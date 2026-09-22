@@ -2,6 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 import { GUEST_LIST_FACES_THRESHOLD, GuestList } from "./guest-list";
@@ -116,7 +117,7 @@ describe("GuestList: unverified guests", () => {
     render(<GuestList items={[unverified]} />);
     expect(screen.getByText("Sam")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /name not verified/i }),
+      screen.getByRole("button", { name: UNVERIFIED_LABEL }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull();
   });

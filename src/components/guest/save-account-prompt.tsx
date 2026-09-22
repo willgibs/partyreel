@@ -74,12 +74,21 @@ export function SaveAccountPrompt({
   qrToken,
   sessionToken,
   count = 0,
+  hintEmail,
 }: {
   eventId: string;
   qrToken: string;
   sessionToken: string;
   /** Photographs this guest added in this session (the sentence's number). */
   count?: number;
+  /**
+   * The address typed at the DOOR this visit (the optional field, 2026-09-22),
+   * so the door behind this card opens on it. The card's own words do not
+   * change: a guest who typed an address is being offered the same thing, one
+   * tap cheaper. Null for everyone who skipped the field and on every later
+   * visit, because the page holds it in memory alone.
+   */
+  hintEmail?: string | null;
 }) {
   const [dismissed, dismiss] = useDismissed(promptKey(qrToken));
   // Already signed in AND already saved → no prompt (resolved client-side).
@@ -142,6 +151,7 @@ export function SaveAccountPrompt({
           eventId={eventId}
           qrToken={qrToken}
           sessionToken={sessionToken}
+          hintEmail={hintEmail}
           offerNewsletter
           triggerLabel="Confirm your email"
           onSaved={dismiss}

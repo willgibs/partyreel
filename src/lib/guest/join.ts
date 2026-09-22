@@ -1,15 +1,26 @@
 /**
- * THE TWO CALLS THE DOOR MAKES (the identity reshape, 2026-09-21).
+ * THE THREE CALLS THE DOOR MAKES (the identity reshape, 2026-09-21; the
+ * optional address added by "guest identity: name only, unconfirmed email,
+ * verified account", 2026-09-22).
  *
  * Anonymity left the product on Will's `address=none` and his note: a host's
  * switch is **Require verified emails**, and with it OFF a guest types a display
  * name at the door and uploads under it, marked until they confirm. That door
- * has exactly two verbs, and they live here rather than inside a component so
- * the entry modal, the header's rename and the upload queue's silent join all
- * speak to the route through one shape.
+ * has three verbs, and they live here rather than inside a component so the
+ * entry modal, the header's rename, the guest menu's add-email dialog and the
+ * upload queue's silent join all speak to the routes through one shape.
  *
- *   joinEvent({ qrToken, displayName? })  -> POST /api/guests
+ *   joinEvent({ qrToken, displayName?, email? })  -> POST /api/guests
  *   renameGuest({ qrToken, sessionToken, displayName }) -> POST /api/guests/name
+ *   attachGuestEmail({ qrToken, sessionToken, email }) -> POST /api/guests/email
+ *
+ * ★ THE ADDRESS IS A CLAIM NUMBER, NOT AN IDENTITY (Will, 2026-09-22, verbatim:
+ * a names-mode door entry without a login is "simply a name with an invisible
+ * claim number (the email)"). It is stored UNCONFIRMED in `guests.pending_email`,
+ * never shown to the host or to another guest, never mailed on its own. Nothing
+ * here ever reads one back: both routes answer with a BOOLEAN (`email_attached`)
+ * and never the address, so no surface above this module can leak what it was
+ * never handed.
  *
  * ★ THE NAME IS OPTIONAL HERE AND REQUIRED THERE. `create_guest` accepts a
  * nameless mint on purpose (wave 0's finding: production keeps working through
@@ -25,6 +36,8 @@
  * `session-tokens.ts` beside it, so the refusal mapping is unit-testable in the
  * node env with a stubbed `fetch` and every caller decides how a refusal is SAID.
  */
+import { z } from "zod";
+
 import { displayNameSchema } from "@/lib/validation/profile";
 
 /**
@@ -36,13 +49,16 @@ import { displayNameSchema } from "@/lib/validation/profile";
  * (Postgres's `NO_DATA_FOUND`), the row this session named no longer exists;
  * `unauthorized` is a VERIFIED row (their name is their profile's, so a rename
  * is refused outright) from that same route, or a private event from the join
- * route; `other` carries the server's own sentence for everything else (rate
- * limits, a dead link), which is always better than a house paraphrase.
+ * route; `email_invalid` is the optional address at the door, refused in the
+ * same slot the name's refusals land in; `other` carries the server's own
+ * sentence for everything else (rate limits, a dead link), which is always
+ * better than a house paraphrase.
  */
 export type JoinRefusal = {
   kind:
     | "name_required"
     | "name_invalid"
+    | "email_invalid"
     | "verification_required"
     | "invalid_session"
     | "unauthorized"
@@ -56,6 +72,12 @@ export type JoinedGuest = {
   displayName: string | null;
   /** True when this session is a confirmed account's (`guests.verified_at` set). */
   verified: boolean;
+  /**
+   * The row now carries an UNCONFIRMED address. A boolean, never the address:
+   * the route answers `email_attached` and nothing more, and this device stores
+   * only the boolean beside its name (`use-stored-name.ts`).
+   */
+  emailAttached: boolean;
 };
 
 export type JoinResult =
@@ -66,6 +88,7 @@ export type JoinResult =
 const REFUSALS = new Set([
   "name_required",
   "name_invalid",
+  "email_invalid",
   "verification_required",
   "invalid_session",
   "unauthorized",
@@ -114,6 +137,39 @@ export function checkDisplayName(
   return { ok: true, name: parsed.data };
 }
 
+/** The longest address any RFC-compliant mailbox can be; the column's CHECK too. */
+const EMAIL_MAX_LENGTH = 254;
+const guestEmailSchema = z.email();
+
+/**
+ * Parse the door's OPTIONAL address. A blank field is `{ok: true, email: null}`
+ * and not a refusal, because "I would rather not" is a valid answer to an
+ * optional question and the guest is already past this field by then.
+ *
+ * ★ THE ROUTE IS STILL THE TRUTH. This is `checkDisplayName`'s twin and exists
+ * for the same reason: a typo answered under the field beats a round trip that
+ * says the same thing. The route re-parses through `parseGuestEmail`
+ * (`lib/validation/upload.ts`, the single source, which also owns the 422's
+ * sentence), and the trim-and-lowercase here only means the string this device
+ * remembers matches the one the row stores.
+ */
+export function checkGuestEmail(
+  raw: string,
+): { ok: true; email: string | null } | { ok: false; refusal: JoinRefusal } {
+  const trimmed = raw.trim().toLowerCase();
+  if (!trimmed) return { ok: true, email: null };
+  if (
+    trimmed.length > EMAIL_MAX_LENGTH ||
+    !guestEmailSchema.safeParse(trimmed).success
+  ) {
+    return {
+      ok: false,
+      refusal: { kind: "email_invalid", message: "Check that email address." },
+    };
+  }
+  return { ok: true, email: trimmed };
+}
+
 async function post(url: string, payload: unknown): Promise<Response | null> {
   try {
     return await fetch(url, {
@@ -135,6 +191,12 @@ async function post(url: string, payload: unknown): Promise<Response | null> {
 export async function joinEvent(input: {
   qrToken: string;
   displayName?: string;
+  /**
+   * The door's optional address, sent ONLY when a guest typed one. A verified
+   * session never carries it (the route ignores the field beside a confirmed
+   * account), and a verified-required event nulls it before the insert.
+   */
+  email?: string;
 }): Promise<JoinResult> {
   const res = await post("/api/guests", {
     qr_token: input.qrToken,
@@ -143,6 +205,10 @@ export async function joinEvent(input: {
     ...(input.displayName === undefined
       ? {}
       : { display_name: input.displayName }),
+    // Same rule for the address: the optional field's empty state sends no key
+    // at all, so the join body of a guest who declined is byte-for-byte the one
+    // the door sent before this field existed.
+    ...(input.email === undefined ? {} : { email: input.email }),
   });
   if (!res) return { ok: false, refusal: OFFLINE };
 
@@ -162,6 +228,7 @@ export async function joinEvent(input: {
     session_token: string;
     display_name?: string | null;
     verified?: boolean;
+    email_attached?: boolean;
   };
   return {
     ok: true,
@@ -169,6 +236,7 @@ export async function joinEvent(input: {
       sessionToken: ok.session_token,
       displayName: ok.display_name ?? null,
       verified: Boolean(ok.verified),
+      emailAttached: Boolean(ok.email_attached),
     },
   };
 }
@@ -204,4 +272,49 @@ export async function renameGuest(input: {
   }
   const ok = body as { display_name?: string | null };
   return { ok: true, displayName: ok.display_name ?? input.displayName };
+}
+
+/**
+ * Put an UNCONFIRMED address on the row this session token names, or take one
+ * off it (`email: null`). The token rides in the BODY like every other guest
+ * capability, and the route owns the parse, the limiter and the refusals.
+ *
+ * ★ IT IS THE SECOND WAY IN, NOT THE FIRST. The door's own field rides the join
+ * in ONE post; this is for the two doors that come later: the guest menu's "Add
+ * your email" on an album already entered, and the held-session path at the door
+ * (a row minted before this round, renamed first, then given the address it was
+ * never asked for).
+ *
+ * ★ AND IT NEVER HANDS THE ADDRESS BACK. The answer is `email_attached`, a
+ * boolean, for the same reason the join's is: a route that could echo an
+ * unconfirmed address is a route a host could be pointed at.
+ */
+export async function attachGuestEmail(input: {
+  qrToken: string;
+  sessionToken: string;
+  email: string | null;
+}): Promise<
+  { ok: true; emailAttached: boolean } | { ok: false; refusal: JoinRefusal }
+> {
+  const res = await post("/api/guests/email", {
+    qr_token: input.qrToken,
+    session_token: input.sessionToken,
+    email: input.email,
+  });
+  if (!res) return { ok: false, refusal: OFFLINE };
+
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // as above
+  }
+  if (!res.ok || !(body as { ok?: unknown } | null)?.ok) {
+    return {
+      ok: false,
+      refusal: refusalOf(body, "We couldn't save that email. Try again."),
+    };
+  }
+  const ok = body as { email_attached?: boolean };
+  return { ok: true, emailAttached: Boolean(ok.email_attached) };
 }

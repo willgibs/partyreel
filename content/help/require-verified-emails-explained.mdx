@@ -3,7 +3,7 @@ title: "Require verified emails, explained"
 description: "On by default and free: guests preview, then confirm an email to see everything and add photos. A confirmed name and email ride with every upload. Off, guests type a name instead, marked unverified."
 category: privacy-and-safety
 order: 2
-updated: "2026-09-21"
+updated: "2026-09-22"
 keywords:
   - require verified emails
   - verified email
@@ -15,7 +15,7 @@ keywords:
   - preview
 ---
 
-This one switch decides whether an upload's name is confirmed. On, every guest confirms an email before they're in. Off, a guest types a display name instead, and it rides on their photos wearing a small unverified mark.
+This one switch decides whether an upload's email is confirmed. On, every guest confirms an email before they're in. Off, a guest types a display name instead, and it rides on their photos wearing a small mark reading <UiLabel>Unverified</UiLabel>.
 
 <Path>Dashboard › Your event › Settings › Guest uploads › Require verified emails</Path>
 
@@ -31,7 +31,17 @@ The uploader's email appears only to you, per photo, in the photo viewer on your
 
 ## Off
 
-Flip the switch off and Partyreel asks you to confirm with <UiLabel>Stop requiring verified emails?</UiLabel>. It spells out the trade: guests will add photos under a name they type, with no email behind it; their names stay on every photo and carry a small unverified mark, but nothing proves who typed them, so abuse is harder to trace. <UiLabel>Keep verified emails</UiLabel> backs out; <UiLabel>Use names only</UiLabel> goes ahead, then tap <UiLabel>Save changes</UiLabel>. Turning it back on is instant and needs no confirmation.
+Flip the switch off and Partyreel asks you to confirm with <UiLabel>Stop requiring verified emails?</UiLabel>. It spells out the trade: guests will add photos under a name they type, with no confirmed email behind it; their names stay on every photo and carry a small mark reading <UiLabel>Unverified</UiLabel>, but nothing proves who typed them, so abuse is harder to trace. <UiLabel>Keep verified emails</UiLabel> backs out; <UiLabel>Use names only</UiLabel> goes ahead, then tap <UiLabel>Save changes</UiLabel>. Turning it back on is instant and needs no confirmation.
+
+## What the mark means, and what you see
+
+Off, the door asks a name and offers an email as an optional extra, so a guest arrives at one of three levels:
+
+- **A name only.** The photo carries the name and the <UiLabel>Unverified</UiLabel> mark. The mark is about the email, not the name: names are never checked for anybody, and only emails are ever confirmed.
+- **A name and an email they have not confirmed.** The album looks exactly the same to you and to every guest, mark and all. You never see that address, it is never listed or exported, and Partyreel sends it nothing. It is there so that guest can claim their own photos later if they confirm it.
+- **A confirmed account.** No mark, and the email shows to you in the photo viewer.
+
+So the mark answers one question for you: has this person confirmed an email? Anything finer than that, including whether an address was typed at all, is the guest's own business until they confirm it.
 
 A guest who types a name can confirm an email later and clear the mark; [save an event, and find your uploads later](/help/save-an-event-and-find-your-uploads) covers that side of it.
 
