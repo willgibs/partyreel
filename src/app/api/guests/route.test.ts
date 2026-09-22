@@ -9,6 +9,12 @@
  *   ★ THE NAME REQUIREMENT IS THIS ROUTE'S. The database deliberately still accepts a NAMELESS
  *     mint, because production had to survive wave 0's migration by hours; if this route stops
  *     asking, nothing else does.
+ *
+ * And since the guest identity round (Will, 2026-09-22) the door also carries an OPTIONAL address:
+ *   ★ WHETHER, NEVER WHAT. The response says `email_attached` and must never carry the address
+ *     itself — a host's own browser calls this route.
+ *   ★ THE MINT SETTLES IT, NOT THE REQUEST. `email_attached` comes back from create_guest, which
+ *     nulls a typed address beside a confirmed account and on a Require-verified-emails event.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -93,6 +99,7 @@ beforeEach(() => {
       event_id: "event-1",
       display_name: null,
       verified: true,
+      emailAttached: false,
     },
   });
 });
@@ -135,7 +142,19 @@ describe("Require verified emails ON", () => {
       userId: "u1",
       unlockProven: false,
       displayName: null,
+      pendingEmail: null,
     });
+  });
+
+  it("★ a typed address cannot buy a way past the gate either, and never reaches the mint", async () => {
+    expect(
+      await refusal({
+        qr_token: TOKEN,
+        display_name: "Maya J.",
+        email: "maya@example.com",
+      }),
+    ).toEqual({ status: 422, code: "verification_required" });
+    expect(createGuest).not.toHaveBeenCalled();
   });
 });
 
@@ -150,6 +169,7 @@ describe("Require verified emails OFF: the name is the identity", () => {
         event_id: "event-1",
         display_name: "Maya J.",
         verified: false,
+        emailAttached: false,
       },
     });
   });
@@ -184,6 +204,7 @@ describe("Require verified emails OFF: the name is the identity", () => {
       userId: null,
       unlockProven: false,
       displayName: "Maya J.",
+      pendingEmail: null,
     });
     await expect(res.json()).resolves.toEqual({
       ok: true,
@@ -191,6 +212,7 @@ describe("Require verified emails OFF: the name is the identity", () => {
       event_id: "event-1",
       display_name: "Maya J.",
       verified: false,
+      email_attached: false,
     });
   });
 
@@ -205,6 +227,116 @@ describe("Require verified emails OFF: the name is the identity", () => {
     expect(createGuest).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "u1", displayName: null }),
     );
+  });
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     THE OPTIONAL ADDRESS UNDER THE NAME (the guest identity round, 2026-09-22).
+     ────────────────────────────────────────────────────────────────────────── */
+
+  it("★ passes the address to the mint LOWERCASED and trimmed (the claim finds rows by equality)", async () => {
+    await post({
+      qr_token: TOKEN,
+      display_name: "Maya J.",
+      email: "  Maya.J@Example.COM  ",
+    });
+    expect(createGuest).toHaveBeenCalledWith(
+      expect.objectContaining({ pendingEmail: "maya.j@example.com" }),
+    );
+  });
+
+  it("422 email_invalid for a typed address that is not one, and never mints", async () => {
+    for (const email of ["not-an-address", "maya@", "@example.com"]) {
+      vi.clearAllMocks();
+      expect(
+        await refusal({ qr_token: TOKEN, display_name: "Maya J.", email }),
+      ).toEqual({ status: 422, code: "email_invalid" });
+      expect(createGuest).not.toHaveBeenCalled();
+    }
+  });
+
+  it("a MISSING or BLANK address is not an error: the field is optional", async () => {
+    for (const email of [undefined, "", "   "]) {
+      vi.clearAllMocks();
+      createGuest.mockResolvedValue({
+        ok: true,
+        data: {
+          session_token: "s1",
+          guest_id: "g1",
+          event_id: "event-1",
+          display_name: "Maya J.",
+          verified: false,
+          emailAttached: false,
+        },
+      });
+      const res = await post({
+        qr_token: TOKEN,
+        display_name: "Maya J.",
+        ...(email === undefined ? {} : { email }),
+      });
+      expect(res.status).toBe(200);
+      expect(createGuest).toHaveBeenCalledWith(
+        expect.objectContaining({ pendingEmail: null }),
+      );
+    }
+  });
+
+  it("★ answers WHETHER an address was stored, and NEVER the address itself", async () => {
+    createGuest.mockResolvedValue({
+      ok: true,
+      data: {
+        session_token: "s1",
+        guest_id: "g1",
+        event_id: "event-1",
+        display_name: "Maya J.",
+        verified: false,
+        emailAttached: true,
+      },
+    });
+    const res = await post({
+      qr_token: TOKEN,
+      display_name: "Maya J.",
+      email: "maya@example.com",
+    });
+    const body = await res.json();
+    expect(body).toEqual({
+      ok: true,
+      session_token: "s1",
+      event_id: "event-1",
+      display_name: "Maya J.",
+      verified: false,
+      email_attached: true,
+    });
+    expect(JSON.stringify(body)).not.toContain("maya@example.com");
+    expect(JSON.stringify(body)).not.toContain("example.com");
+  });
+
+  it("★ a CONFIRMED session's typed address is ignored, and the mint's answer is what is rendered", async () => {
+    // create_guest nulls a typed address beside a confirmed account, so the route must report the
+    // DATABASE's answer and never echo the request's intent back at the door.
+    session({
+      id: "u1",
+      email: "alex@example.com",
+      email_confirmed_at: "2026-09-21T15:00:00Z",
+    });
+    createGuest.mockResolvedValue({
+      ok: true,
+      data: {
+        session_token: "s1",
+        guest_id: "g1",
+        event_id: "event-1",
+        display_name: null,
+        verified: true,
+        emailAttached: false,
+      },
+    });
+    const res = await post({ qr_token: TOKEN, email: "someone@else.com" });
+    expect(createGuest).toHaveBeenCalledWith(
+      expect.objectContaining({ pendingEmail: null, displayName: null }),
+    );
+    await expect(res.json()).resolves.toMatchObject({
+      verified: true,
+      email_attached: false,
+    });
   });
 
   it("the guest_id never leaves the server", async () => {
@@ -226,6 +358,7 @@ describe("the mint's own refusals keep their statuses", () => {
     ["not_found", 404],
     ["verification_required", 422], // the host flipped the switch mid-join
     ["name_invalid", 422],
+    ["email_invalid", 422], // the belt under guests_pending_email_shape
     ["unlock_required", 403],
     ["unauthorized", 403],
     ["unknown", 500],
@@ -273,6 +406,7 @@ describe("POST /api/guests: the session cookie", () => {
         event_id: "event-1",
         display_name: "Priya",
         verified: false,
+        emailAttached: false,
       },
     });
     const res = await post({ qr_token: TOKEN, display_name: "Priya" });
@@ -292,6 +426,7 @@ describe("POST /api/guests: the session cookie", () => {
         event_id: "event-1",
         display_name: "Priya",
         verified: false,
+        emailAttached: false,
       },
     });
     const res = await post({ qr_token: TOKEN, display_name: "Priya" });

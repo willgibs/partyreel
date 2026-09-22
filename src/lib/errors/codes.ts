@@ -47,6 +47,7 @@ export type ErrorCode =
   | "verification_required"
   | "name_required"
   | "name_invalid"
+  | "email_invalid"
   | "incorrect_password"
   | "wrong_password"
   | "unlock_required"
@@ -95,9 +96,14 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   verification_required: "Confirm your email to join this event.",
   name_required: "Enter a name.",
   name_invalid: "That name isn't available.",
+  // The guest identity round (2026-09-22): the OPTIONAL address a guest types at a names-mode door.
+  // One code, not two: a blank address is never an error (the field is optional, and blanking it on
+  // the attach route is how a guest detaches it), so the only refusal is "that is not an address".
+  email_invalid: "Check that email address.",
   incorrect_password: "That password is incorrect.",
   wrong_password: "That password is incorrect.",
-  unlock_required: "This event is locked. Enter the event password to continue.",
+  unlock_required:
+    "This event is locked. Enter the event password to continue.",
   not_configured: "That isn't set up for this event.",
   rate_limited: "Too many attempts. Wait a moment and try again.",
   no_customer: "We couldn't find billing details for your account.",
@@ -124,7 +130,6 @@ export type ActionFailure = {
 export function messageFor(code: string, message?: string): string {
   if (message) return message;
   return (
-    (FALLBACK_MESSAGES as Record<string, string>)[code] ??
-    DEFAULT_ERROR_MESSAGE
+    (FALLBACK_MESSAGES as Record<string, string>)[code] ?? DEFAULT_ERROR_MESSAGE
   );
 }

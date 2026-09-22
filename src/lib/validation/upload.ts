@@ -35,9 +35,16 @@ export const MAX_DECLARED_DIMENSION = 100_000;
 // `name_required` / `name_invalid` with a sentence the door can render, instead of collapsing into one
 // flat 400 for "the body was malformed". A lone `qr_token` still parses: a VERIFIED joiner sends no
 // name at all (their profile name is the identity), and so does the pre-reshape client.
+//
+// ★ `email` IS LOOSE FOR THE SAME REASON, and optional twice over (the guest identity round, Will
+// 2026-09-22). The names-mode door carries an OPTIONAL address under the name, so a guest who skips
+// it is at level 1 and NOT in error, while a guest who fumbles one gets a 422 `email_invalid` with a
+// sentence rather than a flat 400. It is stored UNPROVED in `guests.pending_email` and NOTHING is
+// ever sent to it — which is exactly what makes accepting a stranger's address safe.
 export const joinSchema = z.object({
   qr_token: z.string().trim().min(1),
   display_name: z.string().optional(),
+  email: z.string().optional(),
 });
 
 // ─── POST /api/guests/name (name / rename) ───────────────────────────────────
@@ -87,6 +94,59 @@ export function parseGuestDisplayName(
     };
   }
   return { ok: true, name: parsed.data };
+}
+
+// ─── POST /api/guests/email (attach / change / detach the unproved address) ──
+// The second half of the optional field, and the mirror of the name door above: a guest who skipped
+// the field at the door and wants back in, one who typed it wrong, and one who wants it gone. The
+// `session_token` is the capability (set_guest_pending_email validates it inside and can only ever
+// touch THAT row); the `qr_token` scopes the rate limiter and the visibility gate. Both travel in
+// the BODY, never a URL. `email` is NULLABLE rather than optional: null is the DETACH intent, said
+// out loud, where a missing key would be indistinguishable from a client that forgot to send it.
+export const attachEmailSchema = z.object({
+  qr_token: z.string().trim().min(1),
+  session_token: z.string().trim().min(1),
+  email: z.string().nullable(),
+});
+
+/**
+ * THE TYPED ADDRESS'S GATE. Normalised the way the column stores it (trimmed, lowercased) so the
+ * database's `pending_email = lower(btrim(pending_email))` CHECK holds by construction and the
+ * claim's equality lookup can never miss a row on case alone.
+ *
+ * ★ SHAPE, NEVER DELIVERABILITY. Nothing is ever sent here, so the only job is to keep junk out of a
+ * column a guest will later have to recognise as their own. zod v4's `z.email()` (the top-level
+ * format function, not `z.string().email()`) is the shape test; 254 is the RFC 5321 ceiling and the
+ * column's own upper bound, checked BEFORE the format so a megabyte of text never reaches the regex.
+ *
+ * Returns the normalised address, or the refusal the route answers 422 with. There is deliberately
+ * ONE refusal code where the name has two: a blank address is not an error at all here (the field is
+ * optional, and a blank one on the attach route is the detach), so the route never asks this
+ * function about one.
+ */
+export type GuestEmailRefusalCode = "email_invalid";
+
+export const MAX_GUEST_EMAIL_LENGTH = 254;
+
+export function parseGuestEmail(
+  raw: unknown,
+):
+  | { ok: true; email: string }
+  | { ok: false; code: GuestEmailRefusalCode; message: string } {
+  const refusal = {
+    ok: false,
+    code: "email_invalid",
+    message: "Check that email address.",
+  } as const;
+  if (typeof raw !== "string") return refusal;
+  const normalized = raw.trim().toLowerCase();
+  if (normalized.length === 0 || normalized.length > MAX_GUEST_EMAIL_LENGTH) {
+    return refusal;
+  }
+  // zod v4: the format lives at the top level (`z.email()`), and a failure carries `error.issues`.
+  // The message is OURS either way — zod's default sentence is for a developer, not a guest.
+  if (!z.email().safeParse(normalized).success) return refusal;
+  return { ok: true, email: normalized };
 }
 
 // ─── POST /api/r2/presign-upload ─────────────────────────────────────────────
@@ -162,6 +222,7 @@ export const hostCompleteUploadSchema = z.object({
 
 export type JoinInput = z.input<typeof joinSchema>;
 export type RenameGuestInput = z.input<typeof renameGuestSchema>;
+export type AttachEmailInput = z.input<typeof attachEmailSchema>;
 export type PresignUploadInput = z.input<typeof presignUploadSchema>;
 export type CompleteUploadInput = z.input<typeof completeUploadSchema>;
 export type HostPresignUploadInput = z.input<typeof hostPresignUploadSchema>;

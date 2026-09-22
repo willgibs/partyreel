@@ -59,7 +59,11 @@ The expected, accepted set:
   guest by their session token. Service-role for the usual reason AND a second one — PROFANITY and
   the reserved-name list cannot be checked in SQL, because the obscenity matcher must never ship to
   a browser, so the route that calls it is part of the gate, exactly as `updateDisplayNameAction` is
-  for a profile name).
+  for a profile name), `set_guest_pending_email` (the guest identity round, `20260922120000`: it
+  attaches, changes or DETACHES the unproved address on a guest row by session token, reached only
+  through `POST /api/guests/email`. Service-role because an anon EXECUTE grant IS the attack surface,
+  and because the route's `attach_email` limiter is part of the gate; a VERIFIED row is refused, and
+  a blank address detaches rather than erroring).
   A 2026-06-08 live pentest proved anon EXECUTE on these was directly PostgREST-callable, BYPASSING every
   route-level guard (the R2-HEAD size authority, the unlock rate-limiter) → cap-evasion cost-bomb
   (H1) + an unthrottled password oracle (H2) + spam/victim-email poisoning (H3). FIX: `revoke
@@ -84,7 +88,15 @@ The expected, accepted set:
   (`claim_anonymous_uploads(text[])` stamps `guests.user_id = auth.uid()` onto a browser's still-unclaimed
   anonymous uploads; authorized by the held `session_token` capabilities + the `user_id IS NULL` no-theft
   guard, so — unlike the anon WRITE RPCs above — there is no client-spoofable value to protect, and it stays
-  browser-callable rather than server-mediated. → [guest-flow.md](guest-flow.md).) (`get_my_uploads(integer)`
+  browser-callable rather than server-mediated. Since the guest identity round it also stamps `verified_at`
+  and `email` for a CONFIRMED caller, and drops a differing typed address. → [guest-flow.md](guest-flow.md).)
+  (**The claim by address** (the guest identity round, `20260922120000`): `list_guest_rows_by_email()`,
+  `claim_guest_rows_by_email(uuid[])` and `disown_guest_rows_by_email(uuid[])`, all three keyed on the
+  CALLER'S OWN CONFIRMED address read from `auth.users` under definer privilege. ★ The address is never a
+  parameter, which is the whole oracle gate: nothing here can answer "is this address a Partyreel guest?",
+  and an UNCONFIRMED caller gets an empty set even for their own address, because confirming it IS the
+  authorization. The claim stamps `user_id`, `verified_at` and `email` and clears `pending_email`; the
+  disown removes the rows' media through the uploader path and detaches the address. → [guest-flow.md](guest-flow.md).) (`get_my_uploads(integer)`
   returns the user's OWN media across events — host + guest — reading event name/date for events they don't
   own, like `get_saved_events`; SECURITY DEFINER + `auth.uid()`, filter-ready, ≤200. → [host-app.md](host-app.md).)
   (`remove_my_upload(uuid)` soft-deletes one of those uploads, re-checking the SAME host-arm/guest-arm ownership;
@@ -148,7 +160,19 @@ The expected, accepted set:
   - **`guests`** — SELECT is column-scoped (QA #41, `20260729180000`): `session_token` is NOT granted. It is the PLAINTEXT guest upload capability, and `guests_host_select` would otherwise hand every host their guests' tokens over PostgREST. All three readers use the service-role client; no host-facing read exists. ★ **THE TOKEN ALSO RIDES A COOKIE NOW** (the door round, 2026-09-21): `pr_guest_<eventId>` carries it raw, beside the `pr_unlock_<eventId>` signed cookie and on the same reasoning as it, because Require an upload to view is resolved in an RSC and localStorage is invisible there. HttpOnly (strictly LESS reachable than the localStorage original: script cannot read it), Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded `/^[0-9a-f]{64}$/` on read, and UNSIGNED on purpose — the database verifies it against this column's unique index, so a forged value resolves to no row. Written only by `POST /api/guests` (a mint), `POST /api/guests/name`, `POST /api/r2/complete-upload` (a created row) and the gallery poll's heal, expired by `POST /api/guests/leave`, which the guest sign-out calls so a shared phone does not render the full album on the last contributor's ticket. ★ **It is a READ capability only**: every WRITE route still takes the token from the request BODY, pinned by a source test, so the CSRF surface is exactly where it was. → [guest-flow.md](guest-flow.md). Writes were already fully revoked (RPC-only). The reshape's `display_name` and
     `verified_at` were deliberately LEFT OUT of that grant: a new column is fail-closed here, the
     guest list and the credit are built server-side on the admin client, and the narrower the host's
-    PostgREST view of this table the better.
+    PostgREST view of this table the better. ★ **TWO EMAIL COLUMNS, ONE PATH BETWEEN THEM** (the guest
+    identity round, `20260922120000`, Will 2026-09-22). `guests.email` is ONLY EVER a CONFIRMED
+    `auth.users` address, written server-side at the mint from `email_confirmed_at`, and it is the one
+    of the two inside the host's column grant. `guests.pending_email` is ONLY EVER an address a guest
+    TYPED and nobody has proved: outside every grant, never shown to the host or another guest, never
+    attributed to an account, never mailed on its own, never expiring. The ONLY path from the second to
+    the first is a claim that PROVES it — `claim_guest_rows_by_email` or `claim_anonymous_uploads` under
+    a confirmed session — and the code side holds the same line three ways: `resolveUploaderIdentity`
+    case 3 returns no address at all (an unverified row's `guests.email` is not proof of anything),
+    `getEventGuestList` selects neither column, and `POST /api/guests/capture-email` now requires
+    `email_confirmed_at` before it writes `guests.email` (it tested `user.email` alone, which an
+    unconfirmed sign-up satisfies). `upload_forensics.guest_pending_email` is the single exception, and
+    it is deny-all + service-role: capture-only, lawful process, never rendered.
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE are REVOKED at the table grant, so the ONLY write path is the access-checking `like_media` RPC. A raw browser insert would otherwise let a user "like" (and then, via `get_my_likes`, presign) media they can't see — the `saved_events` lesson (write through the RPC, never a raw insert).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE scoped to the host's own event via ownership); INSERT/UPDATE REVOKED at the table grant, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed), and the ONLY position-update path is the `reorder_reel(p_event_id, p_media_ids)` RPC (host-owns + a set-equality guard: the id list must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. Mirrors `media_likes` exactly but HOST-scoped, not owner-self (S5 Reel R1; reorder 2026-06-22).
   - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (the

@@ -13,6 +13,9 @@
  * A recording fake stands in for the query builder: the thing worth pinning is the exact
  * PostgREST shape, which no amount of type-checking verifies.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -149,6 +152,19 @@ describe("getEventGuestList: who counts as verified", () => {
     await getEventGuestList(EVENT, { includeUnverified: true });
     expect(selected.guests).toBe("id, user_id, display_name, verified_at");
   });
+
+  /* ★ AND NOT ONE COLUMN MORE (the guest identity round, Will 2026-09-22). `guests` now carries
+     `pending_email`: an address a guest TYPED at the door that nobody has proved. His ruling makes
+     it inert — "there's no impersonation risk if the host can't see the attributed email of an
+     unconfirmed account" — and this read feeds the host's OWN album page. It is outside the host's
+     PostgREST column grant as a belt, but this query runs on the ADMIN client, which the grant does
+     not bind, so the SELECT above is the only thing standing between the column and the host. */
+  it("★ the guest-list SELECT carries no address of any kind", async () => {
+    await getEventGuestList(EVENT, { includeUnverified: true });
+    for (const forbidden of ["pending_email", "email"]) {
+      expect(selected.guests, forbidden).not.toContain(forbidden);
+    }
+  });
 });
 
 describe("getEventGuestList: an approved photograph is still the price of a place", () => {
@@ -169,6 +185,28 @@ describe("getEventGuestList: an approved photograph is still the price of a plac
     await expect(
       getEventGuestList(EVENT, { includeUnverified: true }),
     ).resolves.toEqual([]);
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE MODULE-WIDE ADDRESS BAN (the guest identity round, 2026-09-22).
+
+   Every read in queries/social.ts either feeds a public profile, a host surface or another guest's
+   view; none of them is the guest's own menu, which is the ONLY place an unproved address is ever
+   shown. A source-level pin is what holds that for the reads this fake does not exercise.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("queries/social.ts never reads the unproved address", () => {
+  it("★ names `pending_email` nowhere outside a comment", () => {
+    const code = readFileSync(
+      join(process.cwd(), "src/lib/db/queries/social.ts"),
+      "utf8",
+    )
+      .split("\n")
+      .filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line))
+      .join("\n");
+    for (const forbidden of ["pending_email", "pendingEmail"]) {
+      expect(code, forbidden).not.toContain(forbidden);
+    }
   });
 });
 

@@ -39,6 +39,13 @@ export type CreateGuestResult =
         display_name: string | null;
         /** True when the session proved a confirmed email at the mint (guests.verified_at stamped). */
         verified: boolean;
+        /**
+         * WHETHER an unproved address was stored, never WHAT (the guest identity round, 2026-09-22).
+         * The mint settles it — create_guest nulls a typed address beside a confirmed account and on
+         * a Require-verified-emails event — so the door renders the truth without a second read, and
+         * the address itself never travels back out on a wire the host's own response rides.
+         */
+        emailAttached: boolean;
       };
     }
   | {
@@ -47,6 +54,7 @@ export type CreateGuestResult =
         | "not_found"
         | "verification_required"
         | "name_invalid"
+        | "email_invalid"
         | "unlock_required"
         | "unauthorized"
         | "unknown";
@@ -69,6 +77,14 @@ export async function createGuest(input: {
    * account, because one row never carries two identities that can disagree.
    */
   displayName?: string | null;
+  /**
+   * The guest identity round (2026-09-22): the OPTIONAL address typed under the name at a names-mode
+   * door, already normalised by the route's `parseGuestEmail`. Stored UNPROVED in
+   * `guests.pending_email` and inert — never shown to the host or another guest, never attributed to
+   * an account, NEVER MAILED, never expiring. create_guest nulls it beside a confirmed account and on
+   * a Require-verified-emails event, so sending one there is harmless rather than a second identity.
+   */
+  pendingEmail?: string | null;
 }): Promise<CreateGuestResult> {
   // Server-mediated (H3): create_guest is service-role-only now. The admin client has no auth.uid(), so the
   // /api/guests route passes the getUser()-verified user id as the trusted p_user_id (null for an anonymous
@@ -79,6 +95,7 @@ export async function createGuest(input: {
     p_user_id: input.userId ?? undefined,
     p_unlock_proven: input.unlockProven,
     p_display_name: input.displayName ?? undefined,
+    p_pending_email: input.pendingEmail ?? undefined,
   });
 
   if (error) {
@@ -106,6 +123,13 @@ export async function createGuest(input: {
       if (m.includes("name is too long")) {
         return { ok: false, code: "name_invalid", message: error.message };
       }
+      // "That email address does not look right." — the belt under guests_pending_email_shape, and
+      // the same story as the name's: only a caller that skipped the route's parseGuestEmail can
+      // reach it. Matched on "email address" so the DB keeps the wording it wants while the guest
+      // reads the one sentence the taxonomy owns.
+      if (m.includes("email address")) {
+        return { ok: false, code: "email_invalid", message: error.message };
+      }
       // The remaining check_violation is the identity gate ("This event requires a verified email
       // to upload."), which is also the safest catch-all: a refusal we cannot name is far better
       // read as "prove an email" than as a generic failure.
@@ -128,6 +152,7 @@ export async function createGuest(input: {
     event_id: string;
     display_name?: string | null;
     verified?: boolean;
+    email_attached?: boolean;
   };
   return {
     ok: true,
@@ -137,6 +162,9 @@ export async function createGuest(input: {
       event_id: minted.event_id,
       display_name: minted.display_name ?? null,
       verified: minted.verified === true,
+      // === true, never a truthy cast: an older payload without the key must read as "no address",
+      // which is the safe answer in both directions (it never claims one was kept).
+      emailAttached: minted.email_attached === true,
     },
   };
 }
@@ -205,6 +233,82 @@ export async function setGuestDisplayName(input: {
   return {
     ok: true,
     data: data as unknown as { guest_id: string; display_name: string },
+  };
+}
+
+// ─── set_guest_pending_email ─────────────────────────────────────────────────
+
+export type SetGuestPendingEmailResult =
+  | { ok: true; data: { guest_id: string; email_attached: boolean } }
+  | {
+      ok: false;
+      code: "invalid_session" | "email_invalid" | "unauthorized" | "unknown";
+      message: string;
+    };
+
+/**
+ * Attach, change or DETACH the unproved address on a guest row (the guest identity round, Will
+ * 2026-09-22), reached through POST /api/guests/email. The mirror of setGuestDisplayName above, and
+ * service-role-only for the same ADR-0016 reason: an anon EXECUTE grant IS the attack surface, not
+ * the route wrapping it. The session token is the capability, validated inside the RPC, so a caller
+ * can only ever touch the row it already holds.
+ *
+ * ★ `email: null` IS THE DETACH, AND IT IS NOT AN ERROR. "Clear it" and "set it to nothing" are one
+ * intent, so both columns go and the row falls back to a typed name alone. The RPC reads a blank the
+ * same way, which is why null crosses the wire as `""`: the generated Args type declares `p_email`
+ * as a required string, and the function's own `lower(nullif(btrim(coalesce(p_email,'')),''))`
+ * turns an empty string into SQL NULL. Passing `undefined` would be a different thing entirely (the
+ * parameter has no default, so PostgREST would refuse the call).
+ *
+ * ★ NOTHING IS EVER SENT to the address this writes. That is what makes accepting a stranger's
+ * address safe, and it is why there is no confirmation arm here at all: proving an address happens
+ * through auth, and a proved one lands in `guests.email` by a claim, never by this path.
+ */
+export async function setGuestPendingEmail(input: {
+  sessionToken: string;
+  /** Already trimmed, lowercased and shape-checked by the route; null detaches. */
+  email: string | null;
+}): Promise<SetGuestPendingEmailResult> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("set_guest_pending_email", {
+    p_session_token: input.sessionToken,
+    p_email: input.email ?? "",
+  });
+
+  if (error) {
+    if (error.code === NO_DATA_FOUND) {
+      return {
+        ok: false,
+        code: "invalid_session",
+        message: "Your guest session has expired. Refresh and rejoin.",
+      };
+    }
+    if (error.code === CHECK_VIOLATION) {
+      // "Your email comes from your account." — a VERIFIED guest already has a proved address, so
+      // there is no unproved one to set beside it. 403 rather than a fourth code, exactly as the
+      // name door does: this session genuinely may not do this, and the RPC carries the reason.
+      if (error.message.toLowerCase().includes("comes from your account")) {
+        return { ok: false, code: "unauthorized", message: error.message };
+      }
+      return { ok: false, code: "email_invalid", message: error.message };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save that email. Please try again.",
+    };
+  }
+
+  const settled = data as unknown as {
+    guest_id: string;
+    email_attached?: boolean;
+  };
+  return {
+    ok: true,
+    data: {
+      guest_id: settled.guest_id,
+      email_attached: settled.email_attached === true,
+    },
   };
 }
 
