@@ -39,10 +39,11 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## Next, in order
 
-1. **The reshape (Will, 2026-09-22):** the four lanes above; the Orchestrator's own part in the primary checkout:
-   `docs/STATUS.md` as a snapshot (then its cap in `src/lib/record-depth-policy.test.ts` to 80 lines, one round
-   section), the runbook (`usher/kit/README.md`), `docs/PROGRAM.md` as rules only, `docs/tracks/README.md`, the old
-   pickup file retired to a pointer, memory consolidated. Integrate each lane as it hands off, one at a time.
+1. **The reshape (Will, 2026-09-22):** the Orchestrator's own part is done (`76dcea01`, `8f68e749`: STATUS a
+   snapshot, the runbook, `docs/PROGRAM.md` and `docs/tracks/README.md` as rules, the STATUS-row tool retired,
+   `usher/` without logs, the old pickup file a pointer, memory consolidated). Left: integrate the four lanes one at a
+   time as each hands off (gate 116 onward, board `none`); after `roadmap-lean`, the lab candidates from the retired
+   `usher/atlas/gaps.md` (kept in the scratchpad as `lab-candidates.md`) join the ROADMAP as one bucket.
 2. **Recheck the open boards** (Will's suggestion for after the reshape): every standing board current with the
    identity and reel rounds; the six `overtaken.ts` badges folded into their questions; the overtaken mechanism
    retired if nothing still needs it.
