@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -12,8 +12,6 @@ import {
   PROFILE_SLUG_MIN_LENGTH,
   profileSlugSchema,
 } from "@/lib/validation/profile";
-
-const MIGRATION = "supabase/migrations/20260919120000_profile_bio.sql";
 
 describe("displayNameSchema", () => {
   it("trims surrounding whitespace", () => {
@@ -133,9 +131,10 @@ describe("bioSchema", () => {
       "t.me/maya",
       "maya@example.com",
     ]) {
-      expect(bioSchema.safeParse(bio).success, `expected "${bio}" refused`).toBe(
-        false,
-      );
+      expect(
+        bioSchema.safeParse(bio).success,
+        `expected "${bio}" refused`,
+      ).toBe(false);
     }
   });
 
@@ -145,70 +144,65 @@ describe("bioSchema", () => {
       "Mrs. Smith to my students, Ana to everyone else.",
       "Photographer (e.g. weddings, birthdays, the odd dog).",
     ]) {
-      expect(bioSchema.safeParse(bio).success, `expected "${bio}" allowed`).toBe(
-        true,
-      );
+      expect(
+        bioSchema.safeParse(bio).success,
+        `expected "${bio}" allowed`,
+      ).toBe(true);
     }
   });
 });
 
 /**
- * THE BIO'S OTHER HALF IS SQL, and this guards it as text, exactly as
- * public-profile-visibility.test.ts guards the original migration.
+ * THE BIO'S OTHER HALF IS SQL, and this guards it as text: the zod cap and the CHECK constraint
+ * drift the moment one number moves alone, and nothing else in the gate would notice.
  *
- * ★ WHY HERE. Migration 20260919120000 REPLACES get_public_profile to carry the
- * bio, so the function body that ships now lives in that file while the older
- * guard still parses 20260708120000's superseded text. Until the two guards are
- * merged (a finding, not a silent edit of another lane's test), the consent
- * scope is re-asserted against the body that actually runs: every gate on the
- * attended arm, no album capability in it, and the hosted arm still deliberately
- * ungated on visibility.
+ * ★ WHAT LEFT THIS FILE (the guest identity round, 2026-09-22). This describe used to re-assert
+ * get_public_profile's whole consent scope as well, pinned to migration 20260919120000, because at
+ * the time that file held the body that actually ran while the older guard still parsed
+ * 20260708120000's superseded text. Its own comment called the duplication a finding rather than a
+ * silent edit of another lane's test. Migration 20260922122000 replaces that body again (the
+ * attended arm becomes an opt-in on profile_shown_events, with a verified belt), which would have
+ * left this copy pinned to a file two generations stale and asserting the OLD table by name. The
+ * consent scope now has one home — social/public-profile-visibility.test.ts, which resolves the
+ * winning body LATEST-WINS across the whole migration set — and what stays here is the bio, which
+ * is this file's own fact. Do not re-add the consent assertions; extend that guard instead.
  */
-describe("get_public_profile, as migration 20260919120000 replaces it", () => {
-  const sql = readFileSync(
-    join(__dirname, "..", "..", "..", MIGRATION),
-    "utf8",
-  );
-  const body = (() => {
-    const start = sql.indexOf("create or replace function public.get_public_profile");
-    expect(start).toBeGreaterThan(-1);
-    const end = sql.indexOf("$$;", start);
-    expect(end).toBeGreaterThan(start);
-    return sql.slice(start, end);
-  })();
-  const arm = (name: "hosted_events" | "attended_events") => {
-    const start = body.indexOf(`'${name}'`);
-    const end = body.indexOf("'[]'::jsonb", start);
-    return body.slice(start, end);
-  };
+describe("the bio's SQL half", () => {
+  const migrations = join(__dirname, "..", "..", "..", "supabase/migrations");
 
-  it("returns the bio", () => {
+  /** Latest-wins, like the guard in social/: the truth is the migration SET, never one file. */
+  const body = (() => {
+    let latest: string | null = null;
+    for (const file of readdirSync(migrations)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
+      const sql = readFileSync(join(migrations, file), "utf8");
+      const start = sql.indexOf(
+        "create or replace function public.get_public_profile",
+      );
+      if (start === -1) continue;
+      const end = sql.indexOf("$$;", start);
+      expect(
+        end,
+        `${file}: get_public_profile body never closes`,
+      ).toBeGreaterThan(start);
+      latest = sql.slice(start, end);
+    }
+    expect(latest, "get_public_profile defined nowhere").not.toBeNull();
+    return latest!;
+  })();
+
+  it("still returns the bio from the body that actually runs", () => {
     expect(body).toContain("'bio', p.bio");
   });
 
-  it("keeps every gate on the attended arm", () => {
-    const attended = arm("attended_events");
-    expect(attended).toContain("e.show_guest_list");
-    expect(attended).toContain("e.visibility = 'open'");
-    expect(attended).toContain("e.deleted_at is null");
-    expect(attended).toContain("profile_hidden_events");
-    expect(attended).toContain("m.status = 'approved'");
-  });
-
-  it("never hands out the album capability through attendance", () => {
-    const attended = arm("attended_events");
-    expect(attended).not.toContain("qr_token");
-    expect(attended).not.toContain("custom_slug");
-  });
-
-  it("leaves the hosted arm ungated on visibility (the host published it)", () => {
-    const hosted = arm("hosted_events");
-    expect(hosted).toContain("e.display_in_profile");
-    expect(hosted).not.toContain("e.visibility = 'open'");
-  });
-
   it("caps the bio in the database too, not only in zod", () => {
-    expect(sql).toContain("profiles_bio_len");
-    expect(sql).toContain(String(BIO_MAX_LENGTH));
+    const all = readdirSync(migrations)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .map((f) => readFileSync(join(migrations, f), "utf8"))
+      .join("\n");
+    expect(all).toContain("profiles_bio_len");
+    expect(all).toContain(String(BIO_MAX_LENGTH));
   });
 });
