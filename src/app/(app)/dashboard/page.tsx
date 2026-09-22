@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
+import { ClaimsCard } from "@/components/app/dashboard/claims-card";
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
 import { NextStepBand } from "@/components/app/dashboard/next-step-band";
@@ -28,6 +29,7 @@ import {
   type EventListRow,
 } from "@/lib/dashboard/events-view";
 import { resolveNextSteps } from "@/lib/dashboard/next-step";
+import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import {
   getEventCardStats,
   getEventCoverUrls,
@@ -128,14 +130,19 @@ export default async function DashboardPage({
 
   const eventIds = events.map((e) => e.id);
   // Cover art for the owned AND recently-deleted cards, per-event stats, which
-  // events already have a reel, and the pulse's own strips. Keys never reach
-  // the browser — everything is presigned server-side. In parallel.
-  const [coverUrls, eventStats, reeledIds, pulse] = await Promise.all([
-    getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
-    getEventCardStats(eventIds),
-    getEventsWithReels(eventIds),
-    getPulse(eventIds, now, startOfToday),
-  ]);
+  // events already have a reel, the pulse's own strips, and the claim
+  // ticket's rows (the guest identity round, 2026-09-22): fetched HERE,
+  // after the nameless-profile redirect above, so a profile that is about to
+  // bounce to /welcome never pays for a query it will not render. Keys never
+  // reach the browser — everything is presigned server-side. In parallel.
+  const [coverUrls, eventStats, reeledIds, pulse, claimableRows] =
+    await Promise.all([
+      getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
+      getEventCardStats(eventIds),
+      getEventsWithReels(eventIds),
+      getPulse(eventIds, now, startOfToday),
+      getMyClaimableGuestRows(),
+    ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
@@ -375,6 +382,12 @@ export default async function DashboardPage({
           .
         </p>
       )}
+
+      {/* THE CLAIM TICKET — above the events feed, rendered only when
+          claimable rows exist (ClaimsCard returns null otherwise); sits
+          above the create-first teaser too, since EventsSection decides
+          that swap on its own `rows` prop independently of this one. */}
+      <ClaimsCard rows={claimableRows} />
 
       {/* BAND 3 — your events, cover cards or rows, the choice remembered. */}
       <EventsSection

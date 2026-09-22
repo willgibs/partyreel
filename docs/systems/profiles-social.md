@@ -10,8 +10,13 @@ The ruled model: profiles are **public by existence** (claiming a handle
 is the consent act; NO `discoverable` flag); the event guest list is **host-controlled**
 (`events.show_guest_list`; when on, EVERY guest who added photos renders named, a confirmed name
 or one wearing the small unverified mark, no per-guest opt-in); the
-guest's control lives on their **own profile** (`profile_hidden_events` hides an attended event from
-`/u/[slug]` while they stay on the event's guest list); follows are **open any-to-any with an
+guest's control lives on their **own profile**, and **publishes NOTHING UNTIL CHOSEN** (the guest
+identity round, 2026-09-22, Will: "we don't simply start adding all of their uploads there publicly
+until they decide what goes up"): `profile_shown_events` is an **opt-in** (its mirror-image
+predecessor, `profile_hidden_events`, was an opt-out and stays on disk, read and written by the
+deployed build, until a later migration retires it), so an attended event appears on `/u/[slug]`
+only once the guest turns it on there, while they stay on the event's own guest list either way (the
+host's key, not theirs); follows are **open any-to-any with an
 owner-private graph** (lists + counts visible only to the account owner, the VSCO shape); **blocking
 ships in-slice** (mutual severance, private, prevents re-follow).
 
@@ -30,7 +35,9 @@ marker on each, the person's bio under the name row, indexable, on the album's o
 its event-less mode, plus the OWNER MODE below); the Account page (slug claim, bio, attended-event
 visibility switches, Connections card); event settings (`ProfileSocialCard`, both keys persist per
 flip, LOUD permanent consent copy on `show_guest_list`); the host feed's "Guests" section + pill and
-the guest album's post-gallery "Guests" section.
+the guest album's post-gallery "Guests" section; the dashboard's **claim card** (the guest identity
+round, 2026-09-22: a confirmed caller's rows waiting under an email typed before it was proved,
+claimed or released per event — see [host-app.md](host-app.md) "Dashboard landing").
 
 **The owner mode** (`you=?`, Will 2026-09-20: "Your own photos, likes, connections, etc should be on
 your profile page"). When the viewer IS the person, `/u/[slug]` grows three PRIVATE sections under the
@@ -53,7 +60,7 @@ appears on no profile.
 
 ## Where it lives
 
-- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger. The rolled-back contract check + the exact expected advisor delta live in its header.
+- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger. The rolled-back contract check + the exact expected advisor delta live in its header. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — the guest identity round, 2026-09-22: `profile_shown_events` (the opt-in mirror of `profile_hidden_events`, which it replaces in `get_public_profile`'s attended arm, unchanged otherwise; no backfill, no drop), plus the `verified_at` belt on that same arm.
 - Data layer: [`src/lib/db/queries/social.ts`](../../src/lib/db/queries/social.ts) + [`src/lib/db/mutations/social.ts`](../../src/lib/db/mutations/social.ts); pure logic in [`src/lib/social/`](../../src/lib/social) (notification-pref defaults/resolve, profile cards) + [`src/lib/validation/profile.ts`](../../src/lib/validation/profile.ts) (slug schema + reserved words).
 - UI: [`src/components/social/`](../../src/components/social) (guest list, follow button, block menu, slug control, visibility switches, connections) + [`profile-social-card.tsx`](../../src/components/app/event-settings/profile-social-card.tsx) + [`following-section.tsx`](../../src/components/app/dashboard/following-section.tsx); routes `src/app/(guest)/u/[slug]/` and the Account/event-settings/feed integrations.
 
@@ -75,7 +82,9 @@ appears on no profile.
 - **The graph is owner-private.** `get_public_profile` returns no follow data; follower/following lists
   and counts render only to the owner (Connections card). Never add public counts.
 - **Attendance is not a capability grant.** The attended arm returns NO `qr_token`/`custom_slug`, and is
-  gated on `show_guest_list` + `profile_hidden_events` + **`visibility = 'open'`** — the open-only gate
+  gated on `show_guest_list` + `profile_shown_events` (the guest's own opt-in) + **`visibility = 'open'`**
+  + a **PROVED identity** (`guests.verified_at is not null` — a name-only or pending-email row publishes
+  nothing, chosen or not, since the guest identity round, 2026-09-22) — the open-only gate
   is the consent scope (the album-side list renders only to viewers who can OPEN the album, which
   preserves "locked pages leak name + count only" for capability holders). A migration-text Vitest guard
   ([public-profile-visibility.test.ts](../../src/lib/social/public-profile-visibility.test.ts)) pins it.
@@ -101,8 +110,9 @@ appears on no profile.
   `src/lib/avatar/`; the fuller avatar-system writeup (upload, storage, the "Hosted by" byline) is
   [auth-accounts.md](auth-accounts.md)'s, still owed a line for this.
 - **The attended arm's covers re-prove their own scope.** `getPublicProfileAttendedCoverUrls` takes
-  ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's
-  `profile_hidden_events` again before presigning: a presign turns an id into someone else's
+  ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's own
+  opt-in (`profile_shown_events`, since the guest identity round, 2026-09-22 — was `profile_hidden_events`,
+  inverted) again before presigning: a presign turns an id into someone else's
   photograph, so it proves the scope rather than inheriting it from a payload.
 - **A person can be reported** (`reports.profile_id`, migration 20260919130000; `event_id` relaxed to
   nullable under a CHECK that one subject is set). The menu on `/u/[slug]` holds Report this person
@@ -127,8 +137,9 @@ appears on no profile.
 
 ## Gotchas
 
-- `getMyAttendedEvents` (the Account hide-toggles list) deliberately ignores `show_guest_list` AND
-  visibility: the hide toggle is the guest's key and must be settable BEFORE the host flips theirs.
+- `getMyAttendedEvents` (the Account show-toggles list) deliberately ignores `show_guest_list` AND
+  visibility: the toggle is the guest's own key and must be settable whether or not the host has
+  turned theirs on at all.
 - The dashboard's "Following" chip and its section are **gone** (the pulse, 2026-09-20): a lens on
   other people's events was never a hosting job. "Connections" in the profile's owner mode is the
   surviving half and lists PEOPLE (`getMyFollowing`), not their events; `getFollowedHostEventCards`

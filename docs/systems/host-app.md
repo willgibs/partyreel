@@ -40,6 +40,20 @@ the pulse exactly as above (a calm "nothing needs you" line, one cover card) rat
 prompt of its own — sharing stays the event's own door (his note: "I don't like prompting a single event
 share from the main dashboard separately rather than from the event itself").
 
+**The claim ticket** (the guest identity round, 2026-09-22) sits directly above Your events, rendered
+only when [`getMyClaimableGuestRows()`](../../src/lib/db/queries/claims.ts) finds rows waiting under the
+signed-in account's own CONFIRMED email — typed under it at some names-mode door, before that email was
+proved. One row per event (`ClaimsCard`, [`claims-card.tsx`](../../src/components/app/dashboard/claims-card.tsx)):
+`Claim` or `Not mine` per event, `Claim all` as a no-confirmation shortcut, `Finish` to apply the picks —
+anything left unclaimed at Finish (marked `Not mine`, or simply untouched) is removed under a named
+confirmation, since that is the guest saying those uploads were not theirs
+([`claims-actions.ts`](../../src/app/(app)/dashboard/claims-actions.ts) calling
+`claim_guest_rows_by_email` / `disown_guest_rows_by_email`). A nameless profile never meets it: the
+`/dashboard` guard above redirects there first, and `/welcome` (below, "First-time host welcome")
+prefills the name field from the most recent claimable row's typed name when the profile has none.
+Deliberately plain (one identity-flows board redesigns the ticket, the notification and the pointers
+once the round's foundation is whole).
+
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token` = the single DB-generated link, `moderation_mode`,
