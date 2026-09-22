@@ -11,14 +11,13 @@ import { describe, expect, it, vi } from "vitest";
 // no react-server condition, so the marker module is stubbed out here.
 vi.mock("server-only", () => ({}));
 
-import { RULINGS } from "../touchpoints";
+import { RULINGS, SANDBOX } from "../touchpoints";
 import {
   DOCS,
   createHeadingIds,
   headingsOf,
   inlineText,
   landminesOf,
-  listRulings,
   listSpecs,
   listTracks,
   nodeText,
@@ -66,14 +65,15 @@ const isTraced = (path: string) => traced.some((re) => re.test(path));
 // landed with the `floating-surfaces` wiring the day its board was ruled.
 const PENDING_ANCHORS = new Set<string>([]);
 
-/** Every file the shell renders: the doctrine, the rulings, the proposals, the manifests. */
+/** Every file the shell renders: the doctrine, the design README and guidance, any proposal, the manifests. */
 function renderedDocs(): string[] {
   const manifests = readdirSync(join(root, "docs", "tracks"))
     .filter((f) => f.endsWith(".md") && f !== "README.md")
     .map((f) => `docs/tracks/${f}`);
   return [
     ...Object.values(DOCS).map((d) => d.path),
-    "docs/design/rulings.md",
+    "docs/design/README.md",
+    "docs/design/guidance.md",
     ...listSpecs().map((s) => `docs/specs/${s.slug}.md`),
     ...manifests,
   ];
@@ -101,7 +101,7 @@ describe("DOCS", () => {
     expect(Object.keys(DOC_FILES).sort()).toEqual(Object.keys(DOCS).sort());
   });
 
-  it("traces the rulings, the specs and the manifests too", () => {
+  it("traces the design docs, any proposal and the manifests too", () => {
     for (const path of renderedDocs()) {
       expect(isTraced(path), path).toBe(true);
     }
@@ -135,7 +135,7 @@ describe("readDoc", () => {
     expect(craft.data.name).toBe("emil-design-eng");
     expect(craft.body.startsWith("---")).toBe(false);
 
-    expect(readDoc("docs/design/rulings.md").body).toContain("## ");
+    expect(readDoc("docs/design/guidance.md").body).toContain("## ");
   });
 });
 
@@ -273,36 +273,19 @@ describe("sections", () => {
 });
 
 describe("listings", () => {
-  it("listSpecs returns every spec doc, retired boards included", () => {
-    // A spec doc OUTLIVES its board: it is cut to what was decided at the
-    // retirement and the whole set is folded into the system docs together
-    // (ROADMAP, "the lab"). So this list grows with the boards and shrinks
-    // only at that fold, which is why a retirement does not touch it.
-    const specs = listSpecs();
-    expect(specs.map((s) => s.slug)).toEqual([
-      "brand-voice",
-      "floating-surfaces",
-      "light",
-      "media-kit",
-      "palette",
-      "rounding",
-      "type-scale",
-    ]);
-    for (const spec of specs) {
+  it("listSpecs returns every proposal document, and none is a retired board's", () => {
+    // A board's argument lives in its own spec.ts; a docs/specs document is
+    // written only when a board needs one, and it leaves with its board, so
+    // what is decided lives in the rule it made rather than in a spec.
+    const standing = new Set<string>(SANDBOX.map((r) => r.id));
+    for (const spec of listSpecs()) {
       expect(spec.title.length, spec.slug).toBeGreaterThan(0);
       expect(spec.title.startsWith("#")).toBe(false);
+      expect(
+        standing.has(spec.slug),
+        `${spec.slug} has no standing board`,
+      ).toBe(true);
     }
-    expect(specs.find((s) => s.slug === "brand-voice")?.status).toContain(
-      "STATUS",
-    );
-    // A RULED spec says so in its status line, which is what the lab reads
-    // off it. No standing board keeps a spec doc any more (rounding was the
-    // last proposal that stood, until its ruling cut docs/specs/rounding.md to
-    // what was decided, 2026-09-18), and a spec outlives its board, so naming
-    // this retired one is stable in a way a standing example never was.
-    expect(specs.find((s) => s.slug === "rounding")?.status).toContain(
-      "RULED AND SHIPPED",
-    );
   });
 
   it("listTracks reads every manifest", () => {
@@ -318,19 +301,13 @@ describe("listings", () => {
       [...tracks.map((t) => t.name)].sort(),
     );
   });
-
-  it("listRulings is the dated ## record", () => {
-    const rulings = listRulings();
-    expect(rulings.length).toBeGreaterThan(5);
-    expect(rulings.every((r) => r.depth === 2)).toBe(true);
-    expect(new Set(rulings.map((r) => r.id)).size).toBe(rulings.length);
-    expect(rulings.some((r) => r.text.startsWith("2026-09-12"))).toBe(true);
-  });
 });
 
 describe("every rendered doc compiles as markdown", () => {
   const docs = renderedDocs();
-  expect(docs.length).toBeGreaterThan(10);
+  // The five doctrine files and the two design docs always render; the
+  // manifests come and go with the lanes, so they are never counted on.
+  expect(docs.length).toBeGreaterThanOrEqual(Object.keys(DOCS).length + 2);
 
   for (const path of docs) {
     it.concurrent(
