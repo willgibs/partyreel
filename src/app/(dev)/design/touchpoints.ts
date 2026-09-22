@@ -1628,12 +1628,12 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
   // album's shape). `identity-claims` registers here 2026-09-22 for the same
   // reason; the Orchestrator places it after `identity-door` at its merge.
-  "identity-claims",
   // album's shape; `identity-profile` belongs after `identity-claims`, whose
   // id is not registered yet since neither sibling lane has merged — the
   // Orchestrator places it there at the merge).
   "media-viewer",
   "guest-capture",
+  "identity-claims",
   "identity-profile",
   "host-curation",
   "export-flow",
