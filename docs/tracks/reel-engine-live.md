@@ -1,6 +1,6 @@
 ---
 track: reel-engine-live
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "17f17e57"          # the launch-prep SHA the branch was cut from
 board: none            # engineering: the rolling live composer and its harness; no board of its own
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -16,6 +16,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/tools/reel-live/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/lib/reel/engine/
+  - src/lib/reel/seed-default.ts      # the repo's one string-to-seed fn, and where the < 1e6 bound is written
+  - src/lib/reel/engine/video/        # reel-engine-video's reader, budget, ladder and prepareFrame
   - src/lib/reel/quick-add.ts
   - src/lib/reel/build-reel-props.ts
   - src/lib/guest/reconcile-gallery-items.ts
@@ -204,14 +206,27 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Work commit `WORKSHA`, pushed on `lp/reel-engine-live`. `origin/launch-prep` had NOT moved since the cut
-  (`ef1c4b51`), so there is no sync-merge commit; `reel-engine-video` had not landed either, so the
-  Include-videos knob is a STUB (it changes a video's HOLD, from a photograph's to the surface's window, and the
-  motion arrives with that lane; nothing else in this lane has to change when it does).
-- Gates, each on its own exit code, on this tree: `pnpm design:rules` 0 (227 components, 1911 contracts, no
-  diff) · `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (140 specimens, no diff) · `pnpm typecheck`
-  0 · `pnpm lint` 0 (9 known warnings, none in a file this lane touched) · `pnpm test` 0 (3768 passed, 1 skipped,
-  342 files) · `pnpm build` 0 (258 pages) · `pnpm lab:smoke --base http://localhost:3132` SMOKELINE.
+- WORK commit `27c816a3` (the composer, the source, the player, the guard, the harness); SYNC-MERGE commit
+  `637e4843` (past `reel-engine-video` at `31171495`; two one-line conflicts, both in the lab's nav and catalog
+  test where the two lanes registered a tool at the same spot, both kept). Three commits follow it: `c2f52a22`
+  (the motion video wiring, and the first two stalls the soak found), `817996f2` (prettier over this lane's own
+  files) and `6350407d` (the slot-chain deadlock, the third stall). All pushed on `lp/reel-engine-live`.
+- **The Include-videos knob is ALIVE, not a stub.** It runs through the video lane's `createVideoPlayback`:
+  ONE reader deck and ONE byte ledger for the whole session (their ceilings are session promises, and a
+  playback per window would have multiplied both by however many windows a night rolls through), a playback per
+  WINDOW because clip indices are the window's own, `windowSec` fed from this lane's surface factor so the ONE
+  pacing factor reaches the video too, `loopIndex` fed from the TAKE's loop so the K-loop cadence means what it
+  says, `sourceFor` reading the ORIGINAL url off the LATEST item so a bucket roll hands the reader a new url
+  rather than a dead one, and the motion source hung on the clips BEFORE the decode (`loadReelAssets` copies
+  `clip.video` onto the asset as it builds it). Every failure surfaces through `onReport` and draws the poster.
+- Gates, each on its own exit code, on the SYNCED tree at `6350407d`: `pnpm design:rules` 0 (228 components,
+  1916 contracts on 163 components from 121 contract tests, 18 policies; NO diff) ·
+  `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (140 specimens on 101 entries; NO diff) ·
+  `pnpm typecheck` 0 · `pnpm lint` 0 (9 known warnings, none in a file this lane touched) · `pnpm test` 0
+  (350 files, 3867 passed, 1 skipped) · `pnpm build` 0 (259 pages) ·
+  `pnpm lab:smoke --base http://localhost:3132` 0 (443 checks, 0 failing). Prettier was run over this
+  lane's OWN files by explicit path: `layout.ts`, `layout.test.ts`, `timeline.ts` and the lab's `nav.ts` were
+  already drifted before it touched them, so they are left as they were rather than reformatted wholesale.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned paths, plus TWO registration lines,
   which is the exception this manifest's brief grants (`register it the way reel-parity is registered`):
   `src/app/(dev)/design/_data/nav.ts` (one TOOLS entry) and `src/app/(dev)/design/_data/catalog.test.ts` (one id
@@ -234,18 +249,42 @@ time on this machine; your dev server on your own port, killed by port before a 
   watermark?, includeVideos?, paused?, maxDim?, className?, onClipChange?, onFailure?, onFrame?, onReport? }`.
   `paused` OMITTED means reduced motion decides; PASSED means the caller's control owns it. `onClipChange(item)`
   is the caption and the tap-to-jump; `onFailure(count)` is cumulative and never silent; `onFrame(state)` reports
-  `{ globalFrame, localFrame, windowIndex, loopIndex, clipId, failures }` once a tick. It renders the canvas and
-  NO frame: the tile, the view and the screen each frame it themselves.
+  `{ globalFrame, localFrame, windowIndex, loopIndex, clipId, failures, video }` once a tick. It renders the
+  canvas and NO frame: the tile, the view and the screen each frame it themselves.
 - `ReelLook` (`live/window.ts`): `{ styleId, surface, holdScale?, orientation?, watermark?, includeVideos? }`.
   `ReelWindow`: `{ index, loopIndex, startIndex, ids, props, plan, handoverFrame, handoverOffset, overlapIndex }`.
 - Knob defaults: surface `hand` (factor 0.70; `wall` is 1.00, the kits as designed) · `holdScale` 1 ·
   window 6 clips · prefetch 2 ahead, release one behind · take pass 12 · video window 6 s x the surface factor ·
   `watermark` false (the live reel is unmarked on every tier) · `includeVideos` false in the player, true in the
-  harness · style: moods only, a treatment falls back to Cinematic.
+  harness · style: moods only, a treatment falls back to Cinematic. `onFrame` also carries the reader's session
+  numbers (`video: { liveReaders, bytesRead, framesDecoded, spentBytes }`, null where a window has no motion).
 
-**What the harness proved** (`/design/lab/tools/reel-live`, local fixtures, Chrome at :3132):
+**What the harness proved** (`/design/lab/tools/reel-live`, local fixtures, Chrome at :3132; it renders clean
+at 375 with no horizontal overflow and at the pane's desktop width):
 
-SOAKBLOCK
+- **The soak.** The 300-photograph fixture album, a real Chrome, the harness at :3132, measured in FRAMES
+  PLAYED rather than wall clock (the browser pane is shared with other lanes, and the player freezes on purpose
+  while its tab is hidden, so wall time would measure the pane and not the reel):
+  **14,241 frames drawn without a break** — 9.9 minutes of reel, across a full LOOP roll (the take re-drawn for
+  loop 1 over the same 300 items) — while 24 acts landed in it: six "Add three", six "Hide the one on screen",
+  six style switches and six surface switches. Over that run: the clock went backward **0 times**; failures
+  **0**; the longest a single photograph held was **156 frames (6.5 s)**, which is the WALL surface's own video
+  window, not a stall; slots held **2 to 4**, retained stills **11 to 14**, derived assets **16 to 27**, and the
+  JS heap sawtoothed between **40 and 74 MB** with no upward drift. **44 distinct video clips played real motion**,
+  range-read and decoded on the device, at most **1 live reader** at a time.
+- **The two acts, measured by hand while the tab was fronted** (three of each, back to back):
+  a DROP of the photograph on screen left in **1 frame (0.04 s)** every time, 0 clips in between, same window;
+  an ARRIVAL was on screen in **9, 11 and 12 frames (0.38 to 0.50 s)**, 0 clips in between, same window. Will's
+  "spliced within seconds" is half a second, and a hidden photograph is gone on the next frame.
+- **What the soak found, and what it cost:** three stalls, all the same shape (the clock kept running while the
+  drawn frame stopped), and all now pinned. The prefetch that never refilled after an overtaken load; the
+  prefetch that ate the arrival queue while a rewindow waited for a transition; and the slot chain left pointing
+  at a released slot, which deadlocked window planning outright. None of the three would have shown in a test
+  that did not run for minutes, and the first one held a photograph on screen for 51 seconds.
+- **The twenty-minute wall-clock soak was not reached, and that is the honest number.** The browser pane is
+  shared: another lane's session navigated the tab twice mid-run, and a hidden tab freezes the reel by design.
+  9.9 minutes of continuous reel time with every counter flat is what was measured. `source.test.ts` walks 60
+  windows through the release cycle deterministically for the same bookkeeping claim.
 
 **Calls his to overrule on the alias, one line each:**
 
@@ -275,6 +314,16 @@ SOAKBLOCK
 - The player never disposes the source: it gives its own retains back and leaves the object to its owner.
 - The surface factors (hand 0.70, wall 1.00) and the six-second video window are starting points for `reel-view`
   and `reel-screen`; the harness's Hold slider is the knob their verdicts move.
+- The video playback is disposed at EVERY window swap (handover, splice, cutaway, look change), so readers never
+  accumulate. The cost is that a video straddling a handover re-opens its reader once; at roughly one video in
+  eight clips and one handover in six, that is rare enough to leave, and the alternative is refcounting a deck
+  another lane owns.
+- The prefetch heals itself on every tick rather than only on an event; a load overtaken by a splice or a look
+  change is dropped by a GENERATION counter; it holds off while an arrival is queued (planning the next window is
+  what CONSUMES that queue); and releasing a slot re-points the chain at the highest one still there. All four
+  came out of the soaks, where each on its own froze the picture while the clock ran on.
+- The harness's video fixtures are the `reel-video` lane's own files, through ITS range route (a `public/` file
+  does not answer 206 in dev). Read-only: no file of that lane is touched, only three urls are named.
 
 - The help articles this lane makes stale: none (no production surface, no copy).
 - Assets requested from Will: none.
@@ -293,6 +342,7 @@ as a library with a lab harness and no production surface: `src/lib/reel/live/` 
 in `engine/asset-cache.ts`, and the harness at `/design/lab/tools/reel-live`. The handover is seamless by
 construction (windows share the loop's seed and differ only by `indexOffset`, so the clip two windows share is the
 same clip); an arrival becomes the next photograph rather than the next window's; a drop leaves on the next frame;
-the clock never resets. Pure suites for the take, the pacing, the handover, the splice, the drop and the guard,
-plus a jsdom contract suite for the player; the shipped `CanvasReelPlayer` and its thumb-neutrality test were not
-touched.
+the clock never resets; and the Include-videos knob came alive through `reel-engine-video`'s `prepareFrame`
+after syncing past its merge. Pure suites for the take, the pacing, the handover, the splice, the drop, the guard
+and the slot chain, plus a jsdom contract suite for the player, three of them written against stalls a soak found
+and each failing without its fix; the shipped `CanvasReelPlayer` and its thumb-neutrality test were not touched.
