@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "identity-claims"
   | "identity-profile"
   | "guest-capture"
   | "toasts"
@@ -112,6 +113,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "identity-claims"
   | "identity-profile"
   | "guest-capture"
   | "site-chrome"
@@ -146,6 +148,32 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
+  {
+    id: "identity-claims",
+    title: "Photos waiting for you",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-22, at the identity round's morning close: \"I'd like to run most of this through the lab once our foundation is complete... event claim UI, profile setup, etc.\")",
+    shipped: null,
+    why: "The claim ticket shipped deliberately plain in wave 1 of the identity reshape; this board is its refinement catalog, never a gate on the shipped flow.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/profiles-social.md",
+      "src/components/app/dashboard/claims-card.tsx",
+      "src/components/guest/follow-moment-card.tsx",
+      "src/components/app/notification-bell.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album points to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at",
+      variants: [
+        "The ticket's home",
+        "The pointer from the album",
+        "Working through more than one",
+        "Warning before a deletion",
+        "What Finish leaves her looking at",
+      ],
+    },
+  },
   {
     id: "identity-profile",
     title: "Setting up a page",
@@ -1598,6 +1626,9 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
+  // album's shape). `identity-claims` registers here 2026-09-22 for the same
+  // reason; the Orchestrator places it after `identity-door` at its merge.
+  "identity-claims",
   // album's shape; `identity-profile` belongs after `identity-claims`, whose
   // id is not registered yet since neither sibling lane has merged — the
   // Orchestrator places it there at the merge).
