@@ -90,7 +90,6 @@ export function classifyRun(failures: readonly QueueItem[]): RefusalClass {
 }
 
 export function UploadStep({
-  hostName,
   isDemo,
   requireUpload,
   albumEmpty,
@@ -102,9 +101,9 @@ export function UploadStep({
   onSkip,
   onContinueWithout,
 }: {
-  hostName: string;
   isDemo: boolean;
-  /** The host's switch: ON there is no skip, and the line says whose ask it is. */
+  /** The host's switch: ON there is no skip, and the ON line says so (never whose ask it is —
+   *  the host goes unnamed there, "the door's first look", 2026-09-21). */
   requireUpload: boolean;
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
@@ -242,7 +241,7 @@ export function UploadStep({
           {heading.reviewing ? heading.title : "Add your photos"}
         </p>
         <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {heading.reviewing ? heading.description : uploadStepReason({ isDemo, requireUpload, albumEmpty, hostName })}
+          {heading.reviewing ? heading.description : uploadStepReason({ isDemo, requireUpload, albumEmpty })}
         </p>
       </div>
       <UploadIntentBody
@@ -270,12 +269,20 @@ export function UploadStep({
   );
 }
 
-/** The step's one sentence, which is the whole difference between the two switch states. */
+/**
+ * The step's one sentence, which is the whole difference between the two switch states.
+ *
+ * ★ THE HOST GOES UNNAMED HERE (Will, 2026-09-21, "the door's first look", overruling a
+ * `door-steps` call that named the host: "Instead of naming the host in the 'XYZ has asked...',
+ * let's simply say 'The host has asked...' to account for long host names breaking good design.").
+ * The name step's own lede still names the host (with "the host" as its fallback) — this is the
+ * ONE line on the door that deliberately never does, so no host's name is ever the reason this
+ * sentence wraps or overflows a small screen.
+ */
 export function uploadStepReason(input: {
   isDemo: boolean;
   requireUpload: boolean;
   albumEmpty: boolean;
-  hostName: string;
 }): string {
   if (input.isDemo) {
     return "Add a photo the way a guest would. Nothing you add is saved.";
@@ -284,7 +291,7 @@ export function uploadStepReason(input: {
     return "Nothing here yet. Add the first photo and the album opens.";
   }
   if (input.requireUpload) {
-    return `${input.hostName} asked everyone to add a photo before the album opens.`;
+    return "The host has asked everyone to add a photo before the album opens.";
   }
   return "Add one now and the album opens.";
 }

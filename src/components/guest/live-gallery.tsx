@@ -75,6 +75,14 @@ export type GalleryPayload = {
 };
 
 /**
+ * HOW OPEN EACH LEVEL IS, FOR THE STRICTER/LOOSER COMPARISON BELOW (DEFECT 1, `door-fixes`,
+ * 2026-09-21). `none` never mounts this component at all (`event-experience.tsx` renders the locked
+ * river instead), but the rank stays total so a password appearing under an existing session — the
+ * same family of drift — compares the same way as a upload/account gate appearing.
+ */
+const ACCESS_RANK: Record<GalleryAccess, number> = { none: 0, teaser: 1, full: 2 };
+
+/**
  * THE GUEST ALBUM'S VIEW MENU (`controls-home=view-menu`; `theirs=mark`'s own
  * note, Will 2026-09-20: "We could likely combine this new filter with the
  * tile size filter to create a new parent dropdown, rather than just adding
@@ -190,7 +198,10 @@ export function LiveGallery({
    * decision server-side, so it is the first place a CHANGE of decision shows up: a contribution
    * made in another tab (looser), or the host turning Require an upload to view on while this
    * guest is inside (stricter). Fired once per CHANGED decision, never per poll, and what to do
-   * about it belongs to the page (which knows whether a thumb is on the album right now).
+   * about it belongs to the page (which knows whether a thumb is on the album right now) — this
+   * gallery does its own half of the same rule regardless (see `refresh`'s stricter check): a
+   * stricter payload never reaches `serverItems` here either, so the two hold together even before
+   * the page's own deferred refresh lands.
    */
   onAccessDrift?: (next: { access: GalleryAccess; gate: string | null }) => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
@@ -292,6 +303,28 @@ export function LiveGallery({
           decisionRef.current = signature;
           onAccessDrift?.({ access: body.access, gate: body.gate ?? null });
         }
+        /* ────────────────────────────────────────────────────────────────
+           ★ A STRICTER DRIFT NEVER YANKS AN OPEN ALBUM (DEFECT 1, the door
+           red-team, 2026-09-21). The host turning Require an upload to view
+           ON reaches THIS poll before the shell's own deferred refresh does
+           (`onAccessDrift` above only asks the shell to remember it for the
+           guest's next act — it does not itself hold anything back here).
+           Applying the narrower payload in place would drop a guest from a
+           54-tile album to 9 mid-scroll for a switch they never touched. So
+           when the incoming decision is LESS open than the one this instance
+           was mounted with (`access`, fixed for its whole life — any real
+           change remounts under the shell's `key={access}`), this bails
+           before touching `serverItems`/arrivals/optimistic state at all: the
+           callback already fired above, the etag still adopts (a settled
+           stricter state should 304 on the NEXT tick, not re-walk this same
+           branch every cadence), and everything on screen holds until the
+           remount the shell schedules. A LOOSER or EQUALLY-open drift (the
+           ordinary case) falls through and applies exactly as before.
+           ──────────────────────────────────────────────────────────────── */
+        if (ACCESS_RANK[body.access] < ACCESS_RANK[access]) {
+          etagRef.current = res.headers.get("etag");
+          return;
+        }
       }
       etagRef.current = res.headers.get("etag");
       const items = body.items;
@@ -331,7 +364,10 @@ export function LiveGallery({
     } catch {
       // Best-effort poll — never surface a transient network blip to the guest.
     }
-  }, [qrToken, onAccessDrift]);
+    // `access` never actually changes within one mounted instance (any real change remounts under
+    // the shell's key={access}), so this cannot restart the poll interval the way a per-item value
+    // would — it is here for the stricter check above and for exhaustive-deps honesty.
+  }, [qrToken, onAccessDrift, access]);
 
   // The doorbell: a contentless Realtime ping per gallery change, coalesced
   // inside the hook (immediate refresh, bursts collapse into one trailing

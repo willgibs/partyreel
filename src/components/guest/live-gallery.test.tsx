@@ -10,14 +10,23 @@ import {
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
+import type { GalleryAccess } from "@/lib/events/gallery-access";
 import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import { setViewportWidth } from "../../../vitest.setup";
 
 // Hoisted so the mock factory below (itself hoisted above the imports) can
 // close over it — POLISH 2's own seam: the stub renders nothing to read the
 // credit off, so a rename's patch is proven by inspecting the `items` prop
-// GuestMasonry was actually handed, never the DOM.
-const { guestMasonrySpy } = vi.hoisted(() => ({ guestMasonrySpy: vi.fn() }));
+// GuestMasonry was actually handed, never the DOM. `doorbellRefreshRef` is
+// DEFECT 1's own seam (door-fixes, 2026-09-21): the doorbell's `onRefresh` is
+// literally `() => void refresh()` (fire-and-forget by design — the hook
+// never awaits it), so capturing the closure IS the only way to drive a
+// "poll landed" tick from outside without standing up a real Realtime socket
+// or fake-timering the 12s/60s fallback cadence.
+const { guestMasonrySpy, doorbellRefreshRef } = vi.hoisted(() => ({
+  guestMasonrySpy: vi.fn(),
+  doorbellRefreshRef: { current: null as (() => void) | null },
+}));
 
 /**
  * THE GUEST ALBUM'S VIEW MENU, AND THE COOKIE BEHIND ITS TILE SIZE
@@ -47,7 +56,10 @@ vi.mock("@/app/(guest)/e/[token]/actions", () => ({
   setTileSizeAction: vi.fn(),
 }));
 vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
-  useGalleryDoorbell: () => ({ live: false }),
+  useGalleryDoorbell: (opts: { onRefresh: () => void }) => {
+    doorbellRefreshRef.current = opts.onRefresh;
+    return { live: false };
+  },
 }));
 vi.mock("@/components/guest/guest-masonry", () => ({
   GuestMasonry: (props: unknown) => {
@@ -101,6 +113,47 @@ async function mount(
   return utils;
 }
 
+/**
+ * A canned `/api/guests/gallery` poll response (DEFECT 1's own fixture,
+ * door-fixes 2026-09-21) — just enough of `fetch`'s Response shape for
+ * `refresh()` to read: `.status`, `.ok`, `.headers.get("etag")`, `.json()`.
+ */
+function pollResponse({
+  access,
+  gate = null,
+  items = [],
+  teaserTotal = null,
+  etag = "etag-2",
+}: {
+  access: GalleryAccess;
+  gate?: string | null;
+  items?: GridMedia[];
+  teaserTotal?: number | null;
+  etag?: string;
+}) {
+  return {
+    status: 200,
+    ok: true,
+    headers: { get: (name: string) => (name.toLowerCase() === "etag" ? etag : null) },
+    json: async () => ({ ok: true, items, access, gate, teaserTotal }),
+  };
+}
+
+/**
+ * Drains the microtask queue past `refresh()`'s own chain of awaits (fetch,
+ * then res.json(), then the state writes) via a real macrotask — a
+ * `setTimeout` always fires after every microtask already queued, so this
+ * needs no assumption about how many `await`s sit between them. `doorbellRefreshRef`
+ * is `onRefresh` itself (`() => void refresh()`), fire-and-forget by design,
+ * so nothing here can `await` the promise directly.
+ */
+async function poll() {
+  await act(async () => {
+    doorbellRefreshRef.current?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 /** Radix's dropdown trigger opens on pointerdown, not click (the house
  *  technique, `view-menu.test.tsx`'s own `openMenu`). */
 function openViewMenu() {
@@ -129,6 +182,7 @@ beforeEach(() => {
   global.fetch = vi.fn();
   setViewportWidth(1024);
   guestMasonrySpy.mockClear();
+  doorbellRefreshRef.current = null;
   vi.stubGlobal("IntersectionObserver", TestIntersectionObserver);
 });
 
@@ -374,5 +428,109 @@ describe("LiveGallery: renameMine patches this device's own credits (POLISH 2)",
     expect(
       lastProps.items.every((i) => i.uploaderName === undefined),
     ).toBe(true);
+  });
+});
+
+/* ── DEFECT 1 (the door red-team's follow-up, `door-fixes`, 2026-09-21): a
+   STRICTER drift never yanks an open album out from under a thumb. The
+   red-team walked a name-only guest into a full 54-tile album, then flipped
+   Require an upload to view ON by SQL; within one poll tick the grid held 9
+   tiles though no sheet had appeared and no act had been taken. The rule:
+   when a poll's decision is LESS open than the one this instance mounted
+   with, `refresh()` still tells the shell once (`onAccessDrift`, deduped by
+   signature as before) but never touches `serverItems`/count itself — the
+   shell spends the remembered drift on the guest's own next act instead. A
+   LOOSER (or equally-open) drift applies at once, exactly as before. ── */
+
+describe("LiveGallery: a stricter drift never yanks an open album (DEFECT 1)", () => {
+  it("holds a full gallery's items and count against a narrower teaser poll, firing the drift once", async () => {
+    const onAccessDrift = vi.fn();
+    const onCountChange = vi.fn();
+    await mount(
+      { access: "full", onAccessDrift, onCountChange },
+      { items: [makeItem("m1"), makeItem("m2")] },
+    );
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "teaser",
+        gate: "upload",
+        items: [makeItem("m1")],
+        teaserTotal: 1,
+      }),
+    );
+
+    // Two poll ticks report the SAME narrower decision — the steady state
+    // once the host's switch has settled — and the callback must fire only
+    // for the CHANGE, never once per tick.
+    await poll();
+    await poll();
+
+    expect(onAccessDrift).toHaveBeenCalledTimes(1);
+    expect(onAccessDrift).toHaveBeenCalledWith({
+      access: "teaser",
+      gate: "upload",
+    });
+    const lastProps = guestMasonrySpy.mock.calls.at(-1)![0] as {
+      items: GridMedia[];
+    };
+    expect(lastProps.items.map((i) => i.id)).toEqual(["m1", "m2"]);
+    // The count line under full access never dips to the narrower total: every
+    // report across both ticks (including the seed's own) stayed at 2.
+    expect(onCountChange.mock.calls.every(([n]) => n === 2)).toBe(true);
+  });
+
+  it("applies at once when a teaser gallery polls into a fuller decision, firing the drift once", async () => {
+    const onAccessDrift = vi.fn();
+    await mount(
+      { access: "teaser", onAccessDrift },
+      { items: [makeItem("m1")], teaserTotal: 1 },
+    );
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "full",
+        gate: null,
+        items: [makeItem("m1"), makeItem("m2"), makeItem("m3")],
+      }),
+    );
+
+    await poll();
+    await poll();
+
+    expect(onAccessDrift).toHaveBeenCalledTimes(1);
+    expect(onAccessDrift).toHaveBeenCalledWith({ access: "full", gate: null });
+    const lastProps = guestMasonrySpy.mock.calls.at(-1)![0] as {
+      items: GridMedia[];
+    };
+    expect(lastProps.items.map((i) => i.id)).toEqual(["m1", "m2", "m3"]);
+  });
+
+  it("a fresh mount at a new access prop shows exactly that payload (the shell's own key={access} remount)", async () => {
+    const atFull = await mount(
+      { access: "full" },
+      { items: [makeItem("m1"), makeItem("m2")] },
+    );
+    expect(
+      (guestMasonrySpy.mock.calls.at(-1)![0] as { items: GridMedia[] }).items.map(
+        (i) => i.id,
+      ),
+    ).toEqual(["m1", "m2"]);
+
+    // A real access change is never a prop update on a live instance (the
+    // shell remounts under a new key) — proven here as a fresh mount, which
+    // must show exactly its OWN payload, untouched by the stricter hold a
+    // poll would have applied against the instance above.
+    atFull.unmount();
+    guestMasonrySpy.mockClear();
+    await mount(
+      { access: "teaser" },
+      { items: [makeItem("m3")], teaserTotal: 1 },
+    );
+    expect(
+      (guestMasonrySpy.mock.calls.at(-1)![0] as { items: GridMedia[] }).items.map(
+        (i) => i.id,
+      ),
+    ).toEqual(["m3"]);
   });
 });

@@ -242,8 +242,10 @@ they already passed. The EMPTY album still holds the gate (no count condition), 
 and unsigned (the database verifies it by `guests.session_token`'s unique index). It is set only when absent
 or different, by `POST /api/guests` on a mint, `POST /api/guests/name` on success, `POST /api/r2/complete-upload`
 on a created row (through `CreateRecordOutcome.setCookies`, which the pipeline applies to the 200 alone) and
-the gallery poll when the body's token differs — **on its 304 too**, which is the response the steady-state
-poll almost always gets. `POST /api/guests/leave` expires it, and the guest sign-out calls it through
+the gallery poll when the body's token differs — **only as a 200, never a 304** (`door-fixes`, 2026-09-21:
+Vercel drops `Set-Cookie` from a 304 in transit, confirmed on the alias, so a pending heal always gets the
+real payload; only a validator match with NO heal pending still gets the bare 304 the steady-state poll
+almost always gets once the cookie is settled). `POST /api/guests/leave` expires it, and the guest sign-out calls it through
 `leaveGuestSession`, so a shared phone never renders the full album on the last contributor's ticket. ★ The
 WRITE routes (name, mine, remove, presign, complete) still read the token from the BODY only, pinned by a
 source test in `session-cookie.test.ts`, so the CSRF surface did not move.
@@ -330,7 +332,12 @@ CLIENT steps through flags in the sheet. No step counter to desync.
   outgoing step leaves an inert attribute-stripped clone that fades opposite (`[data-entry-exit]`;
   `el.isConnected` discriminates real deletions from dev StrictMode cycles). The back chevron
   is a transient VIEW over the machine (never touches markSeen/steps): the password, the name and
-  the email go back to the welcome, and the upload goes back to the name.
+  the email go back to the welcome, and the upload goes back to the name. ★ THE REVISITED
+  WELCOME'S OWN PRIMARY ALWAYS READS "CONTINUE" (Will, 2026-09-21, "the door's first look",
+  overruling a `door-steps` call that read "Back"/"Back to the password" there: "Don't make back
+  bidirectional. Keep 'Continue' for users to resume forward navigation clearly."). Only the
+  CHEVRON's own label says "Back to X"; the sheet it reveals never does, whichever step is behind
+  it (`door-fixes`, 2026-09-21).
 - **The SUCCESS HOLD + REVEAL**
   ([`use-success-hold.ts`](../../src/lib/guest/use-success-hold.ts), min beat 900ms): on unlock the
   gate blurs the field (the keyboard retracts during the beat, never mid-exit), fires `onUnlocked`
@@ -357,15 +364,22 @@ CLIENT steps through flags in the sheet. No step counter to desync.
   and the rest of the run finishes behind the album's own head. The FAIL-OPEN is server-owned: when a run
   ends with nothing completed and every refusal is one the guest cannot fix (`classifyRun`), the step shows
   the server's own sentence and a primary "Continue without adding" that refreshes and trusts the decision
-  that comes back — never a local skip, which would loop (the server would still answer `upload`). The
-  OFF-state ghost "Skip for now" is once per pass and never appears on the failure view; ON there is none,
+  that comes back — never a local skip, which would loop (the server would still answer `upload`). The ON
+  line reads "The host has asked everyone to add a photo before the album opens." — the HOST GOES UNNAMED
+  here (Will, 2026-09-21, "the door's first look", overruling a `door-steps` call that named the host:
+  "let's simply say 'The host has asked...' to account for long host names breaking good design"), the one
+  line on the door that deliberately never does; the name step's own lede still names the host, with "the
+  host" as its fallback. The OFF-state ghost "Skip for now" is once per pass and never appears on the failure view; ON there is none,
   and `computeDoor` ignores both `skipped` and `returning` in that state so a stale flag cannot open an album.
 - **THE FLIP AND THE DRIFT.** The refresh at the first completion IS the flip (the completion route sets
   the cookie before it); `key={access}` remounts the gallery under the curtain and it rises as the sheet
   exits. The POLL is not the flip: `LiveGallery` parses the poll's `access` and `gate` and raises
   `onAccessDrift` once per CHANGED decision. A LOOSER drift refreshes at once; a STRICTER one (the host
-  turned the switch on while this guest was inside) never yanks an open album out from under a thumb and
-  waits for the guest's next act. And because a session minted before this round has no cookie yet,
+  turned the switch on while this guest was inside) never yanks an open album out from under a thumb:
+  `LiveGallery` holds its OWN items and count at whatever it already mounted with rather than adopting the
+  narrower payload underneath the shell (`door-fixes`, 2026-09-21 — the poll used to apply it anyway, which
+  is what let a 54-tile album collapse to nine mid-scroll before any sheet reappeared), while the shell
+  waits for the guest's next act to spend the drift. And because a session minted before this round has no cookie yet,
   `EventExperience` HEALS once at mount when the gate is `upload` and localStorage holds a token: one poll
   POST carrying it (no `If-None-Match`), the sheet's auto-open waiting on the answer, then a refresh if the
   decision came back changed.
@@ -648,6 +662,17 @@ Env-gated (`NEXT_PUBLIC_DEMO_QR_TOKEN`; [`demo.ts`](../../src/lib/demo.ts)): `is
 page through `event-experience.tsx`; the ~12 s poll is paused, the silent join skips `POST /api/guests`, and
 the queue skips the real upload — `simulateUpload` returns a synthetic `approved` outcome so the optimistic
 tile appears but is **never persisted**. The marketing side of the demo → [marketing-content.md](marketing-content.md).
+
+★ **EVERY DEMO VISIT IS FRESH, EVEN A RETURNING ONE** (Will, 2026-09-21, "the door's first look": "it
+should treat each visit as a fresh visit, even if it's returning. That way every demo is end-to-end.").
+[`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts) takes `isDemo` and, while true, reads
+permanently unseen and writes nothing (`door-fixes`, 2026-09-21) — the OLD bug was narrower than the
+localStorage flag alone: the upload step's OFF-state "Look around" skip used to call `markSeen()` for the
+demo specifically, so a visitor who skipped once would meet the upload step directly (no role welcome) on
+every later visit from the same browser. `hasContributed`/`returning`/`skipped` need no equivalent fix: the
+demo never reaches the name step at all (`computeDoor` excludes it whenever `isDemo`), never mints a real
+session (`simulateUpload` performs no network call), and `skipped` is plain component state that a fresh
+mount already resets — so nothing else on the itinerary can persist across a demo visit either.
 
 **The demo's own arrival, framing and turn** (`arrival=role` etc., `docs/design/rulings.md` the sixth batch,
 2026-09-20; `demo-wiring`). The demo is no longer the one visitor `computeEntry` (`entry-steps.ts`) skips: it
