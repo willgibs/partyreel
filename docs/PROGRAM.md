@@ -66,7 +66,8 @@ program depends on which.
    for the one decision, and two that land on the same answer is a finding, not a debt.
 7. **The record is what is active**: the manifest is deleted in the merge commit, whose message carries the lane's
    summary; STATUS is rewritten; the Library and the desk show the live state; a retired board leaves nothing behind
-   but its winner; git holds everything older. **Stacked boards never overlap in what they ask**: an exploration's
+   but its winner, and a board whose product no longer exists retires unreviewed, its live questions reshaped into
+   the boards that replace it; git holds everything older. **Stacked boards never overlap in what they ask**: an exploration's
    brief names the open asks nearest its surface on the standing boards and asks nothing they ask, and the
    Orchestrator checks that at the cut. **When a ruling reaches a question still open on another board, the
    Orchestrator judges it**: an early pick can close the road to the best answer, so a question whose options still
