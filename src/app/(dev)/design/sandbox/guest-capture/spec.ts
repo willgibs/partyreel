@@ -212,7 +212,7 @@ const DRAFT = defineExploration({
       question:
         "Should the name Priya typed at the door become her profile silently, or does she get a say?",
       context:
-        "Today the typed name is written the instant the claim runs, with no chance to change it; a handle is offered after, on the moment card. Since the door ruling (2026-09-21) every guest names themselves at the door, nothing unique claimed.",
+        "Since the door ruling every guest names themselves at the door. Will's identity ruling (2026-09-22): a typed name lives per event; a confirmed email claims rows per event and names a nameless profile from the claimed row, editable.",
       options: [
         {
           id: "silent",
