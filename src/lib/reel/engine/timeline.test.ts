@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { pacedTheme } from "@/lib/reel/live/pacing";
+
 import { reelDimensions } from "./constants";
 import { planReel } from "./layout";
 import type { ReelClip, ReelProps } from "./reel-types";
 import { THEME_CLASSIC } from "./reel-types";
-import { THEME_PUNCHY } from "./themes";
+import { THEME_IDS, THEME_PUNCHY, THEMES } from "./themes";
 import {
   clipStartFrames,
   frameStateAt,
@@ -164,5 +166,43 @@ describe("orientation dimensions (one code path, never hard-coded)", () => {
     expect(reelDimensions("portrait")).toEqual({ width: 1080, height: 1920 });
     expect(reelDimensions("landscape")).toEqual({ width: 1920, height: 1080 });
     expect(reelDimensions(undefined)).toEqual({ width: 1080, height: 1920 });
+  });
+});
+
+/**
+ * THE TWO-LAYER MODEL IS NOW COMPLETE (the live reel, 2026-09-22). frameStateAt resolves at most a
+ * top and an under; with planReel's hold guard clamping every hold to the SUM of its adjacent gaps,
+ * that is not an approximation any more but the whole truth, for every mood at either surface
+ * pacing. The pin compares the resolver's answer against the sequences that are genuinely live.
+ */
+describe("frameStateAt against the true live set (every mood, either surface)", () => {
+  it("reports exactly the layers TransitionSeries would render", () => {
+    for (const themeId of THEME_IDS) {
+      for (const surface of ["hand", "wall"] as const) {
+        const theme = pacedTheme(THEMES[themeId], surface);
+        const plan = planReel({
+          clips: clips(7),
+          theme,
+          seed: 515,
+          styleId: themeId,
+        });
+        const starts = clipStartFrames(plan);
+        for (let f = 0; f < plan.totalFrames; f++) {
+          const live = plan.clips
+            .map((c, i) => ({
+              i,
+              start: starts[i],
+              end: starts[i] + c.durationInFrames,
+            }))
+            .filter((c) => f >= c.start && f < c.end)
+            .map((c) => c.i);
+          const state = frameStateAt(plan, f);
+          const drawn = state.under
+            ? [state.under.clipIndex, state.top.clipIndex]
+            : [state.top.clipIndex];
+          expect(drawn, `${themeId}/${surface}@${f}`).toEqual(live);
+        }
+      }
+    }
   });
 });

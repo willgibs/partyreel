@@ -70,6 +70,12 @@ const TOOLS: NavItem[] = [
     note: "Every reel style side by side: play, scrub, export.",
   },
   {
+    href: "/design/lab/tools/reel-live",
+    label: "Live reel",
+    badge: "tool",
+    note: "The rolling composer: a take per loop, arrivals spliced in, a drop on the next frame.",
+  },
+  {
     href: "/design/lab/tools/reel-video",
     label: "Reel video windows",
     badge: "tool",

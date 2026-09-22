@@ -31,10 +31,20 @@ type Closable = { close?: () => void };
 export type BitmapCache = {
   /** The DecodeImage to hand to loadReelAssets' `decode` option. */
   decode: DecodeImage;
-  /** Drop every entry (closing the bitmaps). Tests + a future "leave the studio" teardown. */
+  /**
+   * ★ PIN this url's bitmap against eviction while a player is drawing it (the live reel, 2026-09-22).
+   * Refcounted, so two windows over the same still both hold it and the second release is the one
+   * that frees it. Safe to call BEFORE the decode (the count is kept beside the entry, not on it).
+   */
+  retain: (url: string) => void;
+  /** Give one retain back. At zero the url is an ordinary LRU entry again (and evictable). */
+  release: (url: string) => void;
+  /** Drop every entry, closing only the UNRETAINED bitmaps (see the note in clear()). */
   clear: () => void;
   /** Resident entry count (tests / debugging). */
   size: () => number;
+  /** How many distinct urls are currently retained (the harness's leak readout). */
+  retained: () => number;
 };
 
 /**
@@ -48,20 +58,38 @@ export function createBitmapCache(
   // Insertion-ordered Map == the LRU order (a hit re-inserts to become newest). Values are the
   // in-flight/settled PROMISE, which is what makes concurrent callers dedupe onto one decode.
   const entries = new Map<string, Promise<CanvasImage>>();
+  // ★ Refcounts, kept BESIDE the entries rather than on them, so a retain can precede the decode
+  // (the live source retains a window's urls before it builds that window's plan).
+  const refs = new Map<string, number>();
 
+  function close(entry: Promise<CanvasImage> | undefined) {
+    // Release the bitmap EAGERLY. An ImageBitmap holds GPU-side memory that GC reclaims only
+    // whenever it feels like it, so a browse session that churns styles would balloon without
+    // this. (A rejected entry has nothing to close.)
+    void entry?.then(
+      (image) => (image as Closable).close?.(),
+      () => {},
+    );
+  }
+
+  /**
+   * ★ EVICTION SKIPS RETAINED URLS. Before the live reel every evictee was closed on the spot, which
+   * was safe while the only readers were the studio's hero and its rail (one props identity, one
+   * decode set, all resident at once). A ROLLING loop breaks that: it prefetches two windows ahead,
+   * so the cache churns past `max` while the window on screen is still drawing — and a closed
+   * ImageBitmap throws inside the rAF tick ("The ImageBitmap is detached"), which is one blank wall
+   * per eviction. So the LRU walks PAST anything retained; if every resident url is retained the
+   * cache simply runs over `max` until a release, which is bounded by the holder (the live player
+   * retains at most three windows' worth, ~18 stills).
+   */
   function evict() {
-    while (entries.size > max) {
-      const oldest = entries.keys().next().value;
-      if (oldest === undefined) return;
-      const dropped = entries.get(oldest);
-      entries.delete(oldest);
-      // Release the bitmap EAGERLY. An ImageBitmap holds GPU-side memory that GC reclaims only
-      // whenever it feels like it, so a browse session that churns styles would balloon without
-      // this. (A rejected entry has nothing to close.)
-      void dropped?.then(
-        (image) => (image as Closable).close?.(),
-        () => {},
-      );
+    if (entries.size <= max) return;
+    for (const url of [...entries.keys()]) {
+      if (entries.size <= max) break;
+      if ((refs.get(url) ?? 0) > 0) continue;
+      const dropped = entries.get(url);
+      entries.delete(url);
+      close(dropped);
     }
   }
 
@@ -87,16 +115,30 @@ export function createBitmapCache(
 
   return {
     decode: cachedDecode,
+    retain: (url) => {
+      refs.set(url, (refs.get(url) ?? 0) + 1);
+    },
+    release: (url) => {
+      const count = refs.get(url) ?? 0;
+      if (count <= 1) refs.delete(url);
+      else refs.set(url, count - 1);
+      // A release can put the cache back under the ceiling's reach: the entries eviction walked
+      // past while they were pinned are now ordinary LRU tail.
+      evict();
+    },
     clear: () => {
-      for (const entry of entries.values()) {
-        void entry.then(
-          (image) => (image as Closable).close?.(),
-          () => {},
-        );
+      // A RETAINED bitmap is not closed here. clear() is a teardown ("leave the studio"), and a
+      // holder mid-draw has the resolved image in its own ReelAssets: closing it under that holder
+      // is the exact detached-bitmap throw the refcounts exist to prevent. The entry still goes, so
+      // the next decode is a fresh one, and the count stays until its holder releases.
+      for (const [url, entry] of entries) {
+        if ((refs.get(url) ?? 0) > 0) continue;
+        close(entry);
       }
       entries.clear();
     },
     size: () => entries.size,
+    retained: () => refs.size,
   };
 }
 
