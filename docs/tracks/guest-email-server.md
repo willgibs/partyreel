@@ -1,6 +1,6 @@
 ---
 track: guest-email-server
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ae89033a"          # the launch-prep SHA the branch was cut from
 board: none            # production, wave 1 of the guest identity round: the wire, the identity, the crack closed, the forensics, the profile queries; merges first; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -188,29 +188,180 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none. Every open call was taken on the brief's recommendation or on the nearest shipped precedent, and
+  each one is listed under "Calls his to overrule" below. No one-way door was reached.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/database-security.md`, the `guests` bullet under "Invariants": a new paragraph, **TWO EMAIL
+  COLUMNS, ONE PATH BETWEEN THEM** - `guests.email` is only ever a confirmed `auth.users` address written
+  server-side; `guests.pending_email` is only ever a typed, unproved one, outside every grant; the only path
+  across is a claim that proves it, and the code holds the same line three ways (case 3, the guest-list
+  SELECT, the capture route's new confirmation gate). `upload_forensics.guest_pending_email` named as the one
+  deny-all exception.
+- `docs/systems/database-security.md`, the service-role-only RPC list: `set_guest_pending_email` added with
+  why it is service-role (the anon EXECUTE grant is the surface; the `attach_email` limiter is part of the gate).
+- `docs/systems/database-security.md`, the authenticated RPC list: the three claim-by-address RPCs added with
+  the oracle gate stated (the address is never a parameter; an unconfirmed caller gets an empty set), and
+  `claim_anonymous_uploads`'s line extended with its new `verified_at` / `email` stamp.
+- `docs/systems/admin-observability.md`, the Forensics bullet: `guest_pending_email` beside
+  `guest_display_name`, read on the `?what=record` export, rendered on no page.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now** - `/admin/forensics` renders no per-upload identity at all: neither the typed name (shipped
+  2026-09-21) nor the unproved address reaches a table, so an operator reads both only by downloading a
+  held item's Record. An uploader column on the held-media table would need `listHeldMedia` in
+  `src/lib/db/queries/forensics.ts`, which no lane owns this round.
+- **Now** - `src/lib/guest/session-cookie.test.ts`'s `WRITE_ROUTES` list should gain
+  `src/app/api/guests/email/route.ts`. The door lane owns `src/lib/guest/`, so this lane pinned the same
+  property in its own `src/app/api/guests/email/route.test.ts` instead; the list is still worth completing.
+- **Now** - the deprecated pair kept for exactly one merge (`AttendedEventSetting.hiddenFromProfile` and
+  `unhideEventFromProfileAction`) must be deleted when the claims lane rewires the attended switch. Both
+  carry `@deprecated` with that sentence.
+- (Already on the ROADMAP: dropping `profile_hidden_events`. Nothing in this lane reads or writes it now.)
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- **The work commit is `411c45e0`** (every change of this lane, stable); **the sync-merge is `b678b9d4`**
+  (`origin/launch-prep` had moved to `5a831353`; merged, never rebased). No board (`board: none`).
+- Gates on the synced tree, each on its own exit code: `pnpm design:rules` EXIT=0 (223 components, 1840
+  contracts, 18 policies; no diff) · specimens EXIT=0 (140 specimens on 101 entries; no diff) ·
+  `pnpm typecheck` EXIT=0 · `pnpm lint` EXIT=0 (10 warnings, the known baseline; none in a file this lane
+  touched) · `pnpm test` EXIT=0 (332 files, 3606 passed, 2 skipped) · `pnpm build` EXIT=0 (257 static pages,
+  161 routes; `/api/guests/email` present at build.log:54) · `pnpm lab:smoke --base http://localhost:3133`
+  EXIT=0 (422 checks, 0 failing). Logs in the lane's scratch directory. No `lab:demo` (no board).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD` (25 files): every path under `owns`, plus
+  **one exception, `src/lib/errors/codes.test.ts`**. Why: that file is the compile-time tripwire for the
+  taxonomy this lane grows, its header says "when you add a code to a route, add it to ITS mirror here", and
+  it belongs to no lane this round (neither `guest-email-door` nor `guest-email-claims` lists it). The edit
+  is additive only: a `GuestEmailRouteCode` mirror, `email_invalid` on `GuestRouteCode`, and a
+  `SetGuestPendingEmailResult` subtype assertion. Nothing existing was changed.
+
+### THE ANNOUNCED WIRE (for `guest-email-door` and `guest-email-claims`)
+
+**`POST /api/guests` (the join).** Body `{ qr_token, display_name?, email? }` - `email` is optional, loose,
+and read ONLY on the names-mode branch (a verified session never has it read, and `create_guest` nulls it
+beside a confirmed account and on a Require-verified-emails event). Response, 200:
+`{ ok: true, session_token, event_id, display_name, verified, email_attached }`. **`email_attached` is a
+boolean and the address NEVER comes back.** A typed value that is not an address answers **422
+`{ ok: false, code: "email_invalid", message: "Check that email address." }`**; a missing or blank `email`
+is not an error at all (the guest simply stays at level 1). Every other status is unchanged.
+
+**`POST /api/guests/email` (attach / change / detach).** Body `{ qr_token, session_token, email }` where
+`email` is `string | null`. **`null` is the detach and a MISSING key is a 400** (clearing has to be said out
+loud). Response, 200: `{ ok: true, email_attached }`, `Cache-Control: private, no-store`, and the
+`pr_guest_<eventId>` cookie heal on the way out. Statuses: **400** `bad_request` (unparseable body, either
+token missing, `email` key absent) · **403** `unauthorized` (a private event, or a VERIFIED guest whose
+address is their account's) · **404** `not_found` (dead link) · **422** `email_invalid` · **401**
+`invalid_session` · **429** `rate_limited` with `Retry-After` · **500** `unknown`. The token comes from the
+BODY only; the cookie is never read as identity.
+
+**The two renamed Server Functions** in `src/app/(app)/account/social-actions.ts`, for the claims lane's
+attended switch: **`showEventOnProfileAction(eventId)`** (insert: publish) and
+**`hideEventFromProfileAction(eventId)`** (delete: take it off). Both return the unchanged
+`SocialActionResult`. `getMyAttendedEvents()` now returns **`shownOnProfile: boolean`**, default FALSE.
+`unhideEventFromProfileAction` and `AttendedEventSetting.hiddenFromProfile` survive as `@deprecated` aliases
+so this tree builds while the switch is still the old one; **delete both in the claims lane's rewire.**
+
+### The items, one line each
+
+- `join-email`: `joinSchema` gains a loose optional `email`; `parseGuestEmail` normalises to trimmed +
+  lowercased (the column's CHECK and the claim's equality both need it), caps at 254 before any regex, and
+  refuses with one code. The superseded test "never carries an email (the poisoning surface the reshape
+  closed)" was rewritten rather than deleted, and says why the surface stays closed: the two columns are not
+  the same column.
+- `join-route`: the address is parsed only on the names-mode branch, passed as `pendingEmail`, and
+  `email_attached` comes back from the MINT (`create_guest`'s payload), never echoed from the request, so a
+  confirmed session that sends one is answered `false` because the database said so.
+- `attach-route`: `POST /api/guests/email` on the rename door's exact shape, plus its own source-level pin
+  that it never reads the session cookie.
+- `limiter`: `attach_email` = `{ breadth 15 / 60min, scope 60 / 15min }`, the rename's numbers verbatim,
+  with the venue reasoning and the note that nothing is ever mailed to this address so it is not a
+  mail-bomb surface.
+- `mutations`: `createGuest` gains `pendingEmail` and `emailAttached`; the `check_violation` map gains
+  "email address" to `email_invalid`; `setGuestPendingEmail` maps `no_data_found` to 401, "comes from your
+  account" to 403, the rest of `check_violation` to 422. `null` crosses the wire as `""` because the
+  generated `Args` declares `p_email` required and the RPC's own `nullif(btrim(...))` turns it into SQL NULL.
+- `identity`: `resolveUploaderIdentity` case 3 returns `email: null` ALWAYS. This is a real behaviour change
+  on the HOST gallery: an unverified row's `guests.email` used to print there. Pinned, plus a source pin
+  that the module never reads `pending_email` in any spelling.
+- `crack`: `POST /api/guests/capture-email` now requires `email_confirmed_at`, not just `user.email`. Live
+  count on the project: `0` unverified guest rows carry an address, so nothing existing was ever poisoned.
+- `forensics`: the capture seam selects `pending_email` and writes `guest_pending_email`; a new
+  `capture.test.ts` pins the SELECT itself (a column not asked for is a silent null), the host arm, and
+  loud-never-fatal. The `?what=record` export already reads the row unnarrowed; a new test pins that, so a
+  future "tidy" into a named column list cannot silently drop the newest evidence.
+- `profile-queries`: `getMyShownEventIds` over `profile_shown_events`; `getMyAttendedEvents` returns
+  `shownOnProfile`; `getPublicProfileAttendedCoverUrls` gate 3 inverts to an INTERSECTION and
+  short-circuits on empty; `showEventOnProfile` / `hideEventFromProfile` replace hide / unhide. Nothing in
+  `src/` reads or writes `profile_hidden_events` any more.
+- `red-team` (local, :3133, against the throwaway event `38290e85`, rows deleted after): a join with an
+  address answered `email_attached: true` and the body contained no address; a junk address 422'd and never
+  minted; a join without one answered `false`; the attach route refused a body without a token 400 AND
+  refused the same request when the token was supplied only as a COOKIE; the token in the body attached,
+  detached on `null`, 422'd on junk, 400'd on a missing key, 404'd a dead link, 401'd a forged token, and a
+  forged `guest_id` in the body touched only the caller's own row. In the database: the address stored
+  lowercased and trimmed, `guests.email` still NULL on both rows, and the host's column-scoped SELECT grant
+  on `guests` is still exactly `(created_at, email, event_id, id, user_id)` - `pending_email` is fail-closed.
+  The rendered guest page and the gallery poll carried no address.
+
+### Calls his to overrule (on the alias)
+
+- The `attach_email` limiter's numbers: the rename's exactly (15 distinct events an hour, 60 per (IP, event)
+  per quarter hour). The brief named this; I took it. Nothing is ever mailed to the address, so the harm
+  ceiling is junk in a column.
+- Case 3 returns NO address at all, rather than a muted or masked one. The brief named this; I took it. It
+  changes what a host sees on their own gallery for a guest who signed up and never confirmed.
+- The forensics column: captured and denormalized, rendered on no page, read only on the Record export.
+- **One refusal code, not two.** The name has `name_required` and `name_invalid`; the address has only
+  `email_invalid`, because a blank one is never an error (optional at the door, the detach on the attach
+  route). Alternative: a second code for "you typed only spaces", which I judged a distinction without a
+  difference to a guest.
+- **The sentence: "Check that email address."** Written as a nudge rather than a verdict, no em-dash, names
+  nothing internal.
+- **A MISSING `email` key on the attach route is a 400, not a detach.** A client that forgot the field would
+  otherwise silently throw away a guest's claim ticket. `null` and `""` both detach.
+- **zod's DEFAULT email regex** (roughly Gmail's rules), not `z.regexes.unicodeEmail`. Stricter, so a few
+  real international addresses are refused; the alternative accepts more but lets more junk into a column a
+  guest has to recognise later. One line to change if he prefers the looser one.
+- **The deprecated pair** (`hiddenFromProfile`, `unhideEventFromProfileAction`) kept for one merge so this
+  tree builds while the claims lane still owns the switch. The alternative was editing another lane's file.
+- The `/admin/forensics` coverage copy now says "the name a guest typed at the door plus any address they
+  typed beside it, unconfirmed" and points at Download Record.
+- `MAX_GUEST_EMAIL_LENGTH = 254` exported from `validation/upload.ts` so the door's field can cap its input
+  against the same number the column holds.
+
+### The help articles this lane makes stale (for `help-sync`)
+
+- `content/help/your-public-profile-following-and-blocking.mdx`, "What shows on your profile": "Events you
+  joined appear when you added photos while signed in..." and "the switches on your account page **hide** any
+  event from your profile" are both wrong now. Nothing appears until its owner turns it ON, and the guest
+  must be VERIFIED. Owned by no lane this round.
+- `content/help/messages-guests-might-see.mdx`: the names-mode door now shows an OPTIONAL email field under
+  the name, which this article does not describe (it covers only the verified-required one). Owned by no
+  lane this round; the door lane's copy is the source for it.
+- (`why-an-event-asks-for-your-email`, `how-guests-join-and-upload`, `save-an-event-and-find-your-uploads`,
+  `profiles-guest-lists-and-following`, `display-name-and-profile-photo` are the claims lane's owns, and
+  `require-verified-emails-explained` / `what-guests-can-and-cant-see` the door lane's; each is stale from
+  this lane's behaviour too, and each owner is already briefed to rewrite it.)
+
+### Assets requested from Will
+
+- none.
+
+### Proposed migrations / Worker / Vercel / Stripe / env changes
+
+- none. Everything here codes against wave 0's applied schema; no DDL, no new secret, no config.
+
+### Look at first
+
+1. `src/lib/media/uploader-identity.ts` case 3 - the one behaviour change a HOST will notice, and the only
+   place in the lane where an existing surface loses information it used to show.
+2. `src/app/api/guests/email/route.ts` - the new door, and the head comment that says why nothing is ever
+   mailed to the address it writes.
+3. The `guests` paragraph in `docs/systems/database-security.md` - the two-columns-one-path invariant, which
+   is the sentence the next four lanes should be able to quote.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
