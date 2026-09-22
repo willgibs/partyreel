@@ -10,7 +10,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * Asked what next, Will: "Let's go with a totally different concept... I
  * think we can say the image trail was a takeaway win from this. The actual
  * privacy hero can take a different path, maybe more fitting for its theme"
- * (docs/design/rulings.md, 2026-09-19).
+ * (2026-09-19).
  *
  * ★ "MORE FITTING FOR ITS THEME" IS THE BRIEF, SO THE MECHANISM CHANGES, NOT
  * JUST THE FIGURE. Both earlier rounds flew photographs through a shape;

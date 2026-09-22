@@ -7,9 +7,10 @@ import type { CarriedCall } from "./board-spec";
  * 2026-09-19).
  *
  * ★ THE FINDING. Every lane carries the calls its goal left open on its own
- * recommendation, because stopping to ask would stop the lane; today those
- * calls reach Will only through the round's CHANGELOG entry, a page away from
- * the board he is answering. Four lanes in the last sitting carried three to
+ * recommendation, because stopping to ask would stop the lane; apart from this
+ * a call reaches Will only through docs/STATUS.md's Waiting on Will note and
+ * the merge commit that lands it, both a page away from the board he is
+ * answering. Four lanes in the last sitting carried three to
  * six each. A decision taken for him that he never reads is not a decision he
  * made, so the board he IS reading says what was taken in his name.
  *

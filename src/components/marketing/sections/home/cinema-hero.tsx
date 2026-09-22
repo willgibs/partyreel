@@ -46,7 +46,7 @@ import {
  * THE HOME HERO: THE ALBUM LEAVING THE CODE (the hero's wiring round,
  * 2026-09-17; it replaces the living album wall of 2026-08-25).
  *
- * Will's rulings, in order (`docs/design/rulings.md`): the SOURCE direction,
+ * Will's rulings, in order: the SOURCE direction,
  * the album coming out of the code, the lockup CENTRED rather than left like
  * every other marketing page, the site's one ruled line as the headline and no
  * live count anywhere (round five); the symmetric approach by name over the
@@ -389,8 +389,8 @@ export function CinemaHero() {
 
 /**
  * THE OBJECT (`door=frame`, round two, 2026-09-20/21, overriding round one's
- * `doors=pile`; docs/design/rulings.md "the closing sitting's second
- * batch"). His note on the board's own drawing: "this visual is the same
+ * `doors=pile`; "the closing sitting's second batch"). His note on the
+ * board's own drawing: "this visual is the same
  * height as the image banner behind, and isn't as noticeable as it could
  * be" — the frame below is sized against the REAL corridor rather than the
  * board's flat mock, measured on this shipped hero (`pnpm dev`, a

@@ -3,7 +3,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * WHAT PARTYREEL HANDS THE WORLD, ROUND ONE (the press-page track, cut 2026-09-19).
  *
- * Will's stacking steer (docs/design/rulings.md, 2026-09-19): "/press" is one of the
+ * Will's stacking steer (2026-09-19): "/press" is one of the
  * surfaces he named while deployments were capped, and "absolutely everything is up
  * for relitigation or reconcepting from the ground up." A board that keeps nothing is
  * deleted at no cost.

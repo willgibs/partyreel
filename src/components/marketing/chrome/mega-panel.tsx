@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
  * 2026-09-20: "the nav's ticket goes"; one object skinned per place, and a
  * ticket labelling a QR was the one door that read as unpolished), THEN GOT
  * THE FRAME BACK (`door=frame`, round two, 2026-09-20/21,
- * docs/design/rulings.md "the closing sitting's second batch"): the object
+ * "the closing sitting's second batch"): the object
  * every demo door now shares, at the pane's own size, so the one nav group
  * with no other picture of the product carries a text-free door again rather
  * than the plain list `stage` (the board's other option) would have left

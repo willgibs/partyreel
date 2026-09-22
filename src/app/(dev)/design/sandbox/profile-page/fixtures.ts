@@ -264,9 +264,9 @@ export const GUESTS: Chip[] = NAMES.map(([displayName, slug], i) => ({
  * TWO HUNDRED AND FORTY, A QUARTER OF WILL'S IMAGINED THOUSAND.
  *
  * "I can imagine an edge case with a thousand guests, and you click 'View
- * All', and all of a sudden you have a page 100 screens tall all at once"
- * (docs/design/rulings.md). 240 is close enough to argue the same failure
- * mode inside a board's reading budget, and it is generated rather than typed
+ * All', and all of a sudden you have a page 100 screens tall all at once".
+ * 240 is close enough to argue the same failure mode inside a board's reading
+ * budget, and it is generated rather than typed
  * by hand: the same ratios round one's 24 used (about a fifth with a handle,
  * about a third with a picture), so the two lists read as the same wedding at
  * two sizes rather than two different fixtures.

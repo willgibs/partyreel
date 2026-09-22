@@ -2,8 +2,8 @@
  * THE SWITCHING BACKDROP, AS ARITHMETIC (the backdrop-wiring lane, 2026-09-18).
  *
  * The production cut of the `cursor-backdrop` board's engine, trimmed to the
- * rules Will ruled on 2026-09-18 (docs/design/rulings.md, "full-image sections
- * are chapter transitions"): the `band` trigger ("I absolutely love the rail of
+ * rules Will ruled on 2026-09-18 ("full-image sections are chapter
+ * transitions"): the `band` trigger ("I absolutely love the rail of
  * the foot, and tracking the Cursor's position justifies this delight"), the
  * `slide` entrance ("This feels much more natural and fluid"), and at a phone
  * the scroll rule as he clarified it ("pass through 4-5 images at steps as it

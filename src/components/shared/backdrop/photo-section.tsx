@@ -37,8 +37,8 @@ import { ROOM_FRAMES, roomFrame, SCROLL_STEPS } from "./room-frames";
  * reader moves: the pointer's position across the room for a reader with a
  * cursor, the section's own progress up the screen for a reader without one.
  * Its copy sits on a glass plate so it stays legible over every photograph in
- * the pool. Ruled whole by Will on 2026-09-18 (docs/design/rulings.md,
- * "full-image sections are chapter transitions"), where it also became a
+ * the pool. Ruled whole by Will on 2026-09-18
+ * ("full-image sections are chapter transitions"), where it also became a
  * page-level device: a full-image section "can close a chapter, open a chapter,
  * or exist individually to separate two chapters", used sometimes and never at
  * every cut. Its first home closes the home page's first chapter.

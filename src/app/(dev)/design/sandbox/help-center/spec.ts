@@ -3,7 +3,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * WHERE A HOST OR A GUEST WITH A PROBLEM LANDS, ROUND ONE (2026-09-19).
  *
- * Will (docs/design/rulings.md, "the overnight round"): every surface is
+ * Will ("the overnight round"): every surface is
  * unprotected, "at worst, net neutral and fully deleted". Seven decisions on
  * the real help pieces (`PageHero`, the category emblems, `HelpFactsBand`,
  * the index sheet, the article stage, the "In short" card, `ChipToc` and

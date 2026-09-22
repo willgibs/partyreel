@@ -3,7 +3,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
 /**
  * ONE GUEST, TWO OLD EVENTS UNDER HER ADDRESS (the guest identity round,
- * 2026-09-22; rulings.md "guest identity: name only, unconfirmed email,
+ * 2026-09-22; "guest identity: name only, unconfirmed email,
  * verified account", the plan-review feedback on the claim ticket).
  *
  * Priya (`guest-capture`'s own guest, `media-viewer`'s own board already
@@ -11,7 +11,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * morning at Maya and Jay's wedding. That address turns out to have two
  * older rows waiting: Tom's leaving do, which really was hers, and a beach
  * bonfire she never went to, where somebody else typed her email. The claim
- * ticket cannot tell the two apart (rulings.md: "the host can't see the
+ * ticket cannot tell the two apart ("the host can't see the
  * attributed email of an unconfirmed account"), so nothing below marks the
  * impostor's row differently: the ticket shows two ordinary rows, and this
  * board's five decisions are all about the shape SHE decides them inside.
