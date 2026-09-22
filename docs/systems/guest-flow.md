@@ -242,10 +242,11 @@ they already passed. The EMPTY album still holds the gate (no count condition), 
 and unsigned (the database verifies it by `guests.session_token`'s unique index). It is set only when absent
 or different, by `POST /api/guests` on a mint, `POST /api/guests/name` on success, `POST /api/r2/complete-upload`
 on a created row (through `CreateRecordOutcome.setCookies`, which the pipeline applies to the 200 alone) and
-the gallery poll when the body's token differs — **only as a 200, never a 304** (`door-fixes`, 2026-09-21:
-Vercel drops `Set-Cookie` from a 304 in transit, confirmed on the alias, so a pending heal always gets the
-real payload; only a validator match with NO heal pending still gets the bare 304 the steady-state poll
-almost always gets once the cookie is settled). `POST /api/guests/leave` expires it, and the guest sign-out calls it through
+the gallery poll when the body's token differs — **only as a 200 with no ETag** (`heal-validator`, 2026-09-22:
+Vercel's edge, not the function, converts a matching-validator 200 into a 304 and drops `Set-Cookie` doing it,
+confirmed on the alias, so a pending heal's response carries no ETag for the edge to match; only a validator
+match with NO heal pending still gets the bare 304 the steady-state poll almost always gets once the cookie is
+settled). `POST /api/guests/leave` expires it, and the guest sign-out calls it through
 `leaveGuestSession`, so a shared phone never renders the full album on the last contributor's ticket. ★ The
 WRITE routes (name, mine, remove, presign, complete) still read the token from the BODY only, pinned by a
 source test in `session-cookie.test.ts`, so the CSRF surface did not move.

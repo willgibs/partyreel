@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * THE POLL, AND THE THREE THINGS THE DOOR ROUND ADDED TO IT (Will, 2026-09-21, "the door as three
  * steps"): the decision it answers carries a GATE, a browser may heal its server-side identity
- * through it, and a pending heal can never ride the 304 the steady-state poll almost always
- * returns (DEFECT 2, `door-fixes`, 2026-09-21: Vercel drops Set-Cookie from a 304 in transit), so
- * this always answers 200 instead until the cookie is confirmed written.
+ * through it, and a pending heal can never carry a validator the browser might present back
+ * (`heal-validator`, 2026-09-22: Vercel's EDGE, not the function, converts a 200 into a 304
+ * whenever If-None-Match matches that 200's own ETag, and strips Set-Cookie doing it), so this
+ * answers 200 with NO ETag at all while a heal is pending, until the cookie is confirmed written.
  */
 vi.mock("server-only", () => ({}));
 
@@ -118,24 +119,39 @@ describe("the identity, and the heal", () => {
     );
   });
 
-  it("★ A PENDING HEAL NEVER GETS A 304 (DEFECT 2, door-fixes 2026-09-21): Vercel drops Set-Cookie in transit, so a matching validator still answers 200 while the cookie is unwritten", async () => {
+  it("★ A PENDING HEAL CARRIES NO ETAG (heal-validator, 2026-09-22): the response the browser must receive answers 200 with the cookie and nothing for Vercel's edge to match", async () => {
+    const res = await post({ qr_token: QR, session_token: TOKEN });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain(`pr_guest_evt-1=${TOKEN}`);
+    expect(res.headers.get("etag")).toBeNull();
+  });
+
+  it("a pending heal with a matching validator still answers 200, never 304, because there is no ETag on it to match", async () => {
     const res = await post(
       { qr_token: QR, session_token: TOKEN },
       { "If-None-Match": '"g3-stub"' },
     );
     expect(res.status).toBe(200);
     expect(res.headers.get("set-cookie")).toContain(`pr_guest_evt-1=${TOKEN}`);
-    expect(res.headers.get("etag")).toBe('"g3-stub"');
+    expect(res.headers.get("etag")).toBeNull();
     expect(await res.json()).toMatchObject({ ok: true, access: "teaser" });
   });
 
-  it("a matching validator with the cookie already right still 304s, with no heal pending and no cookie", async () => {
+  it("a settled cookie with a matching validator answers 304 with the ETag", async () => {
     cookieJar.set("pr_guest_evt-1", TOKEN);
     const res = await post(
       { qr_token: QR, session_token: TOKEN },
       { "If-None-Match": '"g3-stub"' },
     );
     expect(res.status).toBe(304);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(res.headers.get("etag")).toBe('"g3-stub"');
+  });
+
+  it("a settled cookie with a stale validator answers 200 with the ETag and no cookie", async () => {
+    cookieJar.set("pr_guest_evt-1", TOKEN);
+    const res = await post({ qr_token: QR }, { "If-None-Match": '"stale"' });
+    expect(res.status).toBe(200);
     expect(res.headers.get("set-cookie")).toBeNull();
     expect(res.headers.get("etag")).toBe('"g3-stub"');
   });
