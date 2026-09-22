@@ -50,6 +50,14 @@ export const createEventSchema = z.object({
   // WINS when a write moves both. It leaves with the column (host-app.md), and nothing new should
   // read or send it. Mirrors the events.allow_anonymous_uploads column default (false).
   allow_anonymous_uploads: z.boolean().default(false),
+  // ★ REQUIRE AN UPLOAD TO VIEW, OFF BY DEFAULT (the door as three steps, Will 2026-09-21,
+  // rulings.md "the door as three steps"). On, a guest (never the host) sees the full album only
+  // once one upload of theirs has completed, approved or held for review; the gate FAILS OPEN
+  // while uploads are closed or the album is full, so nobody is ever held at a step they cannot
+  // pass. Off (the default), the album opens after the name or the confirmed email. Free on every
+  // tier: a genuinely new flag with no legacy twin and no tier gate (GATED_EVENT_SETTINGS stays
+  // password + custom_slug only). Mirrors the events.require_upload_to_view column default (false).
+  require_upload_to_view: z.boolean().default(false),
   // Host-configurable per-upload size cap for GUEST uploads (bytes). null = no host cap
   // (the universal MAX_UPLOAD_BYTES applies). Bounds MIRROR the events_max_upload_bytes_range
   // DB CHECK (defense-in-depth); the settings UI offers UPLOAD_CAP_PRESETS within this range.

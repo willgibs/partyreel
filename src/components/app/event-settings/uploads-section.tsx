@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 
-// Settings · Guest uploads. The accepting/cap/moderation/verified-email controls + the
+// Settings · Guest uploads. The accepting/cap/moderation/verified-email/upload-gate controls + the
 // live "what your guests will experience" preview (re-keyed so it crossfades on each
 // change) + the read-only video status. Consumes the shared form via useFormContext.
 export function UploadsSection({
@@ -49,17 +49,21 @@ export function UploadsSection({
   >();
 
   // Live "what your guests will experience" summary — recomputed as the host flips the
-  // access toggles (visibility/password + verified emails + uploads). Shares one source
-  // with the dashboard access line.
+  // access toggles (visibility/password + verified emails + the upload gate + uploads).
+  // Shares one source with the dashboard access line.
   const visibility = useWatch({ control, name: "visibility" }) ?? "open";
   const requireVerifiedEmail =
     useWatch({ control, name: "require_verified_email" }) ?? true;
   const acceptingUploads =
     useWatch({ control, name: "accepting_uploads" }) ?? event.accepting_uploads;
+  const requireUploadToView =
+    useWatch({ control, name: "require_upload_to_view" }) ??
+    event.require_upload_to_view;
   const guestSummary = guestExperienceSummary({
     visibility,
     requireVerifiedEmail,
     acceptingUploads,
+    requireUploadToView,
   });
 
   return (
@@ -181,6 +185,40 @@ export function UploadsSection({
               confirmLabel="Use names only"
               cancelLabel="Keep verified emails"
             />
+          )}
+        />
+        {/* The door's third step (Will, 2026-09-21, "the door as three steps"). Unlike its two
+            siblings above, this one asks on the ON edge (`confirmWhen: (next) => next`) — the
+            first switch in this card to confirm turning ON rather than off. ConfirmSwitch's own
+            ★ allows it: `confirmWhen` is a predicate over the value EACH caller is about to
+            apply, never a fixed "off is consequential" rule, and asking a guest to contribute
+            before they see the album is this switch's consequential direction. Turning it back
+            off is instant. */}
+        <FormField
+          control={control}
+          name="require_upload_to_view"
+          render={({ field }) => (
+            <div className="space-y-1.5">
+              <ConfirmSwitch
+                label="Require an upload to view"
+                description="On: guests add one photo or video before they can see the full album, so nobody just looks. Off (the default): the album opens once a guest has given a name, or confirmed their email."
+                checked={field.value ?? false}
+                onCheckedChange={field.onChange}
+                confirmWhen={(next) => next}
+                dialogTitle="Ask for a photo before the album?"
+                dialogDescription="Guests will see a few preview photos and add one of their own before the album opens. If uploads are closed or the album is full, the album opens anyway. You can turn this off anytime."
+                confirmLabel="Ask for a photo"
+                cancelLabel="Leave it open"
+              />
+              {/* The gate is moot while uploads are closed (get_upload_gate fails open the same
+                  way), so the hint says so rather than letting the switch imply a promise the
+                  server won't keep. */}
+              {!acceptingUploads && (
+                <p className="text-xs text-muted-foreground">
+                  Has no effect while uploads are closed.
+                </p>
+              )}
+            </div>
           )}
         />
         {/* Live "what your guests will experience" line — re-keyed so it crossfades on each change. */}

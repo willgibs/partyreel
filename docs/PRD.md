@@ -70,8 +70,10 @@ A per-event moderation mode (`live` or `hold_for_approval`) gates visibility, no
 happen only while `accepting_uploads` is true. Anyone viewing a public album can report it or an item
 anonymously; reports land in the operator queue at `/admin` and never auto-hide (an anonymous report
 is trivially spammable; a human decides). No NSFW filtering; proactive hash-matching is a later stage.
-Host access options (a passphrase; require-upload-to-view) are a fast-follow, since they touch the
-capability-token RPCs.
+Host access options are shipped via the capability-token RPCs: a password (Pro / Event Pass) and
+Require an upload to view (free on every tier, off by default — the door as three steps, 2026-09-21;
+fails open when uploads are closed or the album is full, so no guest is ever stuck at a step they
+cannot pass).
 
 ## Platform principles
 
