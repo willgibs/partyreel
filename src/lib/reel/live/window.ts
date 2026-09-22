@@ -24,7 +24,11 @@
  */
 
 import type { Orientation } from "@/lib/reel/engine/constants";
-import { planReel, type PlanProps, type ReelPlan } from "@/lib/reel/engine/layout";
+import {
+  planReel,
+  type PlanProps,
+  type ReelPlan,
+} from "@/lib/reel/engine/layout";
 import type { ReelClip, ReelTheme } from "@/lib/reel/engine/reel-types";
 import {
   DEFAULT_STYLE_ID,
@@ -145,8 +149,7 @@ export function buildWindow(args: BuildWindowArgs): ReelWindow | null {
     plan,
     handoverFrame,
     handoverOffset,
-    overlapIndex:
-      clips.length >= 2 ? args.startIndex + clips.length - 1 : null,
+    overlapIndex: clips.length >= 2 ? args.startIndex + clips.length - 1 : null,
   };
 }
 
@@ -217,8 +220,7 @@ export function buildCutaway(
     plan,
     handoverFrame,
     handoverOffset,
-    overlapIndex:
-      clips.length >= 2 ? args.startIndex + clips.length - 1 : null,
+    overlapIndex: clips.length >= 2 ? args.startIndex + clips.length - 1 : null,
     // With a successor, the first frame of the transition out; alone, the clip simply holds.
     resumeFrame: clips.length >= 2 ? starts[1] : 0,
   };

@@ -180,11 +180,20 @@ describe("frameStateAt against the true live set (every mood, either surface)", 
     for (const themeId of THEME_IDS) {
       for (const surface of ["hand", "wall"] as const) {
         const theme = pacedTheme(THEMES[themeId], surface);
-        const plan = planReel({ clips: clips(7), theme, seed: 515, styleId: themeId });
+        const plan = planReel({
+          clips: clips(7),
+          theme,
+          seed: 515,
+          styleId: themeId,
+        });
         const starts = clipStartFrames(plan);
         for (let f = 0; f < plan.totalFrames; f++) {
           const live = plan.clips
-            .map((c, i) => ({ i, start: starts[i], end: starts[i] + c.durationInFrames }))
+            .map((c, i) => ({
+              i,
+              start: starts[i],
+              end: starts[i] + c.durationInFrames,
+            }))
             .filter((c) => f >= c.start && f < c.end)
             .map((c) => c.i);
           const state = frameStateAt(plan, f);

@@ -92,10 +92,7 @@ export function toReelClip(
       ...(window
         ? {
             trimStartSec: 0,
-            trimDurationSec: Math.min(
-              window,
-              item.durationSeconds ?? window,
-            ),
+            trimDurationSec: Math.min(window, item.durationSeconds ?? window),
           }
         : {}),
     };

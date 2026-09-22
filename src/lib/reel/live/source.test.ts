@@ -25,7 +25,9 @@ function item(i: number, over: Partial<LiveMediaItem> = {}): LiveMediaItem {
     url: `/u/${i}.jpg`,
     previewUrl: `/p/${i}.webp`,
     status: "approved",
-    createdAt: new Date(Date.parse("2026-08-15T18:00:00Z") - i * 3_600_000).toISOString(),
+    createdAt: new Date(
+      Date.parse("2026-08-15T18:00:00Z") - i * 3_600_000,
+    ).toISOString(),
     uploaderKey: ["host", "g1", "g2", "g3"][i % 4],
     ...over,
   };
@@ -95,11 +97,15 @@ describe("setItems", () => {
 
   it("treats an item that stopped being eligible as a departure", () => {
     const { source: s } = source(album(6));
-    const held = album(6).map((it) => (it.id === "m2" ? { ...it, status: "hidden" as const } : it));
+    const held = album(6).map((it) =>
+      it.id === "m2" ? { ...it, status: "hidden" as const } : it,
+    );
     const { dropped } = s.setItems(held);
     expect(dropped).toEqual(["m2"]);
     expect(s.isLive("m2")).toBe(false);
-    const cut = album(6).map((it) => (it.id === "m3" ? { ...it, reelEligible: false } : it));
+    const cut = album(6).map((it) =>
+      it.id === "m3" ? { ...it, reelEligible: false } : it,
+    );
     expect(s.setItems(cut).dropped).toContain("m3");
   });
 });
@@ -174,7 +180,6 @@ describe("a splice", () => {
     expect(current.ids).toEqual(before);
     expect(s.revision()).toBeGreaterThan(0);
   });
-
 
   it("rewindows ON the clip playing now, with the arrivals right behind it", () => {
     const { source: s } = source(album(20));

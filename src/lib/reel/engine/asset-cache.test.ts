@@ -166,7 +166,8 @@ describe("createBitmapCache", () => {
  * between the prefetch and that throw.
  */
 describe("retain / release", () => {
-  const counting = (decoded: Map<string, ReturnType<typeof fakeImage>>) =>
+  const counting =
+    (decoded: Map<string, ReturnType<typeof fakeImage>>) =>
     async (url: string) => {
       const image = fakeImage(url);
       decoded.set(url, image);

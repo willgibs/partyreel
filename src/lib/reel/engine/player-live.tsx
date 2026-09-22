@@ -52,10 +52,7 @@ import {
 } from "./registry";
 import { clipStartFrames, frameStateAt } from "./timeline";
 import { createVideoByteLedger } from "./video/budget";
-import {
-  createVideoPlayback,
-  type VideoPlayback,
-} from "./video/prepare-frame";
+import { createVideoPlayback, type VideoPlayback } from "./video/prepare-frame";
 import { createReaderDeck, type ReaderDeck } from "./video/window-reader";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -160,7 +157,14 @@ export function LiveReelPlayer({
   const [started, setStarted] = useState(false);
 
   const look: ReelLook = useMemo(
-    () => ({ styleId, surface, holdScale, orientation, watermark, includeVideos }),
+    () => ({
+      styleId,
+      surface,
+      holdScale,
+      orientation,
+      watermark,
+      includeVideos,
+    }),
     [styleId, surface, holdScale, orientation, watermark, includeVideos],
   );
 
@@ -310,7 +314,10 @@ export function LiveReelPlayer({
       const style = resolveEngineStyle(win.props.styleId);
       const assets = await source.prepare(win, {
         needs: style.assetNeeds(win.props),
-        frame: { width: frameRef.current.width, height: frameRef.current.height },
+        frame: {
+          width: frameRef.current.width,
+          height: frameRef.current.height,
+        },
       });
       return { window: win, assets, playback };
     },
@@ -445,7 +452,10 @@ export function LiveReelPlayer({
       if (!envRef.current || envKeyRef.current !== envKey) {
         const report = (m: string) => cbRef.current.onReport?.(m);
         envRef.current = isScaled
-          ? makeScaledDrawEnv(reelDimensions(active.window.props.orientation), report)
+          ? makeScaledDrawEnv(
+              reelDimensions(active.window.props.orientation),
+              report,
+            )
           : makeDrawEnv(canvas, report);
         envKeyRef.current = envKey;
       }
@@ -453,10 +463,22 @@ export function LiveReelPlayer({
       // browser lacks. One hold is lost; the loop is not.
       try {
         if (!isScaled) {
-          drawReelFrame(ctx, local, active.window.props, active.assets, envRef.current);
+          drawReelFrame(
+            ctx,
+            local,
+            active.window.props,
+            active.assets,
+            envRef.current,
+          );
         } else {
           ctx.setTransform(sx, 0, 0, sy, 0, 0);
-          drawReelFrame(ctx, local, active.window.props, active.assets, envRef.current);
+          drawReelFrame(
+            ctx,
+            local,
+            active.window.props,
+            active.assets,
+            envRef.current,
+          );
           ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
       } catch (err) {
@@ -523,7 +545,8 @@ export function LiveReelPlayer({
         if (state.disposed || state.active !== from) return;
         // The clock stays where it is; the OFFSET puts the next drawn frame on the first frame of
         // the shortest transition out.
-        state.frameOffset = Math.floor(state.elapsedSec * FPS) - cut.resumeFrame;
+        state.frameOffset =
+          Math.floor(state.elapsedSec * FPS) - cut.resumeFrame;
         from.playback?.dispose();
         state.active = { window: cut, assets, playback };
         bumpFailures(assets.failures);
@@ -648,7 +671,9 @@ export function LiveReelPlayer({
       const clipId = clipIdAt(active, local);
       if (clipId !== state.lastClipId) {
         state.lastClipId = clipId;
-        cbRef.current.onClipChange?.(clipId ? (source.itemFor(clipId) ?? null) : null);
+        cbRef.current.onClipChange?.(
+          clipId ? (source.itemFor(clipId) ?? null) : null,
+        );
       }
       cbRef.current.onFrame?.({
         globalFrame,
@@ -730,7 +755,8 @@ export function LiveReelPlayer({
     <div
       ref={wrapRef}
       className={
-        className ?? `mx-auto w-full ${landscape ? "max-w-[640px]" : "max-w-[360px]"}`
+        className ??
+        `mx-auto w-full ${landscape ? "max-w-[640px]" : "max-w-[360px]"}`
       }
       data-live-reel={started ? "playing" : "loading"}
     >
@@ -778,6 +804,8 @@ function rephase(
       : 0;
   const starts = clipStartFrames(to.window.plan);
   const toClip = to.window.plan.clips[index];
-  const local = Math.round(starts[index] + phase * (toClip?.durationInFrames ?? 0));
+  const local = Math.round(
+    starts[index] + phase * (toClip?.durationInFrames ?? 0),
+  );
   return globalFrame - Math.max(0, local);
 }

@@ -19,7 +19,10 @@ import {
 } from "./pacing";
 
 const clips = (n: number): ReelClip[] =>
-  Array.from({ length: n }, (_, i) => ({ url: `u${i}`, type: "photo" as const }));
+  Array.from({ length: n }, (_, i) => ({
+    url: `u${i}`,
+    type: "photo" as const,
+  }));
 
 describe("pacing", () => {
   it("runs the hand faster than the wall", () => {
@@ -61,7 +64,11 @@ describe("pacing", () => {
     // anything is still a hard cut, and layout.ts gives it its two frames either way.
     const factor = pacingFactor("hand");
     for (const themeId of THEME_IDS) {
-      const slow = planReel({ clips: clips(6), theme: THEMES[themeId], seed: 5 });
+      const slow = planReel({
+        clips: clips(6),
+        theme: THEMES[themeId],
+        seed: 5,
+      });
       const fast = planReel({
         clips: clips(6),
         theme: pacedTheme(THEMES[themeId], "hand"),
@@ -71,7 +78,9 @@ describe("pacing", () => {
       // Every hold scaled, within a frame of rounding.
       fast.clips.forEach((clip, i) => {
         expect(
-          Math.abs(clip.durationInFrames - slow.clips[i].durationInFrames * factor),
+          Math.abs(
+            clip.durationInFrames - slow.clips[i].durationInFrames * factor,
+          ),
           `${themeId} hold ${i}`,
         ).toBeLessThanOrEqual(1);
       });
@@ -81,7 +90,9 @@ describe("pacing", () => {
           return;
         }
         expect(
-          Math.abs(gap.durationInFrames - slow.gaps[i].durationInFrames * factor),
+          Math.abs(
+            gap.durationInFrames - slow.gaps[i].durationInFrames * factor,
+          ),
           `${themeId} gap ${i}`,
         ).toBeLessThanOrEqual(1);
       });

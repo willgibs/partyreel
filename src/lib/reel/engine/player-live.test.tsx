@@ -108,7 +108,9 @@ function item(i: number): LiveMediaItem {
     url: `/u/${i}.jpg`,
     previewUrl: `/p/${i}.webp`,
     status: "approved",
-    createdAt: new Date(Date.parse("2026-08-15T18:00:00Z") - i * 3_600_000).toISOString(),
+    createdAt: new Date(
+      Date.parse("2026-08-15T18:00:00Z") - i * 3_600_000,
+    ).toISOString(),
     uploaderKey: ["host", "g1", "g2", "g3"][i % 4],
   };
 }
@@ -123,7 +125,13 @@ function makeSource(items = album(24)) {
     load: (async (clips: readonly { url: string }[]) => ({
       clips: clips.map((clip) =>
         clip.url
-          ? { image: fakeImage(clip.url), width: 4, height: 4, wash: null, halo: null }
+          ? {
+              image: fakeImage(clip.url),
+              width: 4,
+              height: 4,
+              wash: null,
+              halo: null,
+            }
           : null,
       ),
       failures: 0,
@@ -182,7 +190,9 @@ async function mountPlayer(
 }
 
 const monotonic = (seen: LiveFrameState[]) =>
-  seen.every((state, i) => i === 0 || state.globalFrame >= seen[i - 1].globalFrame);
+  seen.every(
+    (state, i) => i === 0 || state.globalFrame >= seen[i - 1].globalFrame,
+  );
 
 describe("LiveReelPlayer", () => {
   it("plays: one draw per frame, from the first window's plan", async () => {
@@ -251,7 +261,6 @@ describe("LiveReelPlayer", () => {
     expect(seen.at(-1)!.clipId).not.toBe(onScreen);
   });
 
-
   it("★ an arrival is the NEXT photograph, not the next window's", async () => {
     const source = makeSource();
     const { seen } = await mountPlayer({ source });
@@ -280,7 +289,6 @@ describe("LiveReelPlayer", () => {
     expect(monotonic(seen)).toBe(true);
   });
 
-
   it("★ an arrival lands in the window ON SCREEN, even arriving mid-transition", async () => {
     // The case that shipped an eleven-second splice in the first soak: a rewindow has to wait for
     // the transition to finish, and while it waits the PREFETCH must not eat the queue — planning
@@ -295,7 +303,13 @@ describe("LiveReelPlayer", () => {
       load: (async (clips: readonly { url: string }[]) => ({
         clips: clips.map((clip) =>
           clip.url
-            ? { image: fakeImage(clip.url), width: 4, height: 4, wash: null, halo: null }
+            ? {
+                image: fakeImage(clip.url),
+                width: 4,
+                height: 4,
+                wash: null,
+                halo: null,
+              }
             : null,
         ),
         failures: 0,
@@ -323,7 +337,10 @@ describe("LiveReelPlayer", () => {
         await tickFrames(1, 1000 / 24);
         if (seen.at(-1)!.clipId === arrival.id) landed = seen.at(-1)!;
       }
-      expect(landed, `round ${round}: the arrival never reached the screen`).toBeDefined();
+      expect(
+        landed,
+        `round ${round}: the arrival never reached the screen`,
+      ).toBeDefined();
       expect(
         landed!.windowIndex,
         `round ${round}: the arrival waited for the next window`,
@@ -358,7 +375,9 @@ describe("LiveReelPlayer", () => {
     expect(failures.length).toBeGreaterThan(0);
     expect(failures).toEqual([...failures].sort((a, b) => a - b));
     // The draw kept being called right through the throwing stretch and past it.
-    expect(log.drawReelFrame.mock.calls.length).toBeGreaterThan(drawsBefore + 5);
+    expect(log.drawReelFrame.mock.calls.length).toBeGreaterThan(
+      drawsBefore + 5,
+    );
     expect(monotonic(seen)).toBe(true);
   });
 

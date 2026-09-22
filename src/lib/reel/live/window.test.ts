@@ -60,7 +60,12 @@ describe("buildWindow", () => {
       ids: ["m0", "vid"],
       itemFor: (id) =>
         id === "vid"
-          ? item(9, { id: "vid", type: "video", url: "/v.mp4", previewUrl: "/poster.webp" })
+          ? item(9, {
+              id: "vid",
+              type: "video",
+              url: "/v.mp4",
+              previewUrl: "/poster.webp",
+            })
           : BY_ID.get(id),
       seed: 1,
       look: LOOK,
@@ -89,7 +94,9 @@ describe("buildWindow", () => {
     expect(resolveLiveStyleId("filmstrip")).toBe("classic");
     expect(resolveLiveStyleId("dreamy")).toBe("dreamy");
     expect(resolveLiveStyleId("nonsense")).toBe("classic");
-    expect(windowAt(0, 6, { ...LOOK, styleId: "carddeck" }).props.styleId).toBe("classic");
+    expect(windowAt(0, 6, { ...LOOK, styleId: "carddeck" }).props.styleId).toBe(
+      "classic",
+    );
   });
 
   it("gives a video its motion window only when Include videos is on", () => {
@@ -100,7 +107,12 @@ describe("buildWindow", () => {
         startIndex: 0,
         ids: ["vid"],
         itemFor: () =>
-          item(1, { id: "vid", type: "video", previewUrl: "/poster.webp", durationSeconds: 30 }),
+          item(1, {
+            id: "vid",
+            type: "video",
+            previewUrl: "/poster.webp",
+            durationSeconds: 30,
+          }),
         seed: 1,
         look: { ...LOOK, includeVideos },
       })!;
@@ -115,7 +127,12 @@ describe("buildWindow", () => {
       startIndex: 0,
       ids: ["short"],
       itemFor: () =>
-        item(1, { id: "short", type: "video", previewUrl: "/p.webp", durationSeconds: 1.5 }),
+        item(1, {
+          id: "short",
+          type: "video",
+          previewUrl: "/p.webp",
+          durationSeconds: 1.5,
+        }),
       seed: 1,
       look: { ...LOOK, includeVideos: true },
     })!;
@@ -160,7 +177,9 @@ describe("the handover", () => {
     const last = win.plan.clips.length - 1;
     expect(win.handoverOffset).toBe(win.plan.gaps[last - 1].durationInFrames);
     // One frame earlier and the entering transition would still be running.
-    expect(frameStateAt(win.plan, win.handoverFrame - 1).transition).not.toBeNull();
+    expect(
+      frameStateAt(win.plan, win.handoverFrame - 1).transition,
+    ).not.toBeNull();
   });
 
   it("a one-clip window holds to the end and shares nothing", () => {
@@ -203,13 +222,18 @@ describe("the cutaway (a drop is immediate)", () => {
     expect(state.top.clipIndex).toBe(1);
     expect(state.transition?.progress).toBe(0);
     // And it is gone within the transition's own frames.
-    const after = frameStateAt(cut.plan, cut.resumeFrame + cut.plan.gaps[0].durationInFrames);
+    const after = frameStateAt(
+      cut.plan,
+      cut.resumeFrame + cut.plan.gaps[0].durationInFrames,
+    );
     expect(after.under).toBeNull();
     expect(after.top.clipIndex).toBe(1);
   });
 
   it("picks the shortest transition of a multi-kind palette", () => {
-    const theme = cutawayTheme(themeFor({ styleId: "punchy", surface: "wall" }));
+    const theme = cutawayTheme(
+      themeFor({ styleId: "punchy", surface: "wall" }),
+    );
     expect(theme.transitions).toHaveLength(1);
     expect(theme.transitions[0].kind).toBe("cut");
     expect(theme.holdJitter).toBe(0);

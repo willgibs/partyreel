@@ -87,7 +87,7 @@ function fixture(i: number, at = EVENT_START - i * (HOUR / 6)): LiveMediaItem {
     isHost: who.key === "host",
   };
   if (i % 8 === 3) {
-    const video = VIDEOS[(i / 8) % VIDEOS.length | 0];
+    const video = VIDEOS[((i / 8) % VIDEOS.length) | 0];
     return {
       ...common,
       type: "video",
@@ -383,7 +383,8 @@ export function LiveReelHarness() {
         <Button onClick={dropOnScreen}>Hide the one on screen</Button>
         <Button onClick={hideTen}>Hide ten at once</Button>
         <span className="text-xs text-muted-foreground">
-          Nothing here restarts the reel. Every act lands in the loop that is already playing.
+          Nothing here restarts the reel. Every act lands in the loop that is
+          already playing.
         </span>
       </div>
 

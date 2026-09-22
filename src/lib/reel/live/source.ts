@@ -261,7 +261,9 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
 
   function takePending(): string[] {
     if (pending.length === 0) return [];
-    const fresh = pending.filter((id) => items.has(id) && !loopIds.includes(id));
+    const fresh = pending.filter(
+      (id) => items.has(id) && !loopIds.includes(id),
+    );
     pending = [];
     return fresh;
   }
@@ -510,7 +512,9 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       // cut TO.
       const ids = tail.filter((id) => id === clipId || items.has(id));
       if (ids.length < 2) {
-        const after = loopIds.filter((id) => !ids.includes(id)).slice(0, size - 1);
+        const after = loopIds
+          .filter((id) => !ids.includes(id))
+          .slice(0, size - 1);
         ids.push(...after);
       }
       if (ids.length === 0) return null;

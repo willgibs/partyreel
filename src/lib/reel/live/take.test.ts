@@ -60,17 +60,28 @@ describe("planTake", () => {
       item(21, { id: "hidden", status: "hidden" }),
       item(22, { id: "gone", status: "removed" }),
       // A video whose poster never generated: the engine would draw a theme-colour hold.
-      { id: "posterless", type: "video" as const, url: "/v.mp4", previewUrl: null },
+      {
+        id: "posterless",
+        type: "video" as const,
+        url: "/v.mp4",
+        previewUrl: null,
+      },
     ];
     const take = planTake(items, { eventId: "e1", loopIndex: 0 });
-    expect(take.sort()).toEqual(album(6).map((i) => i.id).sort());
+    expect(take.sort()).toEqual(
+      album(6)
+        .map((i) => i.id)
+        .sort(),
+    );
   });
 
   it("covers every uploader inside the FIRST pass (the party, not one camera roll)", () => {
     // Twelve of the twenty are one guest's; the coverage guarantee must still surface the others.
     const items = [
       ...Array.from({ length: 12 }, (_, i) => item(i, { uploaderKey: "g1" })),
-      ...Array.from({ length: 8 }, (_, i) => item(20 + i, { uploaderKey: `g${i % 3 + 2}` })),
+      ...Array.from({ length: 8 }, (_, i) =>
+        item(20 + i, { uploaderKey: `g${(i % 3) + 2}` }),
+      ),
     ];
     const take = planTake(items, { eventId: "e1", loopIndex: 0 });
     const byId = new Map(items.map((i) => [i.id, i]));
@@ -109,9 +120,9 @@ describe("planTake", () => {
 
   it("leaves the order alone when the device owns nothing yet", () => {
     const items = album(12);
-    expect(planTake(items, { eventId: "e1", loopIndex: 1, ownIds: new Set() })).toEqual(
-      planTake(items, { eventId: "e1", loopIndex: 1 }),
-    );
+    expect(
+      planTake(items, { eventId: "e1", loopIndex: 1, ownIds: new Set() }),
+    ).toEqual(planTake(items, { eventId: "e1", loopIndex: 1 }));
   });
 
   it("handles the small album the reel is born at, and the empty one", () => {
@@ -120,18 +131,20 @@ describe("planTake", () => {
     expect(planTake(album(1), { eventId: "e1", loopIndex: 0 })).toHaveLength(1);
   });
 
-
   it("keeps two photographs from one guest apart while another guest has one left", () => {
     const items = [
       ...Array.from({ length: 10 }, (_, i) => item(i, { uploaderKey: "g1" })),
-      ...Array.from({ length: 10 }, (_, i) => item(20 + i, { uploaderKey: "g2" })),
+      ...Array.from({ length: 10 }, (_, i) =>
+        item(20 + i, { uploaderKey: "g2" }),
+      ),
     ];
     const byId = new Map(items.map((i) => [i.id, i]));
     for (let loop = 0; loop < 6; loop++) {
       const take = planTake(items, { eventId: "e1", loopIndex: loop });
       const runs = take.filter(
         (id, i) =>
-          i > 0 && byId.get(id)!.uploaderKey === byId.get(take[i - 1])!.uploaderKey,
+          i > 0 &&
+          byId.get(id)!.uploaderKey === byId.get(take[i - 1])!.uploaderKey,
       );
       // Only where a pass genuinely runs out of the other guest: at most one clump per pass.
       expect(runs.length, `loop ${loop}`).toBeLessThanOrEqual(2);
@@ -167,7 +180,9 @@ describe("the seeds", () => {
       expect(seed).toBeGreaterThanOrEqual(0);
       expect(seed).toBeLessThan(1_000_000);
       // The product a plan actually computes must stay inside the exact-integer range.
-      expect(seed * 2654435761 + 500 * 40503).toBeLessThan(Number.MAX_SAFE_INTEGER);
+      expect(seed * 2654435761 + 500 * 40503).toBeLessThan(
+        Number.MAX_SAFE_INTEGER,
+      );
     }
   });
 
