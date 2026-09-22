@@ -147,6 +147,14 @@ review before it starts.
   with the demo UI to configure and compare it, to pick the best direction from and refine to
   production polish; the aim is intuitive content flow and engaging visuals together. The research
   stays collapsed under the evidence or leaves the board.
+- **A `vh` inside a Frame is the frame's height.** The kit's `Frame` is a same-origin iframe of a set
+  height, so `min-h-screen` inside it fills exactly the frame, and several chromes stacked in one
+  Frame, each with a `vh` minimum, compound into a frame several screens tall. A chrome drawn more
+  than once per frame takes a flag (`standalone`) that drops its minimum when it is not alone.
+- **A board's spec is a literal `defineExploration({ ... })`.** `scripts/lab-review.mjs` finds the
+  spec by scanning the source for that call and its object literal, reading `id`, `round.n`, the
+  asks' ids and the options' ids as written, so a spec assembled by a helper, a spread or a variable
+  is refused when a review is transcribed: keep it literal, or teach the scanner the wrapper.
 
 ## The screenshot gate
 
