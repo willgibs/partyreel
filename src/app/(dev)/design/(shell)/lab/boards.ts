@@ -14,6 +14,7 @@ import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board"
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
+import { ReelCutBoard } from "@/app/(dev)/design/sandbox/reel-cut/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
@@ -56,6 +57,9 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   emails: { Component: EmailsBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },
+  // Beside its named neighbour, not at the head: three reel boards register
+  // in the same wave and the Orchestrator reorders at the merges.
+  "reel-cut": { Component: ReelCutBoard },
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
