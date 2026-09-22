@@ -82,14 +82,13 @@ const WHO: readonly (Pick<
 ];
 
 /**
- * ★ NOBODY IS ANONYMOUS ANY MORE (the identity reshape, Will 2026-09-21:
- * "we remove the concept of 'anonymous' entirely ... a guest can either upload
- * with an unverified display name, or must actually verify their email"). The
- * sixth guest used to be `isAnonymous` and is a typed name with no proof
- * behind it instead, which is the shape `who` is now asked on: every upload
- * carries a name, and the ones that have not confirmed an address carry a mark
- * with it. Priya took the photograph the board opens on, so the mark is on the
- * stage rather than three tiles down it.
+ * ★ EVERY UPLOAD CARRIES A NAME, AT ONE OF THREE LEVELS OF TRUST (the identity
+ * model, docs/systems/guest-flow.md "Joining + identity"). A typed name, with or
+ * without an address nobody has proved, reads publicly as the same thing: the
+ * plain disc, the Unverified mark, and no page behind it. A confirmed account is
+ * the only identity that uploads as itself: its seeded face, and a page once it
+ * has a handle. Priya took the photograph the board opens on and confirmed
+ * nothing, so the mark is on the stage rather than three tiles down it.
  */
 const UNPROVEN = new Set(["Priya", "Nina"]);
 
@@ -98,17 +97,37 @@ export const isUnproven = (item: GridMedia) =>
   !item.isHost && UNPROVEN.has(item.uploaderName ?? "");
 
 /**
- * The seed behind the face every account now wears (`seed-avatar` r1 and r2).
- * A fixture NAME rather than an id: `seedFor` is server-only by design and a
- * raw account id must never reach a browser that does not already hold it
+ * The seed behind the face a CONFIRMED account wears (`seed-avatar` r1 and r2),
+ * and nothing for a typed name: a colour is an identity on every other surface,
+ * so a name nobody proved wears the plain disc, exactly as the shipped guest list
+ * draws it (src/components/social/guest-list.tsx, `Face`).
+ *
+ * A fixture NAME rather than an id: `seedFor` is server-only by design and a raw
+ * account id must never reach a browser that does not already hold it
  * (src/lib/avatar/seed.ts), so a board that only needs a stable hue per person
  * hashes something it invented.
  */
 export const seedOf = (item: GridMedia) =>
-  `mv-${(item.uploaderName ?? "guest").toLowerCase()}`;
+  isUnproven(item)
+    ? undefined
+    : `mv-${(item.uploaderName ?? "guest").toLowerCase()}`;
+
+/**
+ * Whether a person's page stands behind this credit. A typed name has none (a
+ * profile is a 404 until a confirmed account claims a handle); every confirmed
+ * uploader in this album has claimed one, so their credit is a door.
+ */
+export const hasPage = (item: GridMedia) => !isUnproven(item);
 
 /** The index the board opens on: a portrait, sent late, by a guest with a name. */
 export const OPENED = 16;
+
+/**
+ * The confirmed guest `who` is asked about beside Priya: Leah, who confirmed an
+ * address and claimed a handle, so her credit wears her seeded face and is a
+ * door to her page.
+ */
+export const CONFIRMED_NAME = "Leah";
 
 /**
  * The same guest's LANDSCAPE, for the knob that asks a decision twice. Priya
@@ -145,6 +164,10 @@ export const ALBUM: GridMedia[] = [...ROLL].map((letter, i) => {
     durationSeconds: isClip ? 4 : undefined,
     uploaderName: who.uploaderName,
     isHost: who.isHost,
+    // The shipped field every credit reads the mark from (`isVerified: false`
+    // draws it), set the way `resolveUploaderIdentity` would: the host and every
+    // confirmed guest true, a typed name false.
+    isVerified: who.isHost || !UNPROVEN.has(who.uploaderName ?? ""),
     isAnonymous: who.isAnonymous,
   } satisfies GridMedia;
 });
@@ -154,14 +177,24 @@ export const SENT_AT: string[] = ALBUM.map(
   (_, i) => WHO[i % WHO.length].at ?? "9:00 pm",
 );
 
-/** The same album as its HOST sees it: the like counts and the uploader's email. */
+/**
+ * The same album as its HOST sees it: the like counts, and an address only where
+ * one was PROVED.
+ *
+ * ★ THE HOST SEES A BADGE, NEVER AN UNPROVED ADDRESS (the identity model; the
+ * one precedence rule, src/lib/media/uploader-identity.ts). A confirmed guest's
+ * address is the one `resolveUploaderIdentity` returns, and the shipped host
+ * viewer prints it under the name; a typed name returns none, whatever address
+ * was typed at the door, and the host's own upload carries none either. An
+ * address under Priya's name would print the exact impersonation the identity
+ * model exists to prevent: a claim the host has no way to check.
+ */
 export const HOST_ALBUM: GridMedia[] = ALBUM.map((m, i) => ({
   ...m,
   likeCount: [0, 3, 11, 1, 0, 6, 2, 0, 4][i % 9],
-  uploaderEmail: m.isAnonymous
-    ? null
-    : m.isHost
-      ? "maya@example.com"
+  uploaderEmail:
+    m.isHost || isUnproven(m)
+      ? null
       : `${(m.uploaderName ?? "guest").toLowerCase().replace(/\s+/g, ".")}@example.com`,
   status: i === 12 ? "pending" : m.status,
 }));
@@ -172,6 +205,25 @@ export const LANDSCAPE = ALBUM[LANDSCAPE_AT];
 export const BEFORE = ALBUM[OPENED - 1];
 export const AFTER = ALBUM[OPENED + 1];
 export const CLIP = ALBUM[CLIP_AT];
+
+/**
+ * THE SAME PHOTOGRAPH, CREDITED TO A CONFIRMED ACCOUNT, for the knob `who` is
+ * asked on. The set holds one portrait still, so Leah's own photograph would
+ * change the picture under the credit being judged: here the knob changes whose
+ * credit it is and nothing else. The host's copy carries the address the one
+ * precedence rule hands over for a confirmed account.
+ */
+export const CONFIRMED: GridMedia = {
+  ...CURRENT,
+  uploaderName: CONFIRMED_NAME,
+  isVerified: true,
+};
+export const HOST_CONFIRMED: GridMedia = {
+  ...HOST_ALBUM[OPENED],
+  uploaderName: CONFIRMED_NAME,
+  isVerified: true,
+  uploaderEmail: `${CONFIRMED_NAME.toLowerCase()}@example.com`,
+};
 
 /** Where an item sits in the album, in the words the counter uses. */
 export const indexOf = (item: GridMedia) =>
@@ -185,3 +237,37 @@ export const STRIP = ALBUM.slice(OPENED - 4, OPENED + 5);
 
 /** "17 of 26", the counter the shipped viewer never turns off. */
 export const POSITION = positionOf(CURRENT);
+
+/* ── the second origin: the live reel ─────────────────────────────────────── */
+
+/**
+ * ★ A PHOTOGRAPH OPENS FROM TWO PLACES NOW (the reel round, 2026-09-22). The
+ * live reel plays everything the album shows, and `reel-view.tap` asks whether
+ * a tap on its picture opens that item in this viewer. So the three questions
+ * about arriving, leaving and a video are drawn from both origins: a tile in the
+ * album, and the reel paused on the photograph a guest tapped.
+ *
+ * The reel's look is a stand-in, named as one, exactly as `reel-view`'s own
+ * fixtures name it: Cinematic (`classic`), today's default mood, because the
+ * loop-tuned default the ruling asks for has not been designed yet. The take is
+ * the tapped item and the two photographs after it, the fewest a live reel plays
+ * (it is alive from the third item).
+ */
+export const REEL_STYLE = "classic";
+export const REEL_SEED = 482_913;
+
+/**
+ * How far into the clip the reel was when a guest tapped it: the live reel
+ * plays a WINDOW of a video (muted, from Include videos), so the viewer may be
+ * opened mid-clip. 1.5 s of the fixture's four.
+ */
+export const REEL_MOMENT_SEC = 1.5;
+
+/** The take a reel frame of `item` is drawn from: the item first, then two photographs after it. */
+export function reelTakeOf(item: GridMedia): GridMedia[] {
+  const at = indexOf(item);
+  const after = [...ALBUM.slice(at + 1), ...ALBUM.slice(0, at)].filter(
+    (m) => m.type === "photo",
+  );
+  return [item, ...after.slice(0, 2)];
+}

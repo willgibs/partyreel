@@ -90,7 +90,8 @@
 
 /* The line a held frame draws to say it is playing, for the muted-autoplay
    option under reduced motion (a still that claims to be moving has to say
-   where it is). */
+   where it is). How far is the option's own fact: the reel's moment when the
+   reel opened it, the clip's first breath when a tile did (`--mv-played`). */
 .mv-played {
   position: absolute;
   inset-inline: 0;
@@ -104,6 +105,6 @@
   position: absolute;
   inset-block: 0;
   left: 0;
-  width: 38%;
+  width: var(--mv-played, 38%);
   background: rgb(255 255 255 / 0.9);
 }

@@ -4,6 +4,7 @@ import "./media-viewer.css";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import type { GridMedia } from "@/components/app/media-grid";
 import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
@@ -11,9 +12,11 @@ import type { PreviewsFor } from "@/components/lab/exploration";
 import {
   ALBUM,
   CLIP_AT,
+  CONFIRMED,
   CURRENT,
   EVENT,
   HOST_ALBUM,
+  HOST_CONFIRMED,
   indexOf,
   LANDSCAPE,
   LANDSCAPE_AT,
@@ -27,8 +30,10 @@ import {
   screenOf,
   ShareSheet,
 } from "./page-parts";
+import { ReelPage } from "./reel";
 import { MEDIA_VIEWER } from "./spec";
 import {
+  creditOf,
   type HoldsShape,
   holdsOf,
   type LinkShape,
@@ -36,6 +41,8 @@ import {
   nextOf,
   type OpeningShape,
   openingOf,
+  type Origin,
+  originOf,
   Viewer,
   VideoMedia,
   type VideoShape,
@@ -47,7 +54,9 @@ import {
 
 /**
  * THE PREVIEWS, AND NOTHING ELSE: every option is one open wedding album at a
- * real screen, with a photograph open on top of it in one of its shapes.
+ * real screen, with a photograph open on top of it in one of its shapes. Where
+ * the question depends on where the photograph came from, the `origin` knob
+ * swaps the album for the live reel paused on that photograph (`reel.tsx`).
  *
  * ★ THE GROUND IS TODAY'S PRODUCT, EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped viewer with ONE thing changed, so a decision never
@@ -227,7 +236,11 @@ function alphaOf(colour: string): number {
  * this reader tested the viewer's top edge alone, which reported the sheet's
  * COVERED share as the lit one, with the sign backwards.
  */
-const groundRead = (ground: HTMLElement | null, win: Window): string => {
+const groundRead = (
+  ground: HTMLElement | null,
+  win: Window,
+  page: string,
+): string => {
   if (!ground) return "no ground behind it";
   const style = win.getComputedStyle(ground);
   const filter =
@@ -239,11 +252,18 @@ const groundRead = (ground: HTMLElement | null, win: Window): string => {
     const blur = /blur\(([^)]+)\)/.exec(filter)?.[1] ?? "no blur";
     const bright = /brightness\(([^)]+)\)/.exec(filter)?.[1];
     const dim = bright ? `${Math.round(parseFloat(bright) * 100)} percent` : "full";
-    return `the album behind it blurred at ${blur} and ${dim} brightness, the ruled ground`;
+    return `${page} behind it blurred at ${blur} and ${dim} brightness, the ruled ground`;
   }
   const wash = Math.round(alphaOf(style.backgroundColor) * 100);
-  return `the album behind it at ${100 - wash} percent, unblurred`;
+  return `${page} behind it at ${100 - wash} percent, unblurred`;
 };
+
+/**
+ * Which page the photograph opened out of, read off the page itself: the reel
+ * page says so (`data-mv-origin`), and anything else is the album.
+ */
+const pageOf = (root: HTMLElement): string =>
+  root.querySelector("[data-mv-origin='reel']") ? "the reel" : "the album";
 
 const openingRead: Reader = (root, win) => {
   const el = mediaEl(root);
@@ -254,10 +274,11 @@ const openingRead: Reader = (root, win) => {
   const ground = root.querySelector<HTMLElement>("[data-mv-ground]");
   const panel = root.querySelector<HTMLElement>("[data-mv-sheet-viewer]");
   const open = panel ? round(panel.getBoundingClientRect().top) : 0;
+  const page = pageOf(root);
   const left =
     open > 4
-      ? `${pct(open, win.innerHeight)} percent of the screen left to the album, at full light`
-      : groundRead(ground, win);
+      ? `${pct(open, win.innerHeight)} percent of the screen left to ${page}, at full light`
+      : groundRead(ground, win, page);
   return `Measured: the photograph covers ${share} percent of the screen at ${round(box.width)} by ${round(box.height)} px, with ${left}.`;
 };
 
@@ -303,7 +324,19 @@ const whoRead: Reader = (root, win) => {
   const name = root.querySelector<HTMLElement>("[data-mv-name]");
   const size = sizeOf(name ?? said, win);
   const words = (said.innerText || "").trim().replace(/\s+/g, " ");
-  return `Measured: "${words}" at ${size} px, ${round(said.getBoundingClientRect().width)} px wide.`;
+  // What the credit carries besides its words, read off the credit itself: the
+  // mark (it has no text to show in `innerText`) and, on the face-led one,
+  // whether a press goes anywhere.
+  const mark = said.querySelector("[data-mv-mark]")
+    ? ", wearing the Unverified mark"
+    : "";
+  const door =
+    said.dataset.mvDoor === "yes"
+      ? ", pressable as a door to the person's page"
+      : said.dataset.mvDoor === "no"
+        ? ", and not a door: no page stands behind a typed name"
+        : "";
+  return `Measured: "${words}" at ${size} px, ${round(said.getBoundingClientRect().width)} px wide${mark}${door}.`;
 };
 
 /** The next one: what says where you are, and what the nav costs the picture. */
@@ -346,11 +379,21 @@ const videoRead: Reader = (root, win) => {
   const ours = root.querySelectorAll<HTMLElement>(
     "[data-mv-chrome], [data-mv-close]",
   );
+  // Where the clip picked up, off the element's own source rather than its
+  // clock, which a playing clip moves on: the reel's moment rides the media
+  // fragment, and a poster's `#t=0.1` is the first frame.
+  const from = Number(
+    /#t=([\d.]+)/.exec(v.currentSrc || v.getAttribute("src") || "")?.[1] ?? 0,
+  );
+  const at =
+    from > 0.5
+      ? `from ${from.toFixed(1)} s in, where the reel was`
+      : "from its first frame";
   // 64 px is `CONTROLS_STRIP_PX` in the shipped viewer: the band taken out of
   // the swipe so a playing video's native scrubber can be reached. It is a
   // constant in the code rather than a measurable box (the controls live in the
   // browser's own shadow tree), so it is named as the code's number.
-  return `Measured: a ${round(box.width)} by ${round(box.height)} px clip on ${pct(box.width * box.height, win.innerWidth * win.innerHeight)} percent of the screen, ${native ? `wearing the browser's own bar, whose 64 px band is ${pct(64, box.height)} percent of it` : "with no bar of its own"}, ${playing ? "playing" : still ? "held at its first frame under the reduced-motion setting" : "waiting"}, under ${ours.length} pieces of our chrome.`;
+  return `Measured: a ${round(box.width)} by ${round(box.height)} px clip on ${pct(box.width * box.height, win.innerWidth * win.innerHeight)} percent of the screen, ${native ? `wearing the browser's own bar, whose 64 px band is ${pct(64, box.height)} percent of it` : "with no bar of its own"}, ${playing ? "playing" : still ? "held under the reduced-motion setting" : "waiting"} ${at}, over ${pageOf(root)} and under ${ours.length} pieces of our chrome.`;
 };
 
 /** The way out: how many, and how big the one a finger has to find is. */
@@ -364,8 +407,10 @@ const wayOutRead: Reader = (root, win) => {
     const mid = zones[1].getBoundingClientRect();
     return `Measured: three ways out. One ${round(close?.getBoundingClientRect().width ?? 0)} px circle, one unmarked ${round(mid.width)} px band that closes, and a key.`;
   }
-  if (top > 8)
-    return `Measured: the photograph is ${top} px down and ${pct(top, win.innerHeight)} percent of the album is back, with the tile it is heading for lit.`;
+  if (top > 8) {
+    const reel = pageOf(root) === "the reel";
+    return `Measured: the photograph is ${top} px down and ${pct(top, win.innerHeight)} percent of ${reel ? "the reel" : "the album"} is back, with the ${reel ? "frame" : "tile"} it is heading for lit.`;
+  }
   return `Measured: one way out, a ${round(close?.getBoundingClientRect().width ?? 0)} px circle in the corner, and nothing else on the photograph responds.`;
 };
 
@@ -422,28 +467,75 @@ const shotFor = (s: BoardState) =>
     ? ({ item: LANDSCAPE, at: LANDSCAPE_AT } as const)
     : ({ item: CURRENT, at: OPENED } as const);
 
+/**
+ * THE PAGE A PHOTOGRAPH OPENED OUT OF: the album with the tapped tile marked,
+ * or the live reel paused on the tapped photograph. Everything over it is the
+ * same viewer; only where it came from changes, which is the whole of the
+ * `origin` knob.
+ */
+function OriginPage({
+  origin,
+  screen,
+  item,
+  lit,
+  pageClass,
+  children,
+}: {
+  origin: Origin;
+  screen: ScreenId;
+  item: GridMedia;
+  lit: number;
+  pageClass?: string;
+  children: ReactNode;
+}) {
+  if (origin === "reel")
+    return (
+      <ReelPage screen={screen} item={item} pageClass={pageClass}>
+        {children}
+      </ReelPage>
+    );
+  return (
+    <AlbumPage screen={screen} lit={lit} pageClass={pageClass}>
+      {children}
+    </AlbumPage>
+  );
+}
+
+/** A caption that says where the photograph came from, when the knob is on the reel. */
+const fromThe = (origin: Origin, tile: string, reel: string) =>
+  origin === "reel" ? reel : tile;
+
 /* ── 1. the opening ──────────────────────────────────────────────────────── */
 
-const OPENING_CAPTION: Record<OpeningShape, string> = {
-  fade: "As wired, on the ruled ground: the album blurred at half brightness behind it, and the photograph centred inside a margin with nothing to say which tile it came from.",
-  grow: "Caught at 62 percent of its flight out of the tile that was tapped, measured from that tile's own box, over the same ruled ground. It plays when the option is pressed.",
-  sheet:
+const OPENING_CAPTION: Record<OpeningShape, [string, string]> = {
+  fade: [
+    "As wired, on the ruled ground: the album blurred at half brightness behind it, and the photograph centred inside a margin with nothing to say which tile it came from.",
+    "The same fade out of the reel: the reel, paused on this photograph, blurred at half brightness behind it, and nothing to say the reel was where it came from.",
+  ],
+  grow: [
+    "Caught at 62 percent of its flight out of the tile that was tapped, measured from that tile's own box, over the same ruled ground. It plays when the option is pressed.",
+    "Caught at 62 percent of its flight out of the reel's frame, measured from where the engine drew the photograph, its crop letting go over the paused reel. It plays when the option is pressed.",
+  ],
+  sheet: [
     "The sheet at rest, with the album above it keeping its own light and its own scroll position; only the gap is unblurred.",
+    "The sheet at rest over the paused reel; the gap above it shows what the reel's view has there, which in a hand is mostly its own dark ground.",
+  ],
 };
 
 function openingScreen(shape: OpeningShape, s: BoardState) {
   const screen = screenFor(s);
+  const origin = originOf(s.origin);
   const { item, at } = shotFor(s);
   return (
     <Screen
-      id={`opening-${shape}`}
+      id={`opening-${shape}-${origin}`}
       screen={screen}
       read={openingRead}
-      caption={OPENING_CAPTION[shape]}
+      caption={fromThe(origin, ...OPENING_CAPTION[shape])}
     >
-      <AlbumPage screen={screen} lit={at}>
+      <OriginPage origin={origin} screen={screen} item={item} lit={at}>
         <Viewer screen={screen} item={item} opening={shape} />
-      </AlbumPage>
+      </OriginPage>
     </Screen>
   );
 }
@@ -484,10 +576,17 @@ function holdsScreen(shape: HoldsShape, s: BoardState) {
 /* ── 3. who took it ──────────────────────────────────────────────────────── */
 
 const WHO_CAPTION: Record<WhoShape, string> = {
-  pill: "As wired. A capsule of its own under the actions, carrying the name, the mark, the badge and the position together at 11 px.",
+  pill: "As wired. A capsule of its own under the actions, carrying the name, the mark, the badge and the position together at 11 px; the host's copy adds a proved address, never a typed one.",
   foot: "The name, the mark and the time on the chrome's own line, with nothing built around them.",
-  face: "The seeded face leading a pressable credit at the top edge, opposite the close circle, with the unproven mark on the disc's corner. Priya has not confirmed an address.",
+  face: "The face or the plain disc leading the credit at the top edge, opposite the close circle, with the mark beside the name: a door where a page stands behind it, and nothing for a typed name.",
 };
+
+/** The photograph `who` is asked on, credited to Priya's typed name or to Leah's account. */
+function creditedFor(s: BoardState): GridMedia {
+  const confirmed = creditOf(s.credit) === "confirmed";
+  if (hostFor(s)) return confirmed ? HOST_CONFIRMED : HOST_ALBUM[OPENED];
+  return confirmed ? CONFIRMED : CURRENT;
+}
 
 function whoScreen(shape: WhoShape, s: BoardState) {
   const screen = screenFor(s);
@@ -501,7 +600,7 @@ function whoScreen(shape: WhoShape, s: BoardState) {
       <AlbumPage screen={screen}>
         <Viewer
           screen={screen}
-          item={hostFor(s) ? HOST_ALBUM[OPENED] : CURRENT}
+          item={creditedFor(s)}
           opening={openingOf(s.opening)}
           holds={holdsOf(s.holds)}
           who={shape}
@@ -510,6 +609,9 @@ function whoScreen(shape: WhoShape, s: BoardState) {
           // cannot be asked of a screen that says nothing: under that answer
           // the chrome is drawn SUMMONED, which is the state it exists in.
           summoned
+          // A credit is read on a photograph that has ARRIVED: caught mid-flight
+          // under `grow`, the picture sat off-centre under the words being judged.
+          settled
         />
       </AlbumPage>
     </Screen>
@@ -577,54 +679,77 @@ function closeupScreen(shape: ZoomShape, s: BoardState) {
 
 /* ── 6. a video ──────────────────────────────────────────────────────────── */
 
-const VIDEO_CAPTION: Record<VideoShape, string> = {
-  controls:
+const VIDEO_CAPTION: Record<VideoShape, [string, string]> = {
+  controls: [
     "Today. The browser draws its own bar on the picture before anything has played, and 64 px of the foot leaves the swipe to make room for it.",
-  auto: "It plays the moment it is the one on screen, silent, with one chip to turn the sound on.",
-  badge:
+    "Opened from the reel, where it was already moving: it starts over at its first frame under the browser's bar.",
+  ],
+  auto: [
+    "It plays the moment it is the one on screen, silent, with one chip to turn the sound on.",
+    "Opened from the reel, it carries on from the reel's moment, still silent, with one chip to turn the sound on.",
+  ],
+  badge: [
     "The shipped play badge, the same marker the tile wears, and no controls until it is playing.",
+    "Opened from the reel, where it was already moving: it stops at its first frame under the badge.",
+  ],
 };
 
 function videoScreen(shape: VideoShape, s: BoardState) {
   const screen = screenFor(s);
+  const origin = originOf(s.origin);
+  const clip = ALBUM[CLIP_AT];
   return (
     <Screen
-      id={`video-${shape}`}
+      id={`video-${shape}-${origin}`}
       screen={screen}
       read={videoRead}
-      caption={VIDEO_CAPTION[shape]}
+      caption={fromThe(origin, ...VIDEO_CAPTION[shape])}
     >
-      <AlbumPage screen={screen} lit={CLIP_AT}>
+      <OriginPage origin={origin} screen={screen} item={clip} lit={CLIP_AT}>
         <Viewer
           screen={screen}
-          item={ALBUM[CLIP_AT]}
-          media={<VideoMedia shape={shape} radius="rounded-md" />}
+          item={clip}
+          media={
+            <VideoMedia shape={shape} radius="rounded-md" origin={origin} />
+          }
         />
-      </AlbumPage>
+      </OriginPage>
     </Screen>
   );
 }
 
 /* ── 7. the way out ──────────────────────────────────────────────────────── */
 
-const WAYOUT_CAPTION: Record<WayOutShape, string> = {
-  three:
+const WAYOUT_CAPTION: Record<WayOutShape, [string, string]> = {
+  three: [
     "Today, with the invisible geometry drawn: the middle band closes and the two beside it do the opposite. Nothing on the real screen says so.",
-  down: "A finger part way through putting it back. The album is returning and the tile it will land in is lit.",
-  x: "One circle, and a tap on the photograph does nothing at all.",
+    "The same three ways out over the paused reel, with the invisible geometry drawn; whichever closes it hands the guest the reel again.",
+  ],
+  down: [
+    "A finger part way through putting it back. The album is returning and the tile it will land in is lit.",
+    "A finger part way through putting it back. The reel is returning at full light, and the frame it will drop into, and pick up again from, is lit.",
+  ],
+  x: [
+    "One circle, and a tap on the photograph does nothing at all.",
+    "One circle, back to the reel, and a tap on the photograph does nothing at all.",
+  ],
 };
 
 function wayOutScreen(shape: WayOutShape, s: BoardState) {
   const screen = screenFor(s);
+  const origin = originOf(s.origin);
   return (
     <Screen
-      id={`wayout-${shape}`}
+      id={`wayout-${shape}-${origin}`}
       screen={screen}
       read={wayOutRead}
-      caption={WAYOUT_CAPTION[shape]}
+      caption={fromThe(origin, ...WAYOUT_CAPTION[shape])}
     >
-      <AlbumPage
+      <OriginPage
+        origin={origin}
         screen={screen}
+        item={CURRENT}
+        lit={OPENED}
         pageClass={shape === "down" ? "mv-returning" : undefined}
       >
         <Viewer
@@ -636,8 +761,11 @@ function wayOutScreen(shape: WayOutShape, s: BoardState) {
           holds={holdsOf(s.holds)}
           who={whoOf(s.who)}
           wayOut={shape}
+          // A way out is taken from a photograph that has arrived, so the
+          // opening is drawn settled rather than caught in its flight.
+          settled
         />
-      </AlbumPage>
+      </OriginPage>
     </Screen>
   );
 }
@@ -647,8 +775,8 @@ function wayOutScreen(shape: WayOutShape, s: BoardState) {
 const LINK_CAPTION: Record<LinkShape, string> = {
   none: "Today. The address is the album's, so a refresh lands at the top of the grid and Share hands on the whole album.",
   query:
-    "The photograph is in the address, so a refresh comes back to it and the link someone else opens lands on this picture.",
-  file: "The photograph itself, leaving as a file: it arrives in a chat as an image and carries no way back to the album.",
+    "The photograph is in the address, the way ?reel puts the reel in it, so a refresh comes back to it and the link someone else opens lands on this picture.",
+  file: "The photograph itself, leaving as a file the way a cut does: it arrives in a chat as an image and carries no way back to the album.",
 };
 
 const URLS: Record<LinkShape, string> = {

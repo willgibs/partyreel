@@ -12,16 +12,6 @@ import {
 
 import { withDesignKey } from "@/lib/design-gate/links";
 
-import {
-  AS_TODAY_GLOSS,
-  badgeText,
-  concedes,
-  overtakenFor,
-  saysAsToday,
-  STANDS,
-  STANDS_NOTE,
-} from "@/app/(dev)/design/sandbox/overtaken";
-
 import type { AskState, ItemState } from "./queue";
 import type { ReviewStore } from "./review-store";
 import { SAMPLE_BOARD } from "./sample-spec";
@@ -139,33 +129,6 @@ export type AskStep = StepBase & {
    * ledger, so it rides here. "Not clear to me" is not a decision and is left out.
    */
   ruled?: Readonly<Record<string, string>>;
-  /**
-   * ★ AN EARLIER RULING REACHED THIS QUESTION (Will, 2026-09-19). The question
-   * is NOT removed and nothing is answered by precedent: it stays in the walk,
-   * badged, and he either answers it (an override, recorded as the new ruling)
-   * or presses "The ruling stands". `sandbox/overtaken.ts` is the one home.
-   *
-   * ★ RESOLVED TO STRINGS HERE, and that is not laziness. The kit
-   * (`src/components/lab/`) may never import a board or anything beside one
-   * (`boundary.test.ts`: the dependency runs the other way), and the step is
-   * kit. So the desk's side reads the map and hands the step words to draw; the
-   * step renders them and derives nothing.
-   */
-  overtaken?: OvertakenBadge;
-};
-
-/** What a step draws when an earlier ruling reached its question. */
-export type OvertakenBadge = {
-  /** The board whose ruling reached it; the desk words its own count with it. */
-  by: string;
-  /** Plain words with the date: "Ruled since app-shape r1, 19 Sep: ...". */
-  badge: string;
-  /** The lane's one line: "stands: ..." or "concedes: ...". */
-  line: string;
-  /** The lane conceded, so the dock's third button is primed. */
-  conceded: boolean;
-  /** An option still says "as today" and today moved: the gloss, or nothing. */
-  gloss?: string;
 };
 
 /** One catalog card, as a step's list renders it. */
@@ -199,13 +162,6 @@ export type SessionStep = AskStep | ItemsStep;
 
 /** The reviewer's own answer: "this question is not clear to me". */
 export const UNCLEAR = "?";
-
-/**
- * The other reserved answer, beside it so a reader of the walk meets both in
- * one place: "the earlier ruling stands". Defined in `sandbox/overtaken.ts`
- * with the mechanism it belongs to and re-exported here, never re-declared.
- */
-export { STANDS, STANDS_NOTE };
 
 /** The summary's own URL value; the dry run namespaces its own (`sample.end`). */
 export const SESSION_END = "end";
@@ -258,13 +214,6 @@ export function stepDone(step: SessionStep, store: ReviewStore): boolean {
  *
  * "Not clear to me" is not a decision: it leaves the follow-up staged, which is
  * exactly right, because the question it waits on has not been answered.
- *
- * ★ "THE RULING STANDS" IS A DECISION, AND IT MOOTS WHAT WAITED ON AN OPTION.
- * `stands` is deliberately not one of the ask's options, so a follow-up that
- * declares `after: { ask, option }` goes MOOT rather than staged: the earlier
- * ruling is what the wiring follows now, and a question that only existed if
- * this one went a particular way did not happen. A follow-up that waits on the
- * ask being answered AT ALL (no `option`) opens, which is also right.
  */
 export function stepBlocked(
   step: SessionStep,
@@ -398,21 +347,6 @@ function toAskStep(
   );
   const catalog = specOf(a.board)?.catalog;
   const winner = catalog?.winner === a.ask.id;
-  // The note an earlier ruling left on this question, and whether any of its
-  // options still says "as today" (the words the badge has to gloss, since the
-  // board's spec is never edited by the lane that made them stale).
-  const note = overtakenFor(a.board, a.ask.id);
-  const overtaken: OvertakenBadge | undefined = note && {
-    by: note.by,
-    badge: badgeText(note),
-    line: note.line,
-    conceded: concedes(note),
-    gloss: a.ask.options.some(
-      (o) => saysAsToday(optionLabel(o)) || saysAsToday(optionMeans(o)),
-    )
-      ? AS_TODAY_GLOSS
-      : undefined,
-  };
   return {
     kind: "ask",
     board: a.board,
@@ -444,7 +378,6 @@ function toAskStep(
     winner: winner || undefined,
     catalogSection: winner ? catalog?.section : undefined,
     stageSection: winner ? catalog?.stage : undefined,
-    overtaken,
     boardHref,
   };
 }

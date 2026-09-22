@@ -20,9 +20,17 @@ import { SelectableMediaGrid } from "@/components/app/event-feed/selectable-medi
 import type { ReviewTriage } from "@/components/app/event-feed/use-review-triage";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { MasonryColumns } from "@/components/shared/masonry";
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Button } from "@/components/ui/button";
+import { GLASS, GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
+import { cn } from "@/lib/utils";
 
-import { ALBUM_WITH_HIDDEN, QUEUE } from "./fixtures";
+import {
+  ALBUM_WITH_HIDDEN,
+  PEEKED,
+  PEEKED_POSITION,
+  QUEUE,
+} from "./fixtures";
 import { type ScreenId } from "./scene";
 import { stillTriage, useLabTriage } from "./triage";
 
@@ -374,13 +382,46 @@ export const peekOf = (v: string | undefined): PeekOption =>
   v === "verdict" ? "verdict" : v === "viewer" ? "viewer" : "readonly";
 
 /**
+ * THE MARK ON A NAME NOBODY PROVED, as the shipped `UnverifiedMark` draws it in
+ * its `lit` tone over a photograph: a glass disc at the marks' blur and a white
+ * dot carrying its own halo, named with the one public word. Quoted rather than
+ * mounted because the real one is a Popover trigger, and a radix Popover portals
+ * to the lab page rather than into this frame.
+ */
+function UnverifiedDot() {
+  return (
+    <span
+      data-hc-mark
+      role="img"
+      aria-label={UNVERIFIED_LABEL}
+      title={UNVERIFIED_LABEL}
+      className={cn(
+        "inline-flex size-4 shrink-0 items-center justify-center rounded-full align-middle",
+        GLASS_MARK,
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn("size-1 rounded-full bg-white", GLASS_MARK_LIT)}
+      />
+    </span>
+  );
+}
+
+/**
  * THE PEEK, DRAWN STILL, AT THE MOMENT A HOST IS LOOKING AT ONE PHOTOGRAPH.
  *
  * The shipped peek is private state inside `SelectableMediaGrid` and cannot be
- * opened from outside it, so its surface is quoted exactly: the same
- * `bg-black/95` full bleed, the same `max-h-[88vh] max-w-[94vw]` contain, the
- * same round `bg-white/10` close at the top right. What each option adds sits
- * on that identical ground, over whichever grid the queue decision settled.
+ * opened from outside it, so its surface is quoted exactly: the same fixed full
+ * bleed on the lightbox's ruled ground (`GLASS_BEHIND`, the queue behind it
+ * blurred at half brightness), the same `max-h-[88vh] max-w-[94vw]` contain, the
+ * same glass close at the top right. What each option adds sits on that
+ * identical ground, over whichever grid the queue decision settled.
+ *
+ * ★ THE UPLOAD IS A GUEST'S, CREDITED ON THE IDENTITY MODEL. Every uploader
+ * passed a door that asked a name, so the viewer option's credit is a name, and
+ * the Unverified mark where nobody proved it (`PEEKED`); the host sees no
+ * address behind a typed name, and there is no anonymous fallback left to draw.
  */
 export function PeekShowcase({
   option,
@@ -391,13 +432,13 @@ export function PeekShowcase({
   queue: QueueMode;
   screen: ScreenId;
 }) {
-  const item = QUEUE[1];
+  const item = PEEKED;
 
   return (
     <div className="relative min-h-full">
       <ReviewSurface triage={stillTriage(QUEUE)} mode={queue} screen={screen} />
 
-      <div className="hc-overlay" data-hc-peek>
+      <div className={cn("hc-overlay", GLASS_BEHIND)} data-hc-peek>
         {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it */}
         <img
           src={item.url}
@@ -407,7 +448,10 @@ export function PeekShowcase({
         <button
           type="button"
           aria-label="Close preview"
-          className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white"
+          className={cn(
+            "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white",
+            GLASS,
+          )}
         >
           <X className="size-5" />
         </button>
@@ -439,9 +483,13 @@ export function PeekShowcase({
           <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-2">
             {option === "viewer" && (
               <div className="flex max-w-[88%] flex-col items-center rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
-                <span className="text-xs text-white/85">
-                  {item.uploaderName ?? "Anonymous"}
-                  <span className="text-white/60"> · 2 of {QUEUE.length}</span>
+                <span
+                  data-hc-credit
+                  className="inline-flex items-center gap-1.5 text-xs text-white/85"
+                >
+                  {item.uploaderName ?? "A guest"}
+                  {item.isVerified === false && <UnverifiedDot />}
+                  <span className="text-white/60">· {PEEKED_POSITION}</span>
                 </span>
               </div>
             )}

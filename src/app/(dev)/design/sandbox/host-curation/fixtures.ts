@@ -23,8 +23,9 @@ import {
  *
  * What is added here is what this round's act needs and no other board has:
  * a SECOND batch that lands mid-visit, an album with three tiles really hidden,
- * and three events with different queues so the dashboard's counts have
- * something to disagree about.
+ * three events with different queues so the dashboard's counts have something
+ * to disagree about, the one upload the peek credits on the identity model, and
+ * the guest's own feed without the host's like counts.
  */
 export {
   BIN_ITEMS,
@@ -109,7 +110,37 @@ export const BELL = buildNotifications({
   now: new Date("2026-08-15T21:20:00.000Z"),
 });
 
-/** This guest's own cross-event feed, with one of theirs refused by the host. */
-export const MY_UPLOADS: GridMedia[] = UPLOADS_ITEMS.map((m, i) =>
-  i === 1 ? { ...m, status: "hidden" as const } : m,
-);
+/**
+ * This guest's own cross-event feed, with one of hers refused by the host.
+ *
+ * ★ NO LIKE COUNTS. `likeCount` is host-only by construction (the host's own
+ * gallery is the one surface that reads them) and the shared pool carries them
+ * for the host's views, so the guest's own feed drops them here, as the shipped
+ * Uploads feed never receives them (`get_my_uploads` carries none).
+ */
+export const MY_UPLOADS: GridMedia[] = UPLOADS_ITEMS.map((m, i) => ({
+  ...m,
+  likeCount: undefined,
+  ...(i === 1 ? { status: "hidden" as const } : {}),
+}));
+
+/**
+ * THE UPLOAD A HOST PEEKS AT, on the identity model: a guest's (a host's own
+ * upload never waits in Review), who typed a name at the door and confirmed
+ * nothing, so the credit is her name and the Unverified mark and the host sees
+ * no address. The shared pool's matching entry is a nameless legacy row, which
+ * no door mints any more; the peek is the one place on this board a name is
+ * read, so the name is given here rather than in the shared pool.
+ */
+const PEEKED_AT = 3;
+export const PEEKED: GridMedia = {
+  ...QUEUE[PEEKED_AT],
+  uploaderName: "Nina",
+  isHost: false,
+  isAnonymous: false,
+  isVerified: false,
+  uploaderEmail: null,
+};
+
+/** Where the peeked upload sits in the queue, in the words the viewer's counter uses. */
+export const PEEKED_POSITION = `${PEEKED_AT + 1} of ${QUEUE.length}`;
