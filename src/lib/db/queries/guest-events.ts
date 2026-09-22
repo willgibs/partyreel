@@ -31,6 +31,8 @@ export type GuestEvent = {
   // email before the full album and any upload. OFF: a guest types a display name at the door and
   // uploads under it with an unverified mark. This is the flag every new read keys on.
   require_verified_email: boolean;
+  /** Require an upload to view (the door as three steps, 2026-09-21): ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
+  require_upload_to_view: boolean;
   // Its LEGACY TWIN, kept exactly opposite by the events_sync_verified_email_flags trigger. It is
   // still returned because the milestone build on `main` reads it and because
   // get_public_profile's attended-arm clause is still written on it (QA #36). Nothing new should
@@ -140,6 +142,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     has_password: row.has_password,
     accepting_uploads: row.accepting_uploads,
     require_verified_email: row.require_verified_email,
+    require_upload_to_view: row.require_upload_to_view,
     allow_anonymous_uploads: row.allow_anonymous_uploads,
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
