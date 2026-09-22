@@ -1,6 +1,6 @@
 ---
 track: name-gate
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "99a140b6"          # the launch-prep SHA the branch was cut from
 board: none            # production, Will's ruling of 2026-09-22: a nameless account moves nowhere but the welcome page; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -172,26 +172,96 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/auth-accounts.md`: the "Display name is REQUIRED..." bullet refined — the
+  nameless-account gate now covers every `(app)` route but `/welcome` (`requireNamedProfile()`
+  in `name-gate.ts`, called from `dashboard/layout.tsx` and `account/layout.tsx`); the stale
+  "`/account` is exempt so it can be set there" line is gone.
+- `docs/systems/host-app.md`: the "Dashboard landing" claim-ticket paragraph refined — the
+  nameless-profile guard it points at is now named as the whole-tree `dashboard/layout.tsx`
+  gate rather than only the dashboard root's own inline check.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: the standing risk this track found (a future third top-level `(app)` route forgetting
+  its own gate) is already closed by a pinned test, not a task waiting on the ROADMAP — see
+  the item and "Look at first" below.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `3eb982ca`, pushed to `origin/lp/name-gate`; synced with launch-prep at merge
+  `de001a18` (`origin/launch-prep` had moved 3 commits past the `99a140b6` cut — usher/moltbook
+  bookkeeping and three new, unrelated track manifests spawned (`identity-door`,
+  `identity-claims`, `identity-profile`); diffed before merging, none touched this lane's
+  `owns` or `reads`; the merge was conflict-free).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code (0 throughout): `pnpm design:rules` ok
+  (1237 contracts on 163 components, +5 guards from `name-gate.test.ts`'s new
+  `@contract-for`; regenerated `docs/design/library.md` and `rules.generated.json` —
+  mechanical, see the lane-check exception below); the specimen collector ok (140 specimens on
+  101 entries, unchanged); `pnpm typecheck` ok; `pnpm lint` ok (9 warnings on the tree today,
+  none in any file this lane touched — the baseline moves, the exit code is the gate);
+  `pnpm test` ok (3680 passed, 2 skipped, 338 files); `pnpm build` ok (135 route lines;
+  `/account` and every `/dashboard/*` URL present, unchanged — no file moved).
+  `pnpm lab:smoke --base http://localhost:3133` ok (428 checks, 0 failing). No board on this
+  lane, so no `lab:demo`. Also checked by hand (no local signed-in session is mintable —
+  Google bounces to production): `/dashboard`, `/dashboard/new`, `/account`, `/welcome`, and
+  three `/dashboard/<uuid>/{guests,review,settings}` paths each 307 a signed-out visitor to
+  `/login` with no crash, so the new layouts sit cleanly inside the existing auth gate.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(app)/account/layout.tsx`,
+  `src/app/(app)/dashboard/layout.tsx`, `src/app/(app)/name-gate.ts`,
+  `src/app/(app)/name-gate.test.ts`, `docs/systems/auth-accounts.md`,
+  `docs/systems/host-app.md` (the six owned paths) + `docs/design/library.md`,
+  `src/app/(dev)/design/rules/rules.generated.json`,
+  `src/app/(dev)/design/rules/component-notes.ts` (three exceptions, why: the first two are
+  `pnpm design:rules`'s own required output for the new contract test; the third is the one
+  `for` line the gallery coverage test demands for that new target, naming and excusing
+  `name-gate.ts` exactly as the neighbouring `account/page.tsx` entry already does — no other
+  hand-authored change in any of the three).
+- The item: `requireNamedProfile()` (`src/app/(app)/name-gate.ts`), called once each from new
+  `dashboard/layout.tsx` and `account/layout.tsx`, closes the gate for every `(app)` route but
+  `/welcome` — previously only `/dashboard` and `/dashboard/new` redirected a nameless
+  profile; `/account` and every `/dashboard/[eventId]/*` room rendered normally for one. The
+  two existing page-level redirects on `dashboard/page.tsx` and `dashboard/new/page.tsx` are
+  unchanged. Pinned in `name-gate.test.ts`, which enumerates `src/app/(app)/`'s top-level
+  directories at test time (not by hardcoded name) so a future third route without its own
+  gate fails by name; also pins that nothing under `welcome/` imports the gate (no redirect
+  loop).
+- Calls his to overrule, one line: took the brief's escape hatch over its recommended nested
+  `(named)` route group — moving `dashboard/`/`account/` would have required rewriting ~45
+  import sites across the tree (mostly outside this lane's owns: every
+  `src/app/admin/*/actions.ts`, several `src/components/admin/*` and
+  `src/components/social/*`, `src/lib/auth/admin-context.ts`, `src/lib/errors/codes.test.ts`)
+  that hardcode the old `@/app/(app)/dashboard/actions` / `@/app/(app)/account/actions`
+  paths, and the brief's own suggested fallback (a pathname header) needs an edit to
+  `src/proxy.ts`, which this track only reads; built two sibling layouts sharing one helper
+  instead (full reasoning in `name-gate.ts`'s own comment; the Orchestrator has already
+  reviewed and confirmed this call sound).
+- The help articles this lane makes stale: none (no user-facing copy changed; the redirect
+  already existed for `/dashboard`, silently).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `src/app/(app)/name-gate.ts` (the WHY comment covers both the
+  `getProfile()`-over-`getProfileMenu()` choice and the two-layout-over-nested-group choice),
+  `src/app/(app)/name-gate.test.ts` (the structural pin), and the `docs/systems/auth-accounts.md`
+  bullet this lane rewrote. One edge considered and deliberately left alone:
+  `src/app/(print)/dashboard/[eventId]/print/page.tsx` re-declares its own auth gate
+  independently (by its own header comment's design) and does not check the name — left as-is
+  because a nameless host can never own an event to print from (event creation already gates
+  on name via the kept `dashboard/new/page.tsx` check), so there is no real exposure, and the
+  route sits outside this lane's `owns` regardless.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Closed the nameless-account gap Will named
+(rulings.md "the morning after the identity round"): every `(app)` route but `/welcome` now
+redirects a nameless profile there through one `requireNamedProfile()` (`name-gate.ts`),
+called from new `dashboard/layout.tsx` (the root, `/new`, every `/dashboard/[eventId]/*`
+room) and `account/layout.tsx` — previously only the dashboard root and event creation
+checked, and `/account` rendered normally for one. Took the brief's escape hatch over its
+recommended nested `(named)` group: moving `dashboard/`/`account/` would have rewritten ~45
+import sites across the tree, mostly outside this lane. Pinned structurally —
+`name-gate.test.ts` enumerates `(app)`'s routes at test time, so a future ungated one fails by
+name — rather than by page name. `auth-accounts.md` + `host-app.md` refined in place. Gate
+green throughout (test 3680 passed / 2 skipped, build 135 routes); `pnpm lab:smoke` 428/428.
+No live red-team: no session mints locally; the source pin proves the shape and the
+Orchestrator's alias check covers the signed-in path.
