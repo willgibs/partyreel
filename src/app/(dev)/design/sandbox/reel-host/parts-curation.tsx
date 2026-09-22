@@ -19,9 +19,15 @@ import { CUT_ITEM, GALLERY_ITEMS, PENDING_ITEMS } from "./fixtures";
 
 /** `cut=marked` / `cut=plain`: the album with a host's own finished cut in
  *  it, landed approved. `mark` alone varies; the pool, the layout and every
- *  other tile are identical between the two options. */
+ *  other tile are identical between the two options.
+ *
+ * ★ THE CUT LEADS THE GRID (found live, 2026-09-22: buried ninth of nine, its
+ * small badge read as "the same picture" against the plain option). Masonry
+ * fills its shortest column first, so the leading item lands in the most
+ * prominent slot a reviewer's eye actually meets, where a mark is worth
+ * judging rather than a coin flip on which corner it might be hiding in. */
 export function AlbumWithCut({ mark }: { mark: boolean }) {
-  const items = [...GALLERY_ITEMS.slice(0, 8), CUT_ITEM];
+  const items = [CUT_ITEM, ...GALLERY_ITEMS.slice(0, 8)];
   return (
     <div className="px-6 py-4" data-rh-relevant>
       <FeedSectionHeader label="Gallery" count={items.length} />
@@ -34,9 +40,9 @@ export function AlbumWithCut({ mark }: { mark: boolean }) {
             item.id === "cut-1" && mark ? (
               <span
                 data-rh-cut-chip
-                className="absolute top-1.5 left-1.5 z-10 flex h-5 items-center gap-1 rounded-full bg-reel/90 px-2 text-[10px] font-semibold text-white"
+                className="absolute top-2 left-2 z-10 flex h-6 items-center gap-1 rounded-full bg-reel px-2.5 text-xs font-semibold text-white shadow-layer ring-2 ring-white/80"
               >
-                <Clapperboard className="size-2.5" aria-hidden />
+                <Clapperboard className="size-3" aria-hidden />
                 Cut
               </span>
             ) : null
