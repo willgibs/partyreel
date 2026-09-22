@@ -25,7 +25,7 @@ the lab, Will's verdicts, then the wiring. Vision and pricing: [`docs/PRD.md`](d
 | What program is running: roles, the round, the rules? | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 | What shipped? | `git log`: each merge commit carries its lane's summary |
-| What binds design work? | the Library at `/design/library` (the bible, every component's contracts, the policies), levelled in [`docs/design/README.md`](docs/design/README.md) |
+| What guides design work? | the Library at `/design/library` (the bible, every component's contracts, the policies: working rules), levelled in [`docs/design/README.md`](docs/design/README.md) |
 | What assets has Will been asked for? | [`docs/ASSETS.md`](docs/ASSETS.md) |
 
 The system docs (what exists and don't-revert) win over the ROADMAP (provisional). Every doc states current rules, never history.
@@ -44,10 +44,10 @@ at boot from `origin/launch-prep` ([`docs/PROGRAM.md`](docs/PROGRAM.md) "Agent b
 3. **Plan, asking hard**: surface every open product, UX or scope decision before building (an agent writes them in
    its manifest under "Questions" with a recommended answer; the Orchestrator asks Will). The expensive failure is
    a confident agent executing the wrong strategy.
-4. **Build** from the Library (`/design/library`: what binds you; the kit at `src/components/lab` for a board;
+4. **Build** from the Library (`/design/library`: the working rules; the kit at `src/components/lab` for a board;
    `src/components/ui` and `src/components/shared` for the product). The bible (22 rules, Will's), a component's
-   contracts and the policies bind; everything else is precedent you may break, judged from the ground up (bible
-   22), in the lab first. An exploration is a catalog to select from, and a favourite lands in the Library as a working version rather than another exploration; every ask carries its
+   contracts and the policies are followed by default and reshaped deliberately when a better solution needs them
+   (say which in your Handoff; the bible only by Will's word); everything else is precedent you may break (bible 22), in the lab first. An exploration is a catalog to select from, and a favourite lands in the Library as a working version rather than another exploration; every ask carries its
    context; ask for the exact asset in your Handoff. Propose a creative delight (`/emil-design-eng`). Leave WHY-comments.
 5. **Test**: Vitest for pure logic; a rolled-back Supabase-MCP RPC check for new SQL; the four-step gate; `get_advisors` after any DDL.
 6. **Verify antagonistically**: force the error cases, the cross-tenant and abuse paths, malformed input; local

@@ -68,8 +68,10 @@ program depends on which.
    summary; STATUS is rewritten; the Library and the desk show the live state; a retired board leaves nothing behind
    but its winner; git holds everything older. **Stacked boards never overlap in what they ask**: an exploration's
    brief names the open asks nearest its surface on the standing boards and asks nothing they ask, and the
-   Orchestrator checks that at the cut. When a ruling reaches a question still open on another board, that question
-   is reshaped with the ruling in its context, or removed when it holds no value.
+   Orchestrator checks that at the cut. **When a ruling reaches a question still open on another board, the
+   Orchestrator judges it**: an early pick can close the road to the best answer, so a question whose options still
+   hold an idea that could beat the current path (even one the pick diverged from) is adapted to the current context
+   with that road kept open as an option; only a question whose context is already solved at its best is removed.
 
 ### Init templates (Will copies one as the first prompt of a new session)
 
@@ -227,6 +229,11 @@ In-flight row. A lab agent stays light enough on rules to keep its creative ener
 orchestrates is Will's choice per session; every commit's trailer names the model actually running.
 
 ### Rules are provisional
+
+**The Library holds working guidelines, not hard rules**, while the product is being built: they keep what is built
+and what is new consistent, an agent follows them by default, and any of them is reshaped when a better solution needs
+it (the lane says which in its Handoff). The Library hardens only as the marketing site and the app near their final
+production state, on Will's word. Until then any past decision may be relitigated for a better solution.
 
 ★ Most of the laws and don't-revert notes in this repo were written by agents against a design system that has since
 moved. Of every rule you touch, ask "a good rule that prevents bad choices, or a bad system that prevents good
