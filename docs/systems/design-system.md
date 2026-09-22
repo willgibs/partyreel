@@ -8,11 +8,13 @@
 > GROWS BY: edit-in-place as tokens/rules evolve; the lab (`/design`) stays the experimentation
 > venue, this doc records what's ratified.
 
-**The design law is the bible on `/design/library/rules`** (22 rules, Will's; source
+**The working rules are the bible on `/design/library/rules`** (22 rules, Will's; source
 `src/app/(dev)/design/rules/bible.ts`) **plus each component's contract** (a test tagged
-`@contract-for`, shown on the component's Library page). This doc is the machinery and the scars: how
-the system works, and the landmines (★) that break silently when reverted. A ★ is never a rule, and a
-decision recorded here is precedent, not law.
+`@contract-for`, shown on the component's Library page): followed by default, and reshaped deliberately
+when a better solution needs them (the lane says which in its Handoff; the bible changes only by Will's
+word). This doc is the machinery and the scars: how the system works, and the landmines (★) that break
+silently when reverted. A ★ is never a rule, and a decision recorded here is precedent you may break for a
+better solution.
 
 ## What it is
 
@@ -136,7 +138,8 @@ the raw `--chart-N` values still flip with the mode.
 
 The one anatomy for a tile whose picture IS the card: the image fills the card, the copy keeps its
 position bottom left, and a dark gradient keeps the words distinct. It serves the home's event types,
-the feature doors and every page's closing row, the blog library and the events teaser. TWO overlays,
+the feature doors and every page's closing row and the events teaser (the blog library's cards keep their
+own scrim, which lifts on hover: `post-card.tsx`). TWO overlays,
 never one, and they have different owners. The **visual's own fade** is the picture's (bottom-weighted,
 and it lifts on hover); the **copy gradient is the CARD's**, one treatment for every feature and visual
 pairing: `CARD_COPY_SCRIM` in
@@ -235,7 +238,9 @@ rest (Get Pro, whose card already carries stacked photographs).
 most-used controls) · the storage meter near its cap and upload errors/retry (the moment spill can mean
 "warning" it is a state colour and the system is decoration; failure is `--destructive`, full stop) ·
 generic skeletons (a skeleton is an absence; spill needs a presence) · every CtaBand (the
-every-section-gets-a-version failure under another name) · the admin portal.
+every-section-gets-a-version failure under another name) · the admin portal · a gallery arrival (the
+engine's sweep with its edge ring is a delight moment, and a batch of a couple dozen uploads would cover
+the top of an album in it; arrivals wear `shared/arrival.css`'s glow and sweep).
 
 **Every new lamp answers four questions before it is built**, and someone other than its author can
 answer them: **Lamp** (what is emitting, or what place is lit?) · **Direction** (from where?) ·
@@ -362,7 +367,8 @@ band where two grounds meet (the footer, the film strip, every screen lamp); the
 point on an object, which is how a plate sits on open dark without a rim; the **field**, a whole chapter
 lit at its own edges. Two MARKS sit beside them: the **bloom**, a one-time glow that rests lit and never
 decays to nothing (the QR plate and the publish moment), and the **halo**, which lights an OBJECT from
-behind and never wraps a button (no production use; the Library holds its specimen). Code identifiers
+behind and never wraps a button (the album page's hero, `live-album-stage.tsx`; the Library holds its
+specimen). Code identifiers
 keep their names (`Glow`, SPILL, `--glw-*`, `--lamp-*`); the Library and these docs say Aurora.
 
 ★ **The Aurora is composed for the place, never stamped.** The REGISTER and the CLOCK are fixed so they
@@ -398,8 +404,9 @@ the share card's publish light (`[data-rxp-cardlight]`, the app's one lamp that 
 theme) is on it, and the Studio's twin is not, because that room is near-black in both themes and
 carries no `.dark`. The hook sits on the light's own box, never on the object (`display: none` takes
 what it names), and the rule is **never widened to `[data-glw]`**, which would silently switch off the
-shipped seams (the footer's, the film strip's, the screen lamps'); a media-less lamp on paper still
-paints the dark register's five.
+shipped seams (the footer's, the film strip's, the screen lamps'). Nothing re-tunes `--lamp-1..5` on
+paper, so a media-less lamp on a paper chapter would paint the dark register's five on a near-white page
+(latent: no production lamp sits on paper, and the fence keeps the field off light grounds).
 
 **Where the page already painted the media, sample the DOM.** `useSampledPaletteFromDom(ref)` reads the
 `<img>` elements already on the page, so `drawImage` reuses the decoded bitmap: zero bytes, zero
@@ -602,7 +609,7 @@ never a literal. The values have one home, the `:root` block of
 | --- | --- | --- |
 | Surfaces | `--radius` (8px) | cards (`Card` wears `rounded-lg`, the token itself), inputs, panels, plates; the base the derived steps multiply |
 | Actions | `--radius-action` / `-sm` | 0.4 of the height: 16px for a 40px action, `-sm` on the 32px default `Button`; the other sizes DERIVE from `--radius-action` (h-6 0.6x, h-7 0.7x, h-9 0.9x, the 44px `cta` 1.1x, all in `button.tsx`), so one knob moves the whole action ladder. `ctaCorner` exports the 44px corner for the few 44px actions that are not a `Button` |
-| Photographs | `--radius-tile` · `--gap-gallery` | every photograph and media tile wears `rounded-tile`; `--gap-gallery` is `max(3px, var(--radius-tile))`, PINNED to the corner (below the tile radius, four corners meeting open a visible diamond; the 3px floor is the album's hairline tell), and it is the ONE gap for every media grid: the album masonry (each tile's `mb-[var(--gap-gallery)]` is its vertical gap), its skeleton, the ghost grid, the triage grids, the album-like marketing walls |
+| Photographs | `--radius-tile` · `--gap-gallery` | every photograph and media tile wears `rounded-tile`; `--gap-gallery` is `max(3px, var(--radius-tile))`, PINNED to the corner (below the tile radius, four corners meeting open a visible diamond; the 3px floor is the album's hairline tell), and it is the ONE gap for every media grid: the album masonry (each tile's `mb-[var(--gap-gallery)]` is its vertical gap), its skeleton, the triage grids, the album-like marketing walls |
 | Floating layer | `--radius-float` (12px) | menus, tooltips, toasts, dialogs, and the guest entry sheet (`rounded-t-float`, the corner of the dialog it becomes at 640, never an action's); a ROW inside a panel is `calc(--radius-float - 4px)`, derived in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts), on the family's `p-1` rail |
 
 **The derived steps climb in quarters of `--radius`** (`sm` 0.5, `md` 0.75, `lg` 1, `xl` 1.25, `2xl`
@@ -874,7 +881,10 @@ the PHOTO develops over it, and arrival hooks that must not depend on scroll (`[
 observer: the failure mode becomes "no animation", never "no content". Use the observer grammar
 (`[data-mkt-reveal]` + `Reveal`) when the beat is genuinely about scroll position, `@starting-style`
 when it is about arrival. The base-and-band landmine under Light is the same contract in the glow
-engine.
+engine. The one readout of WHERE a reader is reading is `READING_BAND` (`-45% 0px -45% 0px`, the middle
+tenth of the screen) in [`photo-section.tsx`](../../src/components/shared/backdrop/photo-section.tsx), an
+observer root its trip wires pass through; a second scroll-position readout joins it there rather than
+defining its own band.
 
 ★ **A FILLING ANIMATION OUTRANKS EVERY AUTHOR DECLARATION, so an entrance and a hover state can never
 share an element.** `[data-mkt-cut]` (and any `animation-fill-mode: both` entrance) keeps applying its
@@ -1141,7 +1151,8 @@ NAMES, held to that block by `glass.test.ts`) · `src/app/layout.tsx` (font load
 `/design/library/rules`, `rules/bible.ts` hand-authored; the policies and landmines; the guidance; the
 doctrine, the system docs rendered; the glossary; the index and every component's permalink plus the
 five family galleries, each declared once in its family's `gallery-demos.tsx`) and `(shell)/lab/` is
-everything exploratory (the desk, `/design/lab/<board>`, proposals from `docs/specs/`, tracks from
+everything exploratory (the desk, `/design/lab/<board>`, a board's written proposal under `docs/specs/`
+when one exists (none does: a board's argument lives in its `spec.ts`), tracks from
 `docs/tracks/`, the kit, the tools); `(shell)/_shell/` the chrome and the page templates; `_data/` the
 nav model, the link grammar (`links.ts`), the markdown reader (`docs.ts`), the legacy redirects; the
 component contracts (every test tagged `@contract-for`, collected by `pnpm design:rules` into
