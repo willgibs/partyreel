@@ -53,7 +53,7 @@ The expected, accepted set:
   too). Both keep their anon grant — the fix is the payload, not the grant. (Was 8 —
   the five guest WRITE/password RPCs were server-mediated 2026-06-08; see below. `get_public_album` was
   DROPPED in the one-link consolidation.)
-- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `remove_my_upload_by_session` (an anonymous guest's own-photograph removal: the session token validated inside against the media's guest row, a claimed row never touched; reached only through `POST /api/guests/remove` on the admin client; the sixth batch, 2026-09-20), `create_media`,
+- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** `get_upload_gate` (the door round's one READ for the upload-to-view gate, 2026-09-22: has this session token or account ever completed an upload on this event, and is the album full by the presign's own two caps; called only from server code on the admin client, the guest page's render and the gallery poll, never client-callable, so a token can never be probed through it), `remove_my_upload_by_session` (an anonymous guest's own-photograph removal: the session token validated inside against the media's guest row, a claimed row never touched; reached only through `POST /api/guests/remove` on the admin client; the sixth batch, 2026-09-20), `create_media`,
   `create_media_as_host`, `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`,
   `set_guest_display_name` (the identity reshape, `20260921150000`: it names or renames a name-only
   guest by their session token. Service-role for the usual reason AND a second one — PROFANITY and
