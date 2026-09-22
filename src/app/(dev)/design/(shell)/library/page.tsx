@@ -101,7 +101,7 @@ export default async function LibraryHomePage({
     <Column>
       <PageHeader
         title="The library"
-        description="Everything that binds or informs design work on Partyreel, in one place: the rules, the components with their contracts, the tokens, the record. If it influences what an agent builds, it is visible here."
+        description="Everything that binds or informs design work on Partyreel, in one place: the rules, the components with their contracts, the tokens, the rulings. If it influences what an agent builds, it is visible here."
       />
 
       <StatRow
@@ -163,8 +163,8 @@ export default async function LibraryHomePage({
           ,{" "}
           <Ref to={{ kind: "doc", doc: "design-system" }}>the system docs</Ref>,{" "}
           and{" "}
-          <Ref to={{ kind: "page", href: "/design/library/rulings" }}>
-            Will&rsquo;s rulings
+          <Ref to={{ kind: "page", href: "/design/library/rules#rulings" }}>
+            the rulings
           </Ref>
           .
         </p>

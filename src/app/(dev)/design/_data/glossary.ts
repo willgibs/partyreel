@@ -21,7 +21,7 @@ export const GLOSSARY: Term[] = [
   {
     term: "Library",
     meaning:
-      "Everything that binds or informs design work: the rules, the policies and landmines, the guidance, Will's rulings, the doctrine, the components with their contracts, the record.",
+      "Everything that binds or informs design work: the rules, the policies and landmines, the guidance, the rulings, the doctrine, the components with their contracts.",
     href: "/design/library",
   },
   {
@@ -63,8 +63,8 @@ export const GLOSSARY: Term[] = [
   {
     term: "Ruling",
     meaning:
-      "What Will said, verbatim and dated. A ruling becomes a bible rule, a program line or guidance; until it does, it is still his word.",
-    href: "/design/library/rulings",
+      "What Will ruled for one component or page, kept as the rule it holds today and why (touchpoints.ts). It informs: an exploration may reopen it and says so.",
+    href: "/design/library/rules#rulings",
   },
   {
     term: "Doctrine",
@@ -75,8 +75,8 @@ export const GLOSSARY: Term[] = [
   {
     term: "Proposal",
     meaning:
-      "A board's settled argument, a docs/specs document. Not law until Will rules on it.",
-    href: "/design/lab/proposals",
+      "A standing board's argument: its asks and the answer it recommends for each. Not law until Will rules on it.",
+    href: "/design/lab",
   },
   {
     term: "Component, family, specimen, variant",

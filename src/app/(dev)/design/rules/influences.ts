@@ -5,7 +5,6 @@ import {
   headingsOf,
   inlineText,
   landminesOf,
-  listRulings,
   listSpecs,
   readDoc,
   sectionOf,
@@ -13,7 +12,9 @@ import {
 import { POLICY_VIEWS } from "@/app/(dev)/design/_data/policies";
 import {
   type Surface,
+  RULED,
   RULINGS,
+  SANDBOX,
   SURFACE_LABEL,
 } from "@/app/(dev)/design/touchpoints";
 
@@ -141,16 +142,16 @@ export const LEVELS: LevelDef[] = [
   {
     id: "proposal",
     badge: "PROPOSAL",
-    line: "A board's argument (docs/specs/<board>.md); not law until Will rules.",
+    line: "A standing board's argument: its asks and recommendations on the desk; not law until Will rules.",
     binds: "No; read the other boards' before you contradict them.",
     weight: "informs",
   },
   {
     id: "ruling",
     badge: "RULING",
-    line: "What Will said, verbatim and dated (rulings.md, the record).",
+    line: "What Will ruled for one component or page: the rule it holds today, and why.",
     binds:
-      "No; history. When a ruling and the bible disagree, the bible is wrong and that is a finding.",
+      "No; an exploration may reopen one and says so. When a ruling and the bible disagree, the bible is wrong and that is a finding.",
     weight: "informs",
   },
   {
@@ -365,64 +366,64 @@ function precedentInfluences(): Influence[] {
   return out;
 }
 
-/** PROPOSAL: a board's settled argument under docs/specs. */
+/**
+ * PROPOSAL: a standing board's argument (its asks and the answer it
+ * recommends for each), not law until Will rules; the board is where he
+ * answers it. A document under docs/specs whose board still stands is that
+ * board's argument, already listed; one whose board has left is history,
+ * which the health strip counts.
+ */
 function proposalInfluences(): Influence[] {
-  return listSpecs().map((s) => ({
-    id: `proposal:${s.slug}`,
-    title: s.title,
+  const standing = new Set<string>(SANDBOX.map((r) => r.id));
+  const boards: Influence[] = SANDBOX.map((r) => ({
+    id: `proposal:${r.id}`,
+    title: r.title,
     level: "proposal" as const,
     scope: "board" as const,
-    source: "md" as const,
+    source: "ts" as const,
     author: "agent" as const,
-    summary:
-      s.status === null
-        ? "A board's argument; not law until Will rules on it."
-        : inlineText(s.status),
-    visibleAt: `/design/lab/proposals/${s.slug}`,
-  }));
-}
-
-/**
- * RULING: two halves that used to live apart. Will's dated words
- * (`rulings.md`, which until this round lived only in memory files a worktree
- * cannot see) and the board record's line per decided touchpoint.
- */
-function rulingInfluences(): Influence[] {
-  const spoken: Influence[] = listRulings().map((h) => {
-    const [date] = h.text.split(" · ");
-    return {
-      id: `ruling:${h.id}`,
-      title: h.text,
-      level: "ruling",
-      scope: "global",
-      source: "md",
-      author: "Will",
-      summary: firstSentence(
-        (sectionOf(readDoc("docs/design/rulings.md").body, h.id) ?? "")
-          .split("\n")
-          .slice(1)
-          .join("\n"),
-      ),
-      visibleAt: `/design/library/rulings#${h.id}`,
-      ruledOn: /^\d{4}-\d{2}(-\d{2})?$/.test(date.trim())
-        ? date.trim()
-        : undefined,
-    };
-  });
-  const recorded: Influence[] = RULINGS.map((r) => ({
-    id: `ruling:record/${r.id}`,
-    title: r.title,
-    level: "ruling",
-    scope: r.board ? "board" : "surface",
-    source: "ts",
-    author: "Will",
     summary: r.why,
-    visibleAt: r.board ? `/design/lab/${r.id}` : "/design/library/rulings",
-    ruledOn: /^\d{4}-\d{2}-\d{2}$/.test(r.ruled) ? r.ruled : undefined,
+    visibleAt: `/design/lab/${r.id}`,
     surface: r.surface,
     enforces: r.lives,
   }));
-  return [...spoken, ...recorded];
+  const documents: Influence[] = listSpecs()
+    .filter((s) => !standing.has(s.slug))
+    .map((s) => ({
+      id: `proposal:${s.slug}`,
+      title: s.title,
+      level: "proposal" as const,
+      scope: "board" as const,
+      source: "md" as const,
+      author: "agent" as const,
+      summary:
+        s.status === null
+          ? "A board's argument; not law until Will rules on it."
+          : inlineText(s.status),
+      visibleAt: `/design/lab/proposals/${s.slug}`,
+    }));
+  return [...boards, ...documents];
+}
+
+/**
+ * RULING: what Will ruled for one component or page, one row of the rulings
+ * registry (`touchpoints.ts`) each: the rule it holds today as the summary,
+ * where it lives as what enforces it, and the rules page's rulings section as
+ * where a reader meets it. A standing board's row is a proposal until he rules.
+ */
+function rulingInfluences(): Influence[] {
+  return RULED.map((r) => ({
+    id: `ruling:${r.id}`,
+    title: r.title,
+    level: "ruling" as const,
+    scope: "surface" as const,
+    source: "ts" as const,
+    author: "Will" as const,
+    summary: r.ruled,
+    visibleAt: `/design/library/rules#ruling-${r.id}`,
+    surface: r.surface,
+    enforces: r.lives,
+  }));
 }
 
 /** LANDMINE: a ★ block in a system doc. A trap, never a decision. */

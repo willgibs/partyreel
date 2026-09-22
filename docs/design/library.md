@@ -26,8 +26,8 @@ builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
 | **PROGRAM** program | As process. | How a round works: lanes, light QA, unlimited resources, rising tides, nothing protected. |
 | **GUIDANCE** guidance | No; a departure is flagged on the board. | The craft stack and the skills: the default you depart from on purpose. |
 | **PRECEDENT** precedent | No; rebuild it in a better exploration and say what you broke. | What shipped and why it is shaped so (the system docs' chapters). |
-| **PROPOSAL** proposal | No; read the other boards' before you contradict them. | A board's argument (`docs/specs/<board>.md`); not law until Will rules. |
-| **RULING** ruling | No; history. When a ruling and the bible disagree, the bible is wrong and that is a finding. | What Will said, verbatim and dated (`rulings.md`, the record). |
+| **PROPOSAL** proposal | No; read the other boards' before you contradict them. | A standing board's argument: its asks and recommendations on the desk; not law until Will rules. |
+| **RULING** ruling | No; an exploration may reopen one and says so. When a ruling and the bible disagree, the bible is wrong and that is a finding. | What Will ruled for one component or page: the rule it holds today, and why. |
 | **★** landmine | Know it before you touch its surface. | A silent breakage if reverted; never a design decision. |
 
 ## The law
@@ -232,6 +232,7 @@ The default you leave on purpose, never a wall. The whole of it is
 - [The craft stack](guidance.md#the-craft-stack)
 - [Skills](guidance.md#skills)
 - [Inspiration: the Mobbin MCP](guidance.md#inspiration-the-mobbin-mcp)
+- [Standing preferences](guidance.md#standing-preferences)
 - [Boards: the review surface](guidance.md#boards-the-review-surface)
 - [The screenshot gate](guidance.md#the-screenshot-gate)
 - [The departure note](guidance.md#the-departure-note)
