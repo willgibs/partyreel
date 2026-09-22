@@ -8,7 +8,6 @@ import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
-import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
 
@@ -50,7 +49,6 @@ const REGISTERED: readonly BoardSpec[] = [
 
   MEDIA_VIEWER,
   HOST_CURATION,
-  REEL_STUDIO,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,
