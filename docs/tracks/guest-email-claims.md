@@ -1,6 +1,6 @@
 ---
 track: guest-email-claims
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ae89033a"          # the launch-prep SHA the branch was cut from
 board: none            # production, wave 1 of the guest identity round: the claim ticket on the dashboard, the profile default, legal and help; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -191,30 +191,46 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: every open call was resolved with the brief's recommended answer and shipped (listed under Handoff's "Calls his to overrule"); nothing here rose to a genuinely new one-way-door decision.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/profiles-social.md`: the opening model paragraph now says attendance publishes NOTHING UNTIL CHOSEN (`profile_shown_events`, opt-in, replacing the `profile_hidden_events` opt-out description); the Surfaces line gains the dashboard's claim card; "Where it lives" gains the `20260922122000_profile_shown_events.sql` migration; the "Attendance is not a capability grant" and "attended arm's covers re-prove their own scope" invariants now name `profile_shown_events` and the `verified_at` belt; the Gotchas line on `getMyAttendedEvents` reads as a show-toggle, not a hide-toggle.
+- `docs/systems/host-app.md`: one new paragraph under "Dashboard landing" (after the two edge states, before "## Events & the create flow") documenting the claim ticket: what renders it, the four actions, the confirmation rule, and the `/welcome` name-prefill interaction with the nameless-profile redirect.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now bucket — From `guest-email-claims` (2026-09-22): two pre-existing help articles this lane passed through but does not own the fix for (`profiles-guest-lists-and-following.mdx`'s "Following hosts" section, `your-public-profile-following-and-blocking.mdx`'s "Following" section) still say a followed host's published events "show up under the Following chip on your dashboard"; that chip left the dashboard at `home=pulse` (2026-09-20, `host-app.md` "Dashboard landing" — the events still show under "Your events", just not behind a chip). A `help-sync` pass should drop the chip reference in both.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Synced with `launch-prep` at `d0a78c96` on this branch, past both wave-1 siblings: `guest-email-server` (merged `e48ce3e1`, recorded `d554ef82`) and `guest-email-door` (merged `d6b65fe9`, recorded `737b37d8`). Pushed throughout.
+- Every claim below names its artifact so it is checked, not believed.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok (227 components, 162 contracted, 120 contract tests, 18 policies); the specimen collector ok (140 specimens on 101 entries); `pnpm typecheck` ok; `pnpm lint` ok, exit 0 (9 known warnings post-sync, none in a file this lane touched — the baseline moved from 10 to 9 because the door lane's merge fixed one); `pnpm test` ok, 337 files, 3664 passed / 2 skipped, 0 failing (log: `/tmp/test-out3.txt` in this lane's own worktree run); `pnpm build` ok, 257 static pages, exit 0 (log: `/tmp/build-out2.txt`). `pnpm lab:smoke --base http://localhost:3135` ok: 424 checks, 0 failing. No `lab:demo` (board: none).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = this manifest's `owns` (20 paths, including the two help articles added to it below) plus eight exception files, every one because of, and only because of:
+  - `src/app/(app)/account/social-actions.ts`, `src/lib/db/queries/social.ts` — the Orchestrator's live authorization (mid-lane message, after the server merge) to delete exactly two one-merge scaffolding aliases nothing else calls: `unhideEventFromProfileAction` and `AttendedEventSetting.hiddenFromProfile`. Nothing else in either file touched.
+  - `src/app/(app)/account/page.tsx` — one paragraph's copy (the "Events you joined" card description, next to `AttendedEventsVisibility`) swapped to this round's ruled sentence ("Events you joined are private until you turn one on here. Turning one off never removes you from that event's own guest list (the host controls that)."); no other lane owns this file this round, and shipping the switch without this line meant the page said "Choose which show on your profile" beside a switch that now defaults OFF, describing the OLD opt-out model.
+  - `src/lib/constants/legal.ts` — the version/date/changelog-comment bump for both documents (privacy and terms to 1.5, 2026-09-22), the pre-authorized one-line-each exception named in this lane's own brief.
+  - `src/app/(dev)/design/rules/component-notes.ts` — three new `for` lines (`claims-card.tsx`, `claims.ts`, `attended-events-visibility.tsx`) that `gallery.test.ts` requires of any component carrying a contract test; all three are this lane's own new or newly-contracted files.
+  - `docs/design/library.md`, `src/app/(dev)/design/rules/rules.generated.json` — the committed artifact `pnpm design:rules` regenerates from the contract tests and notes above; mechanical, not hand-edited.
+- Items: board `none` — this is wave 1's wiring of an already-ruled model (rulings.md "guest identity," 2026-09-22), not a lab exploration, so there is no verdict-id list.
+- Built, one line each with its artifact:
+  - The claim ticket: `getMyClaimableGuestRows()` (`src/lib/db/queries/claims.ts`) calls `list_guest_rows_by_email` and GROUPS its rows by event (a caller can hold more than one guest row at one event); `ClaimsCard` (`src/components/app/dashboard/claims-card.tsx`) renders it above the events feed in `dashboard/page.tsx`, with `Claim`/`Not mine` per row, `Claim all` (sends `null`, no confirmation), `Finish` (confirms only when something would be left unclaimed, naming those events and the photo count); `finishClaimsAction` (`src/app/(app)/dashboard/claims-actions.ts`) calls `claim_guest_rows_by_email` always and `disown_guest_rows_by_email` only when its list is non-empty (the RPC raises on an empty/null array by design). 10 tests in `claims.test.ts`, 10 in `claims-card.test.tsx`, all green.
+  - The welcome prefill: `/welcome` (`src/app/(app)/welcome/page.tsx`) now also reads `getMyClaimableGuestRows()` and falls back to the most recent claimable row's typed name when the OAuth metadata carries none; `needsDisplayName`/`shouldShowWelcome` untouched, `src/lib/welcome.ts` untouched (no line needed).
+  - The profile-default switch: `attended-events-visibility.tsx` reads `shownOnProfile` (default false) and calls `showEventOnProfileAction`/`hideEventFromProfileAction`; 6 tests in the new `attended-events-visibility.test.tsx`, all green (default-off, both toggle directions, the revert-on-failure path, the empty state).
+  - Legal: `legal-privacy.tsx` and `legal-terms.tsx` to version 1.5 (verified rendering live on `/privacy` and `/terms` at `http://localhost:3135`): the guest-information row on the unconfirmed address, the local-storage per-event flag, the attribution-line claim/disown sentence, the profile-attendance opt-in correction in three places across the two documents (a pre-existing opt-out description this round's own change made stale, not something asked for by name, but left uncorrected it would have shipped a legal document contradicting the product).
+  - Help: all 7 owned articles updated and verified rendering live (`/help/<slug>` at `http://localhost:3135`): the five original plus the two the Orchestrator added to `owns` mid-lane (`your-public-profile-following-and-blocking.mdx`, `messages-guests-might-see.mdx`); the latter's door-flow quotes were written before `guest-email-door` merged (plain prose, to keep `help-ui-labels.test.ts` green against a tree that did not have the strings yet) and upgraded to real `<UiLabel>` quotes once the door lane's merge landed the exact source strings (`git log` on this branch shows both commits).
+- Calls his to overrule, one line each:
+  - The claim ticket's confirm-dialog sentence: "Permanently delete the N photos and videos added under your email at these M events?" with the event names listed in the description below it, "Delete and finish" / "Go back" — built from the brief's given template; not verified live (no seeded claimable rows exist to drive it against a real account — see "Look at first").
+  - The toast's photo count: computed CLIENT-SIDE as the sum of `uploadCount` across the rows actually being claimed, not from `claim_guest_rows_by_email`'s own return value (which counts claimed guest ROWS, a different unit than "photos"). Reads correctly either way; flagged because the brief did not specify which number "N" in "Added N photos to your account." means.
+  - The per-row `Claim`/`Not mine` buttons toggle back to undecided on a second click of the active one (a nicety not asked for; cheap and reversible).
+  - The welcome page's name-prefill precedence: an OAuth-supplied name (Google's `full_name`/`name`) wins over a claimable row's typed name when both exist; only the claimable row is used when OAuth gives nothing. The brief did not order the two sources.
+  - `account/page.tsx`'s one-paragraph copy swap (see the lane-check exception above) — his to overrule like any other copy in this brief.
+- Help articles this lane's OWN changes make stale: none found (the two stale references found in owned files predate this round and are listed under Deferred instead, since this lane did not cause them and does not own the fix).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the claim ticket has never been driven against real seeded rows (none existed on the synced tree and seeding them is the Orchestrator's SQL, not this lane's per the brief) — the confirm dialog, the grouping display and the toast are covered by 10 mocked component tests in `claims-card.test.tsx` instead; a first live pass on a disposable event with a names-mode door, an optional email typed at least twice (two devices/sessions, same address, same event) and a second event left untouched would exercise the grouping, the implicit-unclaimed path and the real RPC round trip in one go. The attended-events switch is live-testable today (a real account with a real attended event) and was only unit/component-tested here for the same credential reason (Google OAuth from `localhost:3135` bounces to the production callback URL, not back to the dev server, and typing a password or OTP is off-limits).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Wave 1's third lane of the guest identity round (rulings.md "guest identity," 2026-09-22): the dashboard's claim ticket (`getMyClaimableGuestRows` grouping `list_guest_rows_by_email` by event, `ClaimsCard` with Claim/Not mine/Claim all/Finish and a named confirmation before anything unclaimed is released, `finishClaimsAction` wiring `claim_guest_rows_by_email`/`disown_guest_rows_by_email`), the `/welcome` name prefill from a claimable row, the profile-default switch rewired to `shownOnProfile` after the server lane's merge (its two one-merge aliases deleted), legal to 1.5 and seven help articles brought current (two added to this lane's `owns` mid-round for the wire's and the door's fallout), `profiles-social.md` and `host-app.md` refined in place. Gate green throughout (see Handoff); `lab:smoke` 424/0. One ROADMAP line deferred (a pre-existing stale "Following chip" mention in two help articles, not this lane's to fix). No migrations, assets or env changes.
