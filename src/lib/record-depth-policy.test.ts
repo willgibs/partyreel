@@ -1,5 +1,5 @@
 // @policy: engineering · The record is a snapshot; git is the history
-// @refuses: a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 120 lines without its round section, a CLAUDE.md over 150 lines.
+// @refuses: a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -20,12 +20,12 @@ describe("the record's depth", () => {
     expect(existsSync(join(process.cwd(), "docs/CHANGELOG.md"))).toBe(false);
   });
 
-  it("keeps STATUS a snapshot: the current round, the previous round, under 120 lines", () => {
+  it("keeps STATUS a snapshot: the current round, under 80 lines, no previous round", () => {
     const body = read("docs/STATUS.md");
-    expect(lineCount(body)).toBeLessThanOrEqual(120);
+    expect(lineCount(body)).toBeLessThanOrEqual(80);
     expect(body).toMatch(/^\*\*Updated:\*\* \d{4}-\d{2}-\d{2}/m);
     expect(body).toMatch(/^## The current round/m);
-    expect(body).toMatch(/^## The previous round/m);
+    expect(body, "a snapshot holds no previous round").not.toMatch(/^## The previous round/m);
   });
 
   it("keeps CLAUDE.md, the per-session tax, at 150 lines or fewer", () => {

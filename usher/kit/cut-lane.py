@@ -66,11 +66,13 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
 - Gates on the synced tree, each on its own exit code
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each
+- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
 """
