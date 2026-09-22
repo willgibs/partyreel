@@ -5,7 +5,7 @@
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
-> ids, never the text), the rulings once they land (the bible, `docs/design/rulings.md`).
+> ids, never the text), the rulings once they land (the rule each made: the bible, the Library, a system doc).
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
