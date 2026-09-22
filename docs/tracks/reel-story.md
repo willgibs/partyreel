@@ -1,6 +1,6 @@
 ---
 track: reel-story
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0abb6459"          # the launch-prep SHA the branch was cut from
 board: reel-story      # a new board: the reel round, the marketing story
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -184,19 +184,40 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- STATE (checkpoint, 2026-09-22, mid-build): registered (`touchpoints.ts` RulingId/SandboxId/RULINGS/DESK_ORDER after `admin-triage`, `registry.ts`, `boards.ts`) and the board built whole (spec.ts's seven asks, fixtures.ts, surfaces.tsx, board.tsx) on real components throughout. NEXT: run the gate (design:rules, specimens, typecheck, lint, test, build, lab:smoke, lab:demo), fix whatever it finds, eyeball the board in the browser at 1440 and 375, then fill the rest of this Handoff and Record and hand off.
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board at `a5bef33f` (the gate green pre-sync), synced with `launch-prep` at `e9358b7a` (a merge, not a rebase; both pushed to `origin/lp/reel-story`). `launch-prep` had moved: `reel-engine-live`, `reel-view`, `reel-screen` and `reel-cut` all landed while this lane was building; the merge touched only `docs/design/library.md` (regenerated, never hand-resolved) and `touchpoints.ts`'s `DESK_ORDER` head comment (both sides' explanations combined; every sibling's own array line, including `reel-story` right after `admin-triage`, merged clean with no marker conflict).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok (`docs/design/library.md`, `21 standing boards`); the specimen collector ok (140 specimens on 101 entries, unchanged); `pnpm typecheck` ok; `pnpm lint` ok (0 errors, 9 known warnings, none in a `reel-story` file); `pnpm test` ok (350 files, 3867 passed, 1 pre-existing skip); `pnpm build` ok (138 route lines, exit 0); `pnpm lab:smoke --base http://localhost:3136` ok (479 checks, 0 failing, `/design/lab/reel-story` and all seven `?session=reel-story.<ask>` routes 200, the reading budget 525/1200 words); `pnpm lab:demo --board reel-story --base http://localhost:3136` ok (7 steps, 0 failing, "Every step draws its options", tallest `arc` at 2.0 screens).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly `docs/tracks/reel-story.md`, `docs/design/library.md`, `src/app/(dev)/design/sandbox/reel-story/{board,fixtures,spec,surfaces}.tsx|ts`, and this lane's own lines in `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/touchpoints.ts` (the registration exception). No other exception; nothing outside `owns` was touched.
+- The seven asks, one line each (every option is the real copy in the real piece: `CtaBand`/`SectionShell` verbatim, `CanvasReelPlayer`/`buildReelProps` over `gallery-fixtures.ts` for the "real engine" claims, `MAX_REEL_SECONDS` for the pricing numbers, `event-door.tsx`'s own door untouched beside the reel column):
+  - `thesis`: recommend `grows` ("Every event has a reel.") on the home's close (`CinemaClose`'s own `CtaBand`) and the feature hub's reel door (`feature-door.tsx`'s `CARD_COPY_SCRIM` and poster, redrawn to take the line as a prop).
+  - `arc`: recommend `live-first` (the live reel, the screen, the cut, in that order) as three abbreviated real chapters, the live-reel and screen chapters drawn by the real engine over the shared album.
+  - `teaser`: recommend `engine` (the demo album's live reel through `CanvasReelPlayer`) over `film` (the real `hero-candidate-02` render, still used) and `poster` (a still frame with a play mark).
+  - `pricing`: recommend `renamed` ("Cut length" / "Cut watermark") over consolidating to one `"Your reel"` row or dropping the group to a footnote; all three read `MAX_REEL_SECONDS` live (30/60/60).
+  - `steps`: recommend `grow-cut` ("Watch the reel grow" / "Make your cut") on the loop's own numbered rail (5 or 6 slots, host and guest side by side).
+  - `events`: recommend `wall` (the live reel, real engine, for each type) over `cut` (a guest's own clip) or `gone` (the column drops, the door stands alone); the demo door itself (`River`, `QR_DOOR_FRAMES`) is unchanged on every option, per the standing ruling.
+  - `help`: recommend `the-reel` (already the footer's own name today) over `reels-cuts` or `live-reel`, shown as the header panel's entry, the category strip cell and the full category pane, the pane on paper ground to match the real hub.
+- Calls his to overrule, one line each (every one of the seven above; nothing here wires production, so all seven are open):
+  - `thesis=grows`: the smallest true rewrite of the retired line; `verbs` sells the mechanism, not the promise, if he wants the guest's act named first.
+  - `arc=live-first`: cause before effect; `cut-first` is the stronger hook for a reader arriving from a shared link.
+  - `teaser=engine`: proves the reel is alive with the real draw; `film` reads more cinematic if the section is a hero moment rather than a proof point.
+  - `pricing=renamed`: the two numbers still differ by plan, so the row still earns its place; `footnote` is more honest if a matrix should show only what is gated.
+  - `steps=grow-cut`: an honest verb on both sides with six steps kept; `screen-step` names the one real lever left to a host if that reads truer than an ambient description.
+  - `events=wall`: the one new fact every type page can now say; `cut` keeps the column's personal, shareable register if that matters more than the live fact.
+  - `help=the-reel`: already live in the footer, one direction of change; `live-reel` heads off a guest confusing the always-on reel with a personal cut.
+- The help articles this lane makes stale: none directly (lab-only, nothing wires production); IF `help=the-reel` or a sibling lands, `content/help/the-highlight-reel.mdx` and its slug redirect are the sweep lane's (section E of the plan), never this lane's or a `help-sync` follow-up's to guess ahead of the wiring round.
+- Assets requested from Will: none. The `teaser=film` and the door's own poster options both reuse the existing rendered candidate (`hero-candidate-02`, ASSETS row 1, parked); no new asset was needed for any of the seven asks.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `arc` (the tallest and most novel, the three chapters replacing four sections built for the old stored reel), then `teaser`'s `engine` option (the claim that most needs seeing to believe, the real canvas engine drawing where a stored render used to play), then `thesis` (the smallest but most load-bearing change, reused in two real places).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). The marketing story of the reel landed as a new lab board,
+wave 2 of THE REEL ROUND: seven asks (the thesis line, the /reel page's arc, the home's teaser and the
+hero film's role, the pricing rows' words, the how-it-works steps, the events pages' reel column, the
+help category's name), every option drawn on the real components (`CtaBand`, `SectionShell`,
+`CanvasReelPlayer`/`buildReelProps` over the shared album, `event-door.tsx`'s own untouched door,
+`MAX_REEL_SECONDS`), at 1440 with 375 on the knob; nothing wired production. Registered directly after
+`admin-triage` in `touchpoints.ts`'s RulingId, SandboxId, RULINGS and `DESK_ORDER`, `registry.ts` and
+`boards.ts`, per this round's placement rule (several wave-2 boards registering at once). Seven calls his
+to overrule, each with the runner-up named; no assets requested; no help article rewritten (lab-only).
+Handed off at `a5bef33f` (board) synced to `e9358b7a` (launch-prep).
