@@ -3,7 +3,7 @@ import type { Control } from "@/components/lab/board-spec";
 
 /**
  * THE MARKETING STORY OF THE REEL (THE REEL ROUND, wave 2; Will, 2026-09-22;
- * rulings.md "the reel, reconceived"). Every marketing surface today sells a
+ * "the reel, reconceived"). Every marketing surface today sells a
  * host-made, post-event, stored reel: "Every event ends with a reel.", "From
  * the first scan to the final cut", "Pick a style. The reel cuts itself,
  * ready to share.", "Every guest can take the reel home." None of that is

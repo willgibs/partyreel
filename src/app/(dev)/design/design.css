@@ -59,9 +59,9 @@
 
   WHAT IS NOT HERE (the library round, 2026-09-02): a board's own CSS lives
   beside the board under sandbox/ (album-hero/hero.css, river-visual/river.css),
-  imported by the board so it leaves with it, and the sheets of ruled rounds went with
-  their boards (git keeps them; docs/design/rulings.md keeps the
-  rulings). This sheet declares NO @keyframes: keyframe names are
+  imported by the board so it leaves with it, and the sheets of ruled rounds went
+  with their boards, rulings and all, since git keeps them. This sheet declares
+  NO @keyframes: keyframe names are
   document-global and the lab once shadowed nine production names for the rest
   of a session on every /design visit; src/app/keyframe-uniqueness.test.ts
   holds that at zero. The production marketing grammar reaches the lab from

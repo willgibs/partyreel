@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./scene";
 
 /**
- * THE ALBUM'S LIVING TILE (Will, 2026-09-22, rulings.md "the reel,
+ * THE ALBUM'S LIVING TILE (Will, 2026-09-22, "the reel,
  * reconceived"): the reel is no longer something a host makes; it is alive
  * from the third reel-eligible item, spliced within seconds of an upload,
  * playing from a tile at the album's head and in a full-screen view. This

@@ -5,12 +5,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * THE NAME GATE IS WHOLE (name-gate, 2026-09-22): Will's ruling (rulings.md
- * "the morning after the identity round") is that a nameless account must
- * never move around the app as a normal user, "even if one character" is all
- * the name rule asks. Before this gate, `/account` and every
- * `/dashboard/[eventId]/*` room rendered normally for a nameless profile —
- * only `/dashboard` and `/dashboard/new` redirected.
+ * THE NAME GATE IS WHOLE (name-gate, 2026-09-22): Will's ruling is that a
+ * nameless account must never move around the app as a normal user, "even if
+ * one character" is all the name rule asks. Before this gate, `/account` and
+ * every `/dashboard/[eventId]/*` room rendered normally for a nameless
+ * profile — only `/dashboard` and `/dashboard/new` redirected.
  *
  * This is a structural pin, not a page test: it reads source, so it never
  * needs a signed-in session (one cannot be minted locally — Google bounces to

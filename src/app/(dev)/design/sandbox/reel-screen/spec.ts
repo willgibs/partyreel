@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * THE VENUE SCREEN, ROUND ONE (2026-09-22).
  *
- * A NEW BOARD OF THE REEL ROUND (docs/design/rulings.md, "the reel,
+ * A NEW BOARD OF THE REEL ROUND ("the reel,
  * reconceived"): Will's own line, "Could play at an event in real-time on a
  * screen or something", and his ruling on it, "A first-class screen mode". A
  * laptop on the venue's television plays the event's reel full bleed with the

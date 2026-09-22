@@ -232,8 +232,8 @@ function EventGround() {
  * THE HELD SHEET'S CHROME, QUOTED: `entry-shell.tsx`'s own two postures, a
  * bottom sheet in a hand and a full-height panel from a desk's right edge
  * (`ui/sheet.tsx`'s `w-3/4 max-w-md`, `rounded-t-float` on the phone half),
- * both HELD (no X, no handle: the door has "No exit", rulings.md "the door
- * as three steps"). `fixed`, never `absolute` (`guest-capture`'s own
+ * both HELD (no X, no handle: the door has "No exit"). `fixed`, never
+ * `absolute` (`guest-capture`'s own
  * landmine, verbatim: "the frame IS the viewport... an absolute box inside a
  * min-h-full column pins to the bottom of the CONTENT instead"), so this
  * pins to the frame's true foot and true right edge whatever `EventGround`

@@ -54,7 +54,7 @@ export type EntryModalHandle = {
 };
 
 /**
- * THE GUEST DOOR: ONE HELD SHEET, THEN THE ALBUM (Will, 2026-09-21, rulings.md "the door as three
+ * THE GUEST DOOR: ONE HELD SHEET, THEN THE ALBUM (Will, 2026-09-21, "the door as three
  * steps"). The welcome, the password when the event has one, the name, the email held until it is
  * confirmed when the host requires verified emails, then the first upload asked actively inside
  * this same sheet. The nine-tile teaser sits blurred behind it the whole way, which is the point:
@@ -112,7 +112,7 @@ export const EntryModal = forwardRef<
     /** `seedFor(host_id)`, computed server-side (page.tsx via
      *  `getHostAvatarSeed`) — never the raw host id itself. Paints the
      *  byline's Avatar the same colour that host wears everywhere else
-     *  (docs/design/rulings.md, the sixth batch, `seed=account`). Null exactly
+     *  (the sixth batch, `seed=account`). Null exactly
      *  where `hostAvatarUrl` is: a locked page's redacted shellEvent, or no
      *  host on the event at all. */
     hostSeed?: string | null;
@@ -828,8 +828,8 @@ function WelcomeStep({
             {host && (
               <>
                 {/* Every host wears their seeded colour here now, photo or not
-                    (`the-crowd=full`, docs/design/rulings.md the sixth
-                    batch) — the raw <img> used to skip entirely without an
+                    (`the-crowd=full`, the sixth batch) — the raw <img> used to
+                    skip entirely without an
                     avatar; the fallback initial means this byline is never
                     bare again. */}
                 <Avatar seed={hostSeed ?? undefined} size="sm">

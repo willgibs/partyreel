@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * THE PROFILE-SETUP BOARD, ROUND ONE (2026-09-22).
  *
- * A NEW BOARD ON HIS WORD (docs/design/rulings.md, "guest identity" and "the
+ * A NEW BOARD ON HIS WORD ("guest identity" and "the
  * morning after the identity round"): "I'd like to run most of this through
  * the lab once our foundation is complete (including the flow around
  * '...event claim UI, profile setup, etc - this introduces lots of new UI and

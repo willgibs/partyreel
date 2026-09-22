@@ -18,7 +18,7 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * (content-policy.test.ts), and per-file limits are not a marketing claim.
  *
  * ★ IT CLOSES CHAPTER ONE, AND THE PHOTOGRAPH IS WHY (Will, 2026-09-18,
- * docs/design/rulings.md "full-image sections are chapter transitions"): "I
+ * "full-image sections are chapter transitions"): "I
  * think full image backgrounds sections should commonly serve as chapter
  * transitions, so we go straight from dark to light or vice versa less often.
  * It makes the transition much less harsh... For this specific instance, we

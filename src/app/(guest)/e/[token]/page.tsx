@@ -316,8 +316,8 @@ export default async function GuestEventPage({
       : event;
 
   // Host avatar + seed for the "Hosted by" byline: a server-side admin read so host_id stays off the
-  // client (only the presigned URL and the one-way hash are passed down — `seedFor`,
-  // docs/design/rulings.md the sixth batch). Gated on a set name, since the byline hides without one
+  // client (only the presigned URL and the one-way hash are passed down — `seedFor`).
+  // Gated on a set name, since the byline hides without one
   // (Phase 3), so this is a no-op for nameless-host events (an event with no set host name has no
   // byline to colour either).
   const hostAvatar = shellEvent.host_display_name?.trim()

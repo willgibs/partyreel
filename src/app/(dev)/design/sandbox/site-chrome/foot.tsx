@@ -38,7 +38,7 @@ import type { FootAfter, FootPhone } from "./fixtures";
  * is never hidden for want of one: that coupling is gone, not in question.
  *
  * ★ `text-section`, NOT `text-chapter` (Will, 2026-09-19, ruling the
- * walkthrough's close, docs/design/rulings.md fourth batch): "the footer
+ * walkthrough's close, fourth batch): "the footer
  * 'Explore a demo event.' should be a heading size down from these closing
  * section H2s to create hierarchy". `marketing-footer.tsx` carries the fix;
  * this fork did not until now.

@@ -111,8 +111,8 @@ export const ALSO_REACHED = " Also reached by ";
  * ruling did not lose an argument, the ground it was standing on went, and its
  * three siblings went the same way in the same paste (`expiry=host` moot,
  * `badge=mark` and `host-lens=badge` carried onto the unverified name). A
- * succession is recorded where his words are (docs/design/rulings.md, "the
- * identity reshape") and NEVER as a badge here, because a hold that has been
+ * succession is recorded where his words are ("the identity reshape") and
+ * NEVER as a badge here, because a hold that has been
  * superseded leaves no question to badge: this file only says which earlier
  * ruling a still-open question must be read against. Which is also why the
  * reshape's own reach, every upload carrying a name, adds nothing below: the
@@ -134,7 +134,7 @@ export type Outcome = "open" | "stood" | "overrode";
    `by` and `since` for the fifth batch through the closing sitting's third; every entry that spread one has
    been folded into its question's own context by the audit's four reshape lanes, and the file's own rule is
    that a handle leaves with the last entry that spreads it. A future pass that fills the map declares its own
-   handle beside its entries; the batches themselves are told in rulings.md and the CHANGELOG. */
+   handle beside its entries; the batches themselves are told in the merge commits' own history. */
 
 /**
  * THE ASKS AN EARLIER RULING HAS REACHED, in desk order, across four passes.
@@ -174,7 +174,7 @@ export type Outcome = "open" | "stood" | "overrode";
  * backdrop moved under them.
  */
 export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
-  /* ── the reel round (Will, 2026-09-22, in chat; rulings.md "the reel,
+  /* ── the reel round (Will, 2026-09-22, in chat; "the reel,
      reconceived"): the reel is a live montage of the visible album, a cut is a
      file anyone makes and shares from a device, the venue screen is
      first-class, and a video plays muted in the loop. Five standing asks are
@@ -223,9 +223,9 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
   // the ask it pointed at (this file's own contract, below: a badge pointing
   // at a question nobody is asking any more is worse than an answer left
   // orphaned) — `you=?` was his own outright answer, not a still-open question
-  // for a later ruling to reach, and it is wired (`home-wiring`, `docs/design/
-  // rulings.md`). Round two's `empty`, `first` and `busy` are too new for
-  // anything to have overtaken them yet.
+  // for a later ruling to reach, and it is wired (`home-wiring`). Round two's
+  // `empty`, `first` and `busy` are too new for anything to have overtaken
+  // them yet.
 
   /* ── guest-shape ─────────────────────────────────────────────────────── */
 
@@ -291,8 +291,8 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * question IS the new ruling), and `_window.json` echoes all six on the
    * boards they overrode. The board retires at `app-pricing-wiring`, so the
    * badges go with the asks, on the `app-vocabulary` precedent above; what
-   * they decided lives on in the ledger, in rulings.md, and in the six lines
-   * this batch's own rulings write across the standing boards below. */
+   * they decided lives on in the ledger and in the six lines this batch's own
+   * rulings write across the standing boards below. */
 
   /* ── first-event ─────────────────────────────────────────────────────────
    * ★ THE BOARD THE DESK PROVED ITS JOIN ON, ANSWERED WHOLE AND GONE. Seven of
@@ -307,8 +307,8 @@ export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
    * go with the asks, on the `app-vocabulary` precedent: a badge pointing at a
    * question nobody is asking any more is worse than an answer left orphaned
    * (overtaken.test.ts, the one failure this exists to catch). What they
-   * decided lives in the ledger, in rulings.md, and in the eight rulings this
-   * board now writes across the standing boards below.
+   * decided lives in the ledger and in the eight rulings this board now
+   * writes across the standing boards below.
    *
    * ★ AND ITS DEPARTURE MOVED `_desk/queue.test.ts`, which proved the desk's
    * real join on this board by name. That block now derives the board it proves
@@ -488,8 +488,8 @@ export const saysAsToday = (text: string | undefined): boolean =>
 /**
  * WHAT THE LEDGER SAYS BECAME OF IT. `open` while nothing is answered, `stood`
  * when the reserved word is held, `overrode` for any real option: an answer to
- * an overtaken question IS the new ruling (his contract, verbatim in
- * rulings.md). "Not clear to me" is not a decision, so it reads as open.
+ * an overtaken question IS the new ruling (his contract, verbatim).
+ * "Not clear to me" is not a decision, so it reads as open.
  */
 export function outcomeOf(choice: string | null | undefined): Outcome {
   if (

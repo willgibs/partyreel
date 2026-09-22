@@ -5,8 +5,8 @@
  * ★ HOME (2026-09-20, `avatar-mesh-wiring`, `seed-avatar` r2 wired): this
  * compositor lived at `src/app/(dev)/design/sandbox/seed-avatar/looks.ts`
  * while the board was measuring `mesh` against the wired `diagonal`; the
- * board retires with its ruling (`docs/design/rulings.md`, "the closing
- * sitting's second batch"), and the measurement moves here so the production
+ * board retires with its ruling ("the closing sitting's second batch"), and
+ * the measurement moves here so the production
  * contract can hold `background()`'s OWN `mesh` branch to the same standard
  * that picked it — the real composited pixel, not the coarser proxy
  * `gradient.test.ts` held every look to before this round

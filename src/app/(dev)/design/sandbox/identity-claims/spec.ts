@@ -3,8 +3,8 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./scene";
 
 /**
- * THE CLAIM TICKET (a NEW board on his word, 2026-09-22; rulings.md "the
- * morning after the identity round": "I'd like to run most of this through
+ * THE CLAIM TICKET (a NEW board on his word, 2026-09-22; "the morning
+ * after the identity round": "I'd like to run most of this through
  * the lab once our foundation is complete... this introduces lots of new UI
  * and flows"; the plan-review feedback on the same page: "new claim tickets
  * should be from the dashboard, not tucked under the accounts page. This'll
@@ -20,7 +20,7 @@ import { SCREEN } from "./scene";
  * address: Tom's leaving do, really hers, and a beach bonfire she never
  * attended, uploaded under her email by someone else.
  *
- * ★ THE TICKET CANNOT TELL THE TWO APART (rulings.md, verbatim: "the host
+ * ★ THE TICKET CANNOT TELL THE TWO APART (verbatim: "the host
  * can't see the attributed email of an unconfirmed account"). Both render as
  * ordinary rows; the distinction lives only in Priya's own memory, which is
  * exactly what lets `pass`, `confirm` and `after` show a mixed state, one

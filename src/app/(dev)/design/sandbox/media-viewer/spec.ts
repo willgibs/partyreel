@@ -4,9 +4,9 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * WHAT A PHOTOGRAPH OPENS AS, ROUND ONE (2026-09-19; RESHAPED 2026-09-21).
  *
- * Will (docs/design/rulings.md, 2026-09-19): the app and the guest pages are
- * unprotected, "absolutely everything is up for relitigation or reconcepting
- * from the ground up". This is the surface every album click in the product
+ * Will (2026-09-19): the app and the guest pages are unprotected, "absolutely
+ * everything is up for relitigation or reconcepting from the ground up".
+ * This is the surface every album click in the product
  * ends on, one component serving six galleries, so it is asked from the
  * foundation and PHONE FIRST: 375 by 812 is the default on every decision,
  * because a guest is standing at a party holding a phone, and 1440 is the knob,

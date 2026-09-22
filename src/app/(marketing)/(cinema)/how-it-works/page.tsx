@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 /**
  * THE WALKTHROUGH, rebuilt on Will's round-one picks (2026-09-19,
- * docs/design/rulings.md, "the third batch").
+ * "the third batch").
  *
  * Four beats, down from six, and each one does a different job:
  *

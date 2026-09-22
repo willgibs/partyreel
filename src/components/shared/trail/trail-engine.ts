@@ -758,8 +758,7 @@ export function factsOf(
  * decays, three entrances, three sizes and four phone answers; he answered each
  * one (2026-09-19) and the matrix collapses to the table below. A number here is
  * a RULING, so changing one is a design decision and not a tune: the board's
- * option tables retired with the board, and `docs/design/rulings.md` holds his
- * words.
+ * option tables retired with the board, and the table below holds his words.
  *
  *   density  d140  "less overwhelming while still providing the overlap that
  *                   keeps the trail continuous with no gaps"

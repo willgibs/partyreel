@@ -152,9 +152,9 @@ export default async function AccountPage({
   if (!profile) redirect("/login");
 
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
-  // Server-side SHA-256 of the account id (docs/design/rulings.md, the sixth
-  // batch, `seed=account`): one colour per person everywhere, never the raw
-  // id itself (src/lib/avatar/seed.ts).
+  // Server-side SHA-256 of the account id (the sixth batch, `seed=account`):
+  // one colour per person everywhere, never the raw id itself
+  // (src/lib/avatar/seed.ts).
   const seed = seedFor(profile.id);
   const [followingItems, blockItems] = await Promise.all([
     withAvatarUrls(following),

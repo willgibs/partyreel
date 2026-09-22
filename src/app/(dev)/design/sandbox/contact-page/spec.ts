@@ -3,7 +3,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * HOW SOMEONE REACHES A PERSON AT PARTYREEL, ROUND ONE (2026-09-19).
  *
- * Will (docs/design/rulings.md, "stack the lab"): /contact is one of five
+ * Will ("stack the lab"): /contact is one of five
  * surfaces cut on the free seats while deployments are capped, unprotected
  * like the rest of the app and the guest pages, "absolutely everything is up
  * for relitigation or reconcepting from the ground up." A board that keeps
