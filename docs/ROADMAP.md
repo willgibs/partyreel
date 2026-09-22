@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From the door ruling (2026-09-21): a profile-setup wizard when a new user first finds their profile page, claiming a unique handle and the rest the way the event wizard does; a lab exploration Will named at the ruling, cut when the desk is closed (no new board before then).
 - From the identity red-team (2026-09-21): the hub's Guests card counts profile-backed guests only ("0 contributors") while the album reads "from 4 guests" and the Guests room lists three named unverified guests; Will's call whether the card counts the named unverified (recommended: yes, the room and the album already do).
 - From the identity red-team (2026-09-21): a name-only guest whose session the flip dropped re-joins on the same device as a second guest row with the same name, so the guest list shows one person twice; `pr_device_id` already lives in localStorage: a device-keyed re-join (the same row) or a list de-dupe by name and device, Will's to pick.
 - From the identity red-team (2026-09-21): the lanes' localhost red-teams report to the production Sentry project as `environment=development` (four issues on 2026-09-21: `Calculator is not defined` from a mid-build worktree, the server lane's curl refusals); drop development events at `Sentry.init` (`enabled` only on Vercel) or point them at a second project.

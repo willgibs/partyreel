@@ -64,7 +64,7 @@ const DRAFT = defineExploration({
       question:
         "When should the offer to keep what she added first reach Priya?",
       context:
-        'Today it appears the instant a first upload finishes and stays until she acts or dismisses it, counting up as more land: "Keep your photo", then "Keep your 7 photos." Every option below moves only the trigger.',
+        'Today it appears the instant a first upload finishes and stays until she acts, counting up as more land. Since the door ruling (2026-09-21) that first upload happens inside the welcome sheet, so "first" is the album opening.',
       options: [
         {
           id: "first",
@@ -101,7 +101,7 @@ const DRAFT = defineExploration({
       question:
         "Should the ask sit in its own card, ride the photo it is about, or become the sheet's last screen?",
       context:
-        "Today it is a bordered card in the album's own slot: a heading, a sentence that counts what just landed, a button, a quiet way to dismiss it. Drawn here the instant her first photo has sent.",
+        "Today it is a bordered card in the album's own slot: a heading, a counting sentence, a button, a quiet dismiss. Since the door ruling (2026-09-21) the sheet she sent from is the welcome sheet; sheet-step names its last screen.",
       options: [
         {
           id: "card",
@@ -175,7 +175,7 @@ const DRAFT = defineExploration({
       question:
         "Once everything is confirmed, should Priya still be looking at the album, or somewhere new?",
       context:
-        "Today nothing moves: the moment card simply replaces the offer in the same slot and the album underneath is untouched. Drawn here at the instant her email confirms.",
+        "Today nothing moves: the moment card replaces the offer in the same slot and the album stays as it was. Drawn at the instant her email confirms. The door ruling (2026-09-21) leaves this as it is.",
       options: [
         {
           id: "album",
@@ -212,7 +212,7 @@ const DRAFT = defineExploration({
       question:
         "Should the name Priya typed at the door become her profile silently, or does she get a say?",
       context:
-        "Today the typed name is written the instant the claim runs, with no chance to change it; a handle is offered afterward, its own line on the moment card. Drawn here right after her email confirms.",
+        "Today the typed name is written the instant the claim runs, with no chance to change it; a handle is offered after, on the moment card. Since the door ruling (2026-09-21) every guest names themselves at the door, nothing unique claimed.",
       options: [
         {
           id: "silent",
