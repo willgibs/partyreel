@@ -176,30 +176,123 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **None that stop the round.** Every open call was taken and built, and each is listed under "Calls his to
+  overrule" in the Handoff with the reason and the cost of reversing it. Two are worth his eye because they
+  deviate from the brief's letter to keep its intent: the window's SEED (an index offset rather than a per-window
+  hash, because a per-window seed re-rolls the shared clip's scale at every handover) and the SPLICE (the current
+  window is re-opened on the clip playing now, because mutating only the upcoming window put an upload up to a
+  whole window away: measured at 2.58 s and 2 clips on the first arrival, and one arrival that had not appeared
+  inside 30 s).
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **None.** The reel's own home (`docs/systems/reel.md`) is born at the round's record, and `host-app.md`'s reel
+  section belongs to the sweep; nothing in this lane is a fact those docs hold yet. Every invariant this lane
+  creates is written where it binds: the hold guard's math in `layout.ts`, the two-layer completeness note in
+  `timeline.ts`, the retain rule in `asset-cache.ts`, the seed's 1e6 ceiling in `live/take.ts`, the handover in
+  `live/window.ts`, and the payload contract in `live/source.ts`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **The reel** · `indexOffset` moves from a structural extra in `layout.ts` onto `ReelProps` itself, once
+  `reel-types.ts` is free of the video lane.
+- **The reel** · the LOOP boundary is the one handover that is not seamless (a new loop means a new seed, so the
+  carried clip's Ken-Burns steps once): `reel-view`'s `loop` ask may want a deliberate beat there anyway, and if
+  it rules "nothing", carrying the previous loop's seed for that one clip is a half-hour follow-up.
+- **The reel** · the live reel's one-per-loop Sentry report when a loop's failure count crosses a threshold
+  (the plan's section C) rides the wiring lane that mounts the view; `onFailure(count)` is the seam.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Work commit `WORKSHA`, pushed on `lp/reel-engine-live`. `origin/launch-prep` had NOT moved since the cut
+  (`ef1c4b51`), so there is no sync-merge commit; `reel-engine-video` had not landed either, so the
+  Include-videos knob is a STUB (it changes a video's HOLD, from a photograph's to the surface's window, and the
+  motion arrives with that lane; nothing else in this lane has to change when it does).
+- Gates, each on its own exit code, on this tree: `pnpm design:rules` 0 (227 components, 1911 contracts, no
+  diff) · `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (140 specimens, no diff) · `pnpm typecheck`
+  0 · `pnpm lint` 0 (9 known warnings, none in a file this lane touched) · `pnpm test` 0 (3768 passed, 1 skipped,
+  342 files) · `pnpm build` 0 (258 pages) · `pnpm lab:smoke --base http://localhost:3132` SMOKELINE.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the owned paths, plus TWO registration lines,
+  which is the exception this manifest's brief grants (`register it the way reel-parity is registered`):
+  `src/app/(dev)/design/_data/nav.ts` (one TOOLS entry) and `src/app/(dev)/design/_data/catalog.test.ts` (one id
+  in the tool list). The tools INDEX page needed no edit: it reads the nav. No generated artifact moved
+  (`rules.generated.json`, `docs/design/library.md` and `specimens.generated.json` are all unchanged, because
+  the live player deliberately carries no `@contract-for:` marker yet).
+
+**The announced interfaces** (the wiring lanes code to these; every one is exported and typed):
+
+- `ClipSource` (`src/lib/reel/live/source.ts`), built by `createClipSource({ eventId, items?, ownIds?, windowSize?, pass?, cache?, load? })`:
+  `setItems(items) -> { added, dropped }` (the album's own payload; it SPLICES what arrived and DROPS what left, and
+  the first non-empty call is the seed, never an arrival) · `setOwnIds(set)` ("yours first", from the next loop) ·
+  `splice(ids)` · `drop(ids)` · `pendingCount()` · `itemFor(id)` · `isLive(id)` · `eligibleCount()` (the >= 3
+  threshold is the caller's) · `revision()` · `setCurrentWindow(i)` · `windowAt(i, look)` · `rewindowAt(from, clipId, look)` ·
+  `cutawayFrom(from, clipId, look)` · `prepare(window, { needs, frame, signal })` · `release(i)` · `dispose()` ·
+  `stats()`. It takes the album's item shape directly (`LiveMediaItem` in `live/items.ts` is a structural
+  SUPERTYPE of `GridMedia`, so a provider hands its array straight in and `reelEligible` lands the day
+  `toGridItems` carries it). It imports no style registry, so mounting a source costs the album nothing.
+- `LiveReelPlayer` (`src/lib/reel/engine/player-live.tsx`): `{ source, styleId, surface?, holdScale?, orientation?,
+  watermark?, includeVideos?, paused?, maxDim?, className?, onClipChange?, onFailure?, onFrame?, onReport? }`.
+  `paused` OMITTED means reduced motion decides; PASSED means the caller's control owns it. `onClipChange(item)`
+  is the caption and the tap-to-jump; `onFailure(count)` is cumulative and never silent; `onFrame(state)` reports
+  `{ globalFrame, localFrame, windowIndex, loopIndex, clipId, failures }` once a tick. It renders the canvas and
+  NO frame: the tile, the view and the screen each frame it themselves.
+- `ReelLook` (`live/window.ts`): `{ styleId, surface, holdScale?, orientation?, watermark?, includeVideos? }`.
+  `ReelWindow`: `{ index, loopIndex, startIndex, ids, props, plan, handoverFrame, handoverOffset, overlapIndex }`.
+- Knob defaults: surface `hand` (factor 0.70; `wall` is 1.00, the kits as designed) · `holdScale` 1 ·
+  window 6 clips · prefetch 2 ahead, release one behind · take pass 12 · video window 6 s x the surface factor ·
+  `watermark` false (the live reel is unmarked on every tier) · `includeVideos` false in the player, true in the
+  harness · style: moods only, a treatment falls back to Cinematic.
+
+**What the harness proved** (`/design/lab/tools/reel-live`, local fixtures, Chrome at :3132):
+
+SOAKBLOCK
+
+**Calls his to overrule on the alias, one line each:**
+
+- The window's seed is the LOOP's, with `planReel` honouring an `indexOffset` so a window is the exact slice of
+  the loop's plan: the brief's per-window hash would re-roll `panFrac`, and `baseZoom = 1 + 2*panFrac + 0.015`,
+  so the clip shared by two windows would jump ~5% in scale at every handover. With the offset the swap is
+  pixel-identical, pinned in `window.test.ts` for all 8 moods at both surfaces.
+- `indexOffset` is declared in `layout.ts` as a structural extra on the props, not a field on `ReelProps`,
+  because `reel-types.ts` belongs to the video lane this round. Absent, `planReel` is byte-for-byte what it was.
+- The hold guard clamps to the SUM of the two adjacent gaps plus two frames. It is a NO-OP for all 8 moods at
+  both surfaces (pinned), so no shipped reel's length or pixels move; it binds only on a pacing a board could ask
+  for, which is exactly what `timeline.ts` warned about.
+- A take's pass is SHUFFLED on the loop's seed and then de-clumped, not chronological. With no likes the brain's
+  score is dominated by recency, which is the same number every loop, so the reel would have played the identical
+  film for ever. The pass MEMBERSHIP still comes from the brain, so the newest are still in the first pass.
+- A splice RE-OPENS the current window on the clip playing now (`rewindowAt`), so the upload is the next
+  photograph. The brief's "mutate only the upcoming window" was built first and measured: 2.58 s and 2 clips on
+  a good day, and a second arrival that had not appeared inside 30 s.
+- A drop takes the style's shortest transition out, from the very next frame (measured at 1 frame, 0.04 s).
+- The live player renders no border and no `data-lit`: the bright edge would owe a line in
+  `shared/lit-edge-contract.test.ts`, another lane's file, and the frame is the surface's decision anyway.
+- No `@contract-for:` marker on `player-live.test.tsx` yet: it would put the player in the Library index, which
+  then owes a `for` line in `rules/component-notes.ts` for a component nothing mounts.
+- `setItems` does both halves itself (splice what arrived, drop what left) so a provider needs one call; and an
+  item that stops being ELIGIBLE (held, hidden, or marked as a cut) is a departure even though its id is still
+  in the payload.
+- The player never disposes the source: it gives its own retains back and leaves the object to its owner.
+- The surface factors (hand 0.70, wall 1.00) and the six-second video window are starting points for `reel-view`
+  and `reel-screen`; the harness's Hold slider is the knob their verdicts move.
+
+- The help articles this lane makes stale: none (no production surface, no copy).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/tools/reel-live` with the 300-photograph album. Press "Add three" and watch the
+  arrival become the NEXT photograph; press "Hide the one on screen" and watch it leave on the next frame;
+  change Style mid-hold and watch the grade change without the picture moving. The number to keep an eye on is
+  "Times the clock went backward": it must stay at zero, because a reel that restarts is the whole thing this
+  replaces.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-22). Built the ROLLING live composer beside the shipped fixed one,
+as a library with a lab harness and no production surface: `src/lib/reel/live/` (`items`, `take`, `pacing`,
+`window`, `source`), `engine/player-live.tsx`, the hold guard and a window offset in `engine/layout.ts`, refcounts
+in `engine/asset-cache.ts`, and the harness at `/design/lab/tools/reel-live`. The handover is seamless by
+construction (windows share the loop's seed and differ only by `indexOffset`, so the clip two windows share is the
+same clip); an arrival becomes the next photograph rather than the next window's; a drop leaves on the next frame;
+the clock never resets. Pure suites for the take, the pacing, the handover, the splice, the drop and the guard,
+plus a jsdom contract suite for the player; the shipped `CanvasReelPlayer` and its thumb-neutrality test were not
+touched.
