@@ -32,10 +32,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `docs-rules` | the rulings log distilled into the rules it became, then retired with its Library page; the specs and the `RULINGS` registry kept to current rules | cut `6fd4bbbd`; spawning | Opus, :3131 | integrate (`none`); place its "For other homes" lines; its memory candidates into memory |
-| `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`; spawning | Opus, :3132 | integrate (`none`) |
-| `roadmap-lean` | `docs/ROADMAP.md` and `docs/ASSETS.md` as current open work only | cut `6fd4bbbd`; spawning | Opus, :3133 | integrate (`none`); return `docs/ROADMAP.md` and `docs/ASSETS.md` to `NEVER_OWNED` in `src/lib/track-manifests.test.ts`; place its "For other homes" lines |
-| `pointer-sweep` | code comments and display strings that pointed at the retired docs, rewritten to state the rule | cut `6fd4bbbd`; spawning | Sonnet, :3134 | integrate (`none`) |
+| `docs-rules` | the rulings log distilled into the rules it became, then retired with its Library page; the specs and the `RULINGS` registry kept to current rules | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a381b34df5d5373d6`; resume by SendMessage) | Opus, :3131 | integrate (`none`); place its "For other homes" lines; its memory candidates into memory |
+| `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a7113c2ad80271cd8`; resume by SendMessage) | Opus, :3132 | integrate (`none`) |
+| `roadmap-lean` | `docs/ROADMAP.md` and `docs/ASSETS.md` as current open work only | cut `6fd4bbbd`, committed `45e249a4`; running (agent `abe20689a44c608c4`; resume by SendMessage) | Opus, :3133 | integrate (`none`); return `docs/ROADMAP.md` and `docs/ASSETS.md` to `NEVER_OWNED` in `src/lib/track-manifests.test.ts`; place its "For other homes" lines |
+| `pointer-sweep` | code comments and display strings that pointed at the retired docs, rewritten to state the rule | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a159e900ac97667a5`; resume by SendMessage) | Sonnet, :3134 | integrate (`none`) |
 
 ## Next, in order
 

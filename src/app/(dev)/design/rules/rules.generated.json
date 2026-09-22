@@ -18382,7 +18382,7 @@
       "file": "src/lib/record-depth-policy.test.ts",
       "scope": "engineering",
       "title": "The record is a snapshot; git is the history",
-      "summary": "a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 120 lines without its round section, a CLAUDE.md over 150 lines.",
+      "summary": "a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines.",
       "line": 1
     },
     {

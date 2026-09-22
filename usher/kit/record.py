@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 """record.py <record.json>: one lane's record applied to the snapshot docs, under their caps, through one door.
 
-The JSON: {"status": [{"id": "...", "state": "...", "desc": "..."}], "orchestrator": [{"id": "...", "row": "| `id` | ... |"}],
-"roadmap": ["- <a future task, one line>"], "retire_roadmap": ["substring", ...]}. Every key optional. STATUS rows go through
-status-row.py's rule (refined once, never added twice); an orchestrator row replaces the row whose first cell is `id` or is
-added after the last row; ROADMAP lines land at the head of "## Now"; retire_roadmap deletes the Now lines containing each
-substring (each must match exactly one). What shipped is not recorded here: the merge commit carries each lane's summary,
-and git log is the history.
+The JSON: {"orchestrator": [{"id": "...", "row": "| `id` | ... |"}], "roadmap": ["- <a future task, one line>"],
+"retire_roadmap": ["substring", ...]}. Every key optional. An orchestrator row replaces the row whose first cell is `id` or
+is added after the last row; ROADMAP lines land at the head of "## Now"; retire_roadmap deletes the Now lines containing
+each substring (each must match exactly one). Two things are never written here: what shipped (the merge commit carries
+each lane's summary; git log is the history) and STATUS (a snapshot the Orchestrator rewrites by hand).
 """
-import json, sys, pathlib, subprocess
+import json, sys, pathlib
 if len(sys.argv) != 2: sys.exit(__doc__)
 rec = json.loads(pathlib.Path(sys.argv[1]).read_text())
 if rec.get("changelog"): sys.exit("record.py: there is no CHANGELOG; put the summary in the merge commit message")
-KIT = pathlib.Path(__file__).resolve().parent
+if rec.get("status"): sys.exit("record.py: STATUS is a snapshot; rewrite it by hand")
 def rw(p, f):
     path = pathlib.Path(p); t = path.read_text(); t2 = f(t); path.write_text(t2)
-for row in rec.get("status", []):
-    args = [sys.executable, str(KIT / "status-row.py"), row["id"], row["state"]] + (["--desc", row["desc"]] if row.get("desc") else [])
-    r = subprocess.run(args, capture_output=True, text=True); print(r.stdout.strip() or r.stderr.strip())
-    if r.returncode: sys.exit(r.returncode)
 for row in rec.get("orchestrator", []):
     def f(t, row=row):
         lines = t.split("\n"); hits = [i for i, l in enumerate(lines) if l.startswith(f"| `{row['id']}` |")]
@@ -41,4 +36,4 @@ if rec.get("roadmap") or rec.get("retire_roadmap"):
         return "\n".join(lines)
     rw("docs/ROADMAP.md", f)
 st = len(pathlib.Path("docs/STATUS.md").read_text().split("\n"))
-print(f"caps: STATUS {st} of 120 lines{' (OVER)' if st > 120 else ''}")
+print(f"caps: STATUS {st} of 80 lines{' (OVER)' if st > 80 else ''}")
