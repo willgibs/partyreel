@@ -88,13 +88,15 @@ export function gapProgress(
 /**
  * Resolve an output frame to its on-screen layers + transition state.
  *
- * KNOWN LIMIT (latent, unreachable with current themes): this models at most TWO layers
- * (top + under). Remotion's TransitionSeries can have THREE sequences on screen when a clip is
- * shorter than the sum of its two adjacent gaps (clip i-1 still exiting while clip i+1 already
- * enters). planReel clamps holds to max(adjacent gap)+2 and every real theme keeps clips far
- * longer than their gap sum, so no pixel diverges today. If a future theme or the Pro TRIM slice
- * introduces holds shorter than two adjacent transition durations, this needs a third layer (or
- * a planReel guard) BEFORE shipping that theme.
+ * TWO LAYERS, AND NOW BY CONSTRUCTION (the live reel, 2026-09-22). This models at most two layers
+ * (top + under). TransitionSeries can have THREE sequences on screen when a clip is shorter than the
+ * SUM of its two adjacent gaps (clip i-1 still exiting while clip i+1 already enters) — which used
+ * to be a latent limit resting on the shipped themes' generosity, with the warning that a faster
+ * theme had to fix it first. A faster SURFACE is exactly that theme (live/pacing.ts scales the hold
+ * and every transition together), so planReel now clamps every hold to gap[i-1] + gap[i] + 2 (its
+ * LAYER_GUARD_FRAMES note carries the math). The third layer is therefore unreachable for ANY props
+ * planReel produced, not merely for today's kits, and layout.test.ts pins it across every mood and
+ * surface. A caller that hand-builds a ReelPlan around planReel still owes itself the same check.
  */
 export function frameStateAt(plan: ReelPlan, frame: number): FrameState {
   const starts = clipStartFrames(plan);

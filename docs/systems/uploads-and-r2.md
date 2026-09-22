@@ -127,9 +127,11 @@ items / ~20 GB per export; per-export rows in `export_log` + the `export_enabled
 - **The R2 client checksum config is load-bearing.** The AWS SDK auto-injects CRC checksums R2 rejects →
   silent **0-byte / `SignatureDoesNotMatch`**. The client sets `requestChecksumCalculation: "WHEN_REQUIRED"`
   + `responseChecksumValidation: "WHEN_REQUIRED"`; the single-PUT presign sets `signableHeaders: new
-  Set(["content-type"])`. Bucket **CORS must allow PUT/POST/GET/HEAD + `content-type` and EXPOSE `ETag`**
-  (multipart completion needs ETag); a lifecycle rule aborts incomplete multipart uploads. Don't remove
-  any of it. *(Cross-cutting landmine — echoed in CLAUDE.md.)*
+  Set(["content-type"])`. Bucket **CORS must allow PUT/POST/GET/HEAD + `content-type` and `range`, and EXPOSE `ETag`, `Content-Range`,
+  `Accept-Ranges` and `Content-Length`** (multipart completion needs ETag; the reel's video window reader, 2026-09-22,
+  reads a byte range of the original by CORS fetch and needs `Content-Range` exposed, since a CORS response hides it
+  otherwise; applied by Will through `wrangler r2 bucket cors set` on the P3 team, the R2 API's `rules` shape); a
+  lifecycle rule aborts incomplete multipart uploads. Don't remove any of it. *(Cross-cutting landmine — echoed in CLAUDE.md.)*
 - ★ **A CORS consumer of a tile-shared presign must bypass the HTTP cache.** Plain `<img>` tiles fetch
   presigned URLs with no Origin header, and R2 answers without `Access-Control-Allow-Origin` (and no
   `Vary: Origin`) — the browser caches that ACAO-less response under the SAME URL the stable-bucket

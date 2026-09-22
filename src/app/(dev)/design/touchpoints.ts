@@ -31,6 +31,7 @@ export type RulingId =
   | "identity-door"
   | "identity-claims"
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "toasts"
   | "guest-verify"
@@ -46,9 +47,11 @@ export type RulingId =
   | "media-viewer"
   | "emails"
   | "reel-studio"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "reel-host"
+  | "reel-cut"
   | "first-event"
   | "pricing-page"
   | "press-page"
@@ -118,6 +121,7 @@ export type SandboxId =
   | "identity-door"
   | "identity-claims"
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "site-chrome"
   | "profile-page"
@@ -125,9 +129,11 @@ export type SandboxId =
   | "admin-triage"
   | "media-viewer"
   | "emails"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "reel-host"
+  | "reel-cut"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -157,7 +163,7 @@ export const RULINGS: Ruling[] = [
     title: "Asking for an email at the door",
     surface: "guest",
     ruled:
-      "open (Will, 2026-09-22, rulings.md \"the morning after the identity round\" and \"guest identity\": \"We'll do a lot of lab work later to redesign here\" and \"I'd like to run most of this through the lab once our foundation is complete.\")",
+      'open (Will, 2026-09-22, rulings.md "the morning after the identity round" and "guest identity": "We\'ll do a lot of lab work later to redesign here" and "I\'d like to run most of this through the lab once our foundation is complete.")',
     shipped: null,
     why: "The identity foundation (the email, the trust levels, the gate, the menu) is live; this board is its redesign catalog, never a gate on the shipped door.",
     lives: [
@@ -227,6 +233,34 @@ export const RULINGS: Ruling[] = [
         "What shows",
         "When it's offered",
         "The empty page",
+      ],
+    },
+  },
+  {
+    id: "reel-screen",
+    title: "The reel on the wall",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, "the reel, reconceived": "Could play at an event in real-time on a screen or something", and his ruling "A first-class screen mode")',
+    shipped: null,
+    why: "What is on a venue's television all night beside the reel: the code, the name, the just-added beat, the pace, the empty state, the Start plate, Review, and the door.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "content/help/show-the-album-live-on-a-screen.mdx",
+      "src/lib/reel/engine/player.tsx",
+      "src/components/app/styled-qr.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub",
+      variants: [
+        "The code",
+        "The event's name",
+        "The just-added beat",
+        "The wall's pace",
+        "Before it begins",
+        "The Start plate",
+        "Review on the wall",
+        "The way in",
       ],
     },
   },
@@ -1065,6 +1099,30 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "reel-view",
+    title: "The reel's full-screen view",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, THE REEL ROUND: the reel reconceived whole, rulings.md \"the reel, reconceived\")",
+    shipped: null,
+    why: "The view a tap on the album's tile or `?reel` opens: its chrome and fade, the controls, the arrival beat, the tap, the posture, the pacing, the loop, and reduced motion.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/lib/reel/engine/player.tsx",
+    ],
+    board: {
+      note: "Eight decisions over the shared wedding album, drawn by the real engine at 1440 with 375 on the knob: the chrome and its fade, the control set's arrangement, the arrival beat, what a tap does, whether the reel follows the device's shape, how fast a photograph holds, how a fresh loop announces itself, and what reduced motion starts on",
+      variants: [
+        "The chrome",
+        "The controls",
+        "The arrival",
+        "The tap",
+        "The posture",
+      ],
+    },
+  },
+  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -1096,7 +1154,7 @@ export const RULINGS: Ruling[] = [
     title: "The highlight reel",
     surface: "host",
     ruled:
-      "2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md \"the reel, reconceived\": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`'s source until that board hands off, git keeps it after",
+      '2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md "the reel, reconceived": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`\'s source until that board hands off, git keeps it after',
     shipped: null,
     why: "Round one asked the North Star from the foundation (the door, the room, what a guest meets); the reel round replaced the product it asked about.",
     lives: [
@@ -1161,6 +1219,34 @@ export const RULINGS: Ruling[] = [
         "The peek",
         "The keyboard",
         "After a bulk act",
+      ],
+    },
+  },
+  {
+    id: "reel-cut",
+    title: "From the reel to a cut",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, rulings.md "the reel, reconceived": the reel is the event\'s and a cut is yours, made on the device from the reel and never stored)',
+    shipped: null,
+    why: "The host-made, stored reel is replaced by a live reel plus a cut anyone can make; this board is the creator that replaces the Studio, and nothing on it wires production.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/reel/reel-studio.tsx",
+      "src/components/reel/studio-moments-picker.tsx",
+      "src/components/reel/style-rail.tsx",
+      "src/components/reel/reel-stitching-dialog.tsx",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/lib/reel/engine/registry.ts",
+    ],
+    board: {
+      note: "Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode",
+      variants: [
+        "The way in",
+        "The room",
+        "The looks",
+        "The moments",
+        "The wait",
       ],
     },
   },
@@ -1686,15 +1772,20 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape). `identity-door` is placed directly (its own manifest's
-  // instruction, not the head exception): right after `guest-capture`, since
-  // it draws the same guest one step earlier in her walk through the door.
-  // `identity-profile` belongs after `identity-claims`, whose id is not
-  // registered yet since that sibling lane has not merged — the Orchestrator
-  // places both siblings in their true order at the merge.
-  // album's shape). `identity-claims` registers here 2026-09-22 for the same
-  // reason; the Orchestrator places it after `identity-door` at its merge.
+  // album's shape). Several boards at once had mangled the head rule into two
+  // conflicted merges (his word, 2026-09-22), so each of the following is
+  // placed directly, after a DIFFERENT named neighbour: `reel-view` sits right
+  // after `media-viewer`, whose answers it reads from; `identity-door` right
+  // after `guest-capture`, since it draws the same guest one step earlier in
+  // her walk through the door; `identity-claims` after `identity-door` for the
+  // same reason; `identity-profile` after `identity-claims`.
+  // `reel-cut` is placed HERE rather than at the head (its own manifest's
+  // instruction, three reel boards registering at once): the creator a guest
+  // reaches from the reel sits with the host's own curation of the same album.
   "media-viewer",
+  "reel-view",
+  "reel-screen",
+  "reel-cut",
   "guest-capture",
   "identity-door",
   "identity-claims",
