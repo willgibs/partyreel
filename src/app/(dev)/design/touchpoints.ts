@@ -43,6 +43,7 @@ export type RulingId =
   | "media-viewer"
   | "emails"
   | "reel-studio"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "first-event"
@@ -118,6 +119,7 @@ export type SandboxId =
   | "admin-triage"
   | "media-viewer"
   | "emails"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "press-page"
@@ -951,6 +953,30 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "reel-view",
+    title: "The reel's full-screen view",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, THE REEL ROUND: the reel reconceived whole, rulings.md \"the reel, reconceived\")",
+    shipped: null,
+    why: "The view a tap on the album's tile or `?reel` opens: its chrome and fade, the controls, the arrival beat, the tap, the posture, the pacing, the loop, and reduced motion.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/lib/reel/engine/player.tsx",
+    ],
+    board: {
+      note: "Eight decisions over the shared wedding album, drawn by the real engine at 1440 with 375 on the knob: the chrome and its fade, the control set's arrangement, the arrival beat, what a tap does, whether the reel follows the device's shape, how fast a photograph holds, how a fresh loop announces itself, and what reduced motion starts on",
+      variants: [
+        "The chrome",
+        "The controls",
+        "The arrival",
+        "The tap",
+        "The posture",
+      ],
+    },
+  },
+  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -1572,8 +1598,12 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape).
+  // album's shape). THE REEL ROUND's boards are the exception to the head rule
+  // (his word, 2026-09-22: several new boards at once had mangled two merges):
+  // each sits after a DIFFERENT named neighbour so the lanes stay line-disjoint;
+  // `reel-view` sits directly after `media-viewer`, whose answers it reads from.
   "media-viewer",
+  "reel-view",
   "guest-capture",
   "host-curation",
   "export-flow",
