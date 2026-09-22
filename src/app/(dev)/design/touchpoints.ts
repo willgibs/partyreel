@@ -1601,9 +1601,9 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // album's shape; `identity-profile` belongs after `identity-claims`, whose
   // id is not registered yet since neither sibling lane has merged — the
   // Orchestrator places it there at the merge).
-  "identity-profile",
   "media-viewer",
   "guest-capture",
+  "identity-profile",
   "host-curation",
   "export-flow",
   "admin-triage",
