@@ -1,6 +1,6 @@
 ---
 track: recheck-help-press
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c2482757"            # the launch-prep SHA the branch was cut from
 board: help-center
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -58,16 +58,25 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: `press-page/board.tsx`'s `wordsPreview` Frame heights for `paragraph-and-line` (declared 560/700, the real rendered iframe 605/913) and `founder-voice` (740/900 vs. 850/1238) run well short, pre-dating this lane and untouched by it (neither renders anything the identity or reel rulings touch); `the-sheet` and `the-facts` show the same kind of drift. A remeasure pass on the whole board would bring it to the "measured against the real iframe, never guessed" bar `help-center`'s own `board.tsx` already holds.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `aadfb15d` (help-center and press-page redrawn on the reel and identity rounds); sync-merge commit `185e0687` (`Merge remote-tracking branch 'origin/launch-prep'`: docs-product-trim and docs-rules had landed on `origin/launch-prep` since this lane's cut; auto-merged clean, no conflicts, nothing under either owned path touched by it). The head is in the chat line.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` 0 (no diff: nothing here touches a contract, policy or `touchpoints.ts`); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (no diff); `pnpm typecheck` 0 (first run failed on a stale `.next/dev/types/validator.ts` still pointing at `library/rulings/page.tsx`, which the synced-in docs-rules merge deleted; `rm -rf .next` and a clean re-run passed); `pnpm lint` 0 (9 pre-existing warnings, none in a file this lane touched); `pnpm test` 0 (3871 passed, 1 skipped); `pnpm build` 0; `pnpm lab:smoke --base http://localhost:3137` 0 (490 checks, 0 failing); `pnpm lab:demo --board help-center --base http://localhost:3137` 0 (7 steps, 0 failing, tallest `article` at 9.0 screens); `pnpm lab:demo --board press-page --base http://localhost:3137` 0 (7 steps, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly the 6 `help-center/` files and 3 `press-page/` files below, plus this manifest on the handoff commit. No exceptions.
+- The items, one line each (REDRAW/RESHAPE/ADAPT/left word for word, and why):
+  - `help-center.article` — question and options left word for word (a format decision, not a product claim); REDRAW `article.tsx`'s `STEPS`/`SCREENS`: the old 3-step, pre-door "password or your email, if asked ... a few ask for nothing" replaced with the shipped 6 (scan, welcome, password, name with optional email, confirm, first photo) plus 3 new hand-built screen illustrations (`NameScreen`, `ConfirmScreen`, `PhotoScreen`); `board.tsx`'s `ARTICLE_H` remeasured against the real rendered iframes for all 3 shapes.
+  - `help-center.hub` — question, options and context left word for word (an index-layout decision, unreached); REDRAW only `fixtures.ts`'s `CATEGORIES["highlight-reel"]` (title, blurb, `feature.label`) and `FACTS`'s reel row (label, href off the retired `download-the-reel-as-a-video`), both rendered inside `hub.tsx`'s `CategoryPane`/`BigDoors`. Names follow `reel-story.help`'s recommended `"the-reel"` and `reel-story.pricing`'s recommended `"renamed"` as unruled stand-ins, said so in a code comment at each site.
+  - `help-center.who-first` — question/options left word for word; REDRAW `who-first.tsx`'s two hero subheads ("no app, no account" to "no app required"; "and the highlight reel" to "and the reel", same stand-in as above, same comment convention).
+  - `help-center.from-product` — ADAPTED the `context` field only, per the brief's overlap rule, to name `identity-door.menu` and drop the overlap; question, options and `because`/`overrule`/`lands` left word for word. REDREW (narrowed, not dropped) the `menu` option's popover in `from-product.tsx`: it drew a generic single-row menu; it now mirrors `identity-door.menu`'s own shipped rows (name, "Unverified", Add your email, Change name, Sign in) verbatim and adds only the one proposed Help center row, visually distinguished.
+  - `press-page.the-facts` — RESHAPED context only, question word for word, exactly as the brief specified: one added clause naming the reel round's retelling of the "Hosts get" and "Not this" rows (`press.ts:61`, `:80`) as a fact-wording change outside this ask's own question. `overtaken.ts` untouched (`recheck-viewer-curation`'s file).
+  - `press-page.the-words` — question/options/context left word for word (a handover-format decision, unreached); REDRAW only the local `PAGE_LENGTH_FIXTURE` in `the-words.tsx`: its "becomes a highlight reel without a separate editor or a render queue to wait on" retold after `reel-story.thesis`'s recommended `"grows"` line ("Every event has a reel"), noted as an unruled stand-in in the same comment; `board.tsx`'s `wordsPreview.three-lengths` height remeasured for the longer line.
+  - Every other ask on both boards (`help-center.feedback`, `.dead-end`, `.search`; `press-page.who-for`, `.the-sheet`, `.a-human`, `.the-close`, `.the-arc`) checked against both rulings and left alone, unreached: grepped both owned directories for "reel", "highlight", "studio", "email", "password", "account" and "guest" beyond what is listed above, and nothing else hit.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `from-product.menu` was narrowed rather than dropped outright (the brief allowed either): it keeps the option's own drawing, now mirroring `identity-door.menu`'s exact current rows plus the one proposed addition, rather than gesturing at "some further rows" with no shape at all. His call if the plainer gesture would have been the honester version.
+  - Three names in this diff are unruled stand-ins, each following its own board's recommended (not yet decided) option: `reel-story.help`'s `"the-reel"`, `reel-story.pricing`'s `"renamed"`, and `reel-story.thesis`'s `"grows"` line. A different verdict on any of those three boards is a one-line word swap here, not a redraw.
+  - The `press-page/board.tsx` height drift on `paragraph-and-line`/`founder-voice` (see Deferred) was left alone rather than fixed alongside `three-lengths`, on the read that fixing pre-existing, unrelated drift belongs to its own pass rather than this recheck's diff; a different call is a very small addition to the same file.
+- Look at first: `help-center.article`'s `screen` option (the largest redraw: 6 real steps, 3 new illustrations) and `help-center.from-product`'s `menu` option (the identity-door.menu mirror).
