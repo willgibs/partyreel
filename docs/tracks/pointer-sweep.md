@@ -1,6 +1,6 @@
 ---
 track: pointer-sweep
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "6fd4bbbd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -121,10 +121,53 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `1dc9b076`, pushed; `origin/launch-prep` had moved (to `73924c0a`, the board-recheck pickup and the
+  reshape's own docs/usher cleanup, none of it on a path this lane owns) so it is merged in at sync commit
+  `fd2294fe`, pushed.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` 0 (regenerated `rules.generated.json`
+  clean both before and after the sync-merge, confirming no drift); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"`
+  0 (no diff); `pnpm typecheck` 0; `pnpm lint` 0 (9 pre-existing warnings, none introduced by this lane; one sits
+  in an owned file, `(guest)/e/[token]/page.tsx` line 399, an unused `requireVerifiedEmail` — confirmed present
+  at `git show 45e249a4:<file>` before this lane's only edit there, a comment 80 lines above it, so it predates
+  this lane and is left alone as out of scope for a comments-and-strings lane); `pnpm test` 0 (350 files, 3873
+  passed, 1 skipped, unchanged by this lane); `pnpm build` 0; `pnpm lab:smoke --base http://localhost:3134` 0
+  (497 checks, 0 failing, board reading budgets unchanged).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the 72 owned paths, plus this file, plus ONE
+  exception: `src/app/(dev)/design/rules/rules.generated.json`. That file is build output
+  (`pnpm design:rules`, a mandated gate step) and shifted only because trimming the pointer phrase in
+  `src/app/(app)/name-gate.test.ts`'s header comment moved four of that file's own line numbers down by one;
+  no rule, contract or ruling text changed. Confirmed by a clean second regeneration after the sync-merge.
+- 95 pointer citations to `docs/design/rulings.md` / `rulings.md` / `docs/CHANGELOG.md` rewritten in place across
+  71 of the 72 owned files (every owned file had at least one citation; `git show 45e249a4:<file> | grep -c` against
+  each owned path confirms 96 citations existed before this lane and 1 remains after). Each rewrite kept the
+  surrounding sentence's voice and length or shorter, added no em-dash, and either inlined the fact the pointer
+  was standing in for or, where the comment already stated the fact beside its citation, simply dropped the
+  citation.
+- Left alone, and why: exactly one citation, in `src/app/(dev)/design/rules/influences.ts` (the `readDoc("docs/design/rulings.md")`
+  call inside `rulingInfluences()`, which actually reads that file at request time to build the Library's Rulings
+  legend). That is functional code, not a comment or a display string, and this lane's brief is explicit that
+  behavior never changes; retargeting or removing that call would change what the Library page reads and is the
+  `docs-rules` lane's call to make if it moves or retires the file it currently owns.
+- Two spots that could not simply drop the pointer because the surrounding comment did NOT already restate the
+  fact: `src/app/(dev)/design/(shell)/lab/tracks/page.tsx` (an integrated track's manifest now says its Record
+  is folded into the merge commit's own message, not a CHANGELOG entry that no longer exists) and
+  `src/components/lab/board-spec.ts` / `src/components/lab/carried-calls.tsx` (the lab kit's own two files named
+  in the brief: a carried call now says it reaches Will through `docs/STATUS.md`'s Waiting on Will note and the
+  merge commit that lands it, per the brief's instruction, rather than the retired CHANGELOG entry).
+- `src/app/(dev)/design/(shell)/_shell/ref.tsx`'s docstring used `docs/design/rulings.md` only as an EXAMPLE path
+  string in a "pass a string like one of these" list, not as a citation of a fact; swapped for `docs/PROGRAM.md`,
+  a doc this round does not touch, so the example stays truthful once `rulings.md` moves under `docs-rules`.
+- No question surfaced: every rewrite was mechanical (drop the citation, or inline the quote/fact already
+  adjacent to it) and none touched a question, an option id or label, a recommendation, a "because", an
+  "overrule" or a "lands" claim, or any string a test pins (`grep -rn '@contract-for'` on every owned test file
+  re-read after editing; the string-literal edits, `identity-claims/fixtures.ts` and `site-chrome/spec.ts`'s
+  `context:` field, were spot-checked live in the browser at `/design/lab/site-chrome` with "How it got here"
+  expanded, and render exactly as edited).
+- His to overrule: none. Every call above was mechanical text surgery with one legible reading; where a
+  citation's parenthetical held nothing but the doc pointer (e.g. `cinema-hero.tsx`'s "Will's rulings, in order
+  (`docs/design/rulings.md`)"), it was dropped outright rather than replaced with a placeholder, since the list
+  that follows already carries the content.
+- Look at first: `src/app/(dev)/design/sandbox/overtaken.ts` (7 of the 96 citations lived here, the densest
+  file, including the two ledger-provenance sentences that used to name three homes for a decision and now name
+  two) and `src/components/lab/board-spec.ts` / `carried-calls.tsx` (the brief's own named exception, above).
