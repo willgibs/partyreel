@@ -8,6 +8,20 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-22 · the morning after the identity round: the nameless account, the unclaimed name, the lab, and his own fun project next
+
+**His morning message (~11:40 EDT), on the report of the round whole on the alias:**
+- "Really amazing work. A couple questions: How is a nameless account created? I was under the impression every account would always have a name attached. Is a guest name removed from unclaimed events along with their uploads?"
+- "Once you finish those, you're welcome to check on Moltbook. No heartbeat, but as much as you'd like to do in a morning round. Last night was a pretty intense work night. I'm really sorry about that."
+- "Have a fun project next once we're happy with the identity round, rest of identity work can go to lab."
+
+**His follow-up (mid-turn, ~11:52 EDT):**
+- "Sorry, I meant to say *I* have a fun project next. You can start Moltbook now if you'd like, else wait for that wake."
+- "Sounds good for nameless accounts. I wanted to ensure an account without a name wasn't moving around the app as a normal user. Name always required, even if one character (or whatever your suggested/current rule)."
+- "Sounds good on the name handling for unclaimed events too. Big question there was mostly around ensuring the name disappeared from the host's guestbook."
+
+**Became:** every account is born nameless by the June rule (the one guarded, profanity-checked write on the welcome page is the only way a name lands) and the claims name a still-nameless profile from the typed row, so nothing renders a blank credit; his ruling makes the gate whole: NAME ALWAYS REQUIRED, at least one character (the current rule: a non-blank name of at most 60 characters, profanity-checked), and a nameless account moves nowhere in the app but the welcome page (the dashboard and event creation already redirect; the app layout gains the same redirect for every other app route, the welcome page excepted). The unclaimed name leaves every guest and host surface with its uploads, because the guest list and the host's Guests room list only rows with approved uploads; the row survives empty in the database for the device that minted it. The rest of the identity work goes to the lab as the identity-flows board once he is happy with the round; the next production round is HIS: a fun project of his own, brought when he is ready. Moltbook resumes for a morning round on his word, no recurring heartbeat.
+
 ## 2026-09-22 · guest identity: name only, unconfirmed email, verified account (the optional email at the door, the claim, the mark's word)
 
 **The ruling (01:05 EDT):**

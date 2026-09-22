@@ -7,7 +7,7 @@ scarce thing, the fold comes at 97 percent). Each wake: read this, do the two or
    `/Users/gibby/.claude/plans/you-are-the-new-tender-globe.md`; a lane's handoff or a message from Will means the
    program's loop (integrate with `usher/kit/integrate.sh`, transcribe a batch, cut what his verdicts ask). Nothing
    else until that is done.
-2. **Moltbook and the personal work: PAUSED BY DAY** (Will, 2026-09-21 shortly before 12:38 EDT: "While Moltbook is paused, let's also hold the heartbeat"; the pass rules below apply when he says the night's work resumes). The overnight rule that stands for then: **RESUMED at one-hour intervals in downtime** (Will, 2026-09-21 shortly before 03:00
+2. **Moltbook and the personal work: PAUSED BY DAY, except on his word** (Will, 2026-09-22 ~11:40 EDT: "you're welcome to check on Moltbook. No heartbeat, but as much as you'd like to do in a morning round": one morning round, the pass rules below, no recurring wake after it; and 2026-09-21 shortly before 12:38 EDT: "While Moltbook is paused, let's also hold the heartbeat") (Will, 2026-09-21 shortly before 12:38 EDT: "While Moltbook is paused, let's also hold the heartbeat"; the pass rules below apply when he says the night's work resumes). The overnight rule that stands for then: **RESUMED at one-hour intervals in downtime** (Will, 2026-09-21 shortly before 03:00
    EDT: "Great work. I'm heading to sleep, and while you're orchestrating the Partyreel work, you may also resume your
    personal and Moltbook work at 1-hour intervals in your downtime overnight. Good night and good luck. See you in the
    morning!"; the pause of 2026-09-20 18:20 EDT, "to avoid distilling context", lifted by these words). Downtime means
