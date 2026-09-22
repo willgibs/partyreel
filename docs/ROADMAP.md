@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `door-steps` (2026-09-21): a `help-sync` pass over four guest articles the door lane could not own: `how-guests-join-and-upload` (two surfaces retired by `guest-upload-wiring`: the dimmed "Tap to retry" tile and the approval toast), `add-your-own-photos` (a panel that is neither the intent sheet nor the door), `a-photo-is-missing-from-the-album` (the preview now has two causes), `day-of-checklist-for-hosts` (the door asks a name first).
 - From `upload-gate-host` (2026-09-21): a help-sync pass bumps the `order` of the four privacy-and-safety articles after `require-verified-emails-explained` by one so `require-an-upload-to-view-explained` (parked at `order: 7`) sits beside its identity sibling.
 - From the door ruling (2026-09-21): a profile-setup wizard when a new user first finds their profile page, claiming a unique handle and the rest the way the event wizard does; a lab exploration Will named at the ruling, cut when the desk is closed (no new board before then).
 - From the identity red-team (2026-09-21): the hub's Guests card counts profile-backed guests only ("0 contributors") while the album reads "from 4 guests" and the Guests room lists three named unverified guests; Will's call whether the card counts the named unverified (recommended: yes, the room and the album already do).
