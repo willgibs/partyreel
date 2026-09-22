@@ -11,7 +11,8 @@ flag); the event guest list is **host-controlled** (`events.show_guest_list`; wh
 who added photos is listed, a confirmed name or one wearing the small unverified mark, with no per-guest
 opt-in); the guest's control lives on their **own profile**, which **publishes NOTHING UNTIL CHOSEN**:
 `profile_shown_events` is an **opt-in**, so an attended event appears on `/u/[slug]` only once the guest
-turns it on there, while they stay on the event's own guest list either way (the host's key, not theirs);
+turns it on (the switches on `/account`'s Public profile card), while they stay on the event's own guest
+list either way (the host's key, not theirs);
 follows are **open any-to-any with an owner-private graph** (lists + counts visible only to the account
 owner, the VSCO shape); **blocking** is mutual severance, private, and prevents re-follow.
 
@@ -28,7 +29,8 @@ marker on each, the person's bio under the name row, indexable, on the album's o
 its event-less mode, plus the OWNER MODE below); the Account page (slug claim, bio, attended-event
 visibility switches, Connections card); event settings (`ProfileSocialCard`, both keys persist per
 flip, LOUD permanent consent copy on `show_guest_list`); the host's Guests room
-(`/dashboard/[eventId]/guests`, counted on the hub's Guests card) and the guest album's post-gallery
+(`/dashboard/[eventId]/guests`; the hub's Guests card counts only the proved profile cards, while the room
+also lists the named unverified, so the two numbers can differ) and the guest album's post-gallery
 "Guests" section; the dashboard's **claim card** (a confirmed caller's rows waiting under an email typed
 before it was proved, claimed or released per event — see [host-app.md](host-app.md) "Dashboard landing").
 
@@ -52,7 +54,7 @@ gallery and appears on no profile.
 
 ## Where it lives
 
-- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen), the `verified_at` belt, and the newest `get_public_profile`. `profile_hidden_events` stays on disk, unread and unwritten; `migration-guards.test.ts` refuses a migration that drops it.
+- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen), the `verified_at` belt, and the newest `get_public_profile`. `profile_hidden_events` stays on disk: this tree neither reads nor writes it, but the deployed `main` build still reads it and writes it through the Account hide toggle, so `migration-guards.test.ts` refuses a migration that drops it until a milestone ships this tree.
 - Data layer: [`src/lib/db/queries/social.ts`](../../src/lib/db/queries/social.ts) + [`src/lib/db/mutations/social.ts`](../../src/lib/db/mutations/social.ts); pure logic in [`src/lib/social/`](../../src/lib/social) (notification-pref defaults/resolve, profile cards) + [`src/lib/validation/profile.ts`](../../src/lib/validation/profile.ts) (slug schema + reserved words).
 - UI: [`src/components/social/`](../../src/components/social) (guest list, follow button, report/block menu, slug control, bio form, visibility switches, connections) + [`profile-social-card.tsx`](../../src/components/app/event-settings/profile-social-card.tsx); routes `src/app/(guest)/u/[slug]/` and the Account/event-settings/Guests-room integrations.
 
@@ -116,8 +118,8 @@ gallery and appears on no profile.
   leak the block); only the follow button hides on either-way blocks.
 - **`notification_prefs`** is shaped by the consent tiers: **transactional** always sends and has
   NO column by design; **relationship and service** mail defaults ON with a per-category opt-out, and only
-  for ACCOUNT holders; an anonymous email-only guest receives nothing beyond the one-shot they explicitly
-  asked for; **marketing** stays explicit opt-in. Every send must stay within those four rules, resolving
+  for ACCOUNT holders; a guest without an account (a typed name, and at most an unconfirmed address that is
+  never mailed on its own) receives none of it; **marketing** stays explicit opt-in. Every send must stay within those four rules, resolving
   prefs through `resolveNotificationPrefs`. Rows are lazy (absent = `NOTIFICATION_PREF_DEFAULTS`, a parity
   test pins TS↔SQL); `user_id` is insertable never updatable, so `setNotificationPrefs` is
   update-then-insert (a PostgREST upsert would `SET user_id`). The `/account` Email preferences card edits
