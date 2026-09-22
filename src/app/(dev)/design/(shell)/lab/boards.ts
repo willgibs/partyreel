@@ -11,6 +11,7 @@ import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
+import { ReelStoryBoard } from "@/app/(dev)/design/sandbox/reel-story/board";
 import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
@@ -55,6 +56,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "profile-page": { Component: ProfilePageBoard },
   "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
+  "reel-story": { Component: ReelStoryBoard },
   "media-viewer": { Component: MediaViewerBoard },
   emails: { Component: EmailsBoard },
   "help-center": { Component: HelpCenterBoard },
