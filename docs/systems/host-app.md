@@ -443,7 +443,7 @@ hosts and old devices. Four rules follow, and they are why the surface is sparse
   shorter length (30 s free, 60 s paid, `MAX_REEL_SECONDS`), never the quality; the watermark doubles as an upgrade
   nudge and free marketing on every shared reel. Paid hosts carry zero Partyreel branding on their event surface, and
   there is deliberately **NO end-card** on any reel; do not revisit it as a growth extra.
-- **Video in the reel is self-bounding.** Only paid tiers can upload video, so video in the reel is Pro-only with no
+- **Video in the reel is self-bounding.** Only paid tiers (Pro and Event Pass) can upload video, so video in the reel is paid-only with no
   special-casing anywhere. A video item draws its POSTER still.
 
 The **style catalog is product data with ONE source**, the pure

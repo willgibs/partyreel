@@ -169,7 +169,7 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   cap check (unmetered free storage). The RPC also **re-checks the event prefix of both keys**
   (`events/<event_id>/%`, refused as `bad_key` otherwise), so a valid session can never record a row
   against another event's namespace (the DB-side twin of the complete seam's key pin), nor a host plant a
-  victim's preview key and destroy that object from their own Trash.
+  victim's preview key and destroy that object from their own bin.
 - **Host upload = `guest_id IS NULL`.** `create_media_as_host` is the host twin of `create_media`: auth via
   the route's `getUser()` id (`p_host_id`, server-derived, never a token) + event ownership, the same
   per-file limits + cap/ingress enforcement (host uploads **count against the plan**), `status='approved'`
