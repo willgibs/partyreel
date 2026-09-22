@@ -1,6 +1,6 @@
 ---
 track: reshape-guest-capture
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "27ff8a9e"          # the launch-prep SHA the branch was cut from
 board: guest-capture   # the board's tiles redrawn on the shipped door; no verdict, no ask moved; the board stays on the desk
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -86,30 +86,71 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none. The one call the brief left open (the exact word for the sheet-step's dismiss) was taken on its own line
+  and is listed under "his to overrule" below.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. Lab-only: no production byte, no `docs/systems/` fact inside this lane.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now (guest-capture, lab fidelity): `board.tsx`'s `shapeScreen` dims the `sheet-step` peek behind the sheet with a
+  manual `opacity-40` rather than the real `entry-shell.tsx` overlay's own `bg-black/10
+  supports-backdrop-filter:backdrop-blur-xs` (the mechanism the "nine-tile teaser sits blurred behind it the whole
+  way" law names, guest-flow.md "The ARRIVAL"). Left as is this lane: the opacity stand-in is not wrong, only less
+  faithful, and a backdrop-filter step reports UNPAINTED in headless Chrome, which is real verification cost for a
+  cosmetic gain unrelated to the door ruling this lane was cut to fix. Worth matching next time this board is touched.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- The board commit is `4d5bd4a7` (the one redraw); synced with `origin/launch-prep` at `e6e02136` (it had moved from
+  the `ff4a87d1` cut, docs/tracking only: `door-fixes` cut and journaled, no code touching this lane's `owns` or
+  `reads`), fast-forwarded, never rebased. Pushed.
+- Every claim below names its artifact (a commit hash, a log line, a file path), so the Orchestrator checks rather
+  than believes; a claim with no artifact is read as unverified.
+- Gates on the SYNCED tree, each its own exit code: `pnpm design:rules` 0 (no diff) · specimens
+  (`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`) 0 (no diff) · `pnpm typecheck` 0 · `pnpm lint` 0 (10
+  known warnings, none in a file this lane touched) · `pnpm test` 0 (3487 passed, 2 skipped, 327 files) · `pnpm build`
+  0 (257 static pages, "Compiled successfully"). `pnpm lab:smoke --base http://localhost:3134` 0 (421 checks, 0
+  failing; guest-capture reads 309 words against the 1200 budget). `pnpm lab:demo --board guest-capture --base
+  http://localhost:3134` 0 (5 steps, 0 failing: moment/shape/follow/landing/name every one "ok", "Every step draws
+  its options"). Logs in the lane's scratch dir (`build.log`, `build2.log`, `dev-server.log`, `dev-server2.log`). The
+  dev server ran on :3134 alone and was killed by port before every build, the test run and this handoff.
+- No backdrop-filter step was added by this lane's own edit (the killed line was plain text), so headless
+  `lab:demo`'s capture is trustworthy here without a by-hand exception; the `shape.sheet-step` tile was still
+  eyeballed live at both breakpoints (see "Look at first").
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/guest-capture/parts.tsx`
+  alone (owned), plus this manifest. No exceptions.
+- The items: none. `GUEST_CAPTURE` declares no `catalog`, so there is nothing to keep, refine or kill; the board is
+  five asks only, all five still open, none answered.
+- Calls his to overrule on the alias, one line each:
+  - The `shape.sheet-step` dismiss now reads "Maybe later" (was "Not now, take me to the album", which stood against
+    "No exit" and, once the sheet she sends from became the held welcome sheet itself, was backwards on the facts:
+    there is no album yet to send her back to). Chosen to match the same ask's own wording everywhere else it is
+    drawn (`OfferCard`'s shipped "Maybe later") rather than coin a new phrase; a different word for a held sheet
+    specifically is his call to make.
+  - `moment`, `follow`, `landing` and `name` were audited whole against the shipped door (guest-flow.md "The
+    ARRIVAL") and drew nothing that contradicts it (the album-already-open card/inline previews for `moment` and
+    `shape`, the post-confirmation `follow`/`landing`/`name` screens, `NameStepCard`'s own "you typed this at the
+    door" line already correct), so their pictures stand unchanged; only `shape.sheet-step` needed a redraw.
+- The help articles this lane makes stale: none. Lab-only, no production byte, no shipped behaviour described
+  anywhere changes.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the `shape` ask's `sheet-step` option at 375 (the one tile this lane redrew: "Maybe later" on the
+  held sheet, the dimmed album peeking behind, "Sent · Your photo joined Maya's album" above "Keep these photos"),
+  then the same tile at 1440. Every other tile on the board is unchanged pixels; `card` and `inline` (the other two
+  `shape` options) are worth a glance only to confirm they still read as they did.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-21). The board's five tiles, drawn before the door ruling existed, were
+audited whole against the shipped door ("the door as three steps", rulings.md) the Orchestrator's record had already
+folded into four asks' own context (`moment`, `shape`, `landing`, `name`). One real violation stood: the `shape` ask's
+`sheet-step` option (`OfferSheet`) still told the pre-ruling story, a guest already standing in the album dismissing a
+separate upload sheet with "Not now, take me to the album," which was now both against "No exit" (his words,
+verbatim) and backwards on the facts once that sheet became the held welcome sheet itself, shown before the album
+ever appears. The dismiss now reads "Maybe later," the same words this ask already wears everywhere else it is
+drawn; `moment`, `follow`, `landing` and `name` were found already accurate and left untouched. No verdict recorded,
+no ask added or removed: the board's five questions stand at round 1 for Will's review.
