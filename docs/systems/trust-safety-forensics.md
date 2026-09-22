@@ -7,8 +7,9 @@
 ## What it does
 
 Every completed upload writes ONE deny-all `upload_forensics` row: raw IP, timestamp, full user agent, `sec-ch-*` client hints, Vercel `x-vercel-ip-*` coarse geo, the
-uploader linkage the seam already holds (host user id, or guest id + user id/email denormalized at
-upload time), and a durable first-party **device UUID** (localStorage `pr_device_id`, sent with the
+uploader linkage the seam already holds (host user id, or guest id + user id/email + the typed
+`guest_display_name` + the unproved `guest_pending_email`, denormalized at upload time: for a guest who
+proved no email they are the whole identity on record), and a durable first-party **device UUID** (localStorage `pr_device_id`, sent with the
 complete request, indexed for cross-event abuse correlation). The row lives exactly as long as its
 media (`ON DELETE CASCADE`; no separate sweep). On a report, an admin sets a
 **legal hold** (`media.legal_hold_at/_reason`) and **preserves**: the original object is copied
@@ -86,7 +87,7 @@ plausibility, do not study the content, never forward or screenshot it.
 3. **File the CyberTipline report** — report.cybertip.org (as a registered ESP once registration
    lands; file regardless if not yet registered). Include: the event id, media id(s), upload
    timestamp, and the forensic record (the "Record" export: IP, UA, client hints, geo, device
-   UUID, guest email/user linkage). Note the report id in the hold reason or audit trail.
+   UUID, guest email/user linkage, the typed name and any unproved address). Note the report id in the hold reason or audit trail.
 4. **Preserve for 1 year** — the CyberTipline filing starts the REPORT Act preservation clock
    (PL 118-59: 1 year, secure, access-limited, commingled content included). The preservation
    store + the deny-all rows satisfy the storage posture; calendar the expiry, then delete the

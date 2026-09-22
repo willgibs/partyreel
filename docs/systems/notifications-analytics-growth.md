@@ -124,7 +124,7 @@ alone under the "Saved" filter (→ [host-app.md](host-app.md)).
 
 ## Guest email capture
 
-The newsletter opt-in is a checkbox in the account-first save flow of the post-upload `<SaveAccountPrompt>`
+The newsletter opt-in is a switch in the account-first save flow of the post-upload `<SaveAccountPrompt>`
 ([`save-account-prompt.tsx`](../../src/components/guest/save-account-prompt.tsx), rendered by
 [`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)). Opt-in POSTs to
 [`/api/guests/capture-email`](../../src/app/api/guests/capture-email), which requires a session whose
@@ -134,7 +134,8 @@ and calls the service-role-only **`capture_guest_email`** RPC through the admin 
 `guests.email` only if null, and upserts the durable **`newsletter_signups`** table (RLS deny-all).
 `newsletter_signups` is standalone (NOT a `guests` column) so the marketing list survives event/guest
 deletion (`event_id` is `on delete set null`). An UNPROVED address never reaches `guests.email`: it lives
-in `guests.pending_email` (set through `/api/guests/email`) until a confirmed account claims it
+in `guests.pending_email` (written only by the join's `create_guest` and by `set_guest_pending_email`
+through `/api/guests/email`) until a confirmed account claims it
 (→ [guest-flow.md](guest-flow.md)). No "email me the album link" send exists (it would reuse `sendOnce`).
 
 ## See also

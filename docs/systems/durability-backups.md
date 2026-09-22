@@ -37,9 +37,13 @@ guarded cron.
 Live path: a PUT to PRIMARY R2 (`events/…`) fires an `object-created` notification → Cloudflare **Queue**
 → the consumer **Worker** (`partyreel-backup`) copies the object → BACKUP R2 (`partyreel-backup`, WNAM, IA,
 **Bucket Lock** ≥ 35-day WORM). A failed copy retries → **DLQ**. A daily **05:00 UTC reconciliation** (the
-Worker's `scheduled()`) re-copies anything the live path missed. **Avatars are not in this R2 backup by
-design**: they live in the public Supabase Storage `avatars` bucket (derivable, and overwrite-in-place
-would conflict with the lock). Workers Paid ~$5/mo, zero egress, off Vercel. DR-drilled: ~15 s
+Worker's `scheduled()`) re-copies anything the live path missed. **The reconcile examines at most 5,000
+objects per run (`RECONCILE_MAX_PER_RUN`), always from the START of the listing**, so once the primary
+holds more than 5,000 `events/` objects the keys past the first 5,000 are never re-checked (its "next run
+continues" log line is false; a capped run reports `capped: true` in its heartbeat): give it a stored
+resume cursor before the bucket outgrows the cap. **Avatars are not in this R2 backup by design**: they
+live in the public Supabase Storage `avatars` bucket (derivable, and overwrite-in-place would conflict
+with the lock). Workers Paid ~$5/mo, zero egress, off Vercel. DR-drilled: ~15 s
 replication, the lock blocks deletion, and a >100 MB multipart copy restores byte-identical.
 
 ## Pillar C — off-site DB backup
@@ -80,7 +84,7 @@ transiently wrong, which is exactly when a restore is in progress.
 | --- | --- |
 | Worker error / queue backlog | auto-retries → DLQ; the daily reconciliation backstop; the backlog and the DLQ depth are REPORTED (below) |
 | Objects stuck in the DLQ | every Worker run reads the depth; any dead letter reads as FAILED on `/admin/jobs` and raises `job_dead_letters_pending`; the next reconcile copies them |
-| Missed R2 event notification | reconciliation re-copies within 24 h |
+| Missed R2 event notification | the next reconcile re-copies it, within the per-run scan cap (below) |
 | GitHub DB-backup fails | the run fails loudly + the post-upload byte-size verify, and its heartbeat closes with `always()` so a failure shows as FAILED on `/admin/jobs` rather than as a silence; a run that stops firing altogether trips the missed-run alert |
 | DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
 | Avatars not in the R2 WORM backup | by design: on Supabase Storage (bytes ride Supabase infra durability, metadata in pg_dump); derivable, so no WORM tier needed |

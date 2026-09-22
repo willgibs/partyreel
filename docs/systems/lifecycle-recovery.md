@@ -31,29 +31,33 @@ every account behind it. It never buys silence: the tally travels with the sweep
 `rows_failed` closes that sub-sweep's run as an ERROR, and five consecutive failures abort the loop (a
 dead dependency, not a bad row).
 
-`purge_media_rows` does the atomic R2-then-row reclaim + the `storage_used_bytes` decrement; it is
-**service-role-only** and stays REVOKED from anon/authenticated. [`r2/delete.ts`](../../src/lib/r2/delete.ts):
+`purge_media_rows` deletes the rows (never a held one) and decrements `storage_used_bytes` atomically;
+every caller deletes the R2 objects FIRST. It is **service-role-only** and stays REVOKED from
+anon/authenticated. [`r2/delete.ts`](../../src/lib/r2/delete.ts):
 `deleteR2Objects()` chunks to ≤1000 keys per `DeleteObjectsCommand` (the S3 cap) and treats an absent key
 as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
 ## The unified recovery window + standby budget
 
-- **One 30-day window** = `RECENTLY_DELETED_WINDOW_DAYS`. Events stamp `purge_at = deleted_at + 30d` on
-  soft-delete; **media's `purge_at` is TRIGGER-derived** (`set_media_purge_at` = `removed_at + 30d` across
-  every removal path: un-spoofable, NO host grant; never grant `update(purge_at)`).
+- **One 30-day window** = `RECENTLY_DELETED_WINDOW_DAYS`. **`purge_at` is TRIGGER-derived on both
+  tables**: `set_event_purge_at` = `deleted_at + 30d`, `set_media_purge_at` = `removed_at + 30d` across
+  every removal path. Un-spoofable, NO host grant on either; never grant `update(purge_at)`.
 - **`standby_budget`** caps total deleted-but-stored bytes per account to
   `RECENTLY_DELETED_BUDGET_MULTIPLIER × effective cap` (the multiplier is 1), evicting oldest-first: the
   anti-abuse backstop (size is the bound, not the clock). `profiles.storage_grace_until` is
   service-role-write-only.
-- **Delete-own from "Your uploads"** (the owner's own profile page, `/u/[slug]`) reuses this window via the authenticated SECURITY DEFINER
-  `remove_my_upload(uuid)` RPC (re-checks ownership via the `get_my_uploads` host-arm/guest-arm predicates,
-  then soft-removes; idempotent). ★ A guest's self-deletion of an upload to SOMEONE ELSE's event is marked
+- **Delete-own** reuses this window: a signed-in uploader through the authenticated SECURITY DEFINER
+  `remove_my_upload(uuid)` RPC ("Your uploads" on their own `/u/[slug]`, and the guest album's delete;
+  re-checks ownership via the `get_my_uploads` host-arm/guest-arm predicates, then soft-removes;
+  idempotent), a name-only guest through `POST /api/guests/remove` → the service-role
+  `remove_my_upload_by_session`. ★ A guest's self-deletion of an upload to SOMEONE ELSE's event is marked
   **`media.removed_by_uploader=true` = PRIVATE to that host**: excluded from the host's bin by
   `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (RLS does NOT filter it, so
   dropping that line shows the host a Restore the RPC always refuses) AND refused by `restore_media` (the
   uploader's deletion wins; it still auto-purges and counts in that host's standby meter). A host deleting
   their OWN event's upload leaves it `false` (host-restorable, like the gallery's Remove). The marker is
-  write-locked: set only by the owner-context RPC, never in the `authenticated (status, removed_at)` grant.
+  write-locked: set only by those two delete-own RPCs and by `disown_guest_rows_by_email` (the dashboard's
+  "Not mine"), never in the `authenticated (status, removed_at)` grant.
 
 ## Invariants (don't break)
 
@@ -95,8 +99,8 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   [`lifecycle/renewal.ts`](../../src/lib/lifecycle/renewal.ts) (shared with the notification bell).
   `expired_passes` downgrades lapsed passes to Free. → [billing-caps.md](billing-caps.md).
 - **Free-tier inactivity removal** (`sweepInactiveFreeEvents`; Pro and Event Pass are exempt): an event
-  with no activity for 6 months is warned ~14 d out, then soft-deleted into the recoverable tail (reusing
-  `softDeleteEvent`). The freshness clock is `max(profiles.last_active_at, event.created_at/updated_at,
+  with no activity for 6 months is warned ~14 d out, then soft-deleted into the recoverable tail (the admin
+  client stamps `deleted_at`, the column `softDeleteEvent` writes; the trigger derives `purge_at`). The freshness clock is `max(profiles.last_active_at, event.created_at/updated_at,
   newest media.created_at)`, so a used or still-collecting event never trips it; the pure decision is
   `inactivityAction` ([`lifecycle/inactivity.ts`](../../src/lib/lifecycle/inactivity.ts), `INACTIVE_DAYS`=180,
   `WARN_BEFORE_DAYS`=14). `touchHostActive` bumps `profiles.last_active_at` (throttled to 12 h, best-effort,
@@ -107,8 +111,9 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
 ## Host-facing recovery (the "Trash" tab)
 
-> Users see **"Deleted"**, a filter on the dashboard's events list and in the album's View menu (never a
-> tab); the model's identifiers (`recently-deleted.ts`, `listRecentlyDeleted*`) say "recently deleted".
+> The product's filters say **"Deleted"** (on the dashboard's events list and in the album's View menu;
+> never a tab), while the delete confirmation and the marketing copy still say "Trash"; the model's
+> identifiers (`recently-deleted.ts`, `listRecentlyDeleted*`) say "recently deleted".
 
 - **RPCs** (`restore_media` / `restore_event` / `purge_media_now`): authenticated, ownership-gated SECURITY
   DEFINER (0029-only; explicit `revoke … from anon`). Restore is **capacity-gated against the BASE cap** (no

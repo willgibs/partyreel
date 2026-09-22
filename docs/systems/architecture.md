@@ -45,8 +45,9 @@ src/app/
   repository, so a shared token, component or schema change reaches the portal in the same commit.
   `vercel.json` registers the purge cron on BOTH projects; the route answers `not_this_surface` on the
   admin one, so it runs on the app surface only. Full perimeter: [admin-observability.md](admin-observability.md).
-- The always-dark **`gallery`** surface is unused as a full page; its `--gallery` tokens serve the lightbox
-  backdrop and `SaveEventButton`'s `tone="gallery"`. → see [uploads-and-r2.md](uploads-and-r2.md).
+- The always-dark **`--gallery`** tokens are not a page surface: they paint the `EventCard` no-cover
+  placeholder and the marketing reel and gallery frames (the lightbox backdrop is the `glass-behind`
+  utility). → see [uploads-and-r2.md](uploads-and-r2.md).
 
 ## Two stores of truth
 
@@ -92,15 +93,15 @@ Every authed/guest page is dynamic (cookies), and the client router's staleTime 
 defaults to 0, so the `revalidatePath` calls in server actions are belt-and-braces freshness, kept HONEST
 (only the paths whose rendered data the action changed), not maximal:
 
-- **Event mutations** (`updateEventAction`, create, delete, restore) → `/dashboard/[eventId]` + `/dashboard`
-  (cards render name/date/visibility; deleted events are a filter of the dashboard list).
+- **Event mutations**: `updateEventAction` and restore → `/dashboard/[eventId]` + `/dashboard` (cards render
+  name/date/visibility); create and delete → `/dashboard` (deleted events are a filter of its list).
   `removeMyUploadAction` → `/dashboard` + `/u/[slug]` (Your uploads lives on the owner's profile).
 - **Password + slug actions** → `/dashboard/[eventId]` ONLY (the dashboard card badge derives from
   the visibility ENUM, never the hash; cards never render the slug).
 - **Moderation/media actions** (`[eventId]/actions.ts`) → `/dashboard/[eventId]`. **Account and social
   actions** → `/account` (+ `/u/[slug]` where the profile shows it). **Admin actions** → their own `/admin/*` paths.
 - The guest gallery is NOT in this system: it's client-fetched via the conditional poll + doorbell
-  (→ [guest-flow.md](guest-flow.md)); `router.refresh()` appears only in guest in-page auth flows.
+  (→ [guest-flow.md](guest-flow.md)).
 
 **`cacheComponents` / `"use cache"` stays OFF until the surfaces settle after launch:** enabling it
 inverts the dynamic-by-default contract app-wide (every dynamic read must move behind `"use cache"`
