@@ -235,7 +235,12 @@ export function UploadStep({
       {/* The shell carries these as its sr-only name and description, so the eye reads them here
           and a screen reader does not hear them twice (the name step's own division). */}
       <div aria-hidden>
-        <p className="font-heading text-page text-balance">{heading.title}</p>
+        {/* The step's own heading, not the album sheet's: "Add photos" is a BUTTON's words on a
+            surface a guest opened; this is the door asking, so it asks for theirs. The review
+            heading ("Send this one?") is shared, because that question is the same question. */}
+        <p className="font-heading text-page text-balance">
+          {heading.reviewing ? heading.title : "Add your photos"}
+        </p>
         <p className="mt-2 text-base leading-relaxed text-muted-foreground">
           {heading.reviewing ? heading.description : uploadStepReason({ isDemo, requireUpload, albumEmpty, hostName })}
         </p>
