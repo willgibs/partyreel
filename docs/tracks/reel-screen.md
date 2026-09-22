@@ -1,6 +1,6 @@
 ---
 track: reel-screen
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "17f17e57"          # the launch-prep SHA the branch was cut from
 board: reel-screen     # a new board: the reel round, the venue screen
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -167,30 +167,103 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none open. Every call the goal left was taken and built, and the four that are his to overrule ride the
+  board itself as carried calls (`look`, `panel`, `waiting`, `held`), so they reach him where he is reading.
+  Nothing here is a one-way door: this lane wires no production byte.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. A lab-only lane owns no system fact; the screen's facts land in `docs/systems/reel.md` at the wiring.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The kit draws no canvas wider than 1440 (`CANVAS` in `stage.tsx`). This board carries its own 1920 by 1080
+  `Frame`; if a second board ever needs a wall, `CANVAS` gains a `wall` entry and `Stage` a third mode.
+  Bucket: the lab.
+- A screen link that opens the wall without the host's session (the `open.link` option, drawn as LATER work):
+  a capability token with expiry and revocation, never the host's own session. Bucket: the reel.
+  The plan already names it under section E's ROADMAP list; this board draws it so the shape is decided first.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- BOARD commit `a5793b99` (the board and its three registrations); SYNC-MERGE `f98d204f` (merged
+  `origin/launch-prep` at `d86ee72e`, which had moved: `identity-claims`, `identity-door` and
+  `reel-engine-video` landed while this lane ran). Pushed on `lp/reel-screen`.
+- Gates on the SYNCED tree, each on its own exit code: `pnpm design:rules` 0 (228 components, 1916 contracts,
+  18 policies) · `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (140 specimens on 101 entries)
+  · `pnpm typecheck` 0 · `pnpm lint` 0 (9 warnings, the 2026-09-22 baseline, none in a file this lane
+  touched) · `pnpm test` 0 (345 files, 3784 passed, 1 skipped) · `pnpm build` 0 (258 pages) ·
+  `pnpm lab:smoke --base http://localhost:3131` 0 (452 checks, 0 failing; reel-screen reads 742 words of a
+  1200 budget) · `pnpm lab:demo --board reel-screen --base http://localhost:3131` 0 (8 steps, 0 failing,
+  "Every step draws its options"; the smallest pair moves 2.00%, the largest 75.00%). Logs in the lane's
+  scratch directory. The dev server was killed by port before every build, test run and the handoff.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `src/app/(dev)/design/sandbox/reel-screen/{spec.ts,board.tsx,fixtures.ts,stills.tsx,wall.tsx,parts.tsx}`
+  (owned) + the three registration files (`sandbox/registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts`,
+  this board's own lines only) + `docs/design/library.md`. THE EXCEPTION: `library.md` is the generated
+  artifact of `pnpm design:rules` (the gate's own first step) and its whole diff is this board's one row plus
+  the standing-board count, 17 to 18. Per the Orchestrator's mid-lane instruction the board registers directly
+  AFTER `identity-profile`, not at the head, in all four lists.
+- THE STAGE, and what I did about the cap you asked me to check: the kit draws no canvas wider than 1440
+  (`CANVAS.desktop` in `src/components/lab/stage.tsx`), so this board draws its own wall in `wall.tsx`: a
+  1920 by 1080 `Frame`, with 1440 by 810 on the `screen` knob. A `Frame` rather than a div on the kit's own
+  reasoning (a div hands a Tailwind breakpoint the BROWSER's width and lets a portal escape), and because the
+  site's type ladder is FLUID: inside a real 1920 viewport `text-title` resolves to 80px, which is the only
+  way wall type can be judged at all. `Stage` and `CANVAS` are untouched; the deferred line above says what it
+  would take to lift the cap for a second board.
+- The eight items, one line each:
+  - `qr`: the code small in a corner with the ask, over a panel or an interstitial; a wall people glance at all
+    night is a picture with a permanent invitation on it. Measured: 12% of the wall's width at 1920, 15% at 1440.
+  - `name`: a corner wordmark over a title bar or nothing; the name makes the wall the host's for the price of
+    one line, and the bar spends 13% of the wall's height on something the room already knows.
+  - `caption`: a lower third for one hold over a corner chip or silence; the credit is why a shy guest adds a
+    second photograph. Measured: 3% of the picture against the chip's 2%.
+  - `pacing`: 5 seconds, three RUNNING takes at 3.6, 5 and 7; read off `planReel`, 20, 14 and 9 photographs a
+    minute. Five is the shortest hold where two people can both notice a photograph before it goes.
+  - `idle`: the invitation with the code large and one honest line over the bare code or the stills held slow;
+    the empty wall is the one that has to earn the first three photographs.
+  - `start`: the reel's first frame behind a play mark over a plain button or a countdown; the press then reads
+    as lifting a cover rather than launching an application.
+  - `review`: a count in the corner for the host alone over a line the room reads or nothing; a host at their
+    own party is not checking a phone, and the wall is the one thing they keep glancing at.
+  - `open`: a door in the hub's cards row over the row plus a screen link (drawn as LATER, with its capability
+    named) or a row inside the settings sheet; the row is already the host's list of what this event can do.
+- Calls his to overrule on the alias (all four ride the board itself as carried calls, so he meets them while reading):
+  - `look`: the wall wears SUNSET, not the engine's default. Cinematic letterboxes a 16:9 wall, which would
+    have judged every corner of furniture over black bars instead of over a photograph. Worth knowing on its
+    own: a host who touches nothing today gets Cinematic, and it spends about a sixth of a television on bars.
+  - `panel`: the side panel does NOT carry the event's name, although the brief's sketch had it. The name is
+    the `name` ask's one variable, and a panel that printed it too would have made all three of that ask's
+    options identical under this one.
+  - `waiting`: Review holds SEVEN, which is the shared album fixture's own queue (`REVIEW_ITEMS`). The brief
+    said three; a number this board invented would not have been the desk's album.
+  - `held`: seven decisions draw HELD engine frames and only `pacing` runs, three real rAF walls. The step
+    mounts every option at once and the board page draws eight sections, so live canvases everywhere would be
+    two dozen 1920-wide loops on one stage (the retired `reel-studio` board's own lesson).
+  - One more, smaller: the wall's glyphs carry a dark halo as well as an edge scrim. Round one drew them on a
+    scrim alone and the name was illegible over a bright frame; this is the glass ruling's own `GLASS_MARK_LIT`
+    arithmetic applied to type on a wall.
+- The help articles this lane makes stale: none yet (a board wires nothing). For the record, the one the wiring
+  flips is `content/help/show-the-album-live-on-a-screen.mdx`, whose description and "What it looks like"
+  section both say there is no slideshow mode, plus its stale line that a password re-asks "even signed in as
+  the host" (the owner bypasses every gate). Both are the sweep lane's, named in the plan already.
+- `host-curation.count` is named and nothing here asks it: how many places tell a host how many uploads are
+  waiting is that board's question; whether the WALL is one of those places is this board's `review`.
+- Assets requested from Will: none. Every frame is the real engine over `MARKETING_IMAGES`, the fourteen
+  bootstrap stills every other board already reuses.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `qr` at 1920 and then at 1440 on the knob (the code goes from 12% to 15% of the width, which is
+  the whole scannability argument in one flip), then `pacing` with motion allowed, which is the only step on the
+  board that has to be FELT rather than read.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-22). The reel round's venue-screen board: a laptop on the
+venue's television, signed in as the host, playing Mia and Theo's reel full bleed, with eight decisions drawn
+over it (the code's corner and size, the event's name, the just-added beat, the wall's hold, the state before
+the third photograph, the Start plate the browser's gesture rule forces, Review on a public screen, and the
+door on the hub). The kit draws no canvas past 1440, so the board carries its own 1920 by 1080 `Frame` with
+1440 on the knob, which is also the only place the site's fluid ladder resolves to wall type; every reel frame
+is `drawReelFrame` over the shared album at the engine's landscape composition, five stills drawn once per
+session and three running rAF walls for pacing alone, scrub-locked per pace under reduced motion; every
+caption is measured in the frame or read off `planReel`. A catalog to select from; nothing wired production.
