@@ -2,7 +2,7 @@
  * Abuse-focused rate limiter — PURE core (kinds + thresholds + decision). No env / DB / server-only imports,
  * so it is unit-testable (mirrors `unlock-rate-limit.ts`). The HMAC hashing + the DB counters (the
  * `action_rate` RPC + `action_attempts` inserts) live in `abuse-rate-limit-store.ts` (server-only); the guest
- * routes (`/api/guests`, `/api/reports`, `/api/guests/capture-email`) wire them together.
+ * routes (`/api/guests`, `/api/guests/email`, `/api/reports`, `/api/guests/capture-email`) wire them together.
  *
  * DESIGN (Will's directive): ABUSE-focused, NOT volume-focused. An event app gets heavy LEGITIMATE traffic
  * from ONE NAT IP (a wedding/venue behind one WiFi/CGNAT), so a per-IP volume cap would block the core use
@@ -22,6 +22,7 @@
 export type AbuseKind =
   | "join"
   | "rename"
+  | "attach_email"
   | "report"
   | "capture"
   | "export"
@@ -62,6 +63,23 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
   // ceiling six times under join's, and BREADTH does the real work: one IP renaming across 15
   // distinct events in an hour is a script, and a venue is exactly one event.
   rename: {
+    breadthWindowMin: 60,
+    breadthMax: 15,
+    scopeWindowMin: 15,
+    scopeMax: 60,
+  },
+  // The guest identity round's attach door (POST /api/guests/email), scope = (IP, event). The
+  // RENAME's numbers exactly, and for the RENAME's reasoning: this is the same act on the same row
+  // by the same capability, one field over. A guest types their address once at the door and comes
+  // back to this route only to correct it or to take it off, so the natural rate is near zero — but
+  // the constraint that sets the number is still the VENUE, not the tightness: thirty people on one
+  // wedding WiFi fixing a typo inside the same quarter hour are all legitimate, and a limiter that
+  // stops them at a party is a worse failure than the abuse it prevents. There is very little to
+  // prevent: the address is written to ONE row the caller already holds the token for, it is never
+  // shown to anyone and NOTHING IS EVER SENT TO IT, so this is not a mail-bomb surface — the harm
+  // ceiling is junk in a column. BREADTH does the real work, as everywhere: one IP attaching
+  // addresses across 15 distinct events in an hour is a script, and a venue is exactly one event.
+  attach_email: {
     breadthWindowMin: 60,
     breadthMax: 15,
     scopeWindowMin: 15,

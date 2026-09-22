@@ -16,7 +16,11 @@ import {
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { containsProfanity } from "@/lib/validation/profanity";
-import { joinSchema, parseGuestDisplayName } from "@/lib/validation/upload";
+import {
+  joinSchema,
+  parseGuestDisplayName,
+  parseGuestEmail,
+} from "@/lib/validation/upload";
 
 // POST joins a guest to an event via the create_guest RPC (validated by the
 // event's qr_token) and returns an opaque session_token — the guest's capability
@@ -27,6 +31,14 @@ import { joinSchema, parseGuestDisplayName } from "@/lib/validation/upload";
 // guest types a display name at the door and joins unverified under it. The DB deliberately still
 // accepts a NAMELESS mint (wave 0 kept production alive through the deploy window), so the name
 // requirement is THIS ROUTE'S 422 and nothing else's.
+//
+// ★ AND THE OPTIONAL ADDRESS UNDER IT (the guest identity round, Will 2026-09-22): on a names-mode
+// door the guest may also type an email. It is stored UNPROVED in `guests.pending_email` and is
+// inert by construction — never shown to the host or another guest, never attributed to an account,
+// NEVER MAILED, never expiring; his words, "a name with an invisible claim number (the email)". A
+// confirmed address later claims those rows from the dashboard. The response says WHETHER one was
+// stored and never WHAT: echoing a stranger's address back would put it on a wire it has no reason
+// to ride.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -132,6 +144,7 @@ export async function POST(request: Request) {
   // session needs no name (their profile display_name IS the identity, and create_guest nulls a
   // typed one beside it), so only an unverified joiner is asked.
   let displayName: string | null = null;
+  let pendingEmail: string | null = null;
   if (!isVerifiedSession) {
     if (event.require_verified_email) {
       // The switch is ON and nothing was proved. The RPC refuses this too (the belt), but answering
@@ -166,6 +179,24 @@ export async function POST(request: Request) {
       );
     }
     displayName = name.name;
+
+    // The optional field, parsed only when something was actually typed. A missing key and a blank
+    // one are the SAME thing here — a guest who skipped it — and neither is an error; only a typed
+    // address that is not an address is refused, so the door can put the sentence under the field
+    // instead of failing the whole join. A VERIFIED session never reaches this branch at all, and
+    // the RPC nulls the field beside a confirmed account anyway (belt and braces, one identity per
+    // row).
+    const rawEmail = parsed.data.email;
+    if (typeof rawEmail === "string" && rawEmail.trim() !== "") {
+      const email = parseGuestEmail(rawEmail);
+      if (!email.ok) {
+        return NextResponse.json(
+          { ok: false, code: email.code, message: email.message },
+          { status: 422 },
+        );
+      }
+      pendingEmail = email.email;
+    }
   }
 
   const result = await createGuest({
@@ -173,6 +204,7 @@ export async function POST(request: Request) {
     userId: user?.id ?? null,
     unlockProven,
     displayName,
+    pendingEmail,
   });
 
   if (!result.ok) {
@@ -180,7 +212,8 @@ export async function POST(request: Request) {
       result.code === "not_found"
         ? 404
         : result.code === "verification_required" ||
-            result.code === "name_invalid"
+            result.code === "name_invalid" ||
+            result.code === "email_invalid"
           ? 422
           : result.code === "unlock_required" || result.code === "unauthorized"
             ? 403
@@ -198,16 +231,19 @@ export async function POST(request: Request) {
     );
   }
 
-  // Return only what the client needs to upload — guest_id stays internal. `display_name` and
-  // `verified` come back from the mint itself (never echoed from the request), so the door renders
-  // the identity the DATABASE settled on: a verified joiner gets null + true even if they sent a
-  // name, because create_guest nulls one beside a confirmed account.
+  // Return only what the client needs to upload — guest_id stays internal. `display_name`,
+  // `verified` and `email_attached` come back from the mint itself (never echoed from the request),
+  // so the door renders the identity the DATABASE settled on: a verified joiner gets null + true +
+  // false even if they sent both, because create_guest nulls a typed name AND a typed address
+  // beside a confirmed account.
   const response = NextResponse.json({
     ok: true,
     session_token: result.data.session_token,
     event_id: result.data.event_id,
     display_name: result.data.display_name,
     verified: result.data.verified,
+    // ★ WHETHER, NEVER WHAT. The address never appears in a response body.
+    email_attached: result.data.emailAttached,
   });
   /* ★ THE SESSION ALSO GOES ON A COOKIE (the door as three steps, 2026-09-21). Require an upload
      to view is resolved SERVER-SIDE, in the RSC and the poll, and neither can read the localStorage

@@ -29,4 +29,30 @@ describe("email-safety: the guest-facing GridMedia builder never carries email",
     expect(src).not.toMatch(/\.\.\.who\b/);
     expect(src).toContain("isVerified: who?.isVerified ?? false");
   });
+
+  /* ★ AND THE UNPROVED ADDRESS TOO (the guest identity round, Will 2026-09-22). `guests` now also
+     carries `pending_email`: an address a guest TYPED at the door that nobody has proved, stored as
+     an invisible claim number. It is inert by ruling — never shown to the host, never shown to
+     another guest — so it has even less business on a guest-facing payload than a proved one. The
+     builder must never learn the word in any spelling. */
+  it("★ never assigns pending_email, in any spelling", () => {
+    for (const forbidden of [
+      "pending_email",
+      "pendingEmail",
+      "uploaderPendingEmail",
+    ]) {
+      expect(src, forbidden).not.toContain(forbidden);
+    }
+  });
+
+  it("the guest payload names exactly four identity fields, and none of them is an address", () => {
+    // The allow-list, read back off the source: if a fifth ever appears it should be a deliberate
+    // edit here, not a silent one there.
+    const assigned = [...src.matchAll(/(\w+): who\?\.(\w+)/g)].map(
+      ([, key]) => key,
+    );
+    expect(new Set(assigned)).toEqual(
+      new Set(["uploaderName", "isHost", "isVerified", "isAnonymous"]),
+    );
+  });
 });

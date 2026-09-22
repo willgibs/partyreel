@@ -1,7 +1,7 @@
 /**
  * Social reads (profiles-social.md data layer): the public profile, owner-private
- * follow/block lists + counts, notification prefs, the guest-side hidden-event
- * set, and the host-keyed event guest list.
+ * follow/block lists + counts, notification prefs, the guest-side shown-event
+ * opt-in set, and the host-keyed event guest list.
  *
  * Privacy invariants encoded here (do not relax in a refactor):
  *   - Follower/following LISTS AND COUNTS are private to the owner (the VSCO
@@ -11,6 +11,13 @@
  *   - The event guest list renders ONLY when the HOST enabled show_guest_list
  *     (the profiles-social.md host key); a nameless upload never appears, and a named guest who
  *     proved no email is listed as a plain name with the mark, never as a profile card.
+ *   - ★ NO ADDRESS EVER LEAVES THIS MODULE (the guest identity round, 2026-09-22). `guests` reads
+ *     here name their columns, and `pending_email` is never one of them: the unproved address a
+ *     guest types at the door is inert, and the host sees a badge, never an address. The column is
+ *     outside the host's PostgREST grant as a belt, and social.guest-identity.test.ts pins the
+ *     SELECT so an admin-client read here can never widen past it.
+ *   - A public profile publishes NOTHING until its owner chooses (his "Nothing until chosen"):
+ *     `profile_shown_events` is an opt-IN, and the empty set is the default rather than a failure.
  */
 import "server-only";
 
@@ -254,13 +261,22 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   return resolveNotificationPrefs(data as NotificationPrefsRow | null);
 }
 
-/** Event ids I hid from my own public profile (profiles-social.md point 2). */
-export async function getMyHiddenEventIds(): Promise<string[]> {
+/**
+ * Event ids I have CHOSEN to publish on my own public profile.
+ *
+ * ★ THE INVERSION (the guest identity round, Will 2026-09-22: "Nothing until chosen"). This used to
+ * be `getMyHiddenEventIds` over `profile_hidden_events`, an opt-OUT: every event you attended was
+ * public until you went and hid it, which published people who had never asked to be published. The
+ * opt-IN table `profile_shown_events` replaces it, and the empty set is now the DEFAULT rather than
+ * a failure to act. `profile_hidden_events` stays on disk until a later migration drops it, and
+ * NOTHING reads or writes it any more.
+ */
+export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   const { data, error } = await supabase
-    .from("profile_hidden_events")
+    .from("profile_shown_events")
     .select("event_id")
     .eq("user_id", user.id);
   if (error) {
@@ -312,8 +328,9 @@ export type PublicProfile = {
  * the 4th member of the accepted anon-read set). null = no such handle; we
  * never distinguish "no user" from "user without a slug" (don't leak existence).
  * Composition lives IN the RPC per the ADR: hosted events the host displays +
- * attended events (show_guest_list on, approved upload) minus the owner's
- * profile_hidden_events.
+ * attended events (show_guest_list on, an approved upload, the guest VERIFIED)
+ * intersected with the owner's own profile_shown_events opt-in — so a profile
+ * publishes nothing at all until its owner chooses (the guest identity round).
  */
 const getPublicProfileCached = cache(
   async (slug: string): Promise<PublicProfile | null> => {
@@ -364,7 +381,7 @@ export async function getPublicProfileCoverUrls(
  *
  * ★ IT RE-PROVES ALL THREE GATES BEFORE IT PRESIGNS, and that is the whole
  * function. get_public_profile already applied them (the host's show_guest_list
- * key, visibility = 'open', the guest's own profile_hidden_events) and a caller
+ * key, visibility = 'open', the guest's own profile_shown_events) and a caller
  * that passed its payload straight through would be correct today — but this
  * turns an event id into a PHOTOGRAPH from someone else's album, so it proves
  * the scope itself rather than inheriting it from whoever called. One extra
@@ -396,16 +413,21 @@ export async function getPublicProfileAttendedCoverUrls(
     const allowed = new Set((open ?? []).map((e) => e.id));
     if (allowed.size === 0) return new Map();
 
-    // Gate 3: the guest's own hide. Scoped to THIS profile's rows, never the
-    // viewer's (the viewer may be anonymous; the hide belongs to the page's
-    // owner). Admin read: profile_hidden_events RLS is owner-only.
-    const { data: hidden, error: hiddenError } = await admin
-      .from("profile_hidden_events")
+    // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
+    // is published because its owner put a row in `profile_shown_events`, never because they failed
+    // to hide it, so the set that survives is the INTERSECTION and an empty answer is the correct
+    // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
+    // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
+    // profile_shown_events RLS is owner-only.
+    const { data: shown, error: shownError } = await admin
+      .from("profile_shown_events")
       .select("event_id")
       .eq("user_id", profileId)
       .in("event_id", [...allowed]);
-    if (hiddenError) throw hiddenError;
-    for (const row of hidden ?? []) allowed.delete(row.event_id);
+    if (shownError) throw shownError;
+    const chosen = new Set((shown ?? []).map((row) => row.event_id));
+    for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
+    if (allowed.size === 0) return new Map();
 
     return adminCoverUrls([...allowed]);
   } catch (error) {
@@ -510,18 +532,26 @@ export type AttendedEventSetting = {
   id: string;
   name: string;
   event_date: string | null;
-  /** In my profile_hidden_events set (the per-event hide toggle is OFF). */
+  /** In my profile_shown_events set: I have chosen to publish this one. Default FALSE. */
+  shownOnProfile: boolean;
+  /**
+   * @deprecated The opt-OUT mirror of `shownOnProfile`, kept for exactly one merge. The switch
+   * (`components/social/attended-events-visibility.tsx`) belongs to the claims lane and still reads
+   * the old field; it rewires to `shownOnProfile` and the two renamed actions right after this lane
+   * merges, and this line goes with that change. It is a pure derivation (`!shownOnProfile`), so the
+   * switch renders the CORRECT state in the meantime — an event nobody chose reads as hidden.
+   */
   hiddenFromProfile: boolean;
 };
 
 /**
  * Events I ATTENDED (signed-in guest rows with >= 1 approved upload, host
- * differs), for the /account per-event hide-from-my-profile toggles. Mirrors the
- * RPC's attended arm MINUS the show_guest_list filter, deliberately: the hide
- * toggle is MY key and must stay settable even while the host's key is off (so
- * flipping show_guest_list on later never surprises a guest who already hid the
- * event). Admin read: events RLS is host-only and guests has no authenticated
- * read; scoped hard to the caller's own guest rows.
+ * differs), for the per-event "show this on my profile" switches. Mirrors the
+ * RPC's attended arm MINUS the show_guest_list filter, deliberately: the choice
+ * is MY key and must stay settable even while the host's key is off (so
+ * flipping show_guest_list on later never surprises a guest who chose to
+ * publish, or one who never did). Admin read: events RLS is host-only and
+ * guests has no authenticated read; scoped hard to the caller's own guest rows.
  */
 export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   const { user } = await getRequestAuth();
@@ -562,13 +592,18 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (eventsRes.error) throw eventsRes.error;
-    const hidden = new Set(await getMyHiddenEventIds());
-    return (eventsRes.data ?? []).map((e) => ({
-      id: e.id,
-      name: e.name,
-      event_date: e.event_date,
-      hiddenFromProfile: hidden.has(e.id),
-    }));
+    const shown = new Set(await getMyShownEventIds());
+    return (eventsRes.data ?? []).map((e) => {
+      const shownOnProfile = shown.has(e.id);
+      return {
+        id: e.id,
+        name: e.name,
+        event_date: e.event_date,
+        shownOnProfile,
+        // The deprecated mirror; see AttendedEventSetting. Derived, never stored.
+        hiddenFromProfile: !shownOnProfile,
+      };
+    });
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
     throw error;

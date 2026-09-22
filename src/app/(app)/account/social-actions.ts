@@ -2,15 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
-
 import {
   clearProfileSlug,
   hideEventFromProfile,
   setProfileBio,
   setProfileSlug,
+  showEventOnProfile,
   unblockUser,
   unfollowUser,
-  unhideEventFromProfile,
 } from "@/lib/db/mutations/social";
 import { isSocialSchemaMissing } from "@/lib/db/queries/social";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -122,7 +121,22 @@ export async function checkProfileSlugAction(
 // switch visibly snapped back moments after a save that had actually
 // succeeded, which reads as "my privacy setting didn't take". The public
 // profile is revalidated by route pattern (the slug isn't in scope here) since
-// hiding an event is a privacy action and a stale public page is the real harm.
+// publishing an event is a privacy action and a stale public page is the real harm.
+//
+// ★ THE PAIR IS NOW show / hide, NOT hide / unhide (the guest identity round, Will 2026-09-22:
+// "Nothing until chosen"). The default is OFF: an attended event is published because its owner
+// turned it ON, never because they failed to turn it off.
+export async function showEventOnProfileAction(
+  eventId: string,
+): Promise<SocialActionResult> {
+  const result = await showEventOnProfile(eventId);
+  if (result.ok) {
+    revalidatePath("/account");
+    revalidatePath("/u/[slug]", "page");
+  }
+  return fromMutation(result);
+}
+
 export async function hideEventFromProfileAction(
   eventId: string,
 ): Promise<SocialActionResult> {
@@ -134,15 +148,17 @@ export async function hideEventFromProfileAction(
   return fromMutation(result);
 }
 
+/**
+ * @deprecated One merge's worth of scaffolding, and no more. The attended switch
+ * (`components/social/attended-events-visibility.tsx`) belongs to the CLAIMS lane and still imports
+ * this name; it rewires to `showEventOnProfileAction` immediately after this lane merges, and this
+ * export goes with that change. It is a pure alias, so the switch does the right thing in the
+ * meantime: "un-hide" and "show" are the same act now that the table is an opt-in.
+ */
 export async function unhideEventFromProfileAction(
   eventId: string,
 ): Promise<SocialActionResult> {
-  const result = await unhideEventFromProfile(eventId);
-  if (result.ok) {
-    revalidatePath("/account");
-    revalidatePath("/u/[slug]", "page");
-  }
-  return fromMutation(result);
+  return showEventOnProfileAction(eventId);
 }
 
 export async function unfollowAction(
