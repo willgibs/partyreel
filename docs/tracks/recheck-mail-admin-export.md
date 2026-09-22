@@ -1,6 +1,6 @@
 ---
 track: recheck-mail-admin-export
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c2482757"            # the launch-prep SHA the branch was cut from
 board: emails
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -68,12 +68,69 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work commit** `3d5e01c8` on `lp/recheck-mail-admin-export`, pushed. **Sync**: `origin/launch-prep` had moved to
+  `1b92ad74` (docs-rules/roadmap-lean/docs-product-trim: `docs/design/rulings.md` retired, the ROADMAP/ASSETS trimmed,
+  `touchpoints.ts` restructured — none of it under this lane's `owns` or `reads`); `git merge origin/launch-prep`
+  fast-forwarded cleanly onto that tip (no merge commit: this branch carried no commits of its own yet), then the work
+  commit landed on top of it, so no separate sync commit exists. The head is in the chat line.
+- **Gates on the synced tree**, each its own exit code: `pnpm design:rules` and
+  `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` both 0 (no diff produced either time — this lane touches
+  no contract, policy or specimen); `pnpm typecheck` 0; `pnpm lint` 0 (9 pre-existing warnings, all in files this lane
+  never touched: `review-session.tsx`, `home-hero/shared.tsx`, the guest `page.tsx`, `contact-form.tsx`,
+  `album-fill-grid.tsx`, `review-switch.tsx`, `jobs.ts`, `use-flip.ts`); `pnpm test` 0 (350 files, 3871 passed, 1
+  skipped); `pnpm build` 0. `pnpm lab:smoke --base http://localhost:3136`: 499 checks, 0 failing. `pnpm lab:demo --base
+  http://localhost:3136` per board: `emails` 8 steps 0 failing, `admin-triage` 8 steps 0 failing, `export-flow` 7 steps
+  0 failing (down from 8, `chips` gone). Verified `emails.moments`, `emails.code`, `admin-triage.notice`,
+  `admin-triage.escalate` and `export-flow.means`/the ALBUM control in the browser at 375 and 1440.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = exactly the 10 files below, every one under
+  `owns`; no exceptions.
+- **The items**, one line each (verdict, old question -> new question):
+  - `emails.moments` ADAPTED: "the four as drawn, nothing yet, or the set the new door implies" -> "the three as
+    drawn...": `DORMANT_ROSTER` drops "Your highlight reel is ready" outright (impossible now, not unbuilt — a live
+    montage with no host action or file never finishes rendering), so `shipped`'s three switches gain real sends
+    instead of four; `identity`'s overrule now names identity-claims' own ticket as the in-app surface this mail
+    would echo, and guest-capture's post-upload offer as the other board it should defer to first.
+  - `emails.code` ADAPTED: "What should the sign-in mail show first, now the code is the product's one door?" ->
+    "Now the verified-required gate itself promises 'One tap and you're in,' what should the mail's own button
+    say?": `digits` (no button) is dropped as dead (a mail with nothing to tap would break a promise already made);
+    both remaining options draw digits-plus-button and differ only in the button's copy ("Continue" vs the gate's
+    own words, "One tap, you're in").
+  - `emails.guest` ADAPTED (light, no question change): the `link` option's `means` and `GUEST_ROSTER`'s trigger
+    both corrected from "left an address" to "first upload, address on file," matching the rule the context already
+    stated (never mailed on its own).
+  - `admin-triage.notice` ADAPTED and REDRAWN: "now a host already lives with one silent gap" -> "...two silent
+    gaps" (the claim ticket's Finish deleting an unclaimed event's uploads is the second, beside a guest's own
+    deletion); `notice.tsx`'s "Anonymous, on their phone" redrawn to "A named guest, on their phone"; the `both`
+    option's cost, in both `spec.ts` and `notice.tsx`, corrected from "needs a new field" to "only ever reaches a
+    confirmed reporter, an Unverified one has no address that could ever be mailed regardless."
+  - `admin-triage.escalate` ADAPTED (context only, same question and options): now states that the hold sheet's
+    "their other album" already crosses events by an unconfirmed address, and (moved into `because` for the length
+    budget) that a legal hold is forensics' own deliberate exemption from that address's usual invisibility, not a
+    hole in the rule.
+  - `export-flow.chips` REMOVED: its only case, a teaser viewer reaching the Download sheet at all, is foreclosed by
+    the door's "no exit" (she is held at an inert backdrop the whole way and never reaches the album, let alone this
+    sheet). The ALBUM knob's `teaser` option went with it (`fixtures.ts`, `spec.ts`); `ChipMode`'s locked "two"/"why"
+    rendering was cut from `dialog.tsx` as dead code once `chips` was its only remaining caller.
+  - `export-flow.means` ADAPTED (light, context only): now names the cut (reel-cut's, saved on the device) as a
+    sibling download path this board doesn't ask about, and credits reel-cut's own "Only mine" fill as the idea
+    `mine` mirrors.
+  - The admin rail's "Reels" nav entry (`src/lib/admin/nav.ts`): LEFT ALONE, as the survey said — not owned by this
+    lane, and it leaves on its own once the reel's teardown lands.
+- **Assets requested from Will**: none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**, one line each:
+  - `emails.code`'s reshape invents a new copy dimension (which words the mandatory button carries) rather than
+    letting the ask retire with one option standing; if he'd rather fold "always digits plus a button" into settled
+    furniture and drop the ask, that's a smaller board.
+  - `emails.moments`' `identity` option now defers to identity-claims for the notification surface rather than
+    committing to one; if he wants this mail wired regardless of what identity-claims settles on, the deferring
+    clause in `overrule` can come back out.
+  - `admin-triage.notice`'s fixture reporter is redrawn as "A named guest" without picking a specific trust level;
+    if always drawing her as Unverified (the commonest case) reads better than staying generic, that's a one-line
+    change.
+  - `export-flow.means`'s context names reel-cut's fill by the placeholder word "mine" (reel-cut's own copy round
+    may rename it); nothing here pins that word, but the cross-reference reads it literally today.
+- **Look at first**: `emails.moments` (option 1, "The three as drawn," for the redrawn roster) and `emails.code`
+  (both options, for the new button-copy question); then `admin-triage.notice` option 3 ("both") for the corrected
+  cost line; then `export-flow`'s ALBUM control (now three options, not four) confirming `chips`/`teaser` are fully
+  gone.
