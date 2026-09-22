@@ -16,7 +16,6 @@ import { formatBytes } from "@/lib/utils";
 import {
   BundleRows,
   type CapMode,
-  type ChipMode,
   ChipRow,
   Foot,
   Head,
@@ -55,10 +54,10 @@ import {
  *
  * ★ THE GROUND IS TODAY'S PRODUCT EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped surface with ONE thing changed, so a decision never
- * arrives quietly wearing an answer he has not given. The four staged
- * decisions (`chips`, `stuck`, `hollow`, `phone`) ARE drawn wearing the answer
- * they wait on, because that is what the staging is for: what a hollow zip
- * should say has no shape until the wait has one.
+ * arrives quietly wearing an answer he has not given. The three staged
+ * decisions (`stuck`, `hollow`, `phone`) ARE drawn wearing the answer they
+ * wait on, because that is what the staging is for: what a hollow zip should
+ * say has no shape until the wait has one.
  *
  * ★ THE NUMBERS UNDER EVERY FRAME ARE MEASURED, NEVER COMPUTED (docs/PROGRAM.md:
  * a board once drew an option with its formula's sign backwards, and the tile
@@ -169,17 +168,6 @@ const meansRead: Reader = (root, win) => {
     return `Measured: no sheet at all, ${picked} tiles already picked, and the bar is ${Math.round(bar.getBoundingClientRect().width)} px wide.`;
   }
   return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and offers ${bundles === 0 ? "one bundle and no choice of set" : `${bundles} bundles above the chips`}.`;
-};
-
-const chipsRead: Reader = (root) => {
-  const chips = [...root.querySelectorAll<HTMLElement>("[data-xf-chip]")];
-  const live = chips.filter(
-    (c) => !(c as HTMLButtonElement).disabled,
-  ).length;
-  const said = text(root.querySelector("[data-xf-said]"));
-  const count = text(root.querySelector("[data-xf-count]"));
-  if (chips.length === 0) return null;
-  return `Measured: ${chips.length} chips, ${live} of them pressable, the foot reads "${count}"${said ? `, and the row says "${said}"` : ", and nothing says why"}.`;
 };
 
 const waitRead: Reader = (root, win) => {
@@ -294,8 +282,6 @@ const albumFor = (s: BoardState) => albumOf(s.album);
 /* ── 1. what a guest takes ───────────────────────────────────────────────── */
 
 type MeansShape = "album" | "mine" | "picked";
-const meansOf = (v: string | undefined): MeansShape =>
-  v === "mine" || v === "picked" ? v : "album";
 
 const MEANS_CAPTION: Record<MeansShape, string> = {
   album:
@@ -379,60 +365,6 @@ function MeansScreen({ shape, s }: { shape: MeansShape; s: BoardState }) {
             <BundleRows album={album} chosen="mine" />
           ) : null}
           <ChipRow summary={summary} types="all" />
-          <Foot summary={summary} types="all" />
-        </Shell>
-      </GuestAlbum>
-    </Screen>
-  );
-}
-
-/* ── 2. a chip with nothing in it ────────────────────────────────────────── */
-
-/**
- * ★ `three` IS DROPPED, NOT DRAWN SMALLER (the overtaken audit, 2026-09-21).
- * A band with nothing real in it is ruled absent rather than drawn empty, so
- * the chip that renders a zero and takes the tap is no longer an option Will
- * could take. `ChipMode` keeps the word because `ChipRow`'s DEFAULT is the
- * ordinary three-chip row every other decision draws; only this ask lost it.
- */
-type ChipShape = Exclude<ChipMode, "three">;
-
-const CHIP_CAPTION: Record<ChipShape, string> = {
-  two: "The row holds only chips that can answer. Nothing tells the guest there is more in the album.",
-  why: "The chip stays, cannot be pressed, and the reason sits under the row with the album's own way in beside it.",
-};
-
-function ChipScreen({ shape, s }: { shape: ChipShape; s: BoardState }) {
-  const screen = screenFor(s);
-  // The teaser is the only album this decision exists in, so it is forced here
-  // rather than left on the knob: three identical tiles would be a dead step.
-  const album = ALBUMS.teaser;
-  const means = meansOf(s.means);
-  // The whole album is the bundle in view: Videos only exists there, so a
-  // `mine` answer is worn as its second row rather than as its counts.
-  const summary = album.summary;
-  return (
-    <Screen
-      id={`chips-${shape}`}
-      screen={screen}
-      read={chipsRead}
-      caption={CHIP_CAPTION[shape]}
-    >
-      <GuestAlbum screen={screen} count={9}>
-        <Shell>
-          <Head
-            description={
-              means === "mine"
-                ? "Take yours, or take the lot."
-                : "Pick what to bundle into your copy."
-            }
-          />
-          {means === "mine" ? (
-            <BundleRows album={album} chosen="album" />
-          ) : null}
-          {/* Neither answer can BE in the video state: the tap that put the
-              sheet there was the defect, and the ruling closed it. */}
-          <ChipRow summary={summary} types="all" mode={shape} />
           <Foot summary={summary} types="all" />
         </Shell>
       </GuestAlbum>
@@ -841,9 +773,6 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
   "means.album": (s) => <MeansScreen shape="album" s={s} />,
   "means.mine": (s) => <MeansScreen shape="mine" s={s} />,
   "means.picked": (s) => <MeansScreen shape="picked" s={s} />,
-
-  "chips.two": (s) => <ChipScreen shape="two" s={s} />,
-  "chips.why": (s) => <ChipScreen shape="why" s={s} />,
 
   "wait.toast": (s) => <WaitScreen shape="toast" s={s} />,
   "wait.panel": (s) => <WaitScreen shape="panel" s={s} />,

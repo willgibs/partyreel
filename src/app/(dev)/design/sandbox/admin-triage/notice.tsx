@@ -21,10 +21,15 @@ import { StateChip } from "./shell";
  *
  * ★ SO EVERY OPTION HERE IS DRAWN AGAINST A CONSTRAINT, NOT A PREFERENCE. A
  * notice that fires on an ordinary takedown and stays silent on a held one is
- * itself a hold oracle. And a reporter is anonymous BY CONSTRUCTION: the
- * capability is the event's `qr_token` and the row stores no identity, so
- * telling them anything means asking for an address the dialog deliberately
- * does not ask for. The third option draws that cost rather than hiding it.
+ * itself a hold oracle. And the REPORT ITSELF is anonymous by construction:
+ * the capability is the event's `qr_token` and the row stores no identity of
+ * its own. The reporter behind it is not, any more (the identity round): every
+ * guest now passes a door that asks at least a name. So the third option's
+ * real cost is narrower than a brand new field: it only ever reaches a
+ * reporter who is by then a confirmed account, whose address is already
+ * proven; an Unverified one has none a form could collect that this product
+ * would ever mail, typed or not, since an unconfirmed address is never mailed
+ * on its own. The third option draws that cost rather than hiding it.
  */
 
 export type NoticeShape = "silence" | "host" | "both";
@@ -88,7 +93,7 @@ export function WhoIsTold({ shape }: { shape: NoticeShape }) {
   const row = OPEN_REPORTS[0];
   return (
     <div className="grid grid-cols-3 gap-4">
-      <Column title="The person who reported it" who="Anonymous, on their phone">
+      <Column title="The person who reported it" who="A named guest, on their phone">
         <Note icon={<CheckCircle2 className="size-4" />}>
           <p>Thanks. Your report has been sent for review.</p>
           <p className="text-xs text-muted-foreground">
@@ -99,8 +104,10 @@ export function WhoIsTold({ shape }: { shape: NoticeShape }) {
           <Note icon={<Mail className="size-4" />}>
             <p>Your report on {row.event} has been closed.</p>
             <p className="text-xs text-muted-foreground">
-              Needs an address. The dialog asks for none, so it becomes one more
-              optional field on the most sensitive form in the product.
+              No new field either way: a confirmed reporter&rsquo;s address is
+              already proven and on file, so this only ever reaches her.
+              An Unverified one has none that could ever be mailed, typed or
+              not, since an unconfirmed address is never mailed on its own.
             </p>
           </Note>
         ) : (
