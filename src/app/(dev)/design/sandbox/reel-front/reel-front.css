@@ -1,0 +1,57 @@
+/* THE LIVING TILE'S MOTION, AS PLAIN CSS OVER PLAIN <img> TAGS.
+   See engine.ts's header comment for why: a Frame's portalled scene runs its
+   JSX in the board's own realm and only its DOM lands in the iframe (frame.tsx,
+   "landmine" 1/3), so a component that reaches for a bare `document` or
+   `IntersectionObserver` (CanvasReelPlayer's own visibility gating) would
+   attach to the LAB PAGE, not the scene. A CSS animation needs no realm: the
+   iframe's own rendering engine drives it, whatever JS module produced the
+   markup. Six images, one keyframe, a negative per-image delay phase-shifts
+   each into its own sixth of the cycle (rf-crossfade.tsx does the arithmetic;
+   the percentages below assume exactly six).
+
+   Two paces share the one keyframe (only `--rf-hold` changes): FAST for the
+   living tile itself (the reel plays faster in the hand than on a wall, ruled);
+   SLOW for the no-engine alternative, which is explicitly a slower, gentler
+   cycle of the newest stills: the pace difference is real evidence for that
+   ask, not decoration. */
+.rf-crossfade-img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation-name: rf-crossfade;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  /* --rf-hold (seconds, one image's slot) and --rf-delay (seconds, negative)
+     are set inline per image by the component. */
+  animation-duration: calc(var(--rf-hold) * 6 * 1s);
+  animation-delay: calc(var(--rf-delay) * 1s);
+}
+@keyframes rf-crossfade {
+  0% {
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  14.6667% {
+    opacity: 1;
+  }
+  16.6667% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-crossfade-img {
+    animation: none;
+    opacity: 0;
+  }
+  .rf-crossfade-img[data-rf-hero] {
+    opacity: 1;
+  }
+}

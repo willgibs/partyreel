@@ -33,6 +33,7 @@ export type RulingId =
   | "identity-profile"
   | "reel-screen"
   | "guest-capture"
+  | "reel-front"
   | "toasts"
   | "guest-verify"
   | "seed-avatar"
@@ -122,6 +123,7 @@ export type SandboxId =
   | "identity-profile"
   | "reel-screen"
   | "guest-capture"
+  | "reel-front"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -286,6 +288,35 @@ export const RULINGS: Ruling[] = [
         "The follow surface",
         "The landing",
         "What the name becomes",
+      ],
+    },
+  },
+  {
+    id: "reel-front",
+    title: "The album's living tile",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, rulings.md \"the reel, reconceived\": the reel is reconceived whole as a live, looping montage playing from a tile at the album's head)",
+    shipped: null,
+    why: "This is the album's own tile: what it is, its verbs, its states, the beat after a guest's upload, the door and the hub; reel-view and reel-cut are its sibling boards.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/guest-reel-card.tsx",
+      "src/components/reel/poster-card.tsx",
+      "src/components/guest/entry-shell.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the album's own head, at Maya and Jay's wedding, every reel frame drawn by the real engine over fixture clips: what the living tile is, its verbs, its states before three items, the beat after a guest's first approved photo, the door's backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card",
+      variants: [
+        "The living tile",
+        "The tile's verbs",
+        "The small states",
+        "The beat after yours",
+        "The door's backdrop",
+        "Once uploads close",
+        "The hub's Reel card",
       ],
     },
   },
@@ -1737,18 +1768,20 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
-  // stay line-disjoint, and the Orchestrator moves it into its leverage place
-  // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
-  // after `app-vocabulary`: a part under both shapes; `guest-capture` after
-  // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape). Several boards at once had mangled the head rule into two
-  // conflicted merges (his word, 2026-09-22), so each of the following is
-  // placed directly, after a DIFFERENT named neighbour: `reel-view` sits right
-  // after `media-viewer`, whose answers it reads from; `identity-door` right
-  // after `guest-capture`, since it draws the same guest one step earlier in
-  // her walk through the door; `identity-claims` after `identity-door` for the
-  // same reason; `identity-profile` after `identity-claims`.
+  // ★ A NEW BOARD REGISTERS BESIDE A NAMED NEIGHBOUR, NEVER ALL AT THE SAME
+  // SPOT (2026-09-22: several same-round siblings inserting at one shared head
+  // mangled two merges the same day), and the Orchestrator moves each into its
+  // leverage place at the merge regardless of where it lands here: `reel-view`
+  // sits right after `media-viewer`, whose answers it reads from;
+  // `identity-door` right after `guest-capture`, since it draws the same guest
+  // one step earlier in her walk through the door; `identity-claims` after
+  // `identity-door` for the same reason; `identity-profile` after
+  // `identity-claims`; `reel-front` after `guest-capture` too (its own
+  // instruction named the same neighbour identity-door's chain already sat
+  // beside, so this merge simply keeps both). Older history: `guest-verify`
+  // went after `guest-shape` at its merge, `toasts` after `app-vocabulary` (a
+  // part under both shapes), `guest-capture` after `media-viewer`, 2026-09-21
+  // (the capture flow lives under the album's shape).
   // `reel-cut` is placed HERE rather than at the head (its own manifest's
   // instruction, three reel boards registering at once): the creator a guest
   // reaches from the reel sits with the host's own curation of the same album.
@@ -1757,6 +1790,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "reel-screen",
   "reel-cut",
   "guest-capture",
+  "reel-front",
   "identity-door",
   "identity-claims",
   "identity-profile",

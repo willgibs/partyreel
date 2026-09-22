@@ -1,11 +1,12 @@
 import type { ComponentType } from "react";
 
+import { ReelViewBoard } from "@/app/(dev)/design/sandbox/reel-view/board";
 import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
 import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
 import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
 import { ReelScreenBoard } from "@/app/(dev)/design/sandbox/reel-screen/board";
 import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
-import { ReelViewBoard } from "@/app/(dev)/design/sandbox/reel-view/board";
+import { ReelFrontBoard } from "@/app/(dev)/design/sandbox/reel-front/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
@@ -48,6 +49,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "identity-profile": { Component: IdentityProfileBoard },
   "reel-screen": { Component: ReelScreenBoard },
   "guest-capture": { Component: GuestCaptureBoard },
+  "reel-front": { Component: ReelFrontBoard },
 
   "site-chrome": { Component: SiteChromeBoard },
   "profile-page": { Component: ProfilePageBoard },
