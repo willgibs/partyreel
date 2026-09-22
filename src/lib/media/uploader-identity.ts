@@ -23,6 +23,15 @@
  * ROW. It is no longer "a guest without an account" (that guest has a name now), and no new row can
  * ever be one. It stays on the type because the lab's fixtures and the retired boards still draw it.
  *
+ * ★ `email` IS ONLY EVER A PROVED ONE (the guest identity round, Will 2026-09-22). Case 2 and case 2
+ * alone returns an address, because `guests.email` means "confirmed, copied from auth.users" and
+ * nothing else. Case 3 used to return `guest.email` too, which an UNCONFIRMED sign-up could fill
+ * through the newsletter capture: the host gallery would then have printed an unproved address
+ * beside an unverified mark, which is the exact impersonation his ruling forbids ("there's no
+ * impersonation risk if the host can't see the attributed email of an unconfirmed account"). It now
+ * returns null, always. `guests.pending_email` is NEVER READ HERE AT ALL — it is inert, and the host
+ * sees a badge, never an address.
+ *
  * `email` is resolved here but is HOST-GALLERY-ONLY downstream: guest call sites copy name/isHost/
  * isVerified/isAnonymous onto the client-facing GridMedia and never the email (email-safety by
  * construction, not a runtime flag — and grid-items.email-safety.test.ts stands guard). Names are
@@ -92,13 +101,15 @@ export function resolveUploaderIdentity(
       isAnonymous: false,
     };
   }
-  // 3. A typed name, unproven. The email (if the row carries one from an unconfirmed sign-up) is
-  // still the event-relevant address for the host gallery; the mark is what tells the truth about
-  // whether anyone proved it.
+  // 3. A typed name, unproven — and NO ADDRESS, ever. The row may carry `guests.email` from an
+  // unconfirmed sign-up and `guests.pending_email` from the door's optional field; neither is proof
+  // of anything, and the host's half of this identity is a name plus the mark. Returning one would
+  // put an unproved address under a name the host has no way to check, which is the impersonation
+  // the whole round exists to prevent.
   if (guest.display_name !== null && guest.display_name.trim() !== "") {
     return {
       displayName: guest.display_name,
-      email: guest.email ?? null,
+      email: null,
       isHost: false,
       isVerified: false,
       isAnonymous: false,

@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `guest-email-server` (2026-09-22): `/admin/forensics` renders no per-upload identity (neither the typed name nor the unproved address reaches a table; an operator downloads a held item's Record); an uploader column on the held-media table needs `listHeldMedia` in `src/lib/db/queries/forensics.ts`.
 - From the identity ruling (2026-09-22): the guest "here is your album" one-shot mail, deferred to the emails focus: only to an unconfirmed address on a row with a completed upload, capped per event, one-time, through `sendOnce` (kind `guest_event_link`, dedupe `guest_id`), with a "this wasn't me" link that detaches the address; the `emails` board's `guest` ask carries it.
 - From the identity ruling (2026-09-22): ONE identity-flows board once the foundation is on the tree, Will's exception by name: the claim ticket's surfaces (the dashboard card, a notification, the pointer from the follow moment after a confirmation), the claim UI, the profile-setup wizard (claiming a unique handle and the rest the way the event wizard does), and the door sheet's redesign as a whole.
 - From the identity ruling (2026-09-22): drop `profile_hidden_events` in a later migration once wave 1 is on the alias (the wave-0 migration keeps it because the deployed app still reads and writes it).

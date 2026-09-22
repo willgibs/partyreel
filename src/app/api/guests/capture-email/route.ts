@@ -14,12 +14,22 @@ import { createClient } from "@/lib/supabase/server";
 // route is the only caller. The email is derived from the VERIFIED session here (getUser), NEVER from the
 // client body, which closes the victim-email poisoning surface. The guest session_token (capability) ties
 // the opt-in to the guest row. Signed-in-only by design (the opt-in lives in the account-first save flow).
+//
+// ★ THE CRACK THIS CLOSES (the guest identity round, 2026-09-22). `capture_guest_email` writes into
+// `guests.email`, the column whose single invariant is "CONFIRMED, copied from auth.users at the
+// mint" — the host's column-scoped SELECT grant, the forensic row and the uploader resolver all read
+// it as proof. A session with `user.email` set and `email_confirmed_at` NULL is an UNCONFIRMED
+// sign-up: a perfectly real user id, an address nobody has proved, and until this gate it could walk
+// an unproved address straight into the proved column through this route. `email_confirmed_at` is
+// the ONLY thing that means verified anywhere in this reshape, so it is the test here too. An
+// unproved address has its own home now (`guests.pending_email`, set through /api/guests/email) and
+// reaches `guests.email` only by a claim that proves it.
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user?.email) {
+  if (!user?.email || !user.email_confirmed_at) {
     return NextResponse.json(
       { ok: false, code: "unauthorized" },
       { status: 401 },

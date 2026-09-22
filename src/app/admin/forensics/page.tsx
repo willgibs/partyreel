@@ -82,9 +82,11 @@ export default async function ForensicsPage() {
           </div>
           <CardDescription>
             Every completed upload should write one forensic record (IP, agent,
-            geo, device, and the uploader identity as it stood: account, email,
-            or the name a guest typed at the door). A gap means the capture seam
-            is failing; check Sentry for forensic_capture_failed.
+            geo, device, and the uploader identity as it stood: a confirmed
+            account and its address, or the name a guest typed at the door plus
+            any address they typed beside it, unconfirmed). Download Record on a
+            held item to read the whole row. A gap means the capture seam is
+            failing; check Sentry for forensic_capture_failed.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -141,7 +143,9 @@ export default async function ForensicsPage() {
         </CardHeader>
         <CardContent>
           {holds.length === 0 ? (
-            <p className="text-working text-muted-foreground">No active holds.</p>
+            <p className="text-working text-muted-foreground">
+              No active holds.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -224,7 +228,9 @@ export default async function ForensicsPage() {
         </CardHeader>
         <CardContent>
           {audit.length === 0 ? (
-            <p className="text-working text-muted-foreground">No actions yet.</p>
+            <p className="text-working text-muted-foreground">
+              No actions yet.
+            </p>
           ) : (
             <Table>
               <TableHeader>

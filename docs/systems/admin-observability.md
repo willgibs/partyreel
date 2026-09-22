@@ -182,8 +182,13 @@ shared `TriageStatusControl` + `TriageFilter`.
   [notifications-analytics-growth.md](notifications-analytics-growth.md).
 - **Forensics** — the legal-hold + evidence-preservation surface: 24h capture-coverage
   health signal, the preserve form (hold + copy-to-preservation-prefix), per-hold audit-logged
-  evidence/record exports, two-step hold release, the `forensic_audit_log` trail. Full model + the
-  CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
+  evidence/record exports, two-step hold release, the `forensic_audit_log` trail. The captured
+  identity is denormalized at upload time and now carries `guest_pending_email` beside
+  `guest_display_name` (the guest identity round, 2026-09-22): for a guest who proved no email, the
+  typed name and the address they typed beside it are the WHOLE identity of the uploader, and the
+  operator reads both on the `?what=record` export, which selects the forensic row unnarrowed. No
+  page renders either column: the surface is lawful process, never a host or guest view. Full model +
+  the CSAM runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
 - **Jobs (P8)** — the backend-job console: every job (the purge cron and its four promoted
   sub-sweeps, the backup Worker's reconcile and prune plus its queue and dead-letter depths, the
   nightly DB-backup Action, and the rolling email / limiter signals) with its health, its last runs

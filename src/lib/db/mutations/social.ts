@@ -18,7 +18,6 @@
  */
 import "server-only";
 
-
 import type { TablesUpdate } from "@/lib/db/types";
 
 import type { MutationResult } from "@/lib/db/mutations/events";
@@ -225,10 +224,44 @@ export async function setNotificationPrefs(
 }
 
 /**
- * Hide an attended event from MY public profile (profiles-social.md point 2). I stay on
- * the event's guest list (that list is the HOST's key, not mine). Idempotent:
- * a duplicate hide is success. Owner-RLS insert; hiding an event I never
- * attended is a harmless no-op row the profile read never reaches.
+ * PUBLISH an attended event on MY public profile (the guest identity round, Will 2026-09-22:
+ * "Nothing until chosen"). The INSERT is the whole change of model: the pair of functions here used
+ * to be hide/unhide over `profile_hidden_events`, an opt-OUT where every event you attended was
+ * public until you went and hid it. Now nothing is published until a row exists, so a person who
+ * never visits this surface publishes nothing at all.
+ *
+ * Turning one ON never adds me to anything else: the event's own guest list is the HOST's key, not
+ * mine, and turning it back off never removes me from it. Idempotent (a duplicate choice is
+ * success). Owner-RLS insert; choosing an event I never attended is a harmless no-op row the profile
+ * read never reaches.
+ */
+export async function showEventOnProfile(
+  eventId: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { error } = await supabase
+    .from("profile_shown_events")
+    .insert({ user_id: user.id, event_id: eventId });
+  if (error && error.code !== UNIQUE_VIOLATION) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't show this event. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+/**
+ * Take it back off my profile: the DELETE that mirrors the insert above. Idempotent, and the
+ * privacy-safe direction, so a failure here is the one worth a message. The name is the OLD one on
+ * purpose — it still means exactly what it says, and the surface that calls it did not have to
+ * learn a new word for "off".
  */
 export async function hideEventFromProfile(
   eventId: string,
@@ -240,30 +273,7 @@ export async function hideEventFromProfile(
   if (!user) return UNAUTHORIZED;
 
   const { error } = await supabase
-    .from("profile_hidden_events")
-    .insert({ user_id: user.id, event_id: eventId });
-  if (error && error.code !== UNIQUE_VIOLATION) {
-    return {
-      ok: false,
-      code: "unknown",
-      message: "Couldn't hide this event. Please try again.",
-    };
-  }
-  return { ok: true, data: { id: eventId } };
-}
-
-/** Un-hide (the event shows on my profile again). Idempotent. */
-export async function unhideEventFromProfile(
-  eventId: string,
-): Promise<MutationResult<{ id: string }>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return UNAUTHORIZED;
-
-  const { error } = await supabase
-    .from("profile_hidden_events")
+    .from("profile_shown_events")
     .delete()
     .eq("user_id", user.id)
     .eq("event_id", eventId);
@@ -489,12 +499,10 @@ export async function createProfileReport(input: {
     };
   }
 
-  const { error } = await createAdminClient()
-    .from("reports")
-    .insert({
-      profile_id: input.profileId,
-      reason: input.reason,
-    });
+  const { error } = await createAdminClient().from("reports").insert({
+    profile_id: input.profileId,
+    reason: input.reason,
+  });
   if (error) {
     return {
       ok: false,
