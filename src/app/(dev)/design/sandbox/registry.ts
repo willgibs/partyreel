@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { IDENTITY_PROFILE } from "./identity-profile/spec";
+import { REEL_SCREEN } from "./reel-screen/spec";
 import { GUEST_CAPTURE } from "./guest-capture/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -47,6 +48,7 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   IDENTITY_PROFILE,
+  REEL_SCREEN,
 
   GUEST_CAPTURE,
 

@@ -29,6 +29,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "toasts"
   | "guest-verify"
@@ -113,6 +114,7 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "site-chrome"
   | "profile-page"
@@ -167,6 +169,34 @@ export const RULINGS: Ruling[] = [
         "What shows",
         "When it's offered",
         "The empty page",
+      ],
+    },
+  },
+  {
+    id: "reel-screen",
+    title: "The reel on the wall",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, "the reel, reconceived": "Could play at an event in real-time on a screen or something", and his ruling "A first-class screen mode")',
+    shipped: null,
+    why: "What is on a venue's television all night beside the reel: the code, the name, the just-added beat, the pace, the empty state, the Start plate, Review, and the door.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "content/help/show-the-album-live-on-a-screen.mdx",
+      "src/lib/reel/engine/player.tsx",
+      "src/components/app/styled-qr.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub",
+      variants: [
+        "The code",
+        "The event's name",
+        "The just-added beat",
+        "The wall's pace",
+        "Before it begins",
+        "The Start plate",
+        "Review on the wall",
+        "The way in",
       ],
     },
   },
@@ -1604,6 +1634,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "media-viewer",
   "guest-capture",
   "identity-profile",
+  "reel-screen",
   "host-curation",
   "export-flow",
   "admin-triage",
