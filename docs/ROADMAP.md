@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab: `press-page`'s preview frames run short of their real iframes (`board.tsx`'s `wordsPreview`: `paragraph-and-line` declared 560/700 against 605/913, `founder-voice` 740/900 against 850/1238; `the-sheet` and `the-facts` drift the same way); remeasure the board against the real iframe, as `help-center`'s `board.tsx` does.
 - `/blog`'s closing band promises "No app or account for your guests." (`src/app/(marketing)/(cinema)/blog/page.tsx:52`), which bible 20 refuses; `content-policy.test.ts` misses it.
 - The event type pages close on "Your guests need nothing but their phones." (`src/app/(marketing)/(cinema)/events/[slug]/page.tsx:195`), a promise a Require-verified-emails event breaks.
 - The `/pricing` h1 (`GOLDEN_LINES.pricing`, "Start free, upgrade when you host again.") sells Pro as hosting again; redraw it on what one big event gains (a voice ask; `PRICING.md` holds Pro's case).

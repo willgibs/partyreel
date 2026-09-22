@@ -53,7 +53,11 @@ export const CATEGORIES: FixtureCategory[] = [
     slug: "guest-experience",
     stripLabel: "Guests",
     title: "For guests",
-    blurb: "Joining, adding your photos, and browsing: no app, no account.",
+    // "No app required" only (never "no account", retired by press.ts's
+    // voice r1: identity-door's default now asks every new event's guests
+    // to confirm an email, so "no account" is the claim that stopped being
+    // sitewide-true, not "no app").
+    blurb: "Joining, adding your photos, and browsing: no app required.",
     count: 8,
     feature: { href: "/features/guests", label: "Guests & profiles" },
   },
@@ -74,12 +78,17 @@ export const CATEGORIES: FixtureCategory[] = [
     feature: { href: "/features/sharing", label: "Sharing & downloads" },
   },
   {
+    // THE REEL ROUND (2026-09-22): the host-made, published, stored mp4 is
+    // gone. Title and feature.label follow reel-story.help's recommended
+    // "the-reel" option as a stand-in — Will has not ruled that board yet,
+    // so this is provisional, not a final name. slug/stripLabel are
+    // untouched: "Reel" already reads as the plain name that option asks for.
     slug: "highlight-reel",
     stripLabel: "Reel",
-    title: "Highlight reel",
-    blurb: "Your event's best moments, cut into one shareable video.",
+    title: "The reel",
+    blurb: "Live from the third photo, on a screen, and yours to cut.",
     count: 5,
-    feature: { href: "/reel", label: "The highlight reel" },
+    feature: { href: "/reel", label: "The reel" },
   },
   {
     slug: "plans-and-billing",
@@ -136,9 +145,14 @@ export const FACTS: Fact[] = [
     href: "/help/hide-remove-and-restore",
   },
   {
-    label: "Reel, free / paid",
+    // The live reel carries no cap or mark on any tier now; these numbers
+    // describe the on-device CUT alone. Label follows reel-story.pricing's
+    // recommended "renamed" option (a provisional stand-in, unruled) and the
+    // href moves off the retired download-the-reel-as-a-video article to the
+    // reel's own durable page.
+    label: "Cut length, free / paid",
     value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
-    href: "/help/download-the-reel-as-a-video",
+    href: "/reel",
   },
   {
     label: "Event Pass storage",
