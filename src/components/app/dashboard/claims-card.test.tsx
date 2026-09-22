@@ -178,6 +178,52 @@ describe("Finish", () => {
     );
   });
 
+  /**
+   * The confirm-delete title's pluralisation, pinned the moment it was
+   * written (a count-bearing sentence gets its pin immediately): one upload
+   * is "photo or video" (never "photo", which would lie when the one upload
+   * is a video) and several are "photos and videos"; one event is "this
+   * event" and several name the count. `uploadCount` totals across the
+   * leftover ROWS, so a 1-photo/2-event case uses a second row with nothing
+   * uploaded under it yet.
+   */
+  it.each([
+    {
+      rows: [{ ...rowA, uploadCount: 1 }],
+      title:
+        "Permanently delete the 1 photo or video added under your email at this event?",
+    },
+    {
+      rows: [
+        { ...rowA, uploadCount: 1 },
+        { ...rowB, uploadCount: 0 },
+      ],
+      title:
+        "Permanently delete the 1 photo or video added under your email at these 2 events?",
+    },
+    {
+      rows: [{ ...rowA, uploadCount: 2 }],
+      title:
+        "Permanently delete the 2 photos and videos added under your email at this event?",
+    },
+    {
+      rows: [
+        { ...rowA, uploadCount: 1 },
+        { ...rowB, uploadCount: 1 },
+      ],
+      title:
+        "Permanently delete the 2 photos and videos added under your email at these 2 events?",
+    },
+  ])("reads correctly for $title", ({ rows, title }) => {
+    render(<ClaimsCard rows={rows} />);
+
+    // Nobody claims anything, so every row is left over at Finish.
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(title)).toBeInTheDocument();
+  });
+
   it("Go back cancels without writing anything", () => {
     render(<ClaimsCard rows={[rowA, rowB]} />);
 

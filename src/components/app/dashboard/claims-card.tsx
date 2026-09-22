@@ -59,6 +59,21 @@ function totalPhotos(list: ClaimableEventRow[]): number {
 }
 
 /**
+ * The confirm-delete title, pluralised for every count (pinned in
+ * claims-card.test.tsx for all four forms below). The count is of uploads of
+ * EITHER type (the RPC's `upload_count` never splits photos from videos), so
+ * one upload reads "photo or video" (never "photo", which would lie when
+ * the one upload is a video) and several read "photos and videos"; one event
+ * reads "this event", several name the count.
+ */
+function confirmDeleteTitle(photos: number, events: number): string {
+  const photoPhrase =
+    photos === 1 ? "1 photo or video" : `${photos} photos and videos`;
+  const eventPhrase = events === 1 ? "this event" : `these ${events} events`;
+  return `Permanently delete the ${photoPhrase} added under your email at ${eventPhrase}?`;
+}
+
+/**
  * THE CLAIM TICKET (the guest identity round, 2026-09-22; rulings.md "guest
  * identity: name only, unconfirmed email, verified account"). Rendered only
  * when `rows` is non-empty — a confirmed caller with events waiting under the
@@ -238,11 +253,7 @@ export function ClaimsCard({ rows }: { rows: ClaimableEventRow[] }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Permanently delete the {leftoverPhotos} photo
-              {leftoverPhotos === 1 ? "" : "s"} and video
-              {leftoverPhotos === 1 ? "" : "s"} added under your email at
-              these {leftoverRows.length} event
-              {leftoverRows.length === 1 ? "" : "s"}?
+              {confirmDeleteTitle(leftoverPhotos, leftoverRows.length)}
             </DialogTitle>
             <DialogDescription>
               {leftoverRows.map((r) => r.eventName).join(", ")}
