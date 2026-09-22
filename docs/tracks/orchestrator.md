@@ -44,8 +44,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
    `usher/` without logs, the old pickup file a pointer, memory consolidated). Left: integrate the four lanes one at a
    time as each hands off (gate 116 onward, board `none`); after `roadmap-lean`, the lab candidates from the retired
    `usher/atlas/gaps.md` (kept in the scratchpad as `lab-candidates.md`) join the ROADMAP as one bucket.
-2. **Recheck the open boards** (Will's suggestion for after the reshape): every standing board current with the
-   identity and reel rounds; the six `overtaken.ts` badges folded into their questions; the overtaken mechanism
+2. **Recheck the open boards** (Will's suggestion for after the reshape): a read-only survey of the 14 older boards
+   runs now (agent `aaa0c9a62245d9c9a`, Opus; its report lands in the chat: the stale asks per board, the fix lanes,
+   what deleting `overtaken.ts` touches); then fix lanes on disjoint board folders, cut after `docs-rules` merges
+   (it owns `touchpoints.ts`). Every standing board current with the identity and reel rounds; the six `overtaken.ts` badges folded into their questions; the overtaken mechanism
    retired if nothing still needs it.
 3. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
