@@ -108,6 +108,7 @@ describe("the nav", () => {
     for (const tool of [
       "motion",
       "reel-parity",
+      "reel-live",
       "reel-video",
       "stream-probe",
       "boom",
