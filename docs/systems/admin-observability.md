@@ -89,7 +89,7 @@ points. **Never read `profiles.is_admin` directly**: this single seam is the swa
   stops before the admin client exists (no sweep, no DB read, no heartbeat): a second daily run row would
   fake a cadence on `/admin/jobs` and mask a real missed run. `partyreel-admin` leaves Vercel's
   per-project cron disable (the project's `crons.disabledAt`) unset, so this code guard, which survives a
-  project being recreated, is the only stop. Crons fire only on production deployments, so no preview
+  project being recreated, is the only stop today; setting the flag as well is a cheap second stop. Crons fire only on production deployments, so no preview
   ever purges.
 - **Host and preview are per PROJECT.** `NEXT_PUBLIC_ADMIN_HOST` on `partyreel-admin` is
   `admin.partyreel.com` in production and its own `launch-prep` alias host in preview; on `partyreel` it
@@ -158,8 +158,9 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
   direct soft-remove + restore within the grace. Service-role cross-host reads
   ([`queries/moderation.ts`](../../src/lib/db/queries/moderation.ts)), tiles through the shared grid-items
   path (`toModerationFeedItems`) into `MediaTile`/`MediaLightbox`; it owns no migration, RPC or grant.
-- **Reels** / **Exports** — each a recent log with a 24h failure count and a platform kill switch in
-  `ops_flags`: reel video renders (`reel_render_log`, `reel_render_enabled` → [host-app.md](host-app.md));
+- **Reels** / **Exports** — each a recent log with a 24h health count (Reels: renders that FAILED; Exports:
+  every attempt that did not mint, so kill-switch, cap, limiter and empty refusals count as "rejected")
+  and a platform kill switch in `ops_flags`: reel video renders (`reel_render_log`, `reel_render_enabled` → [host-app.md](host-app.md));
   album downloads (`export_log`, written by the mint routes because the Worker cannot reach the DB,
   `export_enabled` → [uploads-and-r2.md](uploads-and-r2.md)).
 - **Overview** — the home: [`lib/admin/kpi.ts`](../../src/lib/admin/kpi.ts) (pure) computes the four
