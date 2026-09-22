@@ -18,6 +18,7 @@ import {
   type JoinRefusal,
 } from "@/lib/guest/join";
 import { setStoredEmailAttached } from "@/lib/guest/use-stored-name";
+import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
  * THE SECOND CHANCE AT THE OPTIONAL ADDRESS (Will, 2026-09-22, "guest identity:
@@ -143,7 +144,7 @@ export function AddEmailDialog({
                 if (refusal) setRefusal(null);
               }}
               placeholder="you@email.com"
-              maxLength={254}
+              maxLength={MAX_GUEST_EMAIL_LENGTH}
               enterKeyHint="go"
               aria-invalid={refusal ? true : undefined}
               aria-describedby={refusal ? "pr-add-email-hint" : undefined}

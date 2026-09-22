@@ -36,9 +36,8 @@
  * `session-tokens.ts` beside it, so the refusal mapping is unit-testable in the
  * node env with a stubbed `fetch` and every caller decides how a refusal is SAID.
  */
-import { z } from "zod";
-
 import { displayNameSchema } from "@/lib/validation/profile";
+import { parseGuestEmail } from "@/lib/validation/upload";
 
 /**
  * Why a join or a rename did not happen. `name_required` and `name_invalid` are
@@ -137,37 +136,32 @@ export function checkDisplayName(
   return { ok: true, name: parsed.data };
 }
 
-/** The longest address any RFC-compliant mailbox can be; the column's CHECK too. */
-const EMAIL_MAX_LENGTH = 254;
-const guestEmailSchema = z.email();
-
 /**
  * Parse the door's OPTIONAL address. A blank field is `{ok: true, email: null}`
  * and not a refusal, because "I would rather not" is a valid answer to an
- * optional question and the guest is already past this field by then.
+ * optional question and the guest is already past the field by then. That one
+ * rule is the whole difference between this and the route's own parse.
  *
- * ★ THE ROUTE IS STILL THE TRUTH. This is `checkDisplayName`'s twin and exists
- * for the same reason: a typo answered under the field beats a round trip that
- * says the same thing. The route re-parses through `parseGuestEmail`
- * (`lib/validation/upload.ts`, the single source, which also owns the 422's
- * sentence), and the trim-and-lowercase here only means the string this device
- * remembers matches the one the row stores.
+ * ★ EVERYTHING ELSE IS `parseGuestEmail`'S, NOT THIS MODULE'S. The trim, the
+ * lowercase, the 254 and the regex are the ROUTE's policy (`lib/validation/
+ * upload.ts`, which the route, the column's CHECK and this field all read), and
+ * a second copy here would be the kind of drift that shows up as a door that
+ * accepts what the server then refuses. This exists for the same reason
+ * `checkDisplayName` does: a typo answered under the field beats a round trip
+ * that says the same thing, and the sentence it says is the route's own.
  */
 export function checkGuestEmail(
   raw: string,
 ): { ok: true; email: string | null } | { ok: false; refusal: JoinRefusal } {
-  const trimmed = raw.trim().toLowerCase();
-  if (!trimmed) return { ok: true, email: null };
-  if (
-    trimmed.length > EMAIL_MAX_LENGTH ||
-    !guestEmailSchema.safeParse(trimmed).success
-  ) {
+  if (!raw.trim()) return { ok: true, email: null };
+  const parsed = parseGuestEmail(raw);
+  if (!parsed.ok) {
     return {
       ok: false,
-      refusal: { kind: "email_invalid", message: "Check that email address." },
+      refusal: { kind: "email_invalid", message: parsed.message },
     };
   }
-  return { ok: true, email: trimmed };
+  return { ok: true, email: parsed.email };
 }
 
 async function post(url: string, payload: unknown): Promise<Response | null> {

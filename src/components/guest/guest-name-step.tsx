@@ -20,9 +20,9 @@ import {
   setStoredName,
 } from "@/lib/guest/use-stored-name";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
-
-/** The address column's CHECK, and every mailbox an RFC allows. */
-const EMAIL_MAX_LENGTH = 254;
+// The route's own cap, so the field cannot accept what the parse behind it
+// refuses (the column's CHECK is the same number).
+import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
  * THE DOOR, ON A NAME-ONLY EVENT (the identity reshape, 2026-09-21; the optional
@@ -398,7 +398,7 @@ export function GuestNameStep({
               if (emailRefusal) setEmailRefusal(null);
             }}
             placeholder="you@email.com"
-            maxLength={EMAIL_MAX_LENGTH}
+            maxLength={MAX_GUEST_EMAIL_LENGTH}
             enterKeyHint="go"
             aria-invalid={emailRefusal ? true : undefined}
             aria-describedby="pr-guest-email-hint"
