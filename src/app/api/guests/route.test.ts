@@ -35,6 +35,13 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: () => Promise.resolve(undefined),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
+// The door's session COOKIE (the door as three steps, 2026-09-21) is `server-only` and reads
+// `next/headers`; neither exists in the unit world, so the module's two real dependencies are
+// stubbed and the route's own use of it is asserted on the response instead.
+vi.mock("server-only", () => ({}));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => undefined }),
+}));
 
 const { POST } = await import("@/app/api/guests/route");
 
@@ -245,5 +252,57 @@ describe("the read gate the write inherits (QA #18) still comes first", () => {
       code: "unlock_required",
     });
     expect(createGuest).not.toHaveBeenCalled();
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE SESSION COOKIE (the door as three steps, Will 2026-09-21).
+
+   Require an upload to view is resolved in the RSC and in the poll, and neither can read the
+   localStorage copy of the session this route is about to hand back. The mint writes the
+   server-readable half beside it.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("POST /api/guests: the session cookie", () => {
+  it("a mint sets pr_guest_<eventId>, HttpOnly and scoped to the whole site", async () => {
+    event(false);
+    createGuest.mockResolvedValue({
+      ok: true,
+      data: {
+        session_token: "a".repeat(64),
+        guest_id: "g1",
+        event_id: "event-1",
+        display_name: "Priya",
+        verified: false,
+      },
+    });
+    const res = await post({ qr_token: TOKEN, display_name: "Priya" });
+    const cookie = res.headers.get("set-cookie") ?? "";
+    expect(cookie).toContain(`pr_guest_event-1=${"a".repeat(64)}`);
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("Path=/");
+  });
+
+  it("writes NOTHING that is not a 64-hex session token", async () => {
+    event(false);
+    createGuest.mockResolvedValue({
+      ok: true,
+      data: {
+        session_token: "not-a-token",
+        guest_id: "g1",
+        event_id: "event-1",
+        display_name: "Priya",
+        verified: false,
+      },
+    });
+    const res = await post({ qr_token: TOKEN, display_name: "Priya" });
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("a refused join sets no cookie at all", async () => {
+    event(true);
+    session(null);
+    const res = await post({ qr_token: TOKEN });
+    expect(res.status).toBe(422);
+    expect(res.headers.get("set-cookie")).toBeNull();
   });
 });

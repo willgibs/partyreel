@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { User } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
@@ -211,12 +210,12 @@ export function GuestNameStep({
         </p>
       </div>
       <div className="space-y-1.5">
-        <Label
-          htmlFor="pr-guest-name"
-          className="flex items-center gap-1.5 text-base font-medium"
-        >
-          <User className="size-4 text-muted-foreground" aria-hidden />
-          What should we call you?
+        {/* ★ THE QUESTION IS THE HEADING NOW (the door as three steps, 2026-09-21). The step's
+            title used to be "Add your photos" and the field's label carried the question; the
+            title IS the question at the door, so a visible label would be the same eight words
+            twice in one sheet. The label stays for the a11y tree, naming the FIELD. */}
+        <Label htmlFor="pr-guest-name" className="sr-only">
+          Your name
         </Label>
         <Input
           id="pr-guest-name"

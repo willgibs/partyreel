@@ -370,6 +370,10 @@ export const EntryModal = forwardRef<
       } = await supabase.auth.getUser();
       if (user) {
         // The viewer's OWN row, by their own id: RLS scopes it and nothing else is read.
+        // DELIBERATE SWALLOW: a failed name read costs the credit line for one refresh, never
+        // the entry (the catch below says the same thing about a throw). The guest is confirmed
+        // and joined either way, and the poll's own truth lands a tick later.
+        // eslint-disable-next-line partyreel/no-swallowed-db-error
         const { data } = await supabase
           .from("profiles")
           .select("display_name")

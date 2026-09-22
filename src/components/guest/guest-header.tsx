@@ -9,7 +9,7 @@ import { GuestNameMenu } from "@/components/guest/guest-name-menu";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { useStoredName } from "@/lib/guest/use-stored-name";
-import { setStoredSession } from "@/lib/guest/use-stored-session";
+import { leaveGuestSession } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -131,13 +131,16 @@ export function GuestHeader({
 
   // Client-side sign out = the replacement for the old "Switch guest" button. Clear the guest
   // capability session FIRST (sync, even on a flaky network — notifies EventExperience so the next
-  // guest on a shared device doesn't upload under this one's session_token), collapse the menu back
+  // guest on a shared device doesn't upload under this one's session_token, and expires the
+  // server-readable cookie half beside it), collapse the menu back
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
   // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
   const handleSignOut = useCallback(async () => {
     // No token on an event-less page: there is no guest upload capability to
-    // clear, so the sign-out is the account's alone.
-    if (qrToken) setStoredSession(qrToken, null);
+    // clear, so the sign-out is the account's alone. BOTH copies go where there is one: the
+    // cookie half is what a server render reads, so leaving it behind would hand the next person
+    // on a shared phone this guest's full-album ticket (see leaveGuestSession).
+    if (qrToken) leaveGuestSession(qrToken);
     setMenu(null);
     await createClient().auth.signOut();
     router.refresh();

@@ -628,8 +628,12 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened: "auth- and router-bound; the door it opens is the account door's own",
   },
   "src/components/guest/guest-name-step.tsx": {
-    for: "the door on a name-only event: one name field inside the entry shell, asked at the first Add and never at arrival",
+    for: "the door's name step: one field inside the entry shell, asked before the album in four modes (join, edit, held for a confirmation, an account's own profile name)",
     unspecimened: "posts to the join route; the entry surface owns its framing",
+  },
+  "src/components/guest/upload-step.tsx": {
+    for: "the door's third step: the first upload asked inside the entry sheet, on the intent sheet's own body, with the server-owned fail-open when a run cannot go",
+    unspecimened: "drives the page's lifted upload queue; the entry surface owns its framing",
   },
 
   /* reel (not a library directory: indexed for the publish light's contract) */

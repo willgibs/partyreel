@@ -62,6 +62,27 @@ export function setStoredSession(qrToken: string, value: string | null) {
   emit();
 }
 
+/**
+ * PUT THE WHOLE TICKET DOWN, both copies (the door as three steps, 2026-09-21).
+ *
+ * The session now has a SERVER-readable half, the `pr_guest_<eventId>` cookie, which is what lets
+ * an RSC resolve Require an upload to view for the right guest. Clearing only the localStorage
+ * copy would leave a shared phone rendering the FULL album on the last contributor's ticket, which
+ * is the exact leak that switch exists to close. One call clears both: the local one synchronously
+ * (so this tab stops uploading under it at once, even on a flaky network) and the cookie through
+ * `POST /api/guests/leave`, whose failure is best-effort by design -- a sign-out must never hang
+ * on it, and the local half is already gone.
+ */
+export function leaveGuestSession(qrToken: string): void {
+  setStoredSession(qrToken, null);
+  void fetch("/api/guests/leave", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ qr_token: qrToken }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
 // localStorage-backed session via useSyncExternalStore: the server snapshot is
 // null, so SSR/hydration render the no-session state and then swap in any stored
 // session on the client WITHOUT a hydration mismatch (the React-blessed pattern,

@@ -405,11 +405,15 @@ export default async function GuestEventPage({
       ? await socialSeam.getHostCard(event.id)
       : null;
 
-  // Display-name nudge: a SIGNED-IN uploader without a public name sets one before uploading (so their
-  // upload is attributed). Only meaningful in the `full` state; an account-required event viewed by an
-  // un-signed-in guest is `teaser`, where the account step (EnterEventPrompt) comes first.
+  // Display-name nudge: a SIGNED-IN viewer without a public display name is asked for one at the
+  // DOOR now, as its name step in `profile` mode (the door as three steps, 2026-09-21), rather
+  // than in an inline card halfway down the album.
+  //
+  // ★ COMPUTED AT `teaser` TOO, which `access === "full"` used to exclude. A confirmed account
+  // held at the UPLOAD step resolves `teaser`, and the door still has to know whether to ask them
+  // their name on the way past: the old condition would have answered "they have one" and skipped it.
   let needsName = false;
-  if (isAuthed && userId && event.accepting_uploads && access === "full") {
+  if (isAuthed && userId && event.accepting_uploads && access !== "none") {
     const menu = await getProfileMenu(userId);
     needsName = needsDisplayName(menu.displayName);
   }
@@ -443,7 +447,6 @@ export default async function GuestEventPage({
         // Identity keys on a CONFIRMED account, never a uid alone (wave 0's
         // finding): an unconfirmed session still carries a typed name.
         isVerified={isAuthed}
-        namesMode={!requireVerifiedEmail}
         hostCard={
           hostCard
             ? { ...hostCard, seed: hostSeed }

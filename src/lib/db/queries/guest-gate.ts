@@ -59,10 +59,9 @@ export async function getUploadGate(input: {
   if (input.sessionToken) args.p_session_token = input.sessionToken;
   if (input.userId) args.p_user_id = input.userId;
 
-  // DELIBERATE SWALLOW (fail OPEN): this decides whether a guest sees the album they were invited
-  // to. A failed read must open the door, never throw and 500 the page a guest is standing in front
-  // of at a venue. Degrade, never escalate, never crash.
-  // eslint-disable-next-line partyreel/no-swallowed-db-error
+  // FAIL OPEN, LOUDLY: this decides whether a guest sees the album they were invited to. A failed
+  // read must open the door, never throw and 500 the page a guest is standing in front of at a
+  // venue. `error` is bound and captured below, so nothing is swallowed silently.
   const { data, error } = await createAdminClient().rpc("get_upload_gate", args);
 
   if (error || !data || typeof data !== "object") {

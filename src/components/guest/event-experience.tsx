@@ -122,7 +122,6 @@ export function EventExperience({
   canDeleteIds,
   isAuthed,
   isVerified = false,
-  namesMode = false,
   hostCard = null,
   initialTileSize,
 }: {
@@ -180,12 +179,6 @@ export function EventExperience({
    * typed name, so `user_id` alone is never the test).
    */
   isVerified?: boolean;
-  /**
-   * The host's switch is OFF: a guest types a display name at the door and
-   * uploads under it, marked. ON (the default everywhere) is the account gate,
-   * unchanged. Resolved server-side from `events.require_verified_email`.
-   */
-  namesMode?: boolean;
   /** The event's host as a public card, for the capture flow's follow moment. */
   hostCard?: FollowMomentHost | null;
   /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
@@ -295,6 +288,46 @@ export function EventExperience({
   const canUpload = access === "full" && event.accepting_uploads;
 
   /* ────────────────────────────────────────────────────────────────────────
+     A DRIFTING DECISION, AND WHICH WAY IT DRIFTED (the door as three steps, 2026-09-21).
+
+     The poll re-resolves the whole decision server-side, so it sees a change before this page
+     does. What to do about one is not symmetrical:
+
+     ★ LOOSER (the gate fell away: a contribution made in another tab, a host closing uploads, an
+     album filling up) refreshes AT ONCE. The guest is being let in; there is nothing to protect
+     them from.
+
+     ★ STRICTER (the host turned Require an upload to view ON while this guest was inside) NEVER
+     yanks an open album out from under a thumb. Mid-scroll, `key={access}` would remount the
+     whole gallery and throw away their place in it, for a switch they did not touch. It is
+     remembered instead and spent on their NEXT act: the sheet reopening, or an Add.
+
+     Two tabs at the upload step land on the same rule: the second drops its picks when the first
+     completes, and reaches the album at its next act.
+     ──────────────────────────────────────────────────────────────────────── */
+  const pendingStricterRef = useRef(false);
+  const handleAccessDrift = useCallback(
+    (next: { access: GalleryAccess; gate: string | null }) => {
+      const looser = next.access === "full" && access !== "full";
+      if (looser) {
+        router.refresh();
+        return;
+      }
+      if (next.access !== access || next.gate !== gate) {
+        pendingStricterRef.current = true;
+      }
+    },
+    [access, gate, router],
+  );
+  /** The guest's next act: spend a remembered stricter drift, then do the thing they asked for. */
+  const spendStricterDrift = useCallback(() => {
+    if (!pendingStricterRef.current) return false;
+    pendingStricterRef.current = false;
+    router.refresh();
+    return true;
+  }, [router]);
+
+  /* ────────────────────────────────────────────────────────────────────────
      EVERY ADD IS JUST AN ADD NOW (the door as three steps, 2026-09-21).
 
      The name used to be asked HERE, at the first Add, by whichever of the three affordances (the
@@ -306,8 +339,10 @@ export function EventExperience({
      buttons exists this guest is already named and the Add is only ever an Add.
      ──────────────────────────────────────────────────────────────────────── */
   const openAdd = useCallback(() => {
+    // Their next act is where a remembered stricter drift is spent (see the drift's own note).
+    if (spendStricterDrift()) return;
     uploadRef.current?.openAdd();
-  }, []);
+  }, [spendStricterDrift]);
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -331,6 +366,60 @@ export function EventExperience({
   // and the cascade still reads top-to-bottom (the inline card instead lands
   // AFTER the action block's beat, where nothing follows it in this track).
   const revealBase = heroReel ? 1 : 0;
+  /* ────────────────────────────────────────────────────────────────────────
+     THE IMMEDIATE HEAL (the door as three steps, 2026-09-21).
+
+     The server resolves Require an upload to view from the `pr_guest_<eventId>` cookie, because an
+     RSC cannot read localStorage. Every session minted before this round has the localStorage half
+     and not the cookie, so the first render of an ON event resolves those guests as
+     uncontributed and puts the upload step in front of somebody who already gave the host
+     twenty photographs. That is the one case worth a round trip: when the RSC's gate is `upload`
+     and this browser holds a stored token, POST the poll ONCE with it (no `If-None-Match`, so the
+     answer is a real decision rather than a 304), which also writes the cookie. If the decision
+     came back changed, refresh onto it.
+
+     The sheet's auto-open WAITS for that answer, which is why this is state and not an effect
+     that only refreshes: a held door that flashes up and vanishes half a second later is worse
+     than a door that arrives a beat late, and the arrival beat is already 350-700 ms long.
+     ──────────────────────────────────────────────────────────────────────── */
+  const [healing, setHealing] = useState(
+    () => gate === "upload" && Boolean(readStoredSession(qrToken)),
+  );
+  useEffect(() => {
+    if (!healing) return;
+    let cancelled = false;
+    void (async () => {
+      const token = readStoredSession(qrToken);
+      if (!token) {
+        if (!cancelled) setHealing(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/guests/gallery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ qr_token: qrToken, session_token: token }),
+        });
+        const body = (await res.json()) as { ok?: boolean; gate?: string | null };
+        if (cancelled) return;
+        // The decision came back different from the one this page was rendered with: the cookie
+        // is written now, so the refresh resolves the same guest the browser thinks it is.
+        if (body?.ok && body.gate !== "upload") {
+          router.refresh();
+          return;
+        }
+      } catch {
+        // A failed heal costs one extra step, never the page: the door simply asks.
+      }
+      if (!cancelled) setHealing(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Once per mount: `gate` moving is the refresh's own business, not a second heal's.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [healing, qrToken]);
+
   // THE REVEAL CURTAIN (Phase 4.5): while the entry sheet's success beat
   // holds, the freshly mounted reveal targets + masonry tiles wait at their
   // pre-entrance state (globals.css [data-reveal-curtain]); when the hold
@@ -522,6 +611,9 @@ export function EventExperience({
           toast); self-guards when logged out. */}
       <ClaimUploadsOnAuth silent />
       <Suspense fallback={null}>
+        {/* The heal holds the door (see its own note): a sheet that appears and vanishes half a
+            second later is worse than one that arrives a beat late. */}
+        {!healing && (
         <EntryModalLazy
           ref={entryRef}
           qrToken={qrToken}
@@ -587,6 +679,7 @@ export function EventExperience({
             if (source === "edit") router.refresh();
           }}
         />
+        )}
       </Suspense>
       {/* THE WORDS. One box, on the left line, holding everything above the
           album; the album is its own box below (see COLUMN / BLEED). */}
@@ -894,6 +987,7 @@ export function EventExperience({
                 access={access}
                 isDemo={isDemo}
                 onOpenGate={() => entryRef.current?.openToGate()}
+                onAccessDrift={handleAccessDrift}
                 onCountChange={setMediaCount}
                 pendingUploads={inFlightUploads}
                 onAddFirst={canUpload ? openAdd : undefined}
