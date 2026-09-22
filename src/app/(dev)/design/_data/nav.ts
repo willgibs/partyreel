@@ -76,6 +76,12 @@ const TOOLS: NavItem[] = [
     note: "The rolling composer: a take per loop, arrivals spliced in, a drop on the next frame.",
   },
   {
+    href: "/design/lab/tools/reel-video",
+    label: "Reel video windows",
+    badge: "tool",
+    note: "A real mov and webm range-read and decoded into the reel, with the budget's knobs.",
+  },
+  {
     href: "/design/lab/tools/stream-probe",
     label: "Stream probe",
     badge: "tool",

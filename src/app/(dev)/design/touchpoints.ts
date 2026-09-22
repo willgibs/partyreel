@@ -28,6 +28,9 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "identity-door"
+  | "identity-claims"
+  | "identity-profile"
   | "guest-capture"
   | "toasts"
   | "guest-verify"
@@ -111,6 +114,9 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "identity-door"
+  | "identity-claims"
+  | "identity-profile"
   | "guest-capture"
   | "site-chrome"
   | "profile-page"
@@ -144,6 +150,84 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
+  {
+    id: "identity-door",
+    title: "Asking for an email at the door",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, rulings.md \"the morning after the identity round\" and \"guest identity\": \"We'll do a lot of lab work later to redesign here\" and \"I'd like to run most of this through the lab once our foundation is complete.\")",
+    shipped: null,
+    why: "The identity foundation (the email, the trust levels, the gate, the menu) is live; this board is its redesign catalog, never a gate on the shipped door.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/guest-name-step.tsx",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/guest/guest-name-menu.tsx",
+      "src/components/guest/add-email-dialog.tsx",
+      "src/components/auth/account-door.tsx",
+      "src/components/shared/unverified-mark.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
+      variants: [
+        "The field",
+        "The sign-in nudge",
+        "The gate's framing",
+        "The guest menu",
+        "Removing the email",
+      ],
+    },
+  },
+  {
+    id: "identity-claims",
+    title: "Photos waiting for you",
+    surface: "host",
+    ruled:
+      "open (Will, 2026-09-22, at the identity round's morning close: \"I'd like to run most of this through the lab once our foundation is complete... event claim UI, profile setup, etc.\")",
+    shipped: null,
+    why: "The claim ticket shipped deliberately plain in wave 1 of the identity reshape; this board is its refinement catalog, never a gate on the shipped flow.",
+    lives: [
+      "docs/systems/host-app.md",
+      "docs/systems/profiles-social.md",
+      "src/components/app/dashboard/claims-card.tsx",
+      "src/components/guest/follow-moment-card.tsx",
+      "src/components/app/notification-bell.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album points to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at",
+      variants: [
+        "The ticket's home",
+        "The pointer from the album",
+        "Working through more than one",
+        "Warning before a deletion",
+        "What Finish leaves her looking at",
+      ],
+    },
+  },
+  {
+    id: "identity-profile",
+    title: "Setting up a page",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, "the morning after the identity round": "I\'d like to run most of this through the lab once our foundation is complete... profile setup, etc")',
+    shipped: null,
+    why: "How a verified guest sets her page up, chooses what shows, when the app invites it, and what an empty page says to a visitor.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/components/social/attended-events-visibility.tsx",
+      "src/app/(guest)/u/[slug]/page.tsx",
+      "src/app/(app)/account/page.tsx",
+    ],
+    board: {
+      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified with three events joined and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
+      variants: [
+        "How it's set up",
+        "What shows",
+        "When it's offered",
+        "The empty page",
+      ],
+    },
+  },
   {
     id: "guest-capture",
     title: "Keeping what she just added",
@@ -1572,9 +1656,19 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape).
+  // album's shape). `identity-door` is placed directly (its own manifest's
+  // instruction, not the head exception): right after `guest-capture`, since
+  // it draws the same guest one step earlier in her walk through the door.
+  // `identity-profile` belongs after `identity-claims`, whose id is not
+  // registered yet since that sibling lane has not merged — the Orchestrator
+  // places both siblings in their true order at the merge.
+  // album's shape). `identity-claims` registers here 2026-09-22 for the same
+  // reason; the Orchestrator places it after `identity-door` at its merge.
   "media-viewer",
   "guest-capture",
+  "identity-door",
+  "identity-claims",
+  "identity-profile",
   "host-curation",
   "export-flow",
   "admin-triage",

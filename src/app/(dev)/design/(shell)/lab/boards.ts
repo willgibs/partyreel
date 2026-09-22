@@ -1,5 +1,8 @@
 import type { ComponentType } from "react";
 
+import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
+import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
+import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
 import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
@@ -34,6 +37,10 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "identity-door": { Component: IdentityDoorBoard },
+  "identity-claims": { Component: IdentityClaimsBoard },
+
+  "identity-profile": { Component: IdentityProfileBoard },
   "guest-capture": { Component: GuestCaptureBoard },
 
   "site-chrome": { Component: SiteChromeBoard },

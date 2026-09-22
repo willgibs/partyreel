@@ -17,13 +17,60 @@ export type ReelClip = {
   trimStartSec?: number;
   /** Video only — how long the clip plays in the reel (seconds). Photos use the theme/hold default. */
   trimDurationSec?: number;
+  /**
+   * Video only, and OPTIONAL everywhere — the live motion source for this clip (the reel round,
+   * 2026-09-22). Absent (the default, and every server-built props) → the clip draws its poster
+   * still exactly as before. Present → the renderer asks it for a decoded frame each draw and
+   * falls back to the poster whenever it answers null. See ReelVideoSource.
+   */
+  video?: ReelVideoSource | null;
+};
+
+// --- Motion video in the live reel (the range-window reader's half of the contract) ------------------
+
+/** What a decoded video frame can be blitted from. CanvasSink yields an HTMLCanvasElement in a DOM
+ *  context and an OffscreenCanvas otherwise; ctx.drawImage takes either. */
+export type ReelFrameImage = HTMLCanvasElement | OffscreenCanvas | ImageBitmap;
+
+/** One decoded frame out of a clip's window ring. */
+export type ReelVideoFrame = {
+  image: ReelFrameImage;
+  /** The frame's own pixel size. The decode is aspect-preserving, so this carries the source's
+   *  aspect and the renderer's cover/contain rect lands exactly where the poster's did. */
+  width: number;
+  height: number;
+  /** Clip-LOCAL seconds (0 = the window's first frame), never source seconds. */
+  localSec: number;
+};
+
+/**
+ * A clip's motion source: a pre-filled ring of decoded frames the draw reads SYNCHRONOUSLY.
+ *
+ * ★ WHY SYNCHRONOUS (do not weaken): drawReelFrame is contractually synchronous, and registry.ts's
+ * pooled-scratch safety invariant depends on it — a draw that awaited could interleave with another
+ * player's draw and both would paint the same pooled scratch canvas. So the async pump that fetches
+ * byte ranges and decodes lives OUTSIDE the draw (src/lib/reel/engine/video/window-reader.ts) and
+ * all the draw ever does is read the ring. `frameAt` returning null is a normal, expected answer
+ * (videos off, over budget, undecodable, not ready yet): the renderer draws the poster.
+ */
+export type ReelVideoSource = {
+  kind: "window";
+  /** SYNCHRONOUS. The newest decoded frame at or before `localSec`, or null → draw the poster.
+   *  Advances the ring's cursor, so callers ask in non-decreasing time order. */
+  frameAt: (localSec: number) => ReelVideoFrame | null;
 };
 
 // --- The motion vocabulary (a theme = a distinct EDIT character, not a tint) -------------------------
 
 /** The transition presentations a theme can sample. The richer shader presentations (dreamyZoom/
  *  crossZoom) are a later add. "cut" is a near-instant fade (Punchy's hard cut). */
-export type TransitionKind = "fade" | "cut" | "slide" | "wipe" | "flip" | "clockWipe";
+export type TransitionKind =
+  | "fade"
+  | "cut"
+  | "slide"
+  | "wipe"
+  | "flip"
+  | "clockWipe";
 export type SlideDir = "from-left" | "from-right" | "from-top" | "from-bottom";
 
 /** One option in a theme's transition palette; the per-reel seed samples one per gap (→ variety). */
@@ -150,7 +197,8 @@ export type ReelProps = {
  *  pacing variety). NOTE (transitional): the id stays `classic` while the label is "Cinematic" until
  *  Phase 2 formalizes these as media-first style ids. */
 export const THEME_CLASSIC: ReelTheme = {
-  grade: "contrast(1.14) saturate(1.06) brightness(0.98) sepia(0.14) hue-rotate(-10deg)",
+  grade:
+    "contrast(1.14) saturate(1.06) brightness(0.98) sepia(0.14) hue-rotate(-10deg)",
   background: "#07080a",
   photoHoldSec: 2.7,
   holdJitter: 0.05,

@@ -109,6 +109,7 @@ describe("the nav", () => {
       "motion",
       "reel-parity",
       "reel-live",
+      "reel-video",
       "stream-probe",
       "boom",
     ])
