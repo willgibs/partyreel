@@ -1,6 +1,6 @@
 ---
 track: reel-view
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "17f17e57"          # the launch-prep SHA the branch was cut from
 board: reel-view       # a new board: the reel round, the reel's full-screen view
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -167,29 +167,64 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- Close's own corner circle: the brief lists `Close` as one of the six controls `controls` arranges, but every precedent
+  read (`guest-reel-overlay.tsx`'s `CloseCircle`, `media-viewer`'s) keeps Close in its own top corner, outside whatever
+  else fades or rearranges ("a guest can always leave"). Taken: Close stays a constant corner circle on every option of
+  both `chrome` and `controls`; the three `controls` arrangements are read as arranging the other FIVE. Overrule: if
+  Close should genuinely be inside the arranged set, `row`'s reading (all six, Close last) is the one to redraw from.
+- The arrival caption and the loop's own turn are shown on a periodic timer (a `useBeat` hook, on for one stretch, off
+  for another), never tied to a real upload or a real loop boundary: the current engine (this lane's read-only
+  `src/lib/reel/engine/`) exposes no such callback. Taken: a beat that can be caught without triggering anything by
+  hand. Overrule: none needed to REVIEW the option; the real wiring is `reel-engine-live`'s `onClipChange`, once it
+  lands (see Deferred).
+- The three `pacing` hold lengths (1.0s / 1.5s / 2.2s) and `reduced`'s "slower" hold (3.2s) are this board's own
+  numbers, per the brief's "the exact seconds are the knob": real `theme.photoHoldSec` overrides on the Cinematic mood,
+  chosen to feel distinctly quick/steady/unhurried rather than tuned against any usability study.
+- The mood shown throughout every option is Cinematic (`classic`), a stand-in for the ruling's own "a new loop-tuned
+  default mood," which nothing has designed yet; no ask on this board is about which mood plays.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: this lane owns no `docs/systems/` doc.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Reel round, engine follow-up: once `reel-engine-live`'s `player-live.tsx` exposes a real `onClipChange`/arrival
+  signal, `reel-view`'s wiring lane should retire the lab's timer-driven arrival and loop beats for the real event
+  stream (this board's Questions section names the stand-in).
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head 441734d7 (the board commit), pushed; synced with launch-prep at ef217082 (the sync-merge commit): origin/launch-prep
+  had moved to `d86ee72e` (identity-door/-claims/-profile and reel-engine-video landed) since this branch was cut.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code, all green: `pnpm design:rules` ok (18 standing boards, `docs/design/library.md`
+  regenerated); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` ok (140 specimens, unchanged); `pnpm typecheck` ok;
+  `pnpm lint` ok (0 errors, 9 known warnings, none in a file this lane touched); `pnpm test` ok (3784 passed, 1 skipped, 345
+  files); `pnpm build` ok (258 pages). `pnpm lab:smoke --base http://localhost:3138` ok (452 checks, 0 failing). `pnpm lab:demo
+  --board reel-view --base http://localhost:3138` ok (8 steps, 0 failing; tallest `reel-view.posture` at 1.6 screens, wordiest
+  `reel-view.chrome` at 188 words; no UNPAINTED specimen reported, so nothing needed a by-hand capture).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly `docs/design/library.md`,
+  `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/reel-view/{board,fixtures,spec,surfaces}.tsx`,
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/touchpoints.ts`, plus this manifest. No exceptions: the
+  three registration files carry only this board's own lines (verified against origin/launch-prep's own reel-view-shaped
+  insertion point after the coordinator's correction, below).
+- The items, one line each: `reel-view`: a fresh round-one catalog, eight asks, every option a live `CanvasReelPlayer`
+  drawing the real engine over the shared wedding album; nothing kept yet, since nothing has been reviewed. A verdict
+  landing later becomes the Library's `reel-view` entry (the shipped full-screen view, once `reel-guest-wiring` builds it).
+- Calls his to overrule on the alias: the four items under Questions above (Close's own corner; the timer-driven beats;
+  the three pacing numbers; the Cinematic stand-in mood). None of these are the eight asks themselves, which are his.
+- Registration correction (mid-lane, from the coordinator, applied before this Handoff): the RULINGS entry and the
+  `DESK_ORDER` id both moved from the head to directly after `media-viewer` (commit 441734d7 registered at the head;
+  the sync-merge commit ef217082 carries the move plus the conflict resolution against `identity-door`/`identity-claims`/
+  `identity-profile`, which landed on the same head-of-list spot in `registry.ts` and `boards.ts` and needed a manual
+  concatenation, both orders preserved, `registry.test.ts`'s desk-order equality green after).
+- The help articles this lane makes stale: none (this board never touches `content/help/`).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `chrome` (his own brief, drawn live: move the pointer over the picture in the `bare` option to watch it
+  fade and return) and `posture` (the same event rendering landscape at 1440 and portrait at 375, the biggest picture
+  the demo moves, 16.46 percent of the stage).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
