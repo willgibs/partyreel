@@ -184,7 +184,7 @@ describe("parseRef: the documents", () => {
     });
   });
 
-  it("reads proposals, tracks, rulings and the guidance", () => {
+  it("reads proposals, tracks and the guidance", () => {
     expect(parseRef("docs/specs/palette.md#the-model")).toEqual({
       kind: "proposal",
       slug: "palette",
@@ -197,14 +197,6 @@ describe("parseRef: the documents", () => {
     expect(parseRef("docs/tracks/README.md")).toEqual({
       kind: "source",
       file: "docs/tracks/README.md",
-    });
-    expect(parseRef("docs/design/rulings.md#less-is-more")).toEqual({
-      kind: "ruling",
-      slug: "less-is-more",
-    });
-    expect(parseRef("docs/design/rulings.md")).toEqual({
-      kind: "page",
-      href: "/design/library/rulings",
     });
     expect(parseRef("docs/design/guidance.md#boards")).toEqual({
       kind: "guidance",
@@ -243,15 +235,12 @@ describe("hrefFor", () => {
     expect(hrefFor(routed[4])).toBe("/design/lab/tracks/palette");
   });
 
-  it("anchors a component, a policy, a ruling and the guidance", () => {
+  it("anchors a component, a policy and the guidance", () => {
     expect(
       hrefFor({ kind: "component", id: "button", anchor: "variants" }),
     ).toBe("/design/library/button#variants");
     expect(hrefFor({ kind: "policy", id: "content-policy" })).toBe(
       "/design/library/policies#content-policy",
-    );
-    expect(hrefFor({ kind: "ruling", slug: "less-is-more" })).toBe(
-      "/design/library/rulings#less-is-more",
     );
     expect(hrefFor({ kind: "guidance", anchor: "boards" })).toBe(
       "/design/library/guidance#boards",
@@ -318,9 +307,6 @@ describe("githubFor, editorFor and fileFor", () => {
     expect(fileFor({ kind: "doc", doc: "craft" })).toBe(DOC_FILES.craft);
     expect(fileFor({ kind: "proposal", slug: "light" })).toBe(
       "docs/specs/light.md",
-    );
-    expect(fileFor({ kind: "ruling", slug: "x" })).toBe(
-      "docs/design/rulings.md",
     );
     expect(fileFor({ kind: "guidance" })).toBe("docs/design/guidance.md");
     expect(fileFor({ kind: "component", id: "no-such-component" })).toBeNull();

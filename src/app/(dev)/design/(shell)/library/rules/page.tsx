@@ -25,7 +25,14 @@ import {
   policiesByScope,
   POLICY_SCOPE_LABEL,
 } from "@/app/(dev)/design/rules/rules";
-import { getRuling, SANDBOX } from "@/app/(dev)/design/touchpoints";
+import {
+  getRuling,
+  RULED,
+  type Ruling,
+  SANDBOX,
+  type Surface,
+  SURFACE_LABEL,
+} from "@/app/(dev)/design/touchpoints";
 
 import { BindsStrip } from "./binds-strip";
 import { LevelBadge, LevelVerdict } from "./level-badge";
@@ -45,8 +52,12 @@ import { LevelBadge, LevelVerdict } from "./level-badge";
  * hundred of them under twenty-two laws was most of what made the law look
  * long.
  *
+ * The rulings follow the policies: what Will ruled for one component or page,
+ * as the rule it holds today (the registry in touchpoints.ts). They inform
+ * rather than bind, so they sit below the two levels that do.
+ *
  * The health strip at the foot is computed, never remembered: the rule set
- * auditing itself, which is the 2026-09-01 ruling made mechanical.
+ * auditing itself, so a rule that has stopped earning its place shows.
  */
 export default async function RulesPage({
   searchParams,
@@ -58,6 +69,9 @@ export default async function RulesPage({
   const scopes = policiesByScope();
   const findings = health().filter((f) => f.id !== "uncontracted");
   const binding = LEVELS.filter((l) => l.weight !== "informs");
+  const rulings = RULING_SURFACES.map(
+    (surface) => [surface, RULED.filter((r) => r.surface === surface)] as const,
+  ).filter(([, list]) => list.length > 0);
 
   // `?board=<id>` turns the page into the answer for ONE board: the same strip
   // a board page mounts, rendered here so the question "what binds this
@@ -70,7 +84,7 @@ export default async function RulesPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="What binds you"
-        description="Everything that influences design work on Partyreel, levelled. Two levels bind: the bible, and the contracts of the components under a path you own. A third binds mechanically inside its scope. The rest inform, and an agent that obeys all of them builds small."
+        description="Everything that influences design work on Partyreel, levelled: working rules that keep new work consistent with what is built, never walls. Two levels hold by default (the bible, and the contracts of the components under a path you own) and a third holds mechanically inside its scope; any of them is reshaped deliberately when a better solution needs it. The rest inform, and an agent that treats all of them as walls builds small."
         badges={
           <>
             <Tag>{BIBLE.length} laws</Tag>
@@ -151,17 +165,17 @@ export default async function RulesPage({
           ))}
         </ul>
         <Callout kind="will" className="mt-4">
-          A bible rule that blocks better work is a finding for your manifest,
-          not a wall (bible 22). A policy that does is the same, and weaker
-          still: an agent wrote it. Everything below GUIDANCE exists to be read
-          and rebuilt.
+          Nothing here is protected while the product is being built (bible 22):
+          a bible rule that blocks better work is a question for Will, a policy
+          that does is reshaped in the open (an agent wrote it), and everything
+          below GUIDANCE exists to be read and rebuilt.
         </Callout>
       </Section>
 
       <Section
         id="law"
-        title="The law"
-        blurb="The whole of it: twenty-two rules, Will's, each with why it holds, what enforces it and where it stands. A rule under exploration links the board writing what it inherits; its statement is the interim law."
+        title="The bible"
+        blurb="Will's twenty-two global working rules, each with why it holds, what checks it and where it stands. They change only by his word: a better answer against one is a question for him. A rule under exploration links the board writing what it inherits."
         aside={
           <span className="text-[11px] text-muted-foreground">
             hand-authored, never derived
@@ -258,6 +272,33 @@ export default async function RulesPage({
       </Section>
 
       <Section
+        id="rulings"
+        title="The rulings"
+        blurb="What Will ruled for one component or page, kept as the rule it holds today: the rule, why, and where it lives. A ruling informs rather than binds: an exploration may reopen one, and says so on its board. A standing board's own row is on the desk."
+        aside={
+          <span className="text-[11px] text-muted-foreground tabular-nums">
+            {RULED.length}
+          </span>
+        }
+      >
+        <div className="space-y-2">
+          {rulings.map(([surface, list]) => (
+            <Sub
+              key={surface}
+              id={`rulings-${surface}`}
+              title={SURFACE_LABEL[surface]}
+            >
+              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+                {list.map((ruling) => (
+                  <RulingRow key={ruling.id} ruling={ruling} />
+                ))}
+              </ul>
+            </Sub>
+          ))}
+        </div>
+      </Section>
+
+      <Section
         id="health"
         title="The rule set's own health"
         blurb="Computed from the registry, not remembered. Zero is not the goal for every line; being able to see the number is."
@@ -305,6 +346,15 @@ export default async function RulesPage({
     </div>
   );
 }
+
+/** The order the rulings group in: the guest's surfaces first, as the nav's boards do. */
+const RULING_SURFACES: Surface[] = [
+  "guest",
+  "host",
+  "shared",
+  "marketing",
+  "admin",
+];
 
 // The anchor offset lives on <html> (scroll-padding-top: the shell rule on a
 // library page, the dock's inline value on a board); a scroll-margin here
@@ -391,6 +441,38 @@ function BibleRow({ rule }: { rule: BibleRule }) {
             ))}
           </span>
         )}
+      </p>
+    </li>
+  );
+}
+
+/**
+ * A ruling, one row: its title and what ships, the rule it holds today, why,
+ * and where it lives. A ruling informs rather than binds, so the row carries
+ * its sources and never an enforcement line.
+ */
+function RulingRow({ ruling }: { ruling: Ruling }) {
+  return (
+    <li id={`ruling-${ruling.id}`} className={cn("px-4 py-3", SCROLL_MT)}>
+      <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+        <span className="font-medium">{ruling.title}</span>
+        {ruling.shipped && (
+          <span className="text-[11px] text-muted-foreground">
+            {ruling.shipped}
+          </span>
+        )}
+      </p>
+      <p className="mt-1 max-w-3xl text-[13px] leading-relaxed">
+        {ruling.ruled}
+      </p>
+      <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+        {ruling.why}
+      </p>
+      <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+        <span>lives in</span>
+        {ruling.lives.map((file) => (
+          <Ref key={file} to={file} quiet />
+        ))}
       </p>
     </li>
   );
