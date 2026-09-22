@@ -1,6 +1,6 @@
 ---
 track: identity-profile
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "50c03129"          # the launch-prep SHA the branch was cut from
 board: identity-profile # a new board: the identity flows, the profile setup
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -168,30 +168,74 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- None that block: a lab board wires nothing to production, so the four asks themselves are his to overrule (below),
+  not a question that needed an answer before building. Nothing here was a one-way door.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: lab-only, nothing shipped, no system doc refined
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none new
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `e5cbe4b5`, pushed; `origin/launch-prep` had moved (the reel round's track-cutting commit,
+  `ef1c4b51`) since the cut at `4addfb66`, so synced with a merge (never rebase) at `628749c3`, also pushed. The
+  merge was clean on `sandbox/registry.ts`, `(shell)/lab/boards.ts` and `touchpoints.ts` (their edits were
+  reel-studio's retirement, at different lines than identity-profile's addition); `docs/design/library.md`
+  conflicted (a fully generated file) and was resolved by regenerating it with `pnpm design:rules` after the
+  source files merged, not by hand.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree (all after the merge, re-run clean): `design:rules` ok (140 specimens on 101 entries
+  unchanged), specimens ok, `typecheck` ok, `lint` ok (9 known warnings, under the 10 baseline, none in a file this
+  lane touched), `test` ok (3688 passed, 1 skipped, 337 files), `build` ok (257 pages). `pnpm lab:smoke --base
+  http://localhost:3136` ok (428 checks, 0 failing; `identity-profile` at 235 of the 1200-word reading budget).
+  `pnpm lab:demo --board identity-profile --base http://localhost:3136` ok (4 steps, 0 failing, every option
+  visibly distinct: `setup` moves up to 79.29%, `attended` up to 41.99%, `prompt` up to 28.63%, `page` up to
+  8.88%). Visual look at 1440 and 375 in the Browser pane: the wizard, the cover picker (its tap-to-show toggle
+  exercised live), the guest-menu option and the empty-page states all render correctly; the one live CSS
+  transition (the cover picker's lift) carries `motion-reduce:transition-none` per bible 14, checked by reading
+  the class rather than by toggling the OS preference (no control for that in the tools available this session).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/identity-profile/`
+  (`board.tsx`, `fixtures.ts`, `parts.tsx`, `scene.tsx`, `spec.ts`), `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/touchpoints.ts`,
+  `docs/design/library.md` (regenerated, not hand-edited), plus this manifest. No exceptions in another lane's file.
+- The items, one line each:
+  - `setup`: recommended a three-screen wizard (handle, then name and photo, then events), the way the event
+    wizard does, over the account page's cards as shipped or a sheet from the follow moment or claims toast.
+  - `attended`: recommended a cover picker, tap to show with the chosen ones lifting, over the switch list as
+    shipped or each event's own guest menu.
+  - `prompt`: recommended inviting after the first claim from the dashboard, over the follow moment inside an
+    album or nowhere but the account page.
+  - `page`: recommended the name with a count ("3 events, kept private") over "Nothing here yet" or a 404 that
+    matches an unclaimed handle.
+- Calls his to overrule (nothing here wires production; flagged for a deliberate look rather than a default):
+  - `setup`'s wizard and `attended`'s cover picker are both real departures from what ships today; the account
+    page's cards and the switch list stand in the catalog as the faithful "as shipped" option regardless.
+  - `page`'s `not-found` option sits in real tension with `profiles-social.md`'s "profiles are public by
+    existence" invariant (no discoverable flag; claiming a handle is the consent act). Nothing in the identity
+    ruling's DECIDED-NOT-ASKED list forbids it outright, so it stayed in the catalog with the tension written
+    into its own `overrule` line rather than dropped.
+  - `prompt`'s `follow` option (`PromptFollow` in `parts.tsx`) is a generic, clearly-illustrative recreation of a
+    follow-moment card, not a proposal for what that card should say: the real one is `identity-claims`'s and
+    `guest-capture`'s to design, and neither file is in this lane's `reads`.
+- The help articles this lane makes stale: none (nothing shipped).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the `attended` cover picker (the biggest visual departure from shipped) and the `page`
+  `not-found` option (the invariant tension above).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Cut a new lab board, `identity-profile`, cataloging four asks about
+a verified guest's page: how setup happens (a three-screen wizard recommended over today's account-page cards),
+how she chooses what shows (a cover picker recommended over the switch list), when the app first invites the
+setup (after the first claim recommended), and what an empty claimed page says to a visitor (naming the count of
+events kept private recommended, with a 404 option's tension against `profiles-social.md`'s public-by-existence
+rule written into its own overrule line rather than dropped). Registered in `touchpoints.ts`, `sandbox/registry.ts`
+and `boards.ts`; the gate green throughout (typecheck, lint at baseline, 3688 tests, a 257-page build); `lab:smoke`
+(428 checks) and `lab:demo --board identity-profile` (4 steps, every option visibly distinct) clean on :3136.
+Synced past the reel round's track-cutting commit with a clean merge across the shared registration files,
+`docs/design/library.md` regenerated after. Nothing here wires production.
