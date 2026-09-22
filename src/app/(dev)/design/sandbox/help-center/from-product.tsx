@@ -14,6 +14,11 @@ import { stopLinks } from "./vocab";
  * of what this decision adds beside it. `menu` and `contextual` add UI that
  * does not exist yet, so those additions are hand-built proposals, labelled
  * as such, rather than a screenshot of something shipped.
+ *
+ * `menu`'s popover is NOT this decision's to design: its rows (the name, the
+ * "Unverified" status label, Add your email, Change name, Sign in) mirror
+ * identity-door.menu's own shipped shape verbatim, never redrawn here. This
+ * ask's only proposal is the one Help center row added to it.
  */
 export type ProductShape = "none" | "menu" | "contextual";
 
@@ -32,10 +37,19 @@ function GuestHeaderStub({ menu }: { menu?: boolean }) {
             >
               <User className="size-4" />
             </button>
-            <div className="absolute top-10 right-0 z-10 w-44 rounded-xl border bg-popover p-1 text-sm shadow-lift ring-1 ring-foreground/10">
-              <div className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-muted-foreground">
+            <div className="absolute top-10 right-0 z-10 w-48 rounded-xl border bg-popover p-1 text-sm shadow-lift ring-1 ring-foreground/10">
+              <div className="px-2.5 py-2">
+                <p className="font-medium text-foreground">Maya</p>
+                <p className="text-xs text-muted-foreground">Unverified</p>
+              </div>
+              <div className="my-1 border-t" />
+              <div className="rounded-lg px-2.5 py-2 text-muted-foreground">Add your email</div>
+              <div className="rounded-lg px-2.5 py-2 text-muted-foreground">Change name</div>
+              <div className="my-1 border-t" />
+              <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-2.5 py-2 font-medium text-foreground">
                 <LifeBuoy className="size-4" /> Help center
               </div>
+              <div className="rounded-lg px-2.5 py-2 text-muted-foreground">Sign in</div>
             </div>
           </div>
         ) : (
@@ -79,7 +93,7 @@ export function FromProductPreview({ shape }: { shape: ProductShape }) {
       <FailedTileStub contextual={shape === "contextual"} />
       <div className="p-4 text-sm text-muted-foreground">
         {shape === "none" && "Report is the only control that leaves this page today."}
-        {shape === "menu" && "A proposed Help center row, added to the guest's own account menu."}
+        {shape === "menu" && "A proposed Help center row, added to the guest's own account menu (its other rows are identity-door.menu's shape, unchanged)."}
         {shape === "contextual" && "A proposed link riding the failed tile itself, straight to the matching fix."}
       </div>
     </div>
