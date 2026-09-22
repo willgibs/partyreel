@@ -1,15 +1,13 @@
 # The help library: authoring brief
 
-The working brief for anyone writing or editing help articles. The help
-center UI is finished and ruled (the index, the ⌘K palette, the article
-layout, the component vocabulary); this file is about the CONTENT. It never
+The working brief for anyone writing or editing help articles. This file is
+about the CONTENT; the help center's UI (the index, the ⌘K palette, the
+article layout) belongs to the Library and the `help-center` board. It never
 renders (the loader reads only `.mdx`), but the content-policy tests scan it
 too, so it obeys the rules it teaches.
 
-The catalog was written fresh in the help-catalog round (2026-09-01): 59
-articles across ten categories, every one checked against the shipped app.
-When the product and an article disagree, the product is right: fix the
-article and set `updated`.
+The articles sit in ten categories (the map below). When the product and an
+article disagree, the product is right: fix the article and set `updated`.
 
 ## The one-sentence contract
 
@@ -29,21 +27,22 @@ file for limits. Field notes:
   a result list. No leading "The" unless natural.
 - `description`: the short answer. A statement, not a teaser.
 - `category`: one of the ten slugs in `HELP_CATEGORIES`. Adding a category
-  means adding its registry row, its emblem (`help-emblems.tsx`), its strip
-  label and grid column (`help/page.tsx`), its contact topic (`CATEGORY_TOPIC`
-  on the contact page), and its first article in the same commit.
+  means adding its registry row (its `stripLabel` included), its emblem
+  (`help-emblems.tsx`), its grid column (`help/page.tsx`), its contact topic
+  (`CATEGORY_TOPIC` on the contact page), and its first article in the same
+  commit.
 - `order`: sort weight within the category. Follow the map; it is the
   prev/next reading order.
 - `updated`: the real date of the last substantive edit. Never freshen a
   date without an edit; never leave a real edit undated.
 - `keywords`: five to eight SPECIFIC search synonyms: the words people type
   ("OTP", "code", "zip", "HEIC", "watermark"), abbreviations, app-string
-  nouns. They feed ranking and the related-articles scorer, which now needs at
-  least one shared keyword to relate two articles, so a generic list ("event",
-  "photos") relates everything to everything.
+  nouns. They feed search ranking and the related-articles scorer, where each
+  shared keyword counts twice what a shared category does, so a generic list
+  ("event", "photos") relates everything to everything.
 - `audience` (optional): `host`, `guest`, or `both`. The default derives from
-  the category (the guest lane is guest-voiced, troubleshooting answers both,
-  everything else addresses the host). Set it only for the exceptions.
+  the category (the guest category is guest-voiced, troubleshooting answers
+  both, everything else addresses the host). Set it only for the exceptions.
 - `plans` (optional): the plans a feature applies to, rendered as badges in
   the In-short card. Leave it empty when the article applies to every plan.
 - `action` (optional): `{ label, href }`, the one door under the short answer
@@ -63,22 +62,26 @@ file for limits. Field notes:
    windows reach an article ONLY through the spec components below, so they
    can never drift from the product. UI strings are quoted verbatim inside
    `<UiLabel>`, digits included. Incidental counts ("three steps") are typed.
-   If no component exists for a marketed number, add one to
-   `mdx-components.tsx` reading the real constant; never type the number.
+   If no component exists for a marketed number, add one to `spec-help.tsx`
+   (the vocabulary below) reading the real constant; never type the number.
+   The frontmatter `description` cannot hold a component, so a number there is
+   typed by hand and nothing checks it: leave it out where the answer survives
+   without it, and match the constant exactly where it cannot.
 5. **Quote the app exactly.** When you name a control, use its shipped
    string inside `<UiLabel>`, in its RENDERED form: write the example a
    reader would see, never a `{placeholder}` (the MDX compiler strips
    JS-expression braces). A test greps every `<UiLabel>` against the app
    source, so an invented or paraphrased label fails the suite.
 6. **Never promise what is not shipped.** No SLAs, no roadmap features, no
-   music in the reel, no co-hosts, no per-photo reports, no self-serve
-   account deletion (the honest current flows are what we document). The
-   claims fence in `src/lib/content-policy.test.ts` is binding: read its
-   three regex lists before writing about moderation, support replies,
-   security, or limits, and reuse the sanctioned sentences it points at
-   rather than inventing new ones. Two it names by phrase: the standard
-   reply line, "Every note gets a reply, usually within a day.", and the
-   durability line from `constants/about.ts`.
+   music in the reel, no co-hosts, no per-photo reports (a report names the
+   event, or a person from their profile). The claims fence in
+   `src/lib/content-policy.test.ts` is binding: read its two pattern lists
+   (the claims fence and the neutralization fence) before writing about
+   moderation, support replies, security, or limits, and reuse the sanctioned
+   sentences rather than inventing new ones: the standard reply line, "Every
+   note gets a reply, usually within a day." (`REPLY_LINE` in
+   `constants/contact.ts`), and the durability facts in `constants/about.ts`
+   and on the privacy page (their "no expiry" clauses answer to rule 7).
 7. **One reconciled lifecycle sentence.** Events have no end date. On the
    Free plan an event nobody touches for about six months is warned by
    email, then moved to Deleted, where it can be restored for 30 days. Use
@@ -90,10 +93,10 @@ file for limits. Field notes:
    guest. American English.
 9. **Link the ladder.** Link related articles inline where they help, and
    link UP to the marketing rung when the reader may want the bigger picture
-   (the category registry's `feature` entry names each rung; the article page
-   already renders it in the end matter, and guest articles end on
-   `/how-it-works` instead). A test resolves every `/help/...` link and every
-   `#section` anchor.
+   (the category registry's `feature` entry names the rung for every category
+   but troubleshooting; the article page already renders it in the end
+   matter, and guest articles end on `/how-it-works` instead). A test
+   resolves every `/help/...` link and every `#section` anchor.
 10. **One Callout at most, usually.** They are punctuation, not paragraphs.
 11. **The pinned slugs.** Marketing pages, the legal drafts, /about, and the
     contact directory link some articles by literal slug; the list lives in
@@ -108,8 +111,9 @@ in prose), **photo viewer** (the full-screen view; never "lightbox"), **the
 Studio** (the reel editor, glossed on first use in an article), **panel** (a
 Studio sub-view; never "sheet"), **event link** (the address guests open;
 "permanent link" only against a "custom link"), **share dialog** (the host's
-Share sheet; guests have the `Invite` button), **chips** (the filter row on
-the dashboard and the event page), **grid** (the album layout), **Review**
+Share sheet; guests have the `Invite` button), the **Show** menu (the
+dashboard's All events, Saved and Deleted), the **View** menu (the event
+page's sort, filter and tile size), **grid** (the album layout), **Review**
 (the switch and the section; "waiting in Review" for the state), and
 **confirm an email** for what a guest does at the email step.
 
@@ -119,12 +123,12 @@ Available inside every article. The shared vocabulary lives in
 `src/components/marketing/mdx/spec-shared.tsx` (Orchestrator-owned; it grows only by
 promotion at integration). A component only the help center needs goes in
 `src/components/marketing/mdx/spec-help.tsx`, the help lane's own file; never edit
-the shared file or the blog's (`docs/tracks/README.md`).
+the shared file or the blog's (each file's header says whose it is).
 
 - `<Callout type="info | tip | warning" title="...">` for the one aside that
   earns it.
-- `<Steps>` / `<Step title="...">` for numbered procedures (the mono numeral
-  rail; use it for any "do this, then this" flow instead of a bare `1.` list).
+- `<Steps>` / `<Step title="...">` for numbered procedures (the numeral rail;
+  use it for any "do this, then this" flow instead of a bare `1.` list).
 - `<Path>Dashboard › Your event › Settings</Path>` for "where to find it": a
   breadcrumb row of chips, the first element of any how-to. Plain text with
   `›` between segments.
@@ -142,10 +146,14 @@ the shared file or the blog's (`docs/tracks/README.md`).
   `<MaxEvents tier="free" />`, `<UploadCapFloor />`, `<InactivityMonths />`,
   `<EventPassTerm />`, `<PasswordMinLength />`, `<AccountPasswordMinLength />`, `<UnlockHours />`,
   `<TeaserCount />`, `<OverCapGraceDays />`, `<TierName tier="pro" />`.
-  Extend this family for new numbers.
-- `<AlbumShowcase label="..." caption="...">` for a product-shaped
-  illustration. Decorative, token-drawn, never a screenshot of invented UI.
-- Markdown tables (GFM) for comparisons; the prose theme styles them.
+  Extend this family for new numbers. `<RecoveryDays />` and `<UnlockHours />`
+  carry their unit ("30 days", "12 hours"), and `<InactivityMonths />` and
+  `<EventPassTerm />` render a phrase ("about 6 months", "about a year").
+- `<AlbumShowcase label="..." caption="...">` for a decorative album moment:
+  eight manifest photographs in a browser frame, never a screenshot of
+  invented UI.
+- Markdown tables (GFM) for comparisons; the component map styles them (a
+  scrolling wrapper, a nowrap label column).
 - The blog library's wider spec family renders here too (`<PlanStorage id>`,
   `<PlanPrice id>`, `<ReelStyleCount />`, `<RecoveryWindowDays />`, `<InactiveDays />`,
   `<CapacityEstimate plan>`, `<Yes />` / `<No />` and the rest; the full table is in
@@ -155,7 +163,7 @@ the shared file or the blog's (`docs/tracks/README.md`).
 ## The library map
 
 Ten categories in lifecycle order; the article order within each is the
-`order` field. Guest-voiced articles are marked (G).
+`order` field. The guest-voiced category is marked (G).
 
 ### 01 Getting started
 
@@ -234,6 +242,7 @@ Ten categories in lifecycle order; the article order within each is the
 5. how-long-media-is-kept
 6. reporting-and-safety
 7. your-data-and-deleting-your-account
+8. require-an-upload-to-view-explained
 
 ### 10 Troubleshooting
 
@@ -255,9 +264,10 @@ source under `src/components` and `src/app/(app)` (hosts) and
 `docs/systems/host-app.md`, `guest-flow.md`, `billing-caps.md`,
 `lifecycle-recovery.md`, `profiles-social.md`, `uploads-and-r2.md`.
 Durability and moderation claims: reuse the shipped wording on the privacy
-feature page and in `constants/about.ts`; the never-claim list (encryption
-guarantees, compliance certifications, multi-cloud) is in the marketing truth
-base and the content-policy test.
+feature page and in `constants/about.ts`. Never claim end-to-end encryption,
+point-in-time recovery, compliance certifications or multi-cloud storage: no
+test fences them, so this line and the why-comment in the privacy page's
+`media-lives.tsx` are the whole guard.
 
 ## Process
 
@@ -266,6 +276,7 @@ orchestrator integrates). Gates before every commit: `pnpm typecheck`,
 `pnpm lint`, `pnpm test` (the suite validates frontmatter, category
 population, slugs, MDX compilation, `<UiLabel>` fidelity, internal links,
 em-dashes, and claims), and `pnpm build` after content changes (every article
-prerenders, with its share card). `/llms.txt` lists every article by title and
-link and has a size budget, so a new article is a few dozen bytes there;
-`/llms-full.txt` carries the descriptions.
+prerenders, with its share card). `/llms.txt` lists the first four articles of
+each category (`LLMS_HELP_PER_SHELF`) under a 16,000-character budget and
+points to `/llms-full.txt`, which carries every article with its description
+under a 60,000-character budget.
