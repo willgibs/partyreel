@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1232 contracts on 162 components · 15 standing boards.**
+**22 laws · 18 policies · 1237 contracts on 163 components · 15 standing boards.**
 
 ## What binds you
 
@@ -343,6 +343,7 @@ function. A contract never freezes a look.
 Contracted but outside the library's directories:
 
 - `src/app/(app)/account/page.tsx` (6 guards)
+- `src/app/(app)/name-gate.ts` (5 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
 - `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
