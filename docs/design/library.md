@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1232 contracts on 162 components · 15 standing boards.**
+**22 laws · 18 policies · 1232 contracts on 162 components · 16 standing boards.**
 
 ## What binds you
 
@@ -480,6 +480,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `identity-door` | guest | Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives |
 | `guest-capture` | guest | Five decisions on the shipped capture flow's real pieces, over Priya, the unproven guest media-viewer's own board already marked: when the offer first reaches her, what shape it takes, whom she can follow once she confirms, where she lands afterward, and what becomes of the name she typed at the door |
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
