@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1237 contracts on 163 components · 18 standing boards.**
+**22 laws · 18 policies · 1237 contracts on 163 components · 19 standing boards.**
 
 ## What binds you
 
