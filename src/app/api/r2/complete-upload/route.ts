@@ -1,5 +1,6 @@
 import { createMedia, getUploadContext } from "@/lib/db/mutations/guest";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
+import { guestSessionCookieIfChanged } from "@/lib/guest/session-cookie";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   runCompletePipeline,
@@ -58,7 +59,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
         };
       }
     }
-    return createMedia({
+    const created = await createMedia({
       sessionToken: parsed.session_token,
       mediaId: parsed.media_id,
       type: kind,
@@ -69,6 +70,26 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
       height: parsed.height ?? null,
       previewKey: parsed.preview_key ?? null,
     });
+    /* ★ THE FLIP IS A COOKIE AND THEN A REFRESH (the door as three steps, 2026-09-21). On an
+       event requiring an upload to view, THIS is the write that opens the album, and the client
+       calls `router.refresh()` the moment it lands: the RSC that comes back has to resolve this
+       guest as a contributor, which it can only do from a cookie. Writing it here, on the
+       response that carries the completion, closes that race for the one session that had no
+       cookie yet (a row minted before this round, or a browser that cleared them). Only on a
+       created row, only when the request did not already carry this exact token, and only with a
+       token `create_media` just accepted. */
+    if (created.ok && ctx.ok && ctx.data.event_id) {
+      return {
+        ...created,
+        setCookies: [
+          await guestSessionCookieIfChanged(
+            ctx.data.event_id,
+            parsed.session_token,
+          ),
+        ],
+      };
+    }
+    return created;
   },
   errorStatus(code) {
     return code === "invalid_session"

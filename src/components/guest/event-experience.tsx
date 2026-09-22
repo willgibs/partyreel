@@ -34,7 +34,6 @@ import {
 } from "@/components/guest/live-gallery";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
-import { SetNameStep } from "@/components/shared/set-name-step";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -48,15 +47,17 @@ import {
   pickAboveAlbumState,
   type DemoPairArrival,
 } from "@/lib/demo";
-import type { GalleryAccess } from "@/lib/events/gallery-access";
-import { gateStepsForAccess } from "@/lib/guest/entry-steps";
+import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import { useUploadQueue } from "@/lib/guest/use-upload-queue";
 import { useStoredName } from "@/lib/guest/use-stored-name";
-import { useStoredSession } from "@/lib/guest/use-stored-session";
+import {
+  readStoredSession,
+  useStoredSession,
+} from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
 import { cn, formatEventDate } from "@/lib/utils";
 
@@ -111,6 +112,7 @@ export function EventExperience({
   stats,
   isDemo,
   access,
+  gate,
   needsName,
   hostAvatarUrl,
   hostSeed,
@@ -139,8 +141,14 @@ export function EventExperience({
    *  password not yet unlocked (a locked backdrop; the modal shows the password step). `teaser` = the
    *  capped preview + a "See all" button that opens the modal's account step. `full` = full experience. */
   access: GalleryAccess;
-  /** Signed-in uploader without a public display name — show the required name step before the
-   *  upload panel (their uploads are attributed). Phase 1. */
+  /**
+   * WHICH DOOR THE SERVER PUT IN FRONT OF THIS VIEWER (the door as three steps, 2026-09-21).
+   * `teaser` has two causes now — an unconfirmed email and an unmade contribution — and the
+   * door's step machine reads this rather than trying to infer it from the level.
+   */
+  gate: GalleryGate | null;
+  /** Signed-in uploader without a public display name: the door asks for it as its NAME step, in
+   *  `profile` mode (it writes the account's own name). Phase 1's inline panel is retired. */
   needsName: boolean;
   /** Presigned host avatar URL for the "Hosted by" byline, or null (no photo — the seeded
    *  initial fallback below carries it). Phase 3. */
@@ -191,15 +199,83 @@ export function EventExperience({
   // session, never instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
   const entryRef = useRef<EntryModalHandle>(null);
-  // The gate(s) for this access level (none -> password; teaser -> account); drives the entry modal.
-  const gateSteps = gateStepsForAccess(access);
+  /* ★ "RETURNING", SNAPSHOTTED ONCE AT MOUNT (the door as three steps, 2026-09-21): did this
+     browser already hold a session for this event when the page loaded? It is what keeps the
+     OFF-state upload step from asking a guest who came back on Sunday to look at the album. A
+     lazy initializer rather than the live `sessionToken`, because the live value flips the
+     instant this visit's own join mints a row and would drop the step under a guest's thumb. It
+     reads storage during the hydration render and feeds only the lazily-loaded entry sheet, which
+     renders nothing until after hydration, so no server-rendered DOM depends on it. */
+  const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
   // The live media count: seeded by the RSC stats, kept current by LiveGallery
   // (incl. optimistic tiles). M (contributors) stays static per load.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
-  // The upload engine handle + the lifted queue snapshot feeding the gallery
-  // tiles, the floating pill count, and the header Add.
   const uploadRef = useRef<GuestUploadHandle>(null);
-  const [queue, setQueue] = useState<QueueItem[]>([]);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     ONE QUEUE FOR BOTH DOORS (the door as three steps, 2026-09-21).
+
+     The upload queue used to live inside `GuestUpload`, which only exists at FULL access and
+     inside the album. The door's third step asks for the first photograph BEFORE the album, from
+     a sheet that is not inside `GuestUpload` at all, and the run it starts has to keep going
+     after the door is gone: the first completion opens the album and the other eleven files
+     finish behind it, drawing their tiles at the album's head. So the queue is lifted here, where
+     both surfaces can reach it, and `GuestUpload` is handed the snapshot it used to own.
+
+     `identity-fixes`' deferred-refresh wrapper moved up with it. A mid-run `verification_required`
+     must not `router.refresh()` while the guest is still reading the surface that explains it:
+     the refresh's access flip remounts the gallery-and-upload slot and tears that surface down
+     (measured on the alias at 503 ms). Which surface it is depends on where the run was started,
+     so the deferral asks: the ALBUM's failure sheet is inside the remounted slot and must be
+     waited for; the DOOR's own step is not (the entry sheet sits outside `key={access}`), and
+     re-gating it to the email step immediately is exactly the right answer there.
+     ──────────────────────────────────────────────────────────────────────── */
+  const pendingVerificationRef = useRef<string | null>(null);
+  // The door is showing its upload step right now: a ref so the queue's callback reads it
+  // synchronously, mirrored into state only for the render that hides the album's failure sheet.
+  const uploadStepActiveRef = useRef(false);
+  const [uploadStepActive, setUploadStepActive] = useState(false);
+  const onUploadStepActive = useCallback((active: boolean) => {
+    uploadStepActiveRef.current = active;
+    setUploadStepActive(active);
+  }, []);
+  const flushPendingVerification = useCallback(() => {
+    if (pendingVerificationRef.current === null) return;
+    pendingVerificationRef.current = null;
+    router.refresh();
+  }, [router]);
+  /* The queue is created ABOVE the callbacks that consume its completions (they need the gallery
+     handle, attached further down this file), so a completion travels through a ref kept current
+     by the effect beside `handleUploaded`. One indirection, rather than reordering the whole
+     shell around a hook that has to exist before the album does. */
+  const handleUploadedRef = useRef<(u: UploadedItem) => void>(() => {});
+  const { items: queue, addFiles, retry, dismiss } = useUploadQueue({
+    qrToken,
+    sessionToken,
+    onSession: setSessionToken,
+    onUploaded: (u) => handleUploadedRef.current(u),
+    isDemo,
+    isVerified,
+    onVerificationRequired: (message, hadQueuedFiles) => {
+      if (hadQueuedFiles && !uploadStepActiveRef.current) {
+        pendingVerificationRef.current = message;
+        return;
+      }
+      router.refresh();
+    },
+  });
+  /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
+     half of the server's `hasContributed`, and either one closes the door's upload step. */
+  const contributed = queue.some((it) => it.status === "done");
+  /* AND THE SERVER'S HALF, read off the decision it already made. With the switch ON the resolver
+     answers `upload` exactly when this viewer owes a photograph, so anything else means they do
+     not (they contributed, or the album cannot take one and the gate failed open). With the
+     switch OFF the resolver never evaluates the question at all, so the door falls back to its
+     own softer rule: ask a first-time visitor once, never a returning one. */
+  const serverContributed = event.require_upload_to_view
+    ? gate !== "upload"
+    : false;
+
   // WHAT THE ALBUM'S HEAD STILL OWES THIS DEVICE: everything in flight, AND
   // anything a hold-for-approval event finished but is keeping back (`held=tile`,
   // 2026-09-21 — a completed upload used to vanish, which reads as a failure).
@@ -216,45 +292,30 @@ export function EventExperience({
   // carrying both of a guest's actions instead of only Add.
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
-  const canUpload = access === "full" && event.accepting_uploads && !needsName;
+  const canUpload = access === "full" && event.accepting_uploads;
 
   /* ────────────────────────────────────────────────────────────────────────
-     EVERY ADD GOES THROUGH ONE DOOR (the identity reshape, 2026-09-21).
+     EVERY ADD IS JUST AN ADD NOW (the door as three steps, 2026-09-21).
 
-     Three affordances open the add sheet (the row, the dock, the empty album's
-     CTA) and on a NAME-ONLY event each of them may have to ask a name first, so
-     the decision lives here once rather than three times.
-
-     ★ IT ASKS AT MOST ONCE PER DEVICE PER EVENT. A device that already holds a
-     session AND a name has already answered; a CONFIRMED account never answers
-     at all (their profile name is the identity, and `create_guest` nulls a typed
-     name on a confirmed session anyway); the demo never answers, because nothing
-     it adds is real. A session with NO name is the one that still has to: that
-     is a row minted before the reshape, or by the queue's own silent join.
-
-     ★ AND THE ADD IS HELD, NOT LOST. `pendingAdd` remembers that a tap was on
-     its way to the picker, so naming yourself lands exactly where tapping Add
-     was going to land, instead of closing onto an album and making the guest tap
-     it again.
+     The name used to be asked HERE, at the first Add, by whichever of the three affordances (the
+     row, the dock, the empty album's CTA) the guest reached first, and the tap had to be held
+     across the form so it could be finished afterwards. Will overruled that: "if they can reach
+     the album media without entering their name, they're able to reap all the rewards of the
+     album anonymously, then friction occurs when they go to actually contribute." The name is one
+     of the door's ordered steps now, a step BEFORE the album, so by the time any of these three
+     buttons exists this guest is already named and the Add is only ever an Add.
      ──────────────────────────────────────────────────────────────────────── */
-  const pendingAdd = useRef(false);
-  const needsNameDoor =
-    namesMode && !isDemo && !isVerified && (!sessionToken || !storedName);
   const openAdd = useCallback(() => {
-    if (needsNameDoor) {
-      pendingAdd.current = true;
-      entryRef.current?.openToName("join");
-      return;
-    }
     uploadRef.current?.openAdd();
-  }, [needsNameDoor]);
+  }, []);
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
   // module-singleton shape the stored session uses for the same reason).
-  useEffect(() => onNameDoorRequest((mode) => {
-    entryRef.current?.openToName(mode);
-  }), []);
+  useEffect(
+    () => onNameDoorRequest((mode) => entryRef.current?.openToName(mode)),
+    [],
+  );
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
@@ -410,6 +471,10 @@ export function EventExperience({
     },
     [deliverToGallery, isDemo, phonePairId],
   );
+  // Keep the queue's completion channel pointed at the live callback (see its own note above).
+  useEffect(() => {
+    handleUploadedRef.current = handleUploaded;
+  }, [handleUploaded]);
 
   // The demo's OWN share link carries its pairing id (a plain event never
   // does: shareUrl === joinUrl). GuestShare takes whatever string it is
@@ -422,7 +487,7 @@ export function EventExperience({
   // `try=turn`: the same upload, then one card. Paired, the two lines above
   // say more (the SAME moment, worded for a second screen); unpaired, the
   // plain turn card owns it. One slot, never stacked.
-  const demoUploaded = isDemo && queue.some((it) => it.status === "done");
+  const demoUploaded = isDemo && contributed;
   const aboveAlbumState = pickAboveAlbumState({
     isDemo,
     pairedAsPhone,
@@ -461,9 +526,25 @@ export function EventExperience({
           ref={entryRef}
           qrToken={qrToken}
           eventName={event.name}
-          gateSteps={gateSteps}
+          access={access}
+          gate={gate}
+          hasContributed={serverContributed}
+          contributed={contributed}
+          returning={returning}
+          uploadsOpen={event.accepting_uploads}
+          requireUpload={event.require_upload_to_view}
+          albumEmpty={mediaCount === 0}
           isOwner={isOwner}
           isDemo={isDemo}
+          isVerified={isVerified}
+          // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
+          // one, the name is a fact about the person and is never asked for again.
+          hasProfileName={!needsName}
+          queue={queue}
+          onSend={addFiles}
+          onRetry={retry}
+          onDismissFailures={dismiss}
+          onUploadStepActive={onUploadStepActive}
           mediaTotal={stats.approvedTotal}
           // The welcome's byline. On a locked page `event` is the REDACTED
           // shellEvent (host_display_name null), so the host name hides
@@ -475,7 +556,7 @@ export function EventExperience({
           onHoldingChange={setHoldCurtain}
           sessionToken={sessionToken}
           storedName={storedName}
-          onNamed={({ sessionToken: token, displayName }) => {
+          onNamed={({ sessionToken: token, displayName, source }) => {
             // The row carries a name now. Adopt the session this device just
             // minted (a rename hands back the one it already had) and, if a tap
             // on Add was what raised the door, finish that tap.
@@ -496,12 +577,14 @@ export function EventExperience({
                reload. It is safe here specifically because a rename never
                changes `access`, so `key={access}` never remounts the gallery
                (unlike DEFECT 1's flip, which does). */
-            galleryRef.current?.renameMine(displayName);
-            router.refresh();
-            if (pendingAdd.current) {
-              pendingAdd.current = false;
-              uploadRef.current?.openAdd();
-            }
+            if (displayName) galleryRef.current?.renameMine(displayName);
+            /* ★ THE REFRESH IS ONLY THE RENAME'S (the door as three steps, 2026-09-21). The door's
+               own name STEP must not refresh: it hands forward to the next step in the same sheet,
+               and a refresh there would remount the gallery under an open door for nothing. A
+               rename from the album menu still needs one (the server-baked Guests list has no
+               live subscription of its own), and the CONFIRMATION sequence issues its own inside
+               the hold. So this only fires when there is no step behind the name. */
+            if (source === "edit") router.refresh();
           }}
         />
       </Suspense>
@@ -736,42 +819,32 @@ export function EventExperience({
               </div>
             )}
 
-            {/* Upload area — only at `full` access (a `teaser` viewer must create an account first, which
-              the entry modal / the "See all" button own). While accepting: a signed-in but nameless
-              uploader sets a name first, else the upload panel. Uploads off => a quiet view-only line. */}
+            {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
+              owns every step in front of them now). Uploads off => a quiet view-only line.
+
+              ★ THE INLINE "Add your name to upload" PANEL IS GONE (the door as three steps,
+              2026-09-21): a confirmed account with no profile name is asked at the DOOR, as its
+              name step in `profile` mode, like every other guest and before the album rather than
+              in a card halfway down it. */}
             {access === "full" &&
               (event.accepting_uploads ? (
                 <div className="mt-7">
-                  {needsName ? (
-                    <div className="rounded-xl border border-border bg-card p-5">
-                      <SetNameStep
-                        title="Add your name to upload"
-                        submitLabel="Save and continue"
-                        onSaved={() => router.refresh()}
-                      />
-                    </div>
-                  ) : (
-                    <GuestUpload
-                      ref={uploadRef}
-                      event={event}
-                      qrToken={qrToken}
-                      sessionToken={sessionToken}
-                      onSession={setSessionToken}
-                      onUploaded={handleUploaded}
-                      onQueueChange={setQueue}
-                      isDemo={isDemo}
-                      isVerified={isVerified}
-                      host={hostCard}
-                      // The host flipped Require verified emails ON mid-visit.
-                      // The queue has already dropped the spent session and
-                      // failed what was still waiting with the server's own
-                      // sentence (the failure sheet says it once, for all of
-                      // them); the refresh re-resolves access, so the NEXT Add
-                      // meets the account gate rather than a door that cannot
-                      // work.
-                      onVerificationRequired={() => router.refresh()}
-                    />
-                  )}
+                  <GuestUpload
+                    ref={uploadRef}
+                    event={event}
+                    qrToken={qrToken}
+                    sessionToken={sessionToken}
+                    queue={queue}
+                    onAddFiles={addFiles}
+                    onRetry={retry}
+                    onDismiss={dismiss}
+                    // The door's own step is showing this run's failures; one run never gets two
+                    // surfaces (see the lifted queue's note above).
+                    suppressFailures={uploadStepActive}
+                    onFailuresClosed={flushPendingVerification}
+                    isDemo={isDemo}
+                    host={hostCard}
+                  />
                 </div>
               ) : (
                 !isDemo && (

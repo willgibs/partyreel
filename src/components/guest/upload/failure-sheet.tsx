@@ -25,6 +25,7 @@
  * guest whose clip is one megabyte over needs the number, and a generic line
  * sends them to find the host to ask what happened.
  */
+import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
@@ -42,6 +43,79 @@ import {
 /** One file that did not go: the queue's id, its file, and the server's words. */
 export type UploadFailure = { id: string; file: File; error?: string };
 
+/** The sheet's own heading, in one place: the door's in-step view says the same words. */
+export function uploadFailureHeading(count: number): string {
+  // Quoted verbatim by /features/album's cap mock (`how-much-fits.tsx`);
+  // mock-parity.test.ts is the proof.
+  return count === 1 ? "1 file did not go" : `${count} files did not go`;
+}
+
+/**
+ * ★ THE LIST IS ITS OWN EXPORT NOW (the door as three steps, 2026-09-21): the guest door's UPLOAD
+ * step shows a failed run INSIDE the entry sheet, because a sheet over a sheet with no exit is a
+ * trap rather than a surface. The album's sheet and the door's step render this one list.
+ */
+export function UploadFailureList({
+  failures,
+  onRetry,
+  onRetryAll,
+}: {
+  failures: readonly UploadFailure[];
+  onRetry: (id: string) => void;
+  /** Present on the album's sheet (which closes after); the door's step retries in place. */
+  onRetryAll?: () => void;
+}) {
+  // The list's own blob ledger; the album's in-flight one has already let these go (a refused file
+  // is drawn nowhere in the album).
+  const urls = usePickUrls(failures);
+  const one = failures.length === 1;
+  return (
+    <div className="flex flex-col gap-4">
+      {/* The one tap that fixes all of it, above the reading, because the
+          commonest answer to "what happened" is "the venue Wi-Fi". */}
+      <Button
+        type="button"
+        size="cta"
+        className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
+        onClick={() => {
+          for (const f of failures) onRetry(f.id);
+          onRetryAll?.();
+        }}
+      >
+        <RefreshCw /> {one ? "Try again" : "Retry all"}
+      </Button>
+      <ul data-upload-failures className="flex flex-col gap-3">
+        {failures.map((f) => (
+          <li key={f.id} className="flex items-center gap-3">
+            <PickPreview file={f.file} url={urls.get(f.id)} className="size-11" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-reading font-medium">
+                {f.file.name}
+              </span>
+              <span className="block text-reading text-pretty text-muted-foreground">
+                {f.error ?? "That upload did not finish."}
+              </span>
+            </span>
+            {/* With ONE failure the primary above is already this file's
+                retry; a second button for the same act is furniture. */}
+            {!one && (
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="shrink-0 active:scale-[0.97] motion-reduce:active:scale-100"
+                onClick={() => onRetry(f.id)}
+              >
+                <RefreshCw /> Retry
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function UploadFailureSheet({
   open,
   onOpenChange,
@@ -56,72 +130,41 @@ export function UploadFailureSheet({
   /** Re-queues one file (the queue's own `retry`, unchanged since Phase 4). */
   onRetry: (id: string) => void;
 }) {
-  // The sheet's own blob ledger; the album's in-flight one has already let
-  // these go (a refused file is drawn nowhere in the album).
-  const urls = usePickUrls(failures);
-  const one = failures.length === 1;
-  const retryAll = () => {
-    for (const f of failures) onRetry(f.id);
-    onOpenChange(false);
-  };
+  /* ────────────────────────────────────────────────────────────────────────
+     THE EXIT FLASH (found on the alias at 8d83ec75, red-teaming identity-fixes).
+
+     "Not now" calls `onOpenChange(false)`, and the parent's own close handler
+     DISMISSES every listed failure in the same tick. The list therefore emptied
+     about 33 ms before the sheet left the DOM, so for the remaining ~200 ms of
+     the exit animation the panel read "0 files did not go" over a "Retry all"
+     with nothing to retry: the last thing a guest saw of a failure was a lie
+     about it.
+
+     The fix is the intent sheet's own idiom, one floor down: the content LATCHES
+     while the surface is open and the latch is what renders while it closes, so
+     the words a guest read on the way in are the words they see on the way out.
+     Only a non-empty list ever latches, so the first open is never empty either.
+     ──────────────────────────────────────────────────────────────────────── */
+  const [latched, setLatched] = useState<readonly UploadFailure[]>(failures);
+  if (open && failures.length > 0 && failures !== latched) setLatched(failures);
+  const shown = open && failures.length > 0 ? failures : latched;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent responsive className="overflow-y-auto">
         <SheetHeader>
-          {/* Quoted verbatim by /features/album's cap mock
-              (`how-much-fits.tsx`); mock-parity.test.ts is the proof. */}
-          <SheetTitle>
-            {one ? "1 file did not go" : `${failures.length} files did not go`}
-          </SheetTitle>
+          <SheetTitle>{uploadFailureHeading(shown.length)}</SheetTitle>
           <SheetDescription>
             Everything else is in {hostName}&rsquo;s album.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 px-4">
-          {/* The one tap that fixes all of it, above the reading, because the
-              commonest answer to "what happened" is "the venue Wi-Fi". */}
-          <Button
-            type="button"
-            size="cta"
-            className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
-            onClick={retryAll}
-          >
-            <RefreshCw /> {one ? "Try again" : "Retry all"}
-          </Button>
-          <ul data-upload-failures className="flex flex-col gap-3">
-            {failures.map((f) => (
-              <li key={f.id} className="flex items-center gap-3">
-                <PickPreview
-                  file={f.file}
-                  url={urls.get(f.id)}
-                  className="size-11"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-reading font-medium">
-                    {f.file.name}
-                  </span>
-                  <span className="block text-reading text-pretty text-muted-foreground">
-                    {f.error ?? "That upload did not finish."}
-                  </span>
-                </span>
-                {/* With ONE failure the primary above is already this file's
-                    retry; a second button for the same act is furniture. */}
-                {!one && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    className="shrink-0 active:scale-[0.97] motion-reduce:active:scale-100"
-                    onClick={() => onRetry(f.id)}
-                  >
-                    <RefreshCw /> Retry
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
+        <div className="px-4">
+          <UploadFailureList
+            failures={shown}
+            onRetry={onRetry}
+            onRetryAll={() => onOpenChange(false)}
+          />
         </div>
 
         <SheetFooter>

@@ -25,12 +25,13 @@ import { getProfileMenu } from "@/lib/db/queries/profile";
 import * as social from "@/lib/db/queries/social";
 import { withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
-import { resolveGalleryAccess } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
   loadGalleryForAccess,
+  resolveViewerDecision,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { getGuestReelContext } from "@/lib/reel/guest-reel";
 import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
@@ -232,13 +233,33 @@ export default async function GuestEventPage({
       isOwner = await isEventOwner(event.id, user.id, supabase);
     }
   }
-  const access = isDemo
-    ? "full"
-    : resolveGalleryAccess(event, { isOwner, isAuthed, isUnlocked: unlocked });
+  /* ──────────────────────────────────────────────────────────────────────
+     THE DECISION, AND THE COOKIE THAT LETS THE SERVER MAKE IT (the door as
+     three steps, 2026-09-21). Require an upload to view is enforced here, not
+     in the browser, so the render has to know WHICH guest is asking: the
+     `pr_guest_<eventId>` cookie carries that session token, because an RSC
+     cannot read the localStorage copy. A guest whose browser holds a token but
+     no cookie yet (every session minted before this round) resolves as
+     uncontributed for exactly one render, and `EventExperience`'s heal POSTs
+     the poll once with the stored token before the arrival beat to true it up.
+     ────────────────────────────────────────────────────────────────────── */
+  const cookieSessionToken = isDemo
+    ? null
+    : await readGuestSessionCookie(event.id);
+  const decision = isDemo
+    ? { access: "full" as const, gate: null }
+    : await resolveViewerDecision(event, {
+        isOwner,
+        isAuthed,
+        isUnlocked: unlocked,
+        userId,
+        sessionToken: cookieSessionToken,
+      });
+  const access = decision.access;
   // Deliberately NOT awaited (Phase 3 streaming): the gallery load presigns
   // 2 URLs per item, the slowest part of this page. The shell streams first;
   // LiveGallery resolves this inside its Suspense boundary.
-  const galleryPromise = loadGalleryForAccess(event, access);
+  const galleryPromise = loadGalleryForAccess(event, decision);
 
   // Header stats (Phase 4): cheap awaited read (numbers only — never identities).
   // For a LOCKED password event this still returns counts: the ratified entry
@@ -410,6 +431,7 @@ export default async function GuestEventPage({
         stats={stats}
         isDemo={isDemo}
         access={access}
+        gate={decision.gate}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
         hostSeed={hostSeed}

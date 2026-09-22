@@ -48,6 +48,126 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
+/**
+ * ★ THE BODY IS ITS OWN EXPORT NOW (the door as three steps, 2026-09-21). The guest door's UPLOAD
+ * step asks for the first photograph INSIDE the entry sheet, and a Radix dialog `aria-hidden`s
+ * everything outside itself: an input parked in the page would be inert while the door is open, and
+ * a second sheet over the first is two things to dismiss in the dark at a party. So the two inputs,
+ * the two rows, the terms line and the review swap live in `UploadIntentBody`, which the album's
+ * sheet wraps and the door's step renders directly. The Safari-synchronous `.click()` rule travels
+ * with it unchanged, because the inputs travel with it.
+ *
+ * The body owns no open state and no header: whoever mounts it owns the surface, and asks for the
+ * heading with `headingFor(picks.length)` so the sheet's title and the step's own heading say the
+ * same words without either one importing the other's shell.
+ */
+export function uploadIntentHeading(pickCount: number): {
+  title: string;
+  description: string;
+  reviewing: boolean;
+} {
+  if (pickCount === 0) {
+    return { title: "Add photos", description: "", reviewing: false };
+  }
+  return {
+    title: pickCount === 1 ? "Send this one?" : `Send these ${pickCount}?`,
+    description: "Tap the cross on anything you did not mean to pick.",
+    reviewing: true,
+  };
+}
+
+export function UploadIntentBody({
+  picks,
+  onPicks,
+  onSend,
+  capBytes,
+  /** The door's step replaces the two rows' footer with its own (a skip, or the held line). */
+  footer,
+  /** The primary's words on the pick view; the album's sheet keeps the two named acts alone. */
+  className,
+}: {
+  picks: readonly Pick[];
+  onPicks: (picks: Pick[]) => void;
+  onSend: (files: File[]) => void;
+  capBytes?: number | null;
+  footer?: React.ReactNode;
+  className?: string;
+}) {
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const albumRef = useRef<HTMLInputElement>(null);
+
+  const take = (input: HTMLInputElement) => {
+    const files = Array.from(input.files ?? []);
+    // Reset so re-picking the same file fires change again (a guest who
+    // removed a pick and wants it back after all).
+    input.value = "";
+    if (files.length === 0) return;
+    onPicks(files.map((file) => ({ id: crypto.randomUUID(), file })));
+  };
+
+  const reviewing = picks.length > 0;
+
+  return (
+    <div className={className}>
+      {/* The two inputs, mounted whichever step is showing, so a row's tap
+          never waits on a render before it can click one. */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => take(e.currentTarget)}
+      />
+      <input
+        ref={albumRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        hidden
+        onChange={(e) => take(e.currentTarget)}
+      />
+
+      {reviewing ? (
+        <ReviewStep
+          picks={picks}
+          capBytes={capBytes}
+          onRemove={(id) => onPicks(picks.filter((p) => p.id !== id))}
+          onSend={() => onSend(picks.map((p) => p.file))}
+        />
+      ) : (
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            size="cta"
+            className="w-full justify-start active:scale-[0.99] motion-reduce:active:scale-100"
+            onClick={() => cameraRef.current?.click()}
+          >
+            <Camera /> Take a photo
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="cta"
+            className="w-full justify-start active:scale-[0.99] motion-reduce:active:scale-100"
+            onClick={() => albumRef.current?.click()}
+          >
+            <Images /> Choose from your album
+          </Button>
+          {/* The facts of the act, quietly, under the two doors into it. */}
+          <p
+            data-upload-terms
+            className="pt-1 text-center text-reading text-muted-foreground"
+          >
+            {uploadTermsLine(capBytes)}
+          </p>
+          {footer}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function UploadIntentSheet({
   open,
   onOpenChange,
@@ -64,20 +184,8 @@ export function UploadIntentSheet({
   /** The host's own per-event cap once the RPC returns it (upload-terms.ts). */
   capBytes?: number | null;
 }) {
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const albumRef = useRef<HTMLInputElement>(null);
   const [picks, setPicks] = useState<Pick[]>([]);
-
-  const take = (input: HTMLInputElement) => {
-    const files = Array.from(input.files ?? []);
-    // Reset so re-picking the same file fires change again (a guest who
-    // removed a pick and wants it back after all).
-    input.value = "";
-    if (files.length === 0) return;
-    setPicks(files.map((file) => ({ id: crypto.randomUUID(), file })));
-  };
-
-  const reviewing = picks.length > 0;
+  const heading = uploadIntentHeading(picks.length);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -108,84 +216,26 @@ export function UploadIntentSheet({
         }}
       >
         <SheetHeader>
-          <SheetTitle>
-            {reviewing
-              ? picks.length === 1
-                ? "Send this one?"
-                : `Send these ${picks.length}?`
-              : "Add photos"}
-          </SheetTitle>
+          <SheetTitle>{heading.title}</SheetTitle>
           <SheetDescription>
-            {reviewing
-              ? "Tap the cross on anything you did not mean to pick."
+            {heading.reviewing
+              ? heading.description
               : `Everything you add joins ${hostName}'s album.`}
           </SheetDescription>
         </SheetHeader>
 
-        {/* The two inputs, mounted whichever step is showing, so a row's tap
-            never waits on a render before it can click one. */}
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={(e) => take(e.currentTarget)}
-        />
-        <input
-          ref={albumRef}
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          hidden
-          onChange={(e) => take(e.currentTarget)}
-        />
-
         {/* The body carries its own padding (SheetHeader owns the top): a panel
             runs to its own edges, where a dialog box does not. */}
-        <div className="px-4 pb-6">
-          {reviewing ? (
-            <ReviewStep
-              picks={picks}
-              capBytes={capBytes}
-              onRemove={(id) =>
-                setPicks((prev) => prev.filter((p) => p.id !== id))
-              }
-              onSend={() => {
-                const files = picks.map((p) => p.file);
-                onOpenChange(false);
-                onSend(files);
-              }}
-            />
-          ) : (
-            <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                size="cta"
-                className="w-full justify-start active:scale-[0.99] motion-reduce:active:scale-100"
-                onClick={() => cameraRef.current?.click()}
-              >
-                <Camera /> Take a photo
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="cta"
-                className="w-full justify-start active:scale-[0.99] motion-reduce:active:scale-100"
-                onClick={() => albumRef.current?.click()}
-              >
-                <Images /> Choose from your album
-              </Button>
-              {/* The facts of the act, quietly, under the two doors into it. */}
-              <p
-                data-upload-terms
-                className="pt-1 text-center text-reading text-muted-foreground"
-              >
-                {uploadTermsLine(capBytes)}
-              </p>
-            </div>
-          )}
-        </div>
+        <UploadIntentBody
+          className="px-4 pb-6"
+          picks={picks}
+          onPicks={setPicks}
+          capBytes={capBytes}
+          onSend={(files) => {
+            onOpenChange(false);
+            onSend(files);
+          }}
+        />
       </SheetContent>
     </Sheet>
   );

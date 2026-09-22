@@ -39,6 +39,18 @@ function readStored(key: string): string | null {
   }
 }
 
+/**
+ * A one-shot read, outside the hook, for a caller that needs the value ONCE at mount rather than
+ * as live state (the door's "returning" snapshot: whether this browser already held a session when
+ * the page loaded, which decides whether the OFF-state upload step is asked at all). Re-reading it
+ * live would flip the instant the guest's own join mints a session and drop the step under their
+ * thumb.
+ */
+export function readStoredSession(qrToken: string): string | null {
+  if (typeof window === "undefined") return null;
+  return readStored(sessionKey(qrToken));
+}
+
 export function setStoredSession(qrToken: string, value: string | null) {
   try {
     if (value === null) localStorage.removeItem(sessionKey(qrToken));

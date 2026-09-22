@@ -9,6 +9,10 @@ import {
   checkAbuseRate,
   recordAbuseEvent,
 } from "@/lib/security/abuse-rate-limit-store";
+import {
+  applyGuestCookies,
+  guestSessionCookieIfChanged,
+} from "@/lib/guest/session-cookie";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { containsProfanity } from "@/lib/validation/profanity";
@@ -198,11 +202,24 @@ export async function POST(request: Request) {
   // `verified` come back from the mint itself (never echoed from the request), so the door renders
   // the identity the DATABASE settled on: a verified joiner gets null + true even if they sent a
   // name, because create_guest nulls one beside a confirmed account.
-  return NextResponse.json({
+  const response = NextResponse.json({
     ok: true,
     session_token: result.data.session_token,
     event_id: result.data.event_id,
     display_name: result.data.display_name,
     verified: result.data.verified,
   });
+  /* ★ THE SESSION ALSO GOES ON A COOKIE (the door as three steps, 2026-09-21). Require an upload
+     to view is resolved SERVER-SIDE, in the RSC and the poll, and neither can read the localStorage
+     copy the browser is about to make. `pr_guest_<eventId>` is that same token, HttpOnly, so the
+     next render knows which guest is asking. It is a READ capability only: every write route still
+     takes its token from the BODY (pinned by body-token-source.test.ts), so the CSRF surface does
+     not move. Skipped when the request already carried this exact token. */
+  applyGuestCookies(response, [
+    await guestSessionCookieIfChanged(
+      result.data.event_id,
+      result.data.session_token,
+    ),
+  ]);
+  return response;
 }

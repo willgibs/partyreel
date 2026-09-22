@@ -14,6 +14,7 @@ const item = (over: Partial<GalleryFingerprintItem> = {}): GalleryFingerprintIte
 
 const base = {
   access: "full",
+  gate: null as string | null,
   teaserTotal: null,
   bucketId: "991337",
   items: [
@@ -31,9 +32,10 @@ describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    // g2 since the identity reshape (2026-09-21): isVerified joined the item tuple, so a client
-    // holding a g1 ETag must re-pull rather than 304 past a mark appearing beside a name.
-    expect(a).toMatch(/^"g2-[A-Za-z0-9_-]{27}"$/);
+    // g3 since the door round (2026-09-21): the gate joined the tuple at g2 -> g3, as isVerified
+    // had at g1 -> g2, so a client holding an older ETag must re-pull rather than 304 past a
+    // change it cannot see.
+    expect(a).toMatch(/^"g3-[A-Za-z0-9_-]{27}"$/);
   });
 
   it("changes with item order, membership, and every identity field", () => {
@@ -64,6 +66,22 @@ describe("galleryEtag", () => {
     expect(galleryEtag({ ...base, access: "teaser" })).not.toBe(a);
     expect(galleryEtag({ ...base, teaserTotal: 12 })).not.toBe(a);
     expect(galleryEtag({ ...base, bucketId: "991338" })).not.toBe(a);
+  });
+
+  // THE GATE IS IN THE HASH (the door as three steps, 2026-09-21). `teaser` has two causes now,
+  // and the poll carries the gate to the client's step machine: two decisions that differ only in
+  // WHY must never validate each other, or a guest whose gate moved would 304 onto the step they
+  // already passed. Same items, same level, different door.
+  it("never validates across the GATE behind one access level", () => {
+    const teaser = { ...base, access: "teaser", teaserTotal: 9 };
+    const account = galleryEtag({ ...teaser, gate: "account" });
+    const upload = galleryEtag({ ...teaser, gate: "upload" });
+    const password = galleryEtag({ ...teaser, gate: "password" });
+    expect(account).not.toBe(upload);
+    expect(account).not.toBe(password);
+    expect(upload).not.toBe(password);
+    // And a gate against no gate at the same level.
+    expect(galleryEtag({ ...teaser, gate: null })).not.toBe(upload);
   });
 
   it("null name vs the string 'null' cannot collide (canonical array form)", () => {

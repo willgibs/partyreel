@@ -67,6 +67,22 @@ export function setStoredName(qrToken: string, value: string | null) {
   emit();
 }
 
+/**
+ * Write ONLY the cross-event prefill, never a per-event name (the door as three steps,
+ * 2026-09-21). The verified door's HELD name is exactly this case: the guest has typed a name but
+ * no row exists to carry it yet, and `pr_guest_name_<qr>` means "this device is named AT this
+ * event", which would be a claim about a row that is not there. The magic-link round trip that
+ * loses the modal's own `typedName` recovers from this key.
+ */
+export function setLastName(value: string) {
+  try {
+    if (value.trim()) localStorage.setItem(GUEST_NAME_LAST_KEY, value);
+  } catch {
+    // Storage unavailable: the name still reaches this render pass via `emit`.
+  }
+  emit();
+}
+
 /** The prefill for a door that has no name of its own yet. Never a fallback identity. */
 export function readLastName(): string | null {
   if (typeof window === "undefined") return null;
