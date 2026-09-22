@@ -4806,12 +4806,28 @@
           "line": 378
         },
         {
+          "title": "join mode ALSO renames when a session token is already held, and never mints a second row",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 414
+        },
+        {
+          "title": "a dead token (the rename route's invalid_session) falls back to a fresh join",
+          "suite": [
+            "the name step (address=none)"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 457
+        },
+        {
           "title": "the demo never opens it: nothing it adds is real",
           "suite": [
             "the name step (address=none)"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 405
+          "line": 516
         }
       ]
     },
@@ -4915,12 +4931,44 @@
           "line": 351
         },
         {
+          "title": "does not call onVerificationRequired while the mid-run sheet is open",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 391
+        },
+        {
+          "title": "closing the sheet with Not now calls it exactly once",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 408
+        },
+        {
+          "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 426
+        },
+        {
+          "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 444
+        },
+        {
           "title": "simulates the upload: no network, synthetic approved outcome",
           "suite": [
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 383
+          "line": 473
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -4928,7 +4976,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 407
+          "line": 497
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -4936,7 +4984,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 428
+          "line": 518
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -4944,7 +4992,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 451
+          "line": 541
         },
         {
           "title": "stays shut when the run is clean",
@@ -4952,7 +5000,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 472
+          "line": 562
         },
         {
           "title": "its Retry re-queues the file",
@@ -4960,7 +5008,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 487
+          "line": 577
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -4968,7 +5016,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 607
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -4976,7 +5024,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 543
+          "line": 633
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -4984,7 +5032,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 596
+          "line": 686
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -4992,7 +5040,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 631
+          "line": 721
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -5000,7 +5048,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 659
+          "line": 749
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -5008,7 +5056,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 672
+          "line": 762
         },
         {
           "title": "a rejected upload is still retryable",
@@ -5016,7 +5064,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 697
+          "line": 787
         }
       ]
     },
@@ -5035,7 +5083,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 119
+          "line": 154
         },
         {
           "title": "adds Showing once the guest owns something, the count inside Yours' own label",
@@ -5043,7 +5091,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 124
+          "line": 159
         },
         {
           "title": "Showing's value follows the live intent, never a stale snapshot",
@@ -5051,7 +5099,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 133
+          "line": 168
         },
         {
           "title": "routes Showing's onChange to setShowingMine as a boolean, never the raw string",
@@ -5059,7 +5107,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 142
+          "line": 177
         },
         {
           "title": "reserves Tile size below 640 rather than removing it",
@@ -5067,7 +5115,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 153
+          "line": 188
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5075,7 +5123,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 159
+          "line": 194
         },
         {
           "title": "routes Tile size's onChange to setTileSize as a number, never the raw string",
@@ -5083,7 +5131,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 165
+          "line": 200
         },
         {
           "title": "paints --album-column from the server-resolved initialTileSize on first render",
@@ -5091,7 +5139,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 174
+          "line": 209
         },
         {
           "title": "falls back to the wired default when the cookie was missing",
@@ -5099,7 +5147,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 180
+          "line": 215
         },
         {
           "title": "checks the matching option in the View menu, never just the CSS",
@@ -5107,7 +5155,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 186
+          "line": 221
         },
         {
           "title": "omits Showing when the guest owns nothing on the album",
@@ -5115,7 +5163,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 198
+          "line": 233
         },
         {
           "title": "adds Showing, with the owned count in Yours, once something is theirs",
@@ -5123,7 +5171,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 205
+          "line": 240
         },
         {
           "title": "disables the group with the Wider screens hint under 640",
@@ -5131,7 +5179,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 218
+          "line": 253
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5139,7 +5187,55 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 230
+          "line": 265
+        },
+        {
+          "title": "reports the true approvedTotal to the header, and the CTA counts the same album",
+          "suite": [
+            "LiveGallery: the teaser's one true count (POLISH 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 290
+        },
+        {
+          "title": "falls back to the photo-only teaserTotal when approvedTotal is not passed",
+          "suite": [
+            "LiveGallery: the teaser's one true count (POLISH 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 304
+        },
+        {
+          "title": "falls to the account line once nothing more exists beyond what loaded",
+          "suite": [
+            "LiveGallery: the teaser's one true count (POLISH 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 313
+        },
+        {
+          "title": "says one photo in the singular",
+          "suite": [
+            "LiveGallery: the teaser's one true count (POLISH 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 322
+        },
+        {
+          "title": "patches only the caller's own items, leaving everyone else's alone, no network call",
+          "suite": [
+            "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 343
+        },
+        {
+          "title": "does nothing when this device owns nothing on the album",
+          "suite": [
+            "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 362
         }
       ]
     },
@@ -5161,12 +5257,20 @@
           "line": 53
         },
         {
+          "title": "the heading counts too: singular for exactly one, plural otherwise",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 64
+        },
+        {
           "title": "asks for a confirmed email, which is what the door behind it does",
           "suite": [
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 62
+          "line": 73
         },
         {
           "title": "Maybe later is final for this event",
@@ -5174,7 +5278,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 69
+          "line": 80
         },
         {
           "title": "marks the door's opening, so a redirect sign-in lands the same beat",
@@ -5182,7 +5286,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 79
+          "line": 90
         }
       ]
     },
@@ -16195,6 +16299,14 @@
           ],
           "file": "src/lib/guest/join.test.ts",
           "line": 133
+        },
+        {
+          "title": "keeps invalid_session and unauthorized as their own kinds, never collapsed to other",
+          "suite": [
+            "renameGuest"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 149
         }
       ]
     },
@@ -16294,12 +16406,44 @@
           "line": 351
         },
         {
+          "title": "does not call onVerificationRequired while the mid-run sheet is open",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 391
+        },
+        {
+          "title": "closing the sheet with Not now calls it exactly once",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 408
+        },
+        {
+          "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 426
+        },
+        {
+          "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
+          "suite": [
+            "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 444
+        },
+        {
           "title": "simulates the upload: no network, synthetic approved outcome",
           "suite": [
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 383
+          "line": 473
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -16307,7 +16451,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 407
+          "line": 497
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -16315,7 +16459,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 428
+          "line": 518
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -16323,7 +16467,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 451
+          "line": 541
         },
         {
           "title": "stays shut when the run is clean",
@@ -16331,7 +16475,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 472
+          "line": 562
         },
         {
           "title": "its Retry re-queues the file",
@@ -16339,7 +16483,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 487
+          "line": 577
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -16347,7 +16491,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 607
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -16355,7 +16499,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 543
+          "line": 633
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -16363,7 +16507,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 596
+          "line": 686
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -16371,7 +16515,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 631
+          "line": 721
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -16379,7 +16523,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 659
+          "line": 749
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -16387,7 +16531,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 672
+          "line": 762
         },
         {
           "title": "a rejected upload is still retryable",
@@ -16395,7 +16539,56 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 697
+          "line": 787
+        }
+      ]
+    },
+    {
+      "id": "sentry",
+      "file": "src/lib/observability/sentry.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "a server capture (no window) flushes — captureError",
+          "suite": [
+            "captureError / captureWarning: the scheduled flush"
+          ],
+          "file": "src/lib/observability/sentry.test.ts",
+          "line": 51
+        },
+        {
+          "title": "a server capture (no window) flushes — captureWarning",
+          "suite": [
+            "captureError / captureWarning: the scheduled flush"
+          ],
+          "file": "src/lib/observability/sentry.test.ts",
+          "line": 59
+        },
+        {
+          "title": "a client capture never flushes — captureError",
+          "suite": [
+            "captureError / captureWarning: the scheduled flush"
+          ],
+          "file": "src/lib/observability/sentry.test.ts",
+          "line": 65
+        },
+        {
+          "title": "a client capture never flushes — captureWarning",
+          "suite": [
+            "captureError / captureWarning: the scheduled flush"
+          ],
+          "file": "src/lib/observability/sentry.test.ts",
+          "line": 74
+        },
+        {
+          "title": "still tags the area and carries extra, unchanged by the flush",
+          "suite": [
+            "captureError / captureWarning: the scheduled flush"
+          ],
+          "file": "src/lib/observability/sentry.test.ts",
+          "line": 82
         }
       ]
     },

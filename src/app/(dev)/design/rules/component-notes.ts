@@ -127,6 +127,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     unspecimened:
       "a hook over the network; its contract test is the demo and the guest page is where it runs",
   },
+  "src/lib/observability/sentry.ts": {
+    for: "the app's one Sentry helper: `captureError`/`captureWarning` tag a coarse `area` and, on the server only, schedule a flush (`after()` tied to the request's own lifetime, falling back to a direct flush outside one) so a swallowed error's event survives a serverless function freezing the instant its response is sent. Never on the client, where the SDK's own transport is left exactly as it was",
+    unspecimened:
+      "a capture helper with no shape of its own; its contract test mocks the SDK and every route/action that swallows an error is where it runs",
+  },
   "src/lib/shared/arrival.ts": {
     for: 'one arrival grammar for both surfaces (`landing=sweep`, his "consistent across guest and host arrival experiences"): which ids take the GLOW (anything that arrived by itself) and which single id takes the SWEEP (the newest of your own), plus the per-id hold that lights an id once, ever. The two durations live here and the sheet reads them, so the attribute and the animation cannot disagree',
     unspecimened:

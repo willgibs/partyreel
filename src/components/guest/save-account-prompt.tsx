@@ -120,12 +120,18 @@ export function SaveAccountPrompt({
       <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
         <Bookmark className="size-5" />
       </div>
-      {/* A prompt tile's title: the app's quiet middle, `subsection`. ★ The
-          HEADING is deliberately the constant one a help article already
-          quotes; the NUMBER rides the sentence under it, where it belongs:
-          "Keep these photos" is the offer, "these 7" is what is in front of
-          them. */}
-      <p className="font-heading text-subsection">Keep these photos</p>
+      {/* A prompt tile's title: the app's quiet middle, `subsection`. The
+          NUMBER rides the sentence under it, where it belongs: "Keep these
+          photos" is the offer, "these 7" is what is in front of them. ★ THE
+          HEADING COUNTS TOO, for exactly one (POLISH 3, the identity
+          red-team, 2026-09-21): the body already says "it stays" in the
+          singular, so a heading that still said "photos" read as a mismatch
+          beside its own sentence. Every other count keeps the constant
+          plural a help article quotes
+          (content/help/save-an-event-and-find-your-uploads.mdx). */}
+      <p className="font-heading text-subsection">
+        {count === 1 ? "Keep this photo" : "Keep these photos"}
+      </p>
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
         Confirm your email and{" "}
         {count === 1 ? "it stays" : count > 1 ? `all ${count} stay` : "they stay"}{" "}

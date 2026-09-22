@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1128 contracts on 156 components · 15 standing boards.**
+**22 laws · 18 policies · 1147 contracts on 157 components · 15 standing boards.**
 
 ## What binds you
 
@@ -391,10 +391,10 @@ Contracted but outside the library's directories:
 - `src/components/guest/guest-header.tsx` (6 guards)
 - `src/components/guest/guest-masonry.tsx` (5 guards)
 - `src/components/guest/guest-name-menu.tsx` (6 guards)
-- `src/components/guest/guest-name-step.tsx` (26 guards)
-- `src/components/guest/guest-upload.tsx` (24 guards)
-- `src/components/guest/live-gallery.tsx` (14 guards)
-- `src/components/guest/save-account-prompt.tsx` (4 guards)
+- `src/components/guest/guest-name-step.tsx` (28 guards)
+- `src/components/guest/guest-upload.tsx` (28 guards)
+- `src/components/guest/live-gallery.tsx` (20 guards)
+- `src/components/guest/save-account-prompt.tsx` (5 guards)
 - `src/components/guest/upload/failure-sheet.tsx` (6 guards)
 - `src/components/guest/upload/intent-sheet.tsx` (9 guards)
 - `src/components/guest/upload/review-step.tsx` (9 guards)
@@ -458,8 +458,9 @@ Contracted but outside the library's directories:
 - `src/lib/dashboard/next-step.ts` (15 guards)
 - `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)
-- `src/lib/guest/join.ts` (10 guards)
-- `src/lib/guest/use-upload-queue.ts` (24 guards)
+- `src/lib/guest/join.ts` (11 guards)
+- `src/lib/guest/use-upload-queue.ts` (28 guards)
+- `src/lib/observability/sentry.ts` (5 guards)
 - `src/lib/qr/module-floor.ts` (9 guards)
 - `src/lib/qr/stock.ts` (9 guards)
 - `src/lib/shared/arrival.ts` (6 guards)

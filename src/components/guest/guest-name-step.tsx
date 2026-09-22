@@ -80,19 +80,45 @@ export function GuestNameStep({
     const name = checked.name;
     startSave(async () => {
       setRefusal(null);
-      if (editing && sessionToken) {
+      /* ────────────────────────────────────────────────────────────────────
+         A HELD SESSION NAMES ITS ROW (DEFECT 2, the alias red-team,
+         2026-09-21). This used to gate on `editing && sessionToken`, so a
+         "join"-mode open on a device that already holds a session but no
+         LOCAL name (a row minted before the reshape, or by the queue's own
+         silent join) fell into the join branch below and minted a SECOND
+         row for the same person, stranding the first one's photographs under
+         "A guest". A session token means a row already exists to answer for,
+         whichever door raised this step, so it is `renameGuest`'s to try
+         first now, regardless of mode.
+
+         Only two of its refusals fall through to a fresh join: `invalid_session`
+         (a genuinely DEAD token — the route's own "not found") and
+         `unauthorized` (a VERIFIED row, which cannot happen for a nameless
+         session in practice — this door never opens for one — but the route,
+         not this component's assumption, is the truth, so it falls through
+         too rather than dead-ending). Every other refusal (a bad name, the
+         limiter) is this step's to show, exactly as before.
+         ──────────────────────────────────────────────────────────────────── */
+      if (sessionToken) {
         const renamed = await renameGuest({
           qrToken,
           sessionToken,
           displayName: name,
         });
-        if (!renamed.ok) {
+        if (renamed.ok) {
+          setStoredName(qrToken, renamed.displayName);
+          onNamed({ sessionToken, displayName: renamed.displayName });
+          return;
+        }
+        if (
+          renamed.refusal.kind !== "invalid_session" &&
+          renamed.refusal.kind !== "unauthorized"
+        ) {
           setRefusal(renamed.refusal);
           return;
         }
-        setStoredName(qrToken, renamed.displayName);
-        onNamed({ sessionToken, displayName: renamed.displayName });
-        return;
+        // A dead token or a (defensive) verified row: nothing left to rename,
+        // so fall through to the same fresh join a session-less device takes.
       }
       const joined = await joinEvent({ qrToken, displayName: name });
       if (!joined.ok) {

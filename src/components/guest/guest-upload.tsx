@@ -84,6 +84,24 @@ export function GuestUpload({
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
 }) {
+  /*
+   * THE REFRESH WAITS FOR THE SHEET (DEFECT 1, the alias red-team, 2026-09-21).
+   *
+   * A mid-run `verification_required` and a join-time one both raise
+   * `onVerificationRequired`, but only the first has a failure sheet about to
+   * open under it (the "end of a run" effect below, once React commits the
+   * items it was just handed). Calling the caller's `router.refresh()`
+   * synchronously — the OLD behaviour — fires in the same tick as the queue's
+   * own state update, before that effect has even run, let alone before a
+   * guest has read the sheet: the refresh's access flip (`teaser`) remounts
+   * the whole gallery-and-upload slot via `key={access}` and tears the sheet
+   * down mid-read (measured on the alias: 503ms). So this component holds the
+   * message in a REF (never state — this only gates a callback's timing, not
+   * a render) until the sheet actually closes, and only THEN calls the
+   * caller. A join-time refusal (`hadQueuedFiles=false`) has no sheet to wait
+   * for — nothing was ever queued — so it keeps the immediate refresh.
+   */
+  const pendingVerificationRef = useRef<string | null>(null);
   const { items, addFiles, retry, dismiss } = useUploadQueue({
     qrToken,
     sessionToken,
@@ -91,7 +109,13 @@ export function GuestUpload({
     onUploaded,
     isDemo,
     isVerified,
-    onVerificationRequired,
+    onVerificationRequired: (message, hadQueuedFiles) => {
+      if (hadQueuedFiles) {
+        pendingVerificationRef.current = message;
+        return;
+      }
+      onVerificationRequired?.(message);
+    },
   });
 
   useEffect(() => {
@@ -141,7 +165,19 @@ export function GuestUpload({
    * (`failed=sheet`'s "a dismissed failure does not re-open the sheet").
    */
   const closeFailures = (open: boolean) => {
-    if (!open) dismiss(failures.map((it) => it.id));
+    if (!open) {
+      dismiss(failures.map((it) => it.id));
+      // The deferred refresh, exactly once, exactly when there is nothing left
+      // to read: Retry / Retry all reach this same close (retryAll() in
+      // failure-sheet.tsx calls onOpenChange(false) right after re-queuing),
+      // which is what carries Retry into the join's own refusal and so into
+      // the gate rather than a dead stall — never a second, earlier fire.
+      if (pendingVerificationRef.current !== null) {
+        const message = pendingVerificationRef.current;
+        pendingVerificationRef.current = null;
+        onVerificationRequired?.(message);
+      }
+    }
     setFailuresOpen(open);
   };
 

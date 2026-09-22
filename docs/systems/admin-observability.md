@@ -301,6 +301,16 @@ rides `onRequestError`; skip routine user rejections (cap/limits/closed). **Neve
 inside `src/lib/db/*`** (capture at the route/action layer). **Never let Sentry touch the Stripe webhook's
 raw body** (capture the already-parsed error/event). PII: `sendDefaultPii:false` + `scrubEvent` strips
 presigned-URL query strings + emails.
+
+★ **BOTH HELPERS SCHEDULE A FLUSH ON THE SERVER, NEVER ON THE CLIENT** (`identity-fixes` DEFECT 3,
+2026-09-21). `onRequestError`'s crash path already awaits `Sentry.flush`, which is why a crash always
+arrived; `captureError`/`captureWarning` used to be bare SDK calls, so a serverless function frozen the
+instant its response left could lose the envelope's own network write mid-flight (measured on the alias:
+real presign 403s, zero `upload_refused_unverified` events; 30 days, zero warning-level events at all from
+`vercel-preview`/`production`). Both now call `after(() => Sentry.flush(2000))` (`next/server`, reached only
+behind `typeof window` and a DYNAMIC import — a static one would hand a browser bundle a module it has no
+business resolving, since four "use client" boundaries import this file for `captureError` alone), falling
+back to a direct `Sentry.flush` when `after()` throws outside a request scope (a script, a test).
 ★ **Guest capability tokens are scrubbed from EVERY channel, not just error events**
 ([`telemetry-redaction.ts`](../../src/lib/security/telemetry-redaction.ts)). `/e/<qr_token>` puts the
 authorization in the URL PATH, and `beforeSend` only strips query strings and only sees errors, so the

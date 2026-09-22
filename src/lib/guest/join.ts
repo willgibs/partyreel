@@ -32,11 +32,21 @@ import { displayNameSchema } from "@/lib/validation/profile";
  * the door's own business (it shows them under the field); `verification_required`
  * means the host flipped the switch ON while this guest was standing at the door,
  * so the session they hold is worth nothing and the gate is the way in;
- * `other` carries the server's own sentence for everything else (rate limits, a
- * locked event, a dead link), which is always better than a house paraphrase.
+ * `invalid_session` is a DEAD token — `/api/guests/name`'s own "not found"
+ * (Postgres's `NO_DATA_FOUND`), the row this session named no longer exists;
+ * `unauthorized` is a VERIFIED row (their name is their profile's, so a rename
+ * is refused outright) from that same route, or a private event from the join
+ * route; `other` carries the server's own sentence for everything else (rate
+ * limits, a dead link), which is always better than a house paraphrase.
  */
 export type JoinRefusal = {
-  kind: "name_required" | "name_invalid" | "verification_required" | "other";
+  kind:
+    | "name_required"
+    | "name_invalid"
+    | "verification_required"
+    | "invalid_session"
+    | "unauthorized"
+    | "other";
   message: string;
 };
 
@@ -52,8 +62,14 @@ export type JoinResult =
   | { ok: true; guest: JoinedGuest }
   | { ok: false; refusal: JoinRefusal };
 
-/** The route's 422 codes, so a typo cannot silently become an `other`. */
-const REFUSALS = new Set(["name_required", "name_invalid", "verification_required"]);
+/** The two routes' own codes, so a typo cannot silently become an `other`. */
+const REFUSALS = new Set([
+  "name_required",
+  "name_invalid",
+  "verification_required",
+  "invalid_session",
+  "unauthorized",
+]);
 
 function refusalOf(body: unknown, fallback: string): JoinRefusal {
   const code = (body as { code?: unknown } | null)?.code;
