@@ -105,7 +105,13 @@ describe("the nav", () => {
       expect(hrefs.has(`/design/lab/${r.id}`), r.id).toBe(true);
     for (const family of Object.keys(FAMILY_LABEL))
       expect(hrefs.has(`/design/library/${family}`), family).toBe(true);
-    for (const tool of ["motion", "reel-parity", "stream-probe", "boom"])
+    for (const tool of [
+      "motion",
+      "reel-parity",
+      "reel-video",
+      "stream-probe",
+      "boom",
+    ])
       expect(hrefs.has(`/design/lab/tools/${tool}`), tool).toBe(true);
     expect(hrefs.has("/design/lab")).toBe(true);
     expect(hrefs.has("/design/library/rules")).toBe(true);

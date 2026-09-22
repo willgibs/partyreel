@@ -42,6 +42,18 @@ export type EncodeReelOptions = {
   assets?: ReelAssets;
   /** Capability-gap reports from the draw (deduplicated). */
   onReport?: (message: string) => void;
+  /**
+   * THE ASYNC SEAM FOR MOTION VIDEO (the reel round, 2026-09-22). Awaited ONCE before each
+   * drawReelFrame, so a reel carrying video clips can pull the frames it is about to need through
+   * the same range-window reader the live player uses, sequentially, while the draw itself stays
+   * synchronous (registry.ts's ★ pooled-scratch invariant depends on that, and would break the
+   * moment a draw awaited). Omitted — every reel without video — costs nothing: the loop below
+   * never awaits it.
+   *
+   * It must RESOLVE, never reject: a window that will not land is a poster, not a failed export.
+   * src/lib/reel/engine/video/prepare-frame.ts builds the one the cut's encoder passes.
+   */
+  prepareFrame?: (frame: number) => void | Promise<void>;
 };
 
 export type EncodedReel = {
@@ -55,7 +67,13 @@ export async function encodeReel(
   props: ReelProps,
   options: EncodeReelOptions = {},
 ): Promise<EncodedReel> {
-  const { bitrate = DEFAULT_BITRATE, onProgress, signal, onReport } = options;
+  const {
+    bitrate = DEFAULT_BITRATE,
+    onProgress,
+    signal,
+    onReport,
+    prepareFrame,
+  } = options;
   const { width, height } = reelDimensions(props.orientation);
   const totalFrames = engineStyleDuration(props.styleId, props);
 
@@ -88,6 +106,7 @@ export async function encodeReel(
       if (signal?.aborted) {
         throw new DOMException("reel encode aborted", "AbortError");
       }
+      if (prepareFrame) await prepareFrame(f);
       drawReelFrame(ctx, f, props, assets, env);
       await source.add(f / FPS, 1 / FPS);
       if (f % 12 === 0) onProgress?.(f / totalFrames);
