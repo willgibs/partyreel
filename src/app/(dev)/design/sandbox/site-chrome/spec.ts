@@ -4,8 +4,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * THE MARKETING SITE'S CHROME, ROUND TWO (2026-09-19): the footer alone.
  *
  * Round one's verdict on `foot-job` kept the sign-off register (today's
- * shape), and his note went further (docs/design/rulings.md, the fourth
- * batch, verbatim): "The reason I like this one over 3 (the closing
+ * shape), and his note went further (the fourth batch, verbatim): "The
+ * reason I like this one over 3 (the closing
  * invitation) is because most of our pages close with a CTA section in the
  * same rough shape as your '3' design. Having those back to back would feel
  * very repetitive, would rather them work together. Knowing this now, would
@@ -35,7 +35,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * frame travels to a screen nobody can scan) that carries no such dependency.
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `demo-event` round two
- * (docs/design/rulings.md, "the closing sitting's second batch") retired the
+ * ("the closing sitting's second batch") retired the
  * photo pile this round was written against: every demo door, the footer
  * included, now shares ONE object, a photograph in a plain mat with the live
  * code tucked into its corner (`FooterDemo` → `DemoFrame`,
@@ -59,7 +59,7 @@ export const SITE_CHROME = defineExploration({
       "foot-after redrawn for the shipped framed photograph, not the pile it was written against; foot-alone names pricing-page's folded close as a fifth bare route; foot-phone leans hidden vs none, small weakened now a code's home is ruled printed stock. The other seven stay out of scope (chrome-wiring).",
   },
   context:
-    'Will, round one (docs/design/rulings.md, the fourth batch): he kept the sign-off over a bigger close because most pages now end on a CtaBand "in the same rough shape", and back to back "would feel very repetitive, would rather them work together"; his ask was "a couple additional explorations of footers that work well with that closing CTA pattern above". Three decisions, drawn under a real close and under a real page with none.',
+    'Will, round one (the fourth batch): he kept the sign-off over a bigger close because most pages now end on a CtaBand "in the same rough shape", and back to back "would feel very repetitive, would rather them work together"; his ask was "a couple additional explorations of footers that work well with that closing CTA pattern above". Three decisions, drawn under a real close and under a real page with none.',
   bible: [2, 8, 11, 16, 21, 22],
   asks: [
     {

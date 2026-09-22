@@ -135,7 +135,7 @@ export async function getGalleryStats(
  * The host's avatar URL + seeded colour for an event's "Hosted by" byline, or null if the event has
  * no host. Server-only admin read (the guest page has no JWT): resolve events.host_id once, then the
  * host's profiles.avatar_updated_at (→ getAvatarUrl; a null marker → no photo) alongside `seedFor`
- * (→ the Avatar the byline now folds onto, `docs/design/rulings.md` the sixth batch, `seed=account`:
+ * (→ the Avatar the byline now folds onto, the sixth batch, `seed=account`:
  * demo-wiring, "never the raw host id on the client"). The anon get_event_by_qr_token RPC stays
  * UNCHANGED (no contract change): host_id is never returned as a separate field, and never reaches
  * the browser itself — it appears only inside the avatar's stable public Storage URL PATH

@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * THE HOST'S SIDE OF THE REEL, ROUND ONE (2026-09-22).
  *
- * Wave 2 of THE REEL ROUND (rulings.md "the reel, reconceived", every
+ * Wave 2 of THE REEL ROUND ("the reel, reconceived", every
  * sentence his; the plan's "The concept, in one read" and section D). The
  * reel no longer needs a host to make it: it plays itself from the third
  * visible item, spliced by the doorbell, styled by a mood. What is left for

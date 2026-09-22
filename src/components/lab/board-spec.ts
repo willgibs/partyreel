@@ -248,9 +248,10 @@ export type CatalogSpec<SectionId extends string = string> = {
  * A CALL THE LANE CARRIED, WHICH IS HIS TO OVERRULE (lab-tides, 2026-09-19).
  *
  * ★ THE FINDING THIS ANSWERS. Every lane carries the calls its goal left open
- * on its own recommendation (its manifest's Questions), and until now those
- * calls reached Will only through the round's CHANGELOG entry, a page away from
- * the board he is answering. A decision taken for him that he never sees is not
+ * on its own recommendation (its manifest's Questions), and apart from this a
+ * call reaches Will only through docs/STATUS.md's Waiting on Will note and the
+ * merge commit that lands it, both a page away from the board he is answering.
+ * A decision taken for him that he never sees is not
  * a decision he made. So a board may carry them and the template draws them
  * above its sections, in the one place he is already reading.
  *

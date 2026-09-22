@@ -23,7 +23,7 @@ export function isDemoToken(token: string): boolean {
   return !!DEMO_QR_TOKEN && token === DEMO_QR_TOKEN;
 }
 
-/* ── phone=pair (the sixth batch, 2026-09-20, docs/design/rulings.md) ──────
+/* ── phone=pair (the sixth batch, 2026-09-20) ──────────────────────────────
  * "What the phone adds appears on the laptop's album a second later and the
  * laptop says where it came from. One broadcast channel, no stored bytes."
  *

@@ -36,7 +36,7 @@ function Avatar({
    * (always `size-full`, never inset) simply covers it once a real photo
    * loads — the colour waits UNDER the photograph rather than being
    * replaced by it, so a slow presign shows a person's hue instead of a
-   * hole (`after-upload=under`, rulings.md). Never animated (`motion=none`).
+   * hole (`after-upload=under`). Never animated (`motion=none`).
    */
   seed?: string
 }) {
@@ -65,7 +65,7 @@ function Avatar({
             : style
         }
         className={cn(
-          // ★ THE BUG, FIXED (Will, rulings.md, the sixth batch: "the avatar
+          // ★ THE BUG, FIXED (Will, the sixth batch: "the avatar
           // doesn't fully fill its container, and you can see horizontal
           // edges within" / "reveals the color underneath the photograph on
           // the edges"). The root had `rounded-full` with no `overflow-hidden`

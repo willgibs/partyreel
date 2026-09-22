@@ -10,7 +10,7 @@
  * is still open); its own `@contract-for` test moved to `gradient.test.ts`
  * beside this file.
  *
- * Will asked for this by name (docs/design/rulings.md, 2026-09-19): "seed-generated
+ * Will asked for this by name (2026-09-19): "seed-generated
  * dither avatars, which made new accounts feel way cooler than something generic
  * ... I like the gradient over dither for our purposes". Today an account with no
  * photograph is one letter on `bg-muted` on every avatar surface, so a guest list
@@ -361,7 +361,7 @@ export function orbFor(seed: string, mode: PaletteMode = "wheel"): Orb {
 
 /**
  * The five shapes a seeded avatar could take. The `look` decision on the
- * board: `mesh` is what round two picked (rulings.md, "the closing sitting's
+ * board: `mesh` is what round two picked ("the closing sitting's
  * second batch") and what `Avatar` actually draws; `orb`, `diagonal`,
  * `aurora` and `flat` are round one's exploration, kept for the generator's
  * own tests and history rather than deleted with the board.

@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * THE OPERATOR'S ACT ON A REPORT, ROUND ONE (2026-09-19).
  *
- * Will (docs/design/rulings.md, 2026-09-18): the admin portal "could likely be
+ * Will (2026-09-18): the admin portal "could likely be
  * rethought from the ground up", carrying over a foundational identity and
  * otherwise free to be "an on-brand devtool". The `admin` board is asking him
  * for the portal's SHAPE; this one owns what happens after its home's "3

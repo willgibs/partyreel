@@ -5,7 +5,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * THE HOST'S ACT OF REVIEWING WHAT GUESTS SEND, ROUND ONE (2026-09-19;
  * RESHAPED 2026-09-21).
  *
- * Will (docs/design/rulings.md, 2026-09-19): the app is unprotected,
+ * Will (2026-09-19): the app is unprotected,
  * "absolutely everything is up for relitigation or reconcepting from the ground
  * up". This is the one act in the product where a host judges another person's
  * photograph, so it is asked from the foundation and LAPTOP FIRST: 1440 is the

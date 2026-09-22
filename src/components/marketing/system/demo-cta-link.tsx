@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
  * CtaBand) pass their own, the long tail ships as "inline".
  *
  * ★ NOW CARRIES THE FRAME (`door=frame`, round two, 2026-09-20/21,
- * docs/design/rulings.md "the closing sitting's second batch"): the object
+ * "the closing sitting's second batch"): the object
  * every demo door shares, at its smallest size, beside the words rather than
  * replacing them — this is the one door that is a sentence first. One `<a>`
  * still, so the thumbnail and the words remain a single click target and a

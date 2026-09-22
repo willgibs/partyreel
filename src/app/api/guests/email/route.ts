@@ -2,7 +2,7 @@
  * ATTACHING, CHANGING OR DETACHING THE UNPROVED ADDRESS. Body:
  * `{ qr_token, session_token, email | null }` → `{ ok: true, email_attached }`.
  *
- * The guest identity round's second door (Will, 2026-09-22, rulings.md "guest identity: name only,
+ * The guest identity round's second door (Will, 2026-09-22, "guest identity: name only,
  * unconfirmed email, verified account"). The first is the join, which takes the OPTIONAL address a
  * guest types under their name; this one covers everyone the join could not: a guest who skipped the
  * field and wants back in, one who typed it wrong, one whose row was minted before this round, and

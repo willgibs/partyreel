@@ -8,9 +8,9 @@ import { needsDisplayName } from "@/lib/welcome";
 /**
  * THE NAME GATE, IN ONE PLACE (name-gate, 2026-09-22).
  *
- * Will's ruling (rulings.md "the morning after the identity round"): "I wanted
- * to ensure an account without a name wasn't moving around the app as a normal
- * user. Name always required, even if one character." Every account is born
+ * Will's ruling: "I wanted to ensure an account without a name wasn't moving
+ * around the app as a normal user. Name always required, even if one
+ * character." Every account is born
  * nameless (`handle_new_user` leaves `display_name` NULL for every signup,
  * even OAuth); the welcome page's guarded, profanity-checked write is the only
  * place a name can land (auth-accounts.md). Before this gate, only

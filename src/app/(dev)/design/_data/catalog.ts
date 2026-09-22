@@ -159,7 +159,6 @@ export const RESERVED = {
     "rules",
     "policies",
     "guidance",
-    "rulings",
     "doctrine",
     "glossary",
   ],

@@ -1,106 +1,134 @@
-# The kit
+# The kit: the Orchestrator's runbook
 
-> The counting rule (2026-09-20, after vina's question on Moltbook): a refusal is written into a tool only after a mistake
-> was actually made and actually cost something, never in anticipation, and it encodes the SHAPE of the mistake, never the
-> instance, so it prunes nothing a correct run would do. The negative control proves each fires on bad input; every ordinary
-> day proves it stays silent on good work. The count is a design signal: five refusals across seven tools after four days;
-> fifty would mean the design upstream of the scripts is wrong, not that the agent is careful.
+How the Orchestrator starts a session, cuts a lane, integrates a handoff, deploys to the alias, verifies and recovers.
+Every line is a current rule; git holds how each was learned. The scripts run from the repo root with `S` set to the
+session's scratchpad (`S=$S zsh usher/kit/<script>` or `export S=...`).
 
-The scripts the Orchestrator runs to integrate a lane. They read the repo path and the session scratchpad from the
-constants at their heads; a new session sets `$S` to its own scratchpad and runs them from the repo directory.
+**The counting rule.** A refusal enters a tool only after a mistake actually cost something, and it encodes the
+mistake's shape, never the instance. `negative.sh` proves every refusal still fires; an ordinary day proves each stays
+silent on good work. Many refusals would mean the design upstream of the scripts is wrong.
 
-- `integrate.sh <track> <handoff-sha> <board> <msgfile>` (2026-09-20): the merge and the gate as ONE chain, each step
-  gated on the previous one's exit and its own line (`MERGED <sha>`, `GATE<N> DONE`), the gate number taken from the
-  scratchpad's highest `gate<N>.log`, every `EXIT` read and counted; run detached and wait on `INTEGRATE DONE`. It
-  exists because two integrations in one day chained a gate on a script's tail: never chain on a tail, gate on exits.
-  `<handoff-sha>` is the lane's HEAD, read with `git rev-parse origin/lp/<track>`, never the board commit the agent's
-  one line names (the spawn brief forbids a lane to name its own head, so the merge scripts refuse the board commit
-  as "lane head moved": `overtaken-4`, 2026-09-21). Kill a lane's port in a `for` loop over `lsof` pids, never as
-  `lsof | xargs kill` inside an `&&` chain under `pipefail`: an empty listener list is an exit 1 that stops the chain
-  before the push (the pricing record, 2026-09-21).
-- `merge-lane.sh <track> <handoff-sha> <msgfile>` (the sha SHORT, 8 chars: it compares short shas): the `--no-ff` merge with the three registry files and the
-  library resolved, the manifest deleted, the artifact regenerated, typecheck and the registry tests before the commit; it clears `.next/dev` first (a killed dev server leaves a truncated
-  `.next/dev/types/validator.ts` the typecheck reads) and prints the typecheck error instead of a bare STEP FAILED.
-- `gate-lane.sh <N> <board>`: design:rules, the specimen collector, lint, test, build, `lab:smoke`, `lab:demo`, each on
-  its own exit code, on :3137; `GATE<N> DONE` at the end for a wait loop; the harness's own negative control first (one step known to move, `seed-avatar.look`,
-  pressed before the board's demo; if it reads FROZEN the run is blind and a frozen step below is the harness, not the
-  board: `gate<N>-sight.log`), then `lab:demo` retried once on the warm server (a cold frame compile under
-  three concurrent gates stalls CDP past 60 s and reads TIMED OUT; the retry is the test, not a longer timeout); it waits up to four minutes for the built server to answer (a big build once needed more than 90 s, and the smoke ran against nothing).
-- `alias-ensure.mjs` (`SHA=<short> FULL=<full>`): THE launch-prep deployment (no push creates one since 2026-09-20):
-  finds or creates one per project (app, admin) for a `[preview]` commit, waits for both READY, assigns both
-  aliases by hand, reads the served stamp; exit 1 only when the app's alias did not move. `DRY=1` reports what exists for the sha and where each alias points and creates nothing. A creation for a branch whose `git.deploymentEnabled` is false IS accepted by the API (proven 2026-09-21 11:59 EDT: dpl_8gySEGPLSdDYXQUyApk9ozcBXjoL on `5e210ef8`, both projects 200); and the cap's window is rolling per creation (hit at 20:03 EDT on 2026-09-20, a creation accepted at 11:59 EDT the next day), so after a cap the first wake TRIES the real run rather than waiting for an estimate: a refused creation costs nothing and its 402 names the hours to wait. `vercel-lib.mjs` is its client (the token from
-  `.env.local`).
-- `desk-sections.mjs` / `desk-check.mjs`: the served desk per section; the library page's mention of a contract.
-- `make-manifests.py <cut-sha> [tracks]`: the lane manifests generated from the plan file's Lane sections with
-  disjoint `owns`. Three rules at a cut (the third batch, 2026-09-21): the desk pass (`overtaken-N`) merges
-  FIRST, because `overtaken.test.ts` refuses a key naming a board no longer in `registry.ts`, so a retirement that
-  lands before it turns `launch-prep` red (each retiring lane also removes its own board's entries so its branch stays
-  green; identical deletions merge clean); every path in a lane's `reads` must exist on disk when the manifest is
-  generated AND at every merge between the cut and its own (`track-manifests.test.ts` refuses a missing read: a module
-  another lane moves, like `lib/guest/arrival-glow.ts`, cannot be a read); and an Orchestrator-owned path a lane needs
-  (`src/app/globals.css` for a print block) is dropped from `orchestrator.md`'s `owns` BEFORE the generator runs, since
-  it refuses a lane owning an Orchestrator path, and returns at that lane's merge.
-- `spawn-prompt.txt`: the agent spawn prompt with `{track}`, `{port}`, `{model}` placeholders.
-- `batch-reader.mjs` (`< batch.txt`, `--json`, or `--board <id>`): a review paste read beside the boards it answers:
-  each verdict's question, the chosen option's label and meaning, confirms or overrules the recommendation, what it
-  lands, his note verbatim, and the lab's deep link to the step (`see: /design/lab/<board>?session=<board>.<ask>`) so the
-  drawing and the sentence are read together; the specs parsed with TypeScript, never imported. The transcript tool judges the paste;
-  this says what it means, so lanes are cut from the boards' own words.
-- `test-delta.sh <base-sha>`: the tests at HEAD against the tests at a base commit, by name (`vitest list` on a
-  throwaway worktree, sorted, `comm`), for a gate whose count moved with no test file in the diff. Tonight's answer
-  was the deleted manifest's own two generated tests.
-- `board-card.mjs <board...>` or `--desk`: one screen per board (the RULINGS row's title, surface, ruling and `lives`
-  as the wiring's first `owns`; the spec's asks with their recommendations; what the ledger answered; which asks an
-  earlier ruling reaches), or the whole desk in order, one line each. `batch-reader.mjs` exports its spec parser for it.
-- `wave6-check.mjs` (pattern): the served alias against a wave's ruled lines through the HTML, no key. And a rule the
-  night taught: the built-in pane is one browser every running lane may also drive, so never CLICK in it while lanes
-  run (a click meant for the alias landed on a lane's localhost page); navigate and read, or fetch.
-- Two rules from the small hours: when a lane's Handoff claims a retirement, read `merge-lane.sh`'s "desk boards: N"
-  line against the expectation (a retiring board drops the count by one; if it does not, retire it by hand: registry,
-  boards, DESK_ORDER, the SandboxId union only, the RULINGS row shipped, the sandbox removed, the ledger gone); and a
-  chain that commits after tests gates on vitest's own exit code, never on a grep of its output.
+## Session start
 
-- `demo-rerun.sh <board> [attempts]` (2026-09-20): the gate's `lab:demo` step alone on a warmed :3137, for a gate whose
-  only red is a demo timeout; the key read the gate's own way, never sourced from `.env.local` (a line there is not shell).
-- `status-row.py <id> <state> [--desc <desc>]` (2026-09-20): the STATUS row for one id refined in place or added once;
-  a record script that adds a row goes through it (STATUS held two `body-type` rows for an hour before this existed).
-- A rule from the afternoon: a gate's `lab:demo` exit is read PER STEP against the lane's own hand evidence. The harness
-  returns byte-identical captures for options that differ only inside stacked `srcdoc` iframes (`toasts.material`,
-  `toasts.action`, after glass's backdrop-filter), so those steps read FROZEN while drawing correctly; a red demo step
-  that the Handoff names and proves by hand is not a bar, and one it does not is.
+1. Read `docs/tracks/orchestrator.md` (the pickup: in flight, next, waiting on Will), then `docs/STATUS.md`.
+2. `git status --short` (empty), `git worktree list`, the ports 3130 to 3139 (`lsof -nP -iTCP:<p> -sTCP:LISTEN`),
+   `memory_pressure`. A dev server whose lane is gone is killed by port.
+3. A lane that was mid-work when its session died (a restart, a kill, a usage limit) is resumed by SendMessage to its
+   agent id: its transcript survives, so it keeps its context. The message says what died, what is on disk (its branch
+   head, uncommitted files), that a stale `.next/dev/lock` may be deleted, and to continue from where its commits stand
+   to its own handoff. Never integrate a checkpoint for a lane or finish its work for it (Will: see every agent's
+   vision through). Only a lane that already handed off is integrated as it stands.
+4. Plan mode pauses every running lane; when it ends, resume each by message.
 
-- `record.py <record.json>` (2026-09-20): one lane's record applied to the four record docs through one door: the CHANGELOG bullet
-  before the first entry's Next, STATUS rows through `status-row.py`, an orchestrator row replaced by id or added before the queue
-  row, ROADMAP lines at the head of Now and old lines retired by substring (exactly one match each); then the caps printed (the
-  entry at 160, STATUS at 120, a warning past 150 to open a new entry at the next record). Retire runs before add in one call.
+## Cut a lane
 
-- `negative.sh` (2026-09-20, from gracetargaryen's "a check is only real if it can fail loudly"): the standing negative control
-  for the kit's refusals, every known-bad input that must be refused (a missing lane, a full sha, a duplicated STATUS id, an
-  unmatched ROADMAP retirement, the key's host guard); a refusal that has gone quiet is this script's own failure. Run it
-  after any change to the kit and before the first integration of a day.
+1. A spec JSON in `$S/specs/<track>.json`: `track`, `board` (`none` for a production or docs lane), `owns` (path
+   prefixes, disjoint from every live lane and from the Orchestrator's claims), `reads` (paths that exist and stay),
+   `goal`, `brief` (everything the lane needs, Will's words for the task included; a new board names the neighbour it
+   registers after), optional `verify`.
+2. `python3 usher/kit/cut-lane.py <launch-prep-sha8> $S/specs/<track>.json` writes `docs/tracks/<track>.md`.
+3. `pnpm vitest run src/lib/track-manifests.test.ts` and `zsh usher/kit/negative.sh`. An Orchestrator claim a lane
+   needs leaves `orchestrator.md`'s `owns` before the cut and returns at the lane's merge.
+4. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (the agent id in it).
+5. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, `{scratch}`); the model per
+   `docs/PROGRAM.md` "Model delegation"; one port each from 3131 to 3139; six lanes at most, `memory_pressure` first.
 
-- `cost-readings.mjs` (2026-09-21): re-reads the cost a refusal was written for from the system as it is now, with its
-  source and date (the first reading: the deployment cap, creations in the trailing day counted from both projects'
-  lists, a floor since the prune deletes canceled ones), and says whether the refusal still earns its keep; run at
-  the end of `negative.sh` as a report. The second reading is deployment storage as the
-  proxy the prune acts on (retained deployments per live branch against the three-per-branch ruling; Hobby lists no
-  bytes). The third is the merge replay: the union of `fixtures/union/` loses a closer the way
-  two lanes' head blocks did, `closer.py` (the same file `hand-merge.sh` runs) puts it back, the result must equal
-  `expected.ts` and the repair must insert nothing on the expected file. A refusal whose cost cannot be re-read by a
-  script has only the next mistake as its staleness detector.
-- `review-sheet.mjs <batch.txt> [out.html]` (2026-09-20): Will's paste as one page, each verdict beside the drawing it
-  answered: the question, the chosen option's label and what it lands, confirms or overrules the recommendation, his note
-  verbatim, the deep link to the live step, and the lane's own capture of that option when one exists in the scratchpad
-  (a file:// reference; the page is for the machine that holds them). The tags read the CURRENT specs, so a sheet of an old
-  paste on boards whose asks a round two replaced shows fewer tags; for the next batch it reads whole.
+## Integrate a handoff (one lane on the tree at a time)
 
-- `capture.sh <board> <dir> [port]` (2026-09-20): every option of every open step of one board as PNGs named
-  `<board>.<ask>.<option>-<width>.png`, through the lab's own demo runner (`pnpm lab:demo --save-shots <dir>`, the one
-  additive flag the Orchestrator added to `scripts/lab-demo.mjs`) on a dev server the script starts and stops; the
-  pictures feed `review-sheet.mjs --captures <dir>`. `capture-all.sh <dir>` does the whole desk on one server.
+1. The lane's one line names its head; `git rev-parse origin/lp/<track>` must match (never the board commit its
+   Handoff names).
+2. The merge message in `$S/msg-<track>.txt`: what the lane does, its calls his to overrule, its look-at-first, and the
+   `Co-Authored-By` trailer of the model you run on. The merge commit is the lane's permanent record.
+3. `git status --short` must be empty: the kit refuses a dirty tree, so commit record edits first.
+4. `S=$S zsh usher/kit/integrate.sh <track> <sha> <board|none> $S/msg-<track>.txt > $S/integrate-<track>.log` in the
+   background. Read `INTEGRATE DONE green merged=<m> gate=<N>` and `<n> checks, 0 failing` before anything depends
+   on them.
+5. **MERGE RED** on a registry file (`touchpoints.ts`, `registry.ts`, `boards.ts`): two new entries on one spot lose
+   their closing braces in git's three-way merge. Rebuild the damaged block from both sides (`git show <lane-sha>:<file>`
+   for the new entry, `git show <launch-prep-sha>:<file>` for the rest), run the four lab tests
+   (`touchpoints.test.ts`, `sandbox/registry.test.ts`, `(shell)/lab/_desk/queue.test.ts`, `sandbox/overtaken.test.ts`),
+   `git add` the file, `git commit -F $S/msg-<track>.txt`, then `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`
+   and read its `EXIT[...]` lines. `hand-merge.sh` with `closer.py` repairs the common case automatically.
+6. The record: `python3 usher/kit/record.py $S/record-<track>.json` (the In-flight row, ROADMAP lines; see its
+   docstring); STATUS rewritten by hand where the lane changed what is true now; a board's place on the desk by leverage (`DESK_ORDER` in `touchpoints.ts`: the board whose answer
+   changes another's question goes first); the three lab tests; stage by name; commit `record: <track> ... [skip ci]`;
+   push.
+7. `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`; kill the
+   lane's port.
 
-**A chain gates on the test's exit, never on a grep (2026-09-20 20:10 EDT, `73e0f253`):** `pnpm -s vitest run <files> 2>&1 | grep -E "Test Files|FAIL"` exits 0 whenever grep MATCHES, including on a FAIL line, so a `set -e` chain sails past a red test. Read `${pipestatus[1]}` (zsh) into a variable and test it, or run the test without a pipe and let `set -e` see its exit. The manifest test went red and was pushed once this way; the fix took one commit, the lesson is the same one the merge script taught: a printed word is a tail.
+## Deploy to the alias
 
-**`hand-merge.sh <track> <short-sha> <msgfile>` (2026-09-20 21:30 EDT):** the merge for the conflicts the program itself creates when several lanes retire boards on adjacent registration lines (merge-lane.sh refuses them). One resolver per file kind: registration deletions by intersection (every deletion kept), rows and notes by union (each lane's own row), generated files regenerated, then two repairs the union needs (2026-09-21, `app-pricing-wiring`): a union prints a line both sides END on once, so the closer two lanes' head blocks in `component-notes.ts` shared is put back wherever a key follows an entry without one (`closer.py`, the same file the merge replay reading runs), and a union restores a deleted `| "id"` line as readily as a DESK_ORDER entry, so every id `registry.ts` no longer imports after the intersection leaves both the SandboxId union and DESK_ORDER (the type is no oracle; RulingId keeps the id); the lane's manifest deleted, then typecheck and the registry tests on their own exit codes before the commit. Any other conflicted path stops it with the merge left in progress. Born from three hand merges in one evening (`8c30faf6`, `fd42c759`, `5ea7415d`).
+- No push creates a deployment (`vercel.json` disables both branches): the record commit that should reach the alias
+  carries `[preview]`, then `SHA=<short> FULL=<full> node usher/kit/alias-ensure.mjs > $S/alias-<short>.log` creates one
+  per project (app, admin), waits for READY, assigns both launch-prep aliases and reads the served stamp (exit 0 when
+  the app alias serves the sha); then `node scripts/prune-vercel-deployments.mjs --apply`; then STATUS's live-state line.
+- ★ READY is not the alias: a build that goes READY after a newer deployment exists never takes the branch alias. Read
+  the alias record and the served stamp: the desk prints `Serving build <sha7>`, and the payload's stamp has escaped
+  quotes, so grep the bare sha7.
+- ★ The deployment cap: 100 creations per trailing day across both projects, canceled ones included, and a creation
+  blocked by it fails silently. That is why pushes never deploy.
+- The admin portal's own alias is `partyreel-admin-git-launch-prep-partyreel.vercel.app`.
 
-**`page-console.mjs <base> [path] [--probe]` (2026-09-20 22:10 EDT):** loads one page of a running dev tree in headless Chrome (its own throwaway profile, the preview key read from `.env.local` and redacted in every line it prints) and reports the browser's console errors and warnings, exceptions, and whether React's duplicate-key error is among them; `--probe` injects a same-key `console.error` after the load so the collector proves it can see one (the HARNESS lesson: a checker that cannot fail is decoration). Born from Will's report of the library index's duplicate key (`ae20259b`); the smoke runner reads its own checks, never the browser's console, which is why the error had lived unseen. Not a gate step while `/design/library/components` carries its known duplicate (the ROADMAP's admin-wiring line); run it by hand on a page a report names.
+## Verify
+
+- ★ **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local`: read inside a script, never printed. A local `next dev`
+  logs every request URL with its `?key=` and accepts any key, so a local run uses a dummy one, and a dev log is never
+  shown unredacted. A keyed alias page is checked in headless Chrome from a script (`page-console.mjs`, or the
+  scratchpad's `alias-capture.mjs` pattern: viewport captures, never clipped ones), never in the browser pane, whose
+  URL would carry the key.
+- The built-in pane is shared with every running lane: never click in it while lanes run; never click Copy there (it
+  writes Will's clipboard, and a stray paste reads as a ruling).
+- A phone width runs in the pane (`resize_window` preset `mobile` is a real 375); Will's Chrome keeps its inner width.
+- Sign-in uses Will's open session in his Chrome or the Google account chooser (`willg97@gmail.com` host,
+  `partyr33l@gmail.com` admin); a password or an OTP is never typed.
+- A gate's `lab:demo` is read per step: a step that reads FROZEN only because its options differ inside stacked
+  `srcdoc` iframes, and that the lane proves by hand, is not a bar.
+
+## Rules each learned once
+
+- One script per merge, `set -e`, every step on its own exit code; never a record chained behind an integration; a
+  test's result is read from its exit code, never through a pipe to `grep` (grep's exit hides the failure).
+- A migration that replaces a function starts from its newest definition in `supabase/migrations/`.
+- A manifest never reads another lane's manifest (it is deleted at that lane's merge); point it at the board's
+  `spec.ts`.
+- Integrated means the manifest is gone from HEAD and the lane's tip is an ancestor: a fresh lane's tip is an ancestor
+  of `launch-prep` until its first commit.
+- A lane's scratch files live under `$S/<track>/`; a script's debugging port is random, never fixed.
+- A new board registers after the neighbour its brief names, never at the head of a list; the Orchestrator moves it into
+  its leverage place at the record.
+- A board retires in ONE commit across `touchpoints.ts`, `registry.ts` and `boards.ts` (`SandboxId` comes from
+  touchpoints, so a half retirement breaks the typecheck); a lane that retires its own board is released those lines.
+- A `git add` naming a path already removed aborts the whole add: never hide its stderr, and read
+  `git show --stat HEAD` before a push.
+- The kit's gate runs on :3130, never a lane's port; six lanes at once on this machine (36 GB: a dev server holds 3 to
+  9 GB, a build is the spike).
+
+## The scripts
+
+- `integrate.sh <track> <sha> <board|none> <msgfile>`: the merge and the gate as one chain gated on exits; the gate
+  number from the scratchpad's highest `gate<N>.log`; ends `INTEGRATE DONE green|red`.
+- `merge-lane.sh <track> <sha8> <msgfile>`: the `--no-ff` merge with the registry files and the library resolved, the
+  manifest deleted, the generated artifacts regenerated, typecheck and the registry tests before the commit; clears
+  `.next/dev` first (a killed dev server leaves a truncated validator the typecheck reads).
+- `gate-lane.sh <N> <board>`: design:rules, the specimen collector, lint, test, build, `lab:smoke`, `lab:demo` on :3130,
+  each on its own exit code; the harness's own negative control first (a step known to move); `lab:demo` retried once
+  warm.
+- `hand-merge.sh` + `closer.py`: the merge for registry conflicts the program itself creates; the closer puts back the
+  braces a union drops.
+- `record.py`: the In-flight row and ROADMAP lines through one door; it refuses a changelog and a STATUS row (what
+  shipped is the merge commit; STATUS is a snapshot rewritten by hand).
+- `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt.
+- `negative.sh`: every refusal fed its known-bad input; run after any kit change and before a day's first integration.
+  `cost-readings.mjs` re-reads the cost each refusal was written for, at the end of it.
+- `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.
+- `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
+- `desk-check.mjs`, `desk-sections.mjs`: the served desk per section. `board-card.mjs <board...>|--desk`: one screen per
+  board (ruling, `lives`, asks, answers).
+- `batch-reader.mjs` and `review-sheet.mjs <batch.txt>`: Will's review paste read beside the boards it answers (the
+  sheet with each verdict beside its drawing); `capture.sh <board> <dir>` and `capture-all.sh` feed it the pictures.
+  Transcribe a paste with `pnpm lab:review` on STDIN (`--dry` first).
+- `demo-rerun.sh <board>`: the gate's `lab:demo` alone on a warm :3130, for a gate whose only red is a demo timeout.
+- `test-delta.sh <base-sha>`: the tests at HEAD against a base by name, for a count that moved with no test file in the
+  diff.
+- `wave6-check.mjs`: a served page checked against ruled lines through its HTML, no key.
+- `moltbook.mjs`: the Orchestrator's own Moltbook client (`usher/moltbook/README.md`).

@@ -395,7 +395,7 @@ describe("guests.display_name is capped where the app caps a name", () => {
 });
 
 describe("the door round, wave 0 — Require an upload to view", () => {
-  // The switch (Will, 2026-09-21, rulings.md "the door as three steps"): a genuinely new flag with
+  // The switch (Will, 2026-09-21, "the door as three steps"): a genuinely new flag with
   // no legacy twin, off by default, free on every tier; the gate it drives is enforced by the
   // gallery access resolver through one service-role read.
   it("the column joins the column-locked host grant by a bare additive grant", () => {
@@ -448,7 +448,7 @@ describe("the door round, wave 0 — Require an upload to view", () => {
 });
 
 describe("the guest identity round, wave 0 — the unproved address", () => {
-  // Will, 2026-09-22 (rulings.md "guest identity: name only, unconfirmed email, verified account"):
+  // Will, 2026-09-22 ("guest identity: name only, unconfirmed email, verified account"):
   // a typed address nobody has proved, stored in its OWN column, inert — never shown to the host,
   // never attributed, never mailed on its own, never expiring — and moved into `email` only by a
   // claim that proves it. Every load-bearing fact of migration 20260922120000 is pinned here rather

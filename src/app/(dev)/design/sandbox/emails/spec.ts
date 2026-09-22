@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * EVERY EMAIL PARTYREEL SENDS, ROUND ONE (2026-09-19).
  *
- * Will (docs/design/rulings.md, "the overnight round"): explore every
+ * Will ("the overnight round"): explore every
  * surface, everything unprotected, "at worst, net neutral and fully
  * deleted." Mail is the one surface of the product that arrives inside
  * someone else's inbox rather than inside ours, so it is asked from the

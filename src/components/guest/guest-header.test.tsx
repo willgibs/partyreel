@@ -1,7 +1,7 @@
 // @contract-for: src/components/guest/guest-header.tsx
 // @contract-for: src/components/guest/guest-name-menu.tsx
 /**
- * The one thing `framing=tag` (docs/design/rulings.md, the sixth batch,
+ * The one thing `framing=tag` (the sixth batch,
  * 2026-09-20) is a FUNCTION rather than a look: the Demo mark's PRESENCE, on
  * every guest screen of the demo, on the one header every such screen shares.
  * The pin stops there — the header pinning itself to the top under it is a

@@ -5,9 +5,9 @@ import { defineExploration } from "@/components/lab/exploration";
  * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; reshaped by the overtaken
  * audit, 2026-09-21).
  *
- * Will (docs/design/rulings.md, 2026-09-19): the app and the guest pages are
- * unprotected, "absolutely everything is up for relitigation or reconcepting
- * from the ground up". Taking the album home is the act the whole product is
+ * Will (2026-09-19): the app and the guest pages are unprotected, "absolutely
+ * everything is up for relitigation or reconcepting from the ground up".
+ * Taking the album home is the act the whole product is
  * a promise about, and today it is one dialog, one toast and then silence.
  *
  * ★ THE APP GOES BLIND AT THE TAP, AND THAT IS THE FINDING THAT SHAPED THE

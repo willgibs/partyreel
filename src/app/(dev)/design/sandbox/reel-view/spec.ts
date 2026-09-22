@@ -3,7 +3,7 @@ import { defineExploration } from "@/components/lab/exploration";
 
 /**
  * THE REEL'S FULL-SCREEN VIEW, ROUND ONE (THE REEL ROUND, Will, 2026-09-22;
- * rulings.md "the reel, reconceived").
+ * "the reel, reconceived").
  *
  * The reel is the event's now: a live, looping montage of everything the album
  * shows, alive from the third item, spliced by the album's own doorbell, faster
