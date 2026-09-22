@@ -15,7 +15,7 @@ import type { Control } from "@/components/lab/board-spec";
  * precedent, carried here verbatim: `Fit`, `Measured`, `Scene` are the same
  * shape, because a board's furniture is not a place to invent a second one).
  *
- * ★ PHONE FIRST, 1440 ON THE KNOB — except the `tile` ask, which draws TWO
+ * ★ PHONE FIRST, 1440 ON THE KNOB: except the `tile` ask, which draws TWO
  * `Scene`s side by side, unconditionally, rather than one behind the `screen`
  * knob (the brief's own word: "the `/demo` order against the turn card is
  * drawn inside `tile` at 375 and 1440, both present at once"). Each stays its

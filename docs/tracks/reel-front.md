@@ -1,6 +1,6 @@
 ---
 track: reel-front
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "17f17e57"          # the launch-prep SHA the branch was cut from
 board: reel-front      # a new board: the reel round, the album's head
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -171,30 +171,124 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: the seven asks are the board's own output, not a blocking question; every implementation call this lane took
+  on its own recommendation is listed under "Calls his to overrule" below instead, since he can overrule any of them
+  directly on the board at his review.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: this lane owns no `docs/systems/` path; nothing here changed a fact outside its own sandbox directory.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: the tile's first-paint cost (Handoff, below) is a source-size proxy, never a real bundle
+  trace, because the feature has no production route yet to trace; `reel-guest-wiring` should re-measure with a real
+  `React.lazy` boundary and Next's build output once the tile is wired, and correct the number if it drifts.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+**STATE (checkpoint, mid-handoff):** the board is fully built and gated green (typecheck, lint at the 9-known
+baseline, test at 3784 passed, build at 258 pages, `lab:smoke` 460 checks, `lab:demo --board reel-front` 7 steps all
+`ok`), synced past `origin/launch-prep` (merge `2f920be6`, conflicts resolved keeping both sides' registration
+lines), and two real defects found by the gate itself are fixed (a `hub` "same picture" collision under reduced
+motion, a `react-hooks/set-state-in-effect` lint error, a `display: contents` measurement bug). This WIP commit adds
+one more pass: every em-dash in the board's own comments and this manifest swapped for a colon/semicolon, matching
+the codebase's own house style (not gate-enforced for comments, but consistent with every production file read while
+building). NEXT: re-run the full gate once more after this commit (typecheck/lint/test/build should be unaffected,
+comment-only changes, but confirm), then finish this Handoff section (it already has the real content below; only
+this STATE line and the final chat report remain), commit the manifest alone, push, and report "handed off at
+<sha>". Nothing structural is left; if a fresh agent adopts this, start at the gate re-run.
+
+- Board commit `5c9474c2` (the seven-ask board, `reel-front/` new); sync-merge `2f920be6` (`origin/launch-prep`,
+  32 commits: `reel-view`, the `identity-*` boards, `reel-engine-video`, all merged with the touchpoints/registry/boards.ts
+  registration conflicts resolved by keeping both sides' lines) then `7d6d7bb7` (`docs/design/library.md` regenerated
+  on the synced tree, since a hand-resolved count is not the generator's own count); pushed. Head not named here by design
+  (Program.md): the chat report's own line carries it.
+- Every claim below names its artifact, so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok (228 components, 1916 contracts, 19 standing
+  boards) · specimens ok (140 specimens on 101 entries) · `pnpm typecheck` ok · `pnpm lint` ok (9 known warnings, 0
+  errors, baseline unmoved, none in a file this lane touched) · `pnpm test` ok (3784 passed, 1 skipped, 345 files) ·
+  `pnpm build` ok (258 pages) · `pnpm lab:smoke --base http://localhost:3139` ok (460 checks, 0 failing) ·
+  `pnpm lab:demo --board reel-front --base http://localhost:3139` ok (7 steps, 0 failing, every option drawn: `tile`
+  moves up to 20.96%, `verbs` 1.25%, `states` 13.13%, `yours` 3.61%, `door` 73.70%, `closed` 68.93%, `hub` 4.36%; no
+  UNPAINTED, no "same picture": one of each was found and fixed mid-build, see below).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/reel-front/*` (new, 7
+  files) + `src/app/(dev)/design/touchpoints.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/(shell)/lab/boards.ts` (the registration exception, this board's lines only) +
+  `docs/design/library.md` (generated) + this manifest. Nothing else.
+- Registration: on the Orchestrator's mid-build correction, registered beside `guest-capture` in all four lists
+  (`RulingId`, `SandboxId`, `RULINGS`, `DESK_ORDER`) rather than at a shared head spot; the sync then found `reel-view`
+  and the `identity-*` chain had also landed beside neighbours of their own (`reel-view` after `media-viewer`,
+  `identity-door`/`claims`/`profile` after `guest-capture` too), so the two touchpoints.ts conflicts were resolved by
+  keeping every side's line (commit `2f920be6`).
+- The items, one line each (recommended marked ★; every option is drawn on the board, this is the builder's read):
+  - `tile`: ★ the engine, playing (thumb-mode crossfade of real engine frames, lazy after first paint); a slow
+    no-engine crossfade of plain stills, and one framed still, are the cheaper alternatives, both drawn.
+  - `verbs`: ★ Watch alone (the view already carries Add yours / Make your own in its own control set); Watch+Add
+    and Watch+Make add a corner control, both drawn.
+  - `states`: ★ Nothing at all under three items or with the switch off (a promise with no picture is the empty-state
+    failure this system already rejected once); a text line and a dimmed box are drawn, toggled by a `Count` knob
+    (0/1/2).
+  - `yours`: ★ the tile's corner swaps to "yours is in it"; the tile unchanged, and a one-time toast, both drawn.
+  - `door`: ★ the album's stills, dimmed, as shipped (the welcome teases the album, not the reel); the moving reel
+    and one still are drawn, all three only where access is already `full` (ruled).
+  - `closed`: ★ it plays in place, always (the same fixed slot, now autoplaying, the keepsake promotion without
+    reopening the one-slot decision); the same tile minus Add yours, and a larger keepsake tile, both drawn.
+  - `hub`: ★ the labelled card, as shipped (Review/Guests/Settings are text-only; one picture on four breaks the
+    row's rhythm); a living thumbnail and a still-with-count are drawn.
+- Calls his to overrule, one line each (lab-only design choices, never wired):
+  - The living tile is a full-bleed HORIZONTAL reshape of the shipped `PosterCard` (2:1 at a phone, 21:9 at a
+    laptop), not its 4:5 portrait keepsake shape: the slot it sits in (`event-experience.tsx`'s BLEED area, directly
+    above `aboveAlbum`) is a wide band, never a tall card.
+  - The fixture world is Maya and Jay's wedding (`guest-capture`'s and `reel-view`'s own world), for continuity across
+    the reel round's boards; a fresh 12-photo pool, one marked as the viewer's own for the `yours` ask.
+  - The crossfade paces: about 1.1s a still where the engine is "playing" (reads as a reel), about 3.2s where it is
+    explicitly the no-engine option (reads as a slow rotation): the whole distinguishing evidence for that ask
+    beyond image source.
+  - Reduced motion: the "playing" depiction rests on frame 0 (matching `CanvasReelPlayer`'s own convention), the
+    "still"/"framed"/"counted" depictions rest on a curated later frame; found needing this split via `lab:demo`
+    (below), not decided up front.
+- Two real defects found and fixed while building, both from running the actual gate rather than trusting the code:
+  1. `lab:demo`'s "same picture" check (`--threshold 0.1%`) caught `hub`'s "living" and "counted, with the switch"
+     options rendering IDENTICAL pixels (0.055% diff) under `prefers-reduced-motion: reduce`, which is `lab:demo`'s
+     own default capture mode: both froze on the same engine frame (`heroIndex`). Fixed by resting the "living"/
+     "playing" depiction on frame 0 instead (`board.tsx`'s `EngineMedia`, `parts.tsx`'s `Crossfade` `restIndex` prop,
+     renamed from `heroIndex` for clarity); re-ran clean at 4.36% max diff, every pairwise diff now 3.4% or more.
+  2. `react-hooks/set-state-in-effect` (a real lint ERROR, not a warning) on a corrective `setFrames()` call inside
+     `useEngineFrames`'s effect, added to let a late-mounting section adopt an already-finished render pass. Fixed
+     with a lazy `useState` initializer reading the module cache instead (`engine.ts`), which cannot race the effect
+     (one JS thread, no promise callback lands between a render and its own effect committing).
+  3. The `hub` ask's own measure function read `getBoundingClientRect()` on a `display: contents` wrapper (used only
+     to carry a `data-rf-hub-reel` marker), which has no box in Chrome and read 0 by 0px. Fixed by moving the marker
+     onto `HubReelCardBody`'s own root element and deleting the wrapper; the caption now reads real numbers (158 by
+     94px, matching the shipped card's `h-24 w-40`).
+- First-paint measurement (the `tile` ask's own requirement), method named: summed and gzipped the TypeScript source
+  of every module the "engine, playing" and "one framed still" options' `EngineMedia` component imports transitively
+  (`engine.ts` itself, `build-reel-props.ts`, and the engine's `asset-cache`, `assets`, `canvas2d`, `constants`,
+  `contract`, `layout`, `reel-types`, `registry`, `style-registry`, `styles/mood`, `themes`, `timeline`):
+  101,818 bytes raw, 41,327 bytes gzipped (about 40 KB), a CEILING since production minification shrinks it further
+  and the number is TS source, not a bundled/tree-shaken artifact. The "slow crossfade, no engine" option imports
+  none of this: its cost is the fixture images alone, already paid by the album. `mediabunny` (video decode/encode)
+  is NOT in this set; stills-only assets never load it. Script at
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/reel-front/measure-engine.mjs`.
+- Visual verification beyond `lab:demo`: the Browser pane at 375 and at 1440, reduced motion off, confirmed the
+  `tile`, `door` and `hub` scenes render as designed (a real engine-graded wedding photo in the tile's frame,
+  "Maya & Jay · Cinematic · 12 moments"; the blurred album grid behind the welcome sheet; the Reel/Guests cards at
+  matching box sizes on the hub); screenshots not saved (ephemeral pane), the DOM measurements above are the
+  durable record.
+- The help articles this lane makes stale: none (nothing shipped touches production copy).
+- Assets requested from Will: none (bible 18's twelve marketing stills, already reused by every board in the round).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `tile`; every other ask assumes whichever tile type is chosen there; `hub` next, since its recommendation
+  (unlike every other ask here) argues AGAINST giving the flagship feature a picture, which deserves a second look.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). The reel round's `reel-front` board asked seven decisions on the
+album's living tile at Maya and Jay's wedding: what the tile is (engine playing, no-engine crossfade, or one framed
+still), its verbs, its small states before three items, the beat after a guest's first approved photo, the door's
+backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card. Every
+option drawn by the real engine over fixture clips, off-DOM (`engine.ts`) so a portalled lab frame never mounts a
+live canvas; `lab:demo`'s own reduced-motion capture caught two options rendering identically and a `display:
+contents` measurement reading 0 by 0px, both fixed before handoff. Registered beside `guest-capture` per the
+mid-round correction; nothing here wires production.

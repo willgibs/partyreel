@@ -5,7 +5,7 @@ import type { Orientation } from "@/lib/reel/engine/constants";
 import type { ReelProps } from "@/lib/reel/engine/reel-types";
 
 /**
- * ONE OPEN WEDDING, THE SAME ONE (Maya and Jay's, hosted by Maya, 14 June) —
+ * ONE OPEN WEDDING, THE SAME ONE (Maya and Jay's, hosted by Maya, 14 June):
  * `guest-capture`'s own world, and `reel-view`'s (its brief names the same
  * album by name). The reel round tells one story across its six boards; a
  * reader who has answered any of them recognises this album immediately.
@@ -18,7 +18,7 @@ import type { ReelProps } from "@/lib/reel/engine/reel-types";
  * ★ REAL ENGINE PIXELS, NOT A RE-TYPED RECIPE. `propsFor` is the same
  * `buildReelProps` the shipped composer calls (host-app.md: no second presign,
  * no RPC), over these fixture clips. `CanvasReelPlayer` draws every still and
- * every loop on this board — `frame` locks it to one frame where a caption
+ * every loop on this board: `frame` locks it to one frame where a caption
  * needs a still, omitted where the ask is genuinely about motion. Nothing here
  * touches a row, an RPC, an encode or an upload.
  *
@@ -55,7 +55,7 @@ function photo(i: number, id: string, uploaderName: string): GridMedia {
 }
 
 /**
- * CHRONOLOGICAL, OLDEST FIRST — the order the party actually happened in, and
+ * CHRONOLOGICAL, OLDEST FIRST: the order the party actually happened in, and
  * the order the `states` ask counts against ("the third reel-eligible item").
  * Twelve guests' worth, before the viewer's own upload exists.
  */
@@ -73,7 +73,7 @@ const CHRONO_BY_ID = new Map<string, GridMedia>(
 /** The album as it sorts for real: newest first. */
 export const ALBUM_IDS: string[] = [...CHRONO_IDS].reverse();
 
-/** The viewer's own fresh upload — landed after everything above, for the
+/** The viewer's own fresh upload: landed after everything above, for the
  *  `yours` ask alone. Not a member of CHRONO_IDS/ALBUM_IDS: callers splice it
  *  in at the front so every other fixture is unaffected. */
 export const MINE_ID = "rf-mine";
@@ -84,7 +84,7 @@ export const BY_ID = new Map<string, GridMedia>([
   [MINE_ID, MINE_MEDIA],
 ]);
 
-/** The album's ids up to and including `n` items (n = 0..12), newest-first —
+/** The album's ids up to and including `n` items (n = 0..12), newest-first:
  *  what the `states` ask's tile slot sees before the third item, and just
  *  after it. */
 export function idsForCount(n: number): string[] {
@@ -115,12 +115,12 @@ const TAKE_IDS = [
   "rf-6",
 ];
 
-export const DEFAULT_STYLE_ID = "classic"; // Cinematic — the host's default mood (ruled)
+export const DEFAULT_STYLE_ID = "classic"; // Cinematic: the host's default mood (ruled)
 const SEED = 481_516;
 
 /**
  * The engine props for the living tile / the door's moving backdrop / the
- * closed-state loop. `orientation: "landscape"` — the tile is a full-bleed
+ * closed-state loop. `orientation: "landscape"`: the tile is a full-bleed
  * horizontal band above the album (`event-experience.tsx`'s BLEED area), never
  * the portrait keepsake shape the old hero card owned.
  */
@@ -148,9 +148,9 @@ export function propsFor(
 export const HERO_FRAME = 54;
 
 /** The "one still" the door's third option shows: a single hero photograph,
- *  no engine, no grid — just the biggest, calmest picture in the pool. */
+ *  no engine, no grid: just the biggest, calmest picture in the pool. */
 export const ONE_STILL = still(3);
 
-/** The "nine stills" the door's shipped option shows: a plain grid, no engine —
+/** The "nine stills" the door's shipped option shows: a plain grid, no engine,
  *  the album exactly as a locked/mid-itinerary guest already sees it today. */
 export const NINE_STILLS: GridMedia[] = mediaFor(ALBUM_IDS.slice(0, 9));

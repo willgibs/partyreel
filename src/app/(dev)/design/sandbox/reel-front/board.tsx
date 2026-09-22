@@ -58,7 +58,7 @@ const FULL_ALBUM = mediaFor(ALBUM_IDS);
 const SLOW_STILLS = FULL_ALBUM.slice(0, 6).map((m) => m.url);
 
 /**
- * The real engine's own pixels, live or locked to one frame — the one
+ * The real engine's own pixels, live or locked to one frame: the one
  * component allowed to call `useEngineFrames` (see the header comment).
  *
  * ★ "live" RESTS ON FRAME 0, NEVER `heroIndex` (found via `lab:demo`, which

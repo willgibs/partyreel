@@ -29,7 +29,7 @@ import { DEFAULT_STYLE_ID, EVENT, ONE_STILL } from "./fixtures";
 /**
  * THE LEAF PIECES, EVERY ONE QUOTED OR REAL. `PosterCard`/`PosterCardChip`/
  * `formatReelMeta` are the shipped reel face (`src/components/reel/poster-card.tsx`,
- * this lane's own read) — imported directly, never re-typed, because they carry
+ * this lane's own read): imported directly, never re-typed, because they carry
  * no hooks and no portal. The welcome sheet and the hub's cards row DO carry
  * state and a provider (`entry-modal.tsx`'s session reads, `useEventShare()`),
  * so those are QUOTED markup (guest-capture's own rule, carried here): a Radix
@@ -45,7 +45,7 @@ import { DEFAULT_STYLE_ID, EVENT, ONE_STILL } from "./fixtures";
  * whole difference between the two crossfade options: about 1.1s reads as the
  * reel actually playing; about 3.2s reads as a slow rotation of stills.
  *
- * ★ `restIndex` IS NOT THE "HERO" FRAME — it is whichever image reduced motion
+ * ★ `restIndex` IS NOT THE "HERO" FRAME: it is whichever image reduced motion
  * freezes on (bible 14: every animation lives inside that block), and the
  * caller's choice here is a real decision, not a default. `lab:demo` captures
  * under `prefers-reduced-motion: reduce` (its own still-picture mode), which
@@ -96,7 +96,7 @@ export function Crossfade({
   );
 }
 
-/** One locked frame, no motion — the "framed still" option and every door
+/** One locked frame, no motion: the "framed still" option and every door
  *  backdrop that is explicitly NOT the moving reel. */
 export function StillFrame({
   src,
@@ -142,7 +142,7 @@ function Verb2Chip({ verb2 }: { verb2: Verb2 }) {
 
 /** The corner mark: the plain "The reel" chip, or the personalised
  *  acknowledgement the `yours` ask's first option wears in its place. Never
- *  both — a card announcing itself and congratulating the viewer in the same
+ *  both: a card announcing itself and congratulating the viewer in the same
  *  breath is two ideas fighting for one corner. */
 function TileBadge({ yours }: { yours?: boolean }) {
   if (yours) {
@@ -159,7 +159,7 @@ function TileBadge({ yours }: { yours?: boolean }) {
 /**
  * THE LIVING TILE: `PosterCard` reshaped horizontal (the shipped card is a 4:5
  * keepsake portrait; this slot is full-bleed above the album, the same box
- * `aboveAlbum` already owns — event-experience.tsx's BLEED area, never the
+ * `aboveAlbum` already owns: event-experience.tsx's BLEED area, never the
  * words column). `aspectClassName` carries that reshape; everything else
  * (the gradient, the name, the meta line, the chip, the play badge) is
  * `PosterCard`'s own, unmodified.
@@ -304,10 +304,10 @@ export function Ground({
   items,
 }: {
   named?: boolean;
-  /** The reel's own slot — its OWN box directly above `aboveAlbum`, null when
+  /** The reel's own slot: its OWN box directly above `aboveAlbum`, null when
    *  the `states` ask's "nothing" option has nothing to put there at all. */
   slot: ReactNode;
-  /** `aboveAlbum` — the demo's turn card, one slot below the reel's. Only the
+  /** `aboveAlbum`: the demo's turn card, one slot below the reel's. Only the
    *  `tile` ask's demo scene passes this; every other ask's real event has none. */
   above?: ReactNode;
   items: GridMedia[];
@@ -351,7 +351,7 @@ export function Ground({
 /** The welcome step's own copy and shape, quoted rather than mounted: the real
  *  `EntryModal` reads a live Supabase session on mount and its shell
  *  (`entry-shell.tsx`) opens a Radix `Sheet`/vaul `Drawer`, both of which
- *  portal to `document.body` — the LAB PAGE's, not the frame's (frame.tsx's own
+ *  portal to `document.body`: the LAB PAGE's, not the frame's (frame.tsx's own
  *  landmine; guest-capture's scene.tsx names the same trap for its own
  *  account-menu quotes). */
 export function WelcomeSheetQuote({ desktop = false }: { desktop?: boolean }) {
@@ -392,7 +392,7 @@ export function WelcomeSheetQuote({ desktop = false }: { desktop?: boolean }) {
   );
 }
 
-/** The backdrop dim/blur every itinerary step sits over — vaul's own overlay
+/** The backdrop dim/blur every itinerary step sits over: vaul's own overlay
  *  class, quoted (`entry-shell.tsx`'s `Drawer.Overlay`, this lane's own read). */
 export function DoorScrim() {
   return (
@@ -418,7 +418,7 @@ export function OneStillBackdrop() {
 }
 
 /** The door's shipped option: the real album grid, plain, as a locked or
- *  mid-itinerary guest already meets it today (no engine — these are the
+ *  mid-itinerary guest already meets it today (no engine: these are the
  *  album's own photographs, not the reel). */
 export function NineStillsBackdrop({ items }: { items: GridMedia[] }) {
   return (
@@ -481,7 +481,7 @@ function HubStub({
   );
 }
 
-/** The Reel card's own three faces — the only thing the `hub` ask varies. Each
+/** The Reel card's own three faces: the only thing the `hub` ask varies. Each
  *  fills the FULL `h-24 w-40` shell `HubCardsRow` hands it, so all four cards
  *  in the row keep one box whichever face this one wears. */
 export function HubReelCardBody({

@@ -20,9 +20,9 @@ import { propsFor } from "./fixtures";
  *
  * `Frame`'s portalled scenes (`frame.tsx`) run their JSX in THIS module's own
  * realm and only their DOM lands in the iframe's document (`createPortal`), so
- * a component that reaches for a bare `document`/`window`/`IntersectionObserver`
- * — exactly what `CanvasReelPlayer` does for its visibility gating and its
- * reduced-motion query — would attach to the LAB PAGE's globals, not the
+ * a component that reaches for a bare `document`/`window`/`IntersectionObserver`,
+ * exactly what `CanvasReelPlayer` does for its visibility gating and its
+ * reduced-motion query, would attach to the LAB PAGE's globals, not the
  * scene's. `reel-studio`'s own `stills.tsx` (git show 90f29be4, retired
  * unreviewed at this round's cut) solved this the only safe way: draw with
  * `drawReelFrame` directly, off-DOM, and hand the result across the portal

@@ -28,7 +28,7 @@ import { SCREEN } from "./scene";
  * ★ EVERY "LIVE" PIXEL IS THE REAL ENGINE, DRAWN ONCE (`engine.ts`): the
  * fixture take's own frames, cross-dissolved in plain CSS rather than a
  * mounted `CanvasReelPlayer` (which reaches for a bare `document`/
- * `IntersectionObserver` that a portalled lab frame cannot give it — see
+ * `IntersectionObserver` that a portalled lab frame cannot give it: see
  * engine.ts's header). Every option is drawn; nothing here is a claim with no
  * picture behind it.
  *
