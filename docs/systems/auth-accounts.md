@@ -9,7 +9,8 @@
 Supabase Auth with three interchangeable credentials on ONE `auth.users` row: **email magic-link / OTP**
 (the lead), **Google OAuth**, and **email + password** (a quiet second door), plus **passkeys behind a
 flag** ([`(auth)/login`](../../src/app/(auth)) + [`/auth/callback`](../../src/app/(auth)/auth/callback/route.ts)).
-The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the single sign-in gate. The
+The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the host app's sign-in gate (the
+`(print)` group and `admin/` each declare their own, since a route group never inherits one). The
 `handle_new_user` trigger creates one `profiles` row per signup.
 
 ## Where it lives
@@ -40,8 +41,9 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the singl
 - Account page: `/account` — the **Plan card** (first on the page), password set/change,
   [`display-name-form.tsx`](../../src/components/app/display-name-form.tsx),
   [`account-avatar-form.tsx`](../../src/components/app/account-avatar-form.tsx) + [`avatar-cropper.tsx`](../../src/components/app/avatar-cropper.tsx).
-  **The Plan card (`#plan`) is billing's only home in the app**: there is no billing page, and the user
-  menu's plan row links to that anchor. It shows the plan, storage, the event cap ("3 of 3 used", the
+  **The Plan card (`#plan`) is billing's home in the app**: there is no billing page, the user menu's plan
+  row links to that anchor, and the dashboard's storage meter carries the same Manage billing, Renew and
+  "Need more?" (the pricing sheet) doors. It shows the plan, storage, the event cap ("3 of 3 used", the
   upgrade trigger) and a Pass's expiry, with the pricing sheet, Manage billing and Renew.
   ★ **Every fact on the Plan card is server-derived**: `tier`, `storage_cap_bytes`, `event_slots` and
   `tier_expires_at` are webhook-written columns read through the RLS-scoped profile row, and the page's
@@ -170,6 +172,14 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the singl
   every read and write is wrapped because `localStorage` THROWS when site data is blocked, and it is shown
   masked. ★ The guest gate and the Save dialog pass no hint at all — a phone passed around a party and a
   venue's iPad must never show the last guest's address to the next one — and no email ever goes in a URL.
+  The memory is written only where the address is known before the door is left (a code, a password, a
+  hinted Google press), so a Google-only host is never remembered: the passkey is the answer for them.
+- **Supabase Auth's rate limits are dashboard state** (Authentication > Rate Limits; nothing in the repo
+  holds them): emails 100 an hour project-wide on the custom SMTP; OTP and magic-link verifications, sign-ups
+  and sign-ins, and token refreshes each 150 per 5 minutes per IP; anonymous sign-ins 30 an hour per IP. A
+  150-guest Require-verified-emails door inside one hour outruns the email limit: the door names the refusal
+  (`rate_limited` in [`door-failure.ts`](../../src/lib/auth/door-failure.ts), "Too many tries for now." with a
+  wait), the switch is the host's live valve, and raising the limit is a launch task.
 - **Identity linking:** Supabase auto-links identities that share a **verified** email into ONE user (so
   magic-link + Google for the same email land on the same account); it refuses to link an *unverified*
   email (anti-takeover). Matching is exact-string, so Gmail dot/plus aliases (`will.g+x@…`) are distinct users.
@@ -203,11 +213,12 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the singl
 - **Display name is REQUIRED, public, and service-role-write-only.** `handle_new_user` leaves
   `display_name` NULL for ALL signups (OAuth too), so null means "not set". `/welcome` and the guest door's
   name step collect it; `/welcome` PREFILLS from the OAuth `user_metadata` (`full_name`, else `name`) or the
-  newest claimable guest row's typed name, so even a Google name passes the one filter. The ONLY write path
+  newest claimable guest row's typed name, so even a Google name passes the one filter. The typed-name write path
   is `updateDisplayNameAction` (`getUser()`, `displayNameSchema` (min 1 / max 60 / reserved-name),
   `containsProfanity` (`obscenity`, tuned word-boundary so real names like Anushka/Shitij pass), then an
   ADMIN-client write); the column has no `authenticated` UPDATE grant, so a public name can't be set
-  unfiltered. A nameless signed-in guest is asked for one at the door's name step, and **a nameless account
+  unfiltered. The one other writer is the claim (`claim_anonymous_uploads`, `claim_guest_rows_by_email`),
+  which copies a guest row's typed name, already filtered by its own route, onto a NAMELESS profile only. A nameless signed-in guest is asked for one at the door's name step, and **a nameless account
   reaches no `(app)` route but `/welcome`** (one character is enough):
   `requireNamedProfile()` in [`(app)/name-gate.ts`](../../src/app/(app)/name-gate.ts) runs once each from
   [`dashboard/layout.tsx`](../../src/app/(app)/dashboard/layout.tsx) (the root, `/new`, every
