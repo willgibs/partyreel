@@ -66,7 +66,11 @@ const sheetPreview = (variant: "eight-plates" | "marks-only" | "brand-in-use") =
 const wordsPreview = (variant: "paragraph-and-line" | "three-lengths" | "founder-voice") => {
   const heights = {
     "paragraph-and-line": [560, 700],
-    "three-lengths": [640, 820],
+    // Remeasured against the real rendered iframe (`contentDocument.scrollHeight`)
+    // after the page-length fixture's reel line grew retelling it (recheck-help-press,
+    // 2026-09-22): 640/820 was already short of this variant's real height before that
+    // edit, so this pins the accurate number rather than compounding a guess.
+    "three-lengths": [870, 1366],
     "founder-voice": [740, 900],
   } as const;
   const [desktopH, phoneH] = heights[variant];

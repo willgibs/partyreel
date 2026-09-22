@@ -135,7 +135,7 @@ export const HELP_CENTER = defineExploration({
       question:
         "How should a guest reach help, now the action block and a failure both have a settled home?",
       context:
-        "The guest's action block is ruled now, a row on landing then a dock (guest-shape r2). App-pricing r1 opens a surface on the reason it opened; guest-upload r1 gives a failed run its own surface, so a contextual link has a home: that sheet.",
+        "The guest's action block is ruled now, a row on landing then a dock (guest-shape r2), its menu identity-door.menu's own shape. Guest-upload r1 gives a failed run its own surface, so a contextual link has a home: that sheet.",
       options: [
         {
           id: "none",

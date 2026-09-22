@@ -104,13 +104,14 @@ function hubScreen(shape: HubShape, state: BoardState) {
 
 /* ── 3. The article ───────────────────────────────────────────────────── */
 
-// Measured the same way: `screen`'s per-step illustrations pushed both
-// frames well past their first guess (desktop +203 px, phone +958 px, the
-// three stacked mock screens beside each step).
+// Measured the same way: the identity recheck's three added steps (name,
+// confirm, first photo, 2026-09-22) pushed every shape taller again — prose
+// +220/+40, checklist +310/+198, and `screen`'s three new illustrations the
+// most, desktop +756 px, phone +2072 px.
 const ARTICLE_H: Record<ArticleShape, { d: number; p: number }> = {
-  prose: { d: 1150, p: 1750 },
-  checklist: { d: 1100, p: 1700 },
-  screen: { d: 1570, p: 2980 },
+  prose: { d: 1370, p: 1790 },
+  checklist: { d: 1410, p: 1898 },
+  screen: { d: 2326, p: 5052 },
 };
 
 const articlePreview = (shape: ArticleShape) => (
