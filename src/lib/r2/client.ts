@@ -7,8 +7,9 @@
  * objects or `SignatureDoesNotMatch`. `WHEN_REQUIRED` keeps the SDK from adding
  * them unless an operation truly needs one. (See uploads-and-r2.md and CLAUDE.md.)
  *
- * Bucket CORS must allow PUT/POST/GET/HEAD + the `content-type` header AND expose
- * `ETag` (ExposeHeaders) — multipart completion needs the per-part ETags.
+ * Bucket CORS must allow PUT/POST/GET/HEAD + the `content-type` and `range` headers AND expose
+ * `ETag`, `Content-Range`, `Accept-Ranges` and `Content-Length` (ExposeHeaders) — multipart completion
+ * needs the per-part ETags, and the reel's video window reader (2026-09-22) reads byte ranges by CORS fetch.
  */
 import "server-only";
 

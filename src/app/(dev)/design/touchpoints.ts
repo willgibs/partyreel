@@ -31,6 +31,7 @@ export type RulingId =
   | "identity-door"
   | "identity-claims"
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "toasts"
   | "guest-verify"
@@ -46,6 +47,7 @@ export type RulingId =
   | "media-viewer"
   | "emails"
   | "reel-studio"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "reel-cut"
@@ -118,6 +120,7 @@ export type SandboxId =
   | "identity-door"
   | "identity-claims"
   | "identity-profile"
+  | "reel-screen"
   | "guest-capture"
   | "site-chrome"
   | "profile-page"
@@ -125,6 +128,7 @@ export type SandboxId =
   | "admin-triage"
   | "media-viewer"
   | "emails"
+  | "reel-view"
   | "help-center"
   | "host-curation"
   | "reel-cut"
@@ -227,6 +231,34 @@ export const RULINGS: Ruling[] = [
         "What shows",
         "When it's offered",
         "The empty page",
+      ],
+    },
+  },
+  {
+    id: "reel-screen",
+    title: "The reel on the wall",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, "the reel, reconceived": "Could play at an event in real-time on a screen or something", and his ruling "A first-class screen mode")',
+    shipped: null,
+    why: "What is on a venue's television all night beside the reel: the code, the name, the just-added beat, the pace, the empty state, the Start plate, Review, and the door.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "content/help/show-the-album-live-on-a-screen.mdx",
+      "src/lib/reel/engine/player.tsx",
+      "src/components/app/styled-qr.tsx",
+    ],
+    board: {
+      note: "Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub",
+      variants: [
+        "The code",
+        "The event's name",
+        "The just-added beat",
+        "The wall's pace",
+        "Before it begins",
+        "The Start plate",
+        "Review on the wall",
+        "The way in",
       ],
     },
   },
@@ -1037,6 +1069,30 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "reel-view",
+    title: "The reel's full-screen view",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, THE REEL ROUND: the reel reconceived whole, rulings.md \"the reel, reconceived\")",
+    shipped: null,
+    why: "The view a tap on the album's tile or `?reel` opens: its chrome and fade, the controls, the arrival beat, the tap, the posture, the pacing, the loop, and reduced motion.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/lib/reel/engine/player.tsx",
+    ],
+    board: {
+      note: "Eight decisions over the shared wedding album, drawn by the real engine at 1440 with 375 on the knob: the chrome and its fade, the control set's arrangement, the arrival beat, what a tap does, whether the reel follows the device's shape, how fast a photograph holds, how a fresh loop announces itself, and what reduced motion starts on",
+      variants: [
+        "The chrome",
+        "The controls",
+        "The arrival",
+        "The tap",
+        "The posture",
+      ],
+    },
+  },
+  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -1686,15 +1742,16 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape). `identity-door` is placed directly (its own manifest's
-  // instruction, not the head exception): right after `guest-capture`, since
-  // it draws the same guest one step earlier in her walk through the door.
-  // `identity-profile` belongs after `identity-claims`, whose id is not
-  // registered yet since that sibling lane has not merged — the Orchestrator
-  // places both siblings in their true order at the merge.
-  // album's shape). `identity-claims` registers here 2026-09-22 for the same
-  // reason; the Orchestrator places it after `identity-door` at its merge.
+  // album's shape). Several boards at once had mangled the head rule into two
+  // conflicted merges (his word, 2026-09-22), so each of the following is
+  // placed directly, after a DIFFERENT named neighbour: `reel-view` sits right
+  // after `media-viewer`, whose answers it reads from; `identity-door` right
+  // after `guest-capture`, since it draws the same guest one step earlier in
+  // her walk through the door; `identity-claims` after `identity-door` for the
+  // same reason; `identity-profile` after `identity-claims`.
   "media-viewer",
+  "reel-view",
+  "reel-screen",
   "guest-capture",
   "identity-door",
   "identity-claims",
