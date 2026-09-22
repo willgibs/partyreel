@@ -1848,11 +1848,16 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // the head exception, 2026-09-22: several reel-round boards at once had
   // mangled the head rule into conflicted merges): right after `admin-triage`,
   // a named neighbour, so wave-2 siblings land at different spots.
+  // `reel-host` registers here 2026-09-22 (its own manifest's instruction: a
+  // named neighbour rather than the head, since every reel board registers
+  // the same hour and a shared head spot was today's merge conflict). The
+  // Orchestrator moves it into the six-board reel group at the merge.
   "media-viewer",
   "reel-view",
   "reel-front",
   "reel-screen",
   "reel-cut",
+  "reel-host",
   "reel-story",
   "guest-capture",
   "identity-door",
@@ -1860,11 +1865,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-profile",
   "host-curation",
   "export-flow",
-  // `reel-host` registers here 2026-09-22 (its own manifest's instruction: a
-  // named neighbour rather than the head, since every reel board registers
-  // the same hour and a shared head spot was today's merge conflict). The
-  // Orchestrator moves it into the six-board reel group at the merge.
-  "reel-host",
   "admin-triage",
   "help-center",
   "emails",

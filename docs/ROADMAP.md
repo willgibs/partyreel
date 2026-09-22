@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `reel-host` (2026-09-22, the lab): a lab frame's document never cascades a real height to a percentage `min-h-full`, so an absolutely positioned full-bleed child of one collapses to 0 px (measured); the kit's `Frame` could expose its pixel height to children (a CSS variable) so a board never has to reach for `fixed` or a hard-coded screen height.
 - From `guest-email-claims` (2026-09-22): `profiles-guest-lists-and-following.mdx` ("Following hosts") and `your-public-profile-following-and-blocking.mdx` ("Following") still say a followed host's events show up under the Following chip on the dashboard; the chip left at `home=pulse` (2026-09-20) and the events list under "Your events"; a help-sync pass drops the chip in both.
 - From `guest-email-server` (2026-09-22): `/admin/forensics` renders no per-upload identity (neither the typed name nor the unproved address reaches a table; an operator downloads a held item's Record); an uploader column on the held-media table needs `listHeldMedia` in `src/lib/db/queries/forensics.ts`.
 - From the identity ruling (2026-09-22): the guest "here is your album" one-shot mail, deferred to the emails focus: only to an unconfirmed address on a row with a completed upload, capped per event, one-time, through `sendOnce` (kind `guest_event_link`, dedupe `guest_id`), with a "this wasn't me" link that detaches the address; the `emails` board's `guest` ask carries it.
