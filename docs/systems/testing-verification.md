@@ -187,6 +187,9 @@ becomes one iteration (a curl of a three-line "URL" returns 0 bytes); pipe into 
   them IS the nudge, which makes the symptom more convincing, not less. Check `document.hidden` before
   believing it or the suspended-rAF trap.
 
+- **A lazy tile inside a lab frame can never load.** `MediaTile` carries `loading="lazy"`, and Blink
+  resolves it against the TOP window even inside a same-origin iframe, so a tile used as chrome below the
+  fold of a lab frame stays unloaded however the frame scrolls.
 - **`read_console_messages` returns an ACCUMULATED buffer, not the current page's.** Read right after
   navigating to a second origin, it returns the FIRST origin's errors ("the bug followed me to prod").
   Check the URLs inside the messages before believing which page they came from.
@@ -213,10 +216,11 @@ foreground look for the motion.
 Testing "the album survives the evening" (refreshed presigns adopted as the 30-min stable bucket rolls)
 has TWO setup traps that both produce a false "broken" reading:
 
-- **A HIDDEN tab never polls, on purpose.** The fallback poll `live-gallery.tsx` runs (`useLivePoll`,
-  `src/lib/shared/use-live-poll.ts`) stops on `visibilitychange` while the tab is hidden (frugality and
-  correctness) and calls `refresh()` the moment it is visible again. A backgrounded soak tab collects
-  ZERO polls, never adopts refreshed URLs, and looks dead once its presigned URLs expire (at most 90
+- **A tab that GOES hidden stops polling, on purpose.** The fallback poll `live-gallery.tsx` runs
+  (`useLivePoll`, `src/lib/shared/use-live-poll.ts`) stops on the `visibilitychange` to hidden (frugality
+  and correctness) and polls again the moment the tab is visible; a tab that LOADS hidden, as the Chrome
+  MCP's usually does, keeps its interval at the browser's throttled background rate until it is shown and
+  hidden again. A soak tab backgrounded mid-run collects ZERO polls, never adopts refreshed URLs, and looks dead once its presigned URLs expire (at most 90
   minutes, `STABLE_DOWNLOAD_TTL_SECONDS`). Keep the soak tab **foregrounded** for the whole window (the
   real scenario: a host leaving the album up on a screen), and verify the setup mid-run with
   `performance.getEntriesByType("resource")` filtered to `/api/guests/gallery`: zero entries means the
@@ -288,6 +292,12 @@ has TWO setup traps that both produce a false "broken" reading:
   `.next/static/chunks/*.css`), and the source's brace balance is checkable in a few lines of python.
   Then `rm -rf .next` (the whole directory, not `cache`) and restart.
 
+- ★ **A capture that reaches BEYOND the viewport is recomposited, and a backdrop-filter layer does not
+  survive it.** Chrome resizes its render surface to take it, so a frame can come back black and a glass
+  pane without its blur: a harness that measures glass scrolls the box into the window and clips there
+  (`scripts/lab-demo.mjs`, whose 3000px window holds any stage whole). Headless Chrome also does not
+  always rasterise a composited `backdrop-filter` scene, so lab:demo reports a capture with no variance at
+  all as UNPAINTED, to be judged by eye, never as a frozen stage.
 - ★ **A bare modern CSS value can be DROPPED by the build's minifier, so read the compiled chunk
   rather than the source.** Lightning CSS (via Tailwind v4) compiles against the configured browser
   targets and removes a declaration no target supports: a bare `overflow-x: clip` does not survive, and
