@@ -97,8 +97,10 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   Host add-photos: [`event-gallery.tsx`](../../src/components/app/event-feed/event-gallery.tsx) → [`host-upload.tsx`](../../src/components/app/host-upload.tsx).
 - Uploader attribution: the pure CASE helper [`media/uploader-identity.ts`](../../src/lib/media/uploader-identity.ts)
   (`resolveUploaderIdentity`) + the admin-read resolver `getUploaderIdentities(eventId)` in
-  [`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts); the caption + tap-to-open explainer live in
-  `media-lightbox.tsx` + [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) / [`ui/popover.tsx`](../../src/components/ui/popover.tsx).
+  [`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts); the caption is `media-lightbox.tsx`'s
+  `AttributionPill`, with [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (a tap-to-open
+  popover on [`ui/popover.tsx`](../../src/components/ui/popover.tsx)) beside a typed name;
+  [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library mounts.
 - Env: R2 vars stay `.optional()` in [`env.ts`](../../src/lib/env.ts); `assertR2Env()` asserts them lazily at request time.
 - Export ("Download all"): the Worker [`workers/export/`](../../workers/export) (separate `wrangler` deploy,
   native R2 `PRIMARY` binding, `EXPORT_MODE` kill-switch var, `client-zip`); the shared service
@@ -250,11 +252,11 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   `getHostAvatarSeed`). The pure `resolveUploaderIdentity` CASE: `guest_id` null → **Host** (the host's
   display name, no email); a verified guest (`verified_at` set) → the PROFILE's name + (host-only)
   `guests.email`; an unverified typed name → that name with the unverified mark and NO address, ever; a
-  nameless legacy row → "A guest" + the info popover (`isAnonymous`). A verified guest with no profile name
+  nameless legacy row → "A guest" (`isAnonymous`), with no explainer. A verified guest with no profile name
   renders NOTHING rather than a label. Attribution is **lightbox-only**: `MediaTile` reads just `type`, `url`
   and `previewUrl`, so grid tiles stay clean by construction. The caption **fades out while a center video
   plays** (never fighting the native scrubber) and respects `prefers-reduced-motion`; demo tokens skip the
-  resolver (simulated tiles carry no attribution); the nested info popover closes on the first Esc, the
+  resolver (simulated tiles carry no attribution); the mark's nested popover closes on the first Esc, the
   lightbox on the second.
 - **Mobile swipe = a peek-the-neighbor 3-slot track, vanilla Pointer Events (no carousel lib).** The
   load-bearing bits: finger-follow is gated to `pointerType === "touch"` (mouse/pen keep chevrons +
