@@ -248,6 +248,30 @@ describe("the demo", () => {
     act(() => ref.current!.openToName("edit"));
     expect(screen.queryAllByText("Change your name")).toHaveLength(0);
   });
+
+  /* ── "the door's first look" (Will, 23:46 EDT, 2026-09-21): "it should treat each visit as a
+     fresh visit, even if it's returning. That way every demo is end-to-end." Two halves: the
+     welcome never trusts an old "seen" flag, and nothing along the way writes a new one. ── */
+
+  it("shows the role welcome even when this browser's flag already says seen", () => {
+    seeWelcome();
+    renderModal({ isDemo: true });
+    expect(screen.getByText("A live demo")).toBeInTheDocument();
+  });
+
+  it("Continue, then Look around, persists nothing: the NEXT mount is fresh too", () => {
+    renderModal({ isDemo: true });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    // The OLD bug: this skip used to call markSeen() for the demo specifically, which is
+    // exactly the "returning" state his override retires.
+    fireEvent.click(screen.getByRole("button", { name: "Look around" }));
+    expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
+
+    // The first instance already advanced past its own role step (Continue, then Look around),
+    // so this fresh instance is the ONLY thing that can show it now.
+    renderModal({ isDemo: true });
+    expect(screen.getByText("A live demo")).toBeInTheDocument();
+  });
 });
 
 describe("the upload step", () => {
@@ -260,8 +284,11 @@ describe("the upload step", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("ON: there is no skip at all, and the line names the host", () => {
+  it("ON: there is no skip at all, and the line leaves the host unnamed (his 23:46 override)", () => {
     seeWelcome();
+    // hostName is passed on purpose: even with a real name available, the ON line must not use it
+    // (long host names breaking good design, his words) - a regression here would still pass if
+    // the prop were simply missing.
     renderModal({
       storedName: "Priya",
       requireUpload: true,
@@ -273,8 +300,11 @@ describe("the upload step", () => {
       screen.queryByRole("button", { name: "Skip for now" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getAllByText("Maya asked everyone to add a photo before the album opens.")[0],
+      screen.getAllByText(
+        "The host has asked everyone to add a photo before the album opens.",
+      )[0],
     ).toBeInTheDocument();
+    expect(screen.queryByText(/Maya/)).not.toBeInTheDocument();
   });
 
   it("an empty album says so instead of counting a queue", () => {
@@ -556,14 +586,21 @@ describe("the confirmation sequence", () => {
 });
 
 describe("the back affordance", () => {
-  it("a step's chevron re-shows the welcome and returns without touching the machine", () => {
+  it('a step\'s chevron re-shows the welcome, whose own primary always reads "Continue" (his 23:46 override), and returns without touching the machine', () => {
+    // ★ "Don't make back bidirectional. Keep 'Continue' for users to resume forward navigation
+    // clearly... Everyone is super comfortable with a 'back/continue' working the same as
+    // 'prev/next'." (Will, "the door's first look", 2026-09-21, overruling a `door-steps` call
+    // that read "Back to the password" here.) The CHEVRON that brought the guest here keeps
+    // saying "Back to X" (its own affordance, pinned here and below) — only the reviewed sheet's
+    // own primary button changed, from "Back"/"Back to the password" to a flat "Continue".
     seeWelcome();
     renderModal({ access: "none", gate: "password" });
     fireEvent.click(screen.getByRole("button", { name: "Back to the welcome" }));
     expect(screen.getByText("You’re invited to")).toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Back to the password" }),
-    );
+    expect(
+      screen.queryByRole("button", { name: /^Back/ }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
   });
 

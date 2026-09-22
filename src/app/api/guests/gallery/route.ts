@@ -44,8 +44,15 @@ export const dynamic = "force-dynamic";
  * the steady-state poll costs one rows query and ~0 bytes. SECURITY: the access level AND the gate
  * are part of the fingerprint -- an ETag can never validate across either (red-teamed). The
  * not-found/private early return deliberately carries NO ETag (it must never 304-validate a real
- * payload). ★ A 304 CARRIES THE COOKIE TOO: `new Response(null, { status: 304 })` with no headers
- * would drop a heal on the one response the steady-state poll almost always gets.
+ * payload). ★ A PENDING HEAL NEVER GETS A 304 (DEFECT 2, the door red-team's follow-up,
+ * `door-fixes`, 2026-09-21): this route used to believe its own `Set-Cookie` rode a
+ * `new Response(null, { status: 304, headers })` just fine, and `gallery/route.test.ts` pinned
+ * exactly that — but Vercel's edge strips `Set-Cookie` from a 304 IN TRANSIT (confirmed on the
+ * alias: a matching validator answered 304 with every other header intact and none), so a heal
+ * riding the one response the steady-state poll almost always gets never reached the browser at
+ * all. While `bodyToken` differs from the cookie this always answers 200 with the real payload —
+ * one extra full response per device per sixty days — and only a validator match with NO heal
+ * pending still 304s.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -138,13 +145,17 @@ export async function POST(request: Request) {
      for a known uncontributed one, so "did it resolve" is not observable here, and writing a
      well-formed token that resolves to nothing costs exactly nothing (every consumer looks it up).
      A token that is not 64 hex never gets this far. */
+  let healPending = false;
   if (bodyToken && bodyToken !== cookieToken) {
+    healPending = true;
     const write = guestSessionCookieWrite(event.data.id, bodyToken);
     if (write) headers.append("Set-Cookie", guestCookieHeaderValue(write));
   }
 
-  // Exact-match only (our poll client is the sole caller; no weak/list parsing).
-  if (request.headers.get("if-none-match") === etag) {
+  // Exact-match only (our poll client is the sole caller; no weak/list parsing). ★ NEVER while a
+  // heal is pending (DEFECT 2): Vercel drops Set-Cookie from a 304 in transit, so the one response
+  // that would carry it has to be a 200 instead, every time, until the cookie is confirmed written.
+  if (!healPending && request.headers.get("if-none-match") === etag) {
     return new Response(null, { status: 304, headers });
   }
 

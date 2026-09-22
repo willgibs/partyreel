@@ -36,7 +36,6 @@ function mount(props?: Partial<React.ComponentProps<typeof UploadStep>>) {
   const onContinueWithout = vi.fn();
   const utils = render(
     <UploadStep
-      hostName="Maya"
       isDemo={false}
       requireUpload={false}
       albumEmpty={false}
@@ -102,13 +101,15 @@ describe("the refusal ladder", () => {
 });
 
 describe("the step's one sentence", () => {
-  it("is the whole difference between the two switch states", () => {
-    const base = { isDemo: false, albumEmpty: false, hostName: "Maya" };
+  it("is the whole difference between the two switch states, and ON never names the host", () => {
+    const base = { isDemo: false, albumEmpty: false };
     expect(uploadStepReason({ ...base, requireUpload: false })).toBe(
       "Add one now and the album opens.",
     );
+    // ★ Will, "the door's first look", 2026-09-21: "let's simply say 'The host has asked...'
+    // to account for long host names breaking good design." No hostName input any more.
     expect(uploadStepReason({ ...base, requireUpload: true })).toBe(
-      "Maya asked everyone to add a photo before the album opens.",
+      "The host has asked everyone to add a photo before the album opens.",
     );
     // An empty album is the same ask worded for the first guest through the door.
     expect(

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1165 contracts on 158 components · 15 standing boards.**
+**22 laws · 18 policies · 1170 contracts on 158 components · 15 standing boards.**
 
 ## What binds you
 
@@ -391,11 +391,11 @@ Contracted but outside the library's directories:
 - `src/components/guest/guest-header.tsx` (6 guards)
 - `src/components/guest/guest-masonry.tsx` (5 guards)
 - `src/components/guest/guest-name-menu.tsx` (6 guards)
-- `src/components/guest/guest-name-step.tsx` (35 guards)
+- `src/components/guest/guest-name-step.tsx` (37 guards)
 - `src/components/guest/guest-upload.tsx` (28 guards)
-- `src/components/guest/live-gallery.tsx` (20 guards)
+- `src/components/guest/live-gallery.tsx` (23 guards)
 - `src/components/guest/save-account-prompt.tsx` (5 guards)
-- `src/components/guest/upload-step.tsx` (46 guards)
+- `src/components/guest/upload-step.tsx` (48 guards)
 - `src/components/guest/upload/failure-sheet.tsx` (6 guards)
 - `src/components/guest/upload/intent-sheet.tsx` (9 guards)
 - `src/components/guest/upload/review-step.tsx` (9 guards)

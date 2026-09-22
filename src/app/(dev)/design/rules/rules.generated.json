@@ -4734,20 +4734,36 @@
           "line": 246
         },
         {
+          "title": "shows the role welcome even when this browser's flag already says seen",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 256
+        },
+        {
+          "title": "Continue, then Look around, persists nothing: the NEXT mount is fresh too",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 262
+        },
+        {
           "title": "OFF: offers the ghost skip, which drops the step",
           "suite": [
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 254
+          "line": 278
         },
         {
-          "title": "ON: there is no skip at all, and the line names the host",
+          "title": "ON: there is no skip at all, and the line leaves the host unnamed (his 23:46 override)",
           "suite": [
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 263
+          "line": 287
         },
         {
           "title": "an empty album says so instead of counting a queue",
@@ -4755,7 +4771,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 280
+          "line": 310
         },
         {
           "title": "the inputs live INSIDE the open sheet, so Safari's synchronous click reaches them",
@@ -4763,7 +4779,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 294
+          "line": 324
         },
         {
           "title": "Send hands the picks to the page's queue, never to a queue of its own",
@@ -4771,7 +4787,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 302
+          "line": 332
         },
         {
           "title": "THE FAIL-OPEN is the server's: an unfixable run offers a refresh, never a local skip",
@@ -4779,7 +4795,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 315
+          "line": 345
         },
         {
           "title": "a fixable run keeps its Retry and never offers the fail-open",
@@ -4787,7 +4803,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 345
+          "line": 375
         },
         {
           "title": "join mode POSTs the qr_token AND the name, and hands the token up",
@@ -4795,7 +4811,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 366
+          "line": 396
         },
         {
           "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
@@ -4803,7 +4819,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 398
+          "line": 428
         },
         {
           "title": "the email step says whose name wins once a name is held",
@@ -4811,7 +4827,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 413
+          "line": 443
         },
         {
           "title": "PROFILE mode writes the account's own name, not a guest row",
@@ -4819,7 +4835,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 428
+          "line": 458
         },
         {
           "title": "refuses a reserved name IN PLACE, before anything is sent",
@@ -4827,7 +4843,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 447
+          "line": 477
         },
         {
           "title": "edit mode renames the row this device holds, and never mints a second one",
@@ -4835,7 +4851,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 460
+          "line": 490
         },
         {
           "title": "claims, then joins, then writes the held name, then refreshes",
@@ -4843,7 +4859,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 482
+          "line": 512
         },
         {
           "title": "an account that already has a name keeps it: the typed one is not written",
@@ -4851,7 +4867,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 520
+          "line": 550
         },
         {
           "title": "the success hold is dismissal-proof and plays the beat",
@@ -4859,15 +4875,15 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 545
+          "line": 575
         },
         {
-          "title": "a step's chevron re-shows the welcome and returns without touching the machine",
+          "title": "a step's chevron re-shows the welcome, whose own primary always reads \"Continue\" (his 23:46 override), and returns without touching the machine",
           "suite": [
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 559
+          "line": 589
         },
         {
           "title": "the upload step goes back to the NAME, the step it followed",
@@ -4875,7 +4891,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 570
+          "line": 607
         },
         {
           "title": "no chevron on the welcome itself",
@@ -4883,7 +4899,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 577
+          "line": 614
         }
       ]
     },
@@ -5139,7 +5155,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 154
+          "line": 208
         },
         {
           "title": "adds Showing once the guest owns something, the count inside Yours' own label",
@@ -5147,7 +5163,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 159
+          "line": 213
         },
         {
           "title": "Showing's value follows the live intent, never a stale snapshot",
@@ -5155,7 +5171,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 168
+          "line": 222
         },
         {
           "title": "routes Showing's onChange to setShowingMine as a boolean, never the raw string",
@@ -5163,7 +5179,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 177
+          "line": 231
         },
         {
           "title": "reserves Tile size below 640 rather than removing it",
@@ -5171,7 +5187,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 188
+          "line": 242
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5179,7 +5195,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 194
+          "line": 248
         },
         {
           "title": "routes Tile size's onChange to setTileSize as a number, never the raw string",
@@ -5187,7 +5203,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 200
+          "line": 254
         },
         {
           "title": "paints --album-column from the server-resolved initialTileSize on first render",
@@ -5195,7 +5211,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 209
+          "line": 263
         },
         {
           "title": "falls back to the wired default when the cookie was missing",
@@ -5203,7 +5219,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 215
+          "line": 269
         },
         {
           "title": "checks the matching option in the View menu, never just the CSS",
@@ -5211,7 +5227,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 221
+          "line": 275
         },
         {
           "title": "omits Showing when the guest owns nothing on the album",
@@ -5219,7 +5235,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 233
+          "line": 287
         },
         {
           "title": "adds Showing, with the owned count in Yours, once something is theirs",
@@ -5227,7 +5243,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 240
+          "line": 294
         },
         {
           "title": "disables the group with the Wider screens hint under 640",
@@ -5235,7 +5251,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 253
+          "line": 307
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5243,7 +5259,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 265
+          "line": 319
         },
         {
           "title": "reports the true approvedTotal to the header, and the CTA counts the same album",
@@ -5251,7 +5267,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 290
+          "line": 344
         },
         {
           "title": "falls back to the photo-only teaserTotal when approvedTotal is not passed",
@@ -5259,7 +5275,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 304
+          "line": 358
         },
         {
           "title": "falls to the account line once nothing more exists beyond what loaded",
@@ -5267,7 +5283,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 313
+          "line": 367
         },
         {
           "title": "says one photo in the singular",
@@ -5275,7 +5291,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 322
+          "line": 376
         },
         {
           "title": "patches only the caller's own items, leaving everyone else's alone, no network call",
@@ -5283,7 +5299,7 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 343
+          "line": 397
         },
         {
           "title": "does nothing when this device owns nothing on the album",
@@ -5291,7 +5307,31 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 362
+          "line": 416
+        },
+        {
+          "title": "holds a full gallery's items and count against a narrower teaser poll, firing the drift once",
+          "suite": [
+            "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 446
+        },
+        {
+          "title": "applies at once when a teaser gallery polls into a fuller decision, firing the drift once",
+          "suite": [
+            "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 483
+        },
+        {
+          "title": "a fresh mount at a new access prop shows exactly that payload (the shell's own key={access} remount)",
+          "suite": [
+            "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 509
         }
       ]
     },
@@ -5484,20 +5524,36 @@
           "line": 246
         },
         {
+          "title": "shows the role welcome even when this browser's flag already says seen",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 256
+        },
+        {
+          "title": "Continue, then Look around, persists nothing: the NEXT mount is fresh too",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 262
+        },
+        {
           "title": "OFF: offers the ghost skip, which drops the step",
           "suite": [
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 254
+          "line": 278
         },
         {
-          "title": "ON: there is no skip at all, and the line names the host",
+          "title": "ON: there is no skip at all, and the line leaves the host unnamed (his 23:46 override)",
           "suite": [
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 263
+          "line": 287
         },
         {
           "title": "an empty album says so instead of counting a queue",
@@ -5505,7 +5561,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 280
+          "line": 310
         },
         {
           "title": "the inputs live INSIDE the open sheet, so Safari's synchronous click reaches them",
@@ -5513,7 +5569,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 294
+          "line": 324
         },
         {
           "title": "Send hands the picks to the page's queue, never to a queue of its own",
@@ -5521,7 +5577,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 302
+          "line": 332
         },
         {
           "title": "THE FAIL-OPEN is the server's: an unfixable run offers a refresh, never a local skip",
@@ -5529,7 +5585,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 315
+          "line": 345
         },
         {
           "title": "a fixable run keeps its Retry and never offers the fail-open",
@@ -5537,7 +5593,7 @@
             "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 345
+          "line": 375
         },
         {
           "title": "join mode POSTs the qr_token AND the name, and hands the token up",
@@ -5545,7 +5601,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 366
+          "line": 396
         },
         {
           "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
@@ -5553,7 +5609,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 398
+          "line": 428
         },
         {
           "title": "the email step says whose name wins once a name is held",
@@ -5561,7 +5617,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 413
+          "line": 443
         },
         {
           "title": "PROFILE mode writes the account's own name, not a guest row",
@@ -5569,7 +5625,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 428
+          "line": 458
         },
         {
           "title": "refuses a reserved name IN PLACE, before anything is sent",
@@ -5577,7 +5633,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 447
+          "line": 477
         },
         {
           "title": "edit mode renames the row this device holds, and never mints a second one",
@@ -5585,7 +5641,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 460
+          "line": 490
         },
         {
           "title": "claims, then joins, then writes the held name, then refreshes",
@@ -5593,7 +5649,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 482
+          "line": 512
         },
         {
           "title": "an account that already has a name keeps it: the typed one is not written",
@@ -5601,7 +5657,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 520
+          "line": 550
         },
         {
           "title": "the success hold is dismissal-proof and plays the beat",
@@ -5609,15 +5665,15 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 545
+          "line": 575
         },
         {
-          "title": "a step's chevron re-shows the welcome and returns without touching the machine",
+          "title": "a step's chevron re-shows the welcome, whose own primary always reads \"Continue\" (his 23:46 override), and returns without touching the machine",
           "suite": [
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 559
+          "line": 589
         },
         {
           "title": "the upload step goes back to the NAME, the step it followed",
@@ -5625,7 +5681,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 570
+          "line": 607
         },
         {
           "title": "no chevron on the welcome itself",
@@ -5633,7 +5689,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 577
+          "line": 614
         },
         {
           "title": "routes the four classes the step can act on",
@@ -5641,7 +5697,7 @@
             "the refusal ladder"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 55
+          "line": 54
         },
         {
           "title": "a RUN is only unfixable when EVERY refusal in it is",
@@ -5649,15 +5705,15 @@
             "the refusal ladder"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 79
+          "line": 78
         },
         {
-          "title": "is the whole difference between the two switch states",
+          "title": "is the whole difference between the two switch states, and ON never names the host",
           "suite": [
             "the step's one sentence"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 105
+          "line": 104
         },
         {
           "title": "offers the two named acts, and Send hands the picks up",
@@ -5665,7 +5721,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 125
+          "line": 126
         },
         {
           "title": "shows a progress strip per pick while a run is going, and no picker",
@@ -5673,7 +5729,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 139
+          "line": 140
         },
         {
           "title": "the OFF skip is offered once, and never ON",
@@ -5681,7 +5737,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 153
+          "line": 154
         },
         {
           "title": "the demo's skip says Look around",
@@ -5689,7 +5745,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 164
+          "line": 165
         },
         {
           "title": "THE FAIL-OPEN: an unfixable run shows the server's own sentence and refreshes",
@@ -5697,7 +5753,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 171
+          "line": 172
         },
         {
           "title": "the failure view never carries the soft skip, even OFF",
@@ -5705,7 +5761,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 185
+          "line": 186
         },
         {
           "title": "a file the guest can do nothing about offers another file, never a Retry",
@@ -5713,7 +5769,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 195
+          "line": 196
         },
         {
           "title": "Choose other photos drops the failures so the next pass starts clean",
@@ -5721,7 +5777,7 @@
             "the surface"
           ],
           "file": "src/components/guest/upload-step.test.tsx",
-          "line": 209
+          "line": 210
         }
       ]
     },

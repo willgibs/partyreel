@@ -184,7 +184,9 @@ export const EntryModal = forwardRef<
   ref,
 ) {
   const router = useRouter();
-  const [seen, markSeen] = useWelcomeSeen(qrToken);
+  // The demo never persists "seen" (the door's first look, 2026-09-21): every visit is fresh,
+  // even a returning one, so the hook itself is told which visitor this is.
+  const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo);
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
   // the only free surface here (see the handle's comment).
   const [editOpen, setEditOpen] = useState(false);
@@ -494,7 +496,6 @@ export const EntryModal = forwardRef<
       isDemo,
       requireUpload,
       albumEmpty,
-      hostName: hostName?.trim() || "The host",
     }),
   });
 
@@ -529,9 +530,6 @@ export const EntryModal = forwardRef<
               hostAvatarUrl={hostAvatarUrl}
               hostSeed={hostSeed}
               mediaTotal={mediaTotal}
-              continueLabel={
-                current === "password" ? "Back to the password" : "Back"
-              }
               onContinue={() => {
                 setDirection("fwd");
                 setBackView(null);
@@ -614,7 +612,6 @@ export const EntryModal = forwardRef<
           {displayKey === "upload" && (
             <div className="pt-7">
               <UploadStep
-                hostName={hostName?.trim() || "The host"}
                 isDemo={isDemo}
                 requireUpload={requireUpload}
                 albumEmpty={albumEmpty}
@@ -625,13 +622,15 @@ export const EntryModal = forwardRef<
                 onDismiss={onDismissFailures}
                 /* ★ THE SKIP EXISTS ONLY IN THE OFF STATE, and it is a GHOST: a host who did not
                    ask for a photograph is not owed one, and a guest who came for the album gets
-                   it. ON there is no skip at all, which is the switch's whole meaning. */
+                   it. ON there is no skip at all, which is the switch's whole meaning. Never
+                   marks the welcome seen (the demo's own hook already never persists it, "the
+                   door's first look", 2026-09-21) — this used to call markSeen() for the demo
+                   specifically, which is exactly the "returning" state Will overruled. */
                 onSkip={
                   requireUpload
                     ? undefined
                     : () => {
                         setSkipped(true);
-                        if (isDemo) markSeen();
                       }
                 }
                 onContinueWithout={() => router.refresh()}
@@ -765,6 +764,14 @@ function SuccessStep({
 // "Including 'just browsing' defeats this entire purpose of using the album to justify the name or
 // email friction."
 //
+// ★ STILL "CONTINUE" ON A REVISIT, NEVER "BACK" (Will, 2026-09-21, "the door's first look",
+// overruling a `door-steps` call that read "Back"/"Back to the password" here): "Don't make back
+// bidirectional. Keep 'Continue' for users to resume forward navigation clearly... Everyone is
+// super comfortable with a 'back/continue' working the same as 'prev/next'." The chevron that
+// brought the guest back to re-read this (its own aria-label: "Back to the welcome") is the one
+// place "back" belongs; this button only ever moves forward again, so it only ever says so. There
+// is no `continueLabel` prop any more — one button, one word, whichever step is behind it.
+//
 // The whole block staggers in on mount.
 function WelcomeStep({
   eventName,
@@ -773,7 +780,6 @@ function WelcomeStep({
   hostAvatarUrl,
   hostSeed,
   mediaTotal,
-  continueLabel,
   onContinue,
 }: {
   eventName: string;
@@ -782,8 +788,6 @@ function WelcomeStep({
   hostAvatarUrl?: string | null;
   hostSeed?: string | null;
   mediaTotal?: number;
-  /** Override for the review view ("Back to the password"). */
-  continueLabel?: string;
   onContinue: () => void;
 }) {
   const host = hostName?.trim();
@@ -847,7 +851,7 @@ function WelcomeStep({
 
       <div className="mt-auto flex flex-col gap-1">
         <Button onClick={onContinue} size="cta" className="w-full">
-          {continueLabel ?? "Continue"}
+          Continue
         </Button>
         {/* The acceptance line rides the door every guest passes once (the
             legal round's ruling); links open in a new tab so the sheet the
