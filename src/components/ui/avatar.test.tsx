@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./avatar"
  * THE AVATAR'S CONTRACT: the disc clips exactly once, on the root, and
  * nothing inside it draws a radius of its own.
  *
- * ★ THE BUG THIS GUARDS (Will, rulings.md, the sixth batch, `seed-avatar` r1):
+ * ★ THE BUG THIS GUARDS (Will, the sixth batch, `seed-avatar` r1):
  * "the avatar doesn't fully fill its container, and you can see horizontal
  * edges within" and, separately, "reveals the color underneath the
  * photograph on the edges" — both were the SAME cause. The root carried

@@ -1,5 +1,5 @@
 /**
- * THE DOOR, AS AN ITINERARY (Will, 2026-09-21, rulings.md "the door as three steps").
+ * THE DOOR, AS AN ITINERARY (Will, 2026-09-21, "the door as three steps").
  *
  * Pure step-derivation for the guest entry sheet (`entry-modal.tsx`). Kept separate + pure so it is
  * unit-testable and has no client/server imports.

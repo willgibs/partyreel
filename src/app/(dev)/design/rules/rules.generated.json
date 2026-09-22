@@ -73,7 +73,7 @@
             "the name gate's one function"
           ],
           "file": "src/app/(app)/name-gate.test.ts",
-          "line": 45
+          "line": 44
         },
         {
           "title": "reads the request-cached, cache()-wrapped getProfile(), never the header's getProfileMenu()",
@@ -81,7 +81,7 @@
             "the name gate's one function"
           ],
           "file": "src/app/(app)/name-gate.test.ts",
-          "line": 53
+          "line": 52
         },
         {
           "title": "found more than just /welcome to check (a canary for the scan itself)",
@@ -89,7 +89,7 @@
             "every (app) route but /welcome gates on it"
           ],
           "file": "src/app/(app)/name-gate.test.ts",
-          "line": 71
+          "line": 70
         },
         {
           "title": "/{dir} has a layout.tsx that calls requireNamedProfile()",
@@ -97,7 +97,7 @@
             "every (app) route but /welcome gates on it"
           ],
           "file": "src/app/(app)/name-gate.test.ts",
-          "line": 77
+          "line": 76
         },
         {
           "title": "no file under welcome/ imports requireNamedProfile (no redirect loop)",
@@ -105,7 +105,7 @@
             "/welcome never gates itself"
           ],
           "file": "src/app/(app)/name-gate.test.ts",
-          "line": 94
+          "line": 93
         }
       ]
     },

@@ -17,7 +17,7 @@
  *
  * ★ NO ENTRY CARRIES A CREDIT LINE, and the type has no field for one, so none can come back with
  * the generated set. An image on the site is one we hold the rights to, and no agent tracks
- * subjects, sources or permissions (Will, 2026-09-17, docs/design/rulings.md).
+ * subjects, sources or permissions (Will, 2026-09-17).
  */
 
 export type MarketingOrientation = "landscape" | "portrait";

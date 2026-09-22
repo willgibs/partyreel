@@ -148,7 +148,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: "ruling",
     badge: "RULING",
-    line: "What Will said, verbatim and dated (rulings.md, the record).",
+    line: "What Will said, verbatim and dated.",
     binds:
       "No; history. When a ruling and the bible disagree, the bible is wrong and that is a finding.",
     weight: "informs",
@@ -383,9 +383,8 @@ function proposalInfluences(): Influence[] {
 }
 
 /**
- * RULING: two halves that used to live apart. Will's dated words
- * (`rulings.md`, which until this round lived only in memory files a worktree
- * cannot see) and the board record's line per decided touchpoint.
+ * RULING: two halves combined. Will's dated words and the board record's
+ * line per decided touchpoint.
  */
 function rulingInfluences(): Influence[] {
   const spoken: Influence[] = listRulings().map((h) => {

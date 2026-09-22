@@ -131,9 +131,8 @@ export default async function TracksPage({
         </Section>
       )}
 
-      {/* An integrated track has no manifest: it is deleted in the merge commit
-          (the revamp, 2026-09-16), its Record folded into the CHANGELOG, and git
-          keeps the file. */}
+      {/* An integrated track has no manifest: it is deleted in the merge commit,
+          whose message carries its Record, and git keeps the file. */}
       <Pager />
     </div>
   );

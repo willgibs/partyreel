@@ -5,8 +5,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * WHAT A PERSON IS ON PARTYREEL, ROUND TWO: THE THREE HE LEFT OPEN
  * (2026-09-19).
  *
- * Round one answered whole (docs/reviews/profile-page.json; verbatim in
- * docs/design/rulings.md, the fourth batch): whether a person has a page,
+ * Round one answered whole (docs/reviews/profile-page.json; the fourth
+ * batch, verbatim): whether a person has a page,
  * what stands above it, what fills it, what its top says, block, who is
  * named, the claim, and the closed shape of a big guest list (`list=faces`).
  * `profile-wiring` lands all eight on the real profile and guest list at this

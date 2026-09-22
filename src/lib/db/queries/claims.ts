@@ -1,6 +1,6 @@
 /**
- * The claim ticket's data (the guest identity round, 2026-09-22; rulings.md
- * "guest identity: name only, unconfirmed email, verified account"). A guest
+ * The claim ticket's data (the guest identity round, 2026-09-22; "guest
+ * identity: name only, unconfirmed email, verified account"). A guest
  * who typed an email at a names-mode door left it unconfirmed and inert
  * (guests.pending_email); once the CALLER confirms that same address on their
  * own account, this is what tells the dashboard which of their past rows are

@@ -3,8 +3,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 /**
- * `profiles.id` -> the seed every avatar surface paints (docs/design/rulings.md,
- * the sixth batch, `seed=account`). SHA-256, hex, SERVER-ONLY.
+ * `profiles.id` -> the seed every avatar surface paints (the sixth batch,
+ * `seed=account`). SHA-256, hex, SERVER-ONLY.
  *
  * ★ WHY A HASH, AND WHY EVERY SURFACE GOES THROUGH IT. A raw account id must
  * never reach a browser that does not already hold it — the guest "Hosted by"

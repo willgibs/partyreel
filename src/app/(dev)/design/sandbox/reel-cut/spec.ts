@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * FROM THE REEL TO A CUT (round one, 2026-09-22): the creator.
  *
- * A NEW BOARD, wave 2 of THE REEL ROUND (docs/design/rulings.md, "the reel,
+ * A NEW BOARD, wave 2 of THE REEL ROUND ("the reel,
  * reconceived", every sentence his). The reel is now the event's: alive from
  * the third item, no host action, no file. A CUT is yours: from the reel,
  * anyone with album access taps "Make your own", picks moments, one of the
