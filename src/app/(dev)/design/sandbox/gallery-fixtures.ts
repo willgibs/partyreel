@@ -55,6 +55,7 @@ export const HOST_EVENT: HostEvent = {
   accepting_uploads: true,
   allow_anonymous_uploads: false,
   require_verified_email: true, // the identity reshape's twin (the legacy flag's opposite), patched at wave 0's merge
+  require_upload_to_view: false, // the door ruling's switch (2026-09-21), off by default; patched at its wave 0
   max_upload_bytes: null,
   moderation_mode: "hold_for_approval",
   qr_style: "classic",

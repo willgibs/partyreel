@@ -181,6 +181,7 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          require_upload_to_view: boolean
           require_verified_email: boolean
           show_guest_list: boolean
           updated_at: string
@@ -204,6 +205,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
           updated_at?: string
@@ -227,6 +229,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
           updated_at?: string
@@ -1410,6 +1413,7 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
+          require_upload_to_view: boolean
           require_verified_email: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
@@ -1509,6 +1513,14 @@ export type Database = {
         Args: {
           p_session_token: string
           p_type: Database["public"]["Enums"]["media_type"]
+        }
+        Returns: Json
+      }
+      get_upload_gate: {
+        Args: {
+          p_event_id: string
+          p_session_token?: string
+          p_user_id?: string
         }
         Returns: Json
       }

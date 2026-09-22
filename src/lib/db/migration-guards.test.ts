@@ -349,3 +349,50 @@ describe("guests.display_name is capped where the app caps a name", () => {
     expect(sql).not.toContain("drop constraint guests_display_name_len");
   });
 });
+
+describe("the door round, wave 0 — Require an upload to view", () => {
+  // The switch (Will, 2026-09-21, rulings.md "the door as three steps"): a genuinely new flag with
+  // no legacy twin, off by default, free on every tier; the gate it drives is enforced by the
+  // gallery access resolver through one service-role read.
+  it("the column joins the column-locked host grant by a bare additive grant", () => {
+    const sql = collapse(allMigrations());
+    expect(sql).toContain(
+      "grant insert (require_upload_to_view), update (require_upload_to_view) on public.events to authenticated;",
+    );
+  });
+
+  it("get_event_by_qr_token returns the switch beside its sibling and keeps its client grant", () => {
+    const { body, file } = latestDefinition("get_event_by_qr_token");
+    expect(body).toContain("require_verified_email boolean, require_upload_to_view boolean,");
+    expect(body).toContain("e.require_verified_email, e.require_upload_to_view,");
+    expect(file).toContain(
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+    );
+  });
+
+  it("get_upload_gate is service-role only, punches the ticket once and mirrors the presign's caps", () => {
+    const { body, file } = latestDefinition("get_upload_gate");
+    expect(file).toContain(
+      "revoke all on function public.get_upload_gate(uuid, text, uuid) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.get_upload_gate(uuid, text, uuid) to service_role;",
+    );
+    // The token arm is the delete RPC's guard; the account arm is the server-verified id.
+    expect(body).toContain("g.session_token = p_session_token and g.user_id is null");
+    expect(body).toContain("p_user_id is not null and g.user_id = p_user_id");
+    // ★ Punched once: no status filter, so neither a hide nor a removal re-closes the gate.
+    expect(body).not.toContain("m.status");
+    // ★ The fail-open pair is exactly what the presign refuses `cap_reached` on: both cap
+    // expressions must read the same in both functions, or a guest could be held at a step the
+    // presign would refuse anyway.
+    const ctx = latestDefinition("get_upload_context").body;
+    for (const expr of [
+      "public.host_active_bytes(v_event.host_id) >= v_cap + (v_cap / 10)",
+      "coalesce(v_month_bytes, 0) >= v_ingress_cap",
+    ]) {
+      expect(body).toContain(expr);
+      expect(ctx).toContain(expr);
+    }
+  });
+});
