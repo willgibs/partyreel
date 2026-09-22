@@ -59,6 +59,8 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   client. Never set tier from the client or the checkout route (checkout only creates/persists
   `stripe_customer_id` so events map back, and stamps credit metadata). These columns, `tier_expires_at`
   and `stripe_event_created_at` are never client-writable → [database-security.md](database-security.md).
+- **Stripe Checkout's `consent_collection` stays off.** The Terms consent line rides the account door
+  (`/login`) and the guest door's welcome step, so every paying host has met it before Checkout.
 - **The webhook MUST read `await req.text()`** for `getStripe().webhooks.constructEvent(body, sig, secret)`
   — `req.json()` mutates the bytes and the signature check fails. Bad/missing signature → 400.
   `runtime="nodejs"` + `dynamic="force-dynamic"`.
