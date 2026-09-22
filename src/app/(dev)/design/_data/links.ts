@@ -4,7 +4,7 @@ import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 
 /**
- * THE LAB'S LINK GRAMMAR (the Library x Lab round, 2026-09-15).
+ * THE LAB'S LINK GRAMMAR.
  *
  * The registries point at things with plain strings: a ruling's `lives[]`
  * ("docs/systems/design-system.md#the-shipped-light", "src/components/ui/button.tsx"),
@@ -55,8 +55,6 @@ export type LabRef =
   | { kind: "track"; name: string; anchor?: string }
   /** A policy test, by its file stem. */
   | { kind: "policy"; id: string }
-  /** docs/design/rulings.md#<slug> */
-  | { kind: "ruling"; slug: string }
   /** docs/design/guidance.md */
   | { kind: "guidance"; anchor?: string }
   /** A repo path with no lab page. */
@@ -84,7 +82,6 @@ export const DOC_FILES: Record<LabDoc, string> = {
  */
 export { POLICY_TESTS };
 
-const RULINGS_FILE = "docs/design/rulings.md";
 const GUIDANCE_FILE = "docs/design/guidance.md";
 const BIBLE_FILE = "src/app/(dev)/design/rules/bible.ts";
 const GITHUB_REPO = "https://github.com/willgibs/partyreel";
@@ -144,7 +141,6 @@ function splitFragment(text: string): [string, string | undefined] {
  *   /design/c/<id> · /design/lab/<id>    board, when <id> is a standing board; else page
  *   /…                                   page, as is
  *   the five doctrine files[#anchor]     doc
- *   docs/design/rulings.md#<slug>        ruling (the rulings page with no slug)
  *   docs/design/guidance.md[#anchor]     guidance
  *   docs/specs/<slug>.md[#anchor]        proposal
  *   docs/tracks/<name>.md[#anchor]       track
@@ -193,11 +189,6 @@ export function parseRef(input: string): LabRef {
 
   const doc = DOC_BY_FILE.get(path);
   if (doc) return anchored({ kind: "doc", doc }, fragment);
-
-  if (path === RULINGS_FILE)
-    return fragment
-      ? { kind: "ruling", slug: fragment }
-      : { kind: "page", href: "/design/library/rulings" };
 
   if (path === GUIDANCE_FILE) return anchored({ kind: "guidance" }, fragment);
 
@@ -258,8 +249,6 @@ export function hrefFor(ref: LabRef): string | null {
       return `/design/lab/tracks/${ref.name}${hash(ref.anchor)}`;
     case "policy":
       return `/design/library/policies#${ref.id}`;
-    case "ruling":
-      return `/design/library/rulings#${ref.slug}`;
     case "guidance":
       return `/design/library/guidance${hash(ref.anchor)}`;
     case "page":
@@ -294,8 +283,6 @@ export function labelFor(ref: LabRef): string {
       return `lp/${ref.name}${hash(ref.anchor)}`;
     case "policy":
       return `policy ${ref.id}`;
-    case "ruling":
-      return `ruling ${ref.slug}`;
     case "guidance":
       return `guidance${hash(ref.anchor)}`;
     case "source":
@@ -315,8 +302,8 @@ export function fileFor(ref: LabRef): string | null {
     case "component":
       return COMPONENT_BY_ID.get(ref.id) ?? null;
     case "board":
-      // A standing board's page IS its file set (sandbox/<id>/); its ruling
-      // is verbatim in docs/design/rulings.md, so the board ref has no single file.
+      // A standing board's page IS its file set (sandbox/<id>/), so the board
+      // ref has no single file.
       return null;
     case "doc":
       return DOC_FILES[ref.doc];
@@ -326,8 +313,6 @@ export function fileFor(ref: LabRef): string | null {
       return `docs/tracks/${ref.name}.md`;
     case "policy":
       return POLICY_TESTS[ref.id] ?? null;
-    case "ruling":
-      return RULINGS_FILE;
     case "guidance":
       return GUIDANCE_FILE;
     case "source":
@@ -341,8 +326,8 @@ export function fileFor(ref: LabRef): string | null {
 /**
  * The kinds whose GitHub blob is worth offering: the ones whose lab page
  * renders a file a reader may want to edit or cite at a line. A rule, a
- * component, a record entry, a ruling and the guidance have a lab page that is
- * the better destination, and that page carries its own source link.
+ * component and the guidance have a lab page that is the better destination,
+ * and that page carries its own source link.
  */
 const GITHUB_KINDS = new Set<LabRefKind>([
   "source",

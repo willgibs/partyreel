@@ -20,10 +20,12 @@ import { describe, expect, it } from "vitest";
 const DIR = join(process.cwd(), "docs", "tracks");
 const STATUSES = ["open", "handed-off", "integrated"];
 // Nobody claims these: the Orchestrator alone edits them (CLAUDE.md "Git").
-// The Orchestrator's records and the generated types: no track claims them. `docs/ROADMAP.md` and
-// `docs/ASSETS.md` are released to the reshape's `roadmap-lean` lane and return here at its merge.
+// The Orchestrator's records and the generated types: no track claims them (one is released to a lane only
+// when that doc is the lane's whole job, and returns here at its merge).
 const NEVER_OWNED = [
   "docs/STATUS.md",
+  "docs/ROADMAP.md",
+  "docs/ASSETS.md",
   "docs/PROGRAM.md",
   "CLAUDE.md",
   "AGENTS.md",
