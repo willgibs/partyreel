@@ -187,40 +187,33 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-**STATE (checkpoint, mid-handoff):** the board is fully built and gated green (typecheck, lint at the 9-known
-baseline, test at 3784 passed, build at 258 pages, `lab:smoke` 460 checks, `lab:demo --board reel-front` 7 steps all
-`ok`), synced past `origin/launch-prep` (merge `2f920be6`, conflicts resolved keeping both sides' registration
-lines), and two real defects found by the gate itself are fixed (a `hub` "same picture" collision under reduced
-motion, a `react-hooks/set-state-in-effect` lint error, a `display: contents` measurement bug). This WIP commit adds
-one more pass: every em-dash in the board's own comments and this manifest swapped for a colon/semicolon, matching
-the codebase's own house style (not gate-enforced for comments, but consistent with every production file read while
-building). NEXT: re-run the full gate once more after this commit (typecheck/lint/test/build should be unaffected,
-comment-only changes, but confirm), then finish this Handoff section (it already has the real content below; only
-this STATE line and the final chat report remain), commit the manifest alone, push, and report "handed off at
-<sha>". Nothing structural is left; if a fresh agent adopts this, start at the gate re-run.
-
-- Board commit `5c9474c2` (the seven-ask board, `reel-front/` new); sync-merge `2f920be6` (`origin/launch-prep`,
-  32 commits: `reel-view`, the `identity-*` boards, `reel-engine-video`, all merged with the touchpoints/registry/boards.ts
-  registration conflicts resolved by keeping both sides' lines) then `7d6d7bb7` (`docs/design/library.md` regenerated
-  on the synced tree, since a hand-resolved count is not the generator's own count); pushed. Head not named here by design
-  (Program.md): the chat report's own line carries it.
+- Board commit `5c9474c2` (the seven-ask board, `reel-front/` new). Two syncs past `origin/launch-prep` while
+  building: first `2f920be6` (`reel-view`, the `identity-*` boards, `reel-engine-video`; the touchpoints/registry/
+  boards.ts registration conflicts resolved by keeping both sides' lines) then `7d6d7bb7` (`library.md` regenerated);
+  the app was restarted for a model update between sessions (every process killed, nothing uncommitted lost) and a
+  second sync followed, `cfba86ed` (`reel-screen`, `reel-engine-live`; a clean auto-merge, no conflicts) then
+  `ecec394a` (`library.md` regenerated again, 20 standing boards). Pushed throughout, including a `wip:` checkpoint
+  (`8fcc9c4e`) at the coordinator's word right before the restart. Head not named here by design (Program.md): the
+  chat report's own line carries it.
 - Every claim below names its artifact, so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok (228 components, 1916 contracts, 19 standing
-  boards) · specimens ok (140 specimens on 101 entries) · `pnpm typecheck` ok · `pnpm lint` ok (9 known warnings, 0
-  errors, baseline unmoved, none in a file this lane touched) · `pnpm test` ok (3784 passed, 1 skipped, 345 files) ·
-  `pnpm build` ok (258 pages) · `pnpm lab:smoke --base http://localhost:3139` ok (460 checks, 0 failing) ·
-  `pnpm lab:demo --board reel-front --base http://localhost:3139` ok (7 steps, 0 failing, every option drawn: `tile`
-  moves up to 20.96%, `verbs` 1.25%, `states` 13.13%, `yours` 3.61%, `door` 73.70%, `closed` 68.93%, `hub` 4.36%; no
-  UNPAINTED, no "same picture": one of each was found and fixed mid-build, see below).
+- Gates on the fully synced tree (past `reel-screen` and `reel-engine-live`), each its own exit code: `pnpm
+  design:rules` ok (228 components, 1916 contracts, 20 standing boards) · specimens ok (140 specimens on 101 entries)
+  · `pnpm typecheck` ok · `pnpm lint` ok (9 known warnings, 0 errors, baseline unmoved, none in a file this lane
+  touched) · `pnpm test` ok (3867 passed, 1 skipped, 350 files) · `pnpm build` ok (259 pages) · `pnpm lab:smoke --base
+  http://localhost:3139` ok (469 checks, 0 failing) · `pnpm lab:demo --board reel-front --base http://localhost:3139`
+  ok (7 steps, 0 failing, every option drawn: `tile` moves up to 21.02%, `verbs` 1.25%, `states` 13.13%, `yours`
+  3.61%, `door` 73.70%, `closed` 68.93%, `hub` 4.36%; no UNPAINTED, no "same picture": one of each was found and
+  fixed mid-build, see below; numbers stable across both pre-restart and post-restart runs).
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/reel-front/*` (new, 7
   files) + `src/app/(dev)/design/touchpoints.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
   `src/app/(dev)/design/(shell)/lab/boards.ts` (the registration exception, this board's lines only) +
   `docs/design/library.md` (generated) + this manifest. Nothing else.
 - Registration: on the Orchestrator's mid-build correction, registered beside `guest-capture` in all four lists
-  (`RulingId`, `SandboxId`, `RULINGS`, `DESK_ORDER`) rather than at a shared head spot; the sync then found `reel-view`
-  and the `identity-*` chain had also landed beside neighbours of their own (`reel-view` after `media-viewer`,
-  `identity-door`/`claims`/`profile` after `guest-capture` too), so the two touchpoints.ts conflicts were resolved by
-  keeping every side's line (commit `2f920be6`).
+  (`RulingId`, `SandboxId`, `RULINGS`, `DESK_ORDER`) rather than at a shared head spot; the first sync then found
+  `reel-view` and the `identity-*` chain had also landed beside neighbours of their own (`reel-view` after
+  `media-viewer`, `identity-door`/`claims`/`profile` after `guest-capture` too), so the two touchpoints.ts conflicts
+  were resolved by keeping every side's line (commit `2f920be6`); the second sync (`cfba86ed`, past `reel-screen` and
+  `reel-engine-live`) auto-merged clean with no conflicts at all, since neither of those touched the same lines.
 - The items, one line each (recommended marked ★; every option is drawn on the board, this is the builder's read):
   - `tile`: ★ the engine, playing (thumb-mode crossfade of real engine frames, lazy after first paint); a slow
     no-engine crossfade of plain stills, and one framed still, are the cheaper alternatives, both drawn.
