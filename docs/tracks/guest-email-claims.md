@@ -20,6 +20,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - content/help/save-an-event-and-find-your-uploads.mdx
   - content/help/profiles-guest-lists-and-following.mdx
   - content/help/display-name-and-profile-photo.mdx
+  - content/help/your-public-profile-following-and-blocking.mdx
+  - content/help/messages-guests-might-see.mdx
   - docs/systems/profiles-social.md
   - docs/systems/host-app.md
 reads:                  # single-sources you depend on: never duplicate, never edit

@@ -14707,6 +14707,65 @@
       ]
     },
     {
+      "id": "attended-events-visibility",
+      "file": "src/components/social/attended-events-visibility.tsx",
+      "names": [
+        "AttendedEventsVisibility"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders the empty state, not a bare list",
+          "suite": [
+            "no attended events"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "an event nobody has shown renders unchecked",
+          "suite": [
+            "default OFF"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 54
+        },
+        {
+          "title": "an event already shown renders checked",
+          "suite": [
+            "default OFF"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 61
+        },
+        {
+          "title": "calls the publish action, never the release one",
+          "suite": [
+            "turning one on"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 70
+        },
+        {
+          "title": "reverts and toasts on failure",
+          "suite": [
+            "turning one on"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 84
+        },
+        {
+          "title": "calls the release action, and never removes the event from the list",
+          "suite": [
+            "turning one off"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 102
+        }
+      ]
+    },
+    {
       "id": "guest-list",
       "file": "src/components/social/guest-list.tsx",
       "names": [
@@ -16625,7 +16684,7 @@
             "signed out"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 54
+          "line": 59
         },
         {
           "title": "maps every field",
@@ -16633,7 +16692,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 62
+          "line": 67
         },
         {
           "title": "withholds nothing the RPC already withheld (a gated event's null date passes through)",
@@ -16641,7 +16700,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 77
+          "line": 82
         },
         {
           "title": "drops a blank or missing typed name rather than listing an empty string",
@@ -16649,7 +16708,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 83
+          "line": 88
         },
         {
           "title": "collapses into one entry: names collected, counts summed, the newer upload wins",
@@ -16657,7 +16716,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 91
+          "line": 96
         },
         {
           "title": "never lets a null last_upload_at from one row erase a real one from another",
@@ -16665,7 +16724,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 116
+          "line": 121
         },
         {
           "title": "dedupes an identical typed name across the group's rows",
@@ -16673,7 +16732,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 125
+          "line": 130
         },
         {
           "title": "keeps the RPC's own order (most recently active first)",
@@ -16681,7 +16740,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 136
+          "line": 141
         },
         {
           "title": "keeps a group's rank at its best-placed row, even when its second row arrives later",
@@ -16689,7 +16748,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 145
+          "line": 150
         },
         {
           "title": "throws rather than swallowing it",
@@ -16697,7 +16756,7 @@
             "a real error"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 159
+          "line": 164
         }
       ]
     },

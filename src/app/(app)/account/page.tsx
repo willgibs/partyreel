@@ -360,9 +360,9 @@ export default async function AccountPage({
               Events you joined
             </p>
             <p className="text-xs text-muted-foreground">
-              Choose which show on your profile. Turning one off here
-              doesn&rsquo;t remove you from that event&rsquo;s own guest list
-              (the host controls that).
+              Events you joined are private until you turn one on here.
+              Turning one off never removes you from that event&rsquo;s own
+              guest list (the host controls that).
             </p>
             <AttendedEventsVisibility events={attendedEvents} />
           </div>
