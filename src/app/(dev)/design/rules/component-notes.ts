@@ -359,6 +359,10 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the person's account: the Plan card that is billing's only door, then the profile, the handle, connections, password and the way out",
     unspecimened: "a route, not a component",
   },
+  "src/app/(app)/name-gate.ts": {
+    for: "the one function every (app) route but /welcome calls from its own layout.tsx: a nameless profile never renders a normal app page, only /welcome (name-gate, 2026-09-22)",
+    unspecimened: "a server-only redirect check, not a component",
+  },
   "src/components/social/guest-list.tsx": {
     for: "who added photographs to an album, on both the host's page and the guest's: names in chips until a party is big, then one row of faces that opens a page of names at a time",
   },
