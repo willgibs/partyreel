@@ -329,6 +329,46 @@ describe("the retains", () => {
     expect(s.stats().derived).toBe(8); // four stills, two looks
   });
 
+  it("★ never deadlocks the chain when a PREFETCHED window is thrown away", async () => {
+    // The stall behind two soaks: `slotAt` walks forward from the last slot it built, so releasing a
+    // prefetched window (which a splice or a look change does) used to leave that pointer on a slot
+    // that no longer existed. Every request then answered null, the prefetch could never refill, and
+    // the reel held one photograph for ever.
+    const { source: s } = source(album(60));
+    for (let i = 0; i <= 3; i++) {
+      const win = s.windowAt(i, LOOK)!;
+      expect(win, `window ${i} was not built`).toBeTruthy();
+      await s.prepare(win, { needs: NEEDS });
+    }
+    s.setCurrentWindow(1);
+
+    // What the player's dropAhead does: give the prefetched windows back.
+    s.release(3);
+    s.release(2);
+
+    // And the prefetch must be able to build them again, twice over.
+    for (let round = 0; round < 2; round++) {
+      const again = s.windowAt(2, LOOK);
+      expect(again, `round ${round}: the chain deadlocked at 2`).not.toBeNull();
+      const after = s.windowAt(3, LOOK);
+      expect(after, `round ${round}: the chain deadlocked at 3`).not.toBeNull();
+      expect(after!.ids[0]).toBe(again!.ids[again!.ids.length - 1]);
+      s.release(3);
+      s.release(2);
+    }
+  });
+
+  it("keeps building after the ordinary release-one-behind", async () => {
+    const { source: s } = source(album(60));
+    for (let i = 0; i < 12; i++) {
+      const win = s.windowAt(i, LOOK);
+      expect(win, `window ${i} was not built`).not.toBeNull();
+      await s.prepare(win!, { needs: NEEDS });
+      s.setCurrentWindow(i);
+      if (i >= 1) s.release(i - 1);
+    }
+  });
+
   it("dispose() gives every retain back", async () => {
     const { source: s, cache } = source(album(20));
     await s.prepare(s.windowAt(0, LOOK)!, { needs: NEEDS });

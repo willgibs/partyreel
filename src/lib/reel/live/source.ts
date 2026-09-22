@@ -259,6 +259,24 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     return cursor;
   }
 
+  /**
+   * ★ THE CHAIN FOLLOWS THE SLOTS IT ACTUALLY HAS. `slotAt` walks FORWARD from `lastBuilt`, so a
+   * `lastBuilt` pointing at a slot that has been released is a DEADLOCK: every request at or below
+   * its index answers null, nothing can ever be built again, and the player runs to the end of its
+   * window and holds one photograph for ever. It is exactly what a prefetched window being thrown
+   * away (a splice, a look change) does, and it is what stalled two soaks — once at 51 seconds and
+   * once at 24 — before anyone could see the cause. So every deletion re-points the chain at the
+   * highest slot that is still there.
+   */
+  function dropChainTo(index: number) {
+    if (!lastBuilt || lastBuilt.index !== index) return;
+    let highest: Slot | null = null;
+    for (const slot of slots.values()) {
+      if (!highest || slot.index > highest.index) highest = slot;
+    }
+    lastBuilt = highest;
+  }
+
   function takePending(): string[] {
     if (pending.length === 0) return [];
     const fresh = pending.filter(
@@ -589,6 +607,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       // The slot goes with the retain: `slotAt` only ever walks FORWARD (from `lastBuilt`), so a
       // released index is never asked for again and keeping it would grow all night.
       slots.delete(index);
+      dropChainTo(index);
       for (const key of [...windows.keys()]) {
         if (Number(key.split("~")[0]) === index) windows.delete(key);
       }
