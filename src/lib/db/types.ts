@@ -327,6 +327,8 @@ export type Database = {
           email: string | null
           event_id: string
           id: string
+          pending_email: string | null
+          pending_email_at: string | null
           session_token: string
           user_id: string | null
           verified_at: string | null
@@ -337,6 +339,8 @@ export type Database = {
           email?: string | null
           event_id: string
           id?: string
+          pending_email?: string | null
+          pending_email_at?: string | null
           session_token: string
           user_id?: string | null
           verified_at?: string | null
@@ -347,6 +351,8 @@ export type Database = {
           email?: string | null
           event_id?: string
           id?: string
+          pending_email?: string | null
+          pending_email_at?: string | null
           session_token?: string
           user_id?: string | null
           verified_at?: string | null
@@ -835,6 +841,39 @@ export type Database = {
           },
         ]
       }
+      profile_shown_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_shown_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_shown_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           announcements_seen_at: string | null
@@ -1190,6 +1229,7 @@ export type Database = {
           guest_display_name: string | null
           guest_email: string | null
           guest_id: string | null
+          guest_pending_email: string | null
           guest_user_id: string | null
           host_user_id: string | null
           id: string
@@ -1211,6 +1251,7 @@ export type Database = {
           guest_display_name?: string | null
           guest_email?: string | null
           guest_id?: string | null
+          guest_pending_email?: string | null
           guest_user_id?: string | null
           host_user_id?: string | null
           id?: string
@@ -1232,6 +1273,7 @@ export type Database = {
           guest_display_name?: string | null
           guest_email?: string | null
           guest_id?: string | null
+          guest_pending_email?: string | null
           guest_user_id?: string | null
           host_user_id?: string | null
           id?: string
@@ -1353,11 +1395,16 @@ export type Database = {
         Args: { p_session_tokens: string[] }
         Returns: number
       }
+      claim_guest_rows_by_email: {
+        Args: { p_event_ids?: string[] }
+        Returns: number
+      }
       clear_event_password: { Args: { p_event_id: string }; Returns: undefined }
       clear_event_slug: { Args: { p_event_id: string }; Returns: undefined }
       create_guest: {
         Args: {
           p_display_name?: string
+          p_pending_email?: string
           p_qr_token: string
           p_unlock_proven?: boolean
           p_user_id?: string
@@ -1396,6 +1443,10 @@ export type Database = {
       create_report: {
         Args: { p_media_id?: string; p_qr_token: string; p_reason?: string }
         Returns: Json
+      }
+      disown_guest_rows_by_email: {
+        Args: { p_event_ids: string[] }
+        Returns: number
       }
       follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
@@ -1527,6 +1578,19 @@ export type Database = {
       has_password: { Args: never; Returns: boolean }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
       like_media: { Args: { p_media_id: string }; Returns: Json }
+      list_guest_rows_by_email: {
+        Args: never
+        Returns: {
+          display_name: string
+          event_date: string
+          event_id: string
+          event_name: string
+          guest_id: string
+          last_upload_at: string
+          pending_email_at: string
+          upload_count: number
+        }[]
+      }
       mark_password_set: { Args: never; Returns: undefined }
       monthly_ingress_cap: {
         Args: {
@@ -1572,6 +1636,10 @@ export type Database = {
       }
       set_guest_display_name: {
         Args: { p_display_name: string; p_session_token: string }
+        Returns: Json
+      }
+      set_guest_pending_email: {
+        Args: { p_email: string; p_session_token: string }
         Returns: Json
       }
       set_reel_guest_visible: {
