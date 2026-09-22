@@ -1721,11 +1721,11 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // same reason; `identity-profile` after `identity-claims`.
   "media-viewer",
   "reel-view",
+  "reel-screen",
   "guest-capture",
   "identity-door",
   "identity-claims",
   "identity-profile",
-  "reel-screen",
   "host-curation",
   "export-flow",
   "admin-triage",

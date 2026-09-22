@@ -7,9 +7,38 @@
 > entry deleted in the same commit. Everything older is in git: `git log --oneline` for the commits,
 > `git show 932fdee9:docs/CHANGELOG.md` for the last full archive (5,495 lines, 2026-07-02 to 09-16),
 > `git show dd77fc9e:docs/CHANGELOG.md` for the Library x Lab round's entry, `git show 52e9afa2:docs/CHANGELOG.md` for the revamp's,
-`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's, `git show 22438704:docs/CHANGELOG.md` for the ladders-and-the-dock round's, `git show b30445d9:docs/CHANGELOG.md` for the overnight round's, `git show 69a9a177:docs/CHANGELOG.md` for the morning sitting's round's, `git show a79cd55c:docs/CHANGELOG.md` for the evening sitting's (batch four), `git show 08967867:docs/CHANGELOG.md` for the night sitting's (batch five), `git show 87ede4da:docs/CHANGELOG.md` for the small hours' (batch six's first cut).
+`git show d2db2629:docs/CHANGELOG.md` for the stepped review round's, `git show 449d9b52:docs/CHANGELOG.md` for the wind-down's, `git show 22438704:docs/CHANGELOG.md` for the ladders-and-the-dock round's, `git show b30445d9:docs/CHANGELOG.md` for the overnight round's, `git show 69a9a177:docs/CHANGELOG.md` for the morning sitting's round's, `git show a79cd55c:docs/CHANGELOG.md` for the evening sitting's (batch four), `git show 08967867:docs/CHANGELOG.md` for the night sitting's (batch five), `git show 87ede4da:docs/CHANGELOG.md` for the small hours' (batch six's first cut). `git show ac325953:docs/CHANGELOG.md` for the small hours' second entry (the round twos and the queue, 2026-09-20),
 
 ---
+
+## 2026-09-22 — The reel round: Will's own project as the production round (`17f17e57` onward)
+
+**What Will did.** At about 13:00 EDT, with the identity round whole on the alias, he brought his own project: "let's rework the
+reel feature concept entirely, I feel like it's still missing the mark as a flagship feature." His reasons, his direction and
+his eight answers across two rounds of questions are verbatim in rulings.md ("the reel, reconceived"): the reel becomes a live,
+looping montage of everything the album shows, alive from the third item, no host action, no stored file, the host's mood as the
+default with a viewer's own switch, a first-class venue screen, and a cut anyone makes on-device (saved or shared as a file, never
+stored; "Add to the album" on a paid event as an ordinary video upload the live reel skips); video plays a range-fetched window
+of the original decoded on the viewer's device behind an Include videos toggle; hide and Review are the only curation; a per-event
+switch default on. The plan was approved at about 14:45 EDT after two fresh-context reviews he asked for; it runs as two engine
+lanes now beside six lab boards in two waves, the wiring after his desk review, the old reel live on the alias until one build
+replaces it. His standing rule of 2026-09-20 (no new board until the desk is closed) is superseded by this round on his own word.
+
+**The record.** The ruling in rulings.md with the supersessions named; the ROADMAP's reel bullet reconceived; the `reel-studio`
+board retired unreviewed (its questions reshaped into `reel-front` and `reel-cut`); six standing asks badged by the first chat
+ruling to badge; the reel's own system doc to be born at the wiring's record.
+
+- **The reel round opened (Will's own project, 2026-09-22 ~13:00 to ~14:45 EDT; his brief and eight answers verbatim in rulings.md "the reel, reconceived"; the record `17f17e57`, the cut `ef1c4b51`)**: the reel is reconceived as a live, looping montage of the visible album from the third item (no host action, no stored file, the host's mood as the default and a viewer's own switch, a first-class venue screen) with a cut anyone makes on-device (saved or shared as a file, never stored; "Add to the album" on a paid event as an ordinary video upload the live reel skips) and video as a range-fetched window of the original decoded on the viewer's device behind an Include videos toggle. On the tree at the record: the `reel-studio` board RETIRED UNREVIEWED (the registry, the boards map, `DESK_ORDER`, its folder; git keeps it at `90f29be4`; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless: a board whose product no longer exists retires unreviewed, its live questions reshaped into the boards that replace it); six standing asks badged in `overtaken.ts` by the first chat ruling to badge (`media-viewer.link`, `.video`, `.wayout`; `host-curation.arrivals`, `.count`; `press-page.the-facts`), the desk test's three-outcome case made vacuous under three badges on its chosen board; the ROADMAP's reel bullet reconceived with the round's deferred lines. Cut at the record: `reel-engine-live` (Opus, :3132) and `reel-engine-video` (Opus, :3137), the two engine lanes with lab harnesses; `reel-view` (Sonnet, :3138), `reel-front` (Sonnet, :3139) and `reel-screen` (Opus, :3131), three new lab boards; wave 2 (`reel-cut`, `reel-host`, `reel-story`) briefed and registered, cut as seats free. The old reel stays live on the alias until the wiring round's one build replaces it; the bucket's CORS change for the video lane is Will's command.
+
+- **`reel-engine-video` on the tree at `31171495`** (2026-09-22, handed off `3183921b` by Opus on :3137; gate 108 green with 442 smoke checks; the reel round's first engine lane, a library with a lab harness and no production surface; Will's ruling: "Range-window decode on device" behind an "Include videos" toggle): `src/lib/reel/engine/video/` (a window reader over mediabunny's `Input`/`UrlSource` with `cache: no-store` and `mode: cors`, an 8 MiB cache, parallelism 1, two quick retries then fail; a size read that doubles as the range probe; `canDecode`; a `CanvasSink` into an 8-frame ring paced by the draw; the generator returned and the `Input` disposed in a `finally`; every failure resolving to the poster, with `possibleExpiry` on a statusless rejection; a deck of at most two readers reopening on a new presign), `budget.ts` (the window ladder, a per-play ledger, the per-clip K-loop cadence), `ladder.ts` (the whole fallback order, one pure call), `prepare-frame.ts` (the one place the ladder runs; the live player's and the cut's shared wiring); `reel-types.ts` gained `ReelClip.video` and a SYNCHRONOUS `ReelVideoSource.frameAt` (the draw never awaits; `registry.ts`'s pooled-scratch invariant stands), `assets.ts` mirrors it poster-first, `styles/mood.ts` draws the decoded frame in the poster's place (a posterless video too), `encode.ts` awaits one `prepareFrame` before each draw. The harness at `/design/lab/tools/reel-video` over a real mov, webm and portrait mp4 served by a range route of its own (206 with `Content-Range`): 180 frames decoded a six-second window, 0.52 to 0.66 MB a play, four requests for the mov over 77 seconds, live readers never above two, the JS heap flat or falling across nine minutes, the toggle taking readers to zero. One call his to overrule: the decode is aspect-preserving with its long edge capped at the composition's short side rather than cover-cropped at composition size (a pre-cropped decode would double-crop a contained clip and disagree with its own poster). The R2 CORS precondition is still Will's command: until it lands an alias range read answers a size the browser will not report and the reader draws the poster, a degradation pinned by a test, never a break.
+
+- **`reel-view` on the desk at `b063f1cc`** (2026-09-22, handed off `785f9797` by Sonnet on :3138; gate 109 green with 451 smoke checks; the reel round's first board): the reel's full-screen view as a catalog of eight asks on the wedding album's world, every option a live `CanvasReelPlayer` drawing the real engine over the fixture clips (`chrome`: nothing until the pointer moves, a thin bar that fades, controls always on; `controls`: the set and its order as three arrangements; `arrival`: the just-added beat as a caption, a chip, nothing; `tap`: the picture opens the item in the viewer, pauses, nothing; `posture`: one composition following the viewport or the reel's own aspect letterboxed; `pacing`: three hand holds as running takes; `loop`: how a new take announces itself; `reduced`: what reduced motion starts on), at 1440 and 375 (`lab:demo` 8 steps, the tallest `posture` at 1.6 screens); registered after `media-viewer` and placed first of the reel boards at the merge (the lane's sync carried the three identity boards' collision on the registry's head, concatenated by hand with both orders kept). Four calls his to overrule beyond the asks: Close in its own corner; the timer-driven beats; the three pacing numbers; the Cinematic stand-in mood. Look at first: `chrome` (move the pointer over the bare option) and `posture`. Nothing here wires production; `reel-guest-wiring` builds the verdict.
+
+- **`reel-screen` on the desk at `ac325953`** (2026-09-22, handed off `c060f326` by Opus on :3131; gate 110 green with 460 smoke checks): the venue screen as a catalog of eight asks drawn on a 1920 by 1080 wall with 1440 on the knob (`qr`: the code's corner and size, 12 to 15 percent of the width across the flip; `name`; `caption`; `pacing` on three running walls; `idle`; `start`: the one-tap plate that takes the gesture for fullscreen and the wake lock; `review`: seven waiting for the host, the shared fixture's own queue; `open`: the hub's button, a screen link drawn as a later option, the settings sheet). The kit draws no canvas past 1440 (`CANVAS.desktop` in `stage.tsx`), so the board carries its own 1920 `Frame` in `wall.tsx` (a Frame, not a div, because only a real 1920 viewport resolves the fluid type ladder's wall sizes); a deferred line says what lifting the cap would take. Registered after `identity-profile` and placed among the reel boards at the merge. Four calls his to overrule: the wall wears Sunset rather than Cinematic (Cinematic letterboxes a 16:9 wall and would judge every corner over black bars, a finding on its own); the side panel drops the event's name so `name` keeps one variable; Review holds seven, not the brief's three; seven asks on held engine frames, `pacing` alone on real rAF walls. Look at first: `qr` flipped between 1920 and 1440, then `pacing` with motion allowed. Nothing here wires production.
+
+**Next.** Each handoff integrated as it lands and recorded here through `usher/kit/record.py`; the six boards on the desk
+in leverage order directly below `media-viewer`; his desk review; then the wiring lanes, the expand migration first and the
+drop after the red-team; the reel's system doc at the record.
 
 ## 2026-09-20 — The closing sitting: the desk's head answered (`fe056e62` onward)
 
@@ -139,175 +168,12 @@ scratchpad path and the heartbeat pauses Moltbook (`87ede4da`).
 
 - **`name-gate` on the tree at `c52f5260`** (2026-09-22, handed off `293c9d9e` by Sonnet on :3133; gate 104 green with 422 smoke checks; Will's ruling of the morning: a nameless account moves nowhere in the app but the welcome page): one `requireNamedProfile()` over the cached profile read, called once from two new layouts under `dashboard/` and `account/`, so the dashboard root, `/new`, every event room and `/account` redirect a nameless account to `/welcome`; a structural test enumerates every top-level `(app)` directory so a future ungated route fails by name and `/welcome` never gates itself; `auth-accounts.md` and `host-app.md` refined (the stale "/account is exempt" line gone). One call his to overrule: the brief's nested `(named)` route group was set aside on the ground (about 45 import sites outside the lane hardcode the old paths), the two layouts covering the same rooms without a move. `[preview]`: the alias moves to this record.
 
-- **The reel round opened (Will's own project, 2026-09-22 ~13:00 to ~14:45 EDT; his brief and eight answers verbatim in rulings.md "the reel, reconceived"; the record `17f17e57`, the cut `ef1c4b51`)**: the reel is reconceived as a live, looping montage of the visible album from the third item (no host action, no stored file, the host's mood as the default and a viewer's own switch, a first-class venue screen) with a cut anyone makes on-device (saved or shared as a file, never stored; "Add to the album" on a paid event as an ordinary video upload the live reel skips) and video as a range-fetched window of the original decoded on the viewer's device behind an Include videos toggle. On the tree at the record: the `reel-studio` board RETIRED UNREVIEWED (the registry, the boards map, `DESK_ORDER`, its folder; git keeps it at `90f29be4`; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless: a board whose product no longer exists retires unreviewed, its live questions reshaped into the boards that replace it); six standing asks badged in `overtaken.ts` by the first chat ruling to badge (`media-viewer.link`, `.video`, `.wayout`; `host-curation.arrivals`, `.count`; `press-page.the-facts`), the desk test's three-outcome case made vacuous under three badges on its chosen board; the ROADMAP's reel bullet reconceived with the round's deferred lines. Cut at the record: `reel-engine-live` (Opus, :3132) and `reel-engine-video` (Opus, :3137), the two engine lanes with lab harnesses; `reel-view` (Sonnet, :3138), `reel-front` (Sonnet, :3139) and `reel-screen` (Opus, :3131), three new lab boards; wave 2 (`reel-cut`, `reel-host`, `reel-story`) briefed and registered, cut as seats free. The old reel stays live on the alias until the wiring round's one build replaces it; the bucket's CORS change for the video lane is Will's command.
-
 - **`identity-profile` on the desk at `953a249b`** (2026-09-22, handed off `a52f4687` by Sonnet on :3136; gate 105 green with 427 smoke checks; the first of the three identity-flows boards Will sent to the lab): the profile setup and what a page shows on purpose, four asks on Priya's world (`setup`: the account page's cards as shipped, a three-screen wizard, a single sheet from the follow moment; `attended`: the switch list as shipped, a picker of covers, each album offering it from the guest menu; `prompt`: after the first claim, at the follow moment, from the account page only; `page`: a name and "Nothing here yet", the name with the count kept private, not found until something is shown), the shipped state one option per ask, every option drawn, at 1440 and 375; the lane's own tension named in the `page` ask's overrule line (a not-found page would contradict the profiles-are-public-by-existence invariant); registered at the head of the desk and placed by the Orchestrator at the merge. Nothing here wires production; his review after his own project.
 
 - **`identity-claims` on the desk at `0d326d7a`** (2026-09-22, handed off `b692432f` by Sonnet on :3135; gate 106 green with 433 smoke checks; the third of the three identity-flows boards): the claim ticket, five asks on Priya's world after her confirmation, one event really hers and one an impostor's (`ticket`: the plain card as shipped, a banner that opens a sheet, the bell opening a drawer; `pointer`: from the follow moment and the bell; `pass`: the per-event pass; `confirm`: the dialog as shipped, an inline destructive row, a second screen listing every photo about to go; `after`: what the dashboard and the album show once), the shipped state one option per ask, every option drawn, at 1440 and 375; placed after `identity-door` at the merge. Nothing here wires production; his review after his own project.
 
 - **`identity-door` on the desk at `15a35847`** (2026-09-22, handed off `7cf4fc2e` by Sonnet on :3134; gate 107 green with 439 smoke checks; the second of the three identity-flows boards): the door sheet with an optional email, five asks on Priya's world (`field`: the email always open as shipped, a ghost line that opens it, its own step with a Skip; `nudge`: a member's sign-in under the field, a welcome row, none as shipped; `gate`: the verified gate's line as shipped, a list with two benefits, an eyebrow naming the host, kept with its naming tension in the overrule line; `menu`: rows as shipped, a card, a single Your photos row; `remove`: a menu row, a quiet link in the confirm door, nowhere as shipped), the shipped state one option per ask, every option drawn, at 1440 and 375; placed after `guest-capture` at the merge. Nothing here wires production; his review after his own project.
 
-- **`reel-engine-video` on the tree at `31171495`** (2026-09-22, handed off `3183921b` by Opus on :3137; gate 108 green with 442 smoke checks; the reel round's first engine lane, a library with a lab harness and no production surface; Will's ruling: "Range-window decode on device" behind an "Include videos" toggle): `src/lib/reel/engine/video/` (a window reader over mediabunny's `Input`/`UrlSource` with `cache: no-store` and `mode: cors`, an 8 MiB cache, parallelism 1, two quick retries then fail; a size read that doubles as the range probe; `canDecode`; a `CanvasSink` into an 8-frame ring paced by the draw; the generator returned and the `Input` disposed in a `finally`; every failure resolving to the poster, with `possibleExpiry` on a statusless rejection; a deck of at most two readers reopening on a new presign), `budget.ts` (the window ladder, a per-play ledger, the per-clip K-loop cadence), `ladder.ts` (the whole fallback order, one pure call), `prepare-frame.ts` (the one place the ladder runs; the live player's and the cut's shared wiring); `reel-types.ts` gained `ReelClip.video` and a SYNCHRONOUS `ReelVideoSource.frameAt` (the draw never awaits; `registry.ts`'s pooled-scratch invariant stands), `assets.ts` mirrors it poster-first, `styles/mood.ts` draws the decoded frame in the poster's place (a posterless video too), `encode.ts` awaits one `prepareFrame` before each draw. The harness at `/design/lab/tools/reel-video` over a real mov, webm and portrait mp4 served by a range route of its own (206 with `Content-Range`): 180 frames decoded a six-second window, 0.52 to 0.66 MB a play, four requests for the mov over 77 seconds, live readers never above two, the JS heap flat or falling across nine minutes, the toggle taking readers to zero. One call his to overrule: the decode is aspect-preserving with its long edge capped at the composition's short side rather than cover-cropped at composition size (a pre-cropped decode would double-crop a contained clip and disagree with its own poster). The R2 CORS precondition is still Will's command: until it lands an alias range read answers a size the browser will not report and the reader draws the poster, a degradation pinned by a test, never a break.
-
-- **`reel-view` on the desk at `b063f1cc`** (2026-09-22, handed off `785f9797` by Sonnet on :3138; gate 109 green with 451 smoke checks; the reel round's first board): the reel's full-screen view as a catalog of eight asks on the wedding album's world, every option a live `CanvasReelPlayer` drawing the real engine over the fixture clips (`chrome`: nothing until the pointer moves, a thin bar that fades, controls always on; `controls`: the set and its order as three arrangements; `arrival`: the just-added beat as a caption, a chip, nothing; `tap`: the picture opens the item in the viewer, pauses, nothing; `posture`: one composition following the viewport or the reel's own aspect letterboxed; `pacing`: three hand holds as running takes; `loop`: how a new take announces itself; `reduced`: what reduced motion starts on), at 1440 and 375 (`lab:demo` 8 steps, the tallest `posture` at 1.6 screens); registered after `media-viewer` and placed first of the reel boards at the merge (the lane's sync carried the three identity boards' collision on the registry's head, concatenated by hand with both orders kept). Four calls his to overrule beyond the asks: Close in its own corner; the timer-driven beats; the three pacing numbers; the Cinematic stand-in mood. Look at first: `chrome` (move the pointer over the bare option) and `posture`. Nothing here wires production; `reel-guest-wiring` builds the verdict.
-
 **Next.** The handoffs in the program's order (gate 66 onward), each recorded here through `usher/kit/record.py`; the
 identity board's Handoff read against the invariants before its message; the wiring of `guest-verify` after round two
 rules; no new board.
-
-## 2026-09-20 — The small hours, second: the round twos and the queue (`58f7acbd` onward)
-
-**Where this opens.** The sixth batch's first cut is on the tree (the entry below): six wiring lanes, the pricing page
-and the desk pass, five records, five gates. Will sleeps; his instruction for the rest of the night is verbatim in
-rulings.md ("the night, second"): the batch's queue first (the round twos he asked for by name, the demo, batch five's
-four boards, help-sync), then explorations on surfaces no open board can reach, and from 9am his time the desk only
-closes. Every lane here is lab-only unless its bullet says otherwise; nothing signed in is seen by a lane.
-
-- **`guest-shape-r2` merged at `ba153a39`** (2026-09-20, Sonnet; the board's round two): his two asks by name and the
-  plan's third, drawn on the wired album and the demo's own arrival at 375 and 1440. `chrome` (where Add and Invite
-  live: the column as wired, the dock, both, the header; `both` recommended, his two traits read as two rather than
-  one subsuming the other; the frame scrolled deep into the album is the one where today's column visibly loses
-  Invite). `welcome` (the door's shell and the welcome screen's design: today, page, card, sheet; `card` recommended
-  over the just-unified Sheet, whose real desk posture is the side panel his note flagged; `sheet` drawn as it really
-  is). `theirs` (where a guest finds their own photographs in sixty-eight: none, chip, strip, mark; `mark`
-  recommended, a badge on a guest's own tiles that filters on a tap, for zero new chrome). Round one's seven asks
-  replaced and named as ruled in the RULINGS row. Gate 52 on the merged tree; the overtaken map's badge on round one's
-  `dialogs` ask reconciled at the merge (both lanes had named it). Calls his: `card` over `sheet`; `both` over `dock`;
-  `mark` over `chip`; the sixty-eight-photograph fixture is invented for the board.
-
-- **`welcome-tour` merged at `af7ec784`** (2026-09-20, Sonnet; `app-door` round two): one decision, the tour's design,
-  drawn four ways on the real `/welcome` at 375 and 1440 with the name step untouched and the closing CTA primary
-  and skippable in every one: `cards` (the shipped tutorial, corrected), `stage` (real product screens, the code
-  live, a guest's phone, the album filling; the wizard's first step as a dimmed peek), `film` (the twelve bespoke
-  how-it-works pictures in motion, one per step; recommended: the pictures exist and "alive" is the literal word of
-  his ask), `one` (a single screen, the tutorial's copy losing its only home in the app). Round one's seven asks
-  replaced and named as ruled; round one's three orphaned overtaken entries removed after syncing past the desk pass.
-  Gate 53 on the merged tree. Calls his: `film`'s copy on a card plate at the picture's foot rather than a scrim (six
-  of the twelve are bright app panels); `stage`'s three beats on the create, share and fill copy; `one` folding the
-  name step's reason into one promise line.
-
-- **`album-controls` merged at `ad967efc`** (2026-09-20, Sonnet; `app-vocabulary` round two): one decision, where the
-  host gallery's five controls live, four options drawn on the real wired Album header with the production leaf
-  components at 1440 and 375: the row as shipped (three wrapped lines at 375), a View menu holding tile size, Sort and
-  Filter beside the two verbs (recommended: his own first instinct, two lines at 375, the same at both widths), the
-  view controls in the responsive Sheet at 375 only, and every control riding the sticky cards row with nothing left
-  in the header (drawn at rest and stuck). Round one's seven asks replaced and named as ruled; five orphaned badges on
-  them retired from the overtaken map with the count corrected. Gate 55 on the merged tree. Look at first: `view-menu`
-  against `row` at 375, side by side.
-
-- **`pricing-fit` merged at `3cf43bde`** (2026-09-20, Sonnet; `pricing-page` round two): `fit`, three options on the wired page at 1440
-  and 375: the wall as today, `split` (Higgsfield's configurator-left and designed-plan-card-right shape, read live
-  from its page and built fresh with Partyreel's own controls, copy and photographs; recommended), `inline` (the whole
-  block gone, drawn as a real contender). `phone`, re-asked with its demo REPAIRED and proven end to end by `lab:demo`
-  (his "I think the demo is broken, so I can't actually see it live"): `stack` as today, `swipe` (recommended; its
-  row reshapes the Pass into a compact card so three peers share one height), `tabs`. Round one's six asks named as
-  ruled. Gate 56 on the merged tree. Calls his: `split`'s execution is the lane's reading of the reference, not a
-  literal match; two Pass shapes on one board, deliberately. One lab finding on the ROADMAP: a fully ruled ask is
-  unreachable by `?session=` even by a direct link.
-
-- **`avatar-look` merged at `539dfa4e`** (2026-09-20, Sonnet; `seed-avatar` round two): one decision, the look, four options measured on
-  the wired avatar at 24, 32, 40 and 80 with the initial, on the guest list, the menu and the profile row: the
-  diagonal as wired; `mesh` (hashvatar's own register reproduced from its SOURCE, one identity hue at four tonal
-  depths diffused and layered, the brief's "several hue stops" corrected; recommended: it clears the letter floor on
-  every one of a thousand seeds, worst 4.69:1, against the wired diagonal's 76 percent, worst 4.13:1); `throw` (two
-  pools of light); `lit-seam` (a lit crease on the diagonal's seam). Every option measured with real compositing math
-  at the exact pixel, a bar stricter than the production contract has held any look to, which surfaces a gap every
-  option shares and the disc's ring mitigates (on the ROADMAP; his call). Round one's seven asks named as ruled. Gate
-  57 on the merged tree. Look at first: the board opens on `mesh` with the measured caption.
-
-- **`demo-wiring` merged at `0521613a`** (2026-09-20, Sonnet; `demo-event` round one wired whole): the demo's own
-  arrival screen on the guest welcome's exact shell (`computeEntry` no longer special-cases the demo, the pin the
-  board's own header flagged); a Demo mark beside the wordmark with the header pinned for the whole visit; a turn
-  card above the album's first tile once an upload lands; "Start your own" beside Invite in the demo's action row
-  and a closing card below the album; the footer's photo pile confirmed as the doors rule and the nav panel's ticket
-  retired (its featured pane empty until `demo-doors` draws the door); the phone pair on one ephemeral Realtime
-  broadcast channel per pairing keyed into the demo's own Invite link (a downscaled JPEG thumbnail over REST, no new
-  table, never the shared gallery channel), proven end to end against the real project with a raw listener; the two
-  "Hosted by" bylines fold onto the seeded Avatar (avatar-wiring's deferred line closed). Gate 58 on the merged tree.
-  Calls his: the demo's two-column row against a real guest's one; the pairing's shape (per-visitor channel, a URL
-  param); `live-demo.tsx` untouched by design. Look at first: the pairing with a real phone (the lane rehearsed the
-  far end with a listener).
-
-- **`guest-verify` merged at `76950230`** (2026-09-20, Opus; a new board from his `gate=ask` note, resumed after the
-  limit from a committed board): six decisions on the real guest door, the guest list, the faces row and the host's
-  review queue, phone first: `gate` (three phone screens one second after Add; `held` recommended, riding the existing
-  `pending` status with a second reason), `badge` (his idea drawn literally with its cost on the frame; host-only
-  recommended), `collision` (the flow, two lanes side by side; `session` recommended: GoTrue mints the auth row at SEND
-  time, so an email-bound claim is a real takeover), `outage` (the wall measured under Supabase's documented limits, per
-  IP on verify and project-wide on send; a time-boxed window on the settings sheet recommended), `host-lens` (`split`),
-  `expiry` (the host's own switch). Three carried calls above the first step (the mechanism, the badge's audience, the
-  numbers); one migration WRITTEN ONLY (a nullable `guests.claimed_email` that authorises nothing, left out of the
-  column-locked grant), applied by nobody; the ruled gate sentence untouched. Moved after `guest-shape` on the desk.
-  Gate 59 on the merged tree. Two lab findings on the ROADMAP (the pinned stage's head at 375 with one config row; the
-  project's configured Auth rate limits, a dashboard read). Look at first: `collision`, the two lanes side by side.
-- **`buttons-pairs` merged at `c28a2060`** (2026-09-20, Sonnet; `body-type` round two, resumed after the limit from six
-  uncommitted files): one decision, `pairs`, three options on the real Button at every size in the real rows, each
-  measured on the frame: `step-up` (the icon one notch over its text, 12/14, 14/16, 16/18; recommended, the shipped
-  icons already sit there), `text`, `today` (what he saw). The board's frozen-caption bug found and fixed in the lane
-  (a measurement effect keyed on a constant probe array never re-fired when the control swapped the option). The winner
-  wires at `button.tsx`'s cva table in a follow-up. Gate 60 on the merged tree. Look at first: the `sm Download` and
-  `xs Approve` pair his note named.
-
-- **`help-sync` merged at `84ee48cd`** (2026-09-20, Sonnet; production, resumed after the limit from a bare boot):
-  eleven help articles rewritten against the surfaces' code, each read before its article (a guest's own upload
-  comes off on the album itself, signed in or anonymous by the same device; the code-led door with Google beside it
-  and a password behind a quiet link, the existing-account notice, the three real buttons under each failure; the
-  resend cooldown and the rate-limited state; removing a photo reveals the seeded colour; the event page as the hub
-  with the live code, the cards row going sticky and the crumbs; settings as a sheet over the album and the custom
-  link in the Share sheet, three articles found stale beyond the named seven; the loop's six steps paraphrased in
-  the help voice); the two legal lines rewritten so an anonymous guest's removal reads as self-serve; the legal
-  versions bumped (privacy 1.2, terms 1.3, one changelog line each, the file's own header rule; still "pending
-  counsel review"); one article retitled with its slug kept; forty-eight read and left alone. The manifest had named
-  the legal content under `components/marketing/legal`; the real files are `lib/constants/legal-*.tsx` (the lane
-  corrected it). Gate 61 on the merged tree. Look at first: the event-page and event-settings articles, and the two
-  legal lines.
-
-- **`home-states` merged at `99550a89`** (2026-09-20, Sonnet; `app-shape` round two, resumed after the limit from two
-  touched files): the home across three host states, drawn on the wired pulse with fixtures at 1440 and 375:
-  `empty` (`wizard` recommended: the create door and the storage line, what zero events renders today; `ghosts` and
-  `guided` drawn in full), `first` (`share` recommended: the code and the link lead, the one job left; `promise`,
-  `pulse`), `busy` (`collapsed` recommended: the top three chips by tone, the rest behind one chip that expands in
-  place; `ruled`, `events-first`). "Your events" draws as a plain grid of the real EventCard, never the real
-  EventsSection, whose view toggle would rewrite the reviewer's own live preference. Round one's eight asks named as
-  ruled and their stale overtaken badge removed. The board stays open on his own note. Gate 62 on the merged tree
-  (its demo step timed out twice on a cold frame compile under three concurrent gates; the warm re-run pressed all
-  three steps clean, and the gate now retries once warm).
-  Calls his: the top three ranked by tone; the fixture QR chip on every card; the named-event heading on `promise`.
-  Look at first: `busy.collapsed`, then `empty.guided` beside `empty.wizard`.
-
-- **`demo-doors` merged at `042f82bd`** (2026-09-20, Sonnet; `demo-event` round two, resumed after the limit from a bare
-  boot): one decision, `door`, four text-free options, each the one object drawn at its four places (the home hero,
-  the footer, a feature page's line, the nav panel's pane left empty since the ticket retired) at 375 and 1440:
-  `pile` (the footer's fan, proposed at the hero and the line), `frame` (one photograph in a mat with the code in its
-  corner; recommended), `stage` (the falling engine's rest frame, sketched; nothing in the nav pane on purpose),
-  `ticket` (the retired ticket redrawn as one object). A finding on the frame: the wired `pile` rule reached only the
-  nav panel, the hero's plate and the feature line never gained it, so the winner's wiring covers all four places.
-  The board's measurement probe fixed to remount on a live option switch (the twin of the buttons-pairs bug). Gate
-  63 on the merged tree. Calls his: "text-free" read as no added words on the object (the party's name ON the object
-  would be a smaller ask on the winner); `stage` sketched as a rest frame, never the live loop. Look at first: the
-  nav pane under each option at 1440.
-
-- **`type-sync` merged at `f76ff412`** (2026-09-20, Sonnet; production, the ladder's follow-up): the body scan's
-  allow-list from 38 entries and 95 elements across five kinds to 27 and 78 across three: the `lane` and `pending`
-  kinds at zero and dropped from the exception type, so one coming back fails typecheck (the hard fail the ladder
-  deferred, for the half that was ever a lane boundary; `depicted`, `relative` and `board` stay named, counted and
-  reasoned). Eleven files moved onto a step as a mechanical class swap (the footer's links, controls, lede, thesis,
-  note and badge; the gate's eyebrow; the teaser's badge and eyebrow; the three flat ledes and the wysiwyg glyph
-  onto `copy`; the feed header's label; the "N uploading" chip onto `micro`), plus the footer's shared link constant.
-  The design-system doc's stale way-6 paragraph refined in place. Gate 64 on the merged tree. Calls his: the
-  footer's two controls at 14 (`working`, not the button rung); the demo lede and the thesis on `copy`; the
-  assistant note on `caption`; the "N uploading" chip read as a count (10) rather than a category label (12).
-
-- **`toasts` merged at `75fefbdf`** (2026-09-20, Sonnet; a new board from his `moment=today` note, resumed after the limit
-  from an unregistered board on disk): the toast as a system on the real toasts, its first line the rule that halves
-  them (if the control can show it, no toast); five decisions drawn on the guest's held line, the host's bulk approve
-  with Undo, an export mint, a pricing refusal and an error at 375 and 1440 in both themes: `where` (`top`
-  recommended: the foot is claimed twice already), `material` (`card`; the scene pinned to paper so `ink` is
-  provable), `life` (`persist`: an error that vanishes before it is read repeats itself), `stack` (`expanded`),
-  `action` (`always`: a slot, not a mandate). Two steps read FROZEN in the demo harness though both draw correctly,
-  verified three ways by hand (the captures come back byte-identical on grid-stacked srcdoc iframes, the glass
-  finding's twin; on the ROADMAP). Moved after `app-vocabulary` on the desk. Gate 65 on the merged tree (its demo step
-  red on those two steps by the harness, not the board). Call his: the paper-pinned `material` scene rather than a
-  light and dark pair. Look at first: `material` and `action` by hand at their session links.
-
-**Next.** The handoffs, in the program's order; his eye on the alias and the desk in the morning.
