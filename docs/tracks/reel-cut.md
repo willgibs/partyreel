@@ -183,7 +183,15 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
+- **STATE (checkpoint, 2026-09-22):** the board is BUILT, COMMITTED and SYNCED. The board commit is
+  `254b4ae4`, the sync merge with `origin/launch-prep` is `9a6b6def`; the full gate is green on the
+  merged tree (design:rules, specimens, typecheck, lint 9 known, test 345 files / 3784, build 258
+  pages) and `pnpm lab:smoke --base http://localhost:3134` is 471 checks / 0 failing. WHAT IS LEFT:
+  re-run `pnpm lab:demo --board reel-cut --base http://localhost:3134` on the synced tree (it was
+  green pre-sync: 9 steps, 0 failing, every option drawn), then fill the lines below, set
+  `status: handed-off`, commit this file alone and push. The dev server runs on port 3134 and must be
+  killed by port before any build or test run.
+- Head <sha>, pushed; synced with launch-prep at `9a6b6def`
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
 - Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
