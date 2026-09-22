@@ -106,6 +106,22 @@ unreachable. Copy comes from the number ("holds one event" / "holds 3 events"), 
   guest + `create_guest` checks the email. A live "what your guests will experience" line under the access
   controls renders `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)).
+- **"Require an upload to view" (`events.require_upload_to_view`, off by default) holds the full album
+  from a guest until one of their own uploads has completed** — approved or held for review, whichever
+  the moderation mode is (the door as three steps, Will 2026-09-21, `docs/design/rulings.md`). Unlike
+  its sibling above, `ConfirmSwitch` asks on the ON edge here (`confirmWhen: (next) => next` — the
+  first switch in this card to confirm turning ON rather than off): asking a guest to contribute
+  before they see the album is THIS switch's consequential direction, which the primitive's predicate
+  allows per caller. **FREE for any tier**, a genuinely new flag with no legacy twin and no tier gate
+  (`GATED_EVENT_SETTINGS` stays password + custom_slug only). The gate FAILS OPEN while the event
+  isn't accepting uploads or the album has hit its storage/ingress cap, so a guest is never held at a
+  step they cannot pass; the ticket is punched once (whatever the upload's status after), and a
+  claimed row keeps its punch through the account rather than the bare session token. ENFORCEMENT is
+  the same gated gallery (→ [guest-flow.md](guest-flow.md) "Gallery access") plus a SERVICE-ROLE-ONLY
+  read, `get_upload_gate(event_id, session_token, user_id)`, answering "has this viewer contributed,
+  and is the album full" for server code on the admin client only — never client-callable. The live
+  "what your guests will experience" line COMPOSES a fresh sentence for this branch rather than
+  appending a clause to its sibling's (`guestExperienceSummary()`, same single source).
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
 - **The events list draws two ways, and the choice is a COOKIE** (`density=cover`, Will 2026-09-20:
   "let's do both"). Cover cards by default; a row view (the cover behind at 12%, the counts in columns,

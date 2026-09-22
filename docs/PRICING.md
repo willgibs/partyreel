@@ -53,7 +53,8 @@ mode; the live cutover is a launch task).
 - **Free** also gates features by tier: **password-protected albums + custom slugs** are locked on
   Free (`GATED_EVENT_SETTINGS` in `tiers.ts`; "Require verified emails" (renamed from "require accounts
   to upload" in the identity reshape, 2026-09-21) became FREE + default-on 2026-06-21 — allowing a
-  typed, unverified name is the opt-in), and **video is Pro-only** (a free event is
+  typed, unverified name is the opt-in). **"Require an upload to view" is free on every tier too**
+  (off by default; the door as three steps, 2026-09-21), and **video is Pro-only** (a free event is
   photos-only for guests AND the host; enforced at upload in `create_media`/`create_media_as_host`,
   mirrored client-side by `videosAllowedForTier`). **Reel length is tier-capped** (`MAX_REEL_SECONDS`:
   30s Free / 60s paid); reel generation itself is free for every tier (watermark on Free). 30s is the
