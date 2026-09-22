@@ -105,8 +105,16 @@ export function useUploadQueue({
    * cannot, so the run ends and the page re-gates.
    */
   isVerified?: boolean;
-  /** The host turned Require verified emails ON mid-visit; the session is spent. */
-  onVerificationRequired?: (message: string) => void;
+  /**
+   * The host turned Require verified emails ON mid-visit; the session is spent.
+   * `hadQueuedFiles` tells the caller whether the failure sheet is about to
+   * open for THIS refusal (a mid-run flip: `true`) or whether nothing was ever
+   * queued (`joinSilently`'s own refusal: `false`, no sheet incoming) — the one
+   * fact a caller cannot infer safely from its own React state at the instant
+   * this fires (DEFECT 1, the alias red-team, 2026-09-21: see
+   * guest-upload.tsx's own comment for why that matters).
+   */
+  onVerificationRequired?: (message: string, hadQueuedFiles: boolean) => void;
 }) {
   const [items, setItems] = useState<QueueItem[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
@@ -242,7 +250,7 @@ export function useUploadQueue({
               : it,
           );
           sync(refused);
-          onVerificationRequired?.(outcome.message);
+          onVerificationRequired?.(outcome.message, true);
           break;
         }
         patch(next.id, { status: "error", error: outcome.message });
@@ -302,8 +310,10 @@ export function useUploadQueue({
       pendingFilesRef.current = [];
       if (joined.refusal.kind === "verification_required") {
         // The host requires a confirmed email and this device cannot satisfy
-        // it. The gate says that far better than a toast can.
-        onVerificationRequired?.(joined.refusal.message);
+        // it. The gate says that far better than a toast can. Nothing was ever
+        // queued, so there is no failure sheet standing between here and the
+        // gate: the refresh this raises is honest right away.
+        onVerificationRequired?.(joined.refusal.message, false);
         return;
       }
       toast.error("Couldn't start uploading", {

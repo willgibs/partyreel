@@ -1,16 +1,23 @@
 // @contract-for: src/components/guest/live-gallery.tsx
-import { Suspense } from "react";
+import { createRef, Suspense } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import {
   buildGuestViewGroups,
   LiveGallery,
   type GalleryPayload,
+  type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import { setViewportWidth } from "../../../vitest.setup";
+
+// Hoisted so the mock factory below (itself hoisted above the imports) can
+// close over it — POLISH 2's own seam: the stub renders nothing to read the
+// credit off, so a rename's patch is proven by inspecting the `items` prop
+// GuestMasonry was actually handed, never the DOM.
+const { guestMasonrySpy } = vi.hoisted(() => ({ guestMasonrySpy: vi.fn() }));
 
 /**
  * THE GUEST ALBUM'S VIEW MENU, AND THE COOKIE BEHIND ITS TILE SIZE
@@ -43,7 +50,10 @@ vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
   useGalleryDoorbell: () => ({ live: false }),
 }));
 vi.mock("@/components/guest/guest-masonry", () => ({
-  GuestMasonry: () => <div data-testid="guest-masonry-stub" />,
+  GuestMasonry: (props: unknown) => {
+    guestMasonrySpy(props);
+    return <div data-testid="guest-masonry-stub" />;
+  },
 }));
 
 function makeItem(id: string): GridMedia {
@@ -61,11 +71,15 @@ function makeItem(id: string): GridMedia {
  * what keeps the retry inside the tracked scope, so no separate settle/wait
  * step is needed after `mount()` resolves.
  */
-async function mount(props: Partial<Parameters<typeof LiveGallery>[0]> = {}) {
+async function mount(
+  props: Partial<Parameters<typeof LiveGallery>[0]> = {},
+  payload: Partial<GalleryPayload> = {},
+) {
   const galleryPromise: Promise<GalleryPayload> = Promise.resolve({
     items: [makeItem("m1"), makeItem("m2")],
     teaserTotal: null,
     etag: "etag-1",
+    ...payload,
   });
   let utils!: ReturnType<typeof render>;
   await act(async () => {
@@ -96,9 +110,30 @@ function openViewMenu() {
   });
 }
 
+/**
+ * jsdom has no IntersectionObserver; the empty state's river arms its pause
+ * through one (`use-ambient-pause.ts`), which only POLISH 1's own `items: []`
+ * fixture reaches in this file (every other test seeds two items and never
+ * mounts the empty state at all). A minimal, inert stand-in — this suite never
+ * asserts on the river's paused/visible state, only that the teaser CTA beside
+ * it reads right.
+ */
+class TestIntersectionObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn(() => []);
+}
+
 beforeEach(() => {
   global.fetch = vi.fn();
   setViewportWidth(1024);
+  guestMasonrySpy.mockClear();
+  vi.stubGlobal("IntersectionObserver", TestIntersectionObserver);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("buildGuestViewGroups: the guest album's View menu, as arithmetic", () => {
@@ -240,5 +275,104 @@ describe("LiveGallery: Tile size reserved below 640", () => {
         .getByRole("menuitemradio", { name: "Medium" })
         .getAttribute("aria-disabled"),
     ).toBeNull();
+  });
+});
+
+/* ── POLISH 1 (the identity red-team, 2026-09-21): the teaser's one true
+   count. Three surfaces used to count three different things for the same
+   album — the header read the CAPPED, photo-only loaded count, the CTA read
+   the photo-only teaserTotal, and only the gate read the true approvedTotal
+   (photos and videos). `approvedTotal` is now the one number the header and
+   the CTA both read at teaser access; a caller that has not passed it still
+   gets the old photo-only teaserTotal, never a regression. ── */
+
+describe("LiveGallery: the teaser's one true count (POLISH 1)", () => {
+  it("reports the true approvedTotal to the header, and the CTA counts the same album", async () => {
+    const onCountChange = vi.fn();
+    await mount(
+      { access: "teaser", approvedTotal: 50, onCountChange },
+      { teaserTotal: 44 },
+    );
+    // The fixture loads 2 items and the photo-only teaserTotal is 44 — 50
+    // (photos AND videos) is the number both surfaces read now.
+    expect(onCountChange).toHaveBeenCalledWith(50);
+    expect(
+      screen.getByRole("button", { name: "See all 50 photos & videos" }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the photo-only teaserTotal when approvedTotal is not passed", async () => {
+    const onCountChange = vi.fn();
+    await mount({ access: "teaser", onCountChange }, { teaserTotal: 44 });
+    expect(onCountChange).toHaveBeenCalledWith(44);
+    expect(
+      screen.getByRole("button", { name: "See all 44 photos & videos" }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls to the account line once nothing more exists beyond what loaded", async () => {
+    await mount({ access: "teaser", approvedTotal: 2 }, { teaserTotal: 2 });
+    expect(
+      screen.getByRole("button", {
+        name: "Confirm your email to see everything",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("says one photo in the singular", async () => {
+    // Nothing loaded yet (items: []) so `count(1) > rawCount(0)` is the "more
+    // exists" branch — the default fixture's two items would otherwise mask it.
+    await mount(
+      { access: "teaser", approvedTotal: 1 },
+      { items: [], teaserTotal: 0 },
+    );
+    expect(
+      screen.getByRole("button", { name: "See all 1 photo & videos" }),
+    ).toBeInTheDocument();
+  });
+});
+
+/* ── POLISH 2 (the identity red-team, 2026-09-21): a rename patches this
+   device's own credits at once. "Change name" used to update the header chip
+   and localStorage immediately while the lightbox pill kept the old name
+   until the next poll tick. `renameMine` patches every item `ownIds` already
+   knows is this device's own, locally, with no network round trip; the poll's
+   own truth still lands on schedule and simply confirms the same value. ── */
+
+describe("LiveGallery: renameMine patches this device's own credits (POLISH 2)", () => {
+  it("patches only the caller's own items, leaving everyone else's alone, no network call", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, canDeleteIds: ["m1"] });
+    guestMasonrySpy.mockClear();
+
+    act(() => {
+      ref.current!.renameMine("Rt Alias Three B");
+    });
+
+    const lastProps = guestMasonrySpy.mock.calls.at(-1)![0] as {
+      items: GridMedia[];
+    };
+    const mine = lastProps.items.find((i) => i.id === "m1");
+    const notMine = lastProps.items.find((i) => i.id === "m2");
+    expect(mine?.uploaderName).toBe("Rt Alias Three B");
+    expect(notMine?.uploaderName).toBeUndefined();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when this device owns nothing on the album", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, canDeleteIds: [] });
+    guestMasonrySpy.mockClear();
+
+    act(() => {
+      ref.current!.renameMine("New Name");
+    });
+
+    const lastProps = guestMasonrySpy.mock.calls.at(-1)![0] as {
+      items: GridMedia[];
+    };
+    expect(
+      lastProps.items.every((i) => i.uploaderName === undefined),
+    ).toBe(true);
   });
 });

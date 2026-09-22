@@ -44,10 +44,16 @@ export function EnterEventPrompt({
         {DOOR_WEAR.gate.heading}
       </p>
       {/* The entry sheet's title slot, so the event name's own step (`page`)
-          whichever of its screens is showing; the step carries its leading. */}
+          whichever of its screens is showing; the step carries its leading.
+          ★ THE NOUN NOW MATCHES THE HEADER AND THE TEASER CTA (POLISH 1, the
+          identity red-team, 2026-09-21): this line already counted the true
+          `approvedTotal` (photos and videos); only "photo(s)" said less than
+          the number meant. Reusing the header's own always-both-nouns rule
+          keeps one album's size worded the same way on every surface that
+          says it. The count itself is unchanged. */}
       <p className="mt-1.5 font-heading text-page text-balance">
         {mediaTotal && mediaTotal > 0
-          ? `${mediaTotal} ${mediaTotal === 1 ? "photo is" : "photos are"} waiting`
+          ? `${mediaTotal} ${mediaTotal === 1 ? "photo" : "photos"} & videos ${mediaTotal === 1 ? "is" : "are"} waiting`
           : "See all the photos"}
       </p>
       {/* ★ RULED (Will, 2026-09-19, voice r1 `gate=ask`), his own adjustment to

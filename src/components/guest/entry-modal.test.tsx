@@ -402,6 +402,117 @@ describe("the name step (address=none)", () => {
     );
   });
 
+  /* ── DEFECT 2 (the alias red-team, 2026-09-21): a nameless session names
+     its OWN row rather than re-minting a second one. A live session_token
+     whose row has no display_name (a row minted before the reshape, or by
+     the queue's own silent join) used to open this step in `mode="join"`
+     (see event-experience.tsx's `needsNameDoor`: `!sessionToken ||
+     !storedName`), which called joinEvent and minted a fresh row, stranding
+     the first one's photographs under "A guest". The fix reads the HELD
+     TOKEN, not the mode. ── */
+
+  it("join mode ALSO renames when a session token is already held, and never mints a second row", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({ ok: true, display_name: "Rt Legacy" }),
+    } as Response);
+    const onNamed = vi.fn();
+    const { ref } = renderModal({
+      gateSteps: [],
+      sessionToken: "legacy-tok",
+      storedName: null,
+      onNamed,
+    });
+    act(() => ref.current!.openToName("join"));
+    fireEvent.change(screen.getByLabelText(/what should we call you/i), {
+      target: { value: "Rt Legacy" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add photos" }));
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/guests/name",
+        expect.objectContaining({
+          body: JSON.stringify({
+            qr_token: QR,
+            session_token: "legacy-tok",
+            display_name: "Rt Legacy",
+          }),
+        }),
+      ),
+    );
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      "/api/guests",
+      expect.anything(),
+    );
+    await waitFor(() =>
+      expect(onNamed).toHaveBeenCalledWith({
+        sessionToken: "legacy-tok",
+        displayName: "Rt Legacy",
+      }),
+    );
+  });
+
+  it("a dead token (the rename route's invalid_session) falls back to a fresh join", async () => {
+    vi.mocked(global.fetch).mockImplementation((url) => {
+      if (url === "/api/guests/name") {
+        return Promise.resolve({
+          ok: false,
+          json: () =>
+            Promise.resolve({
+              ok: false,
+              code: "invalid_session",
+              message: "Your guest session has expired. Refresh and rejoin.",
+            }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            ok: true,
+            session_token: "fresh-tok",
+            display_name: "Sam",
+            verified: false,
+          }),
+      } as Response);
+    });
+    const onNamed = vi.fn();
+    const { ref } = renderModal({
+      gateSteps: [],
+      sessionToken: "dead-tok",
+      storedName: null,
+      onNamed,
+    });
+    act(() => ref.current!.openToName("join"));
+    fireEvent.change(screen.getByLabelText(/what should we call you/i), {
+      target: { value: "Sam" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add photos" }));
+
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/guests/name",
+        expect.anything(),
+      ),
+    );
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/guests",
+        expect.objectContaining({
+          body: JSON.stringify({ qr_token: QR, display_name: "Sam" }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(onNamed).toHaveBeenCalledWith({
+        sessionToken: "fresh-tok",
+        displayName: "Sam",
+      }),
+    );
+  });
+
   it("the demo never opens it: nothing it adds is real", () => {
     const { ref } = renderModal({ gateSteps: [], isDemo: true });
     act(() => ref.current!.openToName("join"));

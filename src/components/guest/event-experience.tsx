@@ -475,11 +475,29 @@ export function EventExperience({
           onHoldingChange={setHoldCurtain}
           sessionToken={sessionToken}
           storedName={storedName}
-          onNamed={({ sessionToken: token }) => {
+          onNamed={({ sessionToken: token, displayName }) => {
             // The row carries a name now. Adopt the session this device just
             // minted (a rename hands back the one it already had) and, if a tap
             // on Add was what raised the door, finish that tap.
             if (token) setSessionToken(token);
+            /* ──────────────────────────────────────────────────────────────
+               POLISH 2 (the identity red-team, 2026-09-21): a rename used to
+               reach the loaded credits only on the next poll — "Change name"
+               updated the header chip and localStorage at once, but the
+               lightbox pill and the GUESTS list still read the old name until
+               a reload. `renameMine` patches THIS device's own tiles/credits
+               locally, no network round trip; the poll's truth replaces it on
+               the next tick, unchanged. The Guests list
+               (src/components/social/guest-list.tsx) is a plain, server-baked
+               ReactNode with no live subscription of its own and sits outside
+               every path this lane owns, so it cannot be patched the same
+               way; `router.refresh()` is the honest way to true it up
+               promptly instead of leaving it stale until a guest happens to
+               reload. It is safe here specifically because a rename never
+               changes `access`, so `key={access}` never remounts the gallery
+               (unlike DEFECT 1's flip, which does). */
+            galleryRef.current?.renameMine(displayName);
+            router.refresh();
             if (pendingAdd.current) {
               pendingAdd.current = false;
               uploadRef.current?.openAdd();
@@ -811,6 +829,7 @@ export function EventExperience({
                 isAuthed={isAuthed}
                 sessionToken={sessionToken}
                 initialTileSize={initialTileSize}
+                approvedTotal={stats.approvedTotal}
               />
             </div>
           </Suspense>

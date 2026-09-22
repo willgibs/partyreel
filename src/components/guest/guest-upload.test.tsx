@@ -379,6 +379,96 @@ describe("GuestUpload: the identity reshape", () => {
   });
 });
 
+/* ── DEFECT 1 (the alias red-team, 2026-09-21): the refresh waits for the
+   sheet. A mid-run verification_required used to call onVerificationRequired
+   (the caller's router.refresh()) in the SAME tick as the queue's own state
+   update, before the "run ended" effect below even ran — the access flip that
+   followed remounted this whole tree via key={access} and tore the failure
+   sheet down mid-read (measured on the alias: 503ms). A join-time refusal
+   (nothing ever queued) has no sheet to wait for and keeps firing at once. ── */
+
+describe("GuestUpload: the refresh waits for the failure sheet (DEFECT 1)", () => {
+  it("does not call onVerificationRequired while the mid-run sheet is open", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "verification_required",
+      message: "This event now needs a confirmed email.",
+    });
+    const onVerificationRequired = vi.fn();
+    const { addFiles } = mount({
+      sessionToken: "sess-1",
+      onVerificationRequired,
+    });
+    addFiles([makeFile()]);
+
+    await screen.findByText("1 file did not go");
+    expect(onVerificationRequired).not.toHaveBeenCalled();
+  });
+
+  it("closing the sheet with Not now calls it exactly once", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "verification_required",
+      message: "This event now needs a confirmed email.",
+    });
+    const onVerificationRequired = vi.fn();
+    const { addFiles } = mount({
+      sessionToken: "sess-1",
+      onVerificationRequired,
+    });
+    addFiles([makeFile()]);
+
+    await screen.findByText("1 file did not go");
+    fireEvent.click(screen.getByRole("button", { name: "Not now" }));
+    expect(onVerificationRequired).toHaveBeenCalledTimes(1);
+  });
+
+  it("Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: false,
+      code: "verification_required",
+      message: "This event now needs a confirmed email.",
+    });
+    const onVerificationRequired = vi.fn();
+    const { addFiles } = mount({
+      sessionToken: "sess-1",
+      onVerificationRequired,
+    });
+    addFiles([makeFile()]);
+
+    await screen.findByText("1 file did not go");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(onVerificationRequired).toHaveBeenCalledTimes(1);
+  });
+
+  it("a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: false,
+      json: () =>
+        Promise.resolve({
+          ok: false,
+          code: "verification_required",
+          message: "Confirm your email to join this event.",
+        }),
+    } as Response);
+    const onVerificationRequired = vi.fn();
+    const { addFiles } = mount({
+      sessionToken: null,
+      onVerificationRequired,
+    });
+    addFiles([makeFile()]);
+
+    await waitFor(() =>
+      expect(onVerificationRequired).toHaveBeenCalledTimes(1),
+    );
+    expect(onVerificationRequired).toHaveBeenCalledWith(
+      "Confirm your email to join this event.",
+    );
+    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(mockUploadFile).not.toHaveBeenCalled();
+  });
+});
+
 describe("GuestUpload: demo mode", () => {
   it("simulates the upload: no network, synthetic approved outcome", async () => {
     const { addFiles, onUploaded, onSession } = mount({

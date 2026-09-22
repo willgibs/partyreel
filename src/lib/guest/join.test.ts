@@ -140,4 +140,28 @@ describe("renameGuest", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.refusal.kind).toBe("name_invalid");
   });
+
+  // DEFECT 2 (the alias red-team, 2026-09-21): a dead token and a verified
+  // row both used to collapse into `other`, indistinguishable from a rate
+  // limit or a dropped link — which is exactly what let a nameless session's
+  // own rename attempt look identical to any other failure instead of the one
+  // case `guest-name-step.tsx` needs to fall back to a fresh join on.
+  it("keeps invalid_session and unauthorized as their own kinds, never collapsed to other", async () => {
+    for (const [status, kind] of [
+      [401, "invalid_session"],
+      [403, "unauthorized"],
+    ] as const) {
+      respond(status, { ok: false, code: kind, message: `said: ${kind}` });
+      const result = await renameGuest({
+        qrToken: "qr1",
+        sessionToken: "tok",
+        displayName: "Sam",
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.refusal.kind).toBe(kind);
+        expect(result.refusal.message).toBe(`said: ${kind}`);
+      }
+    }
+  });
 });

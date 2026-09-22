@@ -130,14 +130,21 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
     failure once dismissed cannot resurrect itself on a later, unrelated run's end. `dismiss` re-checks each
     id's LIVE status rather than trusting the list it was called with, which is what keeps it from also
     eating the ids `Retry all` just re-queued a moment earlier in the same close.
-  - ★ **THE FLIP, MID-RUN** (the identity reshape, 2026-09-21). A host can turn Require verified emails ON
-    while a guest is halfway through twelve files; the routes then answer 403 `verification_required`, which
-    the uploader carries up as `UploadOutcome.code` (the ONE code the queue reads by name). It is a spent
-    SESSION, not one refused file, so: a CONFIRMED viewer re-joins silently ONCE (their uid mints a verified
-    row and the run continues on the new token, and they never learn it happened, because nothing about them
-    changed); a name-only guest cannot, so the session is dropped, everything still queued is failed in place
-    with the SERVER's own sentence, the failure sheet opens once for all of it, and the page refreshes so the
-    NEXT Add meets the gate rather than a token that cannot work.
+  - ★ **THE FLIP, MID-RUN** (the identity reshape, 2026-09-21; the refresh's timing fixed by `identity-fixes`
+    DEFECT 1, 2026-09-21). A host can turn Require verified emails ON while a guest is halfway through twelve
+    files; the routes then answer 403 `verification_required`, which the uploader carries up as
+    `UploadOutcome.code` (the ONE code the queue reads by name). It is a spent SESSION, not one refused file,
+    so: a CONFIRMED viewer re-joins silently ONCE (their uid mints a verified row and the run continues on the
+    new token, and they never learn it happened, because nothing about them changed); a name-only guest
+    cannot, so the session is dropped and everything still queued is failed in place with the SERVER's own
+    sentence, opening the failure sheet once for all of it. ★ **THE PAGE'S REFRESH WAITS FOR THE SHEET TO
+    CLOSE.** `useUploadQueue`'s `onVerificationRequired(message, hadQueuedFiles)` tells `GuestUpload` whether
+    a sheet is about to stand between the guest and the gate: `hadQueuedFiles=true` (this mid-run case) holds
+    the refresh in a ref until "Not now", the backdrop, Escape or Retry closes the sheet, because
+    `router.refresh()` fired in the same tick as the mid-run branch used to flip `access` to `teaser` and
+    remount the whole gallery-and-upload slot (`key={access}`) out from under a sheet that had barely opened
+    (measured on the alias: 503ms). `hadQueuedFiles=false` (the JOIN-time refusal in `joinSilently`, nothing
+    ever queued) keeps the immediate refresh — there is no sheet to wait for.
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id, re-keyed to the media id at
   approved completion (`UploadedItem.queueId`) — the SAME URL object, so the `<img src>` never changes
   (zero flicker as an in-flight tile becomes the optimistic tile).
@@ -216,6 +223,17 @@ so dev-tools or a direct poll call can't reveal it. ★ **The poll enforces the 
 unauthenticated, so gating only the RSC would be a trivial bypass. The guest-facing gate for these levels is the
 entry modal (below). The host "Require guest accounts" relabel + live preview (P3) is the remaining phase
 (→ [ROADMAP.md](../ROADMAP.md)).
+
+★ **ONE TRUE COUNT AT `teaser`, READ THE SAME WAY EVERYWHERE IT IS SAID** (`identity-fixes` POLISH 1,
+2026-09-21). Three surfaces used to count three different things for one album: the header showed
+`LiveGallery`'s loaded-item count (capped at nine, photo-only, since the teaser withholds videos entirely),
+the "See all N photos" CTA showed the teaser's own photo-only `teaserTotal`, and only the gate showed the
+true `stats.approvedTotal` (photos and videos). `LiveGallery` now reads an `approvedTotal` prop (threaded
+from the shell's `stats`) and reports IT to the header via `onCountChange` while `access === "teaser"`
+(never at `full`, where the loaded count is already live and already true); the CTA reads the same number,
+worded with the header's own always-both-nouns rule ("N photos & videos") rather than a new conditional one.
+A caller that has not been updated to pass `approvedTotal` still falls back to the photo-only `teaserTotal`,
+never a silent regression.
 
 ## The ARRIVAL (the entry surface: welcome + the gates)
 
@@ -360,7 +378,15 @@ reshape can still read as "A guest".
 - **Naming a row afterwards:** `POST /api/guests/name {qr_token, session_token, display_name}` over
   `set_guest_display_name` — for a row minted before the reshape, one minted without a name, and a guest
   who wants a different one. Its own limiter kind (`rename`), tighter than `join` and still venue-sized.
-  A VERIFIED guest is refused (403): their name is their profile's, and one row never carries two.
+  A VERIFIED guest is refused (403): their name is their profile's, and one row never carries two. ★ **A
+  HELD SESSION TOKEN ALWAYS TRIES RENAME FIRST, WHICHEVER DOOR OPENED IT** (`identity-fixes` DEFECT 2,
+  2026-09-21). `guest-name-step.tsx` used to call `renameGuest` only in `edit` mode, so a `join`-mode open on
+  a device that already held a session but no LOCAL name (a legacy row, or one the queue's own silent join
+  minted) fell into `joinEvent` and minted a SECOND row, stranding the first one's photographs under "A
+  guest". The step now calls `renameGuest` whenever a session token is held, in either mode, and falls back
+  to `joinEvent` only on `invalid_session` (a genuinely DEAD token — the route's own `NO_DATA_FOUND`) or
+  `unauthorized` (a verified row, which cannot happen for a nameless session in practice, but the route is
+  the truth this component defers to, not its own assumption).
 - ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries
   `require_verified_email` + `guest_verified`, so presign and complete both answer 403
   `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a

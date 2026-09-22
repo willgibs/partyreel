@@ -59,6 +59,17 @@ describe("SaveAccountPrompt", () => {
     expect(screen.getByText(/it stays with you/i)).toBeInTheDocument();
   });
 
+  // POLISH 3 (the identity red-team, 2026-09-21): the heading said "photos"
+  // for one file too, reading as a typo beside its own body's "it stays".
+  it("the heading counts too: singular for exactly one, plural otherwise", () => {
+    const { unmount } = mount(7);
+    expect(screen.getByText("Keep these photos")).toBeInTheDocument();
+    unmount();
+
+    mount(1);
+    expect(screen.getByText("Keep this photo")).toBeInTheDocument();
+  });
+
   it("asks for a confirmed email, which is what the door behind it does", () => {
     mount(3);
     expect(

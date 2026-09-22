@@ -148,6 +148,14 @@ export function buildGuestViewGroups({
 export type LiveGalleryHandle = {
   /** An upload finished: optimistic tile (approved only) + a refresh. */
   notifyUploaded: (u: UploadedItem) => void;
+  /**
+   * A rename lands (POLISH 2, the identity red-team, 2026-09-21): patch this
+   * device's OWN credits in place — the tile/lightbox attribution for every
+   * item `ownIds` already knows is theirs — rather than waiting for the next
+   * poll tick. The server's own truth still arrives on schedule and simply
+   * confirms the same value, so this is never the last word, only the first.
+   */
+  renameMine: (displayName: string) => void;
 };
 
 export function LiveGallery({
@@ -165,6 +173,7 @@ export function LiveGallery({
   isAuthed = false,
   sessionToken = null,
   initialTileSize,
+  approvedTotal,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -200,6 +209,16 @@ export function LiveGallery({
    *  precedent) — never a client-only read, so the first paint is already the
    *  size a returning guest picked instead of a resize after hydration. */
   initialTileSize?: TileSize;
+  /**
+   * `getGalleryStats`'s own admin-read total (photos AND videos), threaded
+   * down from the shell's `stats` prop (POLISH 1, the identity red-team,
+   * 2026-09-21). At `teaser` access the loaded `items` are capped AND
+   * photo-only (the withheld set never reaches the browser), so neither
+   * `items.length` nor the teaser's own `teaserTotal` is the number to show
+   * anywhere outside the grid itself — this is. Omitted, the teaser falls
+   * back to the photo-only `teaserTotal` exactly as before.
+   */
+  approvedTotal?: number;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -468,6 +487,19 @@ export function LiveGallery({
       }
       if (!isDemo) void refresh();
     },
+    // POLISH 2 (the identity red-team, 2026-09-21): patch this device's own
+    // credits the instant a rename lands, in BOTH item lists — the confirmed
+    // server set and anything this device has in flight — rather than the
+    // guest reading their old name on their own photographs until the next
+    // poll tick. `ownIds` is the same server-truth set Remove and the Yours
+    // filter already gate on, never a client guess.
+    renameMine(displayName) {
+      const patch = (m: GridMedia): GridMedia =>
+        ownIds.has(m.id) ? { ...m, uploaderName: displayName } : m;
+      serverItemsRef.current = serverItemsRef.current.map(patch);
+      setServerItems((prev) => prev.map(patch));
+      setOptimistic((prev) => prev.map(patch));
+    },
   }));
 
   // THE TWO MARKS, from the two lists. Memoized because `useArrivalMarks` keys
@@ -557,10 +589,24 @@ export function LiveGallery({
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
+  // THE ALBUM'S TRUE SIZE (POLISH 1, the identity red-team, 2026-09-21). At
+  // `full` access `items.length` already IS the whole approved set — live,
+  // even, since an arrival bumps it instantly. At `teaser` it is capped at
+  // nine photos AND photo-only (videos are withheld entirely, by design), so
+  // it is the wrong number for anything OUTSIDE the grid itself: the shell's
+  // header used to show this capped count while the CTA below showed a
+  // DIFFERENT, photo-only total, and the gate a THIRD number — three reads of
+  // one album. `approvedTotal` (the RSC's own admin-read total) is the one
+  // true count now; a caller that has not been updated to pass it still gets
+  // the photo-only `teaserTotal` exactly as before, never a regression.
+  const rawCount = items.length;
+  const count =
+    access === "teaser"
+      ? (approvedTotal ?? seed.teaserTotal ?? rawCount)
+      : rawCount;
   // The header owns the visible count line (Phase 4); keep it current. It is
   // the WHOLE album's count and stays that way under the Yours filter: the
   // event's line says how big the album is, never how much of it is on screen.
-  const count = items.length;
   useEffect(() => {
     onCountChange?.(count);
   }, [count, onCountChange]);
@@ -718,11 +764,15 @@ export function LiveGallery({
         // (the soft paywall). ★ Its fallback line moved with the rest of the
         // identity words (2026-09-21): an account is not what the host asked
         // for, a confirmed email is, and that is what the door behind this
-        // button actually does.
+        // button actually does. ★ ITS NUMBER AND NOUN NOW MATCH THE HEADER
+        // (POLISH 1, 2026-09-21): `count` is the same true total the header
+        // reads (his to overrule: counting videos together with the photos),
+        // worded with the header's own always-both-nouns rule rather than a
+        // new, unproven-for-this-album conditional one.
         <div className="mt-5 flex justify-center">
           <Button onClick={onOpenGate} className="active:scale-[0.99]">
-            {seed.teaserTotal !== null && seed.teaserTotal > items.length
-              ? `See all ${seed.teaserTotal} photos`
+            {count > rawCount
+              ? `See all ${count} ${count === 1 ? "photo" : "photos"} & videos`
               : "Confirm your email to see everything"}
           </Button>
         </div>
