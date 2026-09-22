@@ -122,9 +122,13 @@ export function OfferInline({
   );
 }
 
-/** The last screen of the same sheet she just sent from, quoted (a real Sheet
- *  would portal to the lab page, not this frame): `ui/sheet.tsx`'s own
- *  classes, copied rather than mounted, pinned to this frame's own foot.
+/** The last screen of the same sheet she just sent from — since the door
+ *  ruling (2026-09-21, rulings.md "the door as three steps") that sheet is
+ *  the WELCOME sheet itself, held with no exit: the album has not been shown
+ *  to her yet, so there is nothing to "take her to" and a dismiss may never
+ *  read as one. Quoted (a real Sheet would portal to the lab page, not this
+ *  frame): `ui/sheet.tsx`'s own classes, copied rather than mounted, pinned
+ *  to this frame's own foot.
  *
  *  ★ `fixed`, NEVER `absolute` (`host-curation`'s own landmine, verbatim in
  *  its stylesheet: "the frame IS the viewport... an absolute box inside a
@@ -158,11 +162,16 @@ export function OfferSheet({ count }: { count: number }) {
           <Button size="default" className="w-full">
             Confirm your email
           </Button>
+          {/* No exit (rulings.md, verbatim: "Including 'just browsing'
+              defeats this entire purpose... No exit."): the quiet dismiss
+              reads exactly as the same ask's own words do everywhere else it
+              is drawn (`OfferCard`'s "Maybe later"), never as a door out of
+              an album she is not yet holding. */}
           <button
             type="button"
             className="text-xs text-muted-foreground underline-offset-4 hover:underline"
           >
-            Not now, take me to the album
+            Maybe later
           </button>
         </div>
       </div>
