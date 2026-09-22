@@ -37,6 +37,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | `recheck-guest-identity` | `guest-capture` and `profile-page` on the identity model and the live reel's tile; the three shipped lines that promise "on your profile" made true | cut `c2482757`, committed `1c560b16`; running (agent `ab0819cf5bf907ace`) | Opus, :3135 | integrate (board `guest-capture`, then demo `profile-page`); `guest-capture` moves below `identity-profile` in `DESK_ORDER` (after `docs-rules` frees `touchpoints.ts`) |
 | `recheck-mail-admin-export` | `emails`, `admin-triage`, `export-flow` current | cut `c2482757`, committed `1c560b16`; running (agent `ad57c4e5337f4cc06`) | Sonnet, :3136 | integrate (board `emails`, then demo the other two) |
 | `recheck-help-press` | `help-center`, `press-page` current (`press-page.the-facts` adapted) | cut `c2482757`, committed `1c560b16`; running (agent `adbe0278627fa617d`) | Sonnet, :3137 | integrate (board `help-center`, then demo `press-page`) |
+| `docs-product-trim` | `PRD.md`, `PRICING.md` and the two content authoring guides in the present tense, checked against the code; Pro's case added | cut `adbb90e0`, committed `90c95d8d`; running (agent `a355006f4f0b11ea9`) | Opus, :3131 | integrate (`none`) |
 
 ## Next, in order
 
@@ -44,8 +45,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
    snapshot, the runbook, `docs/PROGRAM.md` and `docs/tracks/README.md` as rules, the STATUS-row tool retired,
    `usher/` without logs, the old pickup file a pointer, memory consolidated). `pointer-sweep` merged at `b314fc97` (gate
    116) and `roadmap-lean` at `7e068786` (gate 117; the lab candidates joined the ROADMAP as one bucket). `docs-rules` at `37e4eb15` (gate 118: `rulings.md` and the specs
-   retired, the Library's rulings on its rules page). Left: `systems-trim`; a `docs-product-trim` lane for `PRD.md`,
-   `PRICING.md` and the two content authoring guides; the bible's `why` lines in the present tense (the Orchestrator's).
+   retired, the Library's rulings on its rules page). The bible's `why` lines are in the present tense (`fc63a199`).
+   Left: `systems-trim` and `docs-product-trim` (In flight above).
 2. **Recheck the open boards** (Will's suggestion): four lanes cut at `c2482757` (In flight above), on the survey's
    findings (the scratchpad's `recheck/report.md`) and his decision-outcomes judgment of 2026-09-22 (a reached question
    that still holds potential value is adapted to the current context; only one solved at its best is removed; the
