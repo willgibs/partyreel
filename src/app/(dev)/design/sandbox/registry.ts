@@ -9,6 +9,7 @@ import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
+import { REEL_STORY } from "./reel-story/spec";
 import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
 import { HELP_CENTER } from "./help-center/spec";
@@ -58,6 +59,7 @@ const REGISTERED: readonly BoardSpec[] = [
   HOST_CURATION,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
+  REEL_STORY,
   HELP_CENTER,
   EMAILS,
   SITE_CHROME,

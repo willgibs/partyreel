@@ -42,6 +42,7 @@ export type RulingId =
   | "profile-page"
   | "export-flow"
   | "admin-triage"
+  | "reel-story"
   | "admin"
   | "media-viewer"
   | "emails"
@@ -122,6 +123,7 @@ export type SandboxId =
   | "profile-page"
   | "export-flow"
   | "admin-triage"
+  | "reel-story"
   | "media-viewer"
   | "emails"
   | "help-center"
@@ -1009,6 +1011,33 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "reel-story",
+    title: "The marketing story of the reel",
+    surface: "marketing",
+    ruled:
+      "open (Will, 2026-09-22, THE REEL ROUND: the reel reconceived whole, rulings.md \"the reel, reconceived\")",
+    shipped: null,
+    why: "Every marketing surface still sells the old host-made, post-event, stored reel. Seven asks retell it: the thesis line, the /reel page's arc, the home's teaser, the pricing rows, the how-it-works steps, the events' reel column, and the help category's name.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/lib/constants/marketing-voice.ts",
+      "src/components/marketing/sections/reel/",
+      "src/components/marketing/sections/home/reel-teaser.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the real marketing pieces, at 1440 with 375 on the knob: the one thesis line (drawn on the home's close and the feature door), the /reel page's three-chapter order, what the home's teaser plays, how the pricing rows name the cut, the loop's last step on both sides, the event pages' reel column, and the help category's name",
+      variants: [
+        "The thesis line",
+        "The /reel page's arc",
+        "The home's teaser",
+        "The pricing rows",
+        "The how-it-works steps",
+        "The events' reel column",
+        "The help category's name",
+      ],
+    },
+  },
+  {
     id: "media-viewer",
     title: "What a photograph opens as",
     surface: "shared",
@@ -1664,6 +1693,10 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // places both siblings in their true order at the merge.
   // album's shape). `identity-claims` registers here 2026-09-22 for the same
   // reason; the Orchestrator places it after `identity-door` at its merge.
+  // `reel-story` is placed directly too (its own manifest's instruction, not
+  // the head exception, 2026-09-22: several reel-round boards at once had
+  // mangled the head rule into conflicted merges): right after `admin-triage`,
+  // a named neighbour, so wave-2 siblings land at different spots.
   "media-viewer",
   "guest-capture",
   "identity-door",
@@ -1672,6 +1705,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "host-curation",
   "export-flow",
   "admin-triage",
+  "reel-story",
   "help-center",
   "emails",
   "site-chrome",

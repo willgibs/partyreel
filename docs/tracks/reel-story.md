@@ -184,6 +184,7 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
+- STATE (checkpoint, 2026-09-22, mid-build): registered (`touchpoints.ts` RulingId/SandboxId/RULINGS/DESK_ORDER after `admin-triage`, `registry.ts`, `boards.ts`) and the board built whole (spec.ts's seven asks, fixtures.ts, surfaces.tsx, board.tsx) on real components throughout. NEXT: run the gate (design:rules, specimens, typecheck, lint, test, build, lab:smoke, lab:demo), fix whatever it finds, eyeball the board in the browser at 1440 and 375, then fill the rest of this Handoff and Record and hand off.
 - Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
 - Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
   the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
