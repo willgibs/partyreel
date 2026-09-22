@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
+import { ReelFrontBoard } from "@/app/(dev)/design/sandbox/reel-front/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
@@ -35,6 +36,7 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "guest-capture": { Component: GuestCaptureBoard },
+  "reel-front": { Component: ReelFrontBoard },
 
   "site-chrome": { Component: SiteChromeBoard },
   "profile-page": { Component: ProfilePageBoard },

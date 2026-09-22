@@ -29,6 +29,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "guest-capture"
+  | "reel-front"
   | "toasts"
   | "guest-verify"
   | "seed-avatar"
@@ -112,6 +113,7 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "guest-capture"
+  | "reel-front"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -168,6 +170,35 @@ export const RULINGS: Ruling[] = [
         "The follow surface",
         "The landing",
         "What the name becomes",
+      ],
+    },
+  },
+  {
+    id: "reel-front",
+    title: "The album's living tile",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, rulings.md \"the reel, reconceived\": the reel is reconceived whole as a live, looping montage playing from a tile at the album's head)",
+    shipped: null,
+    why: "This is the album's own tile: what it is, its verbs, its states, the beat after a guest's upload, the door and the hub; reel-view and reel-cut are its sibling boards.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/guest-reel-card.tsx",
+      "src/components/reel/poster-card.tsx",
+      "src/components/guest/entry-shell.tsx",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+    ],
+    board: {
+      note: "Seven decisions on the album's own head, at Maya and Jay's wedding, every reel frame drawn by the real engine over fixture clips: what the living tile is, its verbs, its states before three items, the beat after a guest's first approved photo, the door's backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card",
+      variants: [
+        "The living tile",
+        "The tile's verbs",
+        "The small states",
+        "The beat after yours",
+        "The door's backdrop",
+        "Once uploads close",
+        "The hub's Reel card",
       ],
     },
   },
@@ -1567,14 +1598,16 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  // ★ A NEW BOARD REGISTERS AT THE HEAD (the registration exception) so lanes
-  // stay line-disjoint, and the Orchestrator moves it into its leverage place
-  // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
-  // after `app-vocabulary`: a part under both shapes; `guest-capture` after
-  // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
-  // album's shape).
+  // ★ A NEW BOARD REGISTERS BESIDE A NAMED NEIGHBOUR, NEVER ALL AT THE SAME
+  // SPOT (2026-09-22: several same-round siblings inserting at one shared head
+  // mangled two merges the same day). `guest-capture` after `media-viewer` at
+  // its merge, 2026-09-21 (the capture flow lives under the album's shape);
+  // `toasts` after `app-vocabulary` (a part under both shapes); `guest-verify`
+  // after `guest-shape`. The Orchestrator moves each into its leverage place
+  // at the merge regardless of where it lands here.
   "media-viewer",
   "guest-capture",
+  "reel-front",
   "host-curation",
   "export-flow",
   "admin-triage",
