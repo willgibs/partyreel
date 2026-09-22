@@ -20,6 +20,7 @@ roles" + [`PROGRAM.md`](PROGRAM.md).
 
 ## Now (concrete, pick-up-able; one line each, the provenance in git)
 
+- From `upload-gate-host` (2026-09-21): a help-sync pass bumps the `order` of the four privacy-and-safety articles after `require-verified-emails-explained` by one so `require-an-upload-to-view-explained` (parked at `order: 7`) sits beside its identity sibling.
 - From the door ruling (2026-09-21): a profile-setup wizard when a new user first finds their profile page, claiming a unique handle and the rest the way the event wizard does; a lab exploration Will named at the ruling, cut when the desk is closed (no new board before then).
 - From the identity red-team (2026-09-21): the hub's Guests card counts profile-backed guests only ("0 contributors") while the album reads "from 4 guests" and the Guests room lists three named unverified guests; Will's call whether the card counts the named unverified (recommended: yes, the room and the album already do).
 - From the identity red-team (2026-09-21): a name-only guest whose session the flip dropped re-joins on the same device as a second guest row with the same name, so the guest list shows one person twice; `pr_device_id` already lives in localStorage: a device-keyed re-join (the same row) or a list de-dupe by name and device, Will's to pick.
