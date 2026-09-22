@@ -84,12 +84,16 @@ function DeviceTag({ mode }: { mode: "desktop" | "phone" }) {
 export function Hero({ shape, mode }: { shape: WhoFirstShape; mode: "desktop" | "phone" }) {
   const guestVoiced = shape === "context" && mode === "phone";
   const heading = shape === "split" ? "What do you need help with?" : guestVoiced ? "Just scanned a code?" : "How can we help?";
+  // "No app required" (never "no account": press.ts's voice r1 retired that
+  // claim once identity-door made a confirmed account the default ask for a
+  // new event's guests) and "the reel", reel-story.help's recommended stand-in
+  // for "the highlight reel" — unruled, so provisional.
   const subhead =
     shape === "split"
       ? "One door for hosting, one for the party you just joined."
       : guestVoiced
-        ? "Find your host's event, or add your own photos. No app, no account needed."
-        : "Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel.";
+        ? "Find your host's event, or add your own photos. No app required."
+        : "Guides for hosts and guests: setup, sharing, privacy, plans, and the reel.";
   return (
     <PageHero
       entrance="rise"

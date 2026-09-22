@@ -19,8 +19,12 @@ import { FIXTURE_NAME, FIXTURE_TITLE, FixtureNote } from "./shared";
 
 /** The third length: a page-length account nobody has written yet, so this
  *  is preview fixture copy, not a draft awaiting a ship. Never lands in
- *  constants/press.ts without its own round. */
-const PAGE_LENGTH_FIXTURE = `${PRESS_BOILERPLATE} Every album lives at the same link for as long as the host keeps it: there is no cliff where a night's photos quietly expire, and no per-guest fee that punishes a bigger party. A host approves what stays, guests keep their own originals at full quality, and the same collected footage becomes a highlight reel without a separate editor or a render queue to wait on.`;
+ *  constants/press.ts without its own round. Its closing line retells the
+ *  reel (the host-made, stored mp4 is gone) after reel-story.thesis's
+ *  recommended "grows" option, "Every event has a reel" — Will has not
+ *  ruled that board yet, so the line is a provisional stand-in, not final
+ *  copy. */
+const PAGE_LENGTH_FIXTURE = `${PRESS_BOILERPLATE} Every album lives at the same link for as long as the host keeps it: there is no cliff where a night's photos quietly expire, and no per-guest fee that punishes a bigger party. A host approves what stays, guests keep their own originals at full quality, and every event has a reel already: a live montage of everything the album shows, playing from the third photo with nothing to render and nothing to wait on.`;
 
 const QUOTE = `"The best photos from any event are scattered across fifty phones nobody will ever see. We built the one place they all land."`;
 
