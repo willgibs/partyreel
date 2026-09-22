@@ -25,6 +25,19 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // THE GUEST IDENTITY ROUND, wave 1 (lp/guest-email-claims, 2026-09-22), at
+  // the head like the blocks below it, so several lanes adding `for` lines in
+  // one round land on distinct hunks instead of on each other.
+  "src/components/app/dashboard/claims-card.tsx": {
+    for: "the dashboard's claim ticket: one row per EVENT with uploads waiting under the confirmed caller's own address, typed before it was proved. Claim/Not mine per row, Claim all as a no-confirmation shortcut (sends null, claims everything), Finish applying the picks with a named confirmation whenever something would be left unclaimed, since that is the guest saying it was not them",
+    unspecimened:
+      "reads a live RPC through a Server Function; the honest demo is /dashboard itself, and its contract sits beside it",
+  },
+  "src/components/social/attended-events-visibility.tsx": {
+    for: "the per-event \"show this on my profile\" switches (profiles-social.md point 2), OFF by default since the guest identity round: an attended event publishes only once ITS GUEST turns it on here, never because they failed to turn it off, and turning one off here never touches the host's own guest list",
+    unspecimened:
+      "a settings-card list over live Server Functions; the honest demo is /account's Public profile card, and its contract sits beside it",
+  },
   // A HOST'S FIRST EVENT (lp/first-event-wiring, 2026-09-21), at the head like
   // the blocks below it, so several lanes adding `for` lines in one round land
   // on distinct hunks instead of on each other.
@@ -328,6 +341,11 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   },
   "src/lib/dashboard/events-view.ts": {
     for: "whether your events draw as cover cards or rows, in what order and through which lens; the view is a cookie because the server has to know it before the first byte",
+  },
+  "src/lib/db/queries/claims.ts": {
+    for: "the claim ticket's data (the guest identity round, 2026-09-22): list_guest_rows_by_email's rows GROUPED BY EVENT, since the same address can carry more than one guest row at one event and both the claim and the disown RPCs act per event, never per row",
+    unspecimened:
+      "a server-only data read behind auth.uid(); ClaimsCard is the honest demo, and its own contract sits beside it",
   },
   "src/components/app/dashboard/events-section.tsx": {
     for: "your events, both ways: the cards by default, the rows for a host with many, the toggle opposite the heading, and the bin and the saved events as lenses rather than a chip row",

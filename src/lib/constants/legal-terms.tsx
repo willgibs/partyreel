@@ -120,7 +120,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host turns that requirement off, a guest instead types a display name at the door, and their uploads are shown under that name with a small unverified mark rather than a confirmed one.",
       ),
       p(
-        "Uploads made with a verified email are attributed to your confirmed display name and, if the host shows a guest list, listed there by name; uploads made under a typed name instead carry that name with a small unverified mark, and are listed the same way. If you confirm an email later, uploads you made under a typed name from the same browser can be claimed to your account. You may delete any upload of your own, right on the album, at any time, whether or not you have confirmed an email; without a confirmed email, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
+        "Uploads made with a verified email are attributed to your confirmed display name and, if the host shows a guest list, listed there by name; uploads made under a typed name instead carry that name with a small unverified mark, and are listed the same way. Uploads you made under a typed name from the same browser, or under an email you later confirm, can be claimed to your account; uploads someone else made using your address are removed when you mark that event as not yours. You may delete any upload of your own, right on the album, at any time, whether or not you have confirmed an email; without a confirmed email, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
       ),
       p(
         "Guests pay nothing to join, view, upload or download. These Terms apply to guests in full, including the sections on your content, acceptable use and copyright.",
@@ -413,9 +413,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "A public profile is public by choice. Guest lists are the host's call. Blocks are honoured everywhere.",
     blocks: [
-      // profiles-social.md + profiles-social.md.
+      // profiles-social.md + profiles-social.md. "Nothing until chosen"
+      // (2026-09-22): attendance is opt-IN, never opt-out.
       p(
-        "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you have contributed to where the host shows a guest list and you have not hidden them. You can hide any event from your profile at any time. Profiles never show email addresses or follower counts.",
+        "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you attended and chosen to show, where the host also shows a guest list. Nothing you attend shows there until you turn it on, and you can turn any event back off at any time. Profiles never show email addresses or follower counts.",
       ),
       p(
         "A profile may also carry a short bio you write. Like your display name it is public wherever your profile is, it is limited in length, it may not contain links, and names or wording that impersonate others, contain profanity, or use reserved words are not permitted; we may remove a bio that breaks this rule.",

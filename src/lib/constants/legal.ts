@@ -62,8 +62,13 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // `pr_guest_<eventId>`, which remembers which guest you are at one event
     // so the album can tell what you have already added; it is cleared when
     // you sign out or leave the event.
-    version: "1.4",
-    lastUpdated: "2026-09-21",
+    // 1.5 (2026-09-22): the guest identity round. A names-mode guest may add
+    // an email that stays unconfirmed and inert until claimed; local storage
+    // gained a per-event flag for whether one was added, never the address;
+    // attended-event visibility on a public profile is opt-in now (nothing
+    // shows until its owner turns it on), not opt-out.
+    version: "1.5",
+    lastUpdated: "2026-09-22",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -87,8 +92,13 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // display name instead, subject to the same display-name rule as a
     // host's, and is listed the same as a confirmed name, wearing a small
     // unverified mark.
-    version: "1.4",
-    lastUpdated: "2026-09-21",
+    // 1.5 (2026-09-22): the guest identity round. Uploads made under a typed
+    // name or an unconfirmed email can be claimed to your account once you
+    // confirm it; uploads made under your address by someone else are
+    // removed when you mark that event as not yours. Attended-event
+    // visibility on a public profile is opt-in now, not opt-out.
+    version: "1.5",
+    lastUpdated: "2026-09-22",
     status: "pending-review",
     effectiveDate: null,
   },

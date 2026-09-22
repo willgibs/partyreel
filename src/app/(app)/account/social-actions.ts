@@ -148,19 +148,6 @@ export async function hideEventFromProfileAction(
   return fromMutation(result);
 }
 
-/**
- * @deprecated One merge's worth of scaffolding, and no more. The attended switch
- * (`components/social/attended-events-visibility.tsx`) belongs to the CLAIMS lane and still imports
- * this name; it rewires to `showEventOnProfileAction` immediately after this lane merges, and this
- * export goes with that change. It is a pure alias, so the switch does the right thing in the
- * meantime: "un-hide" and "show" are the same act now that the table is an opt-in.
- */
-export async function unhideEventFromProfileAction(
-  eventId: string,
-): Promise<SocialActionResult> {
-  return showEventOnProfileAction(eventId);
-}
-
 export async function unfollowAction(
   profileId: string,
 ): Promise<SocialActionResult> {

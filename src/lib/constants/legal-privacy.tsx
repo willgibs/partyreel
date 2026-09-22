@@ -147,6 +147,17 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           that name, shown with a small unverified mark rather than a
           confirmed one.
         </>,
+        <>
+          <strong className="text-foreground">
+            An email address you choose to add
+          </strong>{" "}
+          at an event that does not require one. It is stored unconfirmed and
+          used only so you can claim your uploads from any device if you
+          confirm it later. It is never shown to the host or to other guests.
+          It stays until you confirm it and finish claiming: if someone used
+          your address without you, confirm it and mark those events as not
+          yours, and their uploads are removed and the address detached.
+        </>,
       ),
       sub("events", "Events and media"),
       ul(
@@ -292,12 +303,13 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       // profiles-social.md: host-controlled guest list, no per-guest opt-in; the escape
       // hatches are the ones the ADR names.
       p(
-        "Hosts can turn on a guest list for an event. When it is on, every guest who added photos is listed by display name to everyone who can see the album, a confirmed name or one wearing a small unverified mark. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, do not upload to that event. You can also hide any event from your own public profile.",
+        "Hosts can turn on a guest list for an event. When it is on, every guest who added photos is listed by display name to everyone who can see the album, a confirmed name or one wearing a small unverified mark. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, do not upload to that event. An event you attended never appears on your own public profile until you turn it on there.",
       ),
       // profiles-social.md: public by existence, indexable, no emails, no
-      // follower counts; blocks filtered server-side.
+      // follower counts; blocks filtered server-side. "Nothing until chosen"
+      // (2026-09-22): attendance is opt-IN now, never opt-out.
       p(
-        "If you claim a public profile, it is visible to anyone at its address, may be indexed by search engines, and lists the events you host and choose to show, and the open events you have contributed to where their hosts show a guest list and you have not hidden them. Profiles never show your email address or your follower counts. Blocking a person removes each of you from the other's social surfaces.",
+        "If you claim a public profile, it is visible to anyone at its address, may be indexed by search engines, and lists the events you host and choose to show, and the open events you attended and chosen to show, where their hosts also show a guest list. Nothing you attend appears there until you turn it on. Profiles never show your email address or your follower counts. Blocking a person removes each of you from the other's social surfaces.",
       ),
     ],
   },
@@ -406,7 +418,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       // localStorage inventory: pr_session_*, pr_device_id, theme, pr_welcome_*,
       // pr_save_prompt_*, pr_pending_*, pr-no-track.
       p(
-        "Your browser's local storage also holds a few values set by our pages: the session token for each event you joined as a guest, the device identifier described under upload records, your theme choice, small flags such as whether you have seen an event's welcome screen, and an analytics opt-out flag. These are not cookies and are never sent to other sites; clearing your site data for partyreel.com removes them.",
+        "Your browser's local storage also holds a few values set by our pages: the session token for each event you joined as a guest, the device identifier described under upload records, your theme choice, small flags such as whether you have seen an event's welcome screen or added an email at one (never the address itself), and an analytics opt-out flag. These are not cookies and are never sent to other sites; clearing your site data for partyreel.com removes them.",
       ),
       p(
         <>
@@ -536,10 +548,12 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           recovery bin for 30 days, where they can be restored or purged sooner.
         </>,
         <>
-          <strong className="text-foreground">Stay out of view.</strong> Hide
-          any event from your public profile, and stay off an event’s guest list
-          by not uploading to it at all: every upload is listed, a confirmed
-          name or one wearing the small unverified mark.
+          <strong className="text-foreground">Stay out of view.</strong>{" "}
+          Nothing you attend shows on your public profile until you choose to
+          show it there, and you can turn any event back off at any time.
+          Stay off an event’s guest list by not uploading to it at all: every
+          upload is listed, a confirmed name or one wearing the small
+          unverified mark.
         </>,
         // Self-serve since 2026-09-02: the /account danger zone (request path in
         // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).

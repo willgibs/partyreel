@@ -534,14 +534,6 @@ export type AttendedEventSetting = {
   event_date: string | null;
   /** In my profile_shown_events set: I have chosen to publish this one. Default FALSE. */
   shownOnProfile: boolean;
-  /**
-   * @deprecated The opt-OUT mirror of `shownOnProfile`, kept for exactly one merge. The switch
-   * (`components/social/attended-events-visibility.tsx`) belongs to the claims lane and still reads
-   * the old field; it rewires to `shownOnProfile` and the two renamed actions right after this lane
-   * merges, and this line goes with that change. It is a pure derivation (`!shownOnProfile`), so the
-   * switch renders the CORRECT state in the meantime — an event nobody chose reads as hidden.
-   */
-  hiddenFromProfile: boolean;
 };
 
 /**
@@ -593,17 +585,12 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
       .order("created_at", { ascending: false });
     if (eventsRes.error) throw eventsRes.error;
     const shown = new Set(await getMyShownEventIds());
-    return (eventsRes.data ?? []).map((e) => {
-      const shownOnProfile = shown.has(e.id);
-      return {
-        id: e.id,
-        name: e.name,
-        event_date: e.event_date,
-        shownOnProfile,
-        // The deprecated mirror; see AttendedEventSetting. Derived, never stored.
-        hiddenFromProfile: !shownOnProfile,
-      };
-    });
+    return (eventsRes.data ?? []).map((e) => ({
+      id: e.id,
+      name: e.name,
+      event_date: e.event_date,
+      shownOnProfile: shown.has(e.id),
+    }));
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
     throw error;

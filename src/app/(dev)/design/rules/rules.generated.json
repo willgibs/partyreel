@@ -1389,6 +1389,89 @@
       ]
     },
     {
+      "id": "claims-card",
+      "file": "src/components/app/dashboard/claims-card.tsx",
+      "names": [
+        "ClaimsCard"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders nothing",
+          "suite": [
+            "an empty ticket"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 60
+        },
+        {
+          "title": "shows the event, its date, every typed name and its photo count",
+          "suite": [
+            "a grouped row"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 67
+        },
+        {
+          "title": "withholds a gated date and an untyped name rather than inventing either",
+          "suite": [
+            "a grouped row"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 75
+        },
+        {
+          "title": "sends null, claims every row and skips the confirmation entirely",
+          "suite": [
+            "Claim all"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "asks nothing once every row has been explicitly claimed",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 108
+        },
+        {
+          "title": "confirms and names an event nobody touched before releasing it",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "writes an explicit Not mine the same as an untouched row",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 157
+        },
+        {
+          "title": "Go back cancels without writing anything",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "keeps the ticket and the picks standing when the server call fails",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 192
+        }
+      ]
+    },
+    {
       "id": "events-section",
       "file": "src/components/app/dashboard/events-section.tsx",
       "names": [
@@ -14899,6 +14982,65 @@
       ]
     },
     {
+      "id": "attended-events-visibility",
+      "file": "src/components/social/attended-events-visibility.tsx",
+      "names": [
+        "AttendedEventsVisibility"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders the empty state, not a bare list",
+          "suite": [
+            "no attended events"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 46
+        },
+        {
+          "title": "an event nobody has shown renders unchecked",
+          "suite": [
+            "default OFF"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 54
+        },
+        {
+          "title": "an event already shown renders checked",
+          "suite": [
+            "default OFF"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 61
+        },
+        {
+          "title": "calls the publish action, never the release one",
+          "suite": [
+            "turning one on"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 70
+        },
+        {
+          "title": "reverts and toasts on failure",
+          "suite": [
+            "turning one on"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 84
+        },
+        {
+          "title": "calls the release action, and never removes the event from the list",
+          "suite": [
+            "turning one off"
+          ],
+          "file": "src/components/social/attended-events-visibility.test.tsx",
+          "line": 102
+        }
+      ]
+    },
+    {
       "id": "guest-list",
       "file": "src/components/social/guest-list.tsx",
       "names": [
@@ -16801,6 +16943,95 @@
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
           "line": 199
+        }
+      ]
+    },
+    {
+      "id": "claims",
+      "file": "src/lib/db/queries/claims.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "returns nothing and never calls the RPC",
+          "suite": [
+            "signed out"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 59
+        },
+        {
+          "title": "maps every field",
+          "suite": [
+            "one row per event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 67
+        },
+        {
+          "title": "withholds nothing the RPC already withheld (a gated event's null date passes through)",
+          "suite": [
+            "one row per event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 82
+        },
+        {
+          "title": "drops a blank or missing typed name rather than listing an empty string",
+          "suite": [
+            "one row per event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 88
+        },
+        {
+          "title": "collapses into one entry: names collected, counts summed, the newer upload wins",
+          "suite": [
+            "two guest rows at the same event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 96
+        },
+        {
+          "title": "never lets a null last_upload_at from one row erase a real one from another",
+          "suite": [
+            "two guest rows at the same event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 121
+        },
+        {
+          "title": "dedupes an identical typed name across the group's rows",
+          "suite": [
+            "two guest rows at the same event"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 130
+        },
+        {
+          "title": "keeps the RPC's own order (most recently active first)",
+          "suite": [
+            "several events"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 141
+        },
+        {
+          "title": "keeps a group's rank at its best-placed row, even when its second row arrives later",
+          "suite": [
+            "several events"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 150
+        },
+        {
+          "title": "throws rather than swallowing it",
+          "suite": [
+            "a real error"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 164
         }
       ]
     },
