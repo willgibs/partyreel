@@ -1,25 +1,20 @@
 #!/usr/bin/env python3
-"""record.py <record.json>: one lane's record applied to the four record docs, under their caps, through one door.
+"""record.py <record.json>: one lane's record applied to the snapshot docs, under their caps, through one door.
 
-The JSON: {"changelog": "<the bullet, markdown, no trailing Next>", "status": [{"id": "...", "state": "...", "desc": "..."}],
-"orchestrator": [{"id": "...", "row": "| `id` | ... |"}], "roadmap": ["- From `x` (date): ..."], "retire_roadmap": ["substring", ...]}
-Every key optional. STATUS rows go through status-row.py's rule (refined once, never added twice); an orchestrator row
-replaces the row whose first cell is `id` or is added before the queue row; ROADMAP lines land at the head of "## Now";
-retire_roadmap deletes the Now lines containing each substring (each must match exactly one). Then the caps are printed:
-the CHANGELOG's first entry at most 160 lines (over 150 it says to open a new entry at the next record) and STATUS at
-most 120. Born 2026-09-20 after a day of ad hoc record scripts, one of which doubled a STATUS row.
+The JSON: {"status": [{"id": "...", "state": "...", "desc": "..."}], "orchestrator": [{"id": "...", "row": "| `id` | ... |"}],
+"roadmap": ["- <a future task, one line>"], "retire_roadmap": ["substring", ...]}. Every key optional. STATUS rows go through
+status-row.py's rule (refined once, never added twice); an orchestrator row replaces the row whose first cell is `id` or is
+added after the last row; ROADMAP lines land at the head of "## Now"; retire_roadmap deletes the Now lines containing each
+substring (each must match exactly one). What shipped is not recorded here: the merge commit carries each lane's summary,
+and git log is the history.
 """
-import json, sys, pathlib, re, subprocess
+import json, sys, pathlib, subprocess
 if len(sys.argv) != 2: sys.exit(__doc__)
 rec = json.loads(pathlib.Path(sys.argv[1]).read_text())
+if rec.get("changelog"): sys.exit("record.py: there is no CHANGELOG; put the summary in the merge commit message")
 KIT = pathlib.Path(__file__).resolve().parent
-NEXT = "**Next.**"
 def rw(p, f):
     path = pathlib.Path(p); t = path.read_text(); t2 = f(t); path.write_text(t2)
-if rec.get("changelog"):
-    def f(t):
-        i = t.index(NEXT); return t[:i] + rec["changelog"].rstrip("\n") + "\n\n" + t[i:]
-    rw("docs/CHANGELOG.md", f); print("CHANGELOG: bullet added before the first entry's Next")
 for row in rec.get("status", []):
     args = [sys.executable, str(KIT / "status-row.py"), row["id"], row["state"]] + (["--desc", row["desc"]] if row.get("desc") else [])
     r = subprocess.run(args, capture_output=True, text=True); print(r.stdout.strip() or r.stderr.strip())
@@ -30,8 +25,7 @@ for row in rec.get("orchestrator", []):
         if len(hits) > 1: sys.exit(f"orchestrator.md holds {len(hits)} rows for `{row['id']}`")
         if hits: lines[hits[0]] = row["row"]; print(f"orchestrator: `{row['id']}` replaced")
         else:
-            q = next((i for i, l in enumerate(lines) if l.startswith("| ") and " running" in l and "|" in l[2:] and l.count("|") >= 4 and "`" in l and "cut as seats free" in l), None)
-            at = q if q is not None else max(i for i, l in enumerate(lines) if l.startswith("| `")) + 1
+            at = max(i for i, l in enumerate(lines) if l.startswith("| `")) + 1
             lines.insert(at, row["row"]); print(f"orchestrator: `{row['id']}` added")
         return "\n".join(lines)
     rw("docs/tracks/orchestrator.md", f)
@@ -46,8 +40,5 @@ if rec.get("roadmap") or rec.get("retire_roadmap"):
         for line in reversed(rec.get("roadmap", [])): lines.insert(first, line.rstrip("\n")); print("ROADMAP: line added under Now")
         return "\n".join(lines)
     rw("docs/ROADMAP.md", f)
-cl = pathlib.Path("docs/CHANGELOG.md").read_text().split("\n")
-heads = [i for i, l in enumerate(cl) if l.startswith("## ")]
-entry = (heads[1] - heads[0]) if len(heads) > 1 else len(cl) - heads[0]
 st = len(pathlib.Path("docs/STATUS.md").read_text().split("\n"))
-print(f"caps: CHANGELOG first entry {entry} of 160 lines{' (OVER: trim now)' if entry > 160 else ' (open a new entry at the next record)' if entry > 150 else ''}; STATUS {st} of 120{' (OVER)' if st > 120 else ''}")
+print(f"caps: STATUS {st} of 120 lines{' (OVER)' if st > 120 else ''}")

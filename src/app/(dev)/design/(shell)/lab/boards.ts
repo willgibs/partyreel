@@ -27,12 +27,11 @@ import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board"
 import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 
 /**
- * THE BOARDS' CLIENT COMPONENTS (the Library x Lab round, 2026-09-15): the one
- * map from a standing board's id to the composition that renders it. A board
- * gets an entry here only while it stands in sandbox/ (touchpoints.ts sets
- * `board` on the same ids; touchpoints.test.ts pins the two lists equal);
- * when its ruling lands, both go and docs/design/rulings.md keeps the
- * history. Retiring one is therefore ATOMIC across three files plus the
+ * THE BOARDS' CLIENT COMPONENTS: the one map from a standing board's id to the
+ * composition that renders it. A board gets an entry here only while it stands
+ * in sandbox/ (touchpoints.ts sets `board` on the same ids; touchpoints.test.ts
+ * pins the two lists equal); when its winner is wired, both go, and the board
+ * lives on only as the rule it became. Retiring one is therefore ATOMIC across three files plus the
  * board's directory: touchpoints.ts (which owns SandboxId), this map and
  * sandbox/registry.ts, and a lane touches only its own board's lines in each.
  *

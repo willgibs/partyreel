@@ -38,12 +38,12 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * reads the question for its header from here; the component comes from
  * `(shell)/lab/boards.ts`, which is the client half.
  *
- * ★ A BOARD LEAVES THIS LIST WHEN ITS RULING LANDS, and its directory goes with
- * it: the ruling lives on in its RULINGS row (touchpoints.ts), the words in
- * docs/design/rulings.md, and the board in git. A lane adds or removes ONLY its
- * own board's lines here (the registration and retirement exceptions,
- * docs/tracks/orchestrator.md): a new board at the head of the list, moved
- * into its leverage place by the Orchestrator at the next record (below).
+ * ★ A BOARD LEAVES THIS LIST WHEN ITS WINNER IS WIRED, and its directory goes
+ * with it: the rule it became lives in the Library (its RULINGS row in
+ * touchpoints.ts, the component's contract) and the board in git. A lane adds or
+ * removes ONLY its own board's lines here (the registration and retirement
+ * exceptions): a new board directly after the neighbour its manifest names, never
+ * at the head of the list, moved into its leverage place by the Orchestrator.
  */
 /**
  * ★ ORDERED BY LEVERAGE AT EXPORT. The one home of the desk's order is

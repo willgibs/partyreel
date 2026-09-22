@@ -24,11 +24,11 @@ the lab, Will's verdicts, then the wiring. Vision and pricing: [`docs/PRD.md`](d
 | What is every open track doing? | [`docs/tracks/`](docs/tracks): one manifest per open `lp/<track>` branch, deleted at its merge |
 | What program is running: roles, the round, the rules? | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
-| What shipped in the last two rounds? | [`docs/CHANGELOG.md`](docs/CHANGELOG.md); `git log` for anything older |
-| What binds design work? | the Library at `/design/library` (the bible, every component's contracts, the policies), levelled in [`docs/design/README.md`](docs/design/README.md); Will's rulings in [`docs/design/rulings.md`](docs/design/rulings.md) |
+| What shipped? | `git log`: each merge commit carries its lane's summary |
+| What binds design work? | the Library at `/design/library` (the bible, every component's contracts, the policies), levelled in [`docs/design/README.md`](docs/design/README.md) |
 | What assets has Will been asked for? | [`docs/ASSETS.md`](docs/ASSETS.md) |
 
-The system docs (what exists and don't-revert) win over the ROADMAP (provisional); the old decision records are folded into them.
+The system docs (what exists and don't-revert) win over the ROADMAP (provisional). Every doc states current rules, never history.
 
 ## Sessions & roles
 
@@ -53,7 +53,7 @@ at boot from `origin/launch-prep` ([`docs/PROGRAM.md`](docs/PROGRAM.md) "Agent b
 6. **Verify antagonistically**: force the error cases, the cross-tenant and abuse paths, malformed input; local
    first, then live for the allow-list-gated flows. A lab-only round verifies light: the board at 1440 and 375.
 7. **Commit and hand off** on your own `lp/<track>` the moment the gate is green.
-8. **Record subtractively**: the owning `docs/systems/` doc refined in place (a fact inside your lane, listed in the manifest); the manifest's Record and Deferred lines; nothing else.
+8. **Record subtractively**: the owning `docs/systems/` doc refined in place (a fact inside your lane, listed in the manifest); the manifest's Deferred lines; nothing else.
 
 Clarify hard up front, then execute boldly without re-litigating the plan; stop only for a genuinely new decision.
 The human is a targeted instrument for what you cannot drive (a file upload, a password, a logged-out flow): stage
@@ -143,8 +143,8 @@ signal in the same change (zero silent failures).
 ## Keeping the docs healthy
 
 Two rules: **every fact has one home** (the doc whose question it answers) and **edit in place, never append**
-(refine the line; stale → delete; a shipped narrative → the round's CHANGELOG entry; a deferred task → one line under
-its ROADMAP bucket). **Nothing under `docs/` is history: the current round and the one before; git holds the rest.**
+(refine the line; stale → delete; a shipped narrative → the merge commit's message; a deferred task → one line under
+its ROADMAP bucket). **Nothing under `docs/` is history: a doc states the current rule, fact or state; git holds the rest.**
 A new gotcha goes in its `docs/systems/` doc, never here. The design law is the bible plus each component's contract
 (a test opening with `// @contract-for: <path>`); a contract guards function, never look; never pin copy or a look
 with a test; a rule that blocks better work is a finding for your manifest, not a wall. Markdown is `.prettierignore`d.

@@ -18381,8 +18381,8 @@
     {
       "file": "src/lib/record-depth-policy.test.ts",
       "scope": "engineering",
-      "title": "The record is two rounds deep",
-      "summary": "a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines.",
+      "title": "The record is a snapshot; git is the history",
+      "summary": "a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 120 lines without its round section, a CLAUDE.md over 150 lines.",
       "line": 1
     },
     {
