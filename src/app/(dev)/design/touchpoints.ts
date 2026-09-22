@@ -29,6 +29,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 export type RulingId =
   | "identity-door"
+  | "identity-profile"
   | "guest-capture"
   | "toasts"
   | "guest-verify"
@@ -113,6 +114,7 @@ export type RulingId =
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
   | "identity-door"
+  | "identity-profile"
   | "guest-capture"
   | "site-chrome"
   | "profile-page"
@@ -120,7 +122,6 @@ export type SandboxId =
   | "admin-triage"
   | "media-viewer"
   | "emails"
-  | "reel-studio"
   | "help-center"
   | "host-curation"
   | "press-page"
@@ -172,6 +173,30 @@ export const RULINGS: Ruling[] = [
         "The gate's framing",
         "The guest menu",
         "Removing the email",
+      ],
+    },
+  },
+  {
+    id: "identity-profile",
+    title: "Setting up a page",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, "the morning after the identity round": "I\'d like to run most of this through the lab once our foundation is complete... profile setup, etc")',
+    shipped: null,
+    why: "How a verified guest sets her page up, chooses what shows, when the app invites it, and what an empty page says to a visitor.",
+    lives: [
+      "docs/systems/profiles-social.md",
+      "src/components/social/attended-events-visibility.tsx",
+      "src/app/(guest)/u/[slug]/page.tsx",
+      "src/app/(app)/account/page.tsx",
+    ],
+    board: {
+      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified with three events joined and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
+      variants: [
+        "How it's set up",
+        "What shows",
+        "When it's offered",
+        "The empty page",
       ],
     },
   },
@@ -1013,9 +1038,9 @@ export const RULINGS: Ruling[] = [
     title: "The highlight reel",
     surface: "host",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+      "2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md \"the reel, reconceived\": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`'s source until that board hands off, git keeps it after",
     shipped: null,
-    why: "Round one asks the product's North Star from the foundation: the door into the studio, the room at a laptop, and what a guest finally meets.",
+    why: "Round one asked the North Star from the foundation (the door, the room, what a guest meets); the reel round replaced the product it asked about.",
     lives: [
       "docs/systems/host-app.md",
       "docs/systems/guest-flow.md",
@@ -1024,16 +1049,6 @@ export const RULINGS: Ruling[] = [
       "src/components/reel/studio-moments-picker.tsx",
       "src/components/guest/guest-reel-card.tsx",
     ],
-    board: {
-      note: "Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel",
-      variants: [
-        "The door",
-        "The room",
-        "The looks",
-        "The moments",
-        "How a guest watches",
-      ],
-    },
   },
   {
     id: "help-center",
@@ -1616,11 +1631,14 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // album's shape). `identity-door` is placed directly (its own manifest's
   // instruction, not the head exception): right after `guest-capture`, since
   // it draws the same guest one step earlier in her walk through the door.
+  // `identity-profile` belongs after `identity-claims`, whose id is not
+  // registered yet since that sibling lane has not merged — the Orchestrator
+  // places both siblings in their true order at the merge.
   "media-viewer",
   "guest-capture",
   "identity-door",
+  "identity-profile",
   "host-curation",
-  "reel-studio",
   "export-flow",
   "admin-triage",
   "help-center",

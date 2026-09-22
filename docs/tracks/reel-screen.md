@@ -1,34 +1,33 @@
 ---
-track: name-gate
+track: reel-screen
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "99a140b6"          # the launch-prep SHA the branch was cut from
-board: none            # production, Will's ruling of 2026-09-22: a nameless account moves nowhere but the welcome page; no board
+cut: "17f17e57"          # the launch-prep SHA the branch was cut from
+board: reel-screen     # a new board: the reel round, the venue screen
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(app)/
-  - docs/systems/auth-accounts.md
-  - docs/systems/host-app.md
+  - src/app/(dev)/design/sandbox/reel-screen/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/lib/welcome.ts
-  - src/lib/validation/profile.ts
-  - src/lib/db/queries/profile.ts
-  - src/lib/supabase/request-auth.ts
-  - src/proxy.ts
+  - src/components/guest/event-experience.tsx
+  - src/lib/reel/engine/player.tsx
+  - content/help/show-the-album-live-on-a-screen.mdx
+  - src/app/(dev)/design/sandbox/host-curation/
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
+  - src/components/lab/
+  - src/app/(dev)/design/touchpoints.ts
   - docs/design/rulings.md
 ---
 
-# lp/name-gate
+# lp/reel-screen
 
-**Goal.** Will's ruling of 2026-09-22 (~11:52 EDT, rulings.md "the morning after the identity round"): "I wanted to ensure an account without a name wasn't moving around the app as a normal user. Name always required, even if one character." Today only the dashboard root and event creation send a nameless profile to /welcome; /account and every event room render for one. Close it at the group: every (app) route except /welcome redirects a nameless profile to /welcome, once, in one place (a nested `(named)` route group with its own layout, recommended), pinned by a source-level test; the two existing page-level redirects kept; one line in auth-accounts.md. The Lane section at the foot of the Orchestrator's plan file carries the shape; this manifest's brief is a copy of it.
+**Goal.** A NEW lab board, THE REEL ROUND (Will, 2026-09-22, rulings.md "the reel, reconceived"; his ruling: "A first-class screen mode"): the venue screen at 1920 by 1080, eight asks (the QR's corner, the event's name, the caption, the wall pacing, the idle and empty states, the Start plate, Review on the wall, how the host opens it); a catalog to select from, nothing wiring production. The Lane section at the foot of the Orchestrator's plan file carries every ask and option; this manifest's brief is a copy of it.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `99a140b6`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `17f17e57`)
 
-- What this is: Will (rulings.md "the morning after the identity round"): "I wanted to ensure an account without a name wasn't moving around the app as a normal user. Name always required, even if one character (or whatever your suggested/current rule)." Today every account is born nameless (the June rule in `20260608093939_lock_down_display_name_write.sql`: the welcome page's guarded, profanity-checked input is the only write path), and only TWO routes send a nameless profile to `/welcome`: `src/app/(app)/dashboard/page.tsx` (line ~111, `needsDisplayName(profile?.display_name) || shouldShowWelcome(profile?.welcomed_at)`) and `src/app/(app)/dashboard/new/page.tsx` (line ~43). `/account` and every `/dashboard/[eventId]/*` room render for a nameless account. Close it at the group: every (app) route except `/welcome` redirects a nameless profile to `/welcome`, once, in one place.
-- THE SHAPE (recommended; take it unless it breaks): a nested route group. Move `src/app/(app)/dashboard/` and `src/app/(app)/account/` under `src/app/(app)/(named)/` (git mv; the URLs do not change: route groups add no segment) and give `(named)` its own `layout.tsx` that reads the display name and redirects: `const menu = await getProfileMenu(user.id)` is already read by the parent `(app)/layout.tsx` for the header, so read it again through the request-cached auth (`getRequestAuth()` from `src/lib/supabase/request-auth.ts`, then `getProfileMenu(user.id)` from `src/lib/db/queries/profile.ts`) and `if (needsDisplayName(menu.displayName)) redirect("/welcome")` (`needsDisplayName` from `src/lib/welcome.ts`; one non-blank character is a name, the schema in `src/lib/validation/profile.ts` is the rule and stays). `/welcome` stays directly under `(app)` (outside `(named)`), so the auth gate still covers it and no loop can form. Keep the two existing page-level redirects as they are (belt and braces; they also carry `shouldShowWelcome`). A WHY comment at the head of the new layout naming his sentence and the June rule. The alternative, if a nested group breaks something you can show (an import path the lab reads, a test that pins the folder): the same check at the top of `(app)/layout.tsx` guarded by the pathname from a header the proxy already sets, and say why in the Handoff.
-- THE PIN: a source-level test `src/app/(app)/(named)/layout.test.ts` (or beside the layout you chose) that reads the layout's source and asserts it imports `needsDisplayName` and calls `redirect("/welcome")`, and that `src/app/(app)/welcome/` is NOT under `(named)` (a nameless account must reach the page that names it). Every existing test and the build stay green: `pnpm build` must still list every route at the same URL (paste the count from the build log in the Handoff).
-- DOCS: `docs/systems/auth-accounts.md` gains one line under its invariants (a nameless account reaches only `/welcome` inside the app; the name is required, one character is enough); `docs/systems/host-app.md` "Dashboard landing" loses nothing but gains the group in one clause. Owned facts only.
-- Owns: `src/app/(app)/` (the whole group: the moves, the new layout and its test; no page's content changes beyond its path), `docs/systems/auth-accounts.md`, `docs/systems/host-app.md`. Reads, never edits: `src/lib/welcome.ts`, `src/lib/validation/profile.ts`, `src/lib/db/queries/profile.ts`, `src/lib/supabase/request-auth.ts`, `src/proxy.ts`, `docs/design/rulings.md`.
-- Tests: the pin; `pnpm test` whole; the gate with every exit code; `pnpm build`; `pnpm lab:smoke --base http://localhost:3133` (the lab's touchpoints link into `/dashboard` and `/account`; every URL must still answer). Your own check on :3133: a signed-in session cannot be minted locally (Google bounces to production), so prove the redirect with a unit of the layout's logic or a source pin, and say so. No live red-team is needed beyond the Orchestrator's on the alias.
-- His to overrule: the nested group over a pathname header; the two page-level redirects kept.
+- What this is: the reel round (rulings.md "the reel, reconceived"; the plan's "The screen is the flagship moment", sections C and F). Will: "Could play at an event in real-time on a screen or something" and his ruling "A first-class screen mode". A laptop on the venue's TV plays the reel full-bleed with the event's name and the QR in a corner: scan, add, on the wall a minute later. DECIDED, NOT ASKED: the screen exists as its own mode reached from the host's hub ("Play on a screen") and opens on a one-tap Start plate (fullscreen and the wake lock both need a gesture in the new tab; the plate returns if fullscreen is left); landscape; a wall pacing slower than the hand; the host signs in on the screen (the owner bypasses every gate, the password included); no mark on any tier; reduced motion is overridden by the host's explicit act; the room's music is its own (no audio). The shipped help article `content/help/show-the-album-live-on-a-screen.mdx` describes the album grid on a screen today and says there is no slideshow mode; that flips at the wiring. The retired `reel-studio` board's files are in git, not on disk: `git show 90f29be4:src/app/(dev)/design/sandbox/reel-studio/<file>` (`stills.tsx`, `room.tsx`, `pickers.tsx`, `surfaces.tsx`, `fixtures.ts`, `spec.ts`) shows how every reel frame was drawn by the real engine over fixture clips.
+- ASKS (eight), every one drawn at 1920 by 1080 as the stage (and 1440 as the knob): `qr` (the QR's corner and size: small in a corner with "Scan to add yours"; a side panel with the code large and the event's name; the code on a short interstitial every N clips); `name` (the event's name: a corner wordmark; a title bar; nothing but the code); `caption` (the just-added beat on the wall: a caption with the name for one hold; a corner chip; nothing); `pacing` (three wall holds to feel, as running takes); `idle` (the empty and idle states: under three items, "the reel begins with the third photo" and the code large; the code alone; the album's stills slow); `start` (the Start plate: one button and the event's name; the plate as the first frame with a play mark; a countdown); `review` (Review mode on the wall: "3 waiting" for the host in a corner, nothing for the room; a line the room sees; nothing at all); `open` (how the host opens it: the hub's button opening a new tab with the sign-in line; the button and a copyable screen link drawn as a LATER option with its capability named; the settings sheet). `host-curation.count` is theirs; name it and ask nothing it asks.
+- Build from the kit; the truth for the shipped pieces: the QR designer's renderer (find it under `src/components/app/` and `src/lib/qr/` or wherever `qr` lives; read, never edit), `src/components/guest/event-experience.tsx`, `src/lib/reel/engine/player.tsx`; every reel frame the real engine over the fixture clips; register (a NEW board at the HEAD of `DESK_ORDER`; the Orchestrator reorders at the merge); no em-dash; the registry test's limits. A 1920-wide stage in the lab: check `src/components/lab/` for the widest frame the kit draws and say in the Handoff what you did if it caps lower.
+- Owns: `src/app/(dev)/design/sandbox/reel-screen/`. Reads, never edits: the files above, `content/help/show-the-album-live-on-a-screen.mdx`, `src/app/(dev)/design/sandbox/host-curation/`, `src/app/(dev)/design/sandbox/gallery-fixtures.ts`, `src/components/lab/`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`.
+- Tests: the registry tests; `lab:smoke` whole; `pnpm lab:demo --board reel-screen --base http://localhost:3131`; the gate with every exit code.
+- His to overrule: the eight questions are his; nothing in this lane wires production.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

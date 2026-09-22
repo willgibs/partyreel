@@ -2,6 +2,7 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { IDENTITY_DOOR } from "./identity-door/spec";
+import { IDENTITY_PROFILE } from "./identity-profile/spec";
 import { GUEST_CAPTURE } from "./guest-capture/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -9,7 +10,6 @@ import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { MEDIA_VIEWER } from "./media-viewer/spec";
 import { EMAILS } from "./emails/spec";
-import { REEL_STUDIO } from "./reel-studio/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
 
@@ -48,12 +48,12 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   IDENTITY_DOOR,
+  IDENTITY_PROFILE,
 
   GUEST_CAPTURE,
 
   MEDIA_VIEWER,
   HOST_CURATION,
-  REEL_STUDIO,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,
