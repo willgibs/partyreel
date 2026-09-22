@@ -24,13 +24,16 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ THE OVERTAKEN AUDIT (Will, 2026-09-21: "For any open questions that have
  * been 'overtaken', please evaluate whether they should be reshaped or
  * removed... I'd rather you lean into reshape if you aren't confident in
- * removal"). All eight of this board's questions were badged by a later
- * ruling and none of them was removed. Each one now carries the ruling that
- * reached it INSIDE its own context, five options a ruling forbids outright
- * are dropped (`chips.three`, `stuck.forever`, `hollow.silence`, `cap.bite`,
- * `object.link`), and the surface they are all drawn on is the one responsive
- * sheet `guest-shape` r1 ruled every guest dialog onto: a side panel at a desk,
- * a bottom sheet in a hand. Nothing is answered; the round is still round one.
+ * removal"). All eight of this board's questions were badged by that ruling;
+ * seven were reshaped in place, five options a further ruling forbids outright
+ * dropped from among them (`chips.three`, `stuck.forever`, `hollow.silence`,
+ * `cap.bite`, `object.link`). The eighth, `chips`, is gone outright as of the
+ * identity/reel recheck (2026-09-22): its only case was a teaser viewer, and
+ * the door now holds her, backdrop and all, before she ever reaches the album,
+ * let alone this sheet. The surface every remaining question is drawn on is
+ * the one responsive sheet `guest-shape` r1 ruled every guest dialog onto: a
+ * side panel at a desk, a bottom sheet in a hand. Nothing is answered; the
+ * round is still round one.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
  * originals invariant (metadata is stripped at upload, never here). The bulk
@@ -59,7 +62,6 @@ const ALBUM: Control = {
     { id: "wedding", label: "A wedding, 148 items" },
     { id: "small", label: "A small album, 12" },
     { id: "over", label: "Over the limit, 2,440" },
-    { id: "teaser", label: "A teaser, 9 photographs" },
   ],
   default: "wedding",
 };
@@ -93,7 +95,7 @@ const DRAFT = defineExploration({
       label: "What a guest takes",
       question: "What should Download hand a guest at a party?",
       context:
-        "A guest's only download is a small Download all link, and it bundles everything they can see. The product now knows their own photographs for good: the tiles carry a mark, and the View menu's Yours lens is that filter.",
+        "A guest's download was her only way home; a cut (reel-cut's, on the device) is now a sibling, not asked here. What Download means is open: it bundles what she can see, and now knows her own for good, marked and filtered by the Yours lens.",
       options: [
         {
           id: "album",
@@ -116,43 +118,12 @@ const DRAFT = defineExploration({
       ],
       recommended: "mine",
       because:
-        "A guest came back for the ones they took and the few they were in, and today those are buried in a few hundred files. The set is marked on every tile and filtered by a lens that ships, so leading with it costs the sheet one row and no new machinery.",
+        "A guest came back for the ones they took and the few they were in, and today those are buried in a few hundred files. The set is marked on every tile and filtered by a lens that ships, so leading with it costs the sheet one row and no new machinery, the same idea reel-cut's own fill mirrors.",
       overrule:
         "If the commonest tap is take the lot, a second bundle makes it one step longer and the album should lead.",
       lands:
         "What a guest's Download all means, and how many bundles the shared sheet offers.",
       configs: [SCREEN, ALBUM],
-    },
-    {
-      id: "chips",
-      label: "A chip with nothing in it",
-      question:
-        "Should a guest who can only ever have photographs be told there is video?",
-      context:
-        "A visitor who has not signed in gets a teaser: nine photographs, never video. A band with nothing real in it is ruled absent, and a locked control is ruled to say why and offer the way through rather than sit there dead.",
-      options: [
-        {
-          id: "two",
-          label: "The Videos chip goes",
-          means:
-            "Two chips, both of which can answer. A guest is never told there is video in this album that they cannot have.",
-        },
-        {
-          id: "why",
-          label: "The chip stays and says why",
-          means:
-            "Dimmed and unpressable, with the reason under the row and the album's own See all beside it as the way through.",
-        },
-      ],
-      recommended: "why",
-      because:
-        "The dead chip is closed by the ruling either way, so all this decides is whether the fact survives. Saying why and offering the door is the house answer for a control a person cannot use, and See all is already the guest album's word for that door.",
-      overrule:
-        "If a dimmed chip reads as a tease on someone else's album, the row simply holds two.",
-      lands:
-        "What the sheet draws for an access level that cannot fill it, on every guest album.",
-      after: { ask: "means" },
-      configs: [SCREEN],
     },
     {
       id: "wait",

@@ -76,17 +76,25 @@ export const TODAY_ROSTER: MomentRow[] = [
   { subject: "Backup prune blocked", trigger: "circuit breaker", kind: "operator" },
 ];
 
-/** The four switches in Account settings today: live-looking, nothing behind them. */
+/**
+ * The three switches in Account settings today: live-looking, nothing behind
+ * them. A fourth, the reel's own, is not merely unbuilt: the reel round
+ * leaves no host action and no file behind to finish, so "render done" is
+ * not a trigger waiting to be wired, it is a trigger that no longer exists.
+ */
 export const DORMANT_ROSTER: MomentRow[] = [
-  { subject: "Your highlight reel is ready", trigger: "render done", kind: "dormant" },
   { subject: "An album you joined was shared", trigger: "host publishes", kind: "dormant" },
   { subject: "New uploads to your events", trigger: "a digest", kind: "dormant" },
   { subject: "Someone followed you", trigger: "a follow", kind: "dormant" },
 ];
 
-/** The guest-facing rows the `guest` decision adds, none of them shipped. */
+/**
+ * The guest-facing rows the `guest` decision adds, none of them shipped. The
+ * link only ever follows a completed upload (Will's identity ruling): an
+ * address alone, typed and unconfirmed, is never mailed on its own.
+ */
 export const GUEST_ROSTER: MomentRow[] = [
-  { subject: "Here's your album link", trigger: "left an address", kind: "guest" },
+  { subject: "Here's your album link", trigger: "first upload, address on file", kind: "guest" },
   { subject: "Your photographs are in", trigger: "after the party", kind: "guest" },
 ];
 
@@ -124,8 +132,10 @@ export function RetiredSwitchesStub() {
         </div>
       </div>
       <p className="border-t border-neutral-200 pt-3 text-xs text-neutral-500">
-        Sign-in codes and account notices always send. The four reel/album/
-        digest/follower switches are gone: nothing sent behind them.
+        Sign-in codes and account notices always send. The album/digest/
+        follower switches are gone: nothing sent behind them. The reel&rsquo;s
+        own never existed under this shape: a live montage has no render to
+        finish.
       </p>
     </div>
   );

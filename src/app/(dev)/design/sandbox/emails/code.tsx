@@ -9,14 +9,23 @@
  */
 
 /**
- * `button` (no visible digits, a Sign in button only) left the option set:
- * app-door r1 makes the code the way in for everybody, so a mail with no
- * code at all is no longer a real answer. Both shapes left standing draw the
- * digits; they differ only in whether a Continue button rides beneath them.
+ * `button` (no visible digits, a Sign in button only) left the option set
+ * first: app-door r1 makes the code the way in for everybody, so a mail with
+ * no code at all is no longer a real answer. `digits` (no button at all) left
+ * next, on the identity round: the verified-required gate now promises "One
+ * tap and you're in" before she ever opens this inbox, and a mail with
+ * nothing to tap would break that promise the moment she got here. Both
+ * shapes left standing draw the digits AND a button beneath them; they
+ * differ only in what the button says.
  */
-export type CodeShape = "digits" | "digits-button";
+export type CodeShape = "continue" | "promise";
 
 const CODE = "482915";
+
+const BUTTON_LABEL: Record<CodeShape, string> = {
+  continue: "Continue",
+  promise: "One tap, you're in",
+};
 
 function MockBanner() {
   return (
@@ -48,25 +57,23 @@ export function CodeMock({ shape }: { shape: CodeShape }) {
       >
         {CODE}
       </p>
-      {shape === "digits-button" ? (
-        <p style={{ margin: "8px 0 20px" }}>
-          <a
-            data-inbox-cta
-            href="#"
-            style={{
-              background: "#101010",
-              color: "#fff",
-              padding: "10px 18px",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontWeight: 600,
-              display: "inline-block",
-            }}
-          >
-            Continue
-          </a>
-        </p>
-      ) : null}
+      <p style={{ margin: "8px 0 20px" }}>
+        <a
+          data-inbox-cta
+          href="#"
+          style={{
+            background: "#101010",
+            color: "#fff",
+            padding: "10px 18px",
+            borderRadius: 8,
+            textDecoration: "none",
+            fontWeight: 600,
+            display: "inline-block",
+          }}
+        >
+          {BUTTON_LABEL[shape]}
+        </a>
+      </p>
       <p style={{ color: "#888", fontSize: 12, marginTop: 24 }}>
         This code expires in 10 minutes. Didn&rsquo;t request it? Ignore this
         email.

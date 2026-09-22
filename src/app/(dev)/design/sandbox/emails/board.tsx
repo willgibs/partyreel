@@ -414,9 +414,8 @@ function footScreen(shape: FootShape, s: BoardState) {
 /* ── 5. the code ──────────────────────────────────────────────────────────  */
 
 const CODE_CAPTION: Record<CodeShape, string> = {
-  digits: "Large digits alone; nothing else to tap.",
-  "digits-button":
-    "The digits lead; a button carries the link path beneath them.",
+  continue: "The digits lead; a plain Continue carries the link path beneath them.",
+  promise: "The digits lead; the button echoes the gate's own line instead.",
 };
 
 const codeRead: Reader = (root, win) => {
@@ -454,11 +453,11 @@ function codeScreen(shape: CodeShape, s: BoardState) {
 type MomentsShape = "shipped" | "retired" | "identity";
 
 const MOMENTS_CAPTION: Record<MomentsShape, string> = {
-  shipped: "Fourteen rows: the four dormant switches now have a real subject each.",
+  shipped: "Thirteen rows: the three dormant switches now have a real subject each.",
   retired:
     "Ten rows stand; Account settings drops to the one switch that is real.",
   identity:
-    "Ten rows, plus one new: an account confirmed, the moment the four dormant switches never anticipated.",
+    "Ten rows, plus one new: an account confirmed, the moment the three dormant switches never anticipated.",
 };
 
 const momentsRead: Reader = (root) => {
@@ -604,8 +603,8 @@ const PREVIEWS: PreviewsFor<typeof EMAILS> = {
   "foot.commercial": (s) => footScreen("commercial", s),
   "foot.every": (s) => footScreen("every", s),
 
-  "code.digits": (s) => codeScreen("digits", s),
-  "code.digits-button": (s) => codeScreen("digits-button", s),
+  "code.continue": (s) => codeScreen("continue", s),
+  "code.promise": (s) => codeScreen("promise", s),
 
   "moments.shipped": (s) => momentsScreen("shipped", s),
   "moments.retired": (s) => momentsScreen("retired", s),
