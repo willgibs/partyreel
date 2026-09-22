@@ -269,7 +269,7 @@ const DRAFT = defineExploration({
       question:
         "Should a guest ever get a mail from Partyreel, now confirming an email makes the account?",
       context:
-        "Guest-shape r1 takes the address on a promise to keep the album; guest-upload r1 notes a held photo known only to its device, so a mail outlives the tab. Identity raises the stakes: confirming the address now creates the account.",
+        "Guest-shape r1 takes the address on a promise to keep the album. Will's identity ruling (2026-09-22): a names-mode door captures an optional unconfirmed email, never mailed on its own; a one-shot album mail only after a completed upload.",
       options: [
         {
           id: "none",
