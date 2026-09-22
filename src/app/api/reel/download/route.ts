@@ -24,9 +24,12 @@ import { NextResponse } from "next/server";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import type { Database } from "@/lib/db/types";
 import { isDemoToken } from "@/lib/demo";
-import { resolveGalleryAccess } from "@/lib/events/gallery-access";
-import { isEventOwner } from "@/lib/events/gallery-access.server";
+import {
+  isEventOwner,
+  resolveViewerDecision,
+} from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   reelDownloadBodySchema,
@@ -78,12 +81,14 @@ export async function POST(request: Request) {
   const isDemo = isDemoToken(qr_token);
   let isAuthed = false;
   let isOwner = false;
+  let userId: string | null = null;
   if (!isDemo) {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
+      userId = user.id;
       isAuthed = Boolean(user.email_confirmed_at);
       isOwner = await isEventOwner(event.data.id, user.id, supabase);
     }
@@ -92,13 +97,20 @@ export async function POST(request: Request) {
     event.data.visibility === "password"
       ? await isUnlocked(event.data.id)
       : true;
-  const access = isDemo
-    ? "full"
-    : resolveGalleryAccess(event.data, {
-        isOwner,
-        isAuthed,
-        isUnlocked: unlocked,
-      });
+  /* ★ THE SAME DECISION THE ALBUM MAKES (the door as three steps, 2026-09-21): a guest held at the
+     upload step resolves `teaser`, and the `!== "full"` refusal below already covers them. The
+     identity is the `pr_guest_<eventId>` cookie, like the page's. */
+  const access = (
+    isDemo
+      ? { access: "full" as const, gate: null }
+      : await resolveViewerDecision(event.data, {
+          isOwner,
+          isAuthed,
+          isUnlocked: unlocked,
+          userId,
+          sessionToken: await readGuestSessionCookie(event.data.id),
+        })
+  ).access;
   // STRICTER than export on purpose: below FULL the reel does not exist for this viewer (ruled §5).
   if (access !== "full") {
     return json({ ok: false, code: "forbidden" }, { status: 403 });

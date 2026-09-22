@@ -128,8 +128,11 @@ export function ScanPicture() {
 /**
  * entry-modal.tsx's welcome step, verbatim: the eyebrow, the event as the
  * hero, the host byline, the two icon rows, and Continue pinned to the foot.
- * The companion is the verify path, which only some events ask for, drawn as
- * the card it is rather than crowded into the sheet.
+ *
+ * ★ THE DOOR IS THREE STEPS NOW, AND THE PICTURE DRAWS ALL THREE (Will, 2026-09-21, "the door as
+ * three steps"). The phone holds the welcome; the companion holds what comes after it in the same
+ * held sheet: the NAME, then the first UPLOAD asked. The verify path stays beside them as the card
+ * it is, because only some events ask for it, and it sits between the two when they do.
  *
  * ★ "Email me a code" IS THE APP'S BUTTON, byte for byte (email-sign-in.tsx,
  * pinned by mock-parity.test.ts). Wherever the guest door is drawn on this
@@ -140,32 +143,42 @@ export function DoorPicture() {
     <PhoneScene
       clear
       companion={
-        <div className="rounded-xl border bg-card p-3 ring-1 ring-foreground/5">
-          <p className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            When the host asks
-          </p>
-          <div className="mt-2 flex h-8 items-center rounded-md border bg-background px-2 text-[11px] text-muted-foreground">
-            you@email.com
+        <div className="flex flex-col gap-2.5">
+          {/* Step two: the name, asked before the album rather than at the first Add. */}
+          <div className="rounded-xl border bg-card p-3 ring-1 ring-foreground/5">
+            <p className="text-[11px] font-semibold">
+              What should we call you?
+            </p>
+            <div className="mt-2 flex h-8 items-center rounded-md border bg-background px-2 text-[11px] text-muted-foreground">
+              Your name
+            </div>
+            <MockPrimary className="mt-1.5 h-8 w-full text-[11px]">
+              Continue
+            </MockPrimary>
           </div>
-          <MockPrimary className="mt-1.5 h-8 w-full text-[11px]">
-            Email me a code
-          </MockPrimary>
-          <div className="mt-3 flex items-center justify-between gap-1">
-            {[1, 2, 3, 4, 5, 6].map((slot) => (
-              <span
-                key={slot}
-                className={cn(
-                  "flex h-8 flex-1 items-center justify-center rounded-md border text-[11px] font-medium tabular-nums",
-                  slot <= 3 ? "text-foreground" : "text-transparent",
-                )}
-              >
-                {slot <= 3 ? slot * 2 : "0"}
-              </span>
-            ))}
+          {/* The verify path, which only some events ask for, between the name and the upload. */}
+          <div className="rounded-xl border bg-card p-3 ring-1 ring-foreground/5">
+            <p className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              When the host asks
+            </p>
+            <div className="mt-2 flex h-8 items-center rounded-md border bg-background px-2 text-[11px] text-muted-foreground">
+              you@email.com
+            </div>
+            <MockPrimary className="mt-1.5 h-8 w-full text-[11px]">
+              Email me a code
+            </MockPrimary>
           </div>
-          <p className="mt-2 text-[10px] text-muted-foreground">
-            Enter your code and you&rsquo;re in.
-          </p>
+          {/* Step three: the first photograph, asked. */}
+          <div className="rounded-xl border bg-card p-3 ring-1 ring-foreground/5">
+            <p className="text-[11px] font-semibold">Add your photos</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Add one now and the album opens.
+            </p>
+            <MockPrimary className="mt-2 flex h-8 w-full items-center justify-center gap-1.5 text-[11px]">
+              <Camera className="size-3" />
+              Take a photo
+            </MockPrimary>
+          </div>
         </div>
       }
     >

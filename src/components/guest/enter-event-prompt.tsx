@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
-import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 
 // The entry modal's ACCOUNT step (account-required events, allow_anonymous_uploads = false). All roads
 // lead to an account: email is PRIMARY (one tap sends a code + magic link that creates the account or
@@ -19,16 +17,27 @@ import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 export function EnterEventPrompt({
   qrToken,
   mediaTotal,
-  onUnlocked,
+  accountNameNote = false,
+  onVerified,
 }: {
   qrToken: string;
   /** Approved media count for the "N photos are waiting" tease. */
   mediaTotal?: number;
-  /** Fired the instant access is granted, so the entry surface can hold the
-   *  "You're in" beat over the router.refresh() roundtrip (Phase 4.5 S5). */
-  onUnlocked?: () => void;
+  /**
+   * The guest typed a name at the door a step ago and this account may already have one of its
+   * own. One line says which wins, BEFORE they confirm rather than after they see somebody else's
+   * version of their own name under a photograph.
+   */
+  accountNameNote?: boolean;
+  /**
+   * ★ THE CALLER OWNS WHAT HAPPENS NEXT (the door as three steps, 2026-09-21). This used to claim
+   * the anonymous uploads, call back and `router.refresh()` itself. The door now holds a NAME that
+   * has never been sent anywhere, and the ORDER of the four writes after a confirmation is the
+   * difference between a guest who lands named and one who lands as "A guest", so the sequence
+   * moved up to `entry-modal.tsx` and this is a plain callback again.
+   */
+  onVerified: () => void | Promise<void>;
 }) {
-  const router = useRouter();
   const emailRedirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=/e/${qrToken}`
@@ -67,9 +76,15 @@ export function EnterEventPrompt({
           count and the password path are unchanged. His larger question,
           whether confirmation should be skipped for a verified-email badge, is
           the queued `guest-verify` exploration, NOT this line. */}
-      <p className="mx-auto mt-2 mb-4 max-w-xs text-base leading-relaxed text-muted-foreground">
+      <p className="mx-auto mt-2 max-w-xs text-base leading-relaxed text-muted-foreground">
         {DOOR_WEAR.gate.reason}
       </p>
+      {accountNameNote && (
+        <p className="mx-auto mt-2 max-w-xs text-reading text-muted-foreground">
+          If you have a Partyreel account, its name is the one that shows.
+        </p>
+      )}
+      <div className="mb-4" />
       <div className="mx-auto max-w-xs text-left">
         <AccountDoor
           wear="gate"
@@ -92,19 +107,7 @@ export function EnterEventPrompt({
           hold
           inputClassName="h-11 text-base"
           buttonClassName="h-11"
-          onVerified={async () => {
-            // Blur FIRST so the iOS keyboard retracts during the success
-            // beat, never mid-exit (without reaching into the door).
-            if (document.activeElement instanceof HTMLElement) {
-              document.activeElement.blur();
-            }
-            // In-page OTP verify does router.refresh() (no remount), so claim directly here. Silent:
-            // the guest page isn't the account context + must not stack with other toasts.
-            await claimAnonymousUploads({ silent: true });
-            // Hold the success beat over the refresh, then it reveals (S5).
-            onUnlocked?.();
-            router.refresh();
-          }}
+          onVerified={onVerified}
         />
       </div>
     </div>

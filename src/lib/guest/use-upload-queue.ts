@@ -45,6 +45,15 @@ export type QueueItem = {
    */
   mediaId?: string;
   error?: string;
+  /**
+   * THE SERVER'S OWN REFUSAL CODE, kept beside its sentence (the door as three steps,
+   * 2026-09-21). The album's failure sheet only ever needed the words, but the door's upload step
+   * has no exit, so what a guest can DO about a refusal has to be derivable: `uploads_closed` and
+   * `cap_reached` open the album (the fail-open), `invalid_session` goes back to the name, and
+   * only the rest may offer a Retry. Absent for a local validation or a transport failure, which
+   * `classifyRefusal` reads as "worth another go".
+   */
+  errorCode?: string;
 };
 
 export type UploadedItem = {
@@ -246,6 +255,7 @@ export function useUploadQueue({
                   status: "error" as const,
                   progress: 0,
                   error: outcome.message,
+                  errorCode: outcome.code,
                 }
               : it,
           );
@@ -253,7 +263,11 @@ export function useUploadQueue({
           onVerificationRequired?.(outcome.message, true);
           break;
         }
-        patch(next.id, { status: "error", error: outcome.message });
+        patch(next.id, {
+          status: "error",
+          error: outcome.message,
+          errorCode: outcome.code,
+        });
       }
     } finally {
       processingRef.current = false;
@@ -340,7 +354,12 @@ export function useUploadQueue({
   /** Reset an errored item and re-run the queue (identical to the old list Retry). */
   const retry = useCallback(
     (id: string) => {
-      patch(id, { status: "queued", progress: 0, error: undefined });
+      patch(id, {
+        status: "queued",
+        progress: 0,
+        error: undefined,
+        errorCode: undefined,
+      });
       void runQueue();
     },
     [patch, runQueue],

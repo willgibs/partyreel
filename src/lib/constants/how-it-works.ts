@@ -125,14 +125,14 @@ const GUEST_STEPS: readonly LoopStep[] = [
   {
     id: "door",
     title: "Step inside",
-    body: "A welcome screen names the event and opens the album. When the host asks guests to verify, a one-time code by email is the whole sign-in, and you are in.",
+    body: "A welcome screen names the event and asks what to call you, then for a first photo, and the album opens. When the host asks guests to verify, a one-time code by email is the whole sign-in.",
     href: "/features/guests",
     linkLabel: "What guests see",
   },
   {
     id: "add",
     title: "Add your photos",
-    body: "Tap Add photos, pick from the camera roll, and they upload at the size they were shot. Video too, wherever the host's plan carries it.",
+    body: "The door asked for the first one. After that, Add photos is on every screen: pick from the camera roll and they upload at the size they were shot. Video too, wherever the host's plan carries it.",
     href: "/features/album",
     linkLabel: "Inside the live album",
   },

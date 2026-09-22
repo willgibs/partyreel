@@ -17,7 +17,13 @@
  * which is why exactly one thing subscribes (`event-experience.tsx`).
  */
 
-export type NameDoorMode = "join" | "edit";
+/**
+ * ★ "edit" IS THE ONLY MODE LEFT (the door as three steps, 2026-09-21). The join mode existed
+ * because the name was asked at the first Add, from three different affordances; the name is one
+ * of the door's ordered steps now and nothing outside the door raises it. The channel stays,
+ * because the header's "Change name" row is still a sibling island of the sheet that answers it.
+ */
+export type NameDoorMode = "edit";
 
 type Listener = (mode: NameDoorMode) => void;
 

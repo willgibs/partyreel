@@ -57,75 +57,44 @@ export function GuestUpload({
   event,
   qrToken,
   sessionToken,
-  onSession,
-  onUploaded,
-  onQueueChange,
+  queue,
+  onAddFiles,
+  onRetry,
+  onDismiss,
+  suppressFailures = false,
+  onFailuresClosed,
   isDemo,
-  isVerified = false,
-  onVerificationRequired,
   host,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
   qrToken: string;
   sessionToken: string | null;
-  onSession: (token: string | null) => void;
-  onUploaded: (
-    item: import("@/lib/guest/use-upload-queue").UploadedItem,
-  ) => void;
-  /** Mirrors every queue snapshot upward (the tile subscribers). */
-  onQueueChange?: (items: QueueItem[]) => void;
+  /**
+   * ★ THE QUEUE IS THE PAGE'S NOW (the door as three steps, 2026-09-21). It used to be created
+   * here, which meant it only existed at full access, inside the album: the door's third step
+   * asks for the first photograph BEFORE either, and the run it starts has to outlive the door.
+   * `event-experience.tsx` owns it and both surfaces read it. This component keeps what it was
+   * always really about: the album's two sheets and what follows an upload.
+   */
+  queue: readonly QueueItem[];
+  onAddFiles: (files: File[]) => void;
+  onRetry: (id: string) => void;
+  onDismiss: (ids: string[]) => void;
+  /** The door's own step is showing this run's failures; one run never gets two surfaces. */
+  suppressFailures?: boolean;
+  /** The failure sheet closed: the page flushes any deferred re-gate (its own note explains). */
+  onFailuresClosed?: () => void;
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
-  /** The viewer holds a CONFIRMED account (decides what a mid-run flip costs). */
-  isVerified?: boolean;
-  /** The host turned Require verified emails ON mid-visit (the identity reshape). */
-  onVerificationRequired?: (message: string) => void;
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
 }) {
-  /*
-   * THE REFRESH WAITS FOR THE SHEET (DEFECT 1, the alias red-team, 2026-09-21).
-   *
-   * A mid-run `verification_required` and a join-time one both raise
-   * `onVerificationRequired`, but only the first has a failure sheet about to
-   * open under it (the "end of a run" effect below, once React commits the
-   * items it was just handed). Calling the caller's `router.refresh()`
-   * synchronously — the OLD behaviour — fires in the same tick as the queue's
-   * own state update, before that effect has even run, let alone before a
-   * guest has read the sheet: the refresh's access flip (`teaser`) remounts
-   * the whole gallery-and-upload slot via `key={access}` and tears the sheet
-   * down mid-read (measured on the alias: 503ms). So this component holds the
-   * message in a REF (never state — this only gates a callback's timing, not
-   * a render) until the sheet actually closes, and only THEN calls the
-   * caller. A join-time refusal (`hadQueuedFiles=false`) has no sheet to wait
-   * for — nothing was ever queued — so it keeps the immediate refresh.
-   */
-  const pendingVerificationRef = useRef<string | null>(null);
-  const { items, addFiles, retry, dismiss } = useUploadQueue({
-    qrToken,
-    sessionToken,
-    onSession,
-    onUploaded,
-    isDemo,
-    isVerified,
-    onVerificationRequired: (message, hadQueuedFiles) => {
-      if (hadQueuedFiles) {
-        pendingVerificationRef.current = message;
-        return;
-      }
-      onVerificationRequired?.(message);
-    },
-  });
-
-  useEffect(() => {
-    onQueueChange?.(items);
-  }, [items, onQueueChange]);
-
+  const items = queue;
   const [addOpen, setAddOpen] = useState(false);
   useImperativeHandle(ref, () => ({
     openAdd: () => setAddOpen(true),
-    retry,
+    retry: onRetry,
   }));
 
   /* ────────────────────────────────────────────────────────────────────────
@@ -157,7 +126,7 @@ export function GuestUpload({
   /**
    * "Not now" AND every other way the sheet closes (backdrop, Escape, the X)
    * all funnel through this one `onOpenChange` — Retry-all closes through it
-   * too, right after re-queuing the same ids, which is exactly why `dismiss`
+   * too, right after re-queuing the same ids, which is exactly why `onDismiss`
    * itself re-checks each id's LIVE status rather than trusting the list: a
    * retried id already reads "queued" by the time this runs, so it survives.
    * Closing without ever touching Retry drops every listed failure for good,
@@ -166,17 +135,12 @@ export function GuestUpload({
    */
   const closeFailures = (open: boolean) => {
     if (!open) {
-      dismiss(failures.map((it) => it.id));
-      // The deferred refresh, exactly once, exactly when there is nothing left
-      // to read: Retry / Retry all reach this same close (retryAll() in
-      // failure-sheet.tsx calls onOpenChange(false) right after re-queuing),
-      // which is what carries Retry into the join's own refusal and so into
-      // the gate rather than a dead stall — never a second, earlier fire.
-      if (pendingVerificationRef.current !== null) {
-        const message = pendingVerificationRef.current;
-        pendingVerificationRef.current = null;
-        onVerificationRequired?.(message);
-      }
+      onDismiss(failures.map((it) => it.id));
+      // The deferred re-gate, exactly once, exactly when there is nothing left to read: Retry /
+      // Retry all reach this same close (the sheet calls onOpenChange(false) right after
+      // re-queuing), which is what carries Retry into the join's own refusal and so into the
+      // gate rather than a dead stall — never a second, earlier fire.
+      onFailuresClosed?.();
     }
     setFailuresOpen(open);
   };
@@ -191,10 +155,10 @@ export function GuestUpload({
         open={addOpen}
         onOpenChange={setAddOpen}
         hostName={hostName}
-        onSend={addFiles}
+        onSend={onAddFiles}
       />
       <UploadFailureSheet
-        open={failuresOpen && failures.length > 0}
+        open={failuresOpen && failures.length > 0 && !suppressFailures}
         onOpenChange={closeFailures}
         failures={failures.map((it) => ({
           id: it.id,
@@ -202,7 +166,7 @@ export function GuestUpload({
           error: it.error,
         }))}
         hostName={hostName}
-        onRetry={retry}
+        onRetry={onRetry}
       />
 
       {holdForApproval && (

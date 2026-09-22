@@ -4606,228 +4606,284 @@
       "indexed": false,
       "contracts": [
         {
-          "title": "HOLDS the welcome before a password gate (no X; Continue is the path)",
+          "title": "HOLDS the welcome, whatever follows it",
           "suite": [
-            "the honest-affordance table"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 69
+          "line": 121
+        },
+        {
+          "title": "HOLDS the welcome of a plain event too (there is always a step behind it)",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 127
+        },
+        {
+          "title": "never offers 'Just browsing' or 'View the album': Continue is the only way on",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 132
         },
         {
           "title": "HOLDS the password step (no X, Escape inert)",
           "suite": [
-            "the honest-affordance table"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 79
+          "line": 143
         },
         {
-          "title": "frees the welcome before an account gate (X + Just browsing)",
+          "title": "HOLDS the email step, which used to close to the teaser",
           "suite": [
-            "the honest-affordance table"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 88
+          "line": 152
         },
         {
-          "title": "dismissing a free welcome marks it seen and closes to the teaser",
+          "title": "HOLDS the name step and the upload step",
           "suite": [
-            "the honest-affordance table"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 94
+          "line": 161
         },
         {
-          "title": "frees the account step: X closes to the teaser, openToGate reopens",
+          "title": "frees the album menu's Change name, the one door with something behind it",
           "suite": [
-            "the honest-affordance table"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 103
-        },
-        {
-          "title": "Continue advances welcome -> password and marks the welcome seen",
-          "suite": [
-            "flow wiring"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 115
-        },
-        {
-          "title": "a returning guest (welcome seen) lands straight on the password gate",
-          "suite": [
-            "flow wiring"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 122
+          "line": 168
         },
         {
           "title": "the owner never sees the surface, gate or no",
           "suite": [
-            "flow wiring"
+            "no exit: the affordance table is one row"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 129
+          "line": 176
         },
         {
-          "title": "a public event's welcome dismisses to the album (no gate behind)",
+          "title": "Continue advances welcome -> name and marks the welcome seen",
           "suite": [
-            "flow wiring"
+            "the itinerary"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 135
+          "line": 183
         },
         {
-          "title": "sees a surface of its own, never the guest's invitation copy",
+          "title": "a returning guest with a name and nothing owed meets nothing at all",
           "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 151
-        },
-        {
-          "title": "names the host in its own words when one is set",
-          "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 159
-        },
-        {
-          "title": "degrades to a hostless line when the event has no host name",
-          "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 164
-        },
-        {
-          "title": "\"Look around\" dismisses it to the album, exactly like a real welcome",
-          "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 171
-        },
-        {
-          "title": "offers \"Start your own\" as a real link out, never a dead end",
-          "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 178
-        },
-        {
-          "title": "never shows the legal consent line (looking around agrees to nothing)",
-          "suite": [
-            "the demo's own arrival (arrival=role)"
-          ],
-          "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 184
-        },
-        {
-          "title": "the gate's chevron re-shows the welcome and returns without touching the machine",
-          "suite": [
-            "the back affordance (reviewing the welcome)"
+            "the itinerary"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
           "line": 191
         },
         {
-          "title": "no chevron on the welcome itself",
+          "title": "the name step arrives ON ITS OWN, without any handle being called",
           "suite": [
-            "the back affordance (reviewing the welcome)"
+            "the itinerary"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 211
+          "line": 197
         },
         {
-          "title": "the success hold is dismissal-proof, even on a free step",
+          "title": "a confirmed account with a profile name skips the name and meets the upload",
           "suite": [
-            "the back affordance (reviewing the welcome)"
+            "the itinerary"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 218
+          "line": 203
         },
         {
-          "title": "the lighter path hands a RETURNING guest forward to the account step",
+          "title": "sees a role step of its own, never the guest's invitation copy",
           "suite": [
-            "the back affordance (reviewing the welcome)"
+            "the demo"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 234
+          "line": 214
         },
         {
-          "title": "the surface closes mid-review when the flow resolves server-side",
+          "title": "asks no name: Continue goes straight from the role step to the upload step",
           "suite": [
-            "the back affordance (reviewing the welcome)"
+            "the demo"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 272
+          "line": 223
         },
         {
-          "title": "NEVER auto-opens: a guest looking at an album is asked nothing",
+          "title": "\"Look around\" is its skip, and it closes the door",
           "suite": [
-            "the name step (address=none)"
+            "the demo"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 312
+          "line": 237
         },
         {
-          "title": "opens on the handle, and dismissing it POSTs nothing",
+          "title": "never opens the name door, even on the handle",
           "suite": [
-            "the name step (address=none)"
+            "the demo"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 318
+          "line": 246
         },
         {
-          "title": "Add photos POSTs the qr_token AND the name, and hands the token up",
+          "title": "OFF: offers the ghost skip, which drops the step",
           "suite": [
-            "the name step (address=none)"
+            "the upload step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 330
+          "line": 254
+        },
+        {
+          "title": "ON: there is no skip at all, and the line names the host",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 263
+        },
+        {
+          "title": "an empty album says so instead of counting a queue",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 280
+        },
+        {
+          "title": "the inputs live INSIDE the open sheet, so Safari's synchronous click reaches them",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 294
+        },
+        {
+          "title": "Send hands the picks to the page's queue, never to a queue of its own",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 302
+        },
+        {
+          "title": "THE FAIL-OPEN is the server's: an unfixable run offers a refresh, never a local skip",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 315
+        },
+        {
+          "title": "a fixable run keeps its Retry and never offers the fail-open",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 345
+        },
+        {
+          "title": "join mode POSTs the qr_token AND the name, and hands the token up",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 366
+        },
+        {
+          "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 398
+        },
+        {
+          "title": "the email step says whose name wins once a name is held",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 413
+        },
+        {
+          "title": "PROFILE mode writes the account's own name, not a guest row",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 428
         },
         {
           "title": "refuses a reserved name IN PLACE, before anything is sent",
           "suite": [
-            "the name step (address=none)"
+            "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 365
+          "line": 447
         },
         {
           "title": "edit mode renames the row this device holds, and never mints a second one",
           "suite": [
-            "the name step (address=none)"
+            "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 378
+          "line": 460
         },
         {
-          "title": "join mode ALSO renames when a session token is already held, and never mints a second row",
+          "title": "claims, then joins, then writes the held name, then refreshes",
           "suite": [
-            "the name step (address=none)"
+            "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 414
+          "line": 482
         },
         {
-          "title": "a dead token (the rename route's invalid_session) falls back to a fresh join",
+          "title": "an account that already has a name keeps it: the typed one is not written",
           "suite": [
-            "the name step (address=none)"
+            "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 457
+          "line": 520
         },
         {
-          "title": "the demo never opens it: nothing it adds is real",
+          "title": "the success hold is dismissal-proof and plays the beat",
           "suite": [
-            "the name step (address=none)"
+            "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 516
+          "line": 545
+        },
+        {
+          "title": "a step's chevron re-shows the welcome and returns without touching the machine",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 559
+        },
+        {
+          "title": "the upload step goes back to the NAME, the step it followed",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 570
+        },
+        {
+          "title": "no chevron on the welcome itself",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 577
         }
       ]
     },
@@ -4848,7 +4904,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 112
+          "line": 185
         },
         {
           "title": "runs ONE file at a time: the second starts only after the first resolves",
@@ -4856,7 +4912,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 134
+          "line": 207
         },
         {
           "title": "patches per-file progress through the onProgress callback",
@@ -4864,7 +4920,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 167
+          "line": 240
         },
         {
           "title": "approved outcome: reports onUploaded and mounts the growth prompt",
@@ -4872,7 +4928,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 188
+          "line": 261
         },
         {
           "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
@@ -4880,7 +4936,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 216
+          "line": 289
         },
         {
           "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
@@ -4888,7 +4944,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 242
+          "line": 315
         },
         {
           "title": "join rejection: toasts and clears the stash, nothing uploads",
@@ -4896,7 +4952,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 277
+          "line": 350
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -4904,7 +4960,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 297
+          "line": 370
         },
         {
           "title": "a stored session never joins again: the name was answered once",
@@ -4912,7 +4968,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 317
+          "line": 390
         },
         {
           "title": "the silent join carries NO name: the door is the only place one is typed",
@@ -4920,7 +4976,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 330
+          "line": 403
         },
         {
           "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
@@ -4928,7 +4984,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 351
+          "line": 424
         },
         {
           "title": "does not call onVerificationRequired while the mid-run sheet is open",
@@ -4936,7 +4992,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 391
+          "line": 464
         },
         {
           "title": "closing the sheet with Not now calls it exactly once",
@@ -4944,7 +5000,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 408
+          "line": 481
         },
         {
           "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
@@ -4952,7 +5008,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 426
+          "line": 499
         },
         {
           "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
@@ -4960,7 +5016,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 444
+          "line": 517
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -4968,7 +5024,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 473
+          "line": 546
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -4976,7 +5032,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 497
+          "line": 570
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -4984,7 +5040,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 518
+          "line": 591
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -4992,7 +5048,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 541
+          "line": 614
         },
         {
           "title": "stays shut when the run is clean",
@@ -5000,7 +5056,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 562
+          "line": 635
         },
         {
           "title": "its Retry re-queues the file",
@@ -5008,7 +5064,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 577
+          "line": 650
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -5016,7 +5072,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 607
+          "line": 680
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -5024,7 +5080,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 633
+          "line": 706
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -5032,7 +5088,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 686
+          "line": 759
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -5040,7 +5096,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 721
+          "line": 794
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -5048,7 +5104,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 749
+          "line": 822
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -5056,7 +5112,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 762
+          "line": 835
         },
         {
           "title": "a rejected upload is still retryable",
@@ -5064,7 +5120,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 787
+          "line": 860
         }
       ]
     },
@@ -5291,9 +5347,389 @@
       ]
     },
     {
+      "id": "upload-step",
+      "file": "src/components/guest/upload-step.tsx",
+      "names": [
+        "UploadStep"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "HOLDS the welcome, whatever follows it",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 121
+        },
+        {
+          "title": "HOLDS the welcome of a plain event too (there is always a step behind it)",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 127
+        },
+        {
+          "title": "never offers 'Just browsing' or 'View the album': Continue is the only way on",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 132
+        },
+        {
+          "title": "HOLDS the password step (no X, Escape inert)",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 143
+        },
+        {
+          "title": "HOLDS the email step, which used to close to the teaser",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 152
+        },
+        {
+          "title": "HOLDS the name step and the upload step",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "frees the album menu's Change name, the one door with something behind it",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 168
+        },
+        {
+          "title": "the owner never sees the surface, gate or no",
+          "suite": [
+            "no exit: the affordance table is one row"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 176
+        },
+        {
+          "title": "Continue advances welcome -> name and marks the welcome seen",
+          "suite": [
+            "the itinerary"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 183
+        },
+        {
+          "title": "a returning guest with a name and nothing owed meets nothing at all",
+          "suite": [
+            "the itinerary"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 191
+        },
+        {
+          "title": "the name step arrives ON ITS OWN, without any handle being called",
+          "suite": [
+            "the itinerary"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 197
+        },
+        {
+          "title": "a confirmed account with a profile name skips the name and meets the upload",
+          "suite": [
+            "the itinerary"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "sees a role step of its own, never the guest's invitation copy",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 214
+        },
+        {
+          "title": "asks no name: Continue goes straight from the role step to the upload step",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 223
+        },
+        {
+          "title": "\"Look around\" is its skip, and it closes the door",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 237
+        },
+        {
+          "title": "never opens the name door, even on the handle",
+          "suite": [
+            "the demo"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 246
+        },
+        {
+          "title": "OFF: offers the ghost skip, which drops the step",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 254
+        },
+        {
+          "title": "ON: there is no skip at all, and the line names the host",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 263
+        },
+        {
+          "title": "an empty album says so instead of counting a queue",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 280
+        },
+        {
+          "title": "the inputs live INSIDE the open sheet, so Safari's synchronous click reaches them",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 294
+        },
+        {
+          "title": "Send hands the picks to the page's queue, never to a queue of its own",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 302
+        },
+        {
+          "title": "THE FAIL-OPEN is the server's: an unfixable run offers a refresh, never a local skip",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 315
+        },
+        {
+          "title": "a fixable run keeps its Retry and never offers the fail-open",
+          "suite": [
+            "the upload step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 345
+        },
+        {
+          "title": "join mode POSTs the qr_token AND the name, and hands the token up",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 366
+        },
+        {
+          "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 398
+        },
+        {
+          "title": "the email step says whose name wins once a name is held",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 413
+        },
+        {
+          "title": "PROFILE mode writes the account's own name, not a guest row",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 428
+        },
+        {
+          "title": "refuses a reserved name IN PLACE, before anything is sent",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 447
+        },
+        {
+          "title": "edit mode renames the row this device holds, and never mints a second one",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 460
+        },
+        {
+          "title": "claims, then joins, then writes the held name, then refreshes",
+          "suite": [
+            "the confirmation sequence"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 482
+        },
+        {
+          "title": "an account that already has a name keeps it: the typed one is not written",
+          "suite": [
+            "the confirmation sequence"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 520
+        },
+        {
+          "title": "the success hold is dismissal-proof and plays the beat",
+          "suite": [
+            "the confirmation sequence"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 545
+        },
+        {
+          "title": "a step's chevron re-shows the welcome and returns without touching the machine",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 559
+        },
+        {
+          "title": "the upload step goes back to the NAME, the step it followed",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 570
+        },
+        {
+          "title": "no chevron on the welcome itself",
+          "suite": [
+            "the back affordance"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 577
+        },
+        {
+          "title": "routes the four classes the step can act on",
+          "suite": [
+            "the refusal ladder"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "a RUN is only unfixable when EVERY refusal in it is",
+          "suite": [
+            "the refusal ladder"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 79
+        },
+        {
+          "title": "is the whole difference between the two switch states",
+          "suite": [
+            "the step's one sentence"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 105
+        },
+        {
+          "title": "offers the two named acts, and Send hands the picks up",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 125
+        },
+        {
+          "title": "shows a progress strip per pick while a run is going, and no picker",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 139
+        },
+        {
+          "title": "the OFF skip is offered once, and never ON",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 153
+        },
+        {
+          "title": "the demo's skip says Look around",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 164
+        },
+        {
+          "title": "THE FAIL-OPEN: an unfixable run shows the server's own sentence and refreshes",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 171
+        },
+        {
+          "title": "the failure view never carries the soft skip, even OFF",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 185
+        },
+        {
+          "title": "a file the guest can do nothing about offers another file, never a Retry",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 195
+        },
+        {
+          "title": "Choose other photos drops the failures so the next pass starts clean",
+          "suite": [
+            "the surface"
+          ],
+          "file": "src/components/guest/upload-step.test.tsx",
+          "line": 209
+        }
+      ]
+    },
+    {
       "id": "failure-sheet",
       "file": "src/components/guest/upload/failure-sheet.tsx",
       "names": [
+        "UploadFailureList",
         "UploadFailureSheet"
       ],
       "specimens": [],
@@ -5353,6 +5789,7 @@
       "id": "intent-sheet",
       "file": "src/components/guest/upload/intent-sheet.tsx",
       "names": [
+        "UploadIntentBody",
         "UploadIntentSheet"
       ],
       "specimens": [],
@@ -16323,7 +16760,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 112
+          "line": 185
         },
         {
           "title": "runs ONE file at a time: the second starts only after the first resolves",
@@ -16331,7 +16768,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 134
+          "line": 207
         },
         {
           "title": "patches per-file progress through the onProgress callback",
@@ -16339,7 +16776,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 167
+          "line": 240
         },
         {
           "title": "approved outcome: reports onUploaded and mounts the growth prompt",
@@ -16347,7 +16784,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 188
+          "line": 261
         },
         {
           "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
@@ -16355,7 +16792,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 216
+          "line": 289
         },
         {
           "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
@@ -16363,7 +16800,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 242
+          "line": 315
         },
         {
           "title": "join rejection: toasts and clears the stash, nothing uploads",
@@ -16371,7 +16808,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 277
+          "line": 350
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -16379,7 +16816,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 297
+          "line": 370
         },
         {
           "title": "a stored session never joins again: the name was answered once",
@@ -16387,7 +16824,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 317
+          "line": 390
         },
         {
           "title": "the silent join carries NO name: the door is the only place one is typed",
@@ -16395,7 +16832,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 330
+          "line": 403
         },
         {
           "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
@@ -16403,7 +16840,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 351
+          "line": 424
         },
         {
           "title": "does not call onVerificationRequired while the mid-run sheet is open",
@@ -16411,7 +16848,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 391
+          "line": 464
         },
         {
           "title": "closing the sheet with Not now calls it exactly once",
@@ -16419,7 +16856,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 408
+          "line": 481
         },
         {
           "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
@@ -16427,7 +16864,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 426
+          "line": 499
         },
         {
           "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
@@ -16435,7 +16872,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 444
+          "line": 517
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -16443,7 +16880,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 473
+          "line": 546
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -16451,7 +16888,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 497
+          "line": 570
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -16459,7 +16896,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 518
+          "line": 591
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -16467,7 +16904,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 541
+          "line": 614
         },
         {
           "title": "stays shut when the run is clean",
@@ -16475,7 +16912,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 562
+          "line": 635
         },
         {
           "title": "its Retry re-queues the file",
@@ -16483,7 +16920,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 577
+          "line": 650
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -16491,7 +16928,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 607
+          "line": 680
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -16499,7 +16936,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 633
+          "line": 706
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -16507,7 +16944,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 686
+          "line": 759
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -16515,7 +16952,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 721
+          "line": 794
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -16523,7 +16960,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 749
+          "line": 822
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -16531,7 +16968,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 762
+          "line": 835
         },
         {
           "title": "a rejected upload is still retryable",
@@ -16539,7 +16976,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 787
+          "line": 860
         }
       ]
     },

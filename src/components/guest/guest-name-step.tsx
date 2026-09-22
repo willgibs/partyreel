@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { User } from "lucide-react";
 
+import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,11 @@ import {
   renameGuest,
   type JoinRefusal,
 } from "@/lib/guest/join";
-import { readLastName, setStoredName } from "@/lib/guest/use-stored-name";
+import {
+  readLastName,
+  setLastName,
+  setStoredName,
+} from "@/lib/guest/use-stored-name";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
 /**
@@ -20,12 +24,23 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * `address=none`: "the door asks a name, and the only place an address is ever
  * typed is inside the sign-in door, where the code proves it by construction").
  *
- * ★ IT IS ASKED AT THE FIRST ADD, NOT AT ARRIVAL, and that is a call rather than
- * a ruling (listed in the Handoff as his to overrule). Looking at somebody's
- * wedding album costs nothing and asks nothing; the moment a name becomes a FACT
- * about the album is the moment a guest puts something in it. Asking at arrival
- * would put a form between a scanned code and a photograph, which is the whole
- * thing the product does not do.
+ * ★ IT IS ASKED BEFORE THE ALBUM NOW, NOT AT THE FIRST ADD (Will, 2026-09-21, "the door as three
+ * steps", overruling the call this file used to carry): "if they can reach the album media without
+ * entering their name, they're able to reap all the rewards of the album anonymously, then friction
+ * occurs when they go to actually contribute. We should handle the friction as a quick gate to the
+ * reward, so that uploading feels seamless once you're in the album." So the step is one of the
+ * door's ordered steps with the album a step behind it, and the reward is what pays for the field.
+ *
+ * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION:
+ *   `join`    names mode. A held session renames its row; otherwise the join mints one under the
+ *             typed name. The machine advances to whatever is next.
+ *   `edit`    the album menu's "Change name", unchanged, and the one dismissible door left.
+ *   `hold`    VERIFIED mode, before the confirmation. The join would answer 422 (nothing is
+ *             proved yet), so nothing is sent: the name is validated locally, kept in the modal's
+ *             own state as `typedName`, written to `pr_guest_name_last` ONLY (never the per-event
+ *             key, which would claim a row that does not exist), and the email step follows.
+ *   `profile` a CONFIRMED account with no profile name. `updateDisplayNameAction`, which is what
+ *             the inline `SetNameStep` panel used to do further down the page.
  *
  * ★ THE PREFILL IS THE LAST NAME THIS DEVICE TYPED, at any event
  * (`pr_guest_name_last`). The second party a phone scans should not ask a
@@ -40,6 +55,9 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * switch while the guest stood here, so the caller re-gates rather than this form
  * arguing with it.
  */
+/** The four doors that ask one question; see the head comment. */
+export type GuestNameMode = "join" | "edit" | "hold" | "profile";
+
 export function GuestNameStep({
   qrToken,
   mode,
@@ -50,8 +68,8 @@ export function GuestNameStep({
   onVerificationRequired,
 }: {
   qrToken: string;
-  /** `join` mints the session; `edit` renames the row this device already holds. */
-  mode: "join" | "edit";
+  /** See the four modes in this file's head comment. */
+  mode: GuestNameMode;
   /** The host's name, so the reason line says whose album this joins. */
   hostName?: string | null;
   /** The name this device already typed at THIS event, if any. */
@@ -78,6 +96,39 @@ export function GuestNameStep({
       return;
     }
     const name = checked.name;
+
+    /* ★ THE HELD NAME SENDS NOTHING (verified mode, before the confirmation). `create_guest`
+       refuses an unverified join on this event with a 422, so asking it would be asking for a
+       refusal. The name is validated by the SAME `checkDisplayName` every other mode uses, kept
+       by the modal as `typedName`, and written to the LAST-NAME key alone: the per-event key
+       means "this device is named at this event", which is not true until a row exists. */
+    if (mode === "hold") {
+      setLastName(name);
+      onNamed({ sessionToken: null, displayName: name });
+      return;
+    }
+
+    /* ★ AND A CONFIRMED ACCOUNT WITH NO PROFILE NAME WRITES THE PROFILE. Their identity is the
+       account's, so there is no guest row to name: `create_guest` nulls a typed name beside a
+       confirmed session anyway. This replaces the inline SetNameStep panel that used to sit above
+       the upload area, so the question is asked once, at the door, like every other. */
+    if (mode === "profile") {
+      startSave(async () => {
+        setRefusal(null);
+        const result = await updateDisplayNameAction(name);
+        if (!result.ok) {
+          setRefusal({
+            kind: "name_invalid",
+            message: result.message ?? "That name isn't available.",
+          });
+          return;
+        }
+        setLastName(name);
+        onNamed({ sessionToken: sessionToken ?? null, displayName: name });
+      });
+      return;
+    }
+
     startSave(async () => {
       setRefusal(null);
       /* ────────────────────────────────────────────────────────────────────
@@ -159,12 +210,12 @@ export function GuestNameStep({
         </p>
       </div>
       <div className="space-y-1.5">
-        <Label
-          htmlFor="pr-guest-name"
-          className="flex items-center gap-1.5 text-base font-medium"
-        >
-          <User className="size-4 text-muted-foreground" aria-hidden />
-          What should we call you?
+        {/* ★ THE QUESTION IS THE HEADING NOW (the door as three steps, 2026-09-21). The step's
+            title used to be "Add your photos" and the field's label carried the question; the
+            title IS the question at the door, so a visible label would be the same eight words
+            twice in one sheet. The label stays for the a11y tree, naming the FIELD. */}
+        <Label htmlFor="pr-guest-name" className="sr-only">
+          Your name
         </Label>
         <Input
           id="pr-guest-name"
@@ -205,11 +256,7 @@ export function GuestNameStep({
         className="w-full"
         disabled={saving || !value.trim()}
       >
-        {saving
-          ? "Just a second…"
-          : editing
-            ? "Save name"
-            : "Add photos"}
+        {saving ? "Just a second…" : editing ? "Save name" : "Continue"}
       </Button>
     </form>
   );
@@ -222,7 +269,7 @@ export function GuestNameStep({
  * reader announces and the sheet a guest reads cannot drift apart.
  */
 export function guestNameCopy(
-  mode: "join" | "edit",
+  mode: GuestNameMode,
   hostName?: string | null,
 ): { title: string; reason: string } {
   if (mode === "edit") {
@@ -231,8 +278,16 @@ export function guestNameCopy(
       reason: "Your new name shows on everything you have already added.",
     };
   }
+  if (mode === "profile") {
+    // A confirmed account: the name is not just this album's, so the second sentence says so.
+    return {
+      title: "What should we call you?",
+      reason:
+        "Your name goes on the photos you add. It becomes your Partyreel name too.",
+    };
+  }
   return {
-    title: "Add your photos",
-    reason: `Your name goes on what you add, so ${hostName?.trim() || "the host"} knows who to thank.`,
+    title: "What should we call you?",
+    reason: `Your name goes on the photos you add, so ${hostName?.trim() || "the host"} knows who to thank.`,
   };
 }

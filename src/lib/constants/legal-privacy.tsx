@@ -371,13 +371,14 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "cookies",
     title: "Cookies and browser storage",
     summary:
-      "Two cookies, both essential. No advertising cookies, so no cookie banner.",
+      "Three cookies, all essential. No advertising cookies, so no cookie banner.",
     blocks: [
       p(
         "We use cookies and similar browser storage only to run the Service. We set no advertising or cross-site tracking cookies, which is why you see no cookie banner.",
       ),
       // @supabase/ssr auth cookies (host-only, no .partyreel.com domain);
-      // pr_unlock_<eventId>, 12h TTL (unlock-token.ts).
+      // pr_unlock_<eventId>, 12h TTL (unlock-token.ts);
+      // pr_guest_<eventId>, 60 days (lib/guest/session-cookie.ts) — the door round, 2026-09-21.
       table(
         [
           { header: "Cookie" },
@@ -394,6 +395,11 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
             "Album unlock",
             "Remembers that you entered a password-protected event's password",
             "12 hours",
+          ],
+          [
+            "Event guest",
+            "Remembers which guest you are at one event, so the album knows what you have already added. Cleared when you sign out or leave the event",
+            "60 days",
           ],
         ],
       ),

@@ -58,7 +58,11 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // display name instead, and is listed on the guest list the same as a
     // confirmed name, wearing a small unverified mark; "upload without
     // signing in" is no longer a way to stay off that list.
-    version: "1.3",
+    // 1.4 (2026-09-21): the door round added a third essential cookie,
+    // `pr_guest_<eventId>`, which remembers which guest you are at one event
+    // so the album can tell what you have already added; it is cleared when
+    // you sign out or leave the event.
+    version: "1.4",
     lastUpdated: "2026-09-21",
     status: "pending-review",
     effectiveDate: null,

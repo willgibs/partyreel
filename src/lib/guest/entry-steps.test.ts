@@ -1,92 +1,261 @@
 import { describe, expect, it } from "vitest";
 
-import { computeEntry, gateStepsForAccess } from "@/lib/guest/entry-steps";
+import { computeDoor } from "@/lib/guest/entry-steps";
 
-describe("gateStepsForAccess", () => {
-  it("maps access -> the current gate", () => {
-    expect(gateStepsForAccess("none")).toEqual(["password"]);
-    expect(gateStepsForAccess("teaser")).toEqual(["account"]);
-    expect(gateStepsForAccess("full")).toEqual([]);
-  });
+/**
+ * THE DOOR AS AN ITINERARY (Will, 2026-09-21, "the door as three steps"). Every permutation of his
+ * ruling, read as the cases the sheet actually meets.
+ */
+// A first-time guest at a plain, name-only, upload-open event with no switch on.
+const base = {
+  gate: null as "password" | "account" | "upload" | null,
+  access: "full" as "none" | "teaser" | "full",
+  hasContributed: false,
+  uploadsOpen: true,
+  requireUpload: false,
+  welcomeSeen: false,
+  hasName: false,
+  contributed: false,
+  skipped: false,
+  returning: false,
+  isOwner: false,
+  isDemo: false,
+};
 
-  /**
-   * ★ THE HOST'S FLAG REACHES THIS MACHINE ONLY THROUGH `teaser` (the identity
-   * reshape, 2026-09-21). Require verified emails ON puts an unconfirmed viewer
-   * at `teaser`, which is the ONE access level that produces the account gate;
-   * OFF resolves every viewer to `full`, so there is no gate at all and the door
-   * a guest meets is the imperative NAME step instead. If a future change ever
-   * makes a names-mode event produce an `account` step, this fails.
-   */
-  it("a names-mode event (full for everyone) produces NO gate, so the name step is the only door", () => {
-    expect(gateStepsForAccess("full")).toEqual([]);
-    expect(gateStepsForAccess("teaser")).toEqual(["account"]);
-    expect(gateStepsForAccess("full")).not.toContain("account");
-  });
-});
-
-describe("computeEntry", () => {
-  const base = { isOwner: false };
-
-  it("public, first visit -> [welcome] + auto-open", () => {
+describe("computeDoor", () => {
+  it("the owner gets no sheet at all, whatever the event asks", () => {
+    expect(computeDoor({ ...base, isOwner: true })).toEqual({
+      steps: [],
+      autoOpen: false,
+    });
     expect(
-      computeEntry({ ...base, gateSteps: [], welcomeSeen: false }),
-    ).toEqual({ steps: ["welcome"], autoOpen: true });
-  });
-
-  it("public, return visit -> [] closed", () => {
-    expect(computeEntry({ ...base, gateSteps: [], welcomeSeen: true })).toEqual(
-      { steps: [], autoOpen: false },
-    );
-  });
-
-  it("account-required signed-out, first visit -> [welcome, account] + auto-open", () => {
-    expect(
-      computeEntry({ ...base, gateSteps: ["account"], welcomeSeen: false }),
-    ).toEqual({ steps: ["welcome", "account"], autoOpen: true });
-  });
-
-  it("account-required signed-out, return visit -> [account], NOT auto-open (browse the teaser)", () => {
-    expect(
-      computeEntry({ ...base, gateSteps: ["account"], welcomeSeen: true }),
-    ).toEqual({ steps: ["account"], autoOpen: false });
-  });
-
-  it("password, first visit -> [welcome, password] + auto-open", () => {
-    expect(
-      computeEntry({ ...base, gateSteps: ["password"], welcomeSeen: false }),
-    ).toEqual({ steps: ["welcome", "password"], autoOpen: true });
-  });
-
-  it("password, return visit -> [password] + auto-open (it is the gated page)", () => {
-    expect(
-      computeEntry({ ...base, gateSteps: ["password"], welcomeSeen: true }),
-    ).toEqual({ steps: ["password"], autoOpen: true });
-  });
-
-  it("owner -> [] even with a gate + unseen welcome", () => {
-    expect(
-      computeEntry({
-        gateSteps: ["account"],
-        welcomeSeen: false,
+      computeDoor({
+        ...base,
         isOwner: true,
+        requireUpload: true,
+        access: "teaser",
+        gate: "upload",
       }),
     ).toEqual({ steps: [], autoOpen: false });
   });
 
-  // The demo carries no `isDemo` flag here at all (`arrival=role`, the sixth
-  // batch, 2026-09-20): it always resolves `full` access, so `gateSteps` is
-  // already `[]` from `gateStepsForAccess`, and it falls through the SAME
-  // welcome-then-nothing path as any public event with no gate. The copy
-  // swap (a role, not an invitation) is entry-modal.tsx's own `isDemo` read.
-  it("demo (full access, so no gateSteps), first visit -> [welcome] + auto-open", () => {
-    expect(computeEntry({ ...base, gateSteps: [], welcomeSeen: false })).toEqual(
-      { steps: ["welcome"], autoOpen: true },
-    );
+  it("names mode, first visit: welcome, name, upload", () => {
+    expect(computeDoor(base)).toEqual({
+      steps: ["welcome", "name", "upload"],
+      autoOpen: true,
+    });
   });
 
-  it("demo, return visit -> [] closed (the role screen stays seen, like a welcome)", () => {
-    expect(computeEntry({ ...base, gateSteps: [], welcomeSeen: true })).toEqual(
-      { steps: [], autoOpen: false },
-    );
+  it("the welcome drops once seen and the rest stands", () => {
+    expect(computeDoor({ ...base, welcomeSeen: true })).toEqual({
+      steps: ["name", "upload"],
+      autoOpen: true,
+    });
+  });
+
+  /* ── the password ───────────────────────────────────────────────────── */
+
+  it("password-only: the itinerary STOPS at the password (nothing behind it is knowable)", () => {
+    expect(
+      computeDoor({ ...base, access: "none", gate: "password" }),
+    ).toEqual({ steps: ["welcome", "password"], autoOpen: true });
+  });
+
+  it("after the unlock's refresh the rest re-derives", () => {
+    expect(
+      computeDoor({ ...base, welcomeSeen: true, access: "full", gate: null }),
+    ).toEqual({ steps: ["name", "upload"], autoOpen: true });
+  });
+
+  /* ── verified emails ────────────────────────────────────────────────── */
+
+  it("verified mode: welcome, name, email (the name comes BEFORE the email)", () => {
+    expect(
+      computeDoor({ ...base, access: "teaser", gate: "account" }),
+    ).toEqual({ steps: ["welcome", "name", "email"], autoOpen: true });
+  });
+
+  it("after the confirmation's refresh only the upload is left", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        access: "full",
+        gate: null,
+      }),
+    ).toEqual({ steps: ["upload"], autoOpen: true });
+  });
+
+  it("a signed-in confirmed viewer with a profile name skips the name step", () => {
+    expect(
+      computeDoor({ ...base, welcomeSeen: true, hasName: true }),
+    ).toEqual({ steps: ["upload"], autoOpen: true });
+  });
+
+  /* ── the upload step, and Require an upload to view ─────────────────── */
+
+  it("a RETURNING guest skips the OFF upload step entirely", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        returning: true,
+      }),
+    ).toEqual({ steps: [], autoOpen: false });
+  });
+
+  it("the switch ON never lets a returning guest past it", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        returning: true,
+        requireUpload: true,
+        access: "teaser",
+        gate: "upload",
+      }),
+    ).toEqual({ steps: ["upload"], autoOpen: true });
+  });
+
+  it("the soft skip drops the step OFF, and is never offered ON", () => {
+    expect(
+      computeDoor({ ...base, welcomeSeen: true, hasName: true, skipped: true }),
+    ).toEqual({ steps: [], autoOpen: false });
+    // ON, `skipped` can never be set by the UI (there is no skip to press), so the step stands
+    // whatever a stale flag says: the server's own decision is what opens the album.
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        skipped: true,
+        requireUpload: true,
+        access: "teaser",
+        gate: "upload",
+      }).steps,
+    ).toEqual(["upload"]);
+  });
+
+  it("a contribution closes the step, from either side", () => {
+    // The server's answer (the cookie resolved a contributor) ...
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        requireUpload: true,
+        hasContributed: true,
+      }),
+    ).toEqual({ steps: [], autoOpen: false });
+    // ... and this visit's own completed upload, before any refresh has landed.
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        requireUpload: true,
+        contributed: true,
+      }),
+    ).toEqual({ steps: [], autoOpen: false });
+  });
+
+  it("closed uploads never ask for one, switch or no switch", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        uploadsOpen: false,
+        requireUpload: true,
+      }),
+    ).toEqual({ steps: [], autoOpen: false });
+  });
+
+  /* ── the two switches together, and the two edges ───────────────────── */
+
+  it("both switches: the welcome, the password, then the rest", () => {
+    // Locked and unconfirmed: the password alone.
+    expect(
+      computeDoor({ ...base, access: "none", gate: "password" }).steps,
+    ).toEqual(["welcome", "password"]);
+    // Unlocked, still unconfirmed: the name then the email.
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        access: "teaser",
+        gate: "account",
+        requireUpload: true,
+      }).steps,
+    ).toEqual(["name", "email"]);
+    // Confirmed, still owing a photograph.
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        access: "teaser",
+        gate: "upload",
+        requireUpload: true,
+      }).steps,
+    ).toEqual(["upload"]);
+  });
+
+  it("THE MID-VISIT FLIP: a named session on an event now requiring verified emails is [email]", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        returning: true,
+        access: "teaser",
+        gate: "account",
+      }),
+    ).toEqual({ steps: ["email"], autoOpen: true });
+  });
+
+  it("THE DEMO: the role step then the upload, and no name is ever asked", () => {
+    expect(computeDoor({ ...base, isDemo: true })).toEqual({
+      steps: ["welcome", "upload"],
+      autoOpen: true,
+    });
+  });
+
+  it("a returning guest with a name and a contribution meets nothing", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        returning: true,
+        hasContributed: true,
+        requireUpload: true,
+      }),
+    ).toEqual({ steps: [], autoOpen: false });
+  });
+
+  /* ── the affordance the exemption used to buy ───────────────────────── */
+
+  it("autoOpen is TRUE whenever a step exists (the 'browse the teaser first' exemption is retired)", () => {
+    // The old machine opened for the welcome and the password only, and left a returning guest of
+    // an account-gated event to find "See all N". "No exit" retires that.
+    const accountOnly = computeDoor({
+      ...base,
+      welcomeSeen: true,
+      hasName: true,
+      returning: true,
+      access: "teaser",
+      gate: "account",
+    });
+    expect(accountOnly.steps).toEqual(["email"]);
+    expect(accountOnly.autoOpen).toBe(true);
+    // And false exactly when there is nothing to show.
+    expect(
+      computeDoor({ ...base, welcomeSeen: true, hasName: true, returning: true })
+        .autoOpen,
+    ).toBe(false);
   });
 });

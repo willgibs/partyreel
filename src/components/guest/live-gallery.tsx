@@ -165,6 +165,7 @@ export function LiveGallery({
   access,
   isDemo,
   onOpenGate,
+  onAccessDrift,
   onCountChange,
   pendingUploads = [],
   onAddFirst,
@@ -184,6 +185,14 @@ export function LiveGallery({
   isDemo: boolean;
   /** Re-opens the entry modal at its gate step (the teaser CTA's action). */
   onOpenGate: () => void;
+  /**
+   * ★ THE POLL IS NOT THE FLIP (the door as three steps, 2026-09-21). The poll re-runs the whole
+   * decision server-side, so it is the first place a CHANGE of decision shows up: a contribution
+   * made in another tab (looser), or the host turning Require an upload to view on while this
+   * guest is inside (stricter). Fired once per CHANGED decision, never per poll, and what to do
+   * about it belongs to the page (which knows whether a thumb is on the album right now).
+   */
+  onAccessDrift?: (next: { access: GalleryAccess; gate: string | null }) => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
   onCountChange?: (count: number) => void;
   /**
@@ -250,6 +259,8 @@ export function LiveGallery({
   // The current conditional-request validator: sent as If-None-Match so an
   // unchanged gallery answers a bare 304 (no payload, no presigns server-side).
   const etagRef = useRef<string | null>(seed.etag);
+  // The decision this gallery is currently drawing, as one comparable string (see onAccessDrift).
+  const decisionRef = useRef<string | null>(null);
 
   // Re-fetch the latest approved media (presigned) and reconcile optimistic tiles.
   const refresh = useCallback(async () => {
@@ -265,8 +276,23 @@ export function LiveGallery({
       // 304 = nothing changed since the validator we hold; skip all state work.
       if (res.status === 304) return;
       if (!res.ok) return;
-      const body = (await res.json()) as { ok: boolean; items?: GridMedia[] };
+      const body = (await res.json()) as {
+        ok: boolean;
+        items?: GridMedia[];
+        access?: GalleryAccess;
+        gate?: string | null;
+      };
       if (!body.ok || !body.items) return;
+      // The decision the SERVER just made, against the one this gallery was mounted with. Reported
+      // once per change (the ref, not the render), because a poll every few seconds would
+      // otherwise report the same drift forever.
+      if (body.access) {
+        const signature = `${body.access}:${body.gate ?? ""}`;
+        if (signature !== decisionRef.current) {
+          decisionRef.current = signature;
+          onAccessDrift?.({ access: body.access, gate: body.gate ?? null });
+        }
+      }
       etagRef.current = res.headers.get("etag");
       const items = body.items;
       // Reconcile by id. This MUST adopt refreshed presigned URLs: keeping the
@@ -305,7 +331,7 @@ export function LiveGallery({
     } catch {
       // Best-effort poll — never surface a transient network blip to the guest.
     }
-  }, [qrToken]);
+  }, [qrToken, onAccessDrift]);
 
   // The doorbell: a contentless Realtime ping per gallery change, coalesced
   // inside the hook (immediate refresh, bursts collapse into one trailing

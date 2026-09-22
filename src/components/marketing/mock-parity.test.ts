@@ -71,13 +71,6 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "No app required.",
   },
-  {
-    label: "album entry phone browse-out",
-    marketingFile:
-      "src/components/marketing/sections/features/album/entry-phone.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
-    literal: "Just browsing",
-  },
   // ★ THE NOUN (Will, 2026-09-17: `noun=album`). These three quote the guest's
   // entry sheet, and all three said "gallery" for as long as the sheet did.
   // They went stale the moment `voice-picks` swept the app and NOTHING went
@@ -97,12 +90,17 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "shots land in one album",
   },
+  // ★ "Continue" REPLACED "View the album" HERE (Will, 2026-09-21, "the door as three steps"):
+  // the welcome's two exits are one primary now, and the browse-out row this file used to pin
+  // ("Just browsing") does not exist on either side any more, so its pair was deleted rather than
+  // retargeted. Deleting a pin is the honest move when the string it guarded is gone from BOTH
+  // files; retargeting it to a string that never disagreed would guard nothing.
   {
-    label: "qr entry flow browse-in button",
+    label: "qr entry flow welcome primary",
     marketingFile:
       "src/components/marketing/sections/features/qr/entry-flow.tsx",
     appFile: "src/components/guest/entry-modal.tsx",
-    literal: "View the album",
+    literal: "Continue",
   },
   {
     label: "album review switch guest waiting tile",

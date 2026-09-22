@@ -22,12 +22,19 @@
 import type { Breadcrumb, Event } from "@sentry/nextjs";
 
 /**
- * The token's shape. `qr_token` and `session_token` are both a `gen_random_uuid()` with the dashes
- * stripped (see the init migration), i.e. exactly 32 lowercase hex characters. Matching the SHAPE,
- * not just the route, catches the token wherever it turns up: a query value, a log line, an R2 key,
- * an `extra` field nobody thought about. Real UUIDs keep their dashes and are never matched.
+ * The token's shape. `qr_token` is a `gen_random_uuid()` with the dashes stripped (the init
+ * migration), i.e. exactly 32 lowercase hex characters; `session_token` is TWO of those
+ * concatenated, i.e. 64. Matching the SHAPE, not just the route, catches the token wherever it
+ * turns up: a query value, a log line, an R2 key, an `extra` field nobody thought about. Real
+ * UUIDs keep their dashes and are never matched.
+ *
+ * ★ WIDENED FROM 32 TO 32-64 (the door as three steps, 2026-09-21). `\b[0-9a-f]{32}\b` never
+ * matched a session token at all: at character 33 of a 64-hex run there is no word boundary, so
+ * the longer capability sailed through every hook this module owns. The door round puts that token
+ * on a cookie and through a new poll field, so the shape is corrected BEFORE any of that ships.
+ * A 40-character sha1 digest now redacts too, which is the over-redaction this module prefers.
  */
-const TOKEN_SHAPE = /\b[0-9a-f]{32}\b/g;
+const TOKEN_SHAPE = /\b[0-9a-f]{32,64}\b/g;
 
 /**
  * The route shape, as a belt to that braces: whatever a future link format looks like, the segment

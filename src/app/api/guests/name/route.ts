@@ -35,6 +35,10 @@ import { NextResponse } from "next/server";
 
 import { setGuestDisplayName } from "@/lib/db/mutations/guest";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import {
+  applyGuestCookies,
+  guestSessionCookieIfChanged,
+} from "@/lib/guest/session-cookie";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -160,8 +164,17 @@ export async function POST(request: Request) {
   }
 
   // Never cacheable: the answer belongs to one session token.
-  return NextResponse.json(
+  const response = NextResponse.json(
     { ok: true, display_name: result.data.display_name },
     { headers: { "Cache-Control": "private, no-store" } },
   );
+  /* ★ AND THE COOKIE HEALS HERE TOO (the door as three steps, 2026-09-21). A guest whose row was
+     minted before this round holds a token in localStorage and no cookie; renaming is the first
+     door many of them pass through, so it adopts the token the same way the join does. The RPC
+     just proved the token resolves to a live row of this event's, so nothing unverified is
+     written. Skipped when the request already carried it. */
+  applyGuestCookies(response, [
+    await guestSessionCookieIfChanged(eventResult.data.id, session_token),
+  ]);
+  return response;
 }

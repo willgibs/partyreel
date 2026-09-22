@@ -35,6 +35,13 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
+// The door's session COOKIE (the door as three steps, 2026-09-21) is `server-only` and reads
+// `next/headers`; neither exists in the unit world, so the module's two real dependencies are
+// stubbed and the route's own use of it is asserted on the response instead.
+vi.mock("server-only", () => ({}));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => undefined }),
+}));
 
 const { POST } = await import("@/app/api/guests/name/route");
 

@@ -203,19 +203,50 @@ fix is the Sheet's phone half becoming vaul-backed for every consumer, one chang
 
 ## Gallery access: `none` / `teaser` / `full` (the gated VIEW)
 
-Viewing is no longer all-or-nothing. A pure `resolveGalleryAccess(event, {isOwner, isAuthed, isUnlocked})`
-([`gallery-access.ts`](../../src/lib/events/gallery-access.ts)) maps a viewer to one level, enforced
-IDENTICALLY by the RSC and the poll via the server-only `loadGalleryForAccess`
-([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)):
+Viewing is no longer all-or-nothing, and since the door round (2026-09-21) the server answers a whole
+DECISION rather than a level: `resolveGalleryDecision(event, {isOwner, isAuthed, isUnlocked, hasContributed,
+canContribute}) → {access, gate}` ([`gallery-access.ts`](../../src/lib/events/gallery-access.ts)), pure and
+unit-tested. `teaser` has TWO causes now, so a level alone could no longer say which door is in front of a
+viewer; `gate` is `"password" | "account" | "upload" | null` and the door's step machine reads it.
+`resolveGalleryAccess` was RETIRED rather than wrapped at that change, deliberately, so every caller was a
+type error until it learned the gate (the page, the poll, `/api/export/guest` and `/api/reel/download`, two
+of which hand a viewer real bytes).
+
+ONE server entry resolves it for both media surfaces: `resolveViewerDecision(event, {isOwner, isAuthed,
+isUnlocked, userId, sessionToken})` ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)).
+It resolves ONCE assuming a contribution, which short-circuits the upload clause, and only when that lands on
+`full` with `require_upload_to_view` on and uploads open does it call `getUploadGate`
+([`guest-gate.ts`](../../src/lib/db/queries/guest-gate.ts), the service-role `get_upload_gate`) and resolve
+again. A locked event and an unconfirmed viewer therefore cost no extra read at all.
 
 - **`full`** — the whole gallery. The owner (host), any signed-in viewer of a `require_verified_email`
-  event, an unlocked viewer of a password event with no identity gate, and the demo. Open + name-only is
-  always full.
+  event who owes no photograph, an unlocked viewer of a password event with no identity gate, and the demo.
 - **`teaser`** — the newest `TEASER_LIMIT` (9) approved PHOTOS + a total count (a "+N more" caption); the rest
-  withheld. Shown to a viewer with no confirmed email on a `require_verified_email` event (open, or password
-  AFTER unlock). Seeing the rest is what the confirmed email buys.
-- **`none`** — nothing real. A password event BEFORE the unlock cookie. The privacy rule: real teaser photos
-  appear ONLY once the password is proven (never before it).
+  withheld. Shown to a viewer with no confirmed email on a `require_verified_email` event (gate `account`),
+  and to a guest who owes a first upload on a `require_upload_to_view` event (gate `upload`). Seeing the
+  rest is what the confirmed email, or the photograph, buys.
+- **`none`** — nothing real. A password event BEFORE the unlock cookie (gate `password`). The privacy rule:
+  real teaser photos appear ONLY once the password is proven (never before it).
+
+★ **THE UPLOAD GATE FAILS OPEN, AND THE FAIL-OPEN IS THE SERVER'S.** `canContribute = accepting_uploads &&
+!albumFull`, where `albumFull` is exactly the pair the presign ladder refuses `cap_reached` on, carried
+verbatim by the RPC so the gate can never hold a guest the presign would refuse. An unreachable
+`get_upload_gate` resolves to `{contributed: false, albumFull: true}` with a captured warning, which reads
+as "cannot contribute" and opens the album. The ticket is punched ONCE: any media row that ever completed
+counts, whatever its status since, so a host's curation and a guest's own delete can never re-close a door
+they already passed. The EMPTY album still holds the gate (no count condition), and the host never meets it.
+
+★ **THE SERVER HAS TO KNOW WHICH GUEST IS ASKING**, which localStorage cannot tell an RSC. The
+`pr_guest_<eventId>` cookie ([`session-cookie.ts`](../../src/lib/guest/session-cookie.ts)) carries the raw
+64-hex session token, HttpOnly, Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded on read
+and unsigned (the database verifies it by `guests.session_token`'s unique index). It is set only when absent
+or different, by `POST /api/guests` on a mint, `POST /api/guests/name` on success, `POST /api/r2/complete-upload`
+on a created row (through `CreateRecordOutcome.setCookies`, which the pipeline applies to the 200 alone) and
+the gallery poll when the body's token differs — **on its 304 too**, which is the response the steady-state
+poll almost always gets. `POST /api/guests/leave` expires it, and the guest sign-out calls it through
+`leaveGuestSession`, so a shared phone never renders the full album on the last contributor's ticket. ★ The
+WRITE routes (name, mine, remove, presign, complete) still read the token from the BODY only, pinned by a
+source test in `session-cookie.test.ts`, so the CSRF surface did not move.
 
 ★ **The withheld set never reaches the browser** — the teaser is a capped server read (`getApprovedPhotoTeaser`,
 self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a CSS blur over a loaded gallery,
@@ -235,14 +266,31 @@ worded with the header's own always-both-nouns rule ("N photos & videos") rather
 A caller that has not been updated to pass `approvedTotal` still falls back to the photo-only `teaserTotal`,
 never a silent regression.
 
-## The ARRIVAL (the entry surface: welcome + the gates)
+## The ARRIVAL (the door: one held sheet, then the album)
 
-The gated arrival is the PRIMARY first experience (most events gate; a guest arrives from a QR with
-zero context) and plays as a four-act narrative on the ruled "Calm + 700ms" choreography
-([design-system.md](design-system.md)): **the stage** (the page settles: name/lock-line/ghost-grid rise via
-`data-arrive` + `--arrive-i`) → **the invitation** (after the ARRIVAL BEAT the sheet rises) → **the
-threshold** (the warm gate) → **the reveal** (the success morph, then the gallery rises as the sheet
-exits).
+The arrival is the PRIMARY first experience (a guest comes off a QR with zero context) and plays as a
+four-act narrative on the ruled "Calm + 700ms" choreography ([design-system.md](design-system.md)): **the
+stage** (the page settles: name/lock-line/ghost-grid rise via `data-arrive` + `--arrive-i`) → **the
+invitation** (after the ARRIVAL BEAT the sheet rises) → **the threshold** (the steps) → **the reveal** (the
+success beat, then the gallery rises as the sheet exits).
+
+★ **THE DOOR IS AN ITINERARY, AND IT HAS NO EXIT** (Will, 2026-09-21, rulings.md "the door as three steps").
+One held sheet carries the welcome, the password when the event has one, the NAME, the EMAIL held until it
+is confirmed when the host requires verified emails, and the first UPLOAD asked, and then the album. The
+nine-tile teaser sits blurred behind it the whole way, which is the point: "we're simply teasing them with
+the album reward for their info and media... Including 'just browsing' defeats this entire purpose. No
+exit." `computeDoor` ([`entry-steps.ts`](../../src/lib/guest/entry-steps.ts), pure and unit-tested) derives
+the ordered steps from the server's `{access, gate}` plus this browser's own facts (welcome seen, a name, a
+contribution, "returning" snapshotted at hydration), because the server can see the password and the email
+and cannot see whether THIS browser typed a name. A server gate is TERMINAL for the steps behind it: behind
+an unmet password or email the resolver has no opinion about the gates after it, so the itinerary stops and
+re-derives on that step's refresh. `autoOpen` is true whenever a step exists — the account gate's old
+"browse the teaser first" exemption died with "No exit".
+
+The cases: password-only `[welcome?, password]` then `[name?, upload?]`; names mode `[welcome?, name,
+upload?]`; verified mode `[welcome?, name, email]` then `[upload?]`; both, in that order; the demo
+`[welcome (its role step), upload]`, which asks no name; a returning guest with a name and (when required)
+a contribution `[]`; the mid-visit flip `[email]`.
 
 One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders a REAL Vaul
 drawer on phones (drag physics, `repositionInputs` lifts a focused field above the iOS keyboard,
@@ -254,12 +302,8 @@ SEQUENCE and said so in the same breath ("this is directly approving the welcome
 design"); round two ruled the SHELL, and the sequence below is untouched by it. The phone half keeps vaul
 because the gates TYPE into this surface and `repositionInputs` is the only thing keeping a focused field
 off the keyboard; what it took from the Sheet is the posture, `max-h-[85svh]`, so the album still shows
-above the door. The dismissability table is identical on both halves. The step machine is
-unchanged: steps adapt `welcome → password? → account?`, the CURRENT step is the first un-satisfied
-one, advancement is SERVER-DRIVEN — each gate form calls `router.refresh()` on success, which
-re-runs the RSC, drops the satisfied gate from `gateSteps`
-([`gateStepsForAccess`](../../src/lib/guest/entry-steps.ts)), and re-derives the step. No client
-step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + unit-tested).
+above the door. The CURRENT step is always the itinerary's first; the SERVER steps advance through the RSC's refresh and the
+CLIENT steps through flags in the sheet. No step counter to desync.
 
 - **The ARRIVAL BEAT** ([`use-arrival-beat.ts`](../../src/lib/guest/use-arrival-beat.ts), ratified
   700ms / password re-visit 350ms / reduced-motion 0): only the AUTO-open waits (the page settles
@@ -274,21 +318,19 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   "View the album". Inside the drawer the welcome stands `min-height: 55svh` (the ratified "tall"
   presence; `[data-entry-drawer] [data-welcome-step]`); the desk panel is full height already, so the rule
   stays drawer-scoped and the content sits at the panel's top the way every other product sheet's does.
-- **THE HONEST-AFFORDANCE TABLE** (dismissal exists only when there is something to dismiss TO):
-  welcome-before-PASSWORD = held (the continuous invitation→gate flow; the old X "closed" it only
-  for the firm gate to instantly re-open); password = held (it IS the page); welcome-before-account
-  + account = free (real swipe-to-dismiss + the `Drawer.Handle`, which renders ONLY when dragging
-  dismisses, + "Just browsing"); ANY step while the success beat holds = held; a closed/exiting
-  shell = held (no affordance pop-in mid-exit). The account step closes to the browsable teaser and
-  the gallery's "See all" re-opens it (`EntryModalHandle.openToGate`, a no-op mid-hold).
+- **THE AFFORDANCE TABLE IS ONE ROW**: every step of the door is HELD (no X, no drag handle, Escape
+  and the backdrop inert), and so is a closed/exiting shell. The one FREE surface left is the album
+  menu's "Change name" (`EntryModalHandle.openToName("edit")`), which stands over an album the guest
+  already reached and posts nothing when it closes. The teaser's "See all N" re-asserts the sheet
+  (`openToGate`, a no-op mid-hold), whose only remaining job is to undo the OFF-state soft skip.
 - **The CONTINUOUS step container**
   ([`entry-step-transition.tsx`](../../src/components/guest/entry-step-transition.tsx)): a
   ResizeObserver feeds the content's px height into a 300ms height glide (step swaps AND same-step
   growth, e.g. the error line); steps slide directionally (`[data-entry-step][data-dir]`); the
   outgoing step leaves an inert attribute-stripped clone that fades opposite (`[data-entry-exit]`;
-  `el.isConnected` discriminates real deletions from dev StrictMode cycles). Gate steps carry a
-  back chevron that re-shows the welcome as a transient VIEW over the machine (never touches
-  markSeen/steps).
+  `el.isConnected` discriminates real deletions from dev StrictMode cycles). The back chevron
+  is a transient VIEW over the machine (never touches markSeen/steps): the password, the name and
+  the email go back to the welcome, and the upload goes back to the name.
 - **The SUCCESS HOLD + REVEAL**
   ([`use-success-hold.ts`](../../src/lib/guest/use-success-hold.ts), min beat 900ms): on unlock the
   gate blurs the field (the keyboard retracts during the beat, never mid-exit), fires `onUnlocked`
@@ -305,9 +347,28 @@ step-machine ([`computeEntry`](../../src/lib/guest/entry-steps.ts) is pure + uni
   returning guest is carried too). Never strands: slow >1.5s = "Opening the gallery"; the 8s
   watchdog turns the button into Retry (the unlock cookie is set; the form never re-enables). The
   display latch keeps the last open-state view mounted through the exit (no empty-strip deflate).
-- **Auto-open** when the welcome is due OR the first gate is `password` (it IS the page); an
-  `account`-only gate does NOT auto-open on a return visit — the guest browses the teaser, opening
-  the account step on desire.
+- **Auto-open whenever a step exists.** There is nothing to browse to any more.
+- **THE UPLOAD STEP LIVES IN THIS SHEET** ([`upload-step.tsx`](../../src/components/guest/upload-step.tsx)).
+  It renders the intent sheet's own exported body (`UploadIntentBody`), so the two hidden file inputs sit
+  INSIDE the open dialog on both shells and Safari's synchronous `.click()` still opens a picker; a sheet
+  over a held sheet would be two things to dismiss and one of them impossible. The QUEUE is lifted to
+  `event-experience.tsx` and shared with the album's Add, so a run started at the door outlives the door:
+  the first completed item (approved or held) writes `pr_contributed_<qr>`, fires the hold and refreshes,
+  and the rest of the run finishes behind the album's own head. The FAIL-OPEN is server-owned: when a run
+  ends with nothing completed and every refusal is one the guest cannot fix (`classifyRun`), the step shows
+  the server's own sentence and a primary "Continue without adding" that refreshes and trusts the decision
+  that comes back — never a local skip, which would loop (the server would still answer `upload`). The
+  OFF-state ghost "Skip for now" is once per pass and never appears on the failure view; ON there is none,
+  and `computeDoor` ignores both `skipped` and `returning` in that state so a stale flag cannot open an album.
+- **THE FLIP AND THE DRIFT.** The refresh at the first completion IS the flip (the completion route sets
+  the cookie before it); `key={access}` remounts the gallery under the curtain and it rises as the sheet
+  exits. The POLL is not the flip: `LiveGallery` parses the poll's `access` and `gate` and raises
+  `onAccessDrift` once per CHANGED decision. A LOOSER drift refreshes at once; a STRICTER one (the host
+  turned the switch on while this guest was inside) never yanks an open album out from under a thumb and
+  waits for the guest's next act. And because a session minted before this round has no cookie yet,
+  `EventExperience` HEALS once at mount when the gate is `upload` and localStorage holds a token: one poll
+  POST carrying it (no `If-None-Match`), the sheet's auto-open waiting on the answer, then a refresh if the
+  decision came back changed.
 - **No autofocus anywhere in the gates** (the iOS keyboard ambush fix): the keyboard rises on an
   intentional tap; gate inputs are h-11/16px (16px also stops the iOS focus auto-zoom).
 
@@ -360,6 +421,26 @@ name at the door and uploads under it with a small unverified mark. `allow_anony
 only as the compatibility twin the `events_sync_verified_email_flags` trigger holds exactly opposite
 (→ [database-security.md](database-security.md)); nothing new reads it, and only rows minted BEFORE the
 reshape can still read as "A guest".
+
+★ **AND THE NAME IS ASKED BEFORE THE ALBUM** (Will, 2026-09-21, "the door as three steps"), which
+overrules "at the first Add": "if they can reach the album media without entering their name, they're able
+to reap all the rewards of the album anonymously, then friction occurs when they go to actually contribute.
+We should handle the friction as a quick gate to the reward." `guest-name-step.tsx` has FOUR modes for the
+four doors that ask one question — `join` (names mode: rename a held row first, else mint under the typed
+name), `edit` (the album menu's, unchanged, and the one dismissible door left), `hold` (verified mode BEFORE
+the confirmation: the join would answer 422, so nothing is sent, the name is validated locally and kept in
+the sheet's own state, and only `pr_guest_name_last` is written — never the per-event key, which would claim
+a row that does not exist) and `profile` (a confirmed account with no profile name writes the PROFILE's,
+replacing the inline `SetNameStep` panel that used to sit halfway down the album). No unique name is
+claimed at the door.
+
+★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S.** `EnterEventPrompt.onVerified` is a plain
+callback now, and `entry-modal.tsx` owns the sequence, because the door holds a name that has never been
+sent anywhere and the order is the difference between a guest who lands named and one who lands as "A
+guest": claim this browser's anonymous uploads → `joinEvent` (verified and NAMELESS, since `create_guest`
+nulls a typed name beside a confirmed account) → one own-row read of `profiles.display_name` → when null and
+a name was typed, `updateDisplayNameAction` → hold the beat → refresh. **The account's own name wins** over
+a typed one, and the email step says so above the field before they confirm.
 
 - **The join carries the identity:** `POST /api/guests {qr_token, display_name?}` → `create_guest`
   (4-arg) issues a `session_token` (localStorage, returning-guest) and returns `{display_name, verified}`

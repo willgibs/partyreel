@@ -39,6 +39,18 @@ function readStored(key: string): string | null {
   }
 }
 
+/**
+ * A one-shot read, outside the hook, for a caller that needs the value ONCE at mount rather than
+ * as live state (the door's "returning" snapshot: whether this browser already held a session when
+ * the page loaded, which decides whether the OFF-state upload step is asked at all). Re-reading it
+ * live would flip the instant the guest's own join mints a session and drop the step under their
+ * thumb.
+ */
+export function readStoredSession(qrToken: string): string | null {
+  if (typeof window === "undefined") return null;
+  return readStored(sessionKey(qrToken));
+}
+
 export function setStoredSession(qrToken: string, value: string | null) {
   try {
     if (value === null) localStorage.removeItem(sessionKey(qrToken));
@@ -48,6 +60,27 @@ export function setStoredSession(qrToken: string, value: string | null) {
     // the emit below, so uploading still works for the current visit.
   }
   emit();
+}
+
+/**
+ * PUT THE WHOLE TICKET DOWN, both copies (the door as three steps, 2026-09-21).
+ *
+ * The session now has a SERVER-readable half, the `pr_guest_<eventId>` cookie, which is what lets
+ * an RSC resolve Require an upload to view for the right guest. Clearing only the localStorage
+ * copy would leave a shared phone rendering the FULL album on the last contributor's ticket, which
+ * is the exact leak that switch exists to close. One call clears both: the local one synchronously
+ * (so this tab stops uploading under it at once, even on a flaky network) and the cookie through
+ * `POST /api/guests/leave`, whose failure is best-effort by design -- a sign-out must never hang
+ * on it, and the local half is already gone.
+ */
+export function leaveGuestSession(qrToken: string): void {
+  setStoredSession(qrToken, null);
+  void fetch("/api/guests/leave", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ qr_token: qrToken }),
+    keepalive: true,
+  }).catch(() => {});
 }
 
 // localStorage-backed session via useSyncExternalStore: the server snapshot is

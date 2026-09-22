@@ -11,6 +11,9 @@ import {
 // A real-shaped qr_token: gen_random_uuid() with the dashes stripped, i.e. 32 lowercase hex.
 const TOKEN = "8f1c2d3e4a5b6c7d8e9f0a1b2c3d4e5f";
 const ALBUM = `https://partyreel.com/e/${TOKEN}`;
+// A real-shaped session_token: TWO of those concatenated, i.e. 64 hex. The upload capability, and
+// from the door round (2026-09-21) also a cookie value and a poll field.
+const SESSION = `${TOKEN}0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d`;
 
 describe("redactTokens", () => {
   it("removes a bare capability token wherever it appears", () => {
@@ -18,6 +21,21 @@ describe("redactTokens", () => {
       "join failed for [redacted]",
     );
     expect(redactTokens(TOKEN)).not.toContain(TOKEN);
+  });
+
+  // ★ THE 64-HEX SESSION TOKEN (the door as three steps, 2026-09-21). `\b[0-9a-f]{32}\b` never
+  // matched one: at character 33 of a 64-hex run there is no word boundary, so the LONGER
+  // capability was the one sailing through every hook here. The door round puts it on a cookie and
+  // in a poll body, so this is pinned before any of that ships.
+  it("removes a 64-hex session token, the longer capability", () => {
+    expect(SESSION).toHaveLength(64);
+    expect(redactTokens(`upload refused for ${SESSION}`)).toBe(
+      "upload refused for [redacted]",
+    );
+    expect(redactTokens(SESSION)).not.toContain(TOKEN);
+    expect(redactTokens(`pr_guest_x=${SESSION}; Path=/`)).toBe(
+      "pr_guest_x=[redacted]; Path=/",
+    );
   });
 
   it("removes the guest-link segment even when the token shape changes", () => {

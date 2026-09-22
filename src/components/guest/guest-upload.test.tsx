@@ -15,6 +15,12 @@
  * upload"), and a run that ends with anything refused opens the failure sheet
  * once instead of firing a toast (`failed=sheet`). Pins assert behavior
  * (payloads, callbacks, what is on screen), never styles.
+ *
+ * ★ THE QUEUE IS THE PAGE'S NOW (the door as three steps, 2026-09-21), so these mount a HARNESS
+ * that owns it exactly as `event-experience.tsx` does and hands `GuestUpload` the snapshot. That
+ * is deliberate rather than a convenience: the door's upload step and the album's sheets read ONE
+ * queue in production, and a pin that mocked it away would stop proving the thing that actually
+ * has to hold. The engine's own contract line stays on this file for the same reason.
  */
 import {
   act,
@@ -25,10 +31,14 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
-import { createRef } from "react";
+import { createRef, useEffect, useRef } from "react";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import type { QueueItem } from "@/lib/guest/use-upload-queue";
+import {
+  useUploadQueue,
+  type QueueItem,
+  type UploadedItem,
+} from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
 
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
@@ -69,19 +79,82 @@ function makeFile(name = "photo.jpg") {
   return new File([new Uint8Array([1, 2, 3])], name, { type: "image/jpeg" });
 }
 
-function mount(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
+/**
+ * The page shell's own shape, small enough to read: the queue lives here, `GuestUpload` is handed
+ * its snapshot and the three callbacks, and the test drives it through the real sheets.
+ */
+function Harness({
+  handleRef,
+  onSession,
+  onUploaded,
+  onQueueChange,
+  onVerificationRequired,
+  isDemo = false,
+  isVerified = false,
+  sessionToken = "sess-1",
+  ...rest
+}: {
+  handleRef: React.RefObject<GuestUploadHandle | null>;
+  onSession: (token: string | null) => void;
+  onUploaded: (item: UploadedItem) => void;
+  onQueueChange?: (items: QueueItem[]) => void;
+  onVerificationRequired?: (message: string) => void;
+  isDemo?: boolean;
+  isVerified?: boolean;
+  sessionToken?: string | null;
+  event?: GuestEvent;
+  suppressFailures?: boolean;
+}) {
+  const pendingRef = useRef<string | null>(null);
+  const { items, addFiles, retry, dismiss } = useUploadQueue({
+    qrToken: "qr-token-1",
+    sessionToken,
+    onSession,
+    onUploaded,
+    isDemo,
+    isVerified,
+    onVerificationRequired: (message, hadQueuedFiles) => {
+      if (hadQueuedFiles) {
+        pendingRef.current = message;
+        return;
+      }
+      onVerificationRequired?.(message);
+    },
+  });
+  useEffect(() => {
+    onQueueChange?.(items);
+  }, [items, onQueueChange]);
+  return (
+    <GuestUpload
+      ref={handleRef}
+      event={rest.event ?? EVENT}
+      qrToken="qr-token-1"
+      sessionToken={sessionToken}
+      queue={items}
+      onAddFiles={addFiles}
+      onRetry={retry}
+      onDismiss={dismiss}
+      suppressFailures={rest.suppressFailures}
+      onFailuresClosed={() => {
+        if (pendingRef.current === null) return;
+        const message = pendingRef.current;
+        pendingRef.current = null;
+        onVerificationRequired?.(message);
+      }}
+      isDemo={isDemo}
+    />
+  );
+}
+
+function mount(props?: Record<string, unknown>) {
   const onSession = vi.fn();
   const onUploaded = vi.fn();
   const handleRef = createRef<GuestUploadHandle>();
   const utils = render(
-    <GuestUpload
-      ref={handleRef}
-      event={EVENT}
-      qrToken="qr-token-1"
-      sessionToken="sess-1"
+    <Harness
+      handleRef={handleRef}
       onSession={onSession}
       onUploaded={onUploaded}
-      isDemo={false}
       {...props}
     />,
   );
@@ -671,7 +744,7 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
 // These pin the subscriber surface (onQueueChange snapshots + handle.retry),
 // which the in-gallery tiles read.
 
-function mountWithQueue(props?: Partial<Parameters<typeof GuestUpload>[0]>) {
+function mountWithQueue(props?: Record<string, unknown>) {
   const snapshots: QueueItem[][] = [];
   return {
     ...mount({
