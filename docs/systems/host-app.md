@@ -40,7 +40,9 @@ CONFIRMED email at some names-mode door before that email was proved. One row pe
 no-confirmation shortcut, `Finish` to apply. Anything not claimed at Finish is removed under a named confirmation,
 since that is the guest saying those uploads were not theirs
 ([`claims-actions.ts`](../../src/app/(app)/dashboard/claims-actions.ts) → `claim_guest_rows_by_email` /
-`disown_guest_rows_by_email`). A nameless profile never meets it: the `/dashboard` name gate (`requireNamedProfile()`
+`disown_guest_rows_by_email`). An unclaimed name leaves the guest list and the host's Guests room with its
+uploads, since both list only guests with an approved upload (`getEventGuestList`); the guest row itself
+survives, empty, for the device that minted it. A nameless profile never meets it: the `/dashboard` name gate (`requireNamedProfile()`
 in `dashboard/layout.tsx`, → [auth-accounts.md](auth-accounts.md)) redirects to `/welcome` first, which prefills the
 name from the most recent claimable row's typed name when there is no OAuth name.
 
@@ -384,7 +386,7 @@ Monochrome at rest, each verb colored on direct hover, an active one keeping its
 three**; hide/show is ONE slot (EyeOff / persistent amber Eye) so toggling swaps the glyph in place. **Add-to-reel and
 DELETE are deliberately NOT tile verbs:** a hover fan of five on a dense masonry grid is a misclick trap, and those two
 are the consequential ones. Delete lives in the lightbox + album bulk-Select (hide on the tile covers the urgent case
-reversibly); add-to-reel belongs to the Studio's Moments picker, the lightbox and bulk-Select. No per-tile Approve:
+reversibly); add-to-reel belongs to the reel room (see "Reel curation"). No per-tile Approve:
 pending media lives in the Review room. The pane rides the `[data-reveal-chip]` hook, collapsed at rest and opened on
 tile hover or keyboard focus; the hook is **`!important`** (it sits in `@layer base`, which the utilities layer
 outranks, silently killing the slide and the collapse) and keys on `:hover` / `:focus-visible` / `:has(:focus-visible)`,
@@ -426,7 +428,14 @@ tile heights (the album clamps extreme ratios; the review queue does not).
 
 ## Reel curation, the live composer, and the .mp4 export
 
-This is the reel that ships today: the room, curation, the canvas engine, the on-device export, publish.
+★ **The stored reel is ruled out; the reel round replaces it at its wiring.** The reel becomes the event's own: a
+live, looping montage of what the album shows from its third reel-eligible item, spliced within seconds by the
+doorbell, the host's mood by default with a viewer's own style switch, a first-class screen mode, and a per-event
+switch, on by default. A cut is anyone's, made on the device from the reel and never stored (on a paid event, Add to
+the album sends it through the ordinary upload queue as the uploader's video, which the live reel skips). Video plays
+a range-fetched window of the original decoded on the viewer's device behind Include videos, the poster covering every
+failure. Every table, route and job built for a stored reel is dropped once one alias build replaces the old reel, so
+build nothing new on the stored reel below; what follows is the reel that ships until then.
 
 **THE PRODUCT SHAPE governs every reel decision.** The reel is core-loop step 5 and the product's North Star: the host
 curates the best moments and gets an auto-magical, shareable highlight video. The positioning is the **"wow in
@@ -456,10 +465,11 @@ plus its draw path.
 un-reel is a host-RLS delete from the browser), a HOST-ONLY `ReelProvider`
 ([`reel-provider.tsx`](../../src/components/reel/reel-provider.tsx); optimistic, insertion-ordered Set, client-direct,
 NO signed-out branch), and a `ReelButton` (a `Clapperboard` in the `--reel` VIOLET, distinct from Like) in the
-**lightbox** curate group. **The curation doors:** the **Studio's Moments picker** (the primary one), the builder's
-quick-add, the **lightbox** and **album bulk-Select**. Only the reel room mounts a `ReelProvider`, so on the hub the
-lightbox's `ReelButton` renders nothing and bulk Add to reel returns without writing: only the reel room's own doors
-curate. No tile chip (see "the gallery-action model"): selection is MODE-based, the room carries the meaning.
+**lightbox** curate group. **The curation doors that write** are the reel room's own: the **Studio's Moments picker**
+(the primary one) and the builder's quick-add. Only the reel room mounts a `ReelProvider`, and it renders no lightbox
+and no album grid, so the hub's lightbox `ReelButton` renders nothing and the album's bulk "Add to reel" button still
+shows but returns without writing (`host-media-grid.tsx`, `if (!reel) return`), while the builder's empty state still
+points hosts at Select in the gallery. No tile chip (see "the gallery-action model"): selection is MODE-based, the room carries the meaning.
 Likes are an INPUT SIGNAL to quick-add, **never** membership. Curation is FREE for any tier; ONE reel per event;
 approved-only eligibility (the TIMELINE predicate; MEMBERSHIP for host UI/counts/reorder also keeps `hidden`, see
 [database-security.md](database-security.md)). **Guests see the reel only after the host SHARES it**:
