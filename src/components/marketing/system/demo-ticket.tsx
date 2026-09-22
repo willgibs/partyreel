@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * THE DEMO FRAME (`door=frame`, round two, 2026-09-20/21, overriding round
- * one's `doors=pile`; docs/design/rulings.md "the closing sitting's second
+ * one's `doors=pile`; "the closing sitting's second
  * batch": "this visual is the same height as the image banner behind, and
  * isn't as noticeable as it could be" was his note on the board's own
  * drawing). One photograph in a plain mat, the live code tucked into its

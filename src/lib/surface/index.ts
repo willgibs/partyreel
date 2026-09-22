@@ -14,7 +14,7 @@
  * once, not once per project) have to agree by construction. They agree because they all decide
  * here, and this file is pure, so the whole rule set is unit-testable with no request in hand.
  *
- * Will's reason for the split, verbatim (`docs/design/rulings.md`, 2026-09-18): each surface
+ * Will's reason for the split, verbatim (2026-09-18): each surface
  * "exist[s] elegantly serving its own purpose, with far fewer security risks than having
  * everything tied together". The smaller the admin deployment's served path set, the less of the
  * platform an attacker who reaches that host can even address. So the admin surface is an

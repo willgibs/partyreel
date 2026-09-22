@@ -74,13 +74,13 @@ function confirmDeleteTitle(photos: number, events: number): string {
 }
 
 /**
- * THE CLAIM TICKET (the guest identity round, 2026-09-22; rulings.md "guest
+ * THE CLAIM TICKET (the guest identity round, 2026-09-22; "guest
  * identity: name only, unconfirmed email, verified account"). Rendered only
  * when `rows` is non-empty — a confirmed caller with events waiting under the
  * email on their account, from before it was confirmed.
  *
  * Deliberately plain: this is wave 1's wiring of a ruled model, not the
- * ticket's real shape (rulings.md: "The flows around the claim ticket ...
+ * ticket's real shape ("The flows around the claim ticket ...
  * go to one identity-flows board once the foundation is on the tree"). One
  * card, one decision per EVENT (never per guest row: `getMyClaimableGuestRows`
  * already grouped rows that share an event), two ways to finish:

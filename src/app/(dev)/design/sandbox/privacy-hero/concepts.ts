@@ -8,7 +8,7 @@ import { CANVAS, type Mode } from "@/components/lab";
  * round: "I don't really like this arrival animation as part of the
  * spiral/orbit"). Asked what next, Will: "Let's go with a totally different
  * concept... The actual privacy hero can take a different path, maybe more
- * fitting for its theme" (docs/design/rulings.md, 2026-09-19).
+ * fitting for its theme" (2026-09-19).
  *
  * ★ NOTHING HERE FLIES. Each concept sits still, or nearly still, and the
  * thing that moves is each one's own VISIBILITY: a breath, a turn taken, a

@@ -19,7 +19,7 @@ import { LabLink } from "./shell-context";
  * ONE LINK FOR EVERY REFERENCE (the Library x Lab round, 2026-09-15): a bible
  * rule, a component, a board, a record entry, a doc anchor, a proposal, a
  * track, a policy test, a source path, an external URL. Pass the string the
- * repo already writes (`docs/design/rulings.md`,
+ * repo already writes (`docs/PROGRAM.md`,
  * `src/components/ui/button.tsx:40`, `bible 16`, `/design/lab/light`) or a
  * parsed LabRef; it lands on the lab page when one exists, else on the file
  * (in the editor when the reader has set an editor root, and on GitHub).

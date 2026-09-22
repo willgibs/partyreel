@@ -16,8 +16,8 @@ import { ErrorDigest } from "@/components/shared/error-digest";
 import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 
 /**
- * ONE GRAMMAR FOR EVERY FAILURE PAGE (Will's eight verdicts, 2026-09-19;
- * verbatim in docs/design/rulings.md).
+ * ONE GRAMMAR FOR EVERY FAILURE PAGE (Will's eight verdicts, 2026-09-19,
+ * verbatim).
  *
  * What this file guards is FUNCTION, never look: which screens report and which
  * must not, which screens carry a correlation code and which cannot have one,

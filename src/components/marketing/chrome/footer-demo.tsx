@@ -6,7 +6,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 /**
  * THE DEMO INVITATION: the frame, at the footer's own size (`door=frame`,
  * round two, 2026-09-20/21, overriding round one's `doors=pile`;
- * docs/design/rulings.md "the closing sitting's second batch"). This used to
+ * "the closing sitting's second batch"). This used to
  * be its own object — four fanned photographs under a plate, the one hover
  * delight on an otherwise still surface (git holds it at `d1f38489`, the
  * `.mkt-stack` / `.mkt-stack-card` recipe it rode is unused now and left in

@@ -32,20 +32,26 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `docs-rules` | the rulings log distilled into the rules it became, then retired with its Library page; the specs and the `RULINGS` registry kept to current rules | cut `6fd4bbbd`; spawning | Opus, :3131 | integrate (`none`); place its "For other homes" lines; its memory candidates into memory |
-| `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`; spawning | Opus, :3132 | integrate (`none`) |
-| `roadmap-lean` | `docs/ROADMAP.md` and `docs/ASSETS.md` as current open work only | cut `6fd4bbbd`; spawning | Opus, :3133 | integrate (`none`); return `docs/ROADMAP.md` and `docs/ASSETS.md` to `NEVER_OWNED` in `src/lib/track-manifests.test.ts`; place its "For other homes" lines |
-| `pointer-sweep` | code comments and display strings that pointed at the retired docs, rewritten to state the rule | cut `6fd4bbbd`; spawning | Sonnet, :3134 | integrate (`none`) |
+| `docs-rules` | the rulings log distilled into the rules it became, then retired with its Library page; the specs and the `RULINGS` registry kept to current rules | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a381b34df5d5373d6`; resume by SendMessage) | Opus, :3131 | integrate (`none`); place its "For other homes" lines; its memory candidates into memory |
+| `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a7113c2ad80271cd8`; resume by SendMessage) | Opus, :3132 | integrate (`none`) |
+| `roadmap-lean` | `docs/ROADMAP.md` and `docs/ASSETS.md` as current open work only | cut `6fd4bbbd`, committed `45e249a4`; running (agent `abe20689a44c608c4`; resume by SendMessage) | Opus, :3133 | integrate (`none`); return `docs/ROADMAP.md` and `docs/ASSETS.md` to `NEVER_OWNED` in `src/lib/track-manifests.test.ts`; place its "For other homes" lines |
+| `recheck-viewer-curation` | `media-viewer` and `host-curation` current (the five badges adapted or removed by the decision-outcomes judgment, the viewer asked for both origins, the Unverified credit); then the overtaken mechanism retired | cut `c2482757`, committed `1c560b16`; running (agent `a739c5d0751e54b60`; resume by SendMessage) | Opus, :3134 | integrate (board `media-viewer`, then demo `host-curation`); the lines it names in `docs/reviews/README.md`, STATUS, the ROADMAP and `usher/` (the kit's `batch-reader.mjs`, `board-card.mjs`, `review-sheet.mjs` read the map) |
+| `recheck-guest-identity` | `guest-capture` and `profile-page` on the identity model and the live reel's tile; the three shipped lines that promise "on your profile" made true | cut `c2482757`, committed `1c560b16`; running (agent `ab0819cf5bf907ace`) | Opus, :3135 | integrate (board `guest-capture`, then demo `profile-page`); `guest-capture` moves below `identity-profile` in `DESK_ORDER` (after `docs-rules` frees `touchpoints.ts`) |
+| `recheck-mail-admin-export` | `emails`, `admin-triage`, `export-flow` current | cut `c2482757`, committed `1c560b16`; running (agent `ad57c4e5337f4cc06`) | Sonnet, :3136 | integrate (board `emails`, then demo the other two) |
+| `recheck-help-press` | `help-center`, `press-page` current (`press-page.the-facts` adapted) | cut `c2482757`, committed `1c560b16`; waits for a seat (six agents at most) | Sonnet, :3137 | spawn when a lane merges; integrate (board `help-center`, then demo `press-page`) |
 
 ## Next, in order
 
-1. **The reshape (Will, 2026-09-22):** the four lanes above; the Orchestrator's own part in the primary checkout:
-   `docs/STATUS.md` as a snapshot (then its cap in `src/lib/record-depth-policy.test.ts` to 80 lines, one round
-   section), the runbook (`usher/kit/README.md`), `docs/PROGRAM.md` as rules only, `docs/tracks/README.md`, the old
-   pickup file retired to a pointer, memory consolidated. Integrate each lane as it hands off, one at a time.
-2. **Recheck the open boards** (Will's suggestion for after the reshape): every standing board current with the
-   identity and reel rounds; the six `overtaken.ts` badges folded into their questions; the overtaken mechanism
-   retired if nothing still needs it.
+1. **The reshape (Will, 2026-09-22):** the Orchestrator's own part is done (`76dcea01`, `8f68e749`: STATUS a
+   snapshot, the runbook, `docs/PROGRAM.md` and `docs/tracks/README.md` as rules, the STATUS-row tool retired,
+   `usher/` without logs, the old pickup file a pointer, memory consolidated). Left: integrate the four lanes one at a
+   time as each hands off (gate 116 onward, board `none`); after `roadmap-lean`, the lab candidates from the retired
+   `usher/atlas/gaps.md` (kept in the scratchpad as `lab-candidates.md`) join the ROADMAP as one bucket.
+2. **Recheck the open boards** (Will's suggestion): four lanes cut at `c2482757` (In flight above), on the survey's
+   findings (the scratchpad's `recheck/report.md`) and his decision-outcomes judgment of 2026-09-22 (a reached question
+   that still holds potential value is adapted to the current context; only one solved at its best is removed; the
+   Orchestrator judges). Five boards were already current. The overtaken mechanism retires in `recheck-viewer-curation`
+   (the Orchestrator's call under his word; his to overrule).
 3. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team).

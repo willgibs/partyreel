@@ -156,7 +156,7 @@ export function EventExperience({
    *  initial fallback below carries it). Phase 3. */
   hostAvatarUrl: string | null;
   /** `seedFor(host_id)`, computed server-side (page.tsx via `getHostAvatarSeed`) — never the
-   *  raw host id itself. Null exactly where `hostAvatarUrl` is (docs/design/rulings.md, the
+   *  raw host id itself. Null exactly where `hostAvatarUrl` is (the
    *  sixth batch, `seed=account`). */
   hostSeed?: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
@@ -713,8 +713,8 @@ export function EventExperience({
           album; the album is its own box below (see COLUMN / BLEED). */}
       <div className={COLUMN}>
         {/* The old in-page banner ("You're trying a live demo...") is gone
-            (`framing=tag`, docs/design/rulings.md, the sixth batch,
-            2026-09-20): a Demo mark now sits beside the wordmark in
+            (`framing=tag`, the sixth batch, 2026-09-20): a Demo mark now sits
+            beside the wordmark in
             guest-header.tsx, pinned to the top, so it never scrolls away —
             the whole reason the banner needed re-saying itself was that it
             did. */}
@@ -767,7 +767,7 @@ export function EventExperience({
                     <span className="flex items-center gap-1.5">
                       <span className="text-faint">Hosted by</span>
                       {/* Seeded now, photo or not (`the-crowd=full`,
-                          docs/design/rulings.md the sixth batch) — this byline
+                          the sixth batch) — this byline
                           used to render nothing at all without an avatar. */}
                       <Avatar seed={hostSeed ?? undefined} size="sm">
                         <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />

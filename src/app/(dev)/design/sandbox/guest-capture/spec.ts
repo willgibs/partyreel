@@ -4,8 +4,8 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * KEEPING WHAT SHE JUST ADDED, ROUND ONE (2026-09-21).
  *
- * A NEW BOARD ON HIS WORD (docs/design/rulings.md, "the identity reshape",
- * approval verdict, verbatim): "You can wire it now as you recommended, but
+ * A NEW BOARD ON HIS WORD ("the identity reshape", approval verdict,
+ * verbatim): "You can wire it now as you recommended, but
  * I'd like to get this in the lab for refinement." The capture flow shipped
  * the round before this one (`verified-email-guest`): a name-only guest who
  * has not confirmed an email adds photographs under a typed name, and the

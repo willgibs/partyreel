@@ -1,7 +1,7 @@
 #!/bin/zsh
-# negative.sh: the standing negative control for the kit's refusals (gracetargaryen, m/agents, 2026-09-20: "a check is
-# only real if it can fail loudly"; a refusal proven once by accident decays toward decorative). Every known-bad input
-# below must be REFUSED; a refusal that has gone quiet is this script's own failure. Run from the repo; touches no real doc.
+# negative.sh: the standing negative control for the kit's refusals. A check is only real if it can fail loudly, and a
+# refusal proven once by accident decays toward decorative. Every known-bad input below must be REFUSED; a refusal that has
+# gone quiet is this script's own failure. Run from the repo; touches no real doc.
 set -u; setopt nonomatch
 KIT="$(cd "$(dirname "$0")" && pwd)"; REPO=/Users/gibby/local/ai/partyreel; T=$(mktemp -d); RC=0
 ok() { echo "ok    $1"; }; bad() { echo "FAIL  $1"; RC=1; }
@@ -13,9 +13,10 @@ grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/nu
 BEFORE=$(git -C "$REPO" status --short); zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ "$(git -C "$REPO" status --short)" = "$BEFORE" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
 # 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
 BEFORE="$(git status --short)"; zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
-# 3. status-row.py refuses to touch a doc that already holds two rows for one id (on a copy)
-mkdir -p "$T/docs" && printf '%s\n' "| \`dup\` | a | one |" "| \`dup\` | a | two |" > "$T/docs/STATUS.md"
-(cd "$T" && python3 "$KIT/status-row.py" dup "three" > "$T/sr.out" 2>&1); grep -q "fold them by hand" "$T/sr.out" && [ "$(grep -c '^| `dup` |' "$T/docs/STATUS.md")" = 2 ] && ok "status-row.py refuses a duplicated id" || bad "status-row.py wrote over a duplicated id"
+# 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
+mkdir -p "$T/docs"; echo '{"changelog": "x"}' > "$T/rec0.json"; echo '{"status": [{"id": "x", "state": "y"}]}' > "$T/rec1.json"
+(cd "$T" && python3 "$KIT/record.py" rec0.json > "$T/rec0.out" 2>&1); R0=$?; (cd "$T" && python3 "$KIT/record.py" rec1.json > "$T/rec1.out" 2>&1); R1=$?
+[ $R0 != 0 ] && [ $R1 != 0 ] && grep -q "no CHANGELOG" "$T/rec0.out" && grep -q "snapshot" "$T/rec1.out" && ok "record.py refuses a changelog and a STATUS row" || bad "record.py accepted a changelog or a STATUS row"
 # 4. record.py refuses a ROADMAP retirement that matches nothing, and writes nothing
 printf '%s\n' "## Now" "" "- a line" > "$T/docs/ROADMAP.md"; echo '{"retire_roadmap": ["no such line"]}' > "$T/rec.json"
 (cd "$T" && python3 "$KIT/record.py" rec.json > "$T/rec.out" 2>&1); grep -q "need exactly one" "$T/rec.out" && grep -q "^- a line" "$T/docs/ROADMAP.md" && ok "record.py refuses an unmatched retirement and writes nothing" || bad "record.py retired nothing but reported success, or wrote"

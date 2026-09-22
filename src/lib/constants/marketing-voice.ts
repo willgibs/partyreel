@@ -50,7 +50,7 @@
  * about to exist and puts the reader at the start of it. It never describes the void, and it
  * never waits.
  * ───────────────────────────────────────────────────────────────────────────────────────────────
- * ★ THE IDENTITY RULE (the identity reshape, 2026-09-21; `docs/design/rulings.md`, "the identity
+ * ★ THE IDENTITY RULE (the identity reshape, 2026-09-21; "the identity
  * reshape"). Anonymity left the product on Will's ruling: the host's switch is Require verified
  * emails, on by default; off, a guest still types a display name at the door and uploads under
  * it, shown with a small unverified mark. NEVER WRITE "ANONYMOUS": every upload carries a name,

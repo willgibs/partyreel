@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * THE DOOR SHEET, WITH AN EMAIL (round one, 2026-09-22).
  *
- * A NEW BOARD ON HIS WORD (docs/design/rulings.md, "the morning after the
+ * A NEW BOARD ON HIS WORD ("the morning after the
  * identity round" and "guest identity", both 2026-09-22, verbatim): "We'll
  * do a lot of lab work later to redesign here" and "I'd like to run most of
  * this through the lab once our foundation is complete." The foundation
@@ -25,7 +25,7 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. Whether an event requires a verified
  * email at all, the three levels of trust, the claim per event, the mark's
- * word: all ruled (rulings.md "guest identity"). The name step's own
+ * word: all ruled ("guest identity"). The name step's own
  * sequence (welcome, then name, then the gate, then upload, "No exit") is
  * `door-steps`'s shipped shape and worn here as law, not reopened. The
  * flows around the claim ticket itself (the notification, the profile

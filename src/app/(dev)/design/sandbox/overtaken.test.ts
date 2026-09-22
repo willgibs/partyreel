@@ -103,7 +103,7 @@ const RULED = [
   "app-pricing",
   "first-event",
   "guest-upload",
-  // Not a board: Will's own project, ruled in chat (rulings.md "the reel,
+  // Not a board: Will's own project, ruled in chat ("the reel,
   // reconceived", 2026-09-22), the first chat ruling to badge standing asks
   // rather than reshape them, because the boards it reaches are his to walk next.
   "reel-round",
@@ -264,7 +264,7 @@ describe("the overtaken map", () => {
    * holds one level up: the judgment a pass made is left standing and the
    * ruling that arrived after it rides behind. The clause has to name the board
    * and the date for the same reason the badge does, so a reader can go and
-   * find the words in rulings.md without asking anybody.
+   * find the words without asking anybody.
    */
   it("appends a later ruling behind the first, named and dated", () => {
     // The grammar on a constructed note, so it outlives the entries: two

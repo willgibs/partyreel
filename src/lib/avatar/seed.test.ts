@@ -44,7 +44,7 @@ describe("seedFor", () => {
 });
 
 /**
- * THE VARIETY GUARANTEE, ON THE PRODUCTION PATH (Will, rulings.md, the sixth
+ * THE VARIETY GUARANTEE, ON THE PRODUCTION PATH (Will, the sixth
  * batch: "We should ensure the account ID randomness leads to a variety
  * across the color wheel and can't lead to a high concentration of one to
  * two colors"). A thousand real UUIDs, hashed the way `seedFor` actually

@@ -12,10 +12,10 @@ export type FinishClaimsResult =
  * Finish the dashboard's claim ticket (the guest identity round, 2026-09-22):
  * claim the named events — or every claimable one, when `claimIds` is null
  * (the "Claim all" shortcut) — then release whatever is left, which is the
- * guest saying "that was not me" (rulings.md "guest identity", his own
- * words: "any unclaimed events should have all of that user's uploaded
- * content deleted ... that's the guest effectively requesting 'get rid of
- * that'"). Both RPCs key on the CALLER'S OWN confirmed address
+ * guest saying "that was not me" (his own words: "any unclaimed events
+ * should have all of that user's uploaded content deleted ... that's the
+ * guest effectively requesting 'get rid of that'"). Both RPCs key on the
+ * CALLER'S OWN confirmed address
  * (auth.uid() -> auth.users inside them, never a client-supplied email), so
  * a forged event id reaches nothing beyond rows already typed under that
  * same address.

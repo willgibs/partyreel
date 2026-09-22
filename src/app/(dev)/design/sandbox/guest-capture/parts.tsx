@@ -123,7 +123,7 @@ export function OfferInline({
 }
 
 /** The last screen of the same sheet she just sent from — since the door
- *  ruling (2026-09-21, rulings.md "the door as three steps") that sheet is
+ *  ruling (2026-09-21, "the door as three steps") that sheet is
  *  the WELCOME sheet itself, held with no exit: the album has not been shown
  *  to her yet, so there is nothing to "take her to" and a dismiss may never
  *  read as one. Quoted (a real Sheet would portal to the lab page, not this
@@ -162,7 +162,7 @@ export function OfferSheet({ count }: { count: number }) {
           <Button size="default" className="w-full">
             Confirm your email
           </Button>
-          {/* No exit (rulings.md, verbatim: "Including 'just browsing'
+          {/* No exit (verbatim: "Including 'just browsing'
               defeats this entire purpose... No exit."): the quiet dismiss
               reads exactly as the same ask's own words do everywhere else it
               is drawn (`OfferCard`'s "Maybe later"), never as a door out of
