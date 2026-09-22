@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1237 contracts on 163 components · 22 standing boards.**
+**22 laws · 18 policies · 1237 contracts on 163 components · 23 standing boards.**
 
 ## What binds you
 
@@ -490,6 +490,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
 | `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
+| `reel-host` | host | Six decisions on the real hub, settings sheet, share sheet and dashboard, over Mia and Theo's wedding: where the host's Style control lives, where the Show the reel switch sits, where Play on a screen opens from, how the dashboard says the reel is live, what a host's own cut does to the album, and whether the reel ever explains a waiting queue |
 | `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
 | `reel-story` | marketing | Seven decisions on the real marketing pieces, at 1440 with 375 on the knob: the one thesis line (drawn on the home's close and the feature door), the /reel page's three-chapter order, what the home's teaser plays, how the pricing rows name the cut, the loop's last step on both sides, the event pages' reel column, and the help category's name |
 | `media-viewer` | shared | Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address |
