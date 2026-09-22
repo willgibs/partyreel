@@ -105,6 +105,13 @@ pipe into `while read h` or use `${(f)VAR}`.
   a reading; (3) a `next start` launched from a tool call can be reaped mid-walk (exit 144), and the
   symptom is a same-origin iframe turning "cross-origin" or the board's error boundary, not a product bug:
   check the server before filing anything.
+- ★ **Vercel's edge, not the function, decides a conditional response on the alias.** A curl with an
+  `If-None-Match` that matches the function's own ETag comes back `304` with `Set-Cookie` stripped even when
+  the function itself answered `200` with both headers set (measured on the door round, 2026-09-22): the edge
+  honors the request's validator against the function's ETag and rewrites a matching `200` into a `304` in
+  transit, dropping `Set-Cookie` in that rewrite regardless of the function's own status code. So a header
+  seen on a matching conditional response is never proof of what the function sent: curl the SAME route on the
+  alias with a deliberately non-matching validator (or none at all) before believing any header survived one.
 - **Two costumes of the hidden-tab trap, both on lab boards:** (1) the
   lab shell's nav is a Suspense boundary that does not resolve while `document.hidden`, so a board read
   in a driven background tab lays out inside the 232px sidebar cell and every width measured off it is

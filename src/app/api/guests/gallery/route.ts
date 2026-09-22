@@ -44,15 +44,21 @@ export const dynamic = "force-dynamic";
  * the steady-state poll costs one rows query and ~0 bytes. SECURITY: the access level AND the gate
  * are part of the fingerprint -- an ETag can never validate across either (red-teamed). The
  * not-found/private early return deliberately carries NO ETag (it must never 304-validate a real
- * payload). ★ A PENDING HEAL NEVER GETS A 304 (DEFECT 2, the door red-team's follow-up,
- * `door-fixes`, 2026-09-21): this route used to believe its own `Set-Cookie` rode a
- * `new Response(null, { status: 304, headers })` just fine, and `gallery/route.test.ts` pinned
- * exactly that — but Vercel's edge strips `Set-Cookie` from a 304 IN TRANSIT (confirmed on the
- * alias: a matching validator answered 304 with every other header intact and none), so a heal
- * riding the one response the steady-state poll almost always gets never reached the browser at
- * all. While `bodyToken` differs from the cookie this always answers 200 with the real payload —
- * one extra full response per device per sixty days — and only a validator match with NO heal
- * pending still 304s.
+ * payload). ★ A PENDING HEAL CARRIES NO ETAG (the door re-check's follow-up, `heal-validator`,
+ * 2026-09-22): the earlier fix (DEFECT 2, `door-fixes`, 2026-09-21) believed the FUNCTION's own
+ * `new Response(null, { status: 304, headers })` was the thing dropping `Set-Cookie`, and that
+ * answering 200 instead dodged it. The re-check on the alias found the truth one step upstream:
+ * VERCEL'S EDGE ITSELF converts a 200 into a 304 whenever the request's If-None-Match equals THAT
+ * 200's own ETag, and it is the edge's conversion that drops `Set-Cookie`, whatever status the
+ * function answered with (measured: an identical request with a non-matching validator got the
+ * function's 200 intact with the cookie; the matching one got `HTTP/2 304` with the ETag echoed
+ * and `Set-Cookie` gone, `x-vercel-cache: MISS` both times — the function ran both times). So the
+ * function's status code was never the lever: a response the browser MUST receive can carry no
+ * validator the browser might present back. While `bodyToken` differs from the cookie this
+ * answers 200 with the real payload and deletes the ETag header entirely — one extra full
+ * response per device per sixty days, with nothing left for the edge to match — and only a
+ * validator match with NO heal pending still 304s (nothing to heal, so nothing is lost if the
+ * edge rewrites it).
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -150,11 +156,17 @@ export async function POST(request: Request) {
     healPending = true;
     const write = guestSessionCookieWrite(event.data.id, bodyToken);
     if (write) headers.append("Set-Cookie", guestCookieHeaderValue(write));
+    // ★ NO ETAG ON A PENDING HEAL. Vercel's edge, not this function, is what turns a matching
+    // conditional request into a 304 and strips Set-Cookie doing it — so the only response the
+    // edge can never rewrite is one with no validator on it at all. Deleting it here, rather than
+    // returning a 304 ourselves, is the actual fix (see the head comment).
+    headers.delete("ETag");
   }
 
-  // Exact-match only (our poll client is the sole caller; no weak/list parsing). ★ NEVER while a
-  // heal is pending (DEFECT 2): Vercel drops Set-Cookie from a 304 in transit, so the one response
-  // that would carry it has to be a 200 instead, every time, until the cookie is confirmed written.
+  // Exact-match only (our poll client is the sole caller; no weak/list parsing). Never trips while
+  // a heal is pending: that response carries no ETag above, so no If-None-Match could ever equal
+  // it. A settled cookie with a matching validator still answers 304 here — nothing to heal, so it
+  // costs nothing if Vercel's edge would have rewritten it anyway.
   if (!healPending && request.headers.get("if-none-match") === etag) {
     return new Response(null, { status: 304, headers });
   }
