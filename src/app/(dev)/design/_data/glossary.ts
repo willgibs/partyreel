@@ -33,13 +33,13 @@ export const GLOSSARY: Term[] = [
   {
     term: "Rule",
     meaning:
-      "One of the bible's rules, Will's, global: it always binds. The bible changes only by his ruling.",
+      "One of the bible's rules, Will's and global: a working rule every exploration follows by default. The bible changes only by his word, so a better answer against a rule goes to him.",
     href: "/design/library/rules",
   },
   {
     term: "Contract",
     meaning:
-      "A component's functional guard (a test that opens with @contract-for): structure, accessibility, single sources, its engine; never its look. Component-exclusive: it binds you for the components under a path you own.",
+      "A component's functional guard (a test that opens with @contract-for): structure, accessibility, single sources, its engine; never its look. Component-exclusive: it holds for the components under a path you own, and changes deliberately with its test, never silently.",
     href: "/design/library",
   },
   {

@@ -5,9 +5,11 @@
  * A ruled row states what Will ruled as the rule it holds today (`ruled`), why
  * in one line (`why`), what ships (`shipped`) and where the rule lives
  * (`lives`: the system-doc anchors and production paths that are its homes;
- * this row is their index). The Library renders the ruled rows at
- * /design/library/rules#rulings. A standing board's row carries `board`, and
- * its `ruled` opens with "open" and says what it asks.
+ * this row is their index). It is a working rule, not a wall: new work follows
+ * it by default and reshapes it deliberately when a better solution needs it.
+ * The Library renders the ruled rows at /design/library/rules#rulings. A
+ * standing board's row carries `board`, and its `ruled` opens with "open" and
+ * says what it asks.
  *
  * `board` is set ONLY while a board stands in sandbox/. When Will rules on one,
  * the wiring lands the rule in its homes, the board leaves sandbox/, `board`

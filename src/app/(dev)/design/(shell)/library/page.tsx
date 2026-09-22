@@ -118,7 +118,7 @@ export default async function LibraryHomePage({
       <Section
         id="binds"
         title="What binds you"
-        blurb="Read this first. The design law is short on purpose, and knowing where its edge is, is what lets you rebuild the rest."
+        blurb="Read this first. The working rules are short on purpose, and knowing where their edge is, is what lets you rebuild the rest."
       >
         {binds ? (
           <Markdown
@@ -138,7 +138,7 @@ export default async function LibraryHomePage({
             title="The bible"
             n={`${BIBLE.length} rules`}
             href="/design/library/rules"
-            blurb="Will's, global, the whole of the design law."
+            blurb="Will's global working rules, changed only by his word."
           />
           <BindCard
             title="Contracts"

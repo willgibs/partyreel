@@ -203,7 +203,7 @@ export async function buildNav(): Promise<Nav> {
             {
               href: "/design/library/rules",
               label: "The bible",
-              note: `${BIBLE.length} rules in ${BIBLE_GROUPS.length} groups, Will's; the whole of the design law.`,
+              note: `${BIBLE.length} rules in ${BIBLE_GROUPS.length} groups: Will's global working rules.`,
               keywords: BIBLE_GROUPS.map((g) => BIBLE_GROUP_LABEL[g]),
             },
             {

@@ -6,7 +6,7 @@
 > component's contract (its `@contract-for` test), what shipped (`docs/systems/`), what Will ruled on
 > one component or page (the rulings registry, `touchpoints.ts`). **GROWS BY:** a round that learns a
 > better default refines the line in place; a skill added to the repo gains a row. **AUTHORITY:**
-> guidance, the level below the law, the contracts and the policies: it never binds, and a departure
+> guidance, the level below the bible, the contracts and the policies: it never binds, and a departure
 > is flagged on the board rather than argued for in advance. Rendered in the Library at
 > `/design/library/guidance`.
 

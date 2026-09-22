@@ -98,16 +98,17 @@ export const LEVELS: LevelDef[] = [
   {
     id: "law",
     badge: "LAW",
-    line: "The bible: Will's rules, the whole of the design law.",
+    line: "The bible: Will's global working rules, changed only by his word.",
     binds:
-      "Always. A rule under exploration on your board is yours to rewrite; a retiring rule is read, not obeyed.",
+      "By default. A better answer against a rule is a question for Will; a rule under exploration on your board is yours to rewrite; a retiring rule is read, not followed.",
     weight: "binds",
   },
   {
     id: "contract",
     badge: "CONTRACT",
     line: "A component's functional guards (a test opening @contract-for), never its look.",
-    binds: "For every component under a path you own.",
+    binds:
+      "For every component under a path you own; change one deliberately with its test, never silently.",
     weight: "binds",
   },
   {
@@ -115,7 +116,7 @@ export const LEVELS: LevelDef[] = [
     badge: "POLICY",
     line: "An agent-written test that holds a line across the tree (a test opening @policy).",
     binds:
-      "Mechanically; provisional, so a policy that blocks better work is a finding.",
+      "Mechanically; provisional, so one that blocks better work is reshaped in the open.",
     weight: "conditional",
   },
   {

@@ -13,16 +13,16 @@
 
 ## What binds you
 
-In an exploration you obey three things and nothing else: **the bible**, **the contracts of
-every component under a path you own**, and **the policies**. Everything else is precedent,
-guidance, a proposal, a ruling or a landmine: it informs, and an agent that obeys all of it
-builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
+Working rules, not hard rules: an exploration follows **the bible**, **the contracts of every
+component under a path you own** and **the policies** by default, and reshapes one deliberately
+when a better solution needs it (the bible only by Will's word). Everything else informs, and an
+agent that treats all of it as walls builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
 
 | level | binds in an exploration? | what it is |
 | --- | --- | --- |
-| **LAW** law | Always. A rule `under exploration: <your board>` is yours to rewrite; a `retiring` rule is read, not obeyed. | The bible: Will's rules, the whole of the design law. |
-| **CONTRACT** contract | For every component under a path you own. | A component's functional guards (a test opening `// @contract-for`), never its look. |
-| **POLICY** policy | Mechanically; provisional: a policy that blocks better work is a finding. | An agent-written test that holds a line across the tree (a test opening `// @policy:`). |
+| **LAW** law | By default. A better answer against a rule is a question for Will; a rule `under exploration: <your board>` is yours to rewrite; a `retiring` rule is read, not followed. | The bible: Will's global working rules, changed only by his word. |
+| **CONTRACT** contract | For every component under a path you own; change one deliberately with its test, never silently. | A component's functional guards (a test opening `// @contract-for`), never its look. |
+| **POLICY** policy | Mechanically; provisional: one that blocks better work is reshaped in the open. | An agent-written test that holds a line across the tree (a test opening `// @policy:`). |
 | **PROGRAM** program | As process. | How a round works: lanes, light QA, unlimited resources, rising tides, nothing protected. |
 | **GUIDANCE** guidance | No; a departure is flagged on the board. | The craft stack and the skills: the default you depart from on purpose. |
 | **PRECEDENT** precedent | No; rebuild it in a better exploration and say what you broke. | What shipped and why it is shaped so (the system docs' chapters). |

@@ -84,7 +84,7 @@ export default async function RulesPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="What binds you"
-        description="Everything that influences design work on Partyreel, levelled. Two levels bind: the bible, and the contracts of the components under a path you own. A third binds mechanically inside its scope. The rest inform, and an agent that obeys all of them builds small."
+        description="Everything that influences design work on Partyreel, levelled: working rules that keep new work consistent with what is built, never walls. Two levels hold by default (the bible, and the contracts of the components under a path you own) and a third holds mechanically inside its scope; any of them is reshaped deliberately when a better solution needs it. The rest inform, and an agent that treats all of them as walls builds small."
         badges={
           <>
             <Tag>{BIBLE.length} laws</Tag>
@@ -165,17 +165,17 @@ export default async function RulesPage({
           ))}
         </ul>
         <Callout kind="will" className="mt-4">
-          A bible rule that blocks better work is a finding for your manifest,
-          not a wall (bible 22). A policy that does is the same, and weaker
-          still: an agent wrote it. Everything below GUIDANCE exists to be read
-          and rebuilt.
+          Nothing here is protected while the product is being built (bible 22):
+          a bible rule that blocks better work is a question for Will, a policy
+          that does is reshaped in the open (an agent wrote it), and everything
+          below GUIDANCE exists to be read and rebuilt.
         </Callout>
       </Section>
 
       <Section
         id="law"
-        title="The law"
-        blurb="The whole of it: twenty-two rules, Will's, each with why it holds, what enforces it and where it stands. A rule under exploration links the board writing what it inherits; its statement is the interim law."
+        title="The bible"
+        blurb="Will's twenty-two global working rules, each with why it holds, what checks it and where it stands. They change only by his word: a better answer against one is a question for him. A rule under exploration links the board writing what it inherits."
         aside={
           <span className="text-[11px] text-muted-foreground">
             hand-authored, never derived
