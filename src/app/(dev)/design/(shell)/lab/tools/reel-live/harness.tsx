@@ -39,25 +39,74 @@ const UPLOADERS = [
 const HOUR = 3_600_000;
 const EVENT_START = Date.parse("2026-08-15T18:00:00.000Z");
 
-/** One fixture item: a local still, a believable uploader, a time, sometimes a like. */
+/**
+ * THE VIDEO FIXTURES ARE THE VIDEO LANE'S, served by ITS range route (a plain `public/` file does
+ * not answer 206 in dev, which is the whole reason that route exists). Read-only: the live harness
+ * points at the urls, owns none of the files, and proves the same thing either way — that a video
+ * in a rolling loop reads a window of its ORIGINAL by range and draws its poster for every failure.
+ */
+const videoFixture = (name: string) =>
+  `/design/lab/tools/reel-video/fixture/${name}`;
+
+const VIDEOS = [
+  {
+    original: videoFixture("landscape-10s.mov"),
+    poster: videoFixture("landscape-poster.jpg"),
+    width: 854,
+    height: 480,
+    durationSeconds: 10,
+    fileSizeBytes: 622_813,
+  },
+  {
+    original: videoFixture("landscape-10s.webm"),
+    poster: videoFixture("landscape-poster.jpg"),
+    width: 854,
+    height: 480,
+    durationSeconds: 10,
+    fileSizeBytes: 693_305,
+  },
+  {
+    original: videoFixture("portrait-10s.mp4"),
+    poster: videoFixture("portrait-poster.jpg"),
+    width: 480,
+    height: 854,
+    durationSeconds: 10,
+    fileSizeBytes: 547_223,
+  },
+];
+
+/** One fixture item: a local still (or, every eighth, a real video), an uploader, a time. */
 function fixture(i: number, at = EVENT_START - i * (HOUR / 6)): LiveMediaItem {
-  const image = MARKETING_IMAGES[i % MARKETING_IMAGES.length];
   const who = UPLOADERS[i % UPLOADERS.length];
-  return {
+  const common = {
     id: `fx-${i}`,
-    // Every eighth is a VIDEO, standing in with its poster (what the engine draws today, and what
-    // it falls back to for every failure once the range reader lands).
-    type: i % 8 === 3 ? "video" : "photo",
-    url: image.src,
-    previewUrl: image.src,
-    status: "approved",
-    width: image.width,
-    height: image.height,
-    durationSeconds: i % 8 === 3 ? 12 : null,
+    status: "approved" as const,
     createdAt: new Date(at).toISOString(),
     uploaderKey: who.key,
     uploaderName: who.name,
     isHost: who.key === "host",
+  };
+  if (i % 8 === 3) {
+    const video = VIDEOS[(i / 8) % VIDEOS.length | 0];
+    return {
+      ...common,
+      type: "video",
+      url: video.original, // the ORIGINAL: what the range reader opens
+      previewUrl: video.poster, // the poster: what draws until (and unless) motion lands
+      width: video.width,
+      height: video.height,
+      durationSeconds: video.durationSeconds,
+      fileSizeBytes: video.fileSizeBytes,
+    };
+  }
+  const image = MARKETING_IMAGES[i % MARKETING_IMAGES.length];
+  return {
+    ...common,
+    type: "photo",
+    url: image.src,
+    previewUrl: image.src,
+    width: image.width,
+    height: image.height,
   };
 }
 
@@ -122,6 +171,9 @@ export function LiveReelHarness() {
     eligible: 0,
     heapMb: 0,
     backwards: 0,
+    readers: 0,
+    videoMb: 0,
+    videoFrames: 0,
   });
   const backwards = useRef(0);
   const lastFrame = useRef(-1);
@@ -179,6 +231,11 @@ export function LiveReelHarness() {
         eligible: stats.eligible,
         heapMb: memory ? Math.round(memory.usedJSHeapSize / 1048576) : 0,
         backwards: backwards.current,
+        readers: state?.video?.liveReaders ?? 0,
+        videoMb: state?.video
+          ? Math.round((state.video.bytesRead / 1048576) * 10) / 10
+          : 0,
+        videoFrames: state?.video?.framesDecoded ?? 0,
       });
     }, 500);
     return () => window.clearInterval(id);
@@ -355,6 +412,9 @@ export function LiveReelHarness() {
         <Stat label="Stills pinned" value={readout.pinned} />
         <Stat label="Stills decoded" value={readout.cached} />
         <Stat label="Derived assets" value={readout.derived} />
+        <Stat label="Video readers live" value={readout.readers} />
+        <Stat label="Video MB range-read" value={readout.videoMb} />
+        <Stat label="Video frames decoded" value={readout.videoFrames} />
         <Stat label="Failures" value={readout.failures} />
         <Stat
           label="JS heap (MB)"

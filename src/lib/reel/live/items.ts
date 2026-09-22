@@ -28,6 +28,8 @@ export type LiveMediaItem = {
   width?: number | null;
   height?: number | null;
   durationSeconds?: number | null;
+  /** `media.file_size_bytes`: the range reader's byte estimate. Unknown is allowed (it re-checks). */
+  fileSizeBytes?: number | null;
   /** Absent on a surface that stamps nothing; anything not "approved" never reaches a take. */
   status?: "pending" | "approved" | "hidden" | "removed";
   createdAt?: string | null;

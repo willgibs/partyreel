@@ -280,6 +280,58 @@ describe("LiveReelPlayer", () => {
     expect(monotonic(seen)).toBe(true);
   });
 
+
+  it("★ an arrival lands in the window ON SCREEN, even arriving mid-transition", async () => {
+    // The case that shipped an eleven-second splice in the first soak: a rewindow has to wait for
+    // the transition to finish, and while it waits the PREFETCH must not eat the queue — planning
+    // the next window is what consumes it. The property is sharper than a stopwatch: the arrival
+    // belongs to the window already on screen, never to the one after it. A wide window (eight
+    // clips) is what makes the difference visible.
+    const source = createClipSource({
+      eventId: "e1",
+      items: album(60),
+      windowSize: 8,
+      cache: createBitmapCache(async (url) => fakeImage(url), 64),
+      load: (async (clips: readonly { url: string }[]) => ({
+        clips: clips.map((clip) =>
+          clip.url
+            ? { image: fakeImage(clip.url), width: 4, height: 4, wash: null, halo: null }
+            : null,
+        ),
+        failures: 0,
+        grain: null,
+      })) as never,
+    });
+    const { seen } = await mountPlayer({ source });
+    const live = album(60);
+
+    for (let round = 0; round < 4; round++) {
+      // Splice on the very frame the clip on screen CHANGES, which is frame 0 of a transition: the
+      // rewindow must wait, and the prefetch must wait with it.
+      const was = seen.at(-1)!.clipId;
+      for (let i = 0; i < 200 && seen.at(-1)!.clipId === was; i++) {
+        await tickFrames(1, 1000 / 24);
+      }
+      const at = seen.at(-1)!;
+      const arrival = { ...item(900 + round), id: `fresh-${round}` };
+      live.push(arrival);
+      await act(async () => {
+        source.setItems([...live]);
+      });
+      let landed: LiveFrameState | undefined;
+      for (let i = 0; i < 200 && !landed; i++) {
+        await tickFrames(1, 1000 / 24);
+        if (seen.at(-1)!.clipId === arrival.id) landed = seen.at(-1)!;
+      }
+      expect(landed, `round ${round}: the arrival never reached the screen`).toBeDefined();
+      expect(
+        landed!.windowIndex,
+        `round ${round}: the arrival waited for the next window`,
+      ).toBe(at.windowIndex);
+    }
+    expect(monotonic(seen)).toBe(true);
+  });
+
   it("hands over to the next window without restarting anything", async () => {
     const { seen } = await mountPlayer();
     // Four clips at the hand's pacing is a couple of hundred frames; run past the handover.

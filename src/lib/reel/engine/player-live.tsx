@@ -33,7 +33,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { LiveMediaItem } from "@/lib/reel/live/items";
-import { DEFAULT_SURFACE, type Surface } from "@/lib/reel/live/pacing";
+import {
+  DEFAULT_SURFACE,
+  videoWindowSec,
+  type Surface,
+} from "@/lib/reel/live/pacing";
 import type { ClipSource } from "@/lib/reel/live/source";
 import type { ReelLook, ReelWindow } from "@/lib/reel/live/window";
 
@@ -47,6 +51,12 @@ import {
   resolveEngineStyle,
 } from "./registry";
 import { clipStartFrames, frameStateAt } from "./timeline";
+import { createVideoByteLedger } from "./video/budget";
+import {
+  createVideoPlayback,
+  type VideoPlayback,
+} from "./video/prepare-frame";
+import { createReaderDeck, type ReaderDeck } from "./video/window-reader";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -64,6 +74,13 @@ export type LiveFrameState = {
   clipId: string | null;
   /** Cumulative decode failures and draw throws. */
   failures: number;
+  /** The range reader's session numbers, where this window has motion video at all. */
+  video: {
+    liveReaders: number;
+    bytesRead: number;
+    framesDecoded: number;
+    spentBytes: number;
+  } | null;
 };
 
 export type LiveReelPlayerProps = {
@@ -97,7 +114,12 @@ export type LiveReelPlayerProps = {
   onReport?: (message: string) => void;
 };
 
-type Active = { window: ReelWindow; assets: ReelAssets };
+type Active = {
+  window: ReelWindow;
+  assets: ReelAssets;
+  /** The window's motion-video wiring, or null where the look has videos off. */
+  playback: VideoPlayback | null;
+};
 
 function lookKeyOf(look: ReelLook): string {
   return [
@@ -200,6 +222,12 @@ export function LiveReelPlayer({
     cuttingAway: false,
     splicing: false,
     needsAhead: false,
+    generation: 0,
+    // ★ ONE deck and ONE ledger for the whole session, across every window. The deck's ceiling of
+    // two live readers and the ledger's session byte cap are SESSION promises (reel-engine-video):
+    // per-window instances would multiply both by however many windows a night rolls through.
+    deck: null as ReaderDeck | null,
+    ledger: null as ReturnType<typeof createVideoByteLedger> | null,
     disposed: false,
   });
 
@@ -209,19 +237,84 @@ export function LiveReelPlayer({
     cbRef.current.onFailure?.(rt.current.failures);
   }, []);
 
+  /**
+   * Hang the range-window reader's motion source on this window's video clips (reel-engine-video's
+   * `createVideoPlayback`), and hand it the surface's own window length so the ONE pacing factor
+   * reaches the video too. With videos off nothing is built and every video draws its poster, which
+   * is also every failure's answer.
+   */
+  const attachVideo = useCallback(
+    (win: ReelWindow): VideoPlayback | null => {
+      const look = lookRef.current;
+      if (!look.includeVideos) return null;
+      if (!win.props.clips.some((clip) => clip.type === "video")) return null;
+
+      const state = rt.current;
+      state.deck ??= createReaderDeck();
+      state.ledger ??= createVideoByteLedger();
+
+      const playback = createVideoPlayback({
+        props: win.props,
+        frame: reelDimensions(win.props.orientation),
+        deck: state.deck,
+        ledger: state.ledger,
+        windowSec: videoWindowSec(look.surface, look.holdScale),
+        includeVideos: true,
+        // The K-loop cadence is charged per LOOP of the reel, which for a live reel is the take's
+        // own loop, not a window's.
+        loopIndex: () => win.loopIndex,
+        sourceFor: (index) => {
+          const item = source.itemFor(win.ids[index] ?? "");
+          if (!item || item.type !== "video" || !item.url) return null;
+          return {
+            clipKey: item.id,
+            // The ORIGINAL, read from the LATEST item: a bucket roll hands the reader a new url
+            // rather than a dead one.
+            url: item.url,
+            fileSizeBytes: item.fileSizeBytes ?? null,
+            durationSec: item.durationSeconds ?? null,
+          };
+        },
+        onFailure: (index, failure) => {
+          cbRef.current.onReport?.(
+            `video ${win.ids[index] ?? index}: ${failure.kind}${
+              failure.possibleExpiry ? " (possible expiry)" : ""
+            }`,
+          );
+        },
+      });
+
+      win.props.clips.forEach((clip, index) => {
+        if (clip.type !== "video") return;
+        clip.video = {
+          kind: "window",
+          frameAt: (localSec: number) =>
+            playback.videoSourceFor(index).frameAt(localSec),
+        };
+      });
+      return playback;
+    },
+    [source],
+  );
+
   /** Plan and decode a window. `source.prepare` retains its stills before anything draws them. */
   const loadWindow = useCallback(
     async (index: number, l: ReelLook): Promise<Active | null> => {
       const win = source.windowAt(index, l);
       if (!win) return null;
+      // ★ THE MOTION WIRING IS ATTACHED BEFORE THE DECODE. `loadReelAssets` copies `clip.video` onto
+      // the asset as it builds it, so a source hung on the clip afterwards would be invisible to
+      // half the draw. One playback per WINDOW (clip indices are the window's own), over the ONE
+      // session deck and ledger.
+      const playback = attachVideo(win);
       const style = resolveEngineStyle(win.props.styleId);
       const assets = await source.prepare(win, {
         needs: style.assetNeeds(win.props),
         frame: { width: frameRef.current.width, height: frameRef.current.height },
       });
-      return { window: win, assets };
+      return { window: win, assets, playback };
     },
-    [source],
+    [source, attachVideo],
   );
 
   /** Keep PREFETCH_AHEAD windows planned and decoded past the one on screen. */
@@ -233,13 +326,14 @@ export function LiveReelPlayer({
       const index = state.index + step;
       if (state.ahead.has(index) || state.loading.has(index)) continue;
       state.loading.add(index);
+      const generation = state.generation;
       void loadWindow(index, l)
         .then((next) => {
           state.loading.delete(index);
           if (state.disposed || !next) return;
-          // The look moved under the fetch: give the retain back, the rebuild is one tick away.
-          if (state.lookKey !== key) {
-            source.release(index);
+          // Overtaken: the look moved, or the order did. Drop it; the retry is the next tick.
+          if (state.lookKey !== key || state.generation !== generation) {
+            next.playback?.dispose();
             return;
           }
           state.ahead.set(index, next);
@@ -249,11 +343,25 @@ export function LiveReelPlayer({
           state.loading.delete(index);
         });
     }
-  }, [loadWindow, source, bumpFailures]);
+  }, [loadWindow, bumpFailures]);
 
+  /**
+   * Throw the prefetch away: a splice, a drop or a look change has rewritten what comes next.
+   *
+   * ★ IT BUMPS A GENERATION. A load already in flight has ALREADY planned its window against the
+   * order that just changed, and when it resolves it would quietly install that stale window as the
+   * prefetch — which is how a soak froze on one photograph for fifty-one seconds. The generation is
+   * what lets the resolver know it was overtaken. A stale window's retains are deliberately NOT
+   * given back here: its index will release in the ordinary course, and releasing now would free the
+   * stills the REPLACEMENT window at that index has since pinned.
+   */
   const dropAhead = useCallback(() => {
     const state = rt.current;
-    for (const index of state.ahead.keys()) source.release(index);
+    state.generation += 1;
+    for (const [index, active] of state.ahead) {
+      active.playback?.dispose();
+      source.release(index);
+    }
     state.ahead.clear();
   }, [source]);
 
@@ -307,6 +415,7 @@ export function LiveReelPlayer({
           globalFrame,
         );
       }
+      from?.playback?.dispose();
       state.active = swapped;
       bumpFailures(swapped.assets.failures);
       ensureAhead();
@@ -371,6 +480,7 @@ export function LiveReelPlayer({
         const win = source.rewindowAt(from.window, clipId, lookRef.current);
         if (!win) return;
         dropAhead();
+        const playback = attachVideo(win);
         const style = resolveEngineStyle(win.props.styleId);
         const assets = await source.prepare(win, {
           needs: style.assetNeeds(win.props),
@@ -381,7 +491,8 @@ export function LiveReelPlayer({
         });
         if (state.disposed || state.active !== from) return;
         const globalNow = Math.floor(state.elapsedSec * FPS);
-        const next = { window: win, assets };
+        const next = { window: win, assets, playback };
+        from.playback?.dispose();
         state.frameOffset = rephase(
           from,
           next,
@@ -400,6 +511,7 @@ export function LiveReelPlayer({
       try {
         const cut = source.cutawayFrom(from.window, clipId, lookRef.current);
         if (!cut) return;
+        const playback = attachVideo(cut);
         const style = resolveEngineStyle(cut.props.styleId);
         const assets = await source.prepare(cut, {
           needs: style.assetNeeds(cut.props),
@@ -412,7 +524,8 @@ export function LiveReelPlayer({
         // The clock stays where it is; the OFFSET puts the next drawn frame on the first frame of
         // the shortest transition out.
         state.frameOffset = Math.floor(state.elapsedSec * FPS) - cut.resumeFrame;
-        state.active = { window: cut, assets };
+        from.playback?.dispose();
+        state.active = { window: cut, assets, playback };
         bumpFailures(assets.failures);
       } finally {
         state.cuttingAway = false;
@@ -468,10 +581,33 @@ export function LiveReelPlayer({
         void spliceNow(state.active, onScreen);
       }
 
-      // Now the prefetch may be re-filled: either the splice took the arrivals, or there were none.
-      if (state.needsAhead && !state.splicing) {
+      // ★ THE PREFETCH HEALS ITSELF, AND WAITS ITS TURN. Every tick, not only on an event: a load
+      // that was overtaken (a splice, a look change) leaves a hole, and an event-driven refill would
+      // never fill it — the reel would run to the end of its window and hold one photograph for ever.
+      // It is two Map lookups when there is nothing to do.
+      //
+      // But NOT while an arrival is queued: planning the next window is what CONSUMES the queue, so
+      // a prefetch here would take the upload the rewindow above is about to put on screen and hide
+      // it a whole window away. Measured, when it did exactly that: 11.4 seconds and five clips,
+      // every time an upload happened to land during a transition (when the rewindow has to wait).
+      // The wait is bounded by a transition, which is under a second.
+      if (!state.splicing && source.pendingCount() === 0) {
         state.needsAhead = false;
         ensureAhead();
+      }
+
+      // Motion video: cue at most TWO clips, which is exactly what the reader deck holds — the two
+      // on screen during a transition, otherwise the one playing and the one after it.
+      const playback = state.active.playback;
+      if (playback) {
+        const top = shown.top.clipIndex;
+        const after = top + 1;
+        const cues = shown.under
+          ? [shown.under.clipIndex, top]
+          : after < state.active.window.plan.clips.length
+            ? [top, after]
+            : [top];
+        for (const index of cues) playback.cue(index);
       }
 
       // The handover: the next window opens on THIS one's last clip and the swap lands mid-hold, at
@@ -481,6 +617,8 @@ export function LiveReelPlayer({
         if (next) {
           state.ahead.delete(state.index + 1);
           const previous = state.index;
+          // The window we are leaving keeps no readers: the incoming one cues its own.
+          state.active.playback?.dispose();
           state.index = next.window.index;
           state.frameOffset = globalFrame - next.window.handoverOffset;
           state.active = next;
@@ -519,6 +657,7 @@ export function LiveReelPlayer({
         loopIndex: active.window.loopIndex,
         clipId,
         failures: state.failures,
+        video: active.playback ? active.playback.stats() : null,
       });
     };
 
@@ -564,15 +703,19 @@ export function LiveReelPlayer({
       document.removeEventListener("visibilitychange", sync);
       observer?.disconnect();
     };
-  }, [source, ensureAhead, dropAhead, bumpFailures]);
+  }, [source, ensureAhead, dropAhead, bumpFailures, attachVideo]);
 
   // Every retain this player took, given back. The SOURCE is not disposed: it is the caller's.
   useEffect(() => {
     const state = rt.current;
     return () => {
       state.disposed = true;
-      for (const index of state.ahead.keys()) source.release(index);
+      for (const [index, active] of state.ahead) {
+        active.playback?.dispose();
+        source.release(index);
+      }
       state.ahead.clear();
+      state.active?.playback?.dispose();
       source.release(state.index);
       if (state.index >= 1) source.release(state.index - 1);
     };
