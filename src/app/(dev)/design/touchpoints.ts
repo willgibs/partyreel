@@ -48,6 +48,7 @@ export type RulingId =
   | "reel-studio"
   | "help-center"
   | "host-curation"
+  | "reel-host"
   | "first-event"
   | "pricing-page"
   | "press-page"
@@ -126,6 +127,7 @@ export type SandboxId =
   | "emails"
   | "help-center"
   | "host-curation"
+  | "reel-host"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -982,6 +984,34 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "reel-host",
+    title: "The host's side of the reel",
+    surface: "host",
+    ruled:
+      'open (Will, 2026-09-22, rulings.md "the reel, reconceived": wave 2 of THE REEL ROUND, cut once a seat freed)',
+    shipped: null,
+    why: "Six decisions on what is left for a host once the reel makes itself: Style, the off switch, the screen, the dashboard's line, a host's own cut, and Review's own gap.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/components/app/event-settings/event-settings-sheet.tsx",
+      "src/components/app/event-settings/profile-social-card.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/components/app/share/event-sheets.tsx",
+    ],
+    board: {
+      note: "Six decisions on the real hub, settings sheet, share sheet and dashboard, over Mia and Theo's wedding: where the host's Style control lives, where the Show the reel switch sits, where Play on a screen opens from, how the dashboard says the reel is live, what a host's own cut does to the album, and whether the reel ever explains a waiting queue",
+      variants: [
+        "Where Style lives",
+        "The 'Show the reel' row",
+        "Where 'Play on a screen' lives",
+        "The dashboard's line",
+        "A host's own cut, added",
+        "Review's interplay",
+      ],
+    },
+  },
+  {
     id: "admin-triage",
     title: "Acting on a report",
     surface: "admin",
@@ -1671,6 +1701,11 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-profile",
   "host-curation",
   "export-flow",
+  // `reel-host` registers here 2026-09-22 (its own manifest's instruction: a
+  // named neighbour rather than the head, since every reel board registers
+  // the same hour and a shared head spot was today's merge conflict). The
+  // Orchestrator moves it into the six-board reel group at the merge.
+  "reel-host",
   "admin-triage",
   "help-center",
   "emails",

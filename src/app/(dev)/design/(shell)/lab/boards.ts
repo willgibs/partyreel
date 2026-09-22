@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { ReelHostBoard } from "@/app/(dev)/design/sandbox/reel-host/board";
 import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
 import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
 import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
@@ -37,6 +38,7 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
+  "reel-host": { Component: ReelHostBoard },
   "identity-door": { Component: IdentityDoorBoard },
   "identity-claims": { Component: IdentityClaimsBoard },
 
