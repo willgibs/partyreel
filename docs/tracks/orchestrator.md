@@ -34,19 +34,18 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | --- | --- | --- | --- | --- |
 | `docs-rules` | the rulings log distilled into the rules it became, then retired with its Library page; the specs and the `RULINGS` registry kept to current rules | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a381b34df5d5373d6`; resume by SendMessage) | Opus, :3131 | integrate (`none`); place its "For other homes" lines; its memory candidates into memory |
 | `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a7113c2ad80271cd8`; resume by SendMessage) | Opus, :3132 | integrate (`none`) |
-| `roadmap-lean` | `docs/ROADMAP.md` and `docs/ASSETS.md` as current open work only | cut `6fd4bbbd`, committed `45e249a4`; running (agent `abe20689a44c608c4`; resume by SendMessage) | Opus, :3133 | integrate (`none`); return `docs/ROADMAP.md` and `docs/ASSETS.md` to `NEVER_OWNED` in `src/lib/track-manifests.test.ts`; place its "For other homes" lines |
 | `recheck-viewer-curation` | `media-viewer` and `host-curation` current (the five badges adapted or removed by the decision-outcomes judgment, the viewer asked for both origins, the Unverified credit); then the overtaken mechanism retired | cut `c2482757`, committed `1c560b16`; running (agent `a739c5d0751e54b60`; resume by SendMessage) | Opus, :3134 | integrate (board `media-viewer`, then demo `host-curation`); the lines it names in `docs/reviews/README.md`, STATUS, the ROADMAP and `usher/` (the kit's `batch-reader.mjs`, `board-card.mjs`, `review-sheet.mjs` read the map) |
 | `recheck-guest-identity` | `guest-capture` and `profile-page` on the identity model and the live reel's tile; the three shipped lines that promise "on your profile" made true | cut `c2482757`, committed `1c560b16`; running (agent `ab0819cf5bf907ace`) | Opus, :3135 | integrate (board `guest-capture`, then demo `profile-page`); `guest-capture` moves below `identity-profile` in `DESK_ORDER` (after `docs-rules` frees `touchpoints.ts`) |
 | `recheck-mail-admin-export` | `emails`, `admin-triage`, `export-flow` current | cut `c2482757`, committed `1c560b16`; running (agent `ad57c4e5337f4cc06`) | Sonnet, :3136 | integrate (board `emails`, then demo the other two) |
-| `recheck-help-press` | `help-center`, `press-page` current (`press-page.the-facts` adapted) | cut `c2482757`, committed `1c560b16`; waits for a seat (six agents at most) | Sonnet, :3137 | spawn when a lane merges; integrate (board `help-center`, then demo `press-page`) |
+| `recheck-help-press` | `help-center`, `press-page` current (`press-page.the-facts` adapted) | cut `c2482757`, committed `1c560b16`; running (agent `adbe0278627fa617d`) | Sonnet, :3137 | integrate (board `help-center`, then demo `press-page`) |
 
 ## Next, in order
 
 1. **The reshape (Will, 2026-09-22):** the Orchestrator's own part is done (`76dcea01`, `8f68e749`: STATUS a
    snapshot, the runbook, `docs/PROGRAM.md` and `docs/tracks/README.md` as rules, the STATUS-row tool retired,
-   `usher/` without logs, the old pickup file a pointer, memory consolidated). Left: integrate the four lanes one at a
-   time as each hands off (gate 116 onward, board `none`); after `roadmap-lean`, the lab candidates from the retired
-   `usher/atlas/gaps.md` (kept in the scratchpad as `lab-candidates.md`) join the ROADMAP as one bucket.
+   `usher/` without logs, the old pickup file a pointer, memory consolidated). `pointer-sweep` merged at `b314fc97` (gate
+   116) and `roadmap-lean` at `7e068786` (gate 117; the lab candidates joined the ROADMAP as one bucket). Left:
+   `docs-rules` and `systems-trim`, integrated as each hands off.
 2. **Recheck the open boards** (Will's suggestion): four lanes cut at `c2482757` (In flight above), on the survey's
    findings (the scratchpad's `recheck/report.md`) and his decision-outcomes judgment of 2026-09-22 (a reached question
    that still holds potential value is adapted to the current context; only one solved at its best is removed; the

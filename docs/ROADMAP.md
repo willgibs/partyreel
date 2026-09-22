@@ -250,6 +250,20 @@ The app:
   - The social feed and discovery (depends on the Notification system).
   - Guest-list sort by upload count (a nudge to contribute).
   - The follow graph has no consumer worth the graph: the Following chip left the dashboard and `getFollowedHostEventCards` (`queries/social.ts`) has no caller, so a followed-hosts feed uses it or it goes by launch.
+- **Lab explorations no board asks yet** (each is a board when a seat frees; its brief rechecks the desk for overlap first):
+  - Finding one photograph in a thousand (sort, date, person, kind), in the guest album and the host gallery.
+  - What an album becomes weeks after the party, since events never end (a keepsake, an anniversary, a nudge to export), narrowed away from `export-flow`.
+  - What a host learns about their own event (views, contributors, the photograph everyone liked).
+  - The product with a keyboard and a screen reader, end to end.
+  - Which surfaces have a dark mode, who can switch, and what a guest gets.
+  - One card family for every shared link (the OG routes), and what a shared album's card shows.
+  - What a like is here: who sees it, who is told, why the counts are the host's.
+  - Whether an album installs to a phone, and who is ever asked to.
+  - A failed card, a lapsed pass and a cancelled subscription, as surfaces.
+  - A host's "what needs you" that is never empty: one suggested job per event from real state (a queue, paused uploads, a code to print, storage near the cap), one pure function feeding the pulse and the event card.
+  - The hub's code as the event's live door (paused uploads dim it, a private event marks it).
+  - The in-app notifications' design (the bell, its panel, a state signal versus one that clears), beside the Notification system bucket.
+  - The marketing reading surfaces, one board each: a feature page's shape and `/features` as an index; the blog's index and article; Privacy and Terms made scannable; `/about`; applying, from the role page to the operator's inbox; what an AI reader is handed (`llms.txt`).
 
 ## Launch checkpoint (far off — a bucket; tasks get assigned here, handled together at launch)
 
