@@ -1,6 +1,6 @@
 ---
 track: identity-fixes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "863084da"          # the launch-prep SHA the branch was cut from
 board: none            # production follow-up: the alias red-team's three defects and three polish items on the identity reshape's wiring; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -176,30 +176,113 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- none: no genuinely new one-way-door decision came up. Two implementation calls were made autonomously per the brief's
+  own instruction to take the recommended answer and list it under "his to overrule" below (POLISH 1's video-counting
+  and POLISH 2's `router.refresh()` addition), never surfaced here as open questions.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`, the "★ THE FLIP, MID-RUN" paragraph (upload section): refined in place to describe the
+  deferred refresh (DEFECT 1) instead of the immediate one.
+- `docs/systems/guest-flow.md`, "Naming a row afterwards" (Joining + identity): one new sentence on the held-token
+  rename-first rule and its two fallback refusal kinds (DEFECT 2).
+- `docs/systems/guest-flow.md`, "Gallery access" section: one new paragraph ("ONE TRUE COUNT AT `teaser`...") on the
+  unified `approvedTotal` count (POLISH 1).
+- `docs/systems/admin-observability.md`, the Observability (Sentry) section: one new paragraph on the scheduled flush
+  (DEFECT 3).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: nothing found in this lane's scope needed deferring: everything the brief asked for is wired, tested and
+  verified on this tree.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- No board (production follow-up lane; `board: none`). Synced with `launch-prep` at the sync-merge commit `178e4733`
+  ("Merge remote-tracking branch 'origin/launch-prep' into lp/identity-fixes", pulling in the door round's wave 0 —
+  a new `require_upload_to_view` schema column + `get_upload_gate` RPC and their docs — cleanly, no conflicts, nothing
+  in this lane's `reads`); pushed. My own head SHA is deliberately not named here (a prior lane's exact mistake, per
+  the standing warning); it rides the chat report's one line instead.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code, all green: `pnpm design:rules` ok (`/tmp/sync-design-rules.log`,
+  produced no further diff after the sync); the specimen collector ok (`/tmp/sync-specimens.log`); `pnpm typecheck` ok
+  (`/tmp/sync-typecheck.log`); `pnpm lint` ok, 8 warnings (baseline was 10 on 2026-09-21; none in a file this lane
+  touched — `/tmp/sync-lint.log`); `pnpm test` ok, 324 test files / 3418 passed / 2 skipped (`/tmp/sync-test.log`);
+  `pnpm build` ok, 133 route lines, clean (`/tmp/sync-build.log`, Turbopack, no warning naming `next/server` or any
+  client bundle). `pnpm lab:smoke --base http://localhost:3131` ok, 419 checks, 0 failing (`/tmp/sync-labsmoke.log`);
+  no `lab:demo` (no board). Local verification beyond the automated gate: DEFECT 3 proven live on :3131 — a bad-
+  signature `POST /api/stripe/webhook` (`captureWarning`'s own real call site) returned its 400 first, THEN a
+  temporary diagnostic (removed before the final commit) showed `after()` scheduling the callback and
+  `Sentry.flush(2000)` settling `true`, against this environment's real configured DSN. The full-access guest page
+  (`Gallery width (disposable)`, `c7809249347d41e0aaf2c9ad27cd3c75`, signed out) rendered correctly at 1440 and 375
+  ("53 photos & videos from 5 guests", matching `approved_total`), and its Add-photos door opened the name step
+  cleanly (DEFECT 2's `guest-name-step.tsx` rendering, unchanged look). The teaser-access numbers (POLISH 1) and the
+  mid-run flip (DEFECT 1) are precisely reproduced in the new/extended unit tests below rather than by hand-editing
+  shared disposable fixtures; the exact multi-step repro (flip the switch mid-upload, a nameless legacy token, a
+  presign 403 reaching Sentry tagged `vercel-preview`) is the Orchestrator's to re-run on the alias per the brief's
+  own line.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = every path under `owns`
+  (`src/components/guest/enter-event-prompt.tsx`, `entry-modal.test.tsx`, `event-experience.tsx`, `guest-name-step.tsx`,
+  `guest-upload.tsx`(+`.test.tsx`), `live-gallery.tsx`(+`.test.tsx`), `save-account-prompt.tsx`(+`.test.tsx`);
+  `src/lib/guest/join.ts`(+`.test.ts`), `use-upload-queue.ts`; `src/lib/observability/sentry.ts` + the new
+  `sentry.test.ts`; `docs/systems/guest-flow.md`, `admin-observability.md`) plus this manifest, plus exactly one
+  exception outside `owns`: `src/app/(dev)/design/rules/component-notes.ts`, one new entry (`src/lib/observability/sentry.ts`'s
+  `for`/`unspecimened` lines) — required because `sentry.test.ts` is this lane's first contract test for that file, and
+  `gallery.test.ts`'s "gives every component in the index a `for` line" policy failed without it; no other lane's own
+  entry was touched. `docs/design/library.md` and `src/app/(dev)/design/rules/rules.generated.json` also show in the
+  diff, but both are `pnpm design:rules`'s own mechanical regeneration (the gate's required first step, itself, run
+  after my new tests existed) rather than a hand edit.
+- The items, one line each:
+  - DEFECT 1: fixed. `router.refresh()` deferred until the failure sheet closes (a ref in `guest-upload.tsx`, a new
+    `hadQueuedFiles` flag on `use-upload-queue.ts`'s `onVerificationRequired`); 4 new tests in `guest-upload.test.tsx`.
+  - DEFECT 2: fixed. `guest-name-step.tsx` renames on any held session token, falling back to `joinEvent` only on
+    `invalid_session`/`unauthorized` (both newly recognized in `join.ts`); 2 new tests in `entry-modal.test.tsx`, 1 in
+    `join.test.ts`.
+  - DEFECT 3: fixed. `scheduleServerFlush()` in `sentry.ts` (guarded dynamic `next/server` import, `after()` +
+    fallback); new `sentry.test.ts` (5 tests); proven live on :3131 (above) and by a clean `pnpm build`.
+  - POLISH 1: fixed. `LiveGallery` takes a new `approvedTotal` prop and reports it via `onCountChange` under `teaser`
+    access instead of the capped photo-only count; the CTA reads the same number with the header's own noun; 4 new
+    tests in `live-gallery.test.tsx`.
+  - POLISH 2: fixed. `LiveGalleryHandle.renameMine()` patches this device's own tiles locally; `event-experience.tsx`'s
+    `onNamed` also calls `router.refresh()` (my own addition beyond the brief's literal text — see below); 2 new tests
+    in `live-gallery.test.tsx`.
+  - POLISH 3: fixed. The offer heading reads "Keep this photo" at `count === 1`; 1 new test in
+    `save-account-prompt.test.tsx`.
+  - None of the six is a Library entry (no new component, no board): all six are in-place fixes to existing, already-
+    contracted components.
+- Calls his to overrule, one line each:
+  - The refresh waiting for the sheet rather than the sheet surviving the remount (DEFECT 1; the brief's own line).
+  - The teaser's CTA and gate counting videos together with the photos, worded with the header's existing unconditional
+    "photos & videos" noun rather than a new video-presence-conditional one (POLISH 1; the brief's own line on the
+    counting choice — the noun-rule mechanics are this lane's own call).
+  - "Keep this photo" for exactly one (POLISH 3; the brief's own line).
+  - POLISH 2's `router.refresh()` addition: the brief describes `LiveGallery` patching "the guest list's own entry"
+    locally, but `src/components/social/guest-list.tsx` (the "GUESTS" section) sits outside every path this lane owns
+    or reads, is a plain presentational component fed a server-baked `ReactNode` with no live subscription of its own,
+    and cannot be reached from `LiveGallery`. This lane's call: also fire `router.refresh()` from the same `onNamed`
+    handler, which trues up the guest list (and everything else server-rendered) within roughly one network round
+    trip rather than "until a reload" — verified safe because a rename never changes `access`, so `key={access}`
+    never remounts the gallery the way DEFECT 1's flip does. Purely additive beyond the brief's literal text; his to
+    overrule if a fully local patch (extending `guest-list.tsx`'s own ownership to a future lane) is preferred instead.
+- The help articles this lane makes stale, one line each: `content/help/save-an-event-and-find-your-uploads.mdx` line
+  23 quotes `<UiLabel>Keep these photos</UiLabel>` as the card's one constant name (POLISH 3 makes it vary at
+  `count === 1`); `content/help/` belongs to `voice-wiring`, not this lane, so left as-is for a `help-sync` follow-up.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: the four "his to overrule" lines above (all small, all reversible); the Orchestrator's own live
+  re-verification of the three items the brief explicitly reserves for the alias (DEFECT 1's mid-run flip end to end,
+  DEFECT 2's legacy-token rename end to end, DEFECT 3's presign-403-to-Sentry round trip on `vercel-preview`).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Fixed the alias red-team's three defects and three polish items on the
+identity reshape's wiring: the mid-run flip's failure sheet now outlives the refresh it used to lose the race with
+(a deferred-callback ref, gated on whether anything was queued); a nameless session with a held token now renames its
+own row instead of minting a second one; `captureError`/`captureWarning` now schedule a server-side flush via
+`next/server`'s `after()`, guarded off the client, proven live on :3131 against a real Stripe-webhook signature
+failure and a clean `pnpm build`; the teaser's header, CTA and gate now count one true `approvedTotal` instead of
+three different numbers; a rename patches this device's own credits locally and refreshes the page for the Guests
+list; the offer card's heading reads singular for one photo. No board, no ruling reopened. Four small calls left his
+to overrule (the refresh-timing choice, the video-counting choice, the `router.refresh()` addition for the guest
+list, "Keep this photo"), and `content/help/save-an-event-and-find-your-uploads.mdx` is now one word stale for a
+`help-sync` follow-up.
