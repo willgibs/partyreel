@@ -48,6 +48,7 @@ export type RulingId =
   | "reel-studio"
   | "help-center"
   | "host-curation"
+  | "reel-cut"
   | "first-event"
   | "pricing-page"
   | "press-page"
@@ -126,6 +127,7 @@ export type SandboxId =
   | "emails"
   | "help-center"
   | "host-curation"
+  | "reel-cut"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -155,7 +157,7 @@ export const RULINGS: Ruling[] = [
     title: "Asking for an email at the door",
     surface: "guest",
     ruled:
-      "open (Will, 2026-09-22, rulings.md \"the morning after the identity round\" and \"guest identity\": \"We'll do a lot of lab work later to redesign here\" and \"I'd like to run most of this through the lab once our foundation is complete.\")",
+      'open (Will, 2026-09-22, rulings.md "the morning after the identity round" and "guest identity": "We\'ll do a lot of lab work later to redesign here" and "I\'d like to run most of this through the lab once our foundation is complete.")',
     shipped: null,
     why: "The identity foundation (the email, the trust levels, the gate, the menu) is live; this board is its redesign catalog, never a gate on the shipped door.",
     lives: [
@@ -1066,7 +1068,7 @@ export const RULINGS: Ruling[] = [
     title: "The highlight reel",
     surface: "host",
     ruled:
-      "2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md \"the reel, reconceived\": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`'s source until that board hands off, git keeps it after",
+      '2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md "the reel, reconceived": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`\'s source until that board hands off, git keeps it after',
     shipped: null,
     why: "Round one asked the North Star from the foundation (the door, the room, what a guest meets); the reel round replaced the product it asked about.",
     lives: [
@@ -1131,6 +1133,34 @@ export const RULINGS: Ruling[] = [
         "The peek",
         "The keyboard",
         "After a bulk act",
+      ],
+    },
+  },
+  {
+    id: "reel-cut",
+    title: "From the reel to a cut",
+    surface: "guest",
+    ruled:
+      'open (Will, 2026-09-22, rulings.md "the reel, reconceived": the reel is the event\'s and a cut is yours, made on the device from the reel and never stored)',
+    shipped: null,
+    why: "The host-made, stored reel is replaced by a live reel plus a cut anyone can make; this board is the creator that replaces the Studio, and nothing on it wires production.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/reel/reel-studio.tsx",
+      "src/components/reel/studio-moments-picker.tsx",
+      "src/components/reel/style-rail.tsx",
+      "src/components/reel/reel-stitching-dialog.tsx",
+      "src/components/guest/guest-reel-overlay.tsx",
+      "src/lib/reel/engine/registry.ts",
+    ],
+    board: {
+      note: "Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode",
+      variants: [
+        "The way in",
+        "The room",
+        "The looks",
+        "The moments",
+        "The wait",
       ],
     },
   },
@@ -1670,6 +1700,10 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-claims",
   "identity-profile",
   "host-curation",
+  // `reel-cut` is placed HERE rather than at the head (its own manifest's
+  // instruction, three reel boards registering at once): the creator a guest
+  // reaches from the reel sits with the host's own curation of the same album.
+  "reel-cut",
   "export-flow",
   "admin-triage",
   "help-center",
