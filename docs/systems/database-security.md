@@ -9,7 +9,7 @@
 **RLS is the security boundary.** The proxy ([`../../src/proxy.ts`](../../src/proxy.ts)) only refreshes
 cookies, it does **not** authorize. Every Server Function / route handler re-verifies authz with
 `getUser()` (→ [auth-accounts.md](auth-accounts.md)) AND relies on RLS policies / SECURITY DEFINER RPCs
-at the DB. Anonymous guests have no JWT: they authorize via **capability tokens** validated INSIDE
+at the DB. Guests without an account have no JWT: they authorize via **capability tokens** validated INSIDE
 SECURITY DEFINER RPCs; `anon` never gets direct table access. Privileged writes go through the
 service-role admin client (`server-only`).
 
@@ -58,8 +58,9 @@ The expected, accepted set:
   verified email from `auth.users`; never the client): `create_media`, `create_media_as_host`,
   `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`; `get_upload_gate` (the
   upload-to-view gate's one READ: has this session token or account completed an upload on this event,
-  and is the album full by the presign's own two caps; only the guest page's render and the gallery poll
-  call it, so a token can never be probed through it); `remove_my_upload_by_session` (an anonymous guest's
+  and is the album full by the presign's own two caps; reached only through `resolveViewerDecision`, which
+  answers the guest page's render, the gallery poll, `/api/export/guest` and `/api/reel/download`, so a
+  token can never be probed through it); `remove_my_upload_by_session` (a guest-without-an-account's
   own-photo removal, the token validated against the media's guest row, a claimed row never touched; only
   via `POST /api/guests/remove`); `set_guest_display_name` (names a name-only guest by session token; its
   route is part of the gate because profanity and reserved names cannot be checked in SQL, the obscenity
@@ -227,9 +228,12 @@ The expected, accepted set:
   the reel routes): deny-all `action_attempts` + the `action_rate` RPC, keyed on cross-event BREADTH (one
   IP touching many DISTINCT events = a scraper; a venue is ONE event, so it never trips) + a high
   per-(IP,event) backstop ([`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts)). Both
-  fail OPEN (the capability or session is the real gate), and a failing limiter records into the
-  `abuse_limiter` signal so a dead one never looks idle. Raw volumetric DoS is the Vercel edge firewall's
-  job; the guest OTP "Enter event" path is throttled only by Supabase Auth, PER-IP.
+  fail OPEN (the real gate stands behind each: the password check behind the unlock limiter, the capability
+  or session behind the abuse limiter), and a failing limiter records into its own signal
+  (`unlock_limiter`, `abuse_limiter`) so a dead one never looks idle. Raw volumetric DoS is the Vercel edge
+  firewall's job, and the app project carries no custom firewall configuration yet (the Vercel API answers
+  "not found"; a launch task); the guest OTP
+  "Enter event" path is throttled only by Supabase Auth, PER-IP (its limits: [auth-accounts.md](auth-accounts.md)).
 - ★ **The public marketing forms are the ONE limiter that fails CLOSED** (`contact` + `careers`). Everywhere
   else the limiter sits behind a capability token or a verified session, so an outage degrades to "the
   real gate still holds" and the route fails OPEN by design. /contact and /careers have NOTHING behind
