@@ -1,6 +1,6 @@
 ---
 track: heal-validator
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "63fb9ae8"          # the launch-prep SHA the branch was cut from
 board: none            # production follow-up: the door-fixes re-check's one finding (the edge 304s a matching validator and drops the cookie); no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -169,7 +169,14 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- `docs/systems/guest-flow.md`: the `pr_guest_<eventId>` cookie paragraph's heal sentence refined from
+  "only as a 200, never a 304 (`door-fixes`... Vercel drops `Set-Cookie` from a 304 in transit...)" to
+  "only as a 200 with no ETag (`heal-validator`... Vercel's edge, not the function, converts a
+  matching-validator 200 into a 304 and drops `Set-Cookie` doing it...)" — one sentence, in place.
+- `docs/systems/testing-verification.md`: one new ★ bullet added directly after "Three instrument traps
+  around builds and ports" (the only existing use of that phrase), naming that Vercel's edge decides a
+  conditional response on the alias and a header on a matching one must be re-curled with a
+  non-matching validator before it is believed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -177,18 +184,63 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Fix commit `a54e2476` (the four owned files), synced with `launch-prep` by merge at `8843b3e3`:
+  `origin/launch-prep` had moved to `721ae5bd` for the unrelated `guest-email-migration` cut (wave 0,
+  Lane 72) while this lane ran; merged clean, no conflicts, no overlap with any owned or read path.
+  This manifest commit (on top of `8843b3e3`) is the actual head; per boot instructions its own sha is
+  never named here — it rides the chat report ("handed off at `<sha>`") alone.
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- The fix: `src/app/api/guests/gallery/route.ts` now deletes the `ETag` header entirely on a
+  pending-heal response (`headers.delete("ETag")` right after the `Set-Cookie` append), instead of the
+  superseded `door-fixes` belief that the function's own status code was the lever. The 304 guard is
+  otherwise byte-for-byte the same condition (`!healPending && If-None-Match === etag`); it now trips
+  only for a settled cookie, since a pending-heal response carries nothing to match. Head comment and
+  the inline 304-guard comment rewritten to the true mechanism (edge-synthesized 304 from a matching
+  ETag, dropping Set-Cookie regardless of the function's status).
+- Gates on the synced tree (all re-run post-merge, logs under this session's scratchpad
+  `gate/8..14-*-synced.log`): design:rules ok, specimens ok, typecheck ok, lint ok (10 known warnings,
+  same baseline, none in the four touched files), test ok (3501 passed, 2 skipped, 328 files), build ok
+  (257 static pages). `pnpm lab:smoke --base http://localhost:3136` ok (421 checks, 0 failing; the one
+  `/design/boom` 500 is a pre-existing deliberate error-boundary test page, unrelated). No `lab:demo`
+  (`board: none`, a production lane, not a lab board).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly
+  `docs/systems/guest-flow.md`, `docs/systems/testing-verification.md`,
+  `src/app/api/guests/gallery/route.test.ts`, `src/app/api/guests/gallery/route.ts` — the owned paths,
+  no exceptions, plus this manifest file once committed.
+- Contract tests added/rewritten in `route.test.ts` (12/12 pass), matching the brief's four cases
+  exactly: a pending heal (no request validator) answers 200 with `Set-Cookie` and no `ETag`; a pending
+  heal with a matching `If-None-Match` still answers 200 (never 304) with no `ETag`; a settled cookie
+  with a matching validator answers 304 with the `ETag`; a settled cookie with a stale validator
+  answers 200 with the `ETag` and no cookie.
+- The client check: `src/components/guest/live-gallery.tsx`'s `refresh()` needed NO edit. It already
+  does `etagRef.current = res.headers.get("etag")` unconditionally after any non-304 response, which
+  resolves to `null` when the header is absent — the brief's "clears it" branch ("either is fine"). Next
+  poll then sends no `If-None-Match`, gets one more full 200, and 304s resume after that. Verified by
+  re-running `live-gallery.test.tsx` standalone: 23/23 pass, untouched. `owns`/`reads` left as handed
+  off (no line needed, so nothing added).
+- The one item: `heal-validator`'s single fix, landed as described above; not a design/Library item (a
+  backend header-and-comment correction, no board, no verdict to record as a working version).
+- Calls his to overrule: none new — the brief's own pre-answered call is the one implemented as given
+  ("no validator on a heal response, rather than a changed one, which would cost one extra full
+  answer"). Nothing else required a judgment call.
+- The help articles this lane makes stale: none (no guest-facing copy or behavior changed; the fix is
+  header-only and invisible to a guest).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `src/app/api/guests/gallery/route.ts`'s rewritten head comment (the true edge
+  mechanism) and the four new/rewritten contract tests in `route.test.ts`. The brief reserves the live
+  proof for the Orchestrator after the merge: a matching-validator curl on the alias answering 200 with
+  the cookie and no `ETag` (never a 304).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Fixed the pending-heal response in
+`src/app/api/guests/gallery/route.ts`: it now deletes the `ETag` header entirely rather than trusting
+its own status code, because the re-check on the alias proved Vercel's edge, not the function, converts
+a matching-validator 200 into a 304 and strips `Set-Cookie` doing it. The 304 guard's condition is
+unchanged; it now only ever trips for a settled cookie, which has nothing left to heal. `route.test.ts`
+pins the brief's four contracts (12/12 pass); `live-gallery.tsx` needed no edit, since it already
+clears its held validator to null when a response carries none. `guest-flow.md`'s heal sentence and
+`testing-verification.md` gained one line each describing the true mechanism. Gate green on the synced
+tree (typecheck, lint at the 10-warning baseline, 3501 tests, a 257-page build); `lab:smoke` 421 checks,
+0 failing. No board, no ruling, nothing his to overrule beyond the brief's own pre-answered call.
