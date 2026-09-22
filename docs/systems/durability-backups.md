@@ -28,7 +28,9 @@ The orphan sweep (delete R2 objects that have no `media` row) is guarded by `eva
 deletes NOTHING and alerts (Sentry + a deduped operator email) when the `media` table is empty OR the
 orphan set exceeds an absolute (1000) or fractional (25% of objects scanned, once ≥50 are scanned) cap.
 So a DB fault (bad migration, snapshot restore, mass delete, RLS/query bug) can't let one run wipe the
-bucket. Pre-launch the `media` table holds a small set of disposable test rows, so the empty-table breaker
+bucket. Each run lists at most 20 pages (`ORPHAN_PAGE_CAP`, about 20,000 objects) from the HEAD of the
+bucket and considers only objects older than 24 h (`ORPHAN_MIN_AGE_HOURS`), so past the cap it never
+examines the tail (the ROADMAP's pagination-cursor task). Pre-launch the `media` table holds a small set of disposable test rows, so the empty-table breaker
 arms whenever a test reset empties it: reclaim intentional orphans via a force-purge path, not the
 guarded cron.
 
@@ -40,8 +42,8 @@ Live path: a PUT to PRIMARY R2 (`events/…`) fires an `object-created` notifica
 Worker's `scheduled()`) re-copies anything the live path missed. **The reconcile examines at most 5,000
 objects per run (`RECONCILE_MAX_PER_RUN`), always from the START of the listing**, so once the primary
 holds more than 5,000 `events/` objects the keys past the first 5,000 are never re-checked (its "next run
-continues" log line is false; a capped run reports `capped: true` in its heartbeat): give it a stored
-resume cursor before the bucket outgrows the cap. **Avatars are not in this R2 backup by design**: they
+continues" log line is false; a capped run reports `capped: true` in its heartbeat; the ROADMAP's
+pagination-cursor task). **Avatars are not in this R2 backup by design**: they
 live in the public Supabase Storage `avatars` bucket (derivable, and overwrite-in-place would conflict
 with the lock). Workers Paid ~$5/mo, zero egress, off Vercel. DR-drilled: ~15 s
 replication, the lock blocks deletion, and a >100 MB multipart copy restores byte-identical.
