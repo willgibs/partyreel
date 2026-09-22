@@ -1,6 +1,6 @@
 ---
 track: identity-copy-fixes
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "726a54d0"          # the launch-prep SHA the branch was cut from
 board: none            # production fix from the identity round's red-team: the claims confirmation's grammar; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -174,18 +174,18 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `86f53e49`, pushed to `origin/lp/identity-copy-fixes`; synced with launch-prep at `86ec1d3a` (the cut SHA — it had not moved, re-fetched immediately before push).
+- Every claim below names its artifact so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code (0 throughout): `pnpm design:rules` ok (1232 contracts, +1 from the new pin; regenerated `docs/design/library.md` and `rules.generated.json` — mechanical, see the lane-check exception below); the specimen collector ok (140 specimens on 101 entries, unchanged); `pnpm typecheck` ok; `pnpm lint` ok (9 warnings on the tree today, none in either file this lane touched — the baseline moves, the exit code is the gate); `pnpm test` ok (3668 passed, 2 skipped, 337 files — the 13 in `claims-card.test.tsx` include the 4 new pins); `pnpm build` ok (257 pages). `pnpm lab:smoke --base http://localhost:3133` ok (424 checks, 0 failing; `/design/lab/tools/boom`'s pre-existing 200/500 dual expectation is unrelated and untouched). No board on this lane, so no `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md`, `src/app/(dev)/design/rules/rules.generated.json`, `src/components/app/dashboard/claims-card.test.tsx`, `src/components/app/dashboard/claims-card.tsx`. The last two are the owned paths; the first two are an exception, why: both are `pnpm design:rules`'s own mechanical output reflecting the one new contract test this lane added (claims-card's guard count 9 → 10, the tree's total 1231 → 1232) — no hand-authored line changed in either.
+- The item: `ClaimsCard`'s confirm-delete dialog title now reads naturally for every count via a new `confirmDeleteTitle()` helper (one upload: "photo or video"; several: "photos and videos"; one event: "this event"; several: "these M events"), replacing the red-team's broken singular case ("Permanently delete the 1 photo and video added under your email at these 1 event?"). Pinned for all four forms — (1,1) (1,2) (2,1) (2,2) — in `claims-card.test.tsx`. Nothing else in the card changed; its real shape stays the identity-flows board's per the brief.
+- Calls his to overrule on the alias (both already flagged in the brief, carried here unchanged): "photo or video" for a single upload (the alternative, "photo", lies when the one upload is a video); "this event" for a single event.
+- The help articles this lane makes stale: none (a dialog sentence, not documented in any help article).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- No live red-team run, as the brief anticipated: the sentence renders from props with no server or auth dependency, and the render-level pin (`within(dialog).getByText(exact title)`) proves every one of the four forms; nothing here needs the alias.
+- Look at first: `src/components/app/dashboard/claims-card.tsx` (`confirmDeleteTitle`, just above the component's own doc comment) and the new `it.each` block in `src/components/app/dashboard/claims-card.test.tsx` (in the `Finish` describe block, right before "Go back cancels without writing anything").
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). Fixed the claim ticket's confirm-delete title (`ClaimsCard`) to read naturally for every count instead of only the plural the brief had written for: a new `confirmDeleteTitle()` gives one leftover upload "photo or video" (never the lying singular "photo") and several "photos and videos", one leftover event "this event" and several "these M events", replacing the red-team's "Permanently delete the 1 photo and video added under your email at these 1 event?" Pinned for all four forms — (1,1) (1,2) (2,1) (2,2) — in `claims-card.test.tsx`; nothing else in the card changed. Gate green throughout (typecheck, lint at 9 pre-existing warnings, test 3668 passed / 2 skipped, build 257 pages); `pnpm lab:smoke` 424/424. No live red-team: the pin proves every form from props alone.
