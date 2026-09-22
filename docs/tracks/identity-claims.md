@@ -1,6 +1,6 @@
 ---
 track: identity-claims
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "50c03129"          # the launch-prep SHA the branch was cut from
 board: identity-claims # a new board: the identity flows, the claim ticket
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -168,29 +168,63 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- `DESK_ORDER` placement: the brief said append after `identity-door`, which had not registered on `origin/launch-prep` as of boot or by handoff (a sibling track, still building). Registered `identity-claims` at the HEAD instead (the file's own standing convention for a new board); raised in chat mid-lane and the coordinator confirmed: head placement, the Orchestrator moves it after `identity-door` at the merge, do not wait on the sibling. Resolved, not open.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none: a lab-only lane, nothing shipped, no `docs/systems/` fact changed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: no gap found beyond the board's own five asks.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Head: the board commit `13fa2e51` (lab: identity-claims, a new board on his word), pushed; synced with `launch-prep`
+  by merging it in at `e4a9f772` (`origin/launch-prep` had moved 13 commits since boot: reel-studio retired, name-gate
+  merged, the reel round cut; auto-merged clean on `registry.ts`, `boards.ts` and `touchpoints.ts` since the reel-studio
+  retirement and this lane's addition sat on disjoint lines; the one real conflict was the generated
+  `docs/design/library.md`, resolved by regenerating it fresh with `pnpm design:rules` on the merged tree rather than
+  hand-merging generated text).
+- Every claim below names its artifact, so the Orchestrator checks rather than believes.
+- Gates on the synced tree, each its own exit code: `pnpm design:rules` ok (228 components, 18 policies,
+  `docs/design/library.md` regenerated with the new board's row); the specimen collector ok (140 specimens on 101
+  entries, unchanged by this lane); `pnpm typecheck` ok; `pnpm lint` ok (9 known warnings, 0 errors, none in a file this
+  lane touched; the baseline moved from 10 to 9 since 2026-09-21 by someone else's fix); `pnpm test` ok (338 files,
+  3692 passed, 1 skipped); `pnpm build` ok (257 pages, exit 0). `pnpm lab:smoke --base http://localhost:3135` ok (429
+  checks, 0 failing, on the merged tree). `pnpm lab:demo --board identity-claims --base http://localhost:3135` ok (5
+  steps, 0 failing, every option visibly distinct, 1.5 to 1.6 screens each, 209 to 228 words; no UNPAINTED, no OUT OF
+  REACH, no CLIPPED).
+- A hand check at 1440 and 375 (the browser pane, all fifteen previews) caught one real bug the automated gate could
+  not: `confirm.second-screen`'s `CardDescription` (a multi-line JSX text child right after `{IMPOSTOR.uploadCount}`)
+  compiled its leading space away, rendering "2photos" (confirmed via the frame's own `contentDocument.textContent`,
+  not just the screenshot). Fixed by recasting it as one template-literal expression
+  (`src/app/(dev)/design/sandbox/identity-claims/parts.tsx`, `ConfirmSecondScreen`); re-verified live and re-ran the
+  full gate afterward, all green. The toast's vertical position was also nudged from `top-4` to `top-16` so it sits
+  under the header bar rather than over it, matching the shipped toasts ruling ("the Toaster at the top under the
+  bar"). Reduced motion: this board declares no animation of its own (every quoted dialog, sheet, drawer and toast
+  renders straight into its resting "open" state, never an entrance transition), so there is nothing to gate behind
+  the reduced-motion block; bible 14 is satisfied by having no motion to reduce.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` (post-sync) = exactly
+  `src/app/(dev)/design/sandbox/identity-claims/{board,fixtures,parts,scene,spec}.tsx`,
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts`,
+  `src/app/(dev)/design/touchpoints.ts` (the registration exception), `docs/design/library.md` (regenerated by
+  `design:rules` after the `touchpoints.ts` change, per CLAUDE.md), and this manifest. Nothing else.
+- The items, one line each (round 1, unreviewed; every option is a working picture, the shipped state honestly one of
+  the three):
+  - `ticket`: recommended `card`, the plain card at the head of Your events, as shipped.
+  - `pointer`: recommended `line`, a line appended to the moment card naming what waits elsewhere, with a link.
+  - `pass`: recommended `rows`, both events in one list at once, Claim all beneath, as shipped.
+  - `confirm`: recommended `dialog`, a centred dialog naming the event and the count, as shipped.
+  - `after`: recommended `profile`, the shipped toast plus a second line pointing at the profile's visibility switches.
+- Calls his to overrule: none beyond the five asks themselves (a new board's whole point is that his call, not a
+  wiring decision taken in his place). The `DESK_ORDER` placement above is the one process call, already resolved by
+  the coordinator mid-lane, not a design call.
+- The help articles this lane makes stale: none (the ticket has no help article yet; nothing shipped changed).
+- Assets requested from Will: none (bible 18: the twelve stock marketing stills, reused).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `/design/lab/identity-claims` whole, then `confirm` (the tallest step, 1.6 screens) and `ticket`
+  (the widest spread between options, 87.89% stage movement between the plain card and the bell drawer).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
