@@ -1,6 +1,6 @@
 ---
 track: guest-email-migration
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f27c6b6a"          # the launch-prep SHA the branch was cut from
 board: none            # production, wave 0 of the guest identity round: the schema (pending_email, the claim RPCs, profile_shown_events) as SQL files the Orchestrator applies; no board
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -173,30 +173,135 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- **None stopped the lane.** Ten calls were taken on the brief's recommended answers and are listed
+  under the Handoff's "Calls his to overrule"; none is a one-way door (every one is a line of SQL in
+  a file nobody has applied yet). The two worth his eye before the apply are the disown's loud
+  refusal of an unnamed event set and the reduction of `validation/profile.test.ts`'s duplicated
+  consent-scope guard.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- **None.** `docs/systems/database-security.md` is `guest-email-server`'s (the brief); this lane
+  touches no doc. What that lane must add when it lands: the three new 0029 members
+  (`list_guest_rows_by_email`, `claim_guest_rows_by_email`, `disown_guest_rows_by_email`),
+  `set_guest_pending_email` in the service-role-only list beside `set_guest_display_name`, and the
+  `pending_email` fail-closed column as the newest instance of the QA #41 column-grant lesson.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Cleanup:** retire `public.profile_hidden_events` once wave 1 is live and nothing reads or writes
+  it (one migration: drop the table; the attended arm already reads `profile_shown_events`).
+- **Cleanup:** when `guest-email-door` lands the zod schema for the optional address, give it a
+  parity guard against this migration's CHECK the way `guests_display_name_len` is pinned to
+  `DISPLAY_NAME_MAX_LENGTH` (the two numbers, 3 and 254, drift the moment one moves alone).
+- **Cleanup:** fold `escalation-guards.test.ts`'s remaining file-pinned guards into
+  `db/migration-guards.test.ts`'s latest-wins resolver, the way this lane folded the duplicated
+  `get_public_profile` consent scope into one home.
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Work commit `29f86fbe`; sync-merge `96540d4b` (launch-prep HAD moved, to `b99713e8` — `heal-validator`
+  merged; the merge was clean, no conflicts, and every gate below ran AFTER it).
+- Gates on the synced tree, each on its own exit code: design:rules ok (223 components, 1840 contracts,
+  18 policies) · specimens ok (140 specimens on 101 entries) · typecheck ok · lint ok (10 known warnings,
+  none in a file this lane touched) · test ok (328 files, 3520 passed, 2 skipped) · build ok (257 pages) ·
+  `pnpm lab:smoke --base http://localhost:3132` ok (420 checks, 0 failing). No board, so no `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` =
+  `supabase/migrations/20260922120000_guest_pending_email.sql`,
+  `supabase/migrations/20260922122000_profile_shown_events.sql`,
+  `src/lib/db/migration-guards.test.ts`, `src/lib/social/public-profile-visibility.test.ts`,
+  `src/lib/validation/profile.test.ts`. Owned paths only; no exceptions, nothing in another lane's file.
+- **★ PRE-FLIGHTED, not claimed** (database-security.md's "throwaway local cluster" step). PostgreSQL
+  17.10 (Homebrew), socket at `/private/tmp/pgpr17`, a stand-in carrying the real column types,
+  defaults, constraints, the QA #41 guests grant state, the three media triggers, and the CURRENT
+  bodies of `create_guest` (4-arg, from 20260921150000), `claim_anonymous_uploads` (20260609120000)
+  and `get_public_profile` (20260919140000) extracted from the migration files rather than retyped —
+  plus `alter default privileges in schema public grant execute on functions to anon, ...`, so
+  Supabase's anon default-grant landmine is reproduced rather than assumed away. Results:
+  both migrations apply clean (exit 0); CHECK 1 passes all 25 arms and ends in
+  `ROLLED BACK — every guest-identity contract held`; CHECK 2 passes all 7 and ends in
+  `ROLLED BACK — every profile-shown contract held`; the adversarial role probe (inside explicit
+  transactions, `set local role authenticated` / `anon`) proves anon reaches NONE of the six functions,
+  `authenticated` reaches exactly the four claim RPCs and neither server-mediated write, the host role
+  can neither SELECT nor UPDATE `pending_email` while its five granted columns still work, and `anon`
+  cannot read `profile_shown_events`; the deployed 3-arg AND 4-arg `create_guest` conventions both
+  still mint; the backfill stamps a seeded token-claimed row at its `created_at`. The pre-flight
+  found one real defect — the check block compared `guests.email` against a lowercased address while
+  the function writes the form `auth.users` holds — which is fixed in the file.
+- The items, one line each:
+  - `pending_email` + `pending_email_at`: a separate column with a CHECK, a partial index and NO
+    grant, so the host sees a badge and never the address (QA #41 fail-closed by construction).
+  - `create_guest` (5-arg, drop + create): normalises the typed address, nulls it beside a confirmed
+    account or a require-verified event, belts the WHOLE constraint, returns `email_attached` and
+    never the address itself.
+  - `set_guest_pending_email`: attach, change or DETACH by session token; a verified row is refused;
+    service-role-only.
+  - `list_guest_rows_by_email`: the claim preview, and the round's one oracle risk — closed by taking
+    NO address parameter and returning nothing to an unconfirmed caller, even for their own address.
+  - `claim_guest_rows_by_email`: stamps `user_id` / `verified_at` / `email`, clears both pending
+    columns, and names a NAMELESS profile from the most recent row among those being claimed.
+  - `disown_guest_rows_by_email`: removes through the uploader path (the host's bin and
+    `restore_media` never see it), leaves the row and its forensic trail, detaches the address.
+  - `claim_anonymous_uploads`: a confirmed arm that stamps the row whole (the device plus a proved
+    address is more proof than an address alone); the unconfirmed arm byte-for-byte as today.
+  - `profile_shown_events` + the attended arm's opt-IN and `verified_at` belt: nothing until chosen,
+    and only a proved identity attends in public.
+  - The pins: a new round describe in `migration-guards.test.ts` (the CHECK, the index, the
+    fail-closed grant, no `expire_` function, the forensics column, the five RPC postures, the
+    profile arm), the `claim_anonymous_uploads` pin inverted into a two-arm pin, and the profile
+    guards repointed. Three negative controls run and reverted: re-pointing the arm back to
+    `profile_hidden_events` fails 2 tests, naming `pending_email` in the guests SELECT grant fails 1,
+    dropping the verified belt fails 2.
+- Calls his to overrule on the alias (none is a one-way door; all are SQL in unapplied files):
+  1. The mapped belt covers the CHECK's FLOOR as well as its ceiling (`between 3 and 254`, not just
+     `<= 254`): otherwise `a@` passes `position('@') > 1` and lands as a raw 23514 the route cannot map.
+  2. `disown_guest_rows_by_email` RAISES on a null or empty array instead of returning 0. `claim_`
+     reads null as "all of mine"; on the destructive twin that shorthand would delete every upload the
+     caller ever made from an unclaimed row.
+  3. `upload_count` in the preview counts non-`removed` media: a row the guest already withdrew is
+     not part of the offer.
+  4. The preview nulls `event_date` for a `password` event and KEEPS the event name, mirroring QA
+     #40's hide_meta / hide_name split (a `private` event never mints a guest at all).
+  5. `guests.email` is written in the form `auth.users` holds it (trimmed, not case-folded, exactly as
+     `create_guest` does) while `pending_email` is matched on `lower()`. Two forms of one address,
+     deliberately: case-folding the stored form would drift the confirmed-address column from its readers.
+  6. `claim_anonymous_uploads` re-states its revoke + grant although `create or replace` preserves the
+     ACL — a belt against the MCP default-grant landmine if it is ever dropped and recreated.
+  7. A blank at `set_guest_pending_email` DETACHES rather than erroring: "clear it" and "set it to
+     nothing" are one intent.
+  8. The disown does not exclude a legally-held row, mirroring `remove_my_upload_by_session`; the hold
+     still blocks the purge, so the item goes off live and the bytes survive for the hold.
+  9. `src/lib/validation/profile.test.ts`'s duplicated `get_public_profile` consent-scope describe was
+     REDUCED to the bio's own zod-vs-SQL parity (resolved latest-wins) rather than repointed. That copy
+     was pinned to migration 20260919120000, which 20260922122000 makes two generations stale, and its
+     own comment already called the duplication a finding. The consent scope now has one home,
+     `social/public-profile-visibility.test.ts`, which resolves the winning body latest-wins.
+  10. The `claim_anonymous_uploads` pin is inverted into a TWO-arm pin (the brief asked for the
+      inversion; splitting it so the unconfirmed arm stays pinned unchanged is this lane's shape).
+- Help articles this lane makes stale: none. No shipped surface changes; the help how-tos that will go
+  stale belong to the wave-1 lanes that build the door, the dashboard card and the claim screen.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: TWO MIGRATIONS TO APPLY, in order —
+  `20260922120000_guest_pending_email.sql` then `20260922122000_profile_shown_events.sql`. Each carries
+  its apply protocol in the header, its expected advisor delta, and a rolled-back `DO $$` check at the
+  foot to uncomment and paste whole into `execute_sql`. Expected advisors: 0028 stays FIVE with the
+  same members; 0029 grows by THREE; `set_guest_pending_email` and the 5-arg `create_guest` appear in
+  neither. Regenerate `src/lib/db/types.ts` before wave 1 is cut. No Worker, Vercel, Stripe or env change.
+- Look at first: `supabase/migrations/20260922120000_guest_pending_email.sql` section 8
+  (`claim_anonymous_uploads`) — it is the one place this round INVERTS a standing invariant, and the
+  header comment argues why a confirmed caller's token claim is a proved claim. Then the header of
+  section 5 (`list_guest_rows_by_email`), which is the round's oracle gate.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-22). Wave 0 of the guest identity round landed as two
+migrations for the Orchestrator to apply: `guests.pending_email` and `pending_email_at` in their own
+fail-closed column (a CHECK, a partial index, no grant, so the host sees a badge and never the
+address), `upload_forensics.guest_pending_email`, a 5-arg `create_guest` that normalises the typed
+address and reports only whether one is attached, `set_guest_pending_email`, and the three claim RPCs
+(`list_` with no address parameter and nothing for an unconfirmed caller, `claim_` stamping the row
+whole and naming a nameless profile, `disown_` removing through the uploader path and refusing an
+unnamed event set); `claim_anonymous_uploads` gained a confirmed arm that deliberately inverts the
+"never writes email" rule; and `profile_shown_events` turned the profile's attended arm into an opt-in
+with a `verified_at` belt. Pre-flighted on a throwaway PostgreSQL 17.10 cluster: both migrations
+applied clean, both rolled-back checks passed every arm, and a role probe proved the grant split.
