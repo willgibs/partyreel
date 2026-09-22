@@ -1454,12 +1454,20 @@
           "line": 157
         },
         {
+          "title": "reads correctly for $title",
+          "suite": [
+            "Finish"
+          ],
+          "file": "src/components/app/dashboard/claims-card.test.tsx",
+          "line": 190
+        },
+        {
           "title": "Go back cancels without writing anything",
           "suite": [
             "Finish"
           ],
           "file": "src/components/app/dashboard/claims-card.test.tsx",
-          "line": 181
+          "line": 227
         },
         {
           "title": "keeps the ticket and the picks standing when the server call fails",
@@ -1467,7 +1475,7 @@
             "Finish"
           ],
           "file": "src/components/app/dashboard/claims-card.test.tsx",
-          "line": 192
+          "line": 238
         }
       ]
     },
