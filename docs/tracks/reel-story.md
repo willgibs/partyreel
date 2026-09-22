@@ -1,34 +1,38 @@
 ---
-track: identity-claims
+track: reel-story
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "50c03129"          # the launch-prep SHA the branch was cut from
-board: identity-claims # a new board: the identity flows, the claim ticket
+cut: "0abb6459"          # the launch-prep SHA the branch was cut from
+board: reel-story      # a new board: the reel round, the marketing story
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/identity-claims/
+  - src/app/(dev)/design/sandbox/reel-story/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - src/components/app/dashboard/claims-card.tsx
-  - src/components/guest/follow-moment-card.tsx
-  - src/components/app/notification-bell.tsx
-  - src/app/(dev)/design/sandbox/guest-capture/
+  - src/components/marketing/sections/reel/
+  - src/components/marketing/sections/home/reel-teaser.tsx
+  - src/lib/constants/marketing-voice.ts
+  - src/lib/constants/features.ts
+  - src/lib/constants/how-it-works.ts
+  - src/lib/constants/events.ts
+  - src/components/marketing/sections/pricing/
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
   - src/components/lab/
   - src/app/(dev)/design/touchpoints.ts
   - docs/design/rulings.md
-  - docs/systems/host-app.md
-  - docs/systems/profiles-social.md
+  - docs/systems/marketing-content.md
+  - docs/ASSETS.md
 ---
 
-# lp/identity-claims
+# lp/reel-story
 
-**Goal.** A NEW lab board on Will's word (2026-09-22, rulings.md "guest identity" and "the morning after the identity round": "I'd like to run most of this through the lab once our foundation is complete"; the foundation is whole on the alias): the claim ticket's home on the dashboard, the pointer from the follow moment after a confirmation, the claim pass, the removal confirmation and what Finish does next (five asks). A catalog to select from, the shipped state one option among three or four per ask, the same guest in the same world, at 1440 and 375; nothing here wires production. The Lane section at the foot of the Orchestrator's plan file carries every ask and option; this manifest's brief is a copy of it.
+**Goal.** A NEW lab board, wave 2 of THE REEL ROUND (Will, 2026-09-22, rulings.md "the reel, reconceived"): the marketing story of the reel, seven asks (the thesis line, the /reel page's arc, the home's teaser and the hero film's role, the pricing rows' words, the how-it-works steps, the event pages' reel column, the help category's name); his standing site rulings bind; a catalog to select from, nothing wiring production. The Lane section at the foot of the Orchestrator's plan file carries every ask and option; this manifest's brief is a copy of it.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `50c03129`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `0abb6459`)
 
-- What this is: the identity round is whole on the alias (rulings.md "guest identity: name only, unconfirmed email, verified account" and "the morning after the identity round", every sentence his; the plan `~/.claude/plans/great-work-however-1-dapper-twilight.md` is the Orchestrator's record and you may read it whole). Will's word for this board: "We'll do a lot of lab work later to redesign here" and "I'd like to run most of this through the lab once our foundation is complete (including the flow around 'pointed to from the follow moment after a confirmation', event claim UI, profile setup, etc - this introduces lots of new UI and flows)". The foundation is complete; this is the lab work. A board is a CATALOG to select from (bible 22; every option a working picture of the same guest in the same world, Priya at Maya and Jay's wedding, the media-viewer world the `guest-capture` board uses); every ask carries its context as a lede of at most 240 characters; the shipped state is always one of the options, drawn honestly. DECIDED, NOT ASKED: the model itself (three levels, the per-event name until the claim, the typed address inert and never shown, the public mark's two states and its word "Unverified", the removal of unclaimed uploads at Finish, nothing on a profile until chosen). The board is a Sonnet lab lane: lightweight, fast, at 1440 and 375, a favourite lands in the Library as a working version later on his verdicts. THIS BOARD: the claim ticket's surfaces. The shipped state ("deliberately plain", wave 1's wiring): one card at the head of the dashboard feed, "Photos waiting for you" / "Added at events with the email on this account, before it was confirmed.", the events grouped with the typed name, the count and the last upload, Claim or Not mine per event, Claim all, Finish; when anything is unclaimed, a confirmation "Permanently delete the 1 photo or video added under your email at this event?" (the events named; Delete and finish; Go back); the toast "Added N photos to your account."; no notification and no pointer from the follow moment yet (Will: "This'll be a future notification too"; the pointer from the follow moment after a confirmation).
-- ASKS (five): `ticket` (the ticket's home on the dashboard: the plain card at the head as shipped; a slim banner above the feed that opens a sheet; a bell notification that opens a drawer, the feed untouched); `pointer` (the moment a guest confirms from an album and rows wait elsewhere: a line on the follow moment card "N photos from 2 other events are waiting for you" with a link; a toast after the confirmation; nothing at the album, the dashboard's ticket is the one place); `pass` (the claim UI: per-event rows with Claim and Not mine as shipped; one event at a time as cards you accept or dismiss, with a preview of the photos; a checklist with the photos shown small under each event); `confirm` (the removal confirmation: a dialog as shipped; the unclaimed events turning red inline with the count and one button; a second screen of the pass that lists what will be removed with each photo shown); `after` (what happens on Finish: the toast as shipped; the toast plus a pointer to the profile page "Choose what shows on your page"; the claimed events opening in a strip on the dashboard).
-- Build from the kit (`src/components/lab/`; the `guest-capture` board and the app-side boards on the desk are the precedents; the shipped `src/components/app/dashboard/claims-card.tsx` is the truth for the shipped option, never edited); register the board in `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/(shell)/lab/boards.ts` and `src/app/(dev)/design/touchpoints.ts` (your own lines only; append after `identity-door` in DESK_ORDER, the Orchestrator reorders at the merge); no em-dash; every string inside the registry test's limits. The world: Priya, confirmed this morning from Maya and Jay's wedding, with two older events waiting under her address (one hers, one an impostor's).
-- Owns: `src/app/(dev)/design/sandbox/identity-claims/`. Reads, never edits: `src/components/app/dashboard/claims-card.tsx`, `src/components/guest/follow-moment-card.tsx`, `src/components/app/notification-bell.tsx`, `src/app/(dev)/design/sandbox/guest-capture/`, `src/components/lab/`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/systems/host-app.md`, `docs/systems/profiles-social.md`.
-- Tests: the registry tests; `lab:smoke` whole; `pnpm lab:demo --board identity-claims --base http://localhost:3135`; the gate with every exit code.
-- His to overrule: the five questions are his; nothing in this lane wires production.
+- What this is: the reel round (rulings.md "the reel, reconceived"; the plan's "The concept, in one read", section E's marketing bullet and section F). Every marketing surface today sells a host-made, post-event, stored reel ("Every event ends with a reel.", "From the first scan to the final cut", "Pick a style. The reel cuts itself, ready to share.", "Every guest can take the reel home."); the reel is now live from the third photo, alive on the venue's wall, and a cut is anyone's. His standing rulings on the site bind: no page ends the same way with the reel ("that will feel incredibly repetitive"), no centred portrait video leaving blank space on desktop, the demo door as the proof on the event pages, the hero film parked (ASSETS row 1). DECIDED, NOT ASKED: the `/reel` page's live style switcher stays as the engine's proof; the tier rows become the cut's length and mark; the words are the copy asks' to settle and nothing pins them.
+- ASKS (seven): `thesis` (the one line: "Every event has a reel."; "Scan. Add. Watch it grow."; "The reel that makes itself."; drawn on the home's close and the feature entry); `arc` (the `/reel` page's arc: the live reel, the screen, then the cut; the cut first as the thing people post; the screen first as the flagship moment); `teaser` (the home's reel section: the demo album's live reel through the real engine; the hero film (ASSETS row 1, parked) as a landscape film; a still poster with a play mark); `pricing` (the pricing rows' words: "Cut length" and "Cut watermark"; "Your reel" with one row; the reel absent from the table, the cut's mark a footnote); `steps` (the how-it-works host step "Cut the reel" and the guest step "Get the reel": "Watch the reel grow" and "Make your cut"; "Put it on a screen" as the host's step; the reel folded into the share step); `events` (the event pages' reel column, "cut into one highlight reel you can send the same night": the live reel on the wall for each type; the cut a guest posts; the column gone, the demo door alone); `help` (the help category's name and the nav entry's words: "The reel"; "Reels and cuts"; "The live reel"). Nothing here overlaps `site-chrome` (structure) or `press-page` (the fact sheet is the sweep's).
+- Build from the kit; the truth for the shipped copy: `src/components/marketing/sections/reel/`, `src/components/marketing/sections/home/reel-teaser.tsx`, `src/lib/constants/marketing-voice.ts`, `features.ts`, `how-it-works.ts`, `events.ts`, the pricing sections under `src/components/marketing/sections/pricing/`; register (a NEW board at the HEAD of `DESK_ORDER`; the Orchestrator reorders at the merge); no em-dash; the registry test's limits.
+- Owns: `src/app/(dev)/design/sandbox/reel-story/`. Reads, never edits: the files above, `src/app/(dev)/design/sandbox/gallery-fixtures.ts`, `src/components/lab/`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/systems/marketing-content.md`, `docs/ASSETS.md`.
+- Tests: the registry tests; `lab:smoke` whole; `pnpm lab:demo --board reel-story --base http://localhost:<port>`; the gate with every exit code.
+- His to overrule: the seven questions are his; nothing in this lane wires production.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 

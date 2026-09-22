@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1237 contracts on 163 components · 16 standing boards.**
+**22 laws · 18 policies · 1237 contracts on 163 components · 18 standing boards.**
 
 ## What binds you
 
@@ -481,6 +481,8 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
+| `identity-door` | guest | Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives |
+| `identity-claims` | host | Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album points to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at |
 | `identity-profile` | guest | Four decisions on the account page's real cards and the public profile page, over Priya, verified with three events joined and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor |
 | `reel-screen` | guest | Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub |
 | `guest-capture` | guest | Five decisions on the shipped capture flow's real pieces, over Priya, the unproven guest media-viewer's own board already marked: when the offer first reaches her, what shape it takes, whom she can follow once she confirms, where she lands afterward, and what becomes of the name she typed at the door |

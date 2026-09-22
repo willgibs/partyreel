@@ -1,39 +1,35 @@
 ---
-track: reel-engine-video
+track: reel-host
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "17f17e57"          # the launch-prep SHA the branch was cut from
-board: none            # engineering: motion video by a range-fetched window decoded on device; no board of its own
+cut: "0abb6459"          # the launch-prep SHA the branch was cut from
+board: reel-host       # a new board: the reel round, the host's side
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/lib/reel/engine/video/
-  - src/lib/reel/engine/assets.ts
-  - src/lib/reel/engine/assets.test.ts
-  - src/lib/reel/engine/reel-types.ts
-  - src/lib/reel/engine/styles/mood.ts
-  - src/lib/reel/engine/encode.ts
-  - src/app/(dev)/design/(shell)/lab/tools/reel-video/
+  - src/app/(dev)/design/sandbox/reel-host/
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - node_modules/mediabunny/dist/modules/src/input.d.ts
-  - node_modules/mediabunny/dist/modules/src/source.d.ts
-  - node_modules/mediabunny/dist/modules/src/media-sink.d.ts
-  - node_modules/mediabunny/dist/modules/src/input-track.d.ts
-  - src/lib/reel/engine/
-  - src/lib/r2/grid-items.ts
-  - docs/systems/uploads-and-r2.md
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/components/app/event-settings/event-settings-sheet.tsx
+  - src/app/(app)/dashboard/page.tsx
+  - src/components/app/share/event-sheets.tsx
+  - src/app/(dev)/design/sandbox/host-curation/
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
+  - src/components/lab/
+  - src/app/(dev)/design/touchpoints.ts
+  - docs/design/rulings.md
+  - docs/systems/host-app.md
 ---
 
-# lp/reel-engine-video
+# lp/reel-host
 
-**Goal.** THE REEL ROUND (Will, 2026-09-22, rulings.md "the reel, reconceived"; his ruling: "Range-window decode on device" behind an "Include videos" toggle). Motion video in the reel by a six-second window of the ORIGINAL fetched by range through mediabunny's Input/UrlSource and decoded on the viewer's device: the reader with bounded retries and disposal, the per-play byte budget with the K-loop cadence and the session ceiling, the fallback ladder to the poster, a synchronous frameAt ring the draw reads, the encoder's await prepareFrame, and a harness over local mov and webm fixtures. A library with no production surface. The Lane section at the foot of the Orchestrator's plan file carries every deliverable and constraint; this manifest's brief is a copy of it.
+**Goal.** A NEW lab board, wave 2 of THE REEL ROUND (Will, 2026-09-22, rulings.md "the reel, reconceived"): the host's side of the reel, six asks (where Style lives, the Show the reel row, where Play on a screen lives, the dashboard's line, a host's own cut added to the album, Review's interplay); a catalog to select from, nothing wiring production. The Lane section at the foot of the Orchestrator's plan file carries every ask and option; this manifest's brief is a copy of it.
 
-## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `17f17e57`)
+## The brief (from the Orchestrator's plan; the bracketed line numbers are the tree at `0abb6459`)
 
-- What this is: the reel round (rulings.md "the reel, reconceived"; the plan `~/.claude/plans/great-work-however-1-dapper-twilight.md`, "Video in the live reel" and section B, verbatim where it counts). Will's ruling of the video question: "Let's make "Include videos" a toggle in the play controls" and, on the middle ground, "Range-window decode on device (Recommended)". Today the engine draws a video's POSTER still; the only video files are the originals (up to 10 GB, mp4, mov, webm; no transcode). The encoder library already in the bundle (`mediabunny` 1.50.4) also READS media: `Input` over a `UrlSource` fetches only the byte ranges it needs (`requestInit` accepts `cache: "no-store"` and `mode: "cors"`), demuxes mp4, mov and webm, `canDecode()` probes the device's decoder, and `CanvasSink.canvases(start, end)` yields decoded frames for a window. So the live reel plays a six-second window of the original, fetched by range, decoded on the viewer's device, drawn into the canvas like any still; nothing new is stored. Your lane builds that reader, its budget and its fallback ladder as a library with a harness, and wires no production surface.
-- DELIVERABLES: `src/lib/reel/engine/video/window-reader.ts` (mediabunny `Input` + `UrlSource(url, {requestInit: {cache: "no-store", mode: "cors"}, maxCacheSize: 8 MiB, getRetryDelay: two quick retries then fail})`, `parallelism: 1`, `getPrimaryVideoTrack`, `canDecode`, `CanvasSink` sized to the composition's short side with `fit: "cover"` and a small `poolSize`, `canvases(start, start + window)` into a small frame ring; at most TWO readers live at once (the playing clip's and the next's); `input.dispose()` and the generator's `return()` in a `finally` at the window's end; an `Input` per play from the CURRENT url, never held across a presign bucket roll; any rejection surfaces as "possible expiry" to the caller, since an expired presign answers a CORS-shaped failure with no status); `src/lib/reel/engine/video/budget.ts` (pure: `file_size_bytes / duration_seconds × window` against a per-clip cap constant; over budget → a shorter window down to a floor, else the poster; the budget is charged PER PLAY because `no-store` is mandatory, so a video plays with motion at most once every K loops (a knob, default 3) and draws its poster otherwise, and a session ceiling of total video bytes after which every video falls to its poster); `src/lib/reel/engine/video/ladder.ts` (pure: Include videos off → the poster with motion · undecodable → the poster · over budget → the poster · not ready by its cue → the poster this pass, retried next loop; `navigator.connection?.saveData` starts Include videos off on that device); `src/lib/reel/engine/reel-types.ts` gains a video asset kind carrying a SYNCHRONOUS `frameAt(localSec)` over a pre-filled ring (an async pump OUTSIDE the draw fills the ring), because `drawReelFrame` is contractually synchronous and `registry.ts`'s pooled-scratch safety invariant depends on it; `src/lib/reel/engine/assets.ts` learns the video asset (the poster first; the frames when the ring has them); `src/lib/reel/engine/styles/mood.ts` draws the frame whose timestamp ≤ the clip's local time (`drawImage` from the sink's canvas, downscaled), else the poster; `src/lib/reel/engine/encode.ts` gains one `await prepareFrame(f)` before each `drawReelFrame`, so a cut's encoder pulls frames sequentially through the same reader while the draw itself never awaits. The harness: extend `src/app/(dev)/design/(shell)/lab/tools/reel-parity/` or add `.../reel-video/` (your call, say which) playing a real mov and a real webm FIXTURE window from local files served with range support (check that the dev server answers 206 for a `public/` file; if it does not, a tiny fixture route of your own), with the toggle, the budget, the K-loop cadence and the ceiling as knobs, and a heap readout. Contract tests: the budget ladder; a source the device cannot decode resolves to the poster with no throw; the encode with a video clip produces frames in order; the reader disposes on abort.
-- THE INFRA PRECONDITION IS NOT YOURS: the R2 bucket's CORS gains `range` in AllowedHeaders and `Content-Range`, `Accept-Ranges`, `Content-Length` in ExposeHeaders by Will's own command (the Orchestrator was refused); until it lands, R2 range reads from the alias fail on the exposed headers, which is why your harness plays LOCAL fixtures. Write the reader so a missing `Content-Range` is one more "poster" outcome, never a throw. The alias range fetch answering 206 with `Content-Range` readable is the Orchestrator's verification, not yours.
-- Constraints you inherit: the CORS cache-poisoning trap (uploads-and-r2.md, starred: a CORS consumer of a tile-shared presign must bypass the HTTP cache); `RENDER_VERSION` in `render-hash.ts` is dying with the stored file, do not bump it; the existing `CanvasReelPlayer` untouched; every engine test green.
-- Owns: `src/lib/reel/engine/video/` (new), `src/lib/reel/engine/assets.ts` and `assets.test.ts`, `src/lib/reel/engine/reel-types.ts`, `src/lib/reel/engine/styles/mood.ts`, `src/lib/reel/engine/encode.ts`, and the harness folder you name. Reads, never edits: `node_modules/mediabunny/dist/modules/src/{input,source,media-sink,input-track}.d.ts`, the rest of `src/lib/reel/engine/`, `src/lib/r2/grid-items.ts`, `docs/systems/uploads-and-r2.md`, the plan's "Video in the live reel".
-- Tests: the suites above; the gate with every exit code; `pnpm build`; the harness at :3137.
-- Announce in the Handoff: the video asset's shape and `prepareFrame`'s contract (the live lane's Include-videos knob and the wiring code to them); the budget constants; what the harness proved. You merge FIRST of the two engine lanes.
+- What this is: the reel round (rulings.md "the reel, reconceived"; the plan's "The concept, in one read", section D and section F). The host no longer makes a reel; the host SETS its mood (the event's default; a viewer switches on their own device), can switch it off for an event (default on), opens the venue screen from the hub ("Play on a screen"), and sees Review's interplay ("won't play until approved"). DECIDED, NOT ASKED: the hub's Reel card is the reel's own face (drawn on `reel-front`, not here); the style default lives on the event row and the switch beside the guest list switch; a host's cut added to the album lands approved, a guest's moderated; the dashboard's "has a reel" flag becomes "the reel is live" (the switch on and three or more items); the Studio dies with the round.
+- ASKS (six): `style` (where the host's Style lives: in the reel view as the host's extra control; in the settings sheet as a row of the eight moods; both, the sheet the home and the view a shortcut); `switch` (the "Show the reel" row: beside the guest list switch with one sentence; at the head of the sheet as the first row; inside the reel view as the host's own toggle); `screen` (where "Play on a screen" lives: a button on the hub beside the cards; inside the reel view as the host's extra; the share sheet as a third door beside the code and the link); `pulse` (the dashboard's line for the reel: "the reel is live" with the count; nothing until three items, then the line; the event card's cover playing); `cut` (a host's own cut added to the album: lands approved with a small cut mark in the album; lands approved with no mark; a confirm sheet first, since the host's bytes are spent); `review` (Review's interplay with the reel: the reel's view tells the host "3 waiting won't play"; the Review room's header says it; nothing, the queue is the queue). `host-curation.count` and `host-curation.arrivals` are theirs; name them and ask nothing they ask.
+- Build from the kit; the truth for the shipped pieces: the hub's `src/app/(app)/dashboard/[eventId]/page.tsx`, `src/components/app/event-settings/event-settings-sheet.tsx`, the dashboard's `src/app/(app)/dashboard/page.tsx`, `src/components/app/share/event-sheets.tsx`; register (a NEW board at the HEAD of `DESK_ORDER`; the Orchestrator reorders at the merge); no em-dash; the registry test's limits.
+- Owns: `src/app/(dev)/design/sandbox/reel-host/`. Reads, never edits: the files above, `src/app/(dev)/design/sandbox/host-curation/`, `src/app/(dev)/design/sandbox/gallery-fixtures.ts`, `src/components/lab/`, `src/app/(dev)/design/touchpoints.ts`, `docs/design/rulings.md`, `docs/systems/host-app.md`.
+- Tests: the registry tests; `lab:smoke` whole; `pnpm lab:demo --board reel-host --base http://localhost:<port>`; the gate with every exit code.
+- His to overrule: the six questions are his; nothing in this lane wires production.
 
 ## The verdict map (every answer of the batch; this lane wires only its own board's)
 
