@@ -238,6 +238,11 @@ declarations, the h1), and hand the human the foreground look for the motion its
   (`useMountOnApproach`, `Frame`'s `onApproach`) stays unmounted under that tool and a board with such
   frames reads as empty there. Judge those boards in Chrome or on a real screen; the smoke's route
   half is unaffected (it reads server HTML).
+- ★ **The Browser pane's keyboard cannot edit a field** (2026-09-21, a controlled text input on the alias): `End`,
+  `Backspace` even repeated forty times and `cmd+a` did nothing, `type` appended at wherever the caret sat, and a
+  Return in the field did not submit; the pass that saved a garbage name into a disposable row learned it. To
+  replace a value, call the native setter (`Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,
+  "value").set.call(input, v)`), dispatch a bubbling `input` event, then click the submit button by coordinate.
 
 ## Long-lived-session tests (the presign-roll soak)
 

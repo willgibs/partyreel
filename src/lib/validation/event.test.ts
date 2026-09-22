@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createEventSchema, eventSlugSchema } from "@/lib/validation/event";
+import {
+  createEventSchema,
+  eventSlugSchema,
+  updateEventSchema,
+} from "@/lib/validation/event";
 
 function parse(slug: string) {
   return eventSlugSchema.safeParse({ slug });
@@ -76,5 +80,26 @@ describe("createEventSchema: the host's identity switch", () => {
       require_verified_email: false,
     });
     expect(parsed.require_verified_email).toBe(false);
+  });
+});
+
+describe("createEventSchema: the upload gate (Will, the door as three steps, 2026-09-21)", () => {
+  it("defaults Require an upload to view OFF", () => {
+    // The album opens after the name (or the confirmed email) unless a host opts in.
+    const parsed = createEventSchema.parse({ name: "Sarah's wedding" });
+    expect(parsed.require_upload_to_view).toBe(false);
+  });
+
+  it("turns the gate on when the host asks", () => {
+    const parsed = createEventSchema.parse({
+      name: "Backyard party",
+      require_upload_to_view: true,
+    });
+    expect(parsed.require_upload_to_view).toBe(true);
+  });
+
+  it("updateEventSchema carries the switch too (createEventSchema.partial())", () => {
+    const parsed = updateEventSchema.parse({ require_upload_to_view: true });
+    expect(parsed.require_upload_to_view).toBe(true);
   });
 });

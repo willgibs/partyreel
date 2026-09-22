@@ -74,6 +74,9 @@ export async function createEvent(
     // to resolve on every create for no gain. The switch's own default (true) is the one that
     // decides what a host who never touched it gets.
     require_verified_email: values.require_verified_email,
+    // The door's third step (off by default; the door as three steps, Will 2026-09-21). A new
+    // event names it directly too — there's no legacy twin to reconcile.
+    require_upload_to_view: values.require_upload_to_view,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
   };
@@ -156,6 +159,9 @@ export async function updateEvent(
     patch.require_verified_email = values.require_verified_email;
   else if (values.allow_anonymous_uploads !== undefined)
     patch.allow_anonymous_uploads = values.allow_anonymous_uploads;
+  // The door's third step. No legacy twin, no tier gate: a bare granted-column write.
+  if (values.require_upload_to_view !== undefined)
+    patch.require_upload_to_view = values.require_upload_to_view;
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
   if (values.qr_style !== undefined) patch.qr_style = values.qr_style;
