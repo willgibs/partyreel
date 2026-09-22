@@ -12,7 +12,9 @@ import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-import { useUploadQueue, type QueueItem } from "@/lib/guest/use-upload-queue";
+// The queue MACHINE moved to `event-experience.tsx` at the door round; only its
+// item type is read here now (the hook import lingered unused after that lift).
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
 
@@ -65,6 +67,7 @@ export function GuestUpload({
   onFailuresClosed,
   isDemo,
   host,
+  hintEmail,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -89,6 +92,13 @@ export function GuestUpload({
   isDemo: boolean;
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
+  /**
+   * The address this guest typed at the door THIS VISIT (the optional field,
+   * 2026-09-22), passed straight through to the offer card's door so it opens
+   * prefilled. Held in the page's state, never in storage, and null on every
+   * later visit: the door asks again rather than a shared phone remembering.
+   */
+  hintEmail?: string | null;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -197,6 +207,7 @@ export function GuestUpload({
               qrToken={qrToken}
               sessionToken={sessionToken ?? ""}
               count={doneCount}
+              hintEmail={hintEmail}
             />
           }
         />

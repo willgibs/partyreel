@@ -3958,6 +3958,65 @@
       ]
     },
     {
+      "id": "add-email-dialog",
+      "file": "src/components/guest/add-email-dialog.tsx",
+      "names": [
+        "AddEmailDialog"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "makes the door's own promise, word for word",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "sends the token and the address in the BODY, never a URL",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 61
+        },
+        {
+          "title": "records a BOOLEAN on this device, and never the address",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 77
+        },
+        {
+          "title": "refuses junk under the field, before anything is sent",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 90
+        },
+        {
+          "title": "says a refusal from the route in the same slot, and flags nothing",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "hands over to the real door on 'Confirm it now instead'",
+          "suite": [
+            "AddEmailDialog"
+          ],
+          "file": "src/components/guest/add-email-dialog.test.tsx",
+          "line": 118
+        }
+      ]
+    },
+    {
       "id": "claim-handle-prompt",
       "file": "src/components/guest/claim-handle-prompt.tsx",
       "names": [
@@ -4474,7 +4533,31 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 64
+          "line": 73
+        },
+        {
+          "title": "with no address: 'Unverified', and the row offers to ADD one",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "never offers 'Add your email' without a row to put one on",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 126
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4482,7 +4565,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 84
+          "line": 136
         }
       ]
     },
@@ -4584,7 +4667,31 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 64
+          "line": 73
+        },
+        {
+          "title": "with no address: 'Unverified', and the row offers to ADD one",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 106
+        },
+        {
+          "title": "never offers 'Add your email' without a row to put one on",
+          "suite": [
+            "GuestHeader: a guest with a name and no account"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 126
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4592,7 +4699,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 84
+          "line": 136
         }
       ]
     },
@@ -4814,12 +4921,60 @@
           "line": 396
         },
         {
+          "title": "offers the address as optional, unfocused, under the name",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 436
+        },
+        {
+          "title": "is skippable: Continue with an empty field sends no `email` key at all",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 452
+        },
+        {
+          "title": "carries a typed address in the SAME post, and hands the flag up",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 476
+        },
+        {
+          "title": "refuses a junk address IN PLACE, under its own field, before anything is sent",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 515
+        },
+        {
+          "title": "believes the ROW's email_attached, never the form's memory",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 538
+        },
+        {
+          "title": "says 'the host', whoever the host is (Will, 2026-09-22)",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 563
+        },
+        {
           "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
           "suite": [
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 428
+          "line": 574
         },
         {
           "title": "the email step says whose name wins once a name is held",
@@ -4827,7 +4982,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 443
+          "line": 595
         },
         {
           "title": "PROFILE mode writes the account's own name, not a guest row",
@@ -4835,7 +4990,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 458
+          "line": 610
         },
         {
           "title": "refuses a reserved name IN PLACE, before anything is sent",
@@ -4843,7 +4998,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 477
+          "line": 631
         },
         {
           "title": "edit mode renames the row this device holds, and never mints a second one",
@@ -4851,7 +5006,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 490
+          "line": 644
         },
         {
           "title": "claims, then joins, then writes the held name, then refreshes",
@@ -4859,7 +5014,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 512
+          "line": 666
         },
         {
           "title": "an account that already has a name keeps it: the typed one is not written",
@@ -4867,7 +5022,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 550
+          "line": 704
         },
         {
           "title": "the success hold is dismissal-proof and plays the beat",
@@ -4875,7 +5030,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 575
+          "line": 729
         },
         {
           "title": "a step's chevron re-shows the welcome, whose own primary always reads \"Continue\" (his 23:46 override), and returns without touching the machine",
@@ -4883,7 +5038,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 589
+          "line": 743
         },
         {
           "title": "the upload step goes back to the NAME, the step it followed",
@@ -4891,7 +5046,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 607
+          "line": 761
         },
         {
           "title": "no chevron on the welcome itself",
@@ -4899,7 +5054,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 614
+          "line": 768
         }
       ]
     },
@@ -5350,7 +5505,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 53
+          "line": 54
         },
         {
           "title": "the heading counts too: singular for exactly one, plural otherwise",
@@ -5358,7 +5513,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 64
+          "line": 65
         },
         {
           "title": "asks for a confirmed email, which is what the door behind it does",
@@ -5366,7 +5521,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 73
+          "line": 74
         },
         {
           "title": "Maybe later is final for this event",
@@ -5374,7 +5529,23 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 80
+          "line": 81
+        },
+        {
+          "title": "opens its door on the address typed at the door",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 97
+        },
+        {
+          "title": "opens on an empty field for a guest who skipped it",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 106
         },
         {
           "title": "marks the door's opening, so a redirect sign-in lands the same beat",
@@ -5382,7 +5553,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 90
+          "line": 113
         }
       ]
     },
@@ -5604,12 +5775,60 @@
           "line": 396
         },
         {
+          "title": "offers the address as optional, unfocused, under the name",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 436
+        },
+        {
+          "title": "is skippable: Continue with an empty field sends no `email` key at all",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 452
+        },
+        {
+          "title": "carries a typed address in the SAME post, and hands the flag up",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 476
+        },
+        {
+          "title": "refuses a junk address IN PLACE, under its own field, before anything is sent",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 515
+        },
+        {
+          "title": "believes the ROW's email_attached, never the form's memory",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 538
+        },
+        {
+          "title": "says 'the host', whoever the host is (Will, 2026-09-22)",
+          "suite": [
+            "the name step"
+          ],
+          "file": "src/components/guest/entry-modal.test.tsx",
+          "line": 563
+        },
+        {
           "title": "HOLD mode POSTs nothing: the join would refuse it before the code lands",
           "suite": [
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 428
+          "line": 574
         },
         {
           "title": "the email step says whose name wins once a name is held",
@@ -5617,7 +5836,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 443
+          "line": 595
         },
         {
           "title": "PROFILE mode writes the account's own name, not a guest row",
@@ -5625,7 +5844,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 458
+          "line": 610
         },
         {
           "title": "refuses a reserved name IN PLACE, before anything is sent",
@@ -5633,7 +5852,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 477
+          "line": 631
         },
         {
           "title": "edit mode renames the row this device holds, and never mints a second one",
@@ -5641,7 +5860,7 @@
             "the name step"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 490
+          "line": 644
         },
         {
           "title": "claims, then joins, then writes the held name, then refreshes",
@@ -5649,7 +5868,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 512
+          "line": 666
         },
         {
           "title": "an account that already has a name keeps it: the typed one is not written",
@@ -5657,7 +5876,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 550
+          "line": 704
         },
         {
           "title": "the success hold is dismissal-proof and plays the beat",
@@ -5665,7 +5884,7 @@
             "the confirmation sequence"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 575
+          "line": 729
         },
         {
           "title": "a step's chevron re-shows the welcome, whose own primary always reads \"Continue\" (his 23:46 override), and returns without touching the machine",
@@ -5673,7 +5892,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 589
+          "line": 743
         },
         {
           "title": "the upload step goes back to the NAME, the step it followed",
@@ -5681,7 +5900,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 607
+          "line": 761
         },
         {
           "title": "no chevron on the welcome itself",
@@ -5689,7 +5908,7 @@
             "the back affordance"
           ],
           "file": "src/components/guest/entry-modal.test.tsx",
-          "line": 614
+          "line": 768
         },
         {
           "title": "routes the four classes the step can act on",
@@ -14278,7 +14497,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 135
+          "line": 139
         },
         {
           "title": "mouse pointers never engage the finger-follow",
@@ -14286,7 +14505,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 140
+          "line": 144
         },
         {
           "title": "a sub-10px wiggle stays unlocked (tap territory)",
@@ -14294,7 +14513,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 152
+          "line": 156
         },
         {
           "title": "a vertical move releases the gesture to the browser",
@@ -14302,7 +14521,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 159
+          "line": 163
         },
         {
           "title": "a horizontal lock engages: data-dragging + 1:1 follow",
@@ -14310,7 +14529,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 169
+          "line": 173
         },
         {
           "title": "clamps a long pull toward a real neighbor to one slide width",
@@ -14318,7 +14537,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 180
+          "line": 184
         },
         {
           "title": "damps the pull past the FIRST item (no prev)",
@@ -14326,7 +14545,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 187
+          "line": 191
         },
         {
           "title": "slow short drag springs back (200ms settle, no index change)",
@@ -14334,7 +14553,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 199
+          "line": 203
         },
         {
           "title": "a long slow drag commits by DISTANCE (20% of width)",
@@ -14342,7 +14561,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 210
+          "line": 214
         },
         {
           "title": "a quick flick commits by VELOCITY regardless of distance",
@@ -14350,7 +14569,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 224
+          "line": 228
         },
         {
           "title": "a commit toward a missing neighbor cannot happen at the END of the set",
@@ -14358,7 +14577,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 233
+          "line": 237
         },
         {
           "title": "pointercancel snaps back to center",
@@ -14366,7 +14585,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 242
+          "line": 246
         },
         {
           "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
@@ -14374,7 +14593,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 251
+          "line": 255
         },
         {
           "title": "arrow keys step through the set within bounds",
@@ -14382,7 +14601,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 264
+          "line": 268
         },
         {
           "title": "arrow keys at the edges do nothing",
@@ -14390,7 +14609,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 272
+          "line": 276
         },
         {
           "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
@@ -14398,7 +14617,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 278
+          "line": 282
         },
         {
           "title": "a clean CENTER-third tap on the letterbox closes the viewer",
@@ -14406,7 +14625,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 290
+          "line": 294
         },
         {
           "title": "a LEFT-third letterbox tap steps to the previous item (no close)",
@@ -14414,7 +14633,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 300
+          "line": 304
         },
         {
           "title": "a RIGHT-third letterbox tap steps to the next item (no close)",
@@ -14422,7 +14641,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 308
+          "line": 312
         },
         {
           "title": "a side tap at an edge is a NO-OP (never an accidental close)",
@@ -14430,7 +14649,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 316
+          "line": 320
         },
         {
           "title": "the position counter reflects the controlled index (pill format)",
@@ -14438,7 +14657,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 324
+          "line": 328
         },
         {
           "title": "a drag starting in a PLAYING video's scrubber strip never swipes",
@@ -14446,7 +14665,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 331
+          "line": 335
         },
         {
           "title": "the same drag swipes once the video is PAUSED",
@@ -14454,7 +14673,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 347
+          "line": 351
         },
         {
           "title": "the GUEST pill carries NO curate controls, even with a status",
@@ -14462,7 +14681,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 385
+          "line": 389
         },
         {
           "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
@@ -14470,7 +14689,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 395
+          "line": 399
         },
         {
           "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
@@ -14478,7 +14697,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 406
+          "line": 410
         },
         {
           "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
@@ -14486,7 +14705,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 415
+          "line": 419
         },
         {
           "title": "host Remove is behind a modal confirm (no accidental delete)",
@@ -14494,7 +14713,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 425
+          "line": 429
         },
         {
           "title": "shows the Trash on the item it allows and never on another",
@@ -14502,7 +14721,7 @@
             "canDelete gates the personal Delete per item"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 447
+          "line": 451
         },
         {
           "title": "draws the album on its own element, with the media never inside it",
@@ -14510,7 +14729,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 492
+          "line": 496
         },
         {
           "title": "wears the ONE material on the pill, the capsule and the close",
@@ -14518,7 +14737,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 513
+          "line": 517
         },
         {
           "title": "a confirmed name stands plain, with no mark",
@@ -14526,7 +14745,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 557
+          "line": 561
         },
         {
           "title": "a name nobody proved is named AND marked",
@@ -14534,7 +14753,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 565
+          "line": 569
         },
         {
           "title": "a legacy nameless row reads \"A guest\", never a blank credit",
@@ -14542,7 +14761,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 573
+          "line": 577
         },
         {
           "title": "the mark offers the way out on the viewer's OWN upload only",
@@ -14550,7 +14769,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 578
+          "line": 582
         },
         {
           "title": "says nothing about proof it was never given: an item with no flag is plain",
@@ -14558,7 +14777,63 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 598
+          "line": 602
+        },
+        {
+          "title": "reads \"Unverified\", never a claim that a name was checked",
+          "suite": [
+            "the mark's word"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 42
+        },
+        {
+          "title": "names the mark for a screen reader and a pointer alike",
+          "suite": [
+            "the mark's word"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 47
+        },
+        {
+          "title": "about somebody else: anyone can type a name, and they have not confirmed an email",
+          "suite": [
+            "what the popover says"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 55
+        },
+        {
+          "title": "names an unnamed guest without inventing one",
+          "suite": [
+            "what the popover says"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 65
+        },
+        {
+          "title": "about YOURSELF: what you did, what is missing, and the way out",
+          "suite": [
+            "what the popover says"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "offers no way out on somebody else's credit",
+          "suite": [
+            "what the popover says"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 86
+        },
+        {
+          "title": "tells the HOST about their own switch, and only the host",
+          "suite": [
+            "what the popover says"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 94
         }
       ]
     },
@@ -14639,7 +14914,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 45
+          "line": 46
         },
         {
           "title": "condenses to ONE button past the threshold, and the button carries the count",
@@ -14647,7 +14922,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 53
+          "line": 54
         },
         {
           "title": "opens IN PLACE, one page at a time, never the whole list at once",
@@ -14655,7 +14930,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 62
+          "line": 63
         },
         {
           "title": "links a guest WITH a handle and leaves one without unlinked",
@@ -14663,7 +14938,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 79
+          "line": 80
         },
         {
           "title": "says so when the host's key is on and nobody has added a photo yet",
@@ -14671,7 +14946,7 @@
             "GuestList"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 95
+          "line": 96
         },
         {
           "title": "names an unverified guest, marks the name, and links nowhere",
@@ -14679,7 +14954,7 @@
             "GuestList: unverified guests"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 115
+          "line": 116
         },
         {
           "title": "offers a Follow on a HANDLED chip for a signed-in viewer, and never on an unverified one",
@@ -14687,7 +14962,7 @@
             "GuestList: unverified guests"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 124
+          "line": 125
         },
         {
           "title": "offers no Follow to a signed-out viewer, to themselves, or to somebody already followed",
@@ -14695,7 +14970,7 @@
             "GuestList: unverified guests"
           ],
           "file": "src/components/social/guest-list.test.tsx",
-          "line": 137
+          "line": 138
         }
       ]
     },
@@ -16719,7 +16994,7 @@
             "checkDisplayName"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 30
+          "line": 42
         },
         {
           "title": "refuses a RESERVED name in place, before a round trip",
@@ -16727,7 +17002,7 @@
             "checkDisplayName"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 36
+          "line": 48
         },
         {
           "title": "trims what it accepts, so the row stores what the album shows",
@@ -16735,7 +17010,39 @@
             "checkDisplayName"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 43
+          "line": 55
+        },
+        {
+          "title": "reads a blank field as no address, never as a refusal",
+          "suite": [
+            "checkGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 63
+        },
+        {
+          "title": "trims and lowercases, so the row and this device agree on one string",
+          "suite": [
+            "checkGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 67
+        },
+        {
+          "title": "refuses junk as email_invalid, in its own kind and before a round trip",
+          "suite": [
+            "checkGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 74
+        },
+        {
+          "title": "refuses an address past the column's own 254",
+          "suite": [
+            "checkGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 81
         },
         {
           "title": "omits display_name entirely when none is given (the silent join)",
@@ -16743,7 +17050,7 @@
             "joinEvent"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 50
+          "line": 90
         },
         {
           "title": "carries the name, and hands back the row's OWN name and proof",
@@ -16751,7 +17058,39 @@
             "joinEvent"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 59
+          "line": 99
+        },
+        {
+          "title": "omits `email` entirely when none was typed",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 120
+        },
+        {
+          "title": "carries `email` when one was typed, in ONE post beside the name",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 130
+        },
+        {
+          "title": "reads emailAttached from the ROW, never from the request",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 159
+        },
+        {
+          "title": "never hands an address back, whatever the route says",
+          "suite": [
+            "joinEvent"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 170
         },
         {
           "title": "maps the route's 422 kinds, and keeps the server's own sentence",
@@ -16759,7 +17098,7 @@
             "joinEvent"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 73
+          "line": 190
         },
         {
           "title": "reads an unknown code as `other`, so a new refusal can never be mistaken for a name problem",
@@ -16767,7 +17106,7 @@
             "joinEvent"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 89
+          "line": 207
         },
         {
           "title": "survives a dead network and an HTML error page alike",
@@ -16775,7 +17114,7 @@
             "joinEvent"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 99
+          "line": 217
         },
         {
           "title": "sends the token in the BODY, never a URL",
@@ -16783,7 +17122,7 @@
             "renameGuest"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 116
+          "line": 234
         },
         {
           "title": "maps a refusal the same way the join does",
@@ -16791,7 +17130,7 @@
             "renameGuest"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 133
+          "line": 251
         },
         {
           "title": "keeps invalid_session and unauthorized as their own kinds, never collapsed to other",
@@ -16799,7 +17138,39 @@
             "renameGuest"
           ],
           "file": "src/lib/guest/join.test.ts",
-          "line": 149
+          "line": 267
+        },
+        {
+          "title": "sends the token in the BODY, never a URL, with the address beside it",
+          "suite": [
+            "attachGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 288
+        },
+        {
+          "title": "sends an explicit null to take one off, and reads back false",
+          "suite": [
+            "attachGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 311
+        },
+        {
+          "title": "maps a refusal the same way the join does, kind by kind",
+          "suite": [
+            "attachGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 326
+        },
+        {
+          "title": "survives a dead network with the door's own sentence",
+          "suite": [
+            "attachGuestEmail"
+          ],
+          "file": "src/lib/guest/join.test.ts",
+          "line": 346
         }
       ]
     },

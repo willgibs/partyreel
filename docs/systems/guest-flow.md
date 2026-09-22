@@ -293,7 +293,10 @@ re-derives on that step's refresh. `autoOpen` is true whenever a step exists —
 The cases: password-only `[welcome?, password]` then `[name?, upload?]`; names mode `[welcome?, name,
 upload?]`; verified mode `[welcome?, name, email]` then `[upload?]`; both, in that order; the demo
 `[welcome (its role step), upload]`, which asks no name; a returning guest with a name and (when required)
-a contribution `[]`; the mid-visit flip `[email]`.
+a contribution `[]`; the mid-visit flip `[email]`. ★ **THE NAME STEP CARRIES A SECOND, OPTIONAL FIELD in
+names mode** (Will, 2026-09-22): "Email (optional)" under the name and its hint, with its own refusal slot
+and the benefit line "Come back to this album anytime, with every photo you add." It is not a step, it
+adds no step, and `computeDoor` does not know it exists — see "Joining + identity" for what it stores.
 
 One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders a REAL Vaul
 drawer on phones (drag physics, `repositionInputs` lifts a focused field above the iOS keyboard,
@@ -437,15 +440,44 @@ only as the compatibility twin the `events_sync_verified_email_flags` trigger ho
 (→ [database-security.md](database-security.md)); nothing new reads it, and only rows minted BEFORE the
 reshape can still read as "A guest".
 
+★ **THREE LEVELS OF TRUST, AND A ROW IS AT EXACTLY ONE** (Will, 2026-09-22, rulings.md "guest identity:
+name only, unconfirmed email, verified account", which SUPERSEDES `address=none`):
+
+1. **A typed name.** The public mark, whose word is **"Unverified"** — never "name not verified", because
+   names are never verified for anybody: "only emails verified, very important distinction" (his).
+2. **A typed name and an address nobody has proved**, in its own `guests.pending_email` column and **inert**:
+   never shown to the host or to another guest, never attributed to any account, never mailed on its own,
+   never expiring. It is "simply a name with an invisible claim number (the email)" (his), so the PUBLIC
+   mark is identical to level 1 — a mark that changed would announce that an address exists. Only the
+   guest's own menu says "Email not confirmed". A typed address that belongs to a member is accepted like
+   any other, so no enumeration oracle exists (→ [auth-accounts.md](auth-accounts.md)).
+3. **A confirmed account**, the only identity that uploads as itself.
+
+The address is asked as ONE optional field under the name, in `join` mode only (Will: "an optional email
+field under name for unverified events is more streamlined than its own screen"), labelled "Email
+(optional)" with the benefit line "Come back to this album anytime, with every photo you add.", unfocused
+and never prefilled — the name's cross-event prefill is a kindness, an address carried between parties
+would be the last guest's address shown to the next one. A fresh join sends it in ONE post; a HELD session
+renames first and then attaches on `/api/guests/email`. The client parses through `checkGuestEmail`
+([`join.ts`](../../src/lib/guest/join.ts)) so a typo is refused under its own field, and both forms carry
+`noValidate`: a native `type="email"` field otherwise lets the BROWSER block the submit with its own bubble
+before `onSubmit` runs, so the door's refusal slot never fills and the name never goes either.
+★ **NOTHING EVER STORES THE ADDRESS ON THE DEVICE.** The routes answer `email_attached`, a boolean;
+`pr_guest_email_attached_<qr>` holds `"1"`; the address itself lives in `EventExperience` state for the
+visit, only to prefill the offer card's door, and `collectStoredSessionTokens` never scans the prefix.
+
 ★ **AND THE NAME IS ASKED BEFORE THE ALBUM** (Will, 2026-09-21, "the door as three steps"), which
 overrules "at the first Add": "if they can reach the album media without entering their name, they're able
 to reap all the rewards of the album anonymously, then friction occurs when they go to actually contribute.
-We should handle the friction as a quick gate to the reward." `guest-name-step.tsx` has FOUR modes for the
-four doors that ask one question — `join` (names mode: rename a held row first, else mint under the typed
-name), `edit` (the album menu's, unchanged, and the one dismissible door left), `hold` (verified mode BEFORE
+We should handle the friction as a quick gate to the reward." Its lede names nobody — "so the host knows
+who to thank" (his, 2026-09-22; long host names broke the line). `guest-name-step.tsx` has FOUR modes for the
+four doors that ask one question — `join` (names mode, and the ONLY mode with the address field: rename a
+held row first, else mint under the typed name), `edit` (the album menu's, unchanged, and the one dismissible
+door left), `hold` (verified mode BEFORE
 the confirmation: the join would answer 422, so nothing is sent, the name is validated locally and kept in
 the sheet's own state, and only `pr_guest_name_last` is written — never the per-event key, which would claim
-a row that does not exist) and `profile` (a confirmed account with no profile name writes the PROFILE's,
+a row that does not exist; no address field, because the very next step asks for one and PROVES it) and
+`profile` (a confirmed account with no profile name writes the PROFILE's,
 replacing the inline `SetNameStep` panel that used to sit halfway down the album). No unique name is
 claimed at the door.
 
@@ -457,14 +489,20 @@ nulls a typed name beside a confirmed account) → one own-row read of `profiles
 a name was typed, `updateDisplayNameAction` → hold the beat → refresh. **The account's own name wins** over
 a typed one, and the email step says so above the field before they confirm.
 
-- **The join carries the identity:** `POST /api/guests {qr_token, display_name?}` → `create_guest`
-  (4-arg) issues a `session_token` (localStorage, returning-guest) and returns `{display_name, verified}`
-  — what the row was actually minted with, never an echo of the request. The ROUTE owns the refusals:
+- **The join carries the identity:** `POST /api/guests {qr_token, display_name?, email?}` → `create_guest`
+  issues a `session_token` (localStorage, returning-guest) and returns `{display_name, verified,
+  email_attached}` — what the row was actually minted with, never an echo of the request, which is why the
+  door believes `email_attached` over its own form (a verified-required event and a confirmed session both
+  null the field before the insert). The ROUTE owns the refusals:
   422 `verification_required` (the switch is on and nothing was proved), `name_required`, `name_invalid`
   (over 60, a reserved name, or profanity, which is checked server-side because the obscenity matcher
-  must never ship to a browser). ★ **The DB deliberately still accepts a NAMELESS mint** — wave 0's
+  must never ship to a browser), `email_invalid`. ★ **The DB deliberately still accepts a NAMELESS mint** — wave 0's
   expand migration had to keep production minting for the hours before this code existed — **so the name
   requirement is the route's and nothing else's.**
+- **Attaching an address afterwards:** `POST /api/guests/email {qr_token, session_token, email | null}`
+  over `set_guest_pending_email`, answering `{email_attached}` and never the address. Two callers: the
+  door's held-session path (a pre-reshape row, renamed first) and the guest menu's Add your email. An
+  explicit `null` DETACHES, which is the arm the dashboard's "Not mine" rides.
 - ★ **VERIFIED MEANS `guests.verified_at`, NEVER A `user_id`.** An unconfirmed sign-up carries a real
   `user.id` and keeps its typed name, so `user !== null` is not the test: the route reads
   `user.email_confirmed_at`, and `create_guest` stamps `verified_at` from `auth.users` itself. The ONE
@@ -648,8 +686,16 @@ shared-device-bleed fix).
 ★ **A THIRD STATE, for the commonest person at a name-only party** (the identity reshape, 2026-09-21):
 signed out WITH a stored name, the header wears
 [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the stranger's CTA —
-the name, "Name not verified" (read from the mark, so the two cannot drift), then Confirm your email
-(the `save` wear), Change name, and Sign in (the new `signin` wear). An ACCOUNT always wins the slot: a
+the name, its label (read from the mark, so the two cannot drift), then the email row, Change name, and
+Sign in (the `signin` wear). ★ **AND IT IS THE ONE SURFACE THAT KNOWS ABOUT AN UNCONFIRMED ADDRESS**
+(2026-09-22): it reads the device flag `pr_guest_email_attached_<qr>` — never an address, since none is
+stored — and draws two states. Name only → "Unverified" under the name and **Add your email**
+([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx): one field, the door's own
+promise line, Save over `attachGuestEmail`, and "Confirm it now instead" handing to the code door).
+Address attached → "Email not confirmed" and **Confirm your email** (the `save` wear, its field EMPTY
+because nothing kept the address, and its description saying so: "Enter the email you added and we will
+send a code."). No Remove row this round; the detach arm exists on the RPC for the dashboard's "Not
+mine". An ACCOUNT always wins the slot: a
 signed-in visitor's menu is the truer answer to "who am I here" and their credit is not marked at all.
 **No Sign out row**, because there is no session to end: the capability is a token in this browser's
 storage, and clearing it would orphan the photographs this device can still remove. ★ Change name cannot

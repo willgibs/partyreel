@@ -33,13 +33,14 @@ vi.mock("@/lib/supabase/client", () => ({
   }),
 }));
 
-function mount(count: number) {
+function mount(count: number, hintEmail?: string | null) {
   return render(
     <SaveAccountPrompt
       eventId="evt-1"
       qrToken="tok-1"
       sessionToken="sess-1"
       count={count}
+      hintEmail={hintEmail}
     />,
   );
 }
@@ -85,6 +86,28 @@ describe("SaveAccountPrompt", () => {
 
     const second = mount(3);
     expect(second.container).toBeEmptyDOMElement();
+  });
+
+  /* ★ THE ADDRESS TYPED AT THE DOOR ARRIVES IN THE FIELD (2026-09-22), which
+     is the one thing the optional field buys a guest before they confirm: the
+     offer card is often minutes after the door, and typing the same address
+     twice in one visit is the friction the field was meant to remove. The
+     card's own words are unchanged, which is the point — the offer is the
+     same, one tap cheaper. */
+  it("opens its door on the address typed at the door", async () => {
+    mount(3, "priya@example.com");
+    fireEvent.click(screen.getByRole("button", { name: /confirm your email/i }));
+    const field = await screen.findByPlaceholderText(/you@/i);
+    await waitFor(() =>
+      expect((field as HTMLInputElement).value).toBe("priya@example.com"),
+    );
+  });
+
+  it("opens on an empty field for a guest who skipped it", async () => {
+    mount(3);
+    fireEvent.click(screen.getByRole("button", { name: /confirm your email/i }));
+    const field = await screen.findByPlaceholderText(/you@/i);
+    expect((field as HTMLInputElement).value).toBe("");
   });
 
   it("marks the door's opening, so a redirect sign-in lands the same beat", async () => {

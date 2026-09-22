@@ -109,6 +109,10 @@ describe("the CSRF surface does not move", () => {
   const ROOT = process.cwd();
   const WRITE_ROUTES = [
     "src/app/api/guests/name/route.ts",
+    // The optional address's own route (2026-09-22): it heals the cookie on the
+    // way out exactly as the name route does, and takes its identity from the
+    // BODY token alone, which is the property this list exists to hold.
+    "src/app/api/guests/email/route.ts",
     "src/app/api/guests/mine/route.ts",
     "src/app/api/guests/remove/route.ts",
     "src/app/api/r2/presign-upload/route.ts",

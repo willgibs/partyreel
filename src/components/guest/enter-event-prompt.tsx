@@ -74,8 +74,11 @@ export function EnterEventPrompt({
           (one tap). The words now live in the door's own wear table, so the
           gate and its component cannot drift; the eyebrow, the title's real
           count and the password path are unchanged. His larger question,
-          whether confirmation should be skipped for a verified-email badge, is
-          the queued `guest-verify` exploration, NOT this line. */}
+          whether confirmation should be skipped for a verified-email badge,
+          became `guest-verify` and then the identity reshape, whose ruling of
+          2026-09-22 RE-RULED this very sentence (the ask first, the safety as
+          its reason, "tap" his word). That is exactly why the table below is
+          the only place it can be changed and this comment is not a copy. */}
       <p className="mx-auto mt-2 max-w-xs text-base leading-relaxed text-muted-foreground">
         {DOOR_WEAR.gate.reason}
       </p>

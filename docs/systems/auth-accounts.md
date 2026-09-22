@@ -93,6 +93,14 @@ trigger creates one `profiles` row per signup.
   the password (via `verify_current_password`) or a fresh email OTP itself, because a server action is a public
   endpoint and the attack re-verification exists to stop is a borrowed session. The address a code is sent to
   and verified against is read from the caller's own row, never from the request.
+- ★ **AN ADDRESS TYPED AT THE GUEST DOOR IS INERT, AND THE NO-ORACLE RULE STANDS** (Will, 2026-09-22, "guest
+  identity: name only, unconfirmed email, verified account"). The names-mode door takes an OPTIONAL address
+  into `guests.pending_email`: it proves nothing, signs nobody in, is never shown to the host or to another
+  guest, is never mailed on its own, and never reaches this system's `auth.users` at all. It is accepted
+  whether or not it belongs to a member — refusing it, or diverting to a sign-in because it is known, would
+  make the door an account-enumeration oracle, which is exactly what the "never say it before a verify"
+  gotcha below forbids everywhere else. The one path from unconfirmed to confirmed is the claim, run from the
+  caller's OWN confirmed address (→ [guest-flow.md](guest-flow.md)).
 
 ## Gotchas (why it's like this — don't revert)
 

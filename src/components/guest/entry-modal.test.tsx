@@ -422,12 +422,162 @@ describe("the name step", () => {
       sessionToken: "sess-new",
       displayName: "Priya",
       source: "step",
+      emailAttached: false,
+      email: null,
     });
+  });
+
+  /* ────────────────────────────────────────────────────────────────────────
+     THE OPTIONAL ADDRESS (Will, 2026-09-22). The pins are rules, not a look:
+     the field exists in names mode and nowhere else; it is genuinely optional;
+     a typed address rides the SAME post as the name; and what the door believes
+     afterwards is the ROW's answer, never the form's.
+     ──────────────────────────────────────────────────────────────────────── */
+  it("offers the address as optional, unfocused, under the name", () => {
+    seeWelcome();
+    renderModal();
+    const field = screen.getByLabelText("Email (optional)");
+    expect(field).toHaveAttribute("type", "email");
+    // The name keeps the focus: the keyboard is up for the question actually
+    // being asked, and an autofocused optional field would read as required.
+    expect(field).not.toHaveFocus();
+    expect(screen.getByLabelText("Your name")).toHaveFocus();
+    expect(
+      screen.getByText(
+        "Come back to this album anytime, with every photo you add.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("is skippable: Continue with an empty field sends no `email` key at all", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        session_token: "s",
+        display_name: "Priya",
+      }),
+    } as Response);
+    seeWelcome();
+    const onNamed = vi.fn();
+    renderModal({ onNamed });
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() => expect(onNamed).toHaveBeenCalled());
+    expect(
+      JSON.parse(
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+      ),
+    ).toEqual({ qr_token: QR, display_name: "Priya" });
+  });
+
+  it("carries a typed address in the SAME post, and hands the flag up", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        session_token: "sess-new",
+        display_name: "Priya",
+        email_attached: true,
+      }),
+    } as Response);
+    seeWelcome();
+    const onNamed = vi.fn();
+    renderModal({ onNamed });
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.change(screen.getByLabelText("Email (optional)"), {
+      target: { value: "Priya@Example.com " },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() => expect(onNamed).toHaveBeenCalled());
+    expect(vi.mocked(global.fetch).mock.calls).toHaveLength(1);
+    expect(
+      JSON.parse(
+        (vi.mocked(global.fetch).mock.calls[0][1] as RequestInit).body as string,
+      ),
+    ).toMatchObject({
+      qr_token: QR,
+      display_name: "Priya",
+      email: "priya@example.com",
+    });
+    expect(onNamed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailAttached: true,
+        email: "priya@example.com",
+      }),
+    );
+  });
+
+  it("refuses a junk address IN PLACE, under its own field, before anything is sent", async () => {
+    seeWelcome();
+    renderModal();
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.change(screen.getByLabelText("Email (optional)"), {
+      target: { value: "priya@@example" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() =>
+      expect(screen.getByText("Check that email address.")).toBeInTheDocument(),
+    );
+    expect(global.fetch).not.toHaveBeenCalled();
+    // The name's own hint is untouched: each refusal sits under its question.
+    expect(
+      screen.getByText("Just a name. Nobody has to prove a name."),
+    ).toBeInTheDocument();
+  });
+
+  // The row is the truth: a verified-required event and a confirmed session
+  // both null the field before the insert, so a door that trusted its own form
+  // would light the guest's menu up about an address no row carries.
+  it("believes the ROW's email_attached, never the form's memory", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        session_token: "s",
+        display_name: "Priya",
+      }),
+    } as Response);
+    seeWelcome();
+    const onNamed = vi.fn();
+    renderModal({ onNamed });
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.change(screen.getByLabelText("Email (optional)"), {
+      target: { value: "priya@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() => expect(onNamed).toHaveBeenCalled());
+    expect(onNamed).toHaveBeenCalledWith(
+      expect.objectContaining({ emailAttached: false, email: null }),
+    );
+  });
+
+  it("says 'the host', whoever the host is (Will, 2026-09-22)", () => {
+    seeWelcome();
+    renderModal({ hostName: "Will Gibson" });
+    expect(
+      screen.getAllByText(
+        "Your name goes on the photos you add, so the host knows who to thank.",
+      )[0],
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Will Gibson knows who to thank/)).toBeNull();
   });
 
   it("HOLD mode POSTs nothing: the join would refuse it before the code lands", async () => {
     seeWelcome();
     renderModal({ access: "teaser", gate: "account" });
+    // ★ AND IT ASKS FOR NO ADDRESS HERE. The very next step asks for one and
+    // PROVES it, so an unproven one a moment earlier would be the same question
+    // asked twice and meant less by.
+    expect(screen.queryByLabelText("Email (optional)")).toBeNull();
     fireEvent.change(screen.getByLabelText("Your name"), {
       target: { value: "Priya" },
     });
@@ -438,6 +588,8 @@ describe("the name step", () => {
     expect(localStorage.getItem("pr_guest_name_last")).toBe("Priya");
     // ...and never the per-event key: no row exists to be named yet.
     expect(localStorage.getItem(`pr_guest_name_${QR}`)).toBeNull();
+    // ...and never the email flag either: nothing was attached to anything.
+    expect(localStorage.getItem(`pr_guest_email_attached_${QR}`)).toBeNull();
   });
 
   it("the email step says whose name wins once a name is held", async () => {
@@ -459,6 +611,8 @@ describe("the name step", () => {
     seeWelcome();
     const onNamed = vi.fn();
     renderModal({ isVerified: true, hasProfileName: false, onNamed });
+    // No field: a confirmed account already has the only address that counts.
+    expect(screen.queryByLabelText("Email (optional)")).toBeNull();
     expect(
       screen.getAllByText(
         "Your name goes on the photos you add. It becomes your Partyreel name too.",
