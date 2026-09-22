@@ -103,6 +103,10 @@ const RULED = [
   "app-pricing",
   "first-event",
   "guest-upload",
+  // Not a board: Will's own project, ruled in chat (rulings.md "the reel,
+  // reconceived", 2026-09-22), the first chat ruling to badge standing asks
+  // rather than reshape them, because the boards it reaches are his to walk next.
+  "reel-round",
 ];
 /** One line, readable at a glance on the way past a question. */
 const LINE_CAP = 160;
