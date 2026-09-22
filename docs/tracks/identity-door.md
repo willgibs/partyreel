@@ -1,6 +1,6 @@
 ---
 track: identity-door
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "50c03129"          # the launch-prep SHA the branch was cut from
 board: identity-door   # a new board: the identity flows, the door sheet with an email
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -179,18 +179,73 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Handoff (replaces the chat report)
 
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `6cf2c90a` (the board, its four parts files and the three registrations); sync-merge commit `7c6d3345`
+  (`origin/launch-prep`, which had moved: the name-gate merge, the reel round's reconception and retirement of
+  `reel-studio`, and the sibling `identity-profile` board landing first); pushed. Both are stable commits on
+  `lp/identity-door`; this line names them rather than this manifest's own commit, per the boot brief.
+- Every claim below names its artifact (a commit hash, a log line, a file path), so the Orchestrator checks rather
+  than believes; a claim with no artifact is read as unverified.
+- Gates on the synced tree (all re-run after the sync-merge, each its own exit code): `pnpm design:rules` ok (16
+  standing boards, 1237 contracts on 163 components, regenerated `docs/design/library.md` and
+  `rules.generated.json`); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` ok (140 specimens on 101
+  entries, unchanged); `pnpm typecheck` ok; `pnpm lint` ok (9 known warnings, none in a file this lane touched, exit
+  0); `pnpm test` ok (338 files, 3692 passed, 1 skipped); `pnpm build` ok (257 static pages, exit 0). `pnpm lab:smoke
+  --base http://localhost:3134` ok (434 checks, 0 failing; `identity-door` reads 304 words against the 1200 budget).
+  `pnpm lab:demo --board identity-door --base http://localhost:3134` ok (5 steps, 0 failing, every option pair
+  differing by 14.67% to 67.69% of pixels, no UNPAINTED, no layout findings).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/design/library.md` (generated),
+  `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/touchpoints.ts` (the registration exception, own lines only, resolved against a same-spot
+  collision with `identity-profile`'s own head-of-list registration by keeping both, per the coordinator's own
+  word that the Orchestrator reorders at the merge), and the five files under
+  `src/app/(dev)/design/sandbox/identity-door/`. Nothing else; no record doc touched.
+- The items, one line each:
+  - `field`: recommended **ghost** (a quiet line, "Add an email to come back anytime", that opens the real field on
+    tap; interactive in the lab, real local state) over `shown` (both fields always open, as shipped) and `step` (a
+    second sheet screen with a back-chevron and "Skip for now"). A kept one becomes the Library's door name step.
+  - `nudge`: recommended **underfield** (a quiet centred link under the fields, "Already on Partyreel? Sign in and
+    your photos go with it") over `welcome` (the same sentence as a third row on the real WelcomeStep, quoted
+    verbatim from `entry-modal.tsx`) and `none` (nothing new; a small honest chip notes the menu already carries
+    Sign in). A kept one becomes the Library's door name step or welcome step.
+  - `gate`: recommended **list** (the ruled sentence unchanged, plus two guest benefits as a short list, "Save the
+    event to your profile" / "Come back anytime, with every photo you add") over `line` (as shipped) and `eyebrow`
+    (the host's name replaces "Almost in"). A kept one becomes the Library's verified-gate step.
+  - `menu`: recommended **rows** (the label and action rows, as shipped) over `card` (a card explaining the state
+    with one action) and `sheet` (a single "Your photos" row opening a bigger sheet). A kept one becomes the
+    Library's guest account menu.
+  - `remove`: recommended **quiet-link** (a quiet "Remove this email instead" inside the confirm door, mirroring
+    the shipped Add-email dialog's own idiom) over `menu-row` (a persistent row) and `nowhere` (as shipped, no
+    control until confirmed). A kept one becomes the Library's confirm-email dialog.
+- Calls his to overrule on the alias, one line each:
+  - Every recommendation above is his to overrule; this is a catalog, not a wiring lane.
+  - `gate`'s `eyebrow` option runs against his own 2026-09-21 ruling against naming a host in a header (long-name
+    layout safety, `rulings.md` "the door's first look"); kept in the catalog because the brief asked for it by
+    name, with the tension written into that ask's `overrule` line rather than dropped silently.
+  - The `gate` and `remove` asks imagine Maya's own wedding with Require verified emails on and with an email
+    already typed, respectively, rather than a second fictional event; both stay inside guest-capture's own world
+    (Priya, Maya and Jay, 14 June) on the brief's own instruction to share it.
+- The help articles this lane makes stale: none (a lab catalog wires nothing; no shipped surface or help article
+  changed).
+- Assets requested from Will: none (the board reuses the twelve stock `MARKETING_IMAGES` stills, bible 18).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- A defect found and fixed in the same change, not carried to the wiring stage since nothing here ships: a number
+  immediately followed by literal text split across a JSX line break can lose the space between them under this
+  build's compiler (confirmed by reading the rendered DOM through an isolated headless Chrome, not by eye: "48
+  photos" rendered as "48photos"). Fixed in `parts.tsx`'s `GateBody` heading and `scene.tsx`'s `EventGround` stats
+  line by combining each into one template-literal string, matching the real shipped precedent in
+  `enter-event-prompt.tsx`. Worth a wider grep across the app for the same pattern, flagged here rather than
+  chased platform-wide from a lab lane.
+- Look at first: the `field` and `nudge` asks together (the ghost-line reveal is a real interactive control worth
+  pressing by hand); the `gate` list's two benefit lines for tone; the `menu` sheet option's slightly crowded
+  "opens" affordance between its two panels, a rough edge worth a second pass only if that option is the one kept.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (<date>). The door sheet's redesign catalog: five asks over Priya at Maya and
+Jay's wedding, one step earlier in her walk than `guest-capture` finds her (where the optional email sits against
+her name, where a member's sign-in path lives, the verified gate's benefit framing, the guest menu's shape, and
+where undoing an email lives), every "as shipped" option quoting real shipped copy and every other option inert,
+quoted markup on no session and no network. Registered after `guest-capture` in `DESK_ORDER` per the manifest, its
+head-of-list registration combined cleanly with sibling `identity-profile`'s own. A JSX whitespace defect (a number
+beside text losing its space across a line break) found and fixed in passing, worth a platform-wide grep later. The
+board waits on the desk for his verdicts; a kept option lands in the Library as the door's working version.
