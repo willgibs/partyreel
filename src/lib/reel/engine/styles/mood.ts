@@ -16,6 +16,7 @@
 // NOT yet ported (report + graceful skip; no MOOD needs them — they belong to the treatment/lab
 // slices): lightleak/flares/colorwash overlays and the confetti/bokeh/sparkle particle fields.
 
+import { FPS } from "../constants";
 import { fitClip } from "../framing";
 import type { PlannedClip } from "../layout";
 import type { ReelProps, ReelTheme } from "../reel-types";
@@ -53,9 +54,22 @@ function paintClipLayer(
   const sig = theme.signature ?? {};
   const asset = assets.clips[clip.index] ?? null;
 
-  // Posterless/failed media: a solid theme-background hold (the timeline still reflects curation),
-  // exactly like Reel.tsx's ClipLayer empty-url branch.
-  if (!clip.url || !asset) {
+  // MOTION VIDEO (the reel round, 2026-09-22). A video clip may carry a live window whose ring the
+  // range-window reader fills OUTSIDE this draw; the newest decoded frame at or before the clip's
+  // LOCAL time wins over the poster. null — videos off, over budget, undecodable, not landed yet,
+  // and every photo — falls straight back to the poster, which is what drew here before this lane.
+  // frameAt is SYNCHRONOUS by contract (reel-types.ts's ★ note): this draw must never await.
+  const motion =
+    clip.type === "video" && clip.video
+      ? clip.video.frameAt(localFrame / FPS)
+      : null;
+  // The motion frame is read where the poster would be; a posterless video (empty url, so no asset
+  // at all) still draws its motion, and only a clip with neither holds.
+  const media = motion ?? (clip.url ? asset : null);
+
+  // Posterless/failed media with nothing decoded: a solid theme-background hold (the timeline still
+  // reflects curation), exactly like Reel.tsx's ClipLayer empty-url branch.
+  if (!media) {
     ctx.fillStyle = theme.background;
     ctx.fillRect(0, 0, W, H);
     return;
@@ -85,7 +99,10 @@ function paintClipLayer(
       ctx.fillRect(0, 0, W, H);
     }
     if (theme.backdrop === "blur") {
-      if (asset.wash) {
+      // The wash is built from the POSTER and stays the backdrop while motion plays on top: a
+      // per-frame blur of a decoded frame would be a blur inside the frame loop, which is exactly
+      // what assets.ts exists to prevent.
+      if (asset?.wash) {
         // The Noir/Float negative space: a cover draw of the clip's own pre-blurred wash, darkened
         // (CSS: `${grade} brightness(0.55) blur(46px)` + scale(1.1); the wash IS the blur).
         ctx.save();
@@ -120,10 +137,12 @@ function paintClipLayer(
   ctx.rotate((mv.rotate * Math.PI) / 180);
   ctx.scale(mv.scale, mv.scale);
 
+  // The drawn media's own pixel size (the poster's, or the decoded frame's — the decode is
+  // aspect-preserving, so a handover mid-clip never shifts the framing).
   const rect =
     fit === "cover"
-      ? coverRect(asset.width, asset.height, bw, bh)
-      : containRect(asset.width, asset.height, bw, bh);
+      ? coverRect(media.width, media.height, bw, bh)
+      : containRect(media.width, media.height, bw, bh);
 
   ctx.save();
   if (env.filterOk) {
@@ -138,7 +157,7 @@ function paintClipLayer(
     ctx.shadowOffsetY = 14;
   }
   ctx.drawImage(
-    asset.image,
+    media.image,
     -bw / 2 + rect.x,
     -bh / 2 + rect.y,
     rect.w,
@@ -149,7 +168,7 @@ function paintClipLayer(
   // Halation (Film/Noir): the pre-built bright-pass halo rides the SAME motion transform + fit rect
   // as the media, screen-blended at the signature opacity (clip-media's halation Img; photos only).
   if (sig.halation && clip.type === "photo") {
-    if (asset.halo) {
+    if (asset?.halo) {
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       ctx.globalAlpha = sig.halation;

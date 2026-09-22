@@ -4,16 +4,20 @@
 // flat-out during encode; any per-frame decode or blur would dominate the frame budget and wreck the
 // spike's proven encode ratios. The frame loop only ever does scaled draws of what this module built.
 //
-// v1 scope note: the engine renders STILLS (photos + video posters). A video clip's url is ALWAYS its
-// poster still (build-reel-props resolves it there), so everything here is an image; real video decode is
-// the later Pro-trim slice. An EMPTY url (a posterless video) loads as null and draws as the theme-color
-// hold. A FAILED load also becomes null + a failure count: graceful hold, never a crash.
+// A video clip's url is ALWAYS its POSTER still (build-reel-props resolves it there), so everything
+// this module decodes is an image. An EMPTY url (a posterless video) loads as null and draws as the
+// theme-color hold; a FAILED load also becomes null + a failure count: graceful hold, never a crash.
+//
+// MOTION arrives separately (the reel round, 2026-09-22): a clip may carry a `video` source whose
+// frames a range-window reader decodes OUTSIDE this module (src/lib/reel/engine/video/), and the
+// renderer prefers a frame when the ring has one. The poster stays the thing that draws first and
+// the thing that covers every fallback, so nothing here changes for a reel without motion.
 //
 // CORS: canvas readback (the encode) requires CORS-clean pixels. R2 presigned GETs and same-origin
 // fixtures are fine; a tainting source (e.g. picsum in the old lab) would throw at encode time, which
 // is why the parity harness feeds local /design fixtures.
 
-import type { ReelClip } from "./reel-types";
+import type { ReelClip, ReelVideoSource } from "./reel-types";
 import {
   buildHalo,
   buildWash,
@@ -32,6 +36,17 @@ export type ClipAsset = {
   wash: HTMLCanvasElement | null;
   /** The pre-built halation halo: grade + bright-pass + blur, PHOTOS only (only when haloFilter set). */
   halo: HTMLCanvasElement | null;
+  /**
+   * The clip's live motion source, mirrored from the clip (the reel round, 2026-09-22), so a style
+   * reaches it the way it reaches a wash or a halo. THE POSTER IS STILL FIRST: `image` is the
+   * poster, and a style draws it whenever `frameAt` answers null (videos off, over budget,
+   * undecodable, not landed yet), which is most passes.
+   *
+   * mood.ts deliberately reads `clip.video` instead of this: a POSTERLESS video (an empty url) has
+   * no ClipAsset at all — the loader can only build one around a decoded image — and its motion
+   * must still draw. Both point at the same object; the CLIP is the source of truth.
+   */
+  video: ReelVideoSource | null;
 };
 
 export type ReelAssets = {
@@ -134,7 +149,14 @@ export async function loadReelAssets(
       try {
         const image = await promise;
         const { w, h } = sourceSize(image);
-        return { image, width: w, height: h, wash: null, halo: null };
+        return {
+          image,
+          width: w,
+          height: h,
+          wash: null,
+          halo: null,
+          video: clip.video ?? null,
+        };
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") throw err;
         failures += 1;
