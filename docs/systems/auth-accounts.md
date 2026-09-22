@@ -217,8 +217,15 @@ trigger creates one `profiles` row per signup.
   ONLY write path is `updateDisplayNameAction` (getUser → `displayNameSchema` (min 1 / max 60 / reserved-name)
   → `containsProfanity` (`obscenity`, tuned word-boundary so real names like Anushka/Shitij aren't blocked) →
   ADMIN-client write); the `authenticated` UPDATE grant on the column was revoked so a public name can't be set
-  unfiltered. A null/invalid name gates `/dashboard` (+ `/dashboard/new`) and the guest upload to the name step;
-  `/account` is exempt so it can be set there. The "Hosted by" byline + uploader attribution render it.
+  unfiltered. A null/invalid name gates the guest upload to the name step, and — since Will's ruling of
+  2026-09-22 ("I wanted to ensure an account without a name wasn't moving around the app as a normal
+  user. Name always required, even if one character."; rulings.md "the morning after the identity
+  round") — **every `(app)` route but `/welcome`**: `requireNamedProfile()` in
+  [`(app)/name-gate.ts`](../../src/app/(app)/name-gate.ts), called once each from
+  [`dashboard/layout.tsx`](../../src/app/(app)/dashboard/layout.tsx) (the root, `/new`, and every
+  `/dashboard/[eventId]/*` room) and [`account/layout.tsx`](../../src/app/(app)/account/layout.tsx). A
+  nameless account moves nowhere in the app but `/welcome`, which is now the ONLY place a name can be
+  set — `/account` is no longer exempt. The "Hosted by" byline + uploader attribution render it.
 
 - **A GoTrue ban invalidates a LIVE token, not just the next sign-in** (measured 2026-09-02). Setting
   `ban_duration` via `auth.admin.updateUserById` makes sign-in fail ("User is banned"), refresh fail, AND an

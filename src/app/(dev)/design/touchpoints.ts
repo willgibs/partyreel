@@ -120,7 +120,6 @@ export type SandboxId =
   | "admin-triage"
   | "media-viewer"
   | "emails"
-  | "reel-studio"
   | "help-center"
   | "host-curation"
   | "press-page"
@@ -1011,9 +1010,9 @@ export const RULINGS: Ruling[] = [
     title: "The highlight reel",
     surface: "host",
     ruled:
-      "open (Will, 2026-09-19: the app and the guest pages are unprotected, to be reconceived from the foundation)",
+      "2026-09-22, retired UNREVIEWED at round one: Will reconceived the reel whole in chat (rulings.md \"the reel, reconceived\": a live, looping montage of the visible album, a cut anyone makes on-device, no stored file, no Studio, no publish), so the room these eight questions were about no longer exists; `door` and `guests` reshape into `reel-front`, `room`, `styles`, `moments`, `blocked` and `wait` into `reel-cut`, `sharing` removed as valueless; the sandbox folder stays as `reel-cut`'s source until that board hands off, git keeps it after",
     shipped: null,
-    why: "Round one asks the product's North Star from the foundation: the door into the studio, the room at a laptop, and what a guest finally meets.",
+    why: "Round one asked the North Star from the foundation (the door, the room, what a guest meets); the reel round replaced the product it asked about.",
     lives: [
       "docs/systems/host-app.md",
       "docs/systems/guest-flow.md",
@@ -1022,16 +1021,6 @@ export const RULINGS: Ruling[] = [
       "src/components/reel/studio-moments-picker.tsx",
       "src/components/guest/guest-reel-card.tsx",
     ],
-    board: {
-      note: "Eight decisions on local replicas of the studio with fixtures, at 1440 by 900 with 375 on the knob, every reel frame drawn by the real engine: the door in, the room at a laptop, where fourteen looks live, where moments are picked, what a blocked tile says, how unsharing is answered, what the export's minute looks like, and how a guest meets the reel",
-      variants: [
-        "The door",
-        "The room",
-        "The looks",
-        "The moments",
-        "How a guest watches",
-      ],
-    },
   },
   {
     id: "help-center",
@@ -1617,7 +1606,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "media-viewer",
   "guest-capture",
   "host-curation",
-  "reel-studio",
   "export-flow",
   "admin-triage",
   "help-center",

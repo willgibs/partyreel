@@ -8,7 +8,6 @@ import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
 import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
-import { ReelStudioBoard } from "@/app/(dev)/design/sandbox/reel-studio/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
 
@@ -46,7 +45,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "admin-triage": { Component: AdminTriageBoard },
   "media-viewer": { Component: MediaViewerBoard },
   emails: { Component: EmailsBoard },
-  "reel-studio": { Component: ReelStudioBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },
 

@@ -49,7 +49,8 @@ anything left unclaimed at Finish (marked `Not mine`, or simply untouched) is re
 confirmation, since that is the guest saying those uploads were not theirs
 ([`claims-actions.ts`](../../src/app/(app)/dashboard/claims-actions.ts) calling
 `claim_guest_rows_by_email` / `disown_guest_rows_by_email`). A nameless profile never meets it: the
-`/dashboard` guard above redirects there first, and `/welcome` (below, "First-time host welcome")
+name gate on the whole `/dashboard` tree (`requireNamedProfile()` in `dashboard/layout.tsx`, name-gate,
+2026-09-22 — auth-accounts.md) redirects there first, and `/welcome` (below, "First-time host welcome")
 prefills the name field from the most recent claimable row's typed name when the profile has none.
 Deliberately plain (one identity-flows board redesigns the ticket, the notification and the pointers
 once the round's foundation is whole).

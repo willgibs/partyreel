@@ -174,6 +174,47 @@ export type Outcome = "open" | "stood" | "overrode";
  * backdrop moved under them.
  */
 export const OVERTAKEN: Readonly<Record<string, OvertakenNote>> = {
+  /* ── the reel round (Will, 2026-09-22, in chat; rulings.md "the reel,
+     reconceived"): the reel is a live montage of the visible album, a cut is a
+     file anyone makes and shares from a device, the venue screen is
+     first-class, and a video plays muted in the loop. Five standing asks are
+     read against it; none is redrawn. The pass declares its own handle. ── */
+  "media-viewer.link": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "a cut leaves the album as a file anyone shares",
+    line: "stands: the cut settles the privacy call the overrule line waited on, so a file is no longer the unsafe default; the query link still keeps a photo in the loop.",
+  },
+  "media-viewer.video": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "a video plays muted in the live reel's loop, behind an Include videos toggle",
+    line: "stands: the reel plays a video's window muted by design; a clip opened in the viewer is the guest's own act, so the badge still says what an unplayed clip is.",
+  },
+  "media-viewer.wayout": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "a tap in the reel opens the viewer at that item",
+    line: "stands: the way out has a second home now, the reel that opened it; whichever gesture wins must return there, and none of the drawn ways is contradicted.",
+  },
+  "host-curation.arrivals": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "the live reel splices an arrival within seconds and the wall says just added",
+    line: "stands: the wall's beat is the room's and the queue's arrival lands under a held selection; a prompt that folds in still beats a moving queue.",
+  },
+  "host-curation.count": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "the venue screen tells the host how many are waiting and the room nothing",
+    line: "stands: a fourth surface says the count, the wall to the host alone, which argues harder for three that agree and lead to the queue.",
+  },
+  "press-page.the-facts": {
+    by: "reel-round",
+    since: "reel-round r1, 22 Sep",
+    ruling: "Partyreel has a slideshow mode now: the live reel and the screen",
+    line: "concedes: the not-a-slideshow-product line is retold by the reel sweep whichever shape the sheet takes; the ask is about checkability.",
+  },
   /* ── app-shape ───────────────────────────────────────────────────────── */
   // Round one's eight asks (home, density, event, nav, share, settings, you,
   // phone) are ruled and gone from the board (`home-states`, 2026-09-20, the
