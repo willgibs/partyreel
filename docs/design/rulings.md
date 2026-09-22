@@ -8,6 +8,18 @@
 > track. Rendered in the Library at `/design/library/rulings`; until 2026-09-15 these lived only in
 > the Orchestrator's memory files, invisible to agents in worktrees.
 
+## 2026-09-21 · the door's first look: Continue on the revisited welcome, the host unnamed in the ON line, the demo always fresh
+
+**Will, on his phone, after testing both disposable events on the alias at `27ff8a9e` (23:46 EDT):** "Really great work. I tested both events you named and they performed exactly as expected. Most of your calls were great, a couple overrides:"
+
+- "When returning back to the welcome screen from the second page, the button should not change to saying 'Back'. This makes it sound like you're not on the first page, and there's another page to go back to. Everyone is super comfortable with a 'back/continue' working the same as 'prev/next'. Don't make back bidirectional. Keep 'Continue' for users to resume forward navigation clearly."
+- "Instead of naming the host in the 'XYZ has asked...", let's simply say 'The host has asked...' to account for long host names breaking good design."
+- "When the demo runs, it should treat each visit as a fresh visit, even if it's returning. That way every demo is end-to-end."
+
+**His question, open (the Orchestrator's recommendation went back in the reply of 23:46 EDT):** "should we include the email step as optional in the 'verified not required' welcome flow? This helps us capture some guest emails that we otherwise wouldn't have for an unverified account state rather than name only. Send them a follow up email to view the event as a deferred task for later when we focus on emails, same as anyone going through a require verified accounts event."
+
+**Became.** The revisited welcome's primary reads "Continue" from every step it is revisited from, the password step's included; the chevrons on the later steps keep "Back to the welcome" and "Back to your name". The upload step's ON line reads "The host has asked everyone to add a photo before the album opens."; the name step's lede still names the host, with "the host" as its fallback, his to overrule. The demo reads and writes none of the door's flags, so every visit is the role welcome, then the upload step with "Look around", end to end. All three ride `door-fixes` (Sonnet, :3135) as added items with its owns extended. The optional email at the door waits on his ruling.
+
 ## 2026-09-21 · the door as three steps: the name before the album, the first upload asked, Require an upload to view
 
 Will, at the desk after the identity red-team's report (about 19:50 EDT): three points, one addition a minute later, three answers at the plan's questions (about 19:55 EDT), and his review request at approval. Verbatim:
