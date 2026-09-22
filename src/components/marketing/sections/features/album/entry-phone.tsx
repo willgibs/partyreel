@@ -118,11 +118,11 @@ function Welcome() {
           Everyone&rsquo;s shots land in one album. 18 are already inside.
         </p>
       </div>
+      {/* ★ THE GHOST ROW IS GONE (Will, 2026-09-21, "the door as three steps": "No exit").
+          Continue is the only way on out of the welcome now. `ENTRY_SCREENS` still counts three
+          screens: what changed is what this one offers, not how many there are. */}
       <span className="mt-auto flex h-8 items-center justify-center rounded-md bg-primary text-xs font-medium text-primary-foreground">
         Continue
-      </span>
-      <span className="mt-1 flex h-6 items-center justify-center text-[11px] text-muted-foreground">
-        Just browsing
       </span>
     </div>
   );

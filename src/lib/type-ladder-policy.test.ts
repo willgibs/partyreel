@@ -274,8 +274,8 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
   // ── depicted: type drawn inside a picture ──
   "src/components/marketing/sections/how-it-works/guest-pictures.tsx": {
     kind: "depicted",
-    count: 18,
-    why: "the guest's six steps drawn as pictures: a phone's chrome, a sheet, a sign, an album tile, each sized by its own drawing",
+    count: 22,
+    why: "the guest's six steps drawn as pictures: a phone's chrome, a sheet, a sign, an album tile, each sized by its own drawing (22 since the door round of 2026-09-21 drew the name and the upload beside the welcome)",
   },
   "src/components/marketing/sections/how-it-works/host-pictures.tsx": {
     kind: "depicted",
@@ -284,8 +284,8 @@ const BODY_EXCEPTIONS: Record<string, BodyException> = {
   },
   "src/components/marketing/sections/features/album/entry-phone.tsx": {
     kind: "depicted",
-    count: 6,
-    why: "the guest entry sheet and the album, drawn inside a phone at reduced scale (the heading table excuses its headings for the same reason)",
+    count: 5,
+    why: "the guest entry sheet and the album, drawn inside a phone at reduced scale (the heading table excuses its headings for the same reason) (5 since the door round of 2026-09-21 dropped the welcome's ghost row)",
   },
   "src/components/marketing/sections/events/event-artifacts.tsx": {
     kind: "depicted",
