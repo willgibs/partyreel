@@ -1,6 +1,6 @@
 ---
 track: reel-host
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off     # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0abb6459"          # the launch-prep SHA the branch was cut from
 board: reel-host       # a new board: the reel round, the host's side
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -169,7 +169,7 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+- Read whole, the manifest's own DECIDED bullet ("the style default lives on the event row and the switch beside the guest list switch") could be misread as predetermining the `switch` ask's `guestlist` option. It does not: cross-checked against the approved plan's "Calls the Orchestrator makes" section, that sentence names a SCHEMA fact (`show_reel` gets the same host-writable column grant as `show_guest_list`, "beside" it in the grant list, section A of the plan), never a UI-placement ruling. The Lane 87 brief's own ASKS list offers `guestlist` as one of three genuine options, which is how this board built it (recommended, not decided). Taken on my own reading; his to overrule if he reads the DECIDED bullet the other way.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
@@ -177,22 +177,27 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Reel bucket: the eight mood swatches in `reel-host`'s Style card (`parts-settings.tsx`'s `MOOD_SWATCH`) are decorative placeholder gradients, never the real per-mood grade; a follow-up could derive them from `engine/themes.ts`'s actual grade values once a board owns that fidelity.
 
 ## Handoff (replaces the chat report)
 
-- STATE (checkpoint, 2026-09-22): the board is built whole (spec.ts's six asks, fixtures.ts, scene.tsx, five parts-*.tsx files, board.tsx) and registered (registry.ts, boards.ts, touchpoints.ts's RulingId/SandboxId/RULINGS/DESK_ORDER, all after `export-flow` per this manifest's own instruction). `pnpm design:rules`, the specimen collector, typecheck, lint (9 known) and test (3784 passing) were all green; `pnpm build` was green (258 pages); `pnpm lab:smoke` passed whole (450 checks). `pnpm lab:demo --board reel-host` passed (6 steps, 0 failing) but flagged two "same picture" pairs; investigating live in the browser found a real bug (`SheetGround` and `ReelView` used `min-h-full`/`absolute` against an ancestor that never hands down a real height inside the frame's own document, collapsing both to a sliver) and it is FIXED in `scene.tsx`, `parts-reel-view.tsx` and `board.tsx`'s `StyleShortcutAndSheet` (pixels now, never percentages), confirmed by eye on the `switch` ask. NEXT: re-run the full gate from typecheck through `pnpm lab:demo` on the fixed tree, re-verify every scene by eye at 1440 and 375 with reduced motion, then hand off per this template (gates, lane check, the six items, calls his to overrule, deferred lines). No production byte touched; nothing here needs Will yet.
-- Head <sha>, pushed; synced with launch-prep at <sha> (or: it had not moved)
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `19d926f8` (the catalog whole, gate green pre-sync: "fix(reel-host): the cut mark leads the grid, so it actually reads as a mark"), pushed; synced with `launch-prep` by MERGE (never rebase) at `6b06223b` ("Merge remote-tracking branch 'origin/launch-prep' into lp/reel-host"), pushed. `launch-prep` had moved since the cut: `reel-view`, `reel-screen`, `reel-engine-live` and `reel-cut` all landed; conflicts in `boards.ts`, `registry.ts` and `touchpoints.ts` were both sides' registration lines inserted near their own named neighbour (mine after `export-flow`, theirs after `media-viewer`), resolved by keeping both; `docs/design/library.md` conflicted and was regenerated with `pnpm design:rules` rather than hand-resolved, per instruction.
+- Every claim below names its artifact, so the Orchestrator checks rather than believes.
+- Gates on the synced tree (port 3135, killed by port before build and before this handoff): `pnpm design:rules` ok; the specimen collector ok; `pnpm typecheck` ok (exit 0); `pnpm lint` ok (exit 0, 9 known warnings, none in a file this lane touched); `pnpm test` ok (exit 0, 350 files, 3867 passing, 1 skipped); `pnpm build` ok (exit 0, 259 pages); `pnpm lab:smoke --base http://localhost:3135` ok (478 checks, 0 failing, whole tree); `pnpm lab:demo --board reel-host --base http://localhost:3135` ok (6 steps, 0 failing, every option pictured, no "same picture" warnings, stages moving 6.31% to 99.89% pair to pair).
+- A live bug found and fixed on this pass, worth a system-wide note for the next board that reaches for a full-bleed or absolutely-positioned overlay inside a lab frame: this frame's own document never cascades a real height down to a percentage-based `min-h-full`, so an `absolute`-positioned child of one collapses to a sliver (measured live: 0px). `SheetGround` (scene.tsx) and `ReelView` (parts-reel-view.tsx) both hit this and both are fixed, to `fixed` positioning (viewport-relative) for a standalone full-bleed scene, and to explicit pixel heights read off `SCREENS[screen].h` (never a CSS percentage) for `board.tsx`'s `StyleShortcutAndSheet` composite, which needs a cropped, not full-bleed, pane. Confirmed by eye in the browser (screenshots taken, DOM rects measured via `javascript_tool`) on the `switch`, `style` and `cut` asks before and after.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the ten files under owned `src/app/(dev)/design/sandbox/reel-host/`, this manifest, and four exceptions: `src/app/(dev)/design/(shell)/lab/boards.ts`, `src/app/(dev)/design/sandbox/registry.ts` and `src/app/(dev)/design/touchpoints.ts` (the registration exception, this board's own lines only, placed after `export-flow` per this lane's own instruction, never at the head); `docs/design/library.md` (regenerated by `pnpm design:rules`, required after any `touchpoints.ts` change, CLAUDE.md's own command).
+- The six items, one line each (a catalog for his review, not yet ruled; each names this board's recommendation):
+  - `style`: recommends `sheet` (a new Reel card in Settings, eight mood swatches) over `view` (a control in the reel's own chrome) or `both` (the sheet home, the view a shortcut).
+  - `switch`: recommends `guestlist` (a third row beside "Show the guest list", same card) over `first` (its own card, head of the sheet) or `inview` (the host's own toggle inside the reel).
+  - `screen`: recommends `hub` (a fifth door in the cards row, beside Review/Reel/Guests/Settings) over `view` (a control inside the reel) or `share` (a third block in the share sheet).
+  - `pulse`: recommends `cover` (the event card's own cover crossfades through the album, no words) over `live` (a line naming the count) or `threshold` (the same line, but only past three items).
+  - `cut`: recommends `confirm` (one small sheet before it lands, naming the storage cost) over `marked` (a small badge, no confirm) or `plain` (no mark, no confirm).
+  - `review`: recommends `viewsays` (a quiet line in the reel's own chrome, linking to Review) over `roomsays` (one sentence added to Review's header) or `nothing`.
+- Calls his to overrule: the six recommendations above are his to pick from, not settled; plus the one Question above (the DECIDED bullet's "beside the guest list switch" read as schema, not UI placement, so `switch` stayed a genuine three-way ask).
+- The help articles this lane makes stale: none (a lab board changes no shipped behaviour).
+- Assets requested from Will: none (every still is the shared fourteen-image bootstrap set; the mood swatches are CSS gradients, not images).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Look at first: `pulse.cover` (the event card's cover playing is the most novel picture on this board) and `style.both` (the composite stacks the reel view's shortcut above the settings sheet's full picker in one frame, worth a slow look since it is answering "both" as a picture rather than a claim).
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
