@@ -45,7 +45,7 @@ Library's demo mounts.
 `ClaimHandlePrompt` owns the post-upload slot, ONE card at a time, once a guest has contributed and never
 in the demo: signed out → the offer card, counting what just landed; **just confirmed** →
 [`follow-moment-card.tsx`](../../src/components/guest/follow-moment-card.tsx) (what they now hold, the host
-to follow, "Claim your handle" as its second line; a nameless profile takes the name typed here); signed in
+to follow, "Claim a handle and your name becomes a page." with a Claim button as its second line; a nameless profile takes the name typed here); signed in
 without a handle → the handle card; with one → nothing. ★ **"Just confirmed" is a MARKER, not a guess**:
 `SaveAccountPrompt` writes `pr_pending_offer_<qr_token>` when the door OPENS (like `pr_pending_save_`:
 after a magic-link or Google redirect no code of ours is running), and the slot consumes and deletes it on
@@ -60,8 +60,10 @@ stub.
 Invite ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)), Report
 ([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)), the add and failure sheets, and the
 DOOR from 640 up (its phone half stays vaul-backed). "Download all" (`ExportDialog`) and Save
-(`SaveEventButton`), shared with host surfaces, are still centred Dialogs. ⚠ Report holds the one FIELD,
-unproven with a focused input on a real iPhone: if the keyboard covers the textarea, the fix is the Sheet's
+(`SaveEventButton`), shared with host surfaces, and the header menu's Add your email
+([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)) are still centred Dialogs. ⚠ Report
+and Add your email hold the guest's only overlay FIELDS outside the door, unproven with a focused input on a real
+iPhone: if the keyboard covers the textarea, the fix is the Sheet's
 phone half becoming vaul-backed for every consumer, never a per-dialog exception.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
@@ -368,7 +370,7 @@ through flags in the sheet. No step counter to desync.
 - **The page calls `getUser()` for every non-private, non-demo event**, because the gates must know whether
   the viewer holds a confirmed session. With NO session it's a cheap LOCAL null (no network), so an
   anonymous crowd behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check
-  (`isEventOwner`, an explicit `host_id = uid` match, NOT reliant on the open-event RLS read) runs ONLY when
+  (`isEventOwner`, an explicit `host_id = uid` match) runs ONLY when
   signed in. The header island resolves its own auth with a LOCAL `getSession()`.
 - **The upload slot is `full`-only** (a `teaser`/`none` viewer is still at the door, which owns every step
   in front of them). At `full`, the upload panel while `accepting_uploads`, else the view-only line. A
@@ -376,8 +378,8 @@ through flags in the sheet. No step counter to desync.
   mode), never in the album. At `teaser` the slot is the gallery + the "See all N photos & videos" button,
   which re-asserts the door; at `none`, the locked river (name and count only).
 - **A guest's OWN-photograph removal is never a client claim, and never a client list.** The two RPCs decide
-  ownership inside themselves (`auth.uid()`, or the session token matched against the media's own guest row)
-  and the "mine" list that decides whether the control APPEARS is a server read on both paths. Three things
+  ownership inside themselves (`auth.uid()`, or the session token matched against the media's own guest row,
+  which must belong to the media's own event, on an event that is not deleted) and the "mine" list that decides whether the control APPEARS is a server read on both paths. Three things
   that must stay true: `anon` never gets EXECUTE on `remove_my_upload_by_session` (service-role only, reached
   through `/api/guests/remove` behind the join limiter); a session token never travels in a URL; and a guest
   row with `user_id` set is untouchable by the session path, so a shared phone's stale token can never delete
@@ -389,8 +391,10 @@ through flags in the sheet. No step counter to desync.
 **`events.require_verified_email`**, ON by default: on, a guest confirms an email before the full album and
 any upload; off, a guest types a display name at the door and uploads under it with the unverified mark.
 `allow_anonymous_uploads` survives only as the compatibility twin the `events_sync_verified_email_flags`
-trigger holds exactly opposite (→ [database-security.md](database-security.md)); nothing new reads it, and
-only nameless legacy rows still read as "A guest".
+trigger holds exactly opposite (→ [database-security.md](database-security.md)). No new code keys on it, but
+`get_public_profile`'s anonymous-viewer clause still reads it and `get_event_by_qr_token` still returns it
+(→ [profiles-social.md](profiles-social.md)), so dropping it re-points that clause. Only nameless legacy rows
+still read as "A guest".
 
 ★ **THREE LEVELS OF TRUST, AND A ROW IS AT EXACTLY ONE.**
 
@@ -404,6 +408,11 @@ only nameless legacy rows still read as "A guest".
    (→ [auth-accounts.md](auth-accounts.md)). Once confirmed, the address claims its rows from the
    dashboard's claim ticket; what it leaves unclaimed is removed (→ [host-app.md](host-app.md)).
 3. **A confirmed account**, the only identity that uploads as itself.
+
+One gap is accepted. On a names-mode event anyone can type any name and any unproven address. An unconfirmed
+address is inert (never shown to the host, never attributed, never mailed), so a false one borrows nobody's
+identity; a host facing a risky crowd turns on a password, Require verified emails or moderation, and an
+address's owner disowns what was not theirs at Finish.
 
 The address is ONE optional field under the name, in `join` mode only: "Email (optional)", the benefit line
 "Come back to this album anytime, with every photo you add.", unfocused and never prefilled (the name's
@@ -426,8 +435,8 @@ the ONLY mode with the address field: rename a held row first, else mint under t
 answer 422, so nothing is sent; the name is validated locally, kept in the sheet's state and written only
 to `pr_guest_name_last`, never the per-event key, which would claim a row that does not exist; no address
 field, since the next step asks for one and PROVES it) and `profile` (a confirmed account with no profile
-name writes the PROFILE's; the album has no inline name panel, and the shared `SetNameStep` is mounted only
-by the Library's demo). No unique name is claimed at the door.
+name writes the PROFILE's; the album has no inline name panel, and the shared `SetNameStep` serves the host's
+`/welcome` and the Library's demo). No unique name is claimed at the door.
 
 ★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S.** `EnterEventPrompt.onVerified` is a plain
 callback and `entry-modal.tsx` owns the sequence, because the door holds a name never sent anywhere and the
@@ -489,7 +498,8 @@ the field before they confirm.
 - **The named unverified are LISTED, with the mark:** `getEventGuestList(id, {includeUnverified: true})`
   appends them after the profile cards, one entry per guest row (without an account there is nothing to
   de-duplicate by, so two people who both typed "Sam" are two entries), and the union splits before
-  hydration in [`social/cards.ts`](../../src/lib/social/cards.ts) because they have no avatar to resolve.
+  hydration because they have no avatar to resolve (the guest album with its own two filters, the Guests room
+  through `splitGuestList` in [`social/cards.ts`](../../src/lib/social/cards.ts)).
   The host hub keeps the default and its narrow list.
 - **Claiming anonymous uploads on sign-in:** an anonymous upload is a `guests` row with `user_id IS NULL`
   whose `session_token` the browser still holds (`pr_session_{qr_token}`). On sign-in,
