@@ -1,6 +1,6 @@
 ---
 track: reel-cut
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0abb6459"          # the launch-prep SHA the branch was cut from
 board: reel-cut        # a new board: the reel round, the creator
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -171,38 +171,112 @@ time on this machine; your dev server on your own port, killed by port before a 
 
 ## Questions (what the goal leaves open; a recommended answer each; the Orchestrator relays them and quotes the answer back)
 
-- none yet
+Three calls the goal left open. Each is TAKEN and built on, and each is drawn on the board itself as a
+carried call (`spec.ts`'s `carried`), so Will meets them above the sections rather than a page away.
+
+- **`world`: whose cut is on the board, and on what kind of event?** TAKEN: Priya's, the guest
+  `media-viewer` and `guest-capture` already draw at Maya and Jay's wedding, on a PAID event, so
+  "Add to the album" exists at the finish; `mark` asks its own question on a free one and says so.
+  If he overrules: a host-first board would be drawn from the hub and the pool would start
+  hidden-aware, which changes `entry` and `blocked` and nothing else.
+- **`settings`: do orientation, cover and length still get controls?** TAKEN: yes, the shipped tray
+  of five (Moments, Style, Cover, Length, Layout), drawn on every room but never asked, because
+  "curated randomness, never a timeline" is ruled and nothing here edits a clip. If he overrules:
+  name the chip that goes and the tray loses it.
+- **`fills`: what are the three fills called?** TAKEN: "The reel's picks", "Only mine", "Everything"
+  as placeholders. The SETS are real and measured (8, 5 and 23 of the album's 26); the words are a
+  copy round's and any of the three can be renamed without moving a pixel.
 
 ## System-doc edits (in place, owned facts only; the Orchestrator reads each by eye)
 
-- none yet
+- none. A lab-only lane owns no system fact; `docs/systems/reel.md` is born at the round's record and
+  `host-app.md`'s "Reel curation, the live composer, and the .mp4 export" is the wiring round's to
+  rewrite, not this one's.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab workflow: `defineExploration` could take a `tile` hint per ask that also drives the stage's own
+  width, so a board whose one question is "at a laptop and in a hand" does not have to hand-roll a
+  two-frame scene (`scene.tsx`'s `TwoScreens` is the third board to build one of these).
 
 ## Handoff (replaces the chat report)
 
-- **STATE (checkpoint, 2026-09-22):** the board is BUILT, COMMITTED and SYNCED. The board commit is
-  `254b4ae4`, the sync merge with `origin/launch-prep` is `9a6b6def`; the full gate is green on the
-  merged tree (design:rules, specimens, typecheck, lint 9 known, test 345 files / 3784, build 258
-  pages) and `pnpm lab:smoke --base http://localhost:3134` is 471 checks / 0 failing. WHAT IS LEFT:
-  re-run `pnpm lab:demo --board reel-cut --base http://localhost:3134` on the synced tree (it was
-  green pre-sync: 9 steps, 0 failing, every option drawn), then fill the lines below, set
-  `status: handed-off`, commit this file alone and push. The dev server runs on port 3134 and must be
-  killed by port before any build or test run.
-- Head <sha>, pushed; synced with launch-prep at `9a6b6def`
-- Every claim below (a retirement, a migration, a gate, a fix) names its artifact (a commit hash, a log line, a file path), so
-  the Orchestrator checks rather than believes; a claim with no artifact is read as unverified.
-- Gates on the synced tree: design:rules ok, specimens ok, typecheck ok, lint ok (8 known), test ok (N), build ok (M pages); `pnpm lab:smoke` ok; `pnpm lab:demo --board <board>` ok (a board)
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each: `<id>: <the builder's verdict>; a kept one becomes <the Library entry it lands as>`
-- Calls his to overrule on the alias, one line each
-- The help articles this lane makes stale, one line each (a `help-sync` lane rewrites them)
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Look at first: ...
+- Board commit `254b4ae4`; sync merge with `origin/launch-prep` (which had moved 19 commits, the two
+  sibling reel boards among them) `9a6b6def`. Pushed on `lp/reel-cut`.
+- Gates on the SYNCED tree, each on its own exit code: `pnpm design:rules` ok (228 components, 1916
+  contracts, 18 policies) · specimen collector ok (140 specimens on 101 entries) · `pnpm typecheck`
+  ok · `pnpm lint` ok (0 errors, 9 known warnings, none in a file this lane touched) · `pnpm test` ok
+  (345 files, 3784 passed, 1 skipped) · `pnpm build` ok (258 pages) · `pnpm lab:smoke --base
+  http://localhost:3134` ok (471 checks, 0 failing; `reel-cut` reads 730 words against the 1200
+  budget) · `pnpm lab:demo --board reel-cut --base http://localhost:3134` ok (9 steps, 0 failing,
+  "Every step draws its options"; tallest `room` at 2.6 screens, wordiest `mark` at 275 words).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/reel-cut/`
+  (seven files) + this manifest + the three registration files (`sandbox/registry.ts`,
+  `(shell)/lab/boards.ts`, `design/touchpoints.ts`, my own lines only) + ONE exception:
+  `docs/design/library.md`, which is GENERATED by the gate's own `pnpm design:rules` from my board's
+  registration row and is pinned fresh by `rules-registry.test.ts` ("library.md is stale"), so it
+  cannot be left out. Its only delta against `launch-prep` is the standing-board count (19 to 20) and
+  my board's row. Four lanes touching that count line is exactly the collision the head-of-list rule
+  was changed for: at the merge, take either side and re-run `pnpm design:rules` rather than
+  hand-resolving. My own sync merge resolved it that way.
+- The items, one line each (nine asks, twenty-seven options, every one drawn by construction):
+  - `entry`: how "Make your own" opens from the reel. Recommended `room` (a place of its own the cut
+    slides into), because a cut has fourteen looks against the reel's eight and its own clip list,
+    orientation and length, so a sheet over the view puts two Style controls two inches apart.
+  - `room`: the creator at both sizes, drawn at 1440 AND 375 in one step. Recommended `bench` (the
+    open panel beside the cut at a laptop, today's room in a hand): the capture measures the panel
+    covering 0 percent of the cut on the bench against a real number on the other two.
+  - `looks`: how fourteen are offered. Recommended `wall`, and the board's own reason is visible:
+    every tile is HER clips drawn by the engine, so the wall does not need the cut behind it.
+  - `moments`: the local pick with three fills. Recommended `pool` (a band under the cut, never over
+    it). The fill knob is live, so the same option can be read at 8, 5 and 23 moments.
+  - `blocked`: the hidden tile only the host meets. Recommended `caption` (the tile says it itself),
+    since a tooltip answers a pointer and never a thumb.
+  - `wait`: the export's minute, each option carrying what a backgrounded tab and a lost context do.
+    Recommended `stack` (the frame stacks and counts the moments down).
+  - `finish`: Recommended `share` (Share leads, the rest beneath), with the plan knob so the screen
+    can be read with and without "Add to the album".
+  - `mark`: Recommended `line`. All three draw the REAL free mark, stamped by the engine's dispatch
+    layer exactly where the file will carry it; what varies is what the room says about it.
+  - `noencode`: Recommended `line` (one honest sentence where the button was).
+  - A kept option lands in the Library as the creator's working version at the wiring round, not as
+    another exploration (his standing rule); the board retires at that wiring.
+- Calls his to overrule, one line each: the three carried calls above (`world` the paid event and
+  Priya as the maker, `settings` the shipped tray of five drawn but not asked, `fills` the three
+  placeholder words). Two smaller ones inside the board's own craft: the export verb reads "Make it"
+  (the Studio's word was "Download", which no longer describes what happens), and the mark's line
+  reads "Free cuts carry the small mark and run to 30 seconds. Pro removes both."
+- The help articles this lane makes stale: none. Nothing here wires a production byte; the reel's
+  six help articles are the sweep lane's, already listed in the round's plan.
+- Assets requested from Will: none. Every frame is the engine over the twelve bootstrap stills the
+  rest of the lab already reuses.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Findings worth keeping (each already fixed here, each a rule for the next board over this world):
+  1. A full-width panel must cap its content. The shipped sheet only ever stood over a 360 px room,
+     so at 1440 it drew a four column wall at 350 px a tile and three of fourteen fitted; `room.tsx`
+     now holds a 560 px reading column inside any sheet or foot band.
+  2. A tooltip cannot live inside the tile that clips its own photograph. `blocked=tooltip` first
+     drew nothing at all; the clip is an inner box now and the tooltip its sibling, and the two
+     hidden fixtures were moved off column zero so a centred tooltip is not halved by the frame edge.
+  3. A quiet door loses its icon and a type step, or three of them (one the five-word "Add to the
+     album") want 374 px of the 343 a phone has.
+  All three were caught by `--save-shots` captures, not by eye.
+- Not mine, seen and worth saying: every lab route logs `TypeError: window.__reelLive is not a
+  function` in the browser console, on `identity-door` as much as on this board. Nothing in the repo
+  defines or calls `__reelLive` (`git grep` is empty), so it arrives from the browser environment.
+- Look at first: `/design/lab/reel-cut`, step `room` with the sidebar collapsed: the bench at 1440
+  is the board's strongest frame (the cut large on the left, all fourteen engine-drawn looks standing
+  beside it). Then `mark`, where the engine's own "partyreel.com" stamp sits in the frame exactly
+  where the file will carry it, and `wait`, where the cut's frame stacks and counts down.
 
 ## Record (one paragraph, past tense, at most eight lines; the Orchestrator fills the merge SHA)
 
-Merged into `launch-prep` at `<sha>` (<date>). ...
+Merged into `launch-prep` at `<sha>` (2026-09-22). `reel-cut` opened the creator to the lab as wave 2
+of the reel round: nine decisions on what a guest meets after tapping "Make your own", drawn over the
+album `media-viewer` already uses, with Priya as the maker and the host appearing once, at the hidden
+tile no cut can take. The retired `reel-studio` board's room, looks, moments, blocked tile and wait
+were reshaped for a cut rather than a stored reel (no publish lamp, no Share as the room's act, the
+pool the reel-eligible album), and three new questions were added that only the new concept has: the
+finish screen's doors, the free mark drawn where it exports, and a device with no encoder. Every reel
+frame is `drawReelFrame` over the fixture clips in one pass of eighteen draws, the free mark
+included; nothing on the board presigns, encodes or writes a row.
