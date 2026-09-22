@@ -11,6 +11,13 @@
  * publish the event's name/date + every uploader's attendance to fully
  * anonymous viewers via the anon RPC (the parity-review catch, 2026-07-08).
  *
+ * ★ Since the guest identity round (2026-09-22, migration 20260922122000) that arm is an OPT-IN:
+ * `profile_shown_events` replaced `profile_hidden_events`, so a profile publishes NO attended event
+ * until its owner turns it on (Will: "we don't simply start adding all of their uploads there
+ * publicly until they decide what goes up"), and a `verified_at` belt means only a PROVED identity
+ * attends in public — a typed name or a typed, unproved address publishes nothing even when its
+ * event is chosen. Both are pinned below; reverting either re-publishes by default.
+ *
  * The HOSTED arm deliberately has NO visibility gate: display_in_profile is the
  * host publishing their OWN event link (link-in-bio; discovery decoupled from
  * access), and a gated event still hits its lock at /e/. Don't "fix" that arm.
@@ -58,6 +65,15 @@ function functionBody(): string {
   return latest!;
 }
 
+/**
+ * The same SQL with its `--` line comments stripped. A comment may legitimately NAME the thing it
+ * replaced (the attended arm's own comment says which table it stopped reading), so a "must not
+ * contain" assertion has to read CODE, not prose, or it fails on its own documentation.
+ */
+function code(sql: string): string {
+  return sql.replace(/--[^\n]*/g, "");
+}
+
 function arm(body: string, name: "hosted_events" | "attended_events"): string {
   const start = body.indexOf(`'${name}'`);
   expect(start).toBeGreaterThan(-1);
@@ -81,13 +97,28 @@ describe("get_public_profile consent scope (migration SQL)", () => {
     );
     expect(attended).toContain("e.visibility = 'open'");
     expect(attended).toContain("e.deleted_at is null");
-    expect(attended).toContain("profile_hidden_events");
     expect(attended).toContain("m.status = 'approved'");
   });
 
+  it("publishes NOTHING until chosen: the opt-in table, never the opt-out one", () => {
+    // The inversion (2026-09-22). `profile_hidden_events` is not dropped — the deployed build still
+    // writes it — so a careless re-point back to it would compile, apply and silently republish
+    // every attended event by default. That is what this pair of assertions exists to stop.
+    expect(code(attended)).toContain("public.profile_shown_events");
+    expect(code(attended)).not.toContain("profile_hidden_events");
+  });
+
+  it("only a PROVED identity attends in public (the verified belt)", () => {
+    // Level 1 (a typed name) and level 2 (a typed, unproved address) are not identities anyone has
+    // confirmed, so an impersonator's uploads can never surface under someone else's profile.
+    expect(attended.replace(/\s+/g, " ")).toContain(
+      "g.verified_at is not null",
+    );
+  });
+
   it("the attended arm never hands out the album capability link", () => {
-    expect(attended).not.toContain("qr_token");
-    expect(attended).not.toContain("custom_slug");
+    expect(code(attended)).not.toContain("qr_token");
+    expect(code(attended)).not.toContain("custom_slug");
   });
 
   it("the hosted arm stays UNgated on visibility (host consent; the lock gates at /e/)", () => {
