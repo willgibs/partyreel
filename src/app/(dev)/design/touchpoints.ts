@@ -28,6 +28,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 };
 
 export type RulingId =
+  | "identity-door"
   | "identity-claims"
   | "identity-profile"
   | "guest-capture"
@@ -113,6 +114,7 @@ export type RulingId =
 
 /** The boards standing in sandbox/ (each has `board` set below). */
 export type SandboxId =
+  | "identity-door"
   | "identity-claims"
   | "identity-profile"
   | "guest-capture"
@@ -148,6 +150,34 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
+  {
+    id: "identity-door",
+    title: "Asking for an email at the door",
+    surface: "guest",
+    ruled:
+      "open (Will, 2026-09-22, rulings.md \"the morning after the identity round\" and \"guest identity\": \"We'll do a lot of lab work later to redesign here\" and \"I'd like to run most of this through the lab once our foundation is complete.\")",
+    shipped: null,
+    why: "The identity foundation (the email, the trust levels, the gate, the menu) is live; this board is its redesign catalog, never a gate on the shipped door.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/components/guest/guest-name-step.tsx",
+      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/guest/guest-name-menu.tsx",
+      "src/components/guest/add-email-dialog.tsx",
+      "src/components/auth/account-door.tsx",
+      "src/components/shared/unverified-mark.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
+      variants: [
+        "The field",
+        "The sign-in nudge",
+        "The gate's framing",
+        "The guest menu",
+        "Removing the email",
+      ],
+    },
+  },
   {
     id: "identity-claims",
     title: "Photos waiting for you",
@@ -1626,13 +1656,17 @@ export const DESK_ORDER: readonly SandboxId[] = [
   // at the merge (`guest-verify` went after `guest-shape` at its merge, `toasts`
   // after `app-vocabulary`: a part under both shapes; `guest-capture` after
   // `media-viewer` at its merge, 2026-09-21: the capture flow lives under the
+  // album's shape). `identity-door` is placed directly (its own manifest's
+  // instruction, not the head exception): right after `guest-capture`, since
+  // it draws the same guest one step earlier in her walk through the door.
+  // `identity-profile` belongs after `identity-claims`, whose id is not
+  // registered yet since that sibling lane has not merged — the Orchestrator
+  // places both siblings in their true order at the merge.
   // album's shape). `identity-claims` registers here 2026-09-22 for the same
   // reason; the Orchestrator places it after `identity-door` at its merge.
-  // album's shape; `identity-profile` belongs after `identity-claims`, whose
-  // id is not registered yet since neither sibling lane has merged — the
-  // Orchestrator places it there at the merge).
   "media-viewer",
   "guest-capture",
+  "identity-door",
   "identity-claims",
   "identity-profile",
   "host-curation",
