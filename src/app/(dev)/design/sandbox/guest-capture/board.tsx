@@ -4,25 +4,23 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { AFTER_FIRST, AFTER_TENTH, ALBUM, MINE, YOURS_ONLY } from "./fixtures";
 import {
-  DashboardLanding,
+  AFTER_FIRST,
+  AFTER_TENTH,
+  ALBUM,
+  MINE,
+  YOURS_ALBUM_COUNT,
+  YOURS_ONLY,
+} from "./fixtures";
+import {
   GuestsSection,
   MomentCard,
   NameStepCard,
+  OfferCaption,
   OfferCard,
-  OfferInline,
   OfferSheet,
-  ProfileLanding,
 } from "./parts";
-import {
-  AlbumStrip,
-  Ground,
-  Header,
-  Scene,
-  screenOf,
-  type ScreenId,
-} from "./scene";
+import { Ground, Header, Scene, screenOf, type ScreenId } from "./scene";
 import { GUEST_CAPTURE } from "./spec";
 
 /**
@@ -30,8 +28,14 @@ import { GUEST_CAPTURE } from "./spec";
  * today's shape everywhere but the one thing its decision asks (`media-viewer`'s
  * own rule, carried here): the `moment` options vary only the trigger and the
  * count it counts; the `shape` options vary only how the ask is built; `follow`
- * varies only where the follow control lives; `landing` varies only which page
- * she is on; `name` varies only what stands where the moment card would be.
+ * varies only where the follow of Maya lives; `name` varies only what stands
+ * where the moment card would be.
+ *
+ * ★ EVERY SCENE IS THE WHOLE PAGE IN ITS REAL ORDER: the post-upload slot in
+ * the words column, the reel's tile at the album's head, the album, and, where
+ * a decision needs it, the Guests list under the album. The follow scenes used
+ * to draw the list straight under the moment card, which made "folded into the
+ * list" look one scroll away when the real list sits under every photograph.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED (the same discipline
  * `media-viewer` and `host-curation` hold every number to): a tile count, a
@@ -71,6 +75,7 @@ function momentScreen(id: "first" | "tenth" | "yours", s: BoardState) {
           header="named"
           action={<OfferCard count={YOURS_ONLY.length} />}
           items={YOURS_ONLY}
+          reelCount={YOURS_ALBUM_COUNT}
           stripHeading={
             <p className="pb-3 text-xs font-medium text-muted-foreground">
               Showing yours &middot; {YOURS_ONLY.length}
@@ -98,16 +103,21 @@ function momentScreen(id: "first" | "tenth" | "yours", s: BoardState) {
   );
 }
 
-/* ── shape: how tall the ask stands, and how far from the tile it is about ─ */
+/* ── shape: how tall the ask stands, and how far down the page it starts ── */
 
 const measureShape: Reader = (root) => {
   const ask = root.querySelector<HTMLElement>("[data-gc-offer]");
   if (!ask) return null;
-  const box = ask.getBoundingClientRect();
+  // The sheet's own wrapper is the whole viewport; its panel is the ask.
+  const panel =
+    ask.dataset.gcOffer === "sheet"
+      ? (ask.lastElementChild as HTMLElement | null)
+      : ask;
+  if (!panel) return null;
+  const box = panel.getBoundingClientRect();
   const shape = ask.dataset.gcOffer;
-  const words = (ask.innerText || "").trim().replace(/\s+/g, " ");
-  const count = words.length;
-  return `Measured: ${shape} ask, ${Math.round(box.height)}px tall, ${count} characters of copy before she can act.`;
+  const words = (panel.innerText || "").trim().replace(/\s+/g, " ");
+  return `Measured: ${shape} ask, ${Math.round(box.height)}px tall, starting ${Math.round(box.top)}px down, ${words.length} characters of copy before she can act.`;
 };
 
 function shapeScreen(id: "card" | "inline" | "sheet-step", s: BoardState) {
@@ -120,15 +130,12 @@ function shapeScreen(id: "card" | "inline" | "sheet-step", s: BoardState) {
         title="The offer's shape"
         measure={measureShape}
       >
-        <div className="min-h-full bg-background text-foreground">
-          <Header state="named" />
-          <div className="mx-auto max-w-[640px] px-4 pt-5">
-            <OfferInline count={1} tileUrl={MINE.url} />
-          </div>
-          <div className="mx-auto max-w-[640px]">
-            <AlbumStrip items={ALBUM.slice(1)} />
-          </div>
-        </div>
+        <Ground
+          header="named"
+          action={null}
+          items={ALBUM}
+          caption={{ id: MINE.id, node: <OfferCaption count={1} /> }}
+        />
       </Scene>
     );
   }
@@ -142,6 +149,9 @@ function shapeScreen(id: "card" | "inline" | "sheet-step", s: BoardState) {
       >
         <div className="min-h-full bg-background text-foreground">
           <Header state="named" />
+          {/* Behind the held door the album's stills sit dimmed, as shipped:
+              whether the moving reel should sit there instead is
+              `reel-front.door`'s question, and its recommendation is this. */}
           <div className="mx-auto max-w-[640px] px-4 pt-5 opacity-40">
             <div
               className={
@@ -177,11 +187,7 @@ function shapeScreen(id: "card" | "inline" | "sheet-step", s: BoardState) {
       title="The offer's shape"
       measure={measureShape}
     >
-      <Ground
-        header="named"
-        action={<OfferCard count={1} />}
-        items={ALBUM.slice(1)}
-      />
+      <Ground header="named" action={<OfferCard count={1} />} items={ALBUM} />
     </Scene>
   );
 }
@@ -203,7 +209,7 @@ const measureFollow: Reader = (root) => {
       : "Measured: no follow control drawn.";
   }
   const dist = Math.round(button.getBoundingClientRect().top - top);
-  return `Measured: the nearest real Follow button sits ${dist}px below the top of the moment card.`;
+  return `Measured: the nearest real Follow of Maya sits ${dist}px below the top of the moment card.`;
 };
 
 function followScreen(id: "card" | "list" | "jump", s: BoardState) {
@@ -215,69 +221,11 @@ function followScreen(id: "card" | "list" | "jump", s: BoardState) {
       title="The follow surface"
       measure={measureFollow}
     >
-      <div className="min-h-full bg-background text-foreground">
-        <Header state="confirmed" />
-        <div className="mx-auto max-w-[640px] px-4 pt-5">
-          <MomentCard count={4} hostFollow={id} />
-        </div>
-        <div className="mx-auto max-w-[640px] px-4 pt-6 pb-8">
-          <GuestsSection hostFirst={id === "list"} />
-        </div>
-      </div>
-    </Scene>
-  );
-}
-
-/* ── landing: which page she is on, said plainly ─────────────────────────── */
-
-const LANDING_CAPTION: Record<"album" | "profile" | "dashboard", string> = {
-  album:
-    "The album, exactly as she left it: the moment card in the offer's old slot, her own photographs still below it.",
-  profile: "/u/priya: a fresh page, one event on it already, marked Guest.",
-  dashboard:
-    "/dashboard, signed in: the app's own chrome, this event among what she has saved.",
-};
-
-function landingScreen(id: "album" | "profile" | "dashboard", s: BoardState) {
-  const sc = screen(s);
-  if (id === "profile") {
-    return (
-      <Scene
-        id="landing-profile"
-        screen={sc}
-        title="The landing"
-        caption={LANDING_CAPTION.profile}
-      >
-        <div className="flex min-h-full flex-col bg-background text-foreground">
-          <Header state="confirmed" />
-          <ProfileLanding />
-        </div>
-      </Scene>
-    );
-  }
-  if (id === "dashboard") {
-    return (
-      <Scene
-        id="landing-dashboard"
-        screen={sc}
-        title="The landing"
-        caption={LANDING_CAPTION.dashboard}
-      >
-        <DashboardLanding />
-      </Scene>
-    );
-  }
-  return (
-    <Scene
-      id="landing-album"
-      screen={sc}
-      title="The landing"
-      caption={LANDING_CAPTION.album}
-    >
       <Ground
         header="confirmed"
-        action={<MomentCard count={4} hostFollow="card" />}
+        action={<MomentCard count={4} hostFollow={id} />}
         items={ALBUM}
+        after={<GuestsSection hostFirst={id === "list"} />}
       />
     </Scene>
   );
@@ -290,13 +238,13 @@ const measureName: Reader = (root) => {
   return `Measured: ${fields} field${fields === 1 ? "" : "s"} to fill before she reaches the moment card.`;
 };
 
-function nameScreen(id: "silent" | "confirm" | "together", s: BoardState) {
+function nameScreen(id: "silent" | "confirm", s: BoardState) {
   const sc = screen(s);
   const content =
     id === "silent" ? (
       <MomentCard count={4} hostFollow="card" />
     ) : (
-      <NameStepCard mode={id} />
+      <NameStepCard />
     );
   return (
     <Scene
@@ -325,13 +273,8 @@ const PREVIEWS: PreviewsFor<typeof GUEST_CAPTURE> = {
   "follow.list": (s) => followScreen("list", s),
   "follow.jump": (s) => followScreen("jump", s),
 
-  "landing.album": (s) => landingScreen("album", s),
-  "landing.profile": (s) => landingScreen("profile", s),
-  "landing.dashboard": (s) => landingScreen("dashboard", s),
-
   "name.silent": (s) => nameScreen("silent", s),
   "name.confirm": (s) => nameScreen("confirm", s),
-  "name.together": (s) => nameScreen("together", s),
 };
 
 export function GuestCaptureBoard() {

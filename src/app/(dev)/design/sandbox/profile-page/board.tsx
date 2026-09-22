@@ -4,7 +4,14 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { GUESTS, GUESTS_BIG, PEOPLE, whoOf } from "./fixtures";
+import {
+  GUESTS,
+  GUESTS_BIG,
+  PEOPLE,
+  TAPPED,
+  tappedOf,
+  whoOf,
+} from "./fixtures";
 import {
   arrivedOf,
   QuickLookShowcase,
@@ -27,10 +34,12 @@ import { PROFILE_PAGE } from "./spec";
  * real profile at a real viewport, phone first, with one thing changed.
  *
  * ★ EVERY PREVIEW IS A FUNCTION OF THE BOARD'S STATE, as round one's was: the
- * screen is a knob all three decisions share, `who` picks the profile
- * `quick-look` and `way-back` draw, `count` is `view-all`'s own knob (24 or
- * 240), and `arrived` is `way-back`'s own (a chip tapped on the wedding, or
- * some other way in).
+ * screen is a knob all three decisions share, `count` is `view-all`'s own knob
+ * (24 or 240), `tapped` is `quick-look`'s (a name with a page, a confirmed
+ * account without one, a typed name), `who` picks the page `way-back` draws,
+ * and `arrived` is `way-back`'s own (a chip tapped on the wedding, or some
+ * other way in). Each knob rides its scene's id, so a caption is measured
+ * again the moment the knob moves rather than whenever the frame resizes.
  *
  * ★ NONE OF THE THREE IS STAGED BEHIND ANOTHER. Round one staged four
  * decisions behind `exists` because they were parts of one container; these
@@ -40,6 +49,7 @@ import { PROFILE_PAGE } from "./spec";
 
 const screen = (s: BoardState) => screenOf(s.screen as string);
 const who = (s: BoardState) => PEOPLE[whoOf(s.who as string)];
+const tappedId = (s: BoardState) => tappedOf(s.tapped as string);
 
 /* ── view-all ─────────────────────────────────────────────────────────────── */
 
@@ -47,11 +57,12 @@ function viewAll(
   s: BoardState,
   option: "inline" | "sheet" | "centred" | "page",
 ) {
-  const items = s.count === "small" ? GUESTS : GUESTS_BIG;
+  const small = s.count === "small";
+  const items = small ? GUESTS : GUESTS_BIG;
   if (option === "page") {
     return (
       <Scene
-        id="view-all-page"
+        id={`view-all-page-${small ? "small" : "big"}`}
         screen={screen(s)}
         title="Its own page"
         measure={measureList}
@@ -64,7 +75,7 @@ function viewAll(
   }
   return (
     <Scene
-      id={`view-all-${option}`}
+      id={`view-all-${option}-${small ? "small" : "big"}`}
       screen={screen(s)}
       title="The full list, from the faces row"
       measure={measureList}
@@ -81,7 +92,7 @@ function viewAll(
 function quickLook(s: BoardState, option: "sheet" | "mini-modal" | "none") {
   return (
     <Scene
-      id={`quick-look-${option}`}
+      id={`quick-look-${option}-${tappedId(s)}`}
       screen={screen(s)}
       title="What a name opens first"
       measure={measureCard}
@@ -89,7 +100,7 @@ function quickLook(s: BoardState, option: "sheet" | "mini-modal" | "none") {
       <Ground>
         <QuickLookShowcase
           option={option}
-          person={who(s)}
+          tapped={TAPPED[tappedId(s)]}
           screen={screen(s)}
         />
       </Ground>
@@ -102,7 +113,7 @@ function quickLook(s: BoardState, option: "sheet" | "mini-modal" | "none") {
 function wayBack(s: BoardState, option: "pill" | "menu" | "none") {
   return (
     <Scene
-      id={`way-back-${option}`}
+      id={`way-back-${option}-${whoOf(s.who as string)}`}
       screen={screen(s)}
       title="Back to the scanned event"
       measure={measureBack}

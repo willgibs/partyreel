@@ -2,37 +2,52 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * KEEPING WHAT SHE JUST ADDED, ROUND ONE (2026-09-21).
+ * KEEPING WHAT SHE JUST ADDED, ROUND ONE.
  *
- * A NEW BOARD ON HIS WORD ("the identity reshape", approval verdict,
- * verbatim): "You can wire it now as you recommended, but
- * I'd like to get this in the lab for refinement." The capture flow shipped
- * the round before this one (`verified-email-guest`): a name-only guest who
- * has not confirmed an email adds photographs under a typed name, and the
- * first time she does, a card offers to keep them (`save-account-prompt.tsx`,
- * `claim-handle-prompt.tsx`, `follow-moment-card.tsx`, `unverified-mark.tsx`).
+ * A BOARD ON HIS WORD ("the identity reshape", approval verdict, verbatim):
+ * "You can wire it now as you recommended, but I'd like to get this in the lab
+ * for refinement." The capture flow is live: a name-only guest adds
+ * photographs under a typed name, and once the first lands a card offers to
+ * keep them (`save-account-prompt.tsx`); when she confirms an email the same
+ * slot says what she now holds and offers the host to follow
+ * (`follow-moment-card.tsx`, the slot owned by `claim-handle-prompt.tsx`).
  * Nothing here is a one-way door: the flow is live and this board is its
  * refinement catalog, lab-only, no production byte.
  *
  * ★ ONE GUEST, THE WHOLE BOARD. Every option is Priya, the guest
- * `media-viewer`'s own board already marked unproven on its `who.face` tile,
- * at Maya and Jay's wedding. A reader who has just answered that board meets
- * her again here, on her own side of the mark.
+ * `media-viewer`'s own board already marked Unverified on its `who.face` tile,
+ * at Maya and Jay's wedding, a names-mode party. A reader who has just
+ * answered that board meets her again here, on her own side of the mark.
  *
- * ★ THE ORDER IS HER OWN PATH THROUGH IT: when the ask first reaches her,
- * what it looks like, whom she can follow once she confirms, where she is
- * standing afterward, and what becomes of the name she typed in a hurry. All
- * five are roots — he can take them in any order — because each one holds
- * the other four at today's shape and moves only its own piece.
+ * ★ THE ORDER IS HER OWN PATH THROUGH IT: when the second ask first reaches
+ * her, what it looks like, where she is offered a follow once she confirms,
+ * and what becomes of the name she typed in a hurry. All four are roots — he
+ * can take them in any order — because each one holds the other three at
+ * today's shape and moves only its own piece.
+ *
+ * ★ WHAT THE BOARDS ABOVE IT ASK, THIS ONE DOES NOT. The door's own optional
+ * email and where it sits (`identity-door.field`) are why this offer is the
+ * SECOND ask; how the album points at photographs waiting under her address
+ * (`identity-claims.pointer`), what Finish leaves her looking at
+ * (`identity-claims.after`), when a page is first offered
+ * (`identity-profile.prompt`) and how one is set up, handle included
+ * (`identity-profile.setup`), are theirs. So the landing (album, profile or
+ * dashboard) left this board: a profile is a 404 until a handle exists, and
+ * the dashboard is the destination `identity-claims.pointer` asks how to
+ * point at, with the album as the ground all three identity boards stand on.
+ * The reel's tile at the album's head is `reel-front`'s: drawn here in every
+ * scene, wearing that board's recommendations, and never asked about.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. Whether an event requires a verified
- * email at all is ruled (the identity reshape); a name-only guest existing is
- * the premise this board stands on, not a question inside it. The unverified
- * mark's own material, the album's column rule and the guest header's shell
- * are `guest-shape`/`gallery-width`'s and worn here as law. The claim's
- * mechanics (`claimAnonymousUploads`, the capability session, one email one
- * identity) are unmoved; every option changes only what a screen says and
- * where it says it.
+ * email at all is ruled; a name-only guest existing is the premise this board
+ * stands on, not a question inside it. The Unverified mark's own material,
+ * the album's column rule and the guest header's shell are
+ * `guest-shape`/`gallery-width`'s and worn here as law. The claim's mechanics
+ * (the claim by capability session, the claim by a confirmed address per
+ * event, one email one identity) are unmoved; every option changes only what
+ * a screen says and where it says it. And what confirming keeps is not a
+ * question either: the event and every photograph, in her account; nothing
+ * reaches a profile until she chooses it.
  */
 
 const SCREEN: Control = {
@@ -50,48 +65,48 @@ const DRAFT = defineExploration({
   title: "Keeping what she just added",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-22",
     changed:
-      "New board, cut from the shipped capture flow on his word for its refinement.",
+      "Rechecked against the identity and reel rounds: the offer is the second ask now (the door's optional email comes first), the reel's tile stands at the album's head, the copy promises her account, never a profile, the landing is gone, and the name keeps silent against confirm.",
   },
   context:
-    "Every option is the same guest at the same wedding, Priya at Maya and Jay's (media-viewer's own world), with only the piece being asked moved. The capture flow shipped the round before this one: a name-only guest confirms an email, her photographs and the event land on a fresh profile, and a beat offers a follow. This board asks five things about that beat: when it opens, what it looks like, whom it offers to follow, where she ends up, and what becomes of the name she typed in a hurry.",
+    "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
   bible: [4, 14, 15, 19, 22],
   asks: [
     {
       id: "moment",
       label: "The moment",
       question:
-        "When should the offer to keep what she added first reach Priya?",
+        "The door already offered an optional email. When should the second ask, to keep what she added, first reach Priya?",
       context:
-        'Today it appears the instant a first upload finishes and stays until she acts, counting up as more land. Since the door ruling (2026-09-21) that first upload happens inside the welcome sheet, so "first" is the album opening.',
+        'Today it waits from the moment her first photo lands, in the door\'s sheet, so it meets her as the album opens. She skipped the door\'s optional email (typed, it prefills this door). The reel\'s tile below wears reel-front\'s "Yours is in it".',
       options: [
         {
           id: "first",
           label: "After the first photo, as shipped",
           means:
-            'The instant she has sent anything at all: her first photo already reads "Keep your photo."',
+            'The instant she has sent anything: the card waits as the album opens, a minute after the door\'s own ask, above the reel\'s "Yours is in it".',
         },
         {
           id: "tenth",
           label: "Held until the tenth photo",
           means:
-            'Nothing appears until ten have landed; the same offer arrives heavier, "Keep your 10 photos," once she is invested.',
+            "Nothing until ten have landed, so an email she just skipped is not asked for again straight away; the same card then counts all 10.",
         },
         {
           id: "yours",
           label: "The moment she taps Yours",
           means:
-            "The album's own filter to her own tiles is the trigger: the instant she asks to see what is hers, the offer meets her there.",
+            "The album's own filter to her photographs is the trigger: the ask meets her the instant she asks to see what is hers.",
         },
       ],
       recommended: "first",
       because:
-        "A guest who adds one or two photographs and never returns is the common case; waiting for a tenth or a tap she may never make means the offer never reaches most of the people it exists for.",
+        "The door's ask was about coming back; this is the first with something of hers to keep. A guest who adds one or two photographs and never returns is the common case, so waiting for a tenth, or a tap she may never make, means most never see it.",
       overrule:
-        "If the count does the persuading, ten is a heavier sentence than one, and a guest mid-party has more to add than to lose by waiting.",
+        "If asking again a minute after she skipped the door's field reads as nagging, the tenth photo respects that no and arrives when she has more to lose.",
       lands:
-        "Whether the flow reaches every contributing guest once, or a smaller, more invested slice.",
+        "Whether the second ask reaches every contributing guest once, or a smaller, more invested slice.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -99,34 +114,34 @@ const DRAFT = defineExploration({
       id: "shape",
       label: "The offer's shape",
       question:
-        "Should the ask sit in its own card, ride the photo it is about, or become the sheet's last screen?",
+        "Should the second ask stand in its own card, ride the photograph it is about, or close the door's own sheet?",
       context:
-        "Today it is a bordered card in the album's own slot: a heading, a counting sentence, a button, a quiet dismiss. Since the door ruling (2026-09-21) the sheet she sent from is the welcome sheet; sheet-step names its last screen.",
+        "Today it is a bordered card in the words column, with the reel's tile between it and her photographs (reel-front). The sheet she sent her first photo from is the door's own, which offered the optional email a minute earlier.",
       options: [
         {
           id: "card",
-          label: "A card in the album's slot, as shipped",
+          label: "A card in the words column, as shipped",
           means:
-            "A self-contained card in the words column above the grid, exactly where the offer sits today.",
+            "A self-contained card in the words column, then the reel's tile, then the album: two large objects before her first photograph.",
         },
         {
           id: "inline",
-          label: "A line under her own tile",
+          label: "A line under her own photograph",
           means:
-            "The caption sits directly beside the tile it is about, with nothing built around it.",
+            "The caption sits under the photograph it is about, first in the album, as narrow as its column; the reel's tile keeps the album's head.",
         },
         {
           id: "sheet-step",
-          label: "The upload sheet's last screen",
+          label: "The door sheet's last screen",
           means:
-            "The sheet she just sent from does not close onto the album; its last screen is the ask, on the visit the Moment above names.",
+            "The door does not close onto the album: its last screen is the ask, in the same sheet that offered the optional email a minute earlier.",
         },
       ],
       recommended: "inline",
       because:
-        'The unverified mark already proved a small dot can carry a full explanation on tap; a line under the tile she just added says "this one" without new chrome, the restraint bible 4 already asks of a guest surface.',
+        'A line under the photograph she just added says "this one" without new chrome, the restraint bible 4 asks of a guest surface, and it leaves the album\'s head to the reel\'s tile instead of stacking a second large object above it.',
       overrule:
-        "A caption inside a grid she is scrolling past is easiest of the three to miss; a card is the only shape certain to be seen once.",
+        "A caption in a grid she is scrolling past is the easiest of the three to miss; a card is the only shape certain to be seen once.",
       lands:
         "How much new surface the ask gets, and whether it reads as part of the album or apart from it.",
       tile: "phone",
@@ -136,21 +151,21 @@ const DRAFT = defineExploration({
       id: "follow",
       label: "The follow surface",
       question:
-        "Once she confirms, where should Priya actually be offered a follow, and of whom?",
+        "Once she confirms, where should Priya be offered a follow of Maya, her host: on the moment card, in the Guests list, or on Maya's page?",
       context:
-        "The moment card carries its own row for Maya today, because the host is the one person this page's Guests list does not already name. Drawn here the instant her email confirms, with Tom, Sam and five more already listed below.",
+        "The moment card has its own row for Maya today. The Guests list sits under the whole album, a Follow only on a name with a page: here most are Unverified. The card's other rows are identity-profile.prompt's and identity-claims.pointer's.",
       options: [
         {
           id: "card",
           label: "The moment card's own row, as shipped",
           means:
-            "The card keeps its own host row with its own Follow button, the one follow surface on the page.",
+            "The card keeps its own row for Maya with its own Follow; the Guests list under the album keeps one on each name with a page.",
         },
         {
           id: "list",
           label: "Folded into the Guests list",
           means:
-            "Maya joins the Guests section as its first, marked entry; the card drops its row and points down instead.",
+            "Maya leads the Guests list under the album, marked Host, with a Follow; the card drops its row and points down instead.",
         },
         {
           id: "jump",
@@ -159,50 +174,13 @@ const DRAFT = defineExploration({
             "The card's host line is a link to Maya's own page, where the real Follow button lives, rather than a button here.",
         },
       ],
-      recommended: "list",
+      recommended: "card",
       because:
-        "One follow surface reads as a feature; two is a seam the card and the list will eventually disagree about. Marking the host inside Guests is the move Will already asked for on the profile page.",
+        "Maya is the one follow every guest here can make, and the card is where Priya is certainly looking when she confirms; the Guests list sits under the whole album and, at a names-mode party, is mostly Unverified names with no Follow at all.",
       overrule:
-        "The moment card is the one place she is certainly looking right after she confirms; a row she must scroll to find is one some guests never see.",
+        "If the card needs its room for the pointer or the page invite (identity-claims, identity-profile), folding Maya into the list keeps one follow surface.",
       lands:
         "Whether the album carries one follow surface or two, and whether the host is a card row or a marked list entry.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "landing",
-      label: "The landing",
-      question:
-        "Once everything is confirmed, should Priya still be looking at the album, or somewhere new?",
-      context:
-        "Today nothing moves: the moment card replaces the offer in the same slot and the album stays as it was. Drawn at the instant her email confirms. The door ruling (2026-09-21) leaves this as it is.",
-      options: [
-        {
-          id: "album",
-          label: "The album, as shipped",
-          means:
-            "Nothing moves. The moment card stands where the offer stood; the album is exactly as she left it.",
-        },
-        {
-          id: "profile",
-          label: "Her own new profile",
-          means:
-            "She lands on /u/priya, already carrying this one event as its first card.",
-        },
-        {
-          id: "dashboard",
-          label: "The dashboard's Saved list",
-          means:
-            "She lands in the full app, where this event now sits among Saved.",
-        },
-      ],
-      recommended: "album",
-      because:
-        "Priya came for the party, not for an app; a redirect the second she confirms is the interruption this flow was built to avoid.",
-      overrule:
-        "If confirming should prove something real happened, only a landing that shows the new page or the dashboard does that; staying put asks her to trust it.",
-      lands:
-        "Whether confirming an email is a small unlock inside the party she is at, or the door to the wider product.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -210,36 +188,30 @@ const DRAFT = defineExploration({
       id: "name",
       label: "What the name becomes",
       question:
-        "Should the name Priya typed at the door become her profile silently, or does she get a say?",
+        "When the name Priya typed becomes her account's name, should she get one look at it first?",
       context:
-        "Since the door ruling every guest names themselves at the door. Will's identity ruling (2026-09-22): a typed name lives per event; a confirmed email claims rows per event and names a nameless profile from the claimed row, editable.",
+        "The shipped write is silent: Will's identity ruling names a nameless profile from the claimed row, editable from Account. That name then credits her wherever she adds photos. Her handle is identity-profile.setup's question.",
       options: [
         {
           id: "silent",
-          label: "Silent, as shipped",
+          label: "Silent, as ruled and shipped",
           means:
-            "Named the instant she confirms, from whatever she typed at the door; the handle is asked separately, after.",
+            "Named the instant she confirms, from whatever she typed at the door; she can change it from Account later.",
         },
         {
           id: "confirm",
           label: "A quick confirm step",
           means:
-            '"Is Priya right?", one editable field, stands between confirming and the name being written anywhere.',
-        },
-        {
-          id: "together",
-          label: "Name and handle, together",
-          means:
-            "One small step asks for both at once, replacing the silent write and the separate handle line with a single settled step.",
+            '"Is this right?", one editable field, stands between confirming and the name being written anywhere.',
         },
       ],
-      recommended: "together",
+      recommended: "silent",
       because:
-        "A name typed in the dark at a door is not always the one worth keeping for good, and the handle nudge already exists as a second touch; folding the name into it settles both at no extra cost.",
+        "The name has credited her all evening already and the ruling keeps it editable; asking again at the moment of success is a second question whose answer is almost always the same.",
       overrule:
-        "If the typed name is right often enough that asking again reads as pedantic, the silent take with a handle offered after costs her nothing extra.",
+        'If a name typed for one party (a nickname, "Priya from work") is often wrong everywhere else, one field now is cheaper than an edit she never finds.',
       lands:
-        "Whether a guest's permanent name is ever chosen on purpose, and how many separate asks the handle costs.",
+        "Whether a guest's name at every party after this one is ever chosen on purpose, or carried over from one door.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -249,7 +221,7 @@ const DRAFT = defineExploration({
 /**
  * ONE KNOB PER ID (`media-viewer`'s own finding, still standing): every ask
  * declares the same SCREEN control on its own strip, so the constructor
- * would draw it five times without this dedupe.
+ * would draw it four times without this dedupe.
  */
 export const GUEST_CAPTURE: typeof DRAFT = {
   ...DRAFT,

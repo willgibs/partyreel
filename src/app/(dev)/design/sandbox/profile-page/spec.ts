@@ -46,6 +46,17 @@ import { defineExploration } from "@/components/lab/exploration";
  * `GUESTS_BIG`, a quarter of the thousand Will imagined: every option is read
  * at both, not asserted at one and described at the other.
  *
+ * ★ THE GROUND IS THE IDENTITY MODEL (rechecked 2026-09-22). A guest is a
+ * typed name (Unverified: the plain disc, the mark, no page), a confirmed
+ * account without a handle (no page), or an account with a handle, whose page
+ * shows only the events its owner turned on. The wedding is a names-mode
+ * party, so its list is mostly typed names, drawn after the confirmed ones
+ * exactly as the album lists them. `quick-look` is reshaped for that: most
+ * names have no page, so it asks what a tap on ANY name opens, with a knob of
+ * its own (`tapped`) for the three kinds. What a claimed page with nothing on
+ * it says is `identity-profile.page`'s question, so Noor, who stood for that
+ * page here, left the cast; `way-back` draws Maya's page and Priya's.
+ *
  * ★ THE PRIVACY DOCTRINE STILL BINDS (profiles-social.md), unchanged by any
  * option here: no public counts, the follow graph stays owner-private, and a
  * "way back" is a link to an event the viewer already reached (their own
@@ -82,18 +93,29 @@ const SCREEN: Control = {
   default: "375",
 };
 
-/** Whose page: `quick-look` and `way-back` both draw a profile, and the cast
- *  is round one's (a host, a guest who only attends, somebody with nothing
- *  yet). `view-all` does not use this: it has no profile in it at all. */
+/** Whose page `way-back` draws: a host's, and a guest's who chose what shows.
+ *  A claimed page with nothing on it is `identity-profile.page`'s to say. */
 const WHO: Control = {
   id: "who",
   label: "Whose page",
   options: [
     { id: "maya", label: "Maya, who hosts" },
-    { id: "priya", label: "Priya, who only attends" },
-    { id: "noor", label: "Noor, with nothing yet" },
+    { id: "priya", label: "Priya, who chose two events" },
   ],
   default: "priya",
+};
+
+/** `quick-look`'s own knob: one name of each kind the guest list holds. Nina
+ *  first and by default, because at a names-mode party hers is the commonest. */
+const TAPPED: Control = {
+  id: "tapped",
+  label: "Whose name is tapped",
+  options: [
+    { id: "nina", label: "Nina, a typed name (Unverified)" },
+    { id: "jay", label: "Jay, confirmed, no handle" },
+    { id: "priya", label: "Priya, a page with two events" },
+  ],
+  default: "nina",
 };
 
 /** `view-all`'s own knob: the wedding at round one's ordinary size, and at
@@ -126,12 +148,12 @@ const DRAFT = defineExploration({
   title: "What a person is here",
   round: {
     n: 2,
-    date: "2026-09-21",
+    date: "2026-09-22",
     changed:
-      "view-all reordered around the Sheet's real desk shape (a right-edge panel); modal renamed centred, inline the cheap fourth. quick-look narrowed to the app's two real objects, now recommending the Sheet over the mini-modal. way-back folds in the host crumb, the chrome, the menu's standing row.",
+      "Rechecked against the identity round: the guest list redrawn as it ships (the confirmed first, then each Unverified name, marked, no link) and truly open in every view-all option; quick-look reshaped for names with no page; way-back's reasons restated for a verified-by-default party.",
   },
   context:
-    "Maya hosts, Priya only attends, Noor has nothing yet: round one's cast. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. `view-all` adds a 240-name fixture, a quarter of the thousand Will imagined, so a group's cost is measured rather than described. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
+    "Maya hosts; Priya has a page and chose two events for it; Jay confirmed and never claimed a handle; Nina typed a name: a names-mode wedding, so most of its guest list is Unverified. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. view-all reads the list at 24 and at 240, a quarter of the thousand Will imagined. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
   bible: [1, 4, 12, 15, 21, 22],
   asks: [
     {
@@ -139,7 +161,7 @@ const DRAFT = defineExploration({
       label: "View all",
       question: "How should the full guest list open from the faces row?",
       context:
-        "Round one's faces row is ruled; profile-wiring ships an in-place tap. The sheet is the shipped primitive since (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres at a laptop (app-pricing r1).",
+        "The faces row is ruled; the list opens in place, 24 at a time: the confirmed, then each typed name, marked. The Sheet ships (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres (app-pricing r1).",
       options: [
         {
           id: "sheet",
@@ -179,37 +201,39 @@ const DRAFT = defineExploration({
     {
       id: "quick-look",
       label: "Quick-look",
-      question: "What should a name in the guest list open first?",
+      question:
+        "What should tapping a name in the guest list open first, when most names have no page behind them?",
       context:
-        "Round one ruled a click opens a small look first. Both halves of the old split are ruled, shipped objects now (app-shape r1: the Sheet, a mini-modal for the QR); every guest has a face of their own (seed-avatar r1). Which object is a look?",
+        "Most names at a names-mode party are Unverified, and a confirmed account without a handle has no page either; a page shows only what its owner chose. Today a name without a page opens nothing. An empty page is identity-profile.page's.",
       options: [
         {
           id: "sheet",
-          label: "The one Sheet, both screens",
+          label: "A look in the one Sheet, for every name",
           means:
-            "The face, the name, the line and small covers, plus Open full profile, in the app's own Sheet: a bottom sheet in a hand, a right-edge panel at a desk.",
+            "Any name opens the face, the mark where it is Unverified and what they added to this album; a page adds its events and Open full profile.",
         },
         {
           id: "mini-modal",
-          label: "The mini-modal, both screens",
+          label: "The same look, in the mini-modal",
           means:
-            "The same card, in the small centred dialog the app already opens the QR in: capped, anchored to nothing, closer to a peek than a page.",
+            "The same look in the small centred dialog the app already opens the QR in: capped, anchored to nothing, closer to a peek than a page.",
         },
         {
           id: "none",
-          label: "Straight to the page, no mini",
+          label: "Straight to the page, as shipped",
           means:
-            "The name is a plain link to /u/<slug>. Ten taps down a list is ten full page loads, and ten trips back.",
+            "A name with a page links straight to it (ten taps, ten page loads); every other name opens nothing, which at a names-mode party is most of the list.",
         },
       ],
       recommended: "sheet",
       because:
-        "Both halves are real now (app-shape r1): the Sheet already narrows to a right-edge panel at a desk, never full-width, so it keeps the rest of the names in view without a second component; the mini-modal stays the QR's own idiom.",
+        "A look that opens only for a page leaves most of the list inert; the photographs a guest added here are the one thing every name has, already public on the album, and the Sheet shows them without leaving the list (a right-edge panel at a desk).",
       overrule:
-        "If a look should read as a peek rather than a panel, the mini-modal is the closer cousin: the same small, centred, capped object the QR already opens.",
-      lands: "Whether quick-look is one component or two, and whether a tap ever skips it.",
+        "If a look should stay a peek at a page, the mini-modal is its closer cousin; if names with no page should stay quiet, as shipped costs nothing.",
+      lands:
+        "Whether a name on the guest list always opens something, and whether a look is one component or two.",
       tile: "phone",
-      configs: [SCREEN, WHO],
+      configs: [SCREEN, TAPPED],
     },
     {
       id: "way-back",
@@ -238,9 +262,9 @@ const DRAFT = defineExploration({
       ],
       recommended: "pill",
       because:
-        "It is the only option that works for a signed-out guest too, which most people at a party are; it costs one line, and naming the host's event under the header is bible 4's own ask, not a new one.",
+        "It is the only option that works whether or not the visitor is signed in: at a verified party every guest is, at a names-mode one most are not. It costs one line, and naming the host's event under the header is bible 4's own ask, not a new one.",
       overrule:
-        "If the chrome should stay quiet, the account menu keeps it to one row for whoever is signed in; a signed-out guest keeps only the browser's own back.",
+        "If the chrome should stay quiet, the account menu reaches every guest at a verified party; at a names-mode party most keep only the browser's back.",
       lands:
         "Whether a profile carries any memory of where a visit began, and whether a signed-out guest gets a way back at all.",
       tile: "phone",

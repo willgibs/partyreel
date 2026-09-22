@@ -76,10 +76,14 @@ export function FollowMomentCard({
           <p className="font-heading text-subsection">
             {count === 1 ? "Your photo is safe" : "Your photos are safe"}
           </p>
+          {/* ★ "In your account", never "on your profile": the claim puts the
+              photographs in the account and the offer saved the event to its
+              dashboard, while a profile shows nothing until its owner chooses
+              it (profiles-social.md), so a profile line here would be false. */}
           <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
             {count === 1
-              ? "It is on your profile now, and this event came with it."
-              : `All ${count} are on your profile now, and this event came with them.`}
+              ? "It is in your account now, and this event came with it."
+              : `All ${count} are in your account now, and this event came with them.`}
           </p>
         </div>
       </div>
