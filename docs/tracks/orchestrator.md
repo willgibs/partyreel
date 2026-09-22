@@ -44,11 +44,20 @@ model Will seats (Fable or Opus); nothing here depends on which.
    `usher/` without logs, the old pickup file a pointer, memory consolidated). Left: integrate the four lanes one at a
    time as each hands off (gate 116 onward, board `none`); after `roadmap-lean`, the lab candidates from the retired
    `usher/atlas/gaps.md` (kept in the scratchpad as `lab-candidates.md`) join the ROADMAP as one bucket.
-2. **Recheck the open boards** (Will's suggestion for after the reshape): a read-only survey of the 14 older boards
-   runs now (agent `aaa0c9a62245d9c9a`, Opus; its report lands in the chat: the stale asks per board, the fix lanes,
-   what deleting `overtaken.ts` touches); then fix lanes on disjoint board folders, cut after `docs-rules` merges
-   (it owns `touchpoints.ts`). Every standing board current with the identity and reel rounds; the six `overtaken.ts` badges folded into their questions; the overtaken mechanism
-   retired if nothing still needs it.
+2. **Recheck the open boards** (Will's suggestion for after the reshape). The survey is in (the scratchpad's
+   `recheck/report.md`, every claim with its file and ask id): nine older boards carry stale asks, five are current
+   (`site-chrome`, `privacy-hero`, `album-motion`, `contact-page`, `loose-ends`), none retires. Four lanes, cut once
+   `pointer-sweep` (twelve of the specs, `overtaken.ts`) and `docs-rules` (`touchpoints.ts`) have merged:
+   `recheck-viewer-curation` (Opus: `media-viewer`, `host-curation`; the five badges folded, the viewer asked for
+   both origins, a tile and the reel; the Unverified credit and the host never seeing an address);
+   `recheck-guest-identity` (Opus: `guest-capture`, `profile-page`; the door's optional email and opt-in profiles;
+   what the identity boards already ask dropped; plus the three shipped lines that promise "on your profile" against
+   the ruling, `src/components/auth/account-door.tsx:116`, `src/components/guest/follow-moment-card.tsx:81`,
+   `src/components/guest/save-account-prompt.tsx:147`); `recheck-mail-admin-export` (Sonnet: `emails`,
+   `admin-triage`, `export-flow`); `recheck-help-press` (Sonnet: `help-center`, `press-page`, whose `the-facts`
+   badge folds too). At the record: `guest-capture` moves below `identity-profile` on the desk. Retiring the
+   overtaken mechanism itself (the file, its test, the badge and its dock button) is Will's call (the ROADMAP names
+   it his): asked in the report, recommended yes, since reshape-or-remove leaves it nothing to answer.
 3. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team).
