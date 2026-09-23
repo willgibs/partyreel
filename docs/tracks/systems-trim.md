@@ -109,29 +109,32 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed.** 33 work commits, one per doc and then the review fixes (905feba8 db82347d 488318c7 20a70358
+- **Commits, pushed.** 34 work commits, one per doc and then the review fixes (905feba8 db82347d 488318c7 20a70358
   31a676b6 b9a29170 e58f6e39 0cf44d00 50f6e76b 6c441097 efb045e8 c6841d32 5a1f68b6 c87c02aa 6f02f264 c903e30b
   368698ea fb73bde8 3f4b82ee 2535ba4e e3b35be2 8ff88394 0c50c7af 4409d862 bc4d4b3c 70bd2c84 a3e03ab6 93edac58
-  d5b13f6d 90dfca7e 8832a849 4e396bd9 4b9ff6a4); synced with launch-prep twice by merge: 23fc14d7 (docs-rules,
-  roadmap-lean, pointer-sweep landed) and 4c552f9c (at ba735676, docs-product-trim and the recheck lanes landed);
-  neither touched `docs/systems/`.
-- **Gates on the synced tree (4c552f9c), each on its own exit code; build skipped (docs-only lane):**
-  `pnpm design:rules` 0 (228 components, 1916 contracts; no artifact diff), `pnpm test` 0 (350 files, 3865 passed,
+  d5b13f6d 90dfca7e 8832a849 4e396bd9 4b9ff6a4 dfc9432b); synced with launch-prep three times by merge, never
+  touching `docs/systems/`: 23fc14d7 (docs-rules, roadmap-lean, pointer-sweep), 4c552f9c (at ba735676:
+  docs-product-trim and two recheck lanes) and 8a7eb958 (at c229e4e7: recheck-guest-identity, whose "in your
+  account" copy rule dfc9432b carries into guest-flow.md). An earlier handoff commit, 846071e1, is superseded by
+  this one.
+- **Gates on the synced tree (8a7eb958 + dfc9432b), each on its own exit code; build skipped (docs-only lane):**
+  `pnpm design:rules` 0 (228 components, 1916 contracts; no artifact diff), `pnpm test` 0 (350 files, 3863 passed,
   1 skipped), `pnpm lint` 0 (0 errors, 9 pre-existing warnings). Logs in the lane's scratch directory.
 - **The Library's doctrine pages, at 1440 on :3132.** `/design/library/doctrine/design-system` and
   `/marketing-content` answer 200 and render 27 and 6 h2/h3 ids (every heading, the title skipped); every doctrine
   anchor on `/design/library/policies` (61), `/design/library/rules` (13) and the 28 component pages that carry a
   landmine resolves to a rendered id; looked at in the pane at 1440 (the header, the TOC, the Gotchas landmines).
   The Library attaches the same 34 component landmines as at the base (a replica of `landminesFor`), and the
-  docs tests that pin design-system.md's sections pass. Server killed by port before the handoff.
+  docs tests that pin design-system.md's sections pass. Checked on 4c552f9c; the later merge touched neither the
+  two doctrine docs nor the Library's doc rendering. Server killed by port before the handoff.
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = `docs/SYSTEMS.md` + the 17
   `docs/systems/*.md` (+ this manifest in this commit): all under `owns`.
 - **Bytes, before -> after:** SYSTEMS.md 6162 -> 6170 · admin-observability 27803 -> 27054 · architecture
   11155 -> 10806 · auth-accounts 22782 -> 22615 · billing-caps 17307 -> 16599 · database-security 34021 -> 31969 ·
-  design-system 126403 -> 105500 · durability-backups 12826 -> 12788 · guest-flow 73831 -> 66302 · host-app
+  design-system 126403 -> 105500 · durability-backups 12826 -> 12788 · guest-flow 73831 -> 66421 · host-app
   66317 -> 56568 · lifecycle-recovery 12365 -> 12637 · marketing-content 74915 -> 64303 ·
   notifications-analytics-growth 11846 -> 11850 · profiles-social 15464 -> 14932 · testing-verification
-  33764 -> 30331 · trust-safety-forensics 9836 -> 9650 · uploads-and-r2 27551 -> 26214 · total 584348 -> 526288
+  33764 -> 30331 · trust-safety-forensics 9836 -> 9650 · uploads-and-r2 27551 -> 26214 · total 584348 -> 526407
   (-10%). Dates 185 -> 3 (two in a heading kept by rule; Stripe's `apiVersion` string).
 - **Stale against the code (at the base, or caught mid-lane by the reviews), one line each:**
   - SYSTEMS.md: said "the daily purge cron (9 sweeps)"; true: 12 (src/app/api/cron/purge/route.ts, job_health last).
