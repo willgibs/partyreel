@@ -131,3 +131,36 @@ export function computeDoor(input: {
 
   return { steps, autoOpen: steps.length > 0 };
 }
+
+/**
+ * WHEN THE CLIENT'S HALF OF "HAS CONTRIBUTED" RETIRES (guest by upload, Will 2026-09-22: "Own deletes
+ * close it").
+ *
+ * `computeDoor` closes the upload step on EITHER half: the server's `hasContributed`, or the
+ * browser's own `contributed` (an upload completed this visit, before any refresh landed), because
+ * right after a first upload the page still carries the server's stale `upload` gate and the step
+ * must drop at once. But on a Require-an-upload-to-view event the server can now TAKE a contribution
+ * back (a guest's own delete stops counting), and the browser's flag, true all visit, would then
+ * hold the step shut against a server that says "upload": a guest who removed their only upload
+ * would be stranded at the teaser with no door at all.
+ *
+ * So the client's flag stands only until the server has ANSWERED since it: once the gate is seen
+ * off `upload` while this visit's contribution stands, the server has counted it, and from then on
+ * its gate alone decides. Returns the sticky "answered" bit; the caller keeps it across renders and
+ * passes `contributed && !answered` to `computeDoor`. With the switch OFF the resolver never
+ * evaluates the gate, so the client's flag is the only half and never retires (the OFF state's soft
+ * step must not reappear after an upload).
+ */
+export function contributionAnswered(input: {
+  /** Whatever this returned last render (false on the first). */
+  answered: boolean;
+  /** The browser's own half: an upload of this visit completed. */
+  contributed: boolean;
+  gate: GalleryGate | null;
+  requireUpload: boolean;
+}): boolean {
+  return (
+    input.answered ||
+    (input.requireUpload && input.contributed && input.gate !== "upload")
+  );
+}

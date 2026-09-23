@@ -109,8 +109,8 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         prop: "variant",
         source: "prop",
         fallback: "hosted",
-        options: ["hosted", "saved", "trash"],
-        note: "What the chrome carries: hosted takes the QR slot and the amber review chip, saved a bookmark glyph and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
+        options: ["hosted", "guest", "trash"],
+        note: "What the chrome carries: hosted takes the QR slot and the amber review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
       },
     ],
     specimens: [
@@ -148,17 +148,16 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         ),
       },
       {
-        label: "Saved",
-        hint: "byline + status",
+        label: "Guest",
+        hint: "an event you added to: marker + byline",
         node: (
           <EventCard
-            variant="saved"
+            variant="guest"
             href="#"
             name="Priya &amp; Sam"
             coverUrl={SAMPLE.cover2}
             dateLabel="May 30"
             byline="Hosted by Priya"
-            statusLabel="Password"
           />
         ),
       },

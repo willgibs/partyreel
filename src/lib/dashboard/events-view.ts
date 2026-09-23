@@ -60,27 +60,35 @@ export function resolveEventsSort(raw: string | undefined | null): EventsSort {
 /* ── The lens ────────────────────────────────────────────────────────────── */
 
 /**
- * The bin and the saved events are FILTERS OF THIS LIST, never a chip row
- * (his `density` note read with `home=pulse`: the five-chip inbox goes). The
- * lens renders in BOTH views on purpose — cover cards are the default, so a
- * filter that lived only in the row view would leave a default-view host with
- * no door to their own bin at all.
+ * The bin and the events you added to are FILTERS OF THIS LIST, never a chip
+ * row (his `density` note read with `home=pulse`: the five-chip inbox goes).
+ * The lens renders in BOTH views on purpose — cover cards are the default, so
+ * a filter that lived only in the row view would leave a default-view host
+ * with no door to their own bin at all.
  *
- * "Deleted" names ONE thing (the board's word, kept): soft-deleted EVENTS in
- * the recovery window. It is not the media bin, which is the event's own.
+ * "Guest" names the events this account ADDED PHOTOS TO at someone else's
+ * party (guest by upload, Will 2026-09-22: a person is a guest of an event only
+ * through an upload of theirs), in the profile's own word, and it sits where
+ * the retired "Saved" lens sat. "Deleted" names ONE thing (the board's word,
+ * kept): soft-deleted EVENTS in the recovery window. It is not the media bin,
+ * which is the event's own.
  */
-export type EventsFilter = "all" | "saved" | "deleted";
+export type EventsFilter = "all" | "guest" | "deleted";
 
 export const EVENTS_FILTER_OPTIONS: { value: EventsFilter; label: string }[] = [
   { value: "all", label: "All events" },
-  { value: "saved", label: "Saved" },
+  { value: "guest", label: "Guest" },
   { value: "deleted", label: "Deleted" },
 ];
 
+/**
+ * Narrows a stored or hand-typed value to a lens. The retired "saved" (save
+ * died with guest by upload) resolves to "all", like any other stranger.
+ */
 export function resolveEventsFilter(
   raw: string | undefined | null,
 ): EventsFilter {
-  return raw === "saved" || raw === "deleted" ? raw : "all";
+  return raw === "guest" || raw === "deleted" ? raw : "all";
 }
 
 /* ── One row, whichever view draws it ────────────────────────────────────── */
@@ -93,15 +101,18 @@ export function resolveEventsFilter(
  */
 export type EventListRow = {
   id: string;
-  kind: "hosted" | "saved" | "deleted";
+  kind: "hosted" | "guest" | "deleted";
   name: string;
-  /** null = an unopenable card (a saved event since made private, or the bin). */
+  /** null = an unopenable card (a guest album since made private, or the bin). */
   href: string | null;
   coverUrl: string | null;
   dateLabel: string;
-  /** The event's own date, for the "Newest" order; null sorts last. */
+  /**
+   * The row's recency for the "Newest" order: a hosted event's creation, a
+   * guest row's newest live upload of yours, a binned event's deletion.
+   */
   sortDate: string;
-  /** Approved items in the album. */
+  /** Approved items in the album (hosted rows; a guest row carries 0 and never shows it). */
   items: number;
   /** Signed-in uploaders, when the host's guest list is on; else null. */
   guests: number | null;
@@ -109,14 +120,14 @@ export type EventListRow = {
   pending: number;
   /** "Open" / "Closed" / "Password" / the bin countdown. */
   statusLabel: string | null;
-  /** Saved events only: "Hosted by X". */
+  /** Guest rows only: "Hosted by X". */
   byline: string | null;
   /** The one next thing this event wants, already phrased. */
   needs: string | null;
   /**
    * Hosted rows only: what the cover card's QR chip needs to open the share
-   * dialog. Null on saved and deleted rows, which have no QR to offer — a
-   * saved event is somebody else's, and a deleted one is not shareable.
+   * dialog. Null on guest and deleted rows, which have no QR to offer — a
+   * guest album is somebody else's, and a deleted one is not shareable.
    */
   qr: { token: string; style: string } | null;
 };
@@ -149,11 +160,10 @@ export function filterEventRows(
   rows: EventListRow[],
   filter: EventsFilter,
 ): EventListRow[] {
-  if (filter === "saved") return rows.filter((r) => r.kind === "saved");
+  if (filter === "guest") return rows.filter((r) => r.kind === "guest");
   if (filter === "deleted") return rows.filter((r) => r.kind === "deleted");
-  // "All events" is the live list: hosted and saved together, interleaved by
-  // recency exactly as the merged Events tab always was. The bin is NEVER in
-  // it — a deleted event appearing among live ones is how a host restores the
-  // wrong thing.
+  // "All events" is the live list: the events you host and the events you
+  // added to, interleaved by recency. The bin is NEVER in it — a deleted event
+  // appearing among live ones is how a host restores the wrong thing.
   return rows.filter((r) => r.kind !== "deleted");
 }

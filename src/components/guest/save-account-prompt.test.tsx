@@ -3,7 +3,7 @@
  * THE OFFER CARD'S CONTRACT (`account=after` 2026-09-20; the capture flow folded
  * in at the identity reshape, 2026-09-21).
  *
- * Three functions, none of them a look:
+ * Five functions, none of them a look:
  *   1. IT COUNTS WHAT JUST LANDED. The offer is about the photographs in front
  *      of the guest, so the number is in the sentence and the singular reads as
  *      a singular.
@@ -12,31 +12,36 @@
  *   3. OPENING THE DOOR LEAVES A MARKER. `pr_pending_offer_<qr_token>` is what
  *      makes a magic-link round trip land the same beat as the in-page code;
  *      without it a guest who left the page comes back to nothing.
+ *   4. CONFIRMING CLAIMS, AND ONLY CLAIMS (guest by upload, 2026-09-22): the
+ *      claim brings the event with the photographs, so there is no save step.
+ *   5. THE NEWSLETTER SWITCH RIDES THIS DOOR, and posts only when it is on.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+
 import { SaveAccountPrompt } from "./save-account-prompt";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { session } = vi.hoisted(() => ({
+  session: { current: null as null | { user: { id: string } } },
+}));
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      // Signed out: the card stands and its trigger is the create-account door.
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      // Signed out by default: the card stands and its trigger is the door.
+      getSession: vi.fn(async () => ({ data: { session: session.current } })),
     },
-    from: () => ({
-      select: () => ({
-        eq: () => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) }),
-      }),
-    }),
   }),
+}));
+vi.mock("@/lib/guest/claim-uploads", () => ({
+  claimAnonymousUploads: vi.fn(async () => null),
 }));
 
 function mount(count: number, hintEmail?: string | null) {
   return render(
     <SaveAccountPrompt
-      eventId="evt-1"
       qrToken="tok-1"
       sessionToken="sess-1"
       count={count}
@@ -48,6 +53,7 @@ function mount(count: number, hintEmail?: string | null) {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  session.current = null;
 });
 
 describe("SaveAccountPrompt", () => {
@@ -117,5 +123,27 @@ describe("SaveAccountPrompt", () => {
     await waitFor(() =>
       expect(localStorage.getItem("pr_pending_offer_tok-1")).toBe("1"),
     );
+  });
+
+  it("carries the newsletter switch in its door, off until the guest turns it on", async () => {
+    mount(3);
+    fireEvent.click(screen.getByRole("button", { name: /confirm your email/i }));
+    const toggle = await screen.findByRole("switch", {
+      name: /send me occasional partyreel updates/i,
+    });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("stands aside for somebody who already has an account (the belt under the slot's own rule)", async () => {
+    session.current = { user: { id: "u1" } };
+    const { container } = mount(3);
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+
+  it("never claims before a code is verified: opening the door only marks it", async () => {
+    mount(3);
+    fireEvent.click(screen.getByRole("button", { name: /confirm your email/i }));
+    await screen.findByPlaceholderText(/you@/i);
+    expect(claimAnonymousUploads).not.toHaveBeenCalled();
   });
 });

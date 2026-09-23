@@ -55,17 +55,21 @@ function Row({
       <div className="relative flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center gap-1.5 truncate font-heading text-card-title">
-            {row.href === null && row.kind === "saved" && (
+            {row.href === null && row.kind === "guest" && (
               <Lock className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
             )}
             {row.name}
           </span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{row.dateLabel}</span>
-            <span className={STAT}>
-              <Images className="size-3" aria-hidden />
-              {row.items}
-            </span>
+            {/* The album's size is the HOST's number: a guest row is somebody
+                else's album, and this list holds no count of it. */}
+            {row.kind !== "guest" && (
+              <span className={STAT}>
+                <Images className="size-3" aria-hidden />
+                {row.items}
+              </span>
+            )}
             {row.statusLabel && <span>{row.statusLabel}</span>}
             {row.byline && <span className="truncate">{row.byline}</span>}
           </span>
@@ -91,9 +95,21 @@ function Row({
           </div>
         )}
 
-        {/* What needs this event, in the column you can read down. */}
+        {/* What needs this event, in the column you can read down. A guest
+            row needs nothing from you, so its column says what the event is
+            to you, in the cards' own word. */}
         <div className="flex shrink-0 items-center justify-end sm:w-48">
-          {row.pending > 0 ? (
+          {row.kind === "guest" ? (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              Guest
+              {row.href && (
+                <ArrowRight
+                  className="size-3.5 opacity-0 transition-[opacity,translate] duration-150 ease-emphasis group-hover/row:translate-x-0.5 group-hover/row:opacity-70 motion-reduce:transition-none"
+                  aria-hidden
+                />
+              )}
+            </span>
+          ) : row.pending > 0 ? (
             <span className="flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
               <ListChecks className="size-3.5" aria-hidden />
               {row.pending} to review
@@ -142,8 +158,8 @@ function Row({
           {body}
         </div>
       )}
-      {/* Unsave / Restore, a sibling of the Link so tapping it never navigates
-          (the same construction EventCard's QR chip uses). */}
+      {/* Restore, a sibling of the Link so tapping it never navigates (the
+          same construction EventCard's QR chip uses). */}
       {action && (
         <div className="absolute top-2.5 right-2.5 z-10">{action}</div>
       )}
@@ -158,7 +174,7 @@ export function EventsRowList({
 }: {
   rows: EventListRow[];
   newestByEvent: Map<string, PulseTile[]>;
-  /** Per-row action element (unsave / restore), keyed by row id. */
+  /** Per-row action element (the bin's restore), keyed by kind and row id. */
   actions?: Map<string, React.ReactNode>;
 }) {
   return (

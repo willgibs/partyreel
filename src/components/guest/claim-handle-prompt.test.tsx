@@ -122,32 +122,71 @@ describe("ClaimHandlePrompt", () => {
 });
 
 /**
- * THE CAPTURE FLOW'S PINS (the identity reshape, 2026-09-21). The marker is what
- * makes the in-page code and a magic-link round trip land the same beat, so what
- * is pinned is that it is CONSUMED (once), what stands in its place, and that the
- * typed name reaches a profile that has none.
+ * THE CAPTURE FLOW'S PINS (the identity reshape, 2026-09-21; guest by upload,
+ * 2026-09-22). The album page decides that a confirmation from this album just
+ * claimed its uploads (lib/guest/use-confirm-return.ts, its own contract) and
+ * hands the slot `moment`; what is pinned here is what stands when it does, that
+ * it stands with nothing uploaded this visit (a Google or magic-link return),
+ * and that the typed name reaches a profile that has none.
  */
 describe("ClaimHandlePrompt: the moment after confirming", () => {
-  it("consumes the pending-offer marker and stands the follow moment up, once", async () => {
+  it("stands the follow moment up when the album says a confirmation landed", async () => {
     stub({ signedIn: true, slug: null });
-    localStorage.setItem("pr_pending_offer_tok-1", "1");
-    const { unmount } = mount(3, { host: HOST });
-
+    mount(3, { host: HOST, moment: true });
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
     expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
-    // The marker is spent: a second mount is the ordinary ladder again.
-    expect(localStorage.getItem("pr_pending_offer_tok-1")).toBeNull();
-    unmount();
+  });
 
+  it("without the album's word it is the ordinary ladder, whatever storage holds", async () => {
+    stub({ signedIn: true, slug: null });
+    // The marker is the album page's to read now, never this card's.
+    localStorage.setItem("pr_pending_offer_tok-1", "1");
     mount(3, { host: HOST });
     expect(await screen.findByRole("link", { name: /claim/i })).toBeVisible();
     expect(screen.queryByText(/your photos are safe/i)).toBeNull();
+    expect(localStorage.getItem("pr_pending_offer_tok-1")).toBe("1");
+  });
+
+  it("plays on a return with nothing uploaded this visit, and says no number it does not have", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(0, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(
+      screen.getByText(
+        "They are in your account now, and this event came with them.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("the moment arrives AFTER an in-page confirmation, and the card re-resolves for it", async () => {
+    stub({ signedIn: false, slug: null });
+    const view = mount(3, { host: HOST });
+    await screen.findByTestId("save-account-prompt");
+    // The confirmation lands: a session exists now, and the album hands the word down.
+    stub({ signedIn: true, slug: null });
+    view.rerender(
+      <ClaimHandlePrompt
+        doneCount={3}
+        qrToken="tok-1"
+        savePrompt={<div data-testid="save-account-prompt" />}
+        host={HOST}
+        moment
+      />,
+    );
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+  });
+
+  it("is never hidden behind the handle card's dismissal", async () => {
+    stub({ signedIn: true, slug: null });
+    localStorage.setItem("pr_claim_prompt_tok-1", "1");
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
   });
 
   it("with no host card resolved there is no host row, and the handle line still stands", async () => {
     stub({ signedIn: true, slug: null });
-    localStorage.setItem("pr_pending_offer_tok-1", "1");
-    mount(2);
+    mount(2, { moment: true });
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
     expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
     expect(screen.getByRole("link", { name: /claim/i })).toBeInTheDocument();
@@ -155,23 +194,20 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
 
   it("a profile that already has a handle gets no second line", async () => {
     stub({ signedIn: true, slug: "sam" });
-    localStorage.setItem("pr_pending_offer_tok-1", "1");
-    mount(2, { host: HOST });
+    mount(2, { host: HOST, moment: true });
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
     expect(screen.queryByRole("link", { name: /claim/i })).toBeNull();
   });
 
   it("names a nameless profile from the name this device typed, and never overwrites one", async () => {
     localStorage.setItem("pr_guest_name_tok-1", "Sam");
-    localStorage.setItem("pr_pending_offer_tok-1", "1");
     stub({ signedIn: true, slug: null, displayName: null });
-    mount(2, { host: HOST });
+    mount(2, { host: HOST, moment: true });
     await waitFor(() => expect(updateDisplayName).toHaveBeenCalledWith("Sam"));
 
     updateDisplayName.mockClear();
-    localStorage.setItem("pr_pending_offer_tok-1", "1");
     stub({ signedIn: true, slug: null, displayName: "Already Named" });
-    mount(2, { host: HOST });
+    mount(2, { host: HOST, moment: true });
     await screen.findAllByText(/your photos are safe/i);
     expect(updateDisplayName).not.toHaveBeenCalled();
   });

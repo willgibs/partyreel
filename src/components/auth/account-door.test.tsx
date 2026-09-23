@@ -125,9 +125,9 @@ describe("the wears", () => {
   });
 
   it("leaves heading and reason to the surface when it owns them", () => {
-    // The gate, Save and Likes each carry a semantic title of their own (the
+    // The gate, the confirm door and Likes each carry a semantic title of their own (the
     // gate's ruled framing, a DialogTitle), so the door must not draw a second.
-    for (const wear of ["gate", "save", "like", "signin"] as const) {
+    for (const wear of ["gate", "keep", "like", "signin"] as const) {
       const { unmount } = render(
         <AccountDoor
           wear={wear}
@@ -143,7 +143,7 @@ describe("the wears", () => {
   });
 
   it("carries the Terms line on every wear that asks for it", () => {
-    for (const wear of ["login", "save", "like", "signin"] as DoorWear[]) {
+    for (const wear of ["login", "keep", "like", "signin"] as DoorWear[]) {
       const { unmount } = render(
         <AccountDoor
           wear={wear}
@@ -175,7 +175,7 @@ describe("the wears", () => {
   it("offers a password only where the surface says there is one", () => {
     const { unmount } = render(
       <AccountDoor
-        wear="save"
+        wear="keep"
         methods={{ code: true, google: true }}
         emailRedirectTo="/auth/callback"
         chrome="none"
@@ -202,7 +202,7 @@ describe("the account the address already had", () => {
     const onVerified = vi.fn();
     render(
       <AccountDoor
-        wear="save"
+        wear="keep"
         methods={{ code: true }}
         emailRedirectTo="/auth/callback"
         chrome="none"
@@ -225,7 +225,7 @@ describe("the account the address already had", () => {
     });
     expect(screen.getByText(/already had/i)).toBeTruthy();
     expect(screen.getByText("nadia@example.com")).toBeTruthy();
-    // The door HOLDS: the caller's work (a claim, a save) waits for a choice.
+    // The door HOLDS: the caller's work (a claim) waits for a choice.
     expect(onVerified).not.toHaveBeenCalled();
   });
 

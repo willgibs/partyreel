@@ -3,23 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, Mail, MailCheck, Pencil } from "lucide-react";
-import { toast } from "sonner";
 
-import {
-  AccountDoor,
-  DOOR_WEAR,
-  type DoorWear,
-} from "@/components/auth/account-door";
+import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import { AddEmailDialog } from "@/components/guest/add-email-dialog";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,13 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SAVE_FAILED,
-  SAVED_TO_DASHBOARD,
-  markPendingSave,
-  saveEvent,
-} from "@/lib/events/save-event";
-import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+import { markPendingOffer } from "@/lib/guest/album-return";
 import { requestNameDoor } from "@/lib/guest/name-door";
 
 /**
@@ -50,9 +32,10 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  *
  * ★ FOUR ROWS, AND EACH IS A DIFFERENT PERSON'S NEXT MOVE. The label says the
  * name and marks it unconfirmed (the same words the mark uses, read from it, so
- * the two cannot drift). The email row is the capture door, `save`'s wear, the
- * same act the offer card under the album offers, with the same result: the
- * uploads claimed, then the event saved to the dashboard. "Change name" reopens the
+ * the two cannot drift). The email row is the capture door (`ConfirmEmailDialog`,
+ * the `keep` wear), the same act the offer card under the album offers, with the
+ * same result: the uploads claimed, and the event with them (guest by upload,
+ * 2026-09-22: no save step any more). "Change name" reopens the
  * door in edit mode through `lib/guest/name-door.ts`, because this header is a
  * SIBLING island of the page that owns the modal. "Sign in" is the `signin`
  * wear, for the one person the others do not fit: somebody who already has an
@@ -80,17 +63,14 @@ import { requestNameDoor } from "@/lib/guest/name-door";
 export function GuestNameMenu({
   name,
   qrToken,
-  eventId,
   sessionToken,
   emailAttached = false,
   onRenamed,
 }: {
   /** The name this device typed at this event. */
   name: string;
-  /** Needed by the add-email dialog; omitted on a page with no event behind it. */
+  /** The album's canonical token: the add-email dialog needs it, and the return marker is keyed on it. */
   qrToken?: string;
-  /** The event itself, so confirming here saves it; omitted with `qrToken`. */
-  eventId?: string;
   /** The capability the address lands on. Without one there is no row to add to. */
   sessionToken?: string | null;
   /** This device put an unconfirmed address on this event's row (the device flag). */
@@ -99,23 +79,18 @@ export function GuestNameMenu({
   onRenamed?: () => void;
 }) {
   const router = useRouter();
-  const [door, setDoor] = useState<DoorWear | null>(null);
+  const [door, setDoor] = useState<"keep" | "signin" | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  // The event a confirmation here keeps, as the offer card's door keeps it.
-  const keep = eventId && qrToken ? { eventId, qrToken } : null;
-  /* Both ways into the confirm door (the row, and the add-email dialog's
-     "Confirm it now instead") write the save intent BEFORE it opens: Google and
-     a magic link leave the page, and the event page finishes the save on the
-     way back from exactly this intent. */
-  const openConfirm = () => {
-    if (keep) markPendingSave(keep.eventId);
-    setDoor("save");
+  /* Every way into a door here (the email row, the add-email dialog's "Confirm
+     it now instead", and Sign in, whose claim carries the same photographs)
+     writes the album's return marker BEFORE it opens: Google and a magic link
+     leave the page, and the marker is what lands the follow moment when they
+     come back. */
+  const openDoor = (wear: "keep" | "signin") => {
+    markPendingOffer(qrToken ?? null);
+    setDoor(wear);
   };
-  const emailRedirectTo =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
-      : "/auth/callback";
-  const copy = door ? DOOR_WEAR[door] : null;
+  const openConfirm = () => openDoor("keep");
   /* Only offer the second chance where it can actually land: a row has to exist
      for the address to go on. Without a token the menu keeps the confirm row,
      which mints its own row on the way through. */
@@ -159,59 +134,35 @@ export function GuestNameMenu({
             <Pencil /> Change name
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setDoor("signin")}>
+          <DropdownMenuItem onSelect={() => openDoor("signin")}>
             <LogIn /> Sign in
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={door !== null} onOpenChange={(o) => !o && setDoor(null)}>
-        <DialogContent>
-          {/* The Dialog owns the title and the description for a11y (radix
-              wires aria-labelledby / -describedby to these), so the words come
-              from the door's own wear table rather than being retyped here. */}
-          <DialogHeader>
-            <DialogTitle>{copy?.heading ?? DOOR_WEAR.save.heading}</DialogTitle>
-            {/* ★ AND THE ONE PLACE THE WEAR'S OWN SENTENCE IS OVERRIDDEN: a guest
-                who added an address at the door is about to meet an EMPTY field,
-                because nothing kept what they typed. Saying so is the difference
-                between a door that looks broken and one that is being honest
-                about a rule the guest benefits from. */}
-            <DialogDescription>
-              {door === "save" && emailAttached
-                ? "Enter the email you added and we will send a code."
-                : (copy?.reason ?? DOOR_WEAR.save.reason)}
-            </DialogDescription>
-          </DialogHeader>
-          {door && (
-            <AccountDoor
-              wear={door}
-              methods={{ code: true, google: true, password: door === "signin" }}
-              emailRedirectTo={emailRedirectTo}
-              chrome="none"
-              // Confirming from here CREATES for most people; signing in does
-              // not, and saying "you already had an account" to somebody who
-              // just pressed Sign in is noise rather than a warning.
-              intent={door === "signin" ? "signin" : "create"}
-              onVerified={async () => {
-                // Awaited: the refresh below redraws every credit on the page,
-                // and a claim still in flight would redraw them unconfirmed.
-                await claimAnonymousUploads({ silent: true });
-                // Confirming keeps the event, as the offer card's door does,
-                // in its words. Sign in promises only that the photographs
-                // join the account, which the claim above already did.
-                if (door === "save" && keep) {
-                  if (await saveEvent(keep)) toast.success(SAVED_TO_DASHBOARD);
-                  else toast.error(SAVE_FAILED);
-                }
-                setDoor(null);
-                onRenamed?.();
-                router.refresh();
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <ConfirmEmailDialog
+        open={door !== null}
+        onOpenChange={(o) => !o && setDoor(null)}
+        wear={door ?? "keep"}
+        // ★ THE ONE PLACE THE WEAR'S OWN SENTENCE IS OVERRIDDEN: a guest who
+        // added an address at the door is about to meet an EMPTY field, because
+        // nothing kept what they typed. Saying so is the difference between a
+        // door that looks broken and one that is being honest about a rule the
+        // guest benefits from.
+        description={
+          door === "keep" && emailAttached
+            ? "Enter the email you added and we will send a code."
+            : undefined
+        }
+        onConfirmed={() => {
+          // The claim has landed (the door awaited it); the refresh redraws
+          // every credit on the page confirmed, and the album plays the follow
+          // moment itself when it hears this album's uploads moved.
+          setDoor(null);
+          onRenamed?.();
+          router.refresh();
+        }}
+      />
 
       {/* Mounted only where it can act (a row exists to carry the address), and
           its "Confirm it now instead" hands straight over to the door above. */}

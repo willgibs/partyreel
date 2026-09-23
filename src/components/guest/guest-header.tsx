@@ -45,13 +45,13 @@ type MenuData = {
 //
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately
-// avoids a server auth round-trip on the common path (see its upload-path getUser()). We
-// mirror SaveEventButton: getSession() is LOCAL (no network) and the header is a pure UI
-// affordance (no data is gated by it; real authz stays in RLS + the route's getUser()). The
-// richer profile + ownership data is fetched from /api/me/menu ONLY when a session exists, so
-// anonymous loads never touch it. Default render = the CTA (matches SSR → no flash for the
-// anonymous majority); a logged-in visitor sees a one-frame CTA→avatar swap, the same tradeoff
-// SaveEventButton already accepts for its signed-in flip.
+// avoids a server auth round-trip on the common path (see its upload-path getUser()).
+// getSession() is LOCAL (no network) and the header is a pure UI affordance (no data is gated
+// by it; real authz stays in RLS + the route's getUser()). The richer profile + ownership data
+// is fetched from /api/me/menu ONLY when a session exists, so anonymous loads never touch it.
+// Default render = the CTA (matches SSR → no flash for the anonymous majority); a logged-in
+// visitor sees a one-frame CTA→avatar swap, the tradeoff every client-resolved session on the
+// guest page accepts.
 export function GuestHeader({
   qrToken,
   eventId,
@@ -205,8 +205,6 @@ export function GuestHeader({
           <GuestNameMenu
             name={guestName}
             qrToken={qrToken}
-            // Confirming from the menu saves this event, as the offer card does.
-            eventId={eventId}
             sessionToken={guestSession}
             emailAttached={emailAttached}
             onRenamed={() => router.refresh()}

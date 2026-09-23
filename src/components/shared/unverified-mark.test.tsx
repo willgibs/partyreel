@@ -18,29 +18,28 @@
  * that changed would announce that one exists.
  *
  * And the way out on a guest's own credit is pinned by what it DOES (the last
- * block): it keeps the event, as the offer card's door does.
+ * block): it claims the guest's uploads, as the offer card's door does, and
+ * leaves the album's return marker before it opens.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { markPendingSave, saveEvent } from "@/lib/events/save-event";
+import { holdAlbum } from "@/lib/guest/album-return";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 
-import {
-  UNVERIFIED_LABEL,
-  UnverifiedMark,
-  UnverifiedMarkEvent,
-} from "./unverified-mark";
+import { UNVERIFIED_LABEL, UnverifiedMark } from "./unverified-mark";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 
 /* The door's own machinery is the door's contract (account-door.test.tsx); here
    it is a single "Finish confirming" button that fires `onVerified`, so what is
-   pinned is what the MARK does with a confirmation: the order and the save. */
-const { order } = vi.hoisted(() => ({ order: [] as string[] }));
+   pinned is what the MARK does with a confirmation: the claim, then the refresh. */
 vi.mock("@/components/auth/account-door", () => ({
-  DOOR_WEAR: { save: { heading: "Keep your photos", reason: "Confirm it." } },
+  DOOR_WEAR: {
+    keep: { heading: "Keep your photos", reason: "Confirm it." },
+    signin: { heading: "Sign in", reason: "Sign in." },
+  },
   AccountDoor: ({ onVerified }: { onVerified: () => Promise<void> }) => (
     <button type="button" onClick={() => void onVerified()}>
       Finish confirming
@@ -48,17 +47,7 @@ vi.mock("@/components/auth/account-door", () => ({
   ),
 }));
 vi.mock("@/lib/guest/claim-uploads", () => ({
-  claimAnonymousUploads: vi.fn(async () => {
-    order.push("claim");
-  }),
-}));
-vi.mock("@/lib/events/save-event", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/events/save-event")>()),
-  markPendingSave: vi.fn(),
-  saveEvent: vi.fn(async () => {
-    order.push("save");
-    return true;
-  }),
+  claimAnonymousUploads: vi.fn(async () => null),
 }));
 
 /**
@@ -141,47 +130,43 @@ describe("what the popover says", () => {
 });
 
 /**
- * THE WAY OUT KEEPS THE EVENT. Confirming from the mark is the offer card's act
- * in the offer card's words ("this event stays in your account"), so it ends
- * where the offer card ends: the uploads claimed, THEN the event saved, which
- * is what puts it on the dashboard rather than only in Events you joined. The
- * intent is written before the door opens, because Google and a magic link
- * leave the page and the event page finishes the save on the way back.
+ * THE WAY OUT CLAIMS, AND LEAVES THE WAY BACK (guest by upload, 2026-09-22).
+ * Confirming from the mark is the offer card's act in the offer card's words:
+ * the uploads claimed, and with them the event (there is no save step any
+ * more). The album's return marker is written BEFORE the door opens, because
+ * Google and a magic link leave the page, and the album's own claim on the way
+ * back is what plays the follow moment. The mark names no album of its own; the
+ * album on screen is the one it keeps.
  */
 describe("confirming from your own credit", () => {
-  const EVENT = { eventId: "evt-1", qrToken: "tok-1" };
-
   beforeEach(() => {
-    order.length = 0;
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  async function confirm() {
+  async function openDoor() {
     await open();
     fireEvent.click(screen.getByRole("button", { name: "Confirm your email" }));
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Finish confirming" }),
-    );
+    return screen.findByRole("button", { name: "Finish confirming" });
   }
 
-  it("keeps the album's event: the intent first, then the claim, then the save", async () => {
-    render(
-      <UnverifiedMarkEvent event={EVENT}>
-        <UnverifiedMark name="Sam" own />
-      </UnverifiedMarkEvent>,
-    );
-    await confirm();
-    await waitFor(() => expect(saveEvent).toHaveBeenCalledWith(EVENT));
-    expect(markPendingSave).toHaveBeenCalledWith("evt-1");
-    expect(order).toEqual(["claim", "save"]);
-    expect(toast.success).toHaveBeenCalledWith("Saved to your dashboard.");
+  it("inside an album: the return marker first, then the claim, then the refresh", async () => {
+    const release = holdAlbum("tok-1");
+    render(<UnverifiedMark name="Sam" own />);
+    const finish = await openDoor();
+    expect(localStorage.getItem("pr_pending_offer_tok-1")).toBe("1");
+    fireEvent.click(finish);
+    await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    release();
   });
 
-  it("outside an album, claims the uploads and saves nothing it cannot name", async () => {
+  it("outside an album, claims the uploads and leaves no marker it cannot key", async () => {
     render(<UnverifiedMark name="Sam" own />);
-    await confirm();
+    fireEvent.click(await openDoor());
     await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());
-    expect(saveEvent).not.toHaveBeenCalled();
-    expect(markPendingSave).not.toHaveBeenCalled();
+    expect(
+      Object.keys(localStorage).filter((k) => k.startsWith("pr_pending_offer_")),
+    ).toEqual([]);
   });
 });

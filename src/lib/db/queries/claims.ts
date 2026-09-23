@@ -19,8 +19,9 @@ export type ClaimableEventRow = {
   /** Every distinct typed name found under this address at this event
    *  (a row minted before the door required a name can contribute none). */
   names: string[];
+  /** Live uploads across the group: always at least one (an event with none is not offered). */
   uploadCount: number;
-  /** ISO timestamp, or null when nothing was ever uploaded under the row. */
+  /** ISO timestamp of the newest live upload (typed nullable, as the RPC's row is). */
   lastUploadAt: string | null;
 };
 
@@ -42,6 +43,13 @@ export type ClaimableEventRow = {
  * name mandatory, contributes nothing to the list). The group's rank is its
  * best (lowest) member index, so the result keeps the RPC's own order —
  * most recently active first.
+ *
+ * ★ AND ONLY AN EVENT WITH SOMETHING TO CLAIM (guest by upload, Will 2026-09-22:
+ * a person is a guest of an event only through an upload of theirs). A row with
+ * no live upload makes nobody a guest, so claiming it would carry nothing and
+ * releasing it would remove nothing. The RPC skips such rows since migration
+ * 20260923120000; this drop is the belt, so the card is right even against a
+ * database that has not taken that file yet.
  */
 export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
   const { supabase, user } = await getRequestAuth();
@@ -88,6 +96,7 @@ export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
   });
 
   return [...byEvent.values()]
+    .filter((g) => g.uploadCount > 0)
     .sort((a, b) => a.rank - b.rank)
     .map((g) => ({
       eventId: g.eventId,

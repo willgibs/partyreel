@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { EventCard } from "./event-card";
+import { EventCard, RoleMarker } from "./event-card";
 
 // Behavior pins (never styles) for the V3 stat-forward card: which chrome shows
-// per variant, the amber chip threshold, and the saved-private href-null contract.
+// per variant, the amber chip threshold, and the guest-private href-null contract.
 describe("EventCard (V3 stat-forward)", () => {
   it("hosted: renders the QR slot, links to the event, and shows the amber chip only when pending > 0", () => {
     const { rerender } = render(
@@ -40,36 +40,43 @@ describe("EventCard (V3 stat-forward)", () => {
     expect(screen.queryByText(/to review/)).not.toBeInTheDocument();
   });
 
-  it("saved-private (href null) renders no link and the private name (lock fallback)", () => {
+  it("guest-private (href null) renders no link and the private name (lock fallback)", () => {
     render(
       <EventCard
-        variant="saved"
+        variant="guest"
         href={null}
         name="Private event"
         coverUrl={null}
-        dateLabel="Saved June 1"
+        dateLabel="The host made this event private"
       />,
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByText("Private event")).toBeInTheDocument();
   });
 
-  it("saved: shows the bookmark provenance glyph (no QR) and an unsave action", () => {
+  it("guest: an event you added photos to wears the Guest marker and a byline, never a QR or a review chip", () => {
     render(
       <EventCard
-        variant="saved"
+        variant="guest"
         href="/e/abc"
         name="A friend's wedding"
         coverUrl="https://example.test/cover.jpg"
         dateLabel="July 2"
         byline="Hosted by Sam"
-        action={<button data-testid="unsave">unsave</button>}
       />,
     );
-    expect(screen.getByText("Saved event")).toBeInTheDocument(); // sr-only glyph label
-    expect(screen.getByTestId("unsave")).toBeInTheDocument();
+    expect(screen.getByText("Guest")).toBeInTheDocument();
+    expect(screen.getByText(": added photos here")).toBeInTheDocument(); // sr-only
     expect(screen.getByText("Hosted by Sam")).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/e/abc");
     expect(screen.queryByText(/to review/)).not.toBeInTheDocument();
+  });
+
+  it("the marker is one object for the dashboard and the profile: RoleMarker says Host or Guest", () => {
+    const { rerender } = render(<RoleMarker role="host" />);
+    expect(screen.getByText("Host")).toBeInTheDocument();
+    rerender(<RoleMarker role="guest" />);
+    expect(screen.getByText("Guest")).toBeInTheDocument();
   });
 
   it("trash: renders the countdown status + a restore action and never a link", () => {

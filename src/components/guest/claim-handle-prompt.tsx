@@ -9,7 +9,6 @@ import {
   FollowMomentCard,
   type FollowMomentHost,
 } from "@/components/guest/follow-moment-card";
-import { pendingOfferKey } from "@/components/guest/save-account-prompt";
 import { Button } from "@/components/ui/button";
 import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
 import { createClient } from "@/lib/supabase/client";
@@ -37,11 +36,13 @@ import { createClient } from "@/lib/supabase/client";
  * look at, which is the opposite of "without getting in the way", so the offer
  * card arrives as a prop and this component decides which one stands.
  *
- * ★ "JUST CONFIRMED" IS A MARKER, NOT A GUESS. `save-account-prompt.tsx` writes
- * `pr_pending_offer_<qr_token>` when the door OPENS; this consumes it on the
- * next mount and deletes it in the same breath, so the moment plays exactly
- * once and plays identically whether the guest typed the code in place or left
- * for a magic link and came back through a full reload.
+ * ★ "JUST CONFIRMED" IS THE ALBUM'S DECISION, HANDED IN (guest by upload,
+ * 2026-09-22). Every confirm door writes `pr_pending_offer_<qr_token>` when it
+ * OPENS, and the album page (`use-confirm-return.ts`) hears every claim made on
+ * it: when a claim moved this album's own uploads and that marker was there, it
+ * sets `moment`, and this card plays the moment exactly once, identically
+ * whether the guest typed the code in place or came back from Google or a
+ * magic link through a full reload, and with no upload needed this visit.
  *
  * ★ AND THE TYPED NAME BECOMES THE PROFILE NAME, when the profile has none.
  * `claim_anonymous_uploads` was deliberately left unchanged by the reshape's
@@ -76,15 +77,21 @@ export function ClaimHandlePrompt({
   qrToken,
   savePrompt,
   host,
+  moment = false,
 }: {
   /** Photographs that landed in this session (the sentence's number). */
   doneCount: number;
-  /** Keys the per-event dismissal and the capture flow's marker. */
+  /** Keys the per-event dismissal and the typed name this device holds. */
   qrToken: string;
   /** What a signed-OUT guest gets instead: the offer card. */
   savePrompt: ReactNode;
   /** The event's host as a public card, for the follow moment's one row. */
   host?: FollowMomentHost | null;
+  /**
+   * A confirmation from this album just claimed its uploads (the album page's
+   * `useConfirmReturn`): the follow moment is due, whatever the slot showed.
+   */
+  moment?: boolean;
 }) {
   const [state, setState] = useState<State>("resolving");
   const [needsHandle, setNeedsHandle] = useState(false);
@@ -127,42 +134,41 @@ export function ClaimHandlePrompt({
       if (!active) return;
       const hasHandle = Boolean(data?.slug);
 
-      // The capture flow's marker, consumed exactly once.
-      let captured = false;
-      try {
-        captured = localStorage.getItem(pendingOfferKey(qrToken)) === "1";
-        if (captured) localStorage.removeItem(pendingOfferKey(qrToken));
-      } catch {
-        // Blocked storage: the moment is skipped, never repeated.
-      }
-
-      if (captured && !data?.display_name) {
+      if (moment && !data?.display_name) {
         const typed = readTypedName(qrToken);
         // Best effort, and never fatal: the profile can always be named from
         // /account, and a nameless account is the state it was already in.
+        // (The claim names a nameless profile from the rows it moved; this is
+        // the belt for a typed name that never reached a row.)
         if (typed) await updateDisplayNameAction(typed);
       }
 
       if (!active) return;
       setNeedsHandle(!hasHandle);
-      setState(captured ? "moment" : hasHandle ? "has-handle" : "no-handle");
+      setState(moment ? "moment" : hasHandle ? "has-handle" : "no-handle");
     })();
     return () => {
       active = false;
     };
-  }, [qrToken]);
+    // `moment` re-resolves on purpose: it arrives AFTER a confirmation made in
+    // this very page, when the session this effect first found absent exists.
+  }, [qrToken, moment]);
 
   if (state === "anon") return <>{savePrompt}</>;
-  if (dismissed) return null;
   if (state === "moment") {
+    // Never behind the handle card's dismissal: the moment is a one-off the
+    // guest just earned, not the nudge they declined.
     return (
       <FollowMomentCard
         host={host ?? null}
         needsHandle={needsHandle}
-        count={doneCount}
+        // A return from Google or a magic link lands with nothing uploaded
+        // this visit: the card then speaks of the photos without a number.
+        count={doneCount > 0 ? doneCount : null}
       />
     );
   }
+  if (dismissed) return null;
   if (state !== "no-handle") return null;
 
   function dismiss() {

@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  Bookmark,
-  Calendar,
-  Image as ImageIcon,
-  Images,
-  Lock,
-} from "lucide-react";
+import { Calendar, Image as ImageIcon, Images, Lock } from "lucide-react";
 
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -16,15 +10,19 @@ import { cn } from "@/lib/utils";
  * gradient, legible over any photo OR the no-cover dark fallback, in both
  * themes). Presentational + server-renderable - the only interactive piece, the
  * QR chip, arrives as the client `qrSlot` (a sibling of the Link, so tapping it
- * never navigates). Used for the merged Events feed (hosted + saved) and Trash.
+ * never navigates). Used for the dashboard's events list (the events you host
+ * and the events you added to), the bin, and the public profile's grid.
  *
- * `href: null` = a saved event the host has since made private: a non-clickable
- * card with a lock fallback (the savedEventCardProps privacy contract). `variant`
- * drives the chrome: hosted (QR slot + the amber review chip + Open/Closed + item
- * count), saved (bookmark glyph + byline + unsave action), trash (dimmed +
+ * `href: null` = an unopenable card with a lock fallback: a guest album whose
+ * host has since made it private (the guestEventCardProps privacy contract), a
+ * binned event, or a profile's attended card (attendance is not a capability).
+ * `variant` drives the chrome: hosted (QR slot + the amber review chip +
+ * Open/Closed + item count), guest (the profile's own Guest marker + byline: an
+ * event you added photos to, guest by upload 2026-09-22), trash (dimmed +
  * countdown + restore action). The amber chip and `action` never coexist by
- * construction (hosted has the chip + no action; saved/trash have an action + no
- * pending), so the top-right slot never collides.
+ * construction (hosted has the chip + no action; trash has an action + no
+ * pending; guest wears its marker there unless a caller hands an action), so the
+ * top-right slot never collides.
  */
 /**
  * ★ DARK GLASS, ON PAPER TOO (`paper=dark`, Will 2026-09-20). A chip over a
@@ -38,6 +36,30 @@ const PILL = cn(
   "flex h-5 items-center gap-1 rounded-full px-2 text-[10px] font-medium text-white",
   GLASS_MARK,
 );
+
+/**
+ * WHOSE PARTY THIS IS TO YOU: "Host" or "Guest", on the card's own chrome (Will, `made-of=covers`,
+ * 2026-09-19, for the public profile: "maybe we could just have host/guest UI on each event card to
+ * denote within a single group"). It was the profile page's own piece; since guest by upload
+ * (2026-09-22) the dashboard's cards for the events you added to wear the same word, so the marker
+ * lives with the card and both pages draw one object. The same pill as the date beside it, on the
+ * one glass material.
+ */
+export function RoleMarker({ role }: { role: "host" | "guest" }) {
+  return (
+    <span
+      className={cn(
+        "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
+        GLASS_MARK,
+      )}
+    >
+      {role === "host" ? "Host" : "Guest"}
+      <span className="sr-only">
+        {role === "host" ? ": hosted this event" : ": added photos here"}
+      </span>
+    </span>
+  );
+}
 
 export function EventCard({
   href,
@@ -56,18 +78,18 @@ export function EventCard({
   name: string;
   coverUrl: string | null;
   dateLabel: string;
-  variant?: "hosted" | "saved" | "trash";
+  variant?: "hosted" | "guest" | "trash";
   /** Hosted: the "N items" pill (approved count). */
   itemsLabel?: string | null;
-  /** A status pill: Open/Closed (hosted), the countdown (trash), Password (saved). */
+  /** A status pill: Open/Closed (hosted), the countdown (trash), Password (guest). */
   statusLabel?: string | null;
   /** Hosted: the amber "N to review" chip (rendered only when > 0). */
   pendingCount?: number;
-  /** Saved: "Hosted by X". */
+  /** Guest: "Hosted by X". */
   byline?: string | null;
   /** Hosted: the client QR trigger (a sibling of the Link; tapping it never navigates). */
   qrSlot?: React.ReactNode;
-  /** Top-right action: unsave (saved) / restore (trash). */
+  /** Top-right action: restore (trash), or a page's own marker (the profile's Host/Guest). */
   action?: React.ReactNode;
 }) {
   const locked = href === null;
@@ -149,24 +171,12 @@ export function EventCard({
         </div>
       )}
 
-      {/* Top-LEFT: the hosted QR chip OR the saved provenance glyph. */}
-      {qrSlot ? (
-        <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>
-      ) : variant === "saved" ? (
-        <div
-          className={cn(
-            "pointer-events-none absolute top-2.5 left-2.5 z-10 flex items-center justify-center rounded-[var(--radius-tile)] p-1.5 text-white",
-            GLASS_MARK,
-          )}
-          title="A saved event"
-        >
-          <Bookmark className="size-3.5" aria-hidden />
-          <span className="sr-only">Saved event</span>
-        </div>
-      ) : null}
+      {/* Top-LEFT: the hosted QR chip. */}
+      {qrSlot && <div className="absolute top-2.5 left-2.5 z-10">{qrSlot}</div>}
 
-      {/* Top-RIGHT: the amber review chip (hosted) OR the action (saved/trash);
-          mutually exclusive by variant, so they never overlap. */}
+      {/* Top-RIGHT: the amber review chip (hosted) OR the action (trash, or a
+          page's own marker) OR the Guest marker (guest); mutually exclusive by
+          variant, so they never overlap. */}
       {pendingCount > 0 && (
         <div
           className="absolute top-2.5 right-2.5 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -178,9 +188,13 @@ export function EventCard({
           {pendingCount} to review
         </div>
       )}
-      {action && (
+      {action ? (
         <div className="absolute top-2.5 right-2.5 z-10">{action}</div>
-      )}
+      ) : variant === "guest" ? (
+        <div className="pointer-events-none absolute top-2.5 right-2.5 z-10">
+          <RoleMarker role="guest" />
+        </div>
+      ) : null}
     </div>
   );
 }
