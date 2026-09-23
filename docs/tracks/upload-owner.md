@@ -78,12 +78,17 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed:** work `7923c68d`; sync `140523a4` (merge of `origin/launch-prep` at `1bd0adf7`: milestone 27
-  and its records, docs only, no conflict). The head is in the chat line.
-- **Gates on the synced tree** (logs in the scratchpad `upload-owner/gate/`): `pnpm design:rules` 0 (no artifact
-  drift) · `collect-specimens.mjs` 0 (no drift) · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none in a touched
-  file) · `pnpm test` 0 (381 files, 4218 passed, 1 skipped) · `pnpm build` 0 (259 pages, no warnings) ·
-  `pnpm lab:smoke --base http://localhost:3131` 0 (519 checks, 0 failing).
+- **Commits, pushed:** work `7923c68d`; syncs `140523a4` (merge of `origin/launch-prep` at `1bd0adf7`: milestone 27
+  and its records) and `b0d93fe2` (at `89199dd4`: the identity contract applied with `types.ts` regenerated, and
+  the `delete-final` cut), no conflict either time. The head is in the chat line.
+- **Gates on the synced tree** (`b0d93fe2`; logs in the scratchpad `upload-owner/gate2/`): `pnpm design:rules` 0
+  (no artifact drift) · `collect-specimens.mjs` 0 (no drift) · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none
+  in a touched file) · `pnpm test` 0 (381 files, 4220 passed, 1 skipped) · `pnpm build` 0 (259 pages, no warnings) ·
+  `pnpm lab:smoke --base http://localhost:3131` 0 (520 checks, 0 failing); the red-team's claimed ticket still
+  presigns 403 on it.
+- **Merge note:** `delete-final` (open) reads `guest-flow.md`, and this lane's new invariant bullet sits directly
+  under the guest-removal invariant it is likely to refine; if both touch those lines the doc merge is by hand.
+  No code path overlaps its `owns`.
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path is under `owns` (the two upload
   routes, `src/lib/upload/`, `src/lib/guest/`, `src/components/guest/`, `src/app/api/guests/`,
   `src/app/(auth)/actions.ts`, `src/components/app/user-menu.tsx`) plus this file, with two listed exceptions:
