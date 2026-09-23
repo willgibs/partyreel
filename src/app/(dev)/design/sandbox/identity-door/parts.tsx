@@ -383,12 +383,8 @@ export function GateBody({
       {variant === "list" && (
         <ul className="mx-auto mt-3 max-w-xs space-y-1.5 text-left text-reading text-muted-foreground">
           <li className="flex items-start gap-2">
-            <Check className="mt-0.5 size-3.5 shrink-0" aria-hidden /> Save the
-            event to your profile
-          </li>
-          <li className="flex items-start gap-2">
-            <Check className="mt-0.5 size-3.5 shrink-0" aria-hidden /> Come
-            back anytime, with every photo you add
+            <Check className="mt-0.5 size-3.5 shrink-0" aria-hidden /> Every
+            photo you add from here stays in your account
           </li>
         </ul>
       )}

@@ -221,7 +221,7 @@ export const RULINGS: Ruling[] = [
       "src/app/(app)/account/page.tsx",
     ],
     board: {
-      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified with three events joined and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
+      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
       variants: [
         "How it's set up",
         "What shows",

@@ -18,18 +18,19 @@ import {
 } from "@/components/ui/card";
 import { floatingPanel } from "@/components/ui/floating-layer";
 import type { ClaimableEventRow } from "@/lib/db/queries/claims";
+import { GLASS_MARK } from "@/lib/glass";
 import { cn, formatEventDate } from "@/lib/utils";
 
 import {
   CLAIMABLE_ROWS,
   CLAIMED_COVER,
   CURRENT_EVENT,
+  CURRENT_EVENT_COVER,
   HERS,
   HERS_PHOTOS,
   IMPOSTOR,
   IMPOSTOR_PHOTOS,
   PRIYA,
-  SAVED_COVER,
 } from "./fixtures";
 import { DialogFoot, Scrim, Thumb, ToastVisual } from "./scene";
 
@@ -578,20 +579,81 @@ export function ConfirmSecondScreen() {
 
 /* ── the dashboard ground `ticket`, `pass`, `confirm` and `after` all share ─ */
 
-export function SavedEventCard() {
+/**
+ * ★ THE GUEST MARK, IN PLACE OF THE RETIRED SAVE BOOKMARK. Tonight's ruling:
+ * a person is a guest of an event only through an upload, never a save, so no
+ * board draws `EventCard`'s `saved` variant again (`guest-by-upload` is
+ * retiring it from production the same night). This is `EventCard`'s own
+ * `hosted` variant, which carries no QR chip and no pending chip (nothing
+ * that claims Priya runs the event), with a small local marker laid over its
+ * top-left corner instead of the bookmark that used to sit there.
+ */
+function GuestMark() {
   return (
-    <EventCard
+    <span
+      className={cn(
+        "pointer-events-none absolute top-2.5 left-2.5 z-10 flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
+        GLASS_MARK,
+      )}
+    >
+      Guest
+    </span>
+  );
+}
+
+function LocalGuestCard({
+  href,
+  name,
+  coverUrl,
+  dateLabel,
+  byline,
+}: {
+  href: string;
+  name: string;
+  coverUrl: string;
+  dateLabel: string;
+  byline: string;
+}) {
+  return (
+    <div className="relative">
+      <EventCard
+        href={href}
+        name={name}
+        coverUrl={coverUrl}
+        dateLabel={dateLabel}
+        variant="hosted"
+        byline={byline}
+      />
+      <GuestMark />
+    </div>
+  );
+}
+
+/** Maya and Jay's wedding: the guest event already on Priya's dashboard
+ *  before this ticket, counted the moment her confirmed upload landed. */
+export function GuestEventCard() {
+  return (
+    <LocalGuestCard
       href={`/e/${CURRENT_EVENT.hostSlug}-jay`}
       name={CURRENT_EVENT.name}
-      coverUrl={SAVED_COVER}
+      coverUrl={CURRENT_EVENT_COVER}
       dateLabel={CURRENT_EVENT.date}
-      variant="saved"
       byline={`Hosted by ${CURRENT_EVENT.host}`}
-      action={
-        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Check className="size-3" aria-hidden /> Saved
-        </span>
-      }
+    />
+  );
+}
+
+/** Tom's leaving do, the instant Finish settles it into Your events like any
+ *  other guest card: `after`'s own baseline now (tonight's ruling), since a
+ *  claimed event no longer leaves the dashboard unchanged. */
+export function ClaimedEventCard() {
+  return (
+    <LocalGuestCard
+      href={`/e/${HERS.eventId}`}
+      name={HERS.eventName}
+      coverUrl={CLAIMED_COVER}
+      dateLabel={formatEventDate(HERS.eventDate!)}
+      byline={`${HERS.uploadCount} photos`}
     />
   );
 }
@@ -601,11 +663,16 @@ export function DashboardScene({
   overlay,
   dim = false,
   headerExtra,
+  extraCard,
 }: {
   ticket?: ReactNode;
   overlay?: ReactNode;
   dim?: boolean;
   headerExtra?: ReactNode;
+  /** A second card in Your events, once Finish has settled a claim there
+   *  (the `after` ask's own baseline: a claimed event joins Your events as an
+   *  ordinary Guest card, tonight's ruling, not a dashboard left unchanged). */
+  extraCard?: ReactNode;
 }) {
   return (
     <div className="relative min-h-full">
@@ -629,8 +696,9 @@ export function DashboardScene({
             </h2>
             <ul className="grid gap-4 sm:grid-cols-2">
               <li>
-                <SavedEventCard />
+                <GuestEventCard />
               </li>
+              {extraCard && <li>{extraCard}</li>}
             </ul>
           </div>
         </div>
@@ -671,14 +739,7 @@ export function ClaimedStrip() {
       </p>
       <ul className="grid gap-4 sm:grid-cols-2">
         <li>
-          <EventCard
-            href={`/e/${HERS.eventId}`}
-            name={HERS.eventName}
-            coverUrl={CLAIMED_COVER}
-            dateLabel={formatEventDate(HERS.eventDate!)}
-            variant="saved"
-            byline={`${HERS.uploadCount} photos`}
-          />
+          <ClaimedEventCard />
         </li>
       </ul>
     </div>

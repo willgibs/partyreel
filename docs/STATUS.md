@@ -70,9 +70,9 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first, and every `media-viewer` question but `who`; `identity-door`,
-  `identity-claims`, `identity-profile`, `guest-capture` and `media-viewer.who` once `recheck-by-upload` lands
-  (tonight's rulings reach them).
+- **His desk review**: the six reel boards first; every standing board is current with tonight's rulings
+  (`recheck-by-upload` merged: `identity-door.gate` now recommends the ruled line alone, `identity-profile.page`'s
+  count is viewer-scoped, `identity-claims.after` lands a claimed event as a Guest card).
 - **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
   `milestone-26`, far beyond the "about two rounds" rule, and once the save tables drop, partyreel.com's older build
   errors on its dashboard, its profile hide toggle and its Save buttons until it ships.
