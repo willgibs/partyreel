@@ -56,6 +56,8 @@ const OWNED = [
   "CompareTwo",
   "SpotCompare",
   "GroundBox",
+  "Fit",
+  "Measured",
 ];
 
 /**

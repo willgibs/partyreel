@@ -1,15 +1,15 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 
 import { SCREENS, type ScreenId } from "./room";
 
 /**
- * THE FRAME EVERY DECISION DRAWS IN (the machinery `guest-capture` and
- * `identity-door` share, carried here verbatim so nothing about the stage
- * differs between boards over this album).
+ * THE FRAME EVERY DECISION DRAWS IN (`Fit` and `Measured` are the kit's now,
+ * so nothing about the stage differs from any other board's; this one still
+ * overrides the kit's read schedule below, for the engine's own late pass).
  *
  * ★ PHONE FIRST, 1440 ON THE KNOB. A cut is made on the device it will be
  * posted from, so 375 is the primary read; 1440 exists because the same guest
@@ -21,82 +21,11 @@ import { SCREENS, type ScreenId } from "./room";
  * lab frame renders on the LAB PAGE's document, not the phone being judged.
  */
 
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/** A number read off the frame's own document, never computed by the author. */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  /** `null` means "not settled yet": the read is skipped rather than
-   *  overwriting the caption with a lie. */
-  probe: (root: HTMLElement, win: Window) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el, win);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    // The engine's own pass lands late (eighteen sequential draws), so the
-    // last read is deliberately far out: a caption taken before the stills
-    // arrive would measure an empty box and report it as the truth.
-    const timers = [200, 900, 1800, 3600, 6000].map((ms) =>
-      win.setTimeout(read, ms),
-    );
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref}>{children}</div>;
-}
+/** The engine's own pass lands late (eighteen sequential draws), so the last
+ *  read is deliberately far out, past the kit's default: a caption taken
+ *  before the stills arrive would measure an empty box and report it as the
+ *  truth. */
+const ENGINE_TIMERS = [200, 900, 1800, 3600, 6000];
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
 
@@ -119,7 +48,12 @@ export function Scene({
   const { w, h } = SCREENS[screen];
   const [measured, setMeasured] = useState("measuring");
   const body = measure ? (
-    <Measured probe={measure} deps={[screen, id]} onMeasure={setMeasured}>
+    <Measured
+      probe={measure}
+      deps={[screen, id]}
+      onMeasure={setMeasured}
+      timers={ENGINE_TIMERS}
+    >
       {children}
     </Measured>
   ) : (
@@ -167,7 +101,12 @@ export function TwoScreens({
 }) {
   const [measured, setMeasured] = useState("measuring");
   const top = measure ? (
-    <Measured probe={measure} deps={[id]} onMeasure={setMeasured}>
+    <Measured
+      probe={measure}
+      deps={[id]}
+      onMeasure={setMeasured}
+      timers={ENGINE_TIMERS}
+    >
       {laptop}
     </Measured>
   ) : (

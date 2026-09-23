@@ -1,19 +1,14 @@
 "use client";
 
-import {
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type ReactNode, useState } from "react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 
 /**
  * THE ONE FRAME EVERY DECISION DRAWS IN (the `guest-capture`/`media-viewer`
- * precedent, carried here verbatim: `Fit`, `Measured`, `Scene` are the same
- * shape, because a board's furniture is not a place to invent a second one).
+ * precedent: `Fit` and `Measured` are the kit's; `Scene` keeps the same shape
+ * anyway, because a board's furniture is not a place to invent a second one).
  *
  * ★ PHONE FIRST, 1440 ON THE KNOB: except the `tile` ask, which draws TWO
  * `Scene`s side by side, unconditionally, rather than one behind the `screen`
@@ -42,77 +37,6 @@ export const SCREEN: Control = {
   ],
   default: "375",
 };
-
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/** A number read off the frame's own document, never asserted (the
- *  program-wide rule: a board once drew a formula with its sign backwards). */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  probe: (root: HTMLElement, win: Window) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el, win);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    const timers = [200, 900, 1800].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref}>{children}</div>;
-}
 
 export function Scene({
   id,

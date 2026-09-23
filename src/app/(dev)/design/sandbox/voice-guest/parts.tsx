@@ -415,14 +415,14 @@ export function HeldTile({
   );
 }
 
-/* ── 7. the capture (`save-account-prompt.tsx`, then the `save` wear) ─────── */
+/* ── 7. the capture (`save-account-prompt.tsx`, then the `keep` wear) ─────── */
 
 /** The card in the words column's post-upload slot: the glyph in its muted
  *  disc, the heading, the reason, the button that opens the door, and "Maybe
  *  later". ★ DRAWN AS `guest-capture` DRAWS IT NOW (its recheck, merged at
  *  0d6eb748): a mail glyph where the bookmark was, since save is gone and
- *  the card asks for an email, and a plain button rather than the retiring
- *  `SaveEventButton`'s bookmarked trigger. A reader meets the same card on
+ *  the card asks for an email, and a plain button rather than the bookmarked
+ *  trigger the old save button once drew. A reader meets the same card on
  *  both boards, one after the other, and judges only the words here. */
 export function OfferCard({ register }: { register: Register }) {
   const words = KEEP[register];
@@ -470,7 +470,7 @@ function Or() {
 
 /**
  * THE DOOR THE CARD OPENS, QUOTED: the dialog's own title and description
- * carry the wear's heading and reason (`save-event-button.tsx` reads them
+ * carry the wear's heading and reason (`confirm-email-dialog.tsx` reads them
  * into that slot and passes `chrome="none"`), then the code-led door as it
  * stands on its first screen, the card's newsletter switch in its slot, and
  * the Terms line every wear carries.
@@ -486,7 +486,7 @@ export function KeepDoor({ register }: { register: Register }) {
         </p>
         <p className="text-sm text-muted-foreground">{words.doorReason}</p>
       </div>
-      <div data-account-door="save" className="space-y-4">
+      <div data-account-door="keep" className="space-y-4">
         <div className="space-y-4">
           <div className="space-y-3">
             <div data-vg-field className="grid gap-2">
