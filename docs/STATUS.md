@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-22
+**Updated:** 2026-09-23
 
 ## The era
 
@@ -13,23 +13,21 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: the reel, reconceived
+## The current round: the loose ends, milestone 27, and the event-safety board
 
-The reel becomes the event's own live montage of everything the album shows (from the third item, no host action, no
-stored file; the host's mood as the default and each viewer's own switch; a first-class venue screen), and a cut is
-anyone's, made on their device (saved or shared as a file; "Add to the album" on a paid event). Video in the reel is a
-window of the original fetched by range and decoded on the viewer's device. The plan:
-`~/.claude/plans/great-work-however-1-dapper-twilight.md`.
-
-- **On the tree:** the rolling live composer and the video window reader (harnesses `/design/lab/tools/reel-live` and
-  `/design/lab/tools/reel-video`; a 20-minute alias soak held, the heap flat at 13 to 19 MB); six boards on the desk.
-- **Next:** his desk review; then the wiring (the expand migration first; the old reel stays live on the alias until
-  one build replaces it; the drop migration after the red-team).
-- **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
-  to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
-  host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
-  guest journey. all five lanes merged and red-teamed on the alias; both migrations applied (the save tables and the
-  dead opt-out table are gone), so partyreel.com's older build errors on its dashboard until a milestone.
+Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
+- **The rulings round's loose ends**, in two production lanes and a lab lane. First a live defect: a one-field event
+  save (a QR style, the review switch) also reset visibility, pause, both door switches and moderation to their
+  defaults, opening a password or private album and approving every held upload. Then the round's Now lines, the
+  identity contract (dropping `allow_anonymous_uploads`), the Guests room showing a confirmed guest's address to the
+  host alone (his ruling: "only the host sees it"), and one storage aggregate (`host_storage_summary`, applied).
+- **Milestone 27** (his yes) after the lanes' alias red-team; the identity contract right after its pass; then a real
+  TEST subscription on partyreel.com with his final clicks (Checkout, then the change-plan confirm page).
+- **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
+  and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
+- **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
+  (harnesses `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`), six boards on the desk; its plan is
+  the same file's reel section (the expand migration first, the drop migration after the red-team).
 
 ## The desk
 
@@ -70,10 +68,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first; every standing board is current with tonight's rulings
-  (`recheck-by-upload` merged: `identity-door.gate` now recommends the ruled line alone, `identity-profile.page`'s
-  count is viewer-scoped, `identity-claims.after` lands a claimed event as a Guest card).
-- **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
-  `milestone-26`, far beyond the "about two rounds" rule, and once the save tables drop, partyreel.com's older build
-  errors on its dashboard, its profile hide toggle and its Save buttons until it ships.
-- **One call in the ROADMAP**: whether the Guests room shows a confirmed guest's address too.
+- **His desk review**: the six reel boards first; every standing board is current with the rulings of 2026-09-22.
+- **The Stripe clicks** once milestone 27 is live: a test card and Subscribe on Stripe Checkout as willg97, then Back
+  and Confirm on the change-plan confirm page (staged for him when he is ready).

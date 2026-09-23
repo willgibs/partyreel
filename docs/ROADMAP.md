@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Legal: the Terms say a profile block "removes each of you from the other's social surfaces" (`legal-terms.tsx:427`) while a block covers following only; the event-safety wiring rewrites the section.
+- Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
+- Security: changing an event's password evicts nobody already unlocked for up to 12 hours (the unlock cookie signs `{eid, exp}`, not the password); bind it to a password version so a change signs everyone out.
 - Copy: the guest's delete confirm says "permanently deleted after a short grace period" (`media-lightbox.tsx`) where Deleted keeps an upload for `RECENTLY_DELETED_WINDOW_DAYS`; say the window.
 - Guest: after deleting one of this visit's uploads, the post-upload handle card still counts it ("Your 2 photos are on this album" with one left); count the live uploads, not the visit's queue.
 - Copy: the door's upload step on an event without Require an upload to view says "Add one now and the album opens." though that album is already open; the line belongs to the require-upload door alone.
@@ -29,7 +32,7 @@ below hold the rest by surface.
 - Billing follow-ons: a SECURITY DEFINER `host_storage_summary()` returning active and Deleted bytes in one aggregate, to replace the paged row read behind the storage meter and the storage guard for very large albums.
 - Billing follow-ons: the webhook warns (Sentry) on a subscription item with quantity above 1 (the old portal stepper's multiples, which provisioning reads as one cap).
 - Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
-- Host (Will's call): the Guests room draws a confirmed guest's verified badge without the address the host's viewer shows under the same name; his reason for keeping the address (a badge without it implies more safety than it gives, 2026-09-22) reaches the room too, but the room would list every address at once.
+- Host: the Guests room shows a confirmed guest's address under the name, to the host alone (Will, 2026-09-23: "Guests should not see other confirmed guests' emails, making them more comfortable knowing only the host sees it"); `host-followons` wires it with the pins that keep every guest-facing payload address-free.
 - Dashboard: an account a guest just made through the capture lands first on the host tour ("Create my first event", `welcome-flow.tsx`) before the Guest card the capture promised it; a guest-made account's first visit could lead with that card.
 - The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place (Will, 2026-09-22: "nail our voice in the lab, across all main and micro copy").
 - Migrations: the remaining `migration-guards.test.ts` pins that hold an object for the deployed `main` build are judged by PROGRAM.md's "Before launch" principle: each contract lands once the alias's build stops calling what it drops.
@@ -177,7 +180,7 @@ The app:
 - Guest: a name-only guest whose session drops re-joins on the same device as a second guest row with the same name, so the guest list shows one person twice; key the re-join on `pr_device_id` (the same row) or de-dupe the list by name and device (Will's to pick).
 - Guest: the album's header holds `stats.guestCount` from the render, so a guest's own first upload under-counts the guests by one until a reload (`event-experience.tsx`); a small server signal on the gallery poll fixes it, never a client heuristic (a returning contributor would over-count).
 - Guest: `get_event_by_qr_token` does not return `events.max_upload_bytes`, so the upload sheet's terms line states the product's limits rather than the host's own cap; add the column (with the types and `queries/guest-events.ts`) and `uploadTermsLine`'s `capBytes` seam takes it.
-- Guest: Download all (`ExportDialog`) and the confirm door (`ConfirmEmailDialog`) are still centred `Dialog`s where the guest's other dialogs ride the responsive Sheet.
+- Guest: Download all (`ExportDialog`), the confirm door (`ConfirmEmailDialog`), the add-email dialog (`add-email-dialog.tsx`) and the like door (`likes-provider.tsx`) are still centred `Dialog`s where the guest's other dialogs ride the responsive Sheet (the `export-flow` and `identity-door` boards own the first two).
 - Guest: two identity seams read the server's names through narrow casts (`socialSeam` and the guest list's second argument in `(guest)/e/[token]/page.tsx`; `isVerified` in `media-lightbox.tsx`); collapse them onto the merged types.
 - Guest: the album, the door and the report dialog carry no link to `/help` (only the guest 404s do).
 - Guest: the media viewer's own image and video have no loading state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture in the product on venue Wi-Fi).
@@ -273,6 +276,7 @@ The app:
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
   - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
   - The share sheet grows sections for posters and an invite when they exist.
+- **Event safety** (Will, 2026-09-23): a host blocks a person from an event, and keeps an event closed. His answers: a block is "Out, uploads removed" (no join, upload, album, like or claim; their uploads removed in the same step and restorable from Deleted; a plain closed door, never the word blocked); the closed doors are approve newcomers, close to newcomers and an invite list; all "free on every plan". The `event-safety` board draws it; the wiring follows his review, keyed on the account (every device) or one row (one browser), never a device id or an IP.
 - **The reel:** the round's wiring waits on Will's desk review of the six reel boards (`reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`); the approved plan named in [`tracks/orchestrator.md`](tracks/orchestrator.md) runs the expand migration first, then the guest, cut, host, teardown and sweep lanes, one alias build replacing the stored reel, and the drop migration and a one-shot R2 sweep of the stored reel files after its red-team. Ideas at zero storage, since a reel is a recipe:
   - A host featuring one cut on the album, and a shareable cut link.
   - Host pins that open each loop.

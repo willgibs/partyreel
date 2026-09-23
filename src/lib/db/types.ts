@@ -1496,6 +1496,13 @@ export type Database = {
       }
       has_password: { Args: never; Returns: boolean }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
+      host_storage_summary: {
+        Args: { p_host_id: string }
+        Returns: {
+          active_bytes: number
+          standby_bytes: number
+        }[]
+      }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       list_guest_rows_by_email: {
         Args: never

@@ -110,7 +110,9 @@ The expected, accepted set:
   key; `get_event_like_counts(uuid)` is HOST-GATED (zero rows to a non-host) and the ONLY count path, so a
   like count NEVER reaches a guest. Unlike + heart-state are owner-RLS from the browser.
 - **Service-role-only (must NEVER appear in either advisor list):** the server-mediated RPCs above, plus
-  `action_rate`, `purge_media_rows`, `record_link_hit`, `host_active_bytes`, `monthly_ingress_cap` and the
+  `action_rate`, `purge_media_rows`, `record_link_hit`, `host_active_bytes`, `host_storage_summary` (the storage
+  meter's and the storage guard's active and Deleted bytes in one aggregate, called on the admin client after
+  `getUser()`), `monthly_ingress_cap` and the
   trigger-only functions (`set_media_purge_at`, `set_event_purge_at`, `set_updated_at`,
   `enforce_event_limit`, `handle_new_user`, `enforce_follow_not_blocked`, `notify_gallery_change` [the
   gallery doorbell], `set_media_removal_provenance`, `guard_media_privileged_transitions`,
