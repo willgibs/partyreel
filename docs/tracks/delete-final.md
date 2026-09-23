@@ -1,6 +1,6 @@
 ---
 track: delete-final
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f44300ec"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -55,24 +55,43 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The stored reel mp4's stale rung can still carry a withdrawn photo** (outside this lane: `src/lib/reel/guest-download-plan.ts:14,40` and `src/app/api/reel/download/route.ts`). A guest whose device cannot encode is handed the host's stored mp4 even when it is stale (`fresh: false`), so a reel rendered before a guest withdrew a photo still shows that photo to other guests until the host renders again (the host's own path re-renders on a hash change; the live player and the guest payload's `item_ids` are approved-only and pinned). Recommended: under "gone everywhere", drop the stale rung for guests (stale + cannot encode becomes `ask_host`) inside the reel round's wiring, whose drop migration sweeps the stored files anyway.
+- The brief's other recommended answers were built as written; the calls I took are below.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the invariant "A withdrawal is final for the host" now names the surfaces, the Deleted figure, the confirm's words and why no window, and the pin (hand-merged in the sync with `upload-owner`'s "UPLOADS ARE HELD TO THE SAME OWNER" bullet directly under it); the own-photographs bullet says the confirm never names the window and that the personal Uploads' host arm is `isHost`, with the host's words.
+- `docs/systems/lifecycle-recovery.md`: `standby_budget` (the sweep's own sum counts a withdrawal; the meter's figure is narrower), the delete-own bullet (final for that host, in neither storage figure, the two confirms), the UI bullet (the meter's X is only what the host can restore).
+- `docs/systems/billing-caps.md`: `host_storage_summary`'s Deleted filter is the negation less a guest's own withdrawal.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: `src/lib/db/queries/storage.ts`'s `tallyStorageRows` and its header (lines 8, 39, 47, 51) still define standby as "everything not active"; its row shape has no `removed_by_uploader` and no read calls it: retire it, or carry the marker.
+- Now: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
+- Now: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes only catch `get*` names).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `c173313e`; sync merge `feb4c6c4` (launch-prep had moved to `d5b2187b`: `upload-owner` merged; `guest-flow.md` hand-merged). Both pushed.
+- Gates on the synced tree (`feb4c6c4`), each on its own exit code: `pnpm design:rules` 0 (no diff); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (no diff); `pnpm typecheck` 0; `pnpm lint` 0 (8 warnings, none in a touched file); `pnpm test` 0 (382 files: 4227 passed, 1 expected fail, which is `media.test.ts`'s tripwire below, 1 skipped as before); `pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (519 checks, 0 failing). No board, so no `lab:demo`. Logs in the lane's scratch directory (`sync-*.log`).
+- Lane check, `git diff --name-only origin/launch-prep...HEAD`: `content/help/find-your-uploads-and-events.mdx`, `content/help/hide-remove-and-restore.mdx`, `content/help/how-long-media-is-kept.mdx`, `content/help/report-a-problem-as-a-guest.mdx`, `content/help/reporting-and-safety.mdx`, `content/help/your-data-and-deleting-your-account.mdx`, `docs/design/library.md`, `docs/systems/billing-caps.md`, `docs/systems/guest-flow.md`, `docs/systems/lifecycle-recovery.md`, `docs/tracks/delete-final.md`, `src/app/(dev)/design/rules/rules.generated.json`, `src/app/(guest)/u/[slug]/owner-sections.tsx`, `src/components/app/my-uploads-gallery.tsx`, `src/components/shared/media-lightbox.test.tsx`, `src/components/shared/media-lightbox.tsx`, `src/lib/billing/storage-summary.test.ts`, `src/lib/db/queries/media.test.ts`, `src/lib/db/queries/media.ts`, `supabase/migrations/20260923160000_withdrawn_out_of_standby.sql`. That is owned paths, this file, the three listed system docs, and two files DERIVED by the gate's `pnpm design:rules` (`rules.generated.json`, `docs/design/library.md`): `media-lightbox.test.tsx`'s three new titles, collected as `unverified-mark.tsx` contracts by that file's existing `@contract-for` line. `voice-guest/lines.ts`, the Review route and `src/lib/export/` needed no change (no delete line in the first; the other two already drop removed rows, pinned).
+- The items:
+  1. The confirm (`media-lightbox.tsx`): a guest's own delete reads "It's deleted from the event right away and can't be recovered." with no window; the require-upload consequence line still follows. Pinned by meaning, not wording, in `media-lightbox.test.tsx` (no window, no "Deleted"; the consequence still appended); a mutation check reverting either branch fails them.
+  2. A host's own upload on the personal Uploads (`remove_my_upload`'s host arm, restorable) keeps the host's words (Deleted, and the window), through one shared `HostRemovalWords` the curate group's Remove now uses too; `owner-sections.tsx` marks those items `isHost` off the viewer's own events (`listEvents()`, owner-RLS), because get_my_uploads splits its arms on the event's host.
+  3. Host surfaces audited against a withdrawal; the new `src/lib/db/queries/media.test.ts` runs each read against one fixture (a withdrawal that is the event's NEWEST upload, one that is the bin's SOONEST purge) through an in-memory PostgREST stand-in that applies the filters a read sends: the album, viewer, Review and Download all (`listEventMedia`), Deleted (`listRecentlyDeletedMedia`), the home's pulse, the events list's counts and cover, the reel timeline (`resolveReelRenderContext`) and the guest RPC's items (read off the migration). Already pinned elsewhere and named in its header: `restore_media`'s refusal, the reel's membership, the guest count and Guests room, the zip manifest. Mutation-checked: dropping either `media.ts` filter fails its pin.
+  4. The one leak left is outside the lane: the bell's "Items in Deleted are about to be cleared" nudge (`notifications.ts`) fires on a guest's withdrawal. Pinned as `it.fails` at `media.test.ts:308`, which fails the day its filter lands (checked by applying the fix locally and reverting).
+  5. `supabase/migrations/20260923160000_withdrawn_out_of_standby.sql` (UNAPPLIED): `host_storage_summary`'s `standby_bytes` is only what the host can restore, `not (active) and not (m.status = 'removed' and m.removed_by_uploader)`, a withdrawal in neither number; the foot holds a six-step rolled-back check riding the real `remove_my_upload_by_session`. `storage-summary.test.ts` pins the new filter off the migrations (fails without the file, and with the withdrawal arm removed) and ties it to `restore_media`'s refusal and `get_upload_gate`'s spelling.
+  6. Help, every sentence about a guest's own delete: `find-your-uploads-and-events` (the confirm's words and finality, plus the host-arm exception), `hide-remove-and-restore` (a withdrawal never appears in Deleted and leaves the meter's figure), `how-long-media-is-kept`, `your-data-and-deleting-your-account`, `reporting-and-safety`, `report-a-problem-as-a-guest`; checked rendered locally at 1440 and 375 (no horizontal scroll).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: apply `supabase/migrations/20260923160000_withdrawn_out_of_standby.sql` (the lane never called `apply_migration`). Drift `md5(prosrc)` before: `69da923b75dc57e3b7720e2eb25e5af8` (read live 2026-09-23); after: `027f9b30ac11e31b60c7f1153239cd60` (the file's body; its whitespace-collapsed md5 `bdf9ba52c0c2d285c59679486beecf10` is what the live proof printed). Grants unchanged: service_role only (the file re-states the revoke and adds an explicit service_role grant). No `types.ts` change (same signature). Proof: the migration EXECUTEd verbatim, then the foot's check, in ONE `DO` block on the live schema, ending in the deliberate raise `ROLLED BACK: every host_storage_summary check held (hosts 2, withdrawal 274850 bytes, host removal 242438 bytes, deleted event 10332972 live bytes, body md5 bdf9ba52...)`; afterwards the live body md5, the 4 withdrawn rows, 1 host-removed row, 0 deleted events and willg97's standby 2516329 all read as before. Once applied, willg97's "+ X in Deleted" drops from about 2.5 MB to about 27 KB (four guests' withdrawals, 2489383 bytes, leave it). Apply before or with the cron lane's bin-budget rule: until then the sweep's own sum still counts withdrawals the meter no longer shows.
+- For the Orchestrator, outside the lane (the brief: "keep your query changes to the files named in your owns"):
+  - `src/lib/db/queries/notifications.ts:57`: add `.eq("removed_by_uploader", false)` after `.eq("status", "removed")`; then `it.fails` becomes `it` at `src/lib/db/queries/media.test.ts:308`.
+  - `src/components/marketing/sections/features/album/album-faq.ts:36` says a guest deletes "From their dashboard" (stale) and not that it is final; suggested: "Yes, right on the album or from their profile, and it's gone for good: you can't restore it. As host you can remove anything."
+  - `upload-owner`'s `live-gallery.tsx` consequence line needs nothing: it names no window.
+- Calls his to overrule:
+  - The confirm's words are the brief's: "It's deleted from the event right away and can't be recovered."
+  - A host's own upload deleted from Your uploads keeps the host's words; the side effect is the "Host" badge in the viewer's credit capsule on those items. The alternative: carry `is_host_upload` through `my-uploads.ts` and `toMyUploadsItems` (three lines in two unowned files) and drop the extra `listEvents()` read.
+  - "Only what the host can restore" means what the host's Deleted lists: an operator takedown or a held row stays in the figure (Deleted shows it; Restore refuses it discreetly); only a guest's withdrawal leaves.
+  - Help fixed beyond the delete lines, inside paragraphs I was already editing: `hide-remove-and-restore`'s stale path ("Settings › Deleted" is now "View › Deleted"; the dashboard's "chip" is the Show menu) and `your-data`'s "your dashboard's Uploads" (now Your uploads on the profile) and "remove photos ... from the event's settings" (now from the album).
+  - `it.fails` is new in this repo: a tripwire for a known leak outside the lane.
+- Look at first: the migration (header, the standby filter, the foot); `media-lightbox.tsx`'s own-delete confirm; `owner-sections.tsx`'s `isHost` marking; `media.test.ts`. Live on alias build 4 (localhost cannot reach the confirm: an own upload needs sign-in or an upload, both allow-list-gated, so it is unverified by eye): as a name-only guest, upload then delete (the confirm's words; gone from the host's album, Review and Deleted); on willg97's profile, a host-arm item (the Host badge, the host's words) beside a guest-arm one (the final words); after the apply, willg97's "+ X in Deleted".
