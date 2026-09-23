@@ -109,11 +109,14 @@ export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = 
   // photographs into somebody's album is not shopping for an account, so the
   // heading names the thing they already care about and the reason says what
   // confirming does with it. "Confirming makes a free account" is the whole
-  // price, said last.
+  // price, said last. ★ "In your account", never "on your profile": a profile
+  // publishes nothing until its owner turns it on (profiles-social.md), and
+  // every door wearing this line (the offer card, the mark, the name menu)
+  // claims the photographs into the account, so the account is where they are.
   save: {
     heading: "Keep your photos",
     reason:
-      "Confirm your email and this event stays on your profile, with every photo you added. Confirming makes a free account.",
+      "Confirm your email and this event stays in your account, with every photo you added. Confirming makes a free account.",
   },
   like: {
     heading: "Like this",

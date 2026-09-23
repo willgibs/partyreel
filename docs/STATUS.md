@@ -33,7 +33,7 @@ window of the original fetched by range and decoded on the viewer's device. The 
 ## The desk
 
 23 standing boards at `/design/lab?key=`, in leverage order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`,
-`reel-cut`, `reel-host`, `reel-story`, `guest-capture`, `identity-door`, `identity-claims`, `identity-profile`,
+`reel-cut`, `reel-host`, `reel-story`, `identity-door`, `identity-claims`, `identity-profile`, `guest-capture`,
 `host-curation`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`,
 `album-motion`, `loose-ends`, `contact-page`, `press-page`. Six asks on the older boards carry a badge naming the reel
 round (`src/app/(dev)/design/sandbox/overtaken.ts`) until the boards are rechecked against it.

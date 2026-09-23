@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest: confirming from the Unverified mark (`unverified-mark.tsx`) or the guest name menu (`guest-name-menu.tsx`) claims the uploads but never saves the event, so it lands in the account (Events you joined) and not on the dashboard, unlike the offer card's door (`SaveEventButton`): save it on those two paths too.
+- Help: `save-an-event-and-find-your-uploads.mdx` lists Uploads and Likes on the dashboard, but they live in the profile's owner mode (`u/[slug]/owner-sections.tsx`); the article and the code disagree.
+- Profile: a confirmed account with no handle has no page, so the owner mode's uploads, likes and connections are unreachable for it; they need a home that needs no handle (or `identity-profile.setup` answers it).
 - Pricing: `/pricing` and `llms.txt` sell the public host page as paid (`comparison-table.tsx` "Public host page" off on Free, `unlock-grid.tsx` "Free hosts stay unlisted.", `plan-cards.tsx`, `pass-card.tsx`, `llms.ts`), while a handle and "Show on my profile" are free on every plan (`profile-slug-control.tsx`; no tier check in `setProfileSlug` or `setEventSocialSettings`): redraw the paid list.
 - Copy: one word for the bin: the app's filters, storage meter and lifecycle emails say "Deleted", the delete-event dialog "Trash" (`danger-zone-section.tsx`), the create wizard "the bin" (`create-event-wizard.tsx`), the marketing pages and posts "the Trash", legal "recovery bin"; the help guide allows only "Deleted".
 - Copy: the "no expiry" durability lines (`constants/about.ts` "Albums do not expire…", the privacy page's `media-lives.tsx` "The album stays up until you delete it.") leave out the Free plan's inactivity removal that the help guide's rule 7 reconciles.

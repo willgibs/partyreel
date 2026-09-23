@@ -6,36 +6,36 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  *
  * Every picture on this board is the same wedding, so what moves between
  * options is the SHAPE of a person's page and the album's guest list, never
- * who is on it. The cast is the one round one asked for, and each member
- * still answers a round-two question:
+ * who is on it. It is a names-mode wedding (Maya turned Require verified
+ * emails off), which is why the list is mostly typed names: a guest there
+ * names herself at the door and stays Unverified until she confirms an email.
+ * Four people answer the round-two questions:
  *
- *  - MAYA hosts. Two albums, one open and one password-locked, so the
- *    profile's hosted grid has both badges. Her quick-look card carries three
- *    covers, the busiest `SmallCovers` draws before it would need a "+N more".
- *  - PRIYA only ever went to parties: two attended, one hidden by her own key,
- *    nothing hosted. Her page is `quick-look`'s ordinary case and the one this
- *    round's previews default to (the page the round is about).
- *  - NOOR joined and has not been anywhere: the shared `EmptyState` on the
- *    full page, and "nothing here yet" on the quick-look card.
- *  - JAY has no handle: a chip that is not a link, wherever a chip still
- *    renders.
+ *  - MAYA hosts. Two albums, one open and one password-locked, so her page's
+ *    grid has both badges, and one party she chose to show as a guest. Each
+ *    list is newest first, the order the page merges them in.
+ *  - PRIYA confirmed an email, claimed a handle and chose to show two of the
+ *    parties she went to; the third she never turned on, so it shows nowhere
+ *    (a page publishes nothing until its owner chooses it).
+ *  - JAY confirmed an email and never claimed a handle: a real account, and no
+ *    page behind his name.
+ *  - NINA typed a name at the door and nothing else: Unverified, the plain
+ *    disc and the mark, and no page either.
  *  - `@maya-g` is a dead handle. It is not drawn: the 404 is not a decision on
- *    this board (the manifest's Questions say why), and it stays a 404.
+ *    this board, and it stays a 404. Neither is a claimed page with nothing on
+ *    it: what that page says is `identity-profile.page`'s question.
  *
- * ★ ROUND TWO ADDS ONE FIXTURE: `GUESTS_BIG`, 240 signed-in uploaders, Will's
- * own edge case scaled down a factor of four from his imagined thousand. The
- * round-one cast of 24 (`GUESTS`) stays for the ordinary wedding; `view-all`'s
- * `count` control switches between them so both scales sit in the same frame.
- *
- * ★ SAM, `GUESTS_WITH_HANDLES` AND `MY_CHIP_INDEX` LEFT WITH ROUND ONE. They
- * answered `block` (a mutual block's viewer) and `named`/`claim` (a handles-
- * only membership, one marked chip); all three are ruled, so nothing on this
- * board varies a viewer's relationship or a membership rule any more.
+ * ★ THE GUEST LIST IS EVERY UPLOADER, IN THE SHIPPED ORDER: the confirmed
+ * accounts first (their own colour, a photograph where they set one, a link
+ * only where they claimed a handle), then every typed name (the plain disc,
+ * the mark, no link). `view-all`'s `count` control switches the wedding
+ * between an ordinary 24 (`GUESTS`) and `GUESTS_BIG`, 240, a quarter of the
+ * thousand Will imagined, so every option is read at both.
  *
  * ★ EVERY PICTURE IS A MARKETING STILL, AND NOTHING NEW WAS ASKED FOR. The
- * fourteen bootstrap images are the only stills the repo holds; avatars are the
- * same files square-cropped by `object-cover`, exactly as the shipped page
- * crops a real one. No asset, no rights to track (Will, 2026-09-17/18).
+ * bootstrap images are the only stills the repo holds; avatars are the same
+ * files square-cropped by `object-cover`, exactly as the shipped page crops a
+ * real one. No asset, no rights to track (Will, 2026-09-17/18).
  *
  * ★ NOT ONE ROW HERE IS REAL. No id, name, handle or date corresponds to
  * anything in Supabase; nothing on this board reads or writes a row.
@@ -89,10 +89,10 @@ const ENGAGEMENT: Party = {
   lock: null,
 };
 
-/** Priya's third party, hidden from her profile by her own switch. It is in the
- *  fixture on purpose: the guest's key is what keeps it off every option's
- *  picture, so the one place it may legally appear is nowhere. Every option
- *  reads `attended`, and this one is not in it. */
+/** Priya's third party, never turned on for her page. It is in the fixture on
+ *  purpose: nothing publishes until its owner chooses it, so the one place it
+ *  may legally appear is nowhere. Every option reads `attended`, and this one
+ *  is not in it. */
 const CALDER: Party = {
   id: "p-calder",
   name: "The Calder family reunion",
@@ -112,9 +112,9 @@ const SHAPES = {
 } as const;
 
 /**
- * A person's own frames, for the `wall` option. Declared at phone shapes and
- * cropped by the tile, because eleven of the fourteen stills are 3:2 landscapes
- * and a wall of those reads as a brick wall rather than an album.
+ * A person's own frames. Declared at phone shapes and cropped by the tile,
+ * because eleven of the fourteen stills are 3:2 landscapes and a wall of those
+ * reads as a brick wall rather than an album.
  */
 function roll(prefix: string, letters: string, from: number): GridMedia[] {
   return [...letters].map((letter, i) => {
@@ -131,26 +131,27 @@ function roll(prefix: string, letters: string, from: number): GridMedia[] {
   });
 }
 
-/* ── The people ──────────────────────────────────────────────────────────── */
+/* ── The people with a page ──────────────────────────────────────────────── */
 
 export type Person = {
   id: string;
   name: string;
-  /** Null = no handle claimed, which is most people. */
-  slug: string | null;
+  /** The handle: a page exists only because this does. */
+  slug: string;
+  /** `seedFor(profiles.id)` stand-in: the colour the person wears everywhere. */
+  seed: string;
   avatar: string | null;
   /** The page's one fact today: "Joined <Month Year>". */
   joined: string;
-  /** What the `line` option would carry, written by the person. */
+  /** The line under the name, written by the person. */
   line: string;
   hosted: Party[];
-  /** Surfaced by their hosts' guest lists, minus this person's own hides. */
+  /** Attended AND chosen for the page by this person (the opt-in). */
   attended: Party[];
-  /** Hidden from the profile by this person's own switch. Nothing renders it:
-   *  it is here so "the guest's key works" is a fact of the fixture and not a
-   *  promise in a comment. */
-  hidden: Party[];
-  /** The frames they added, across open albums that list them. */
+  /** Attended and never turned on. Nothing renders it: it is here so "nothing
+   *  until chosen" is a fact of the fixture and not a promise in a comment. */
+  unshown: Party[];
+  /** The frames they added to this wedding's album. */
   photos: GridMedia[];
 };
 
@@ -158,12 +159,13 @@ export const MAYA: Person = {
   id: "u-maya",
   name: "Maya Okonjo",
   slug: "maya",
+  seed: "pp-maya",
   avatar: pic(0),
   joined: "Joined March 2026",
   line: "Runs the parties, forgets to be in the photographs.",
-  hosted: [WEDDING, RUBY],
+  hosted: [RUBY, WEDDING],
   attended: [PRIYA_30],
-  hidden: [],
+  unshown: [],
   photos: roll("maya", "PLPSTPLPS", 1),
 };
 
@@ -171,94 +173,167 @@ export const PRIYA: Person = {
   id: "u-priya",
   name: "Priya Raman",
   slug: "priya",
+  seed: "pp-priya",
   avatar: pic(4),
   joined: "Joined June 2026",
   line: "Always the one with the camera out at midnight.",
   hosted: [],
   attended: [WEDDING, ENGAGEMENT],
-  hidden: [CALDER],
+  unshown: [CALDER],
   photos: roll("priya", "PPLTPSPLPPTL", 3),
 };
 
-export const NOOR: Person = {
-  id: "u-noor",
-  name: "Noor Haddad",
-  slug: "noor",
-  avatar: null,
-  joined: "Joined September 2026",
-  line: "",
-  hosted: [],
-  attended: [],
-  hidden: [],
-  photos: [],
-};
-
-export const PEOPLE = { maya: MAYA, priya: PRIYA, noor: NOOR } as const;
+/** Whose PAGE `way-back` draws: the two people this wedding has a page for. */
+export const PEOPLE = { maya: MAYA, priya: PRIYA } as const;
 export type WhoId = keyof typeof PEOPLE;
 /** Priya is the default, because hers is the page the round is about. */
 export const whoOf = (v: string | undefined): WhoId =>
-  v === "maya" || v === "noor" ? v : "priya";
+  v === "maya" ? v : "priya";
+
+/* ── The names a quick look is tapped on ─────────────────────────────────── */
+
+/**
+ * ONE NAME OF EACH KIND the guest list really holds, for `quick-look`'s own
+ * knob: a name with a page, a confirmed account with none, and a typed name.
+ * What a look can show differs by kind, because a page is the only place a
+ * person's chosen events live; what every kind has is the photographs they
+ * added to this album, already public on it by name.
+ */
+export type Tapped = {
+  id: string;
+  name: string;
+  kind: "page" | "confirmed" | "unverified";
+  /** The page behind the name, when there is one. */
+  person: Person | null;
+  /** The colour a confirmed account wears; null is the plain disc. */
+  seed: string | null;
+  avatar: string | null;
+  /** What they added to this wedding's album. */
+  photosHere: GridMedia[];
+};
+
+export const TAPPED = {
+  priya: {
+    id: "g-0",
+    name: PRIYA.name,
+    kind: "page",
+    person: PRIYA,
+    seed: PRIYA.seed,
+    avatar: PRIYA.avatar,
+    photosHere: PRIYA.photos,
+  },
+  jay: {
+    id: "g-5",
+    name: "Jay Alder",
+    kind: "confirmed",
+    person: null,
+    seed: "pp-jay",
+    avatar: null,
+    photosHere: roll("jay", "LPSPLP", 6),
+  },
+  nina: {
+    id: "g-typed-0",
+    name: "Nina Park",
+    kind: "unverified",
+    person: null,
+    seed: null,
+    avatar: null,
+    photosHere: roll("nina", "PPLPTPSP", 9),
+  },
+} as const satisfies Record<string, Tapped>;
+export type TappedId = keyof typeof TAPPED;
+/** Nina is the default: at a names-mode party hers is the commonest name. */
+export const tappedOf = (v: string | undefined): TappedId =>
+  v === "priya" || v === "jay" ? v : "nina";
 
 /* ── The wedding's guest list ────────────────────────────────────────────── */
 
-/** What the shipped `GuestList` takes, structurally (its own type is behind
- *  `server-only`, so it is met rather than imported). */
-export type Chip = {
+/** A confirmed account, as the shipped list's profile card carries it. */
+export type ProfileChip = {
+  kind?: "profile";
   id: string;
   displayName: string | null;
   slug: string | null;
-  avatarMarker: string | null;
   avatarUrl: string | null;
+  seed: string | null;
 };
 
+/** A typed name nobody proved, as the shipped list's Unverified entry carries it. */
+export type UnverifiedChip = {
+  kind: "unverified";
+  id: string;
+  displayName: string | null;
+};
+
+/** What `guest-list.tsx` renders, structurally (its own types sit behind a
+ *  server-only import, so they are met rather than imported). */
+export type Chip = ProfileChip | UnverifiedChip;
+
+export const isUnverified = (c: Chip): c is UnverifiedChip =>
+  c.kind === "unverified";
+
 /**
- * TWENTY-FOUR SIGNED-IN UPLOADERS, FIVE OF THEM WITH A HANDLE.
- *
- * The number is what makes `list` a real question: a wedding where two dozen
- * people were signed in is an ordinary wedding, and the shipped list wraps
- * every one of them between the album and the footer. The five handles are what
- * makes `named` a real question: picking "only people with a handle" is picking
- * a list of five, and the frame says so rather than the words.
- *
- * Nine carry a picture and the rest fall back to an initial, which is what a
- * real guest list looks like: an avatar is optional and a display name is not.
+ * TWENTY-FOUR UPLOADERS: EIGHT CONFIRMED, FIVE OF THEM WITH A HANDLE, THEN
+ * SIXTEEN TYPED NAMES. The number is what makes the list a real question: a
+ * wedding with two dozen uploaders is an ordinary wedding, and the list wraps
+ * every one of them between the album and the footer.
  */
-const NAMES: [string, string | null][] = [
-  ["Priya Raman", "priya"],
-  ["Jay Alder", null],
-  ["Sam Whitlock", "sam"],
-  ["Noor Haddad", "noor"],
-  ["Dele Adeyemi", null],
-  ["Ana Ferreira", null],
-  ["Tomas Berg", "tomasb"],
-  ["Hana Ito", null],
-  ["Marcus Lowe", null],
-  ["Zainab Musa", null],
-  ["Ellis Kwan", null],
-  ["Fiona Doherty", "fionad"],
-  ["Ravi Chandra", null],
-  ["Greta Lindqvist", null],
-  ["Oscar Mbeki", null],
-  ["Lena Fischer", null],
-  ["Kofi Mensah", null],
-  ["Ines Oliveira", null],
-  ["Danny Whelan", null],
-  ["Yusuf Karim", null],
-  ["Claire Bonnet", null],
-  ["Theo Novak", null],
-  ["Mira Solberg", null],
-  ["Bea Camilleri", null],
+const CONFIRMED: { name: string; slug: string | null; avatar: string | null }[] =
+  [
+    { name: PRIYA.name, slug: PRIYA.slug, avatar: PRIYA.avatar },
+    { name: "Sam Whitlock", slug: "sam", avatar: null },
+    { name: "Noor Haddad", slug: "noor", avatar: pic(7) },
+    { name: "Tomas Berg", slug: "tomasb", avatar: null },
+    { name: "Fiona Doherty", slug: "fionad", avatar: null },
+    { name: "Jay Alder", slug: null, avatar: null },
+    { name: "Dele Adeyemi", slug: null, avatar: pic(10) },
+    { name: "Ana Ferreira", slug: null, avatar: null },
+  ];
+
+const TYPED = [
+  "Nina Park",
+  "Hana Ito",
+  "Marcus Lowe",
+  "Zainab Musa",
+  "Ellis Kwan",
+  "Ravi Chandra",
+  "Greta Lindqvist",
+  "Oscar Mbeki",
+  "Lena Fischer",
+  "Kofi Mensah",
+  "Ines Oliveira",
+  "Danny Whelan",
+  "Yusuf Karim",
+  "Claire Bonnet",
+  "Theo Novak",
+  "Bea Camilleri",
 ];
 
-export const GUESTS: Chip[] = NAMES.map(([displayName, slug], i) => ({
-  id: `g-${i}`,
-  displayName,
-  slug,
-  avatarMarker: null,
-  avatarUrl: i % 3 === 0 ? pic(i + 1) : null,
-}));
+/** One colour per person, the same on the list and in a look: keyed on the
+ *  handle where there is one, the first name where there is not. */
+const seedOf = (name: string, slug: string | null) =>
+  `pp-${slug ?? name.split(" ")[0].toLowerCase()}`;
 
-/* ── The edge case: 240 signed-in uploaders ──────────────────────────────── */
+export const GUESTS: Chip[] = [
+  ...CONFIRMED.map(
+    ({ name, slug, avatar }, i): ProfileChip => ({
+      id: `g-${i}`,
+      displayName: name,
+      slug,
+      avatarUrl: avatar,
+      seed: seedOf(name, slug),
+    }),
+  ),
+  ...TYPED.map(
+    (displayName, i): UnverifiedChip => ({
+      kind: "unverified",
+      id: `g-typed-${i}`,
+      displayName,
+    }),
+  ),
+];
+
+/* ── The edge case: 240 uploaders ────────────────────────────────────────── */
 
 /**
  * TWO HUNDRED AND FORTY, A QUARTER OF WILL'S IMAGINED THOUSAND.
@@ -266,10 +341,10 @@ export const GUESTS: Chip[] = NAMES.map(([displayName, slug], i) => ({
  * "I can imagine an edge case with a thousand guests, and you click 'View
  * All', and all of a sudden you have a page 100 screens tall all at once".
  * 240 is close enough to argue the same failure mode inside a board's reading
- * budget, and it is generated rather than typed
- * by hand: the same ratios round one's 24 used (about a fifth with a handle,
- * about a third with a picture), so the two lists read as the same wedding at
- * two sizes rather than two different fixtures.
+ * budget, and it is generated rather than typed by hand in the same mix as
+ * the 24: a third confirmed (about a fifth of those with a handle, about a
+ * third with a picture), then the typed names, so the two lists read as the
+ * same wedding at two sizes rather than two different fixtures.
  */
 const FIRST_NAMES = [
   "Priya", "Jay", "Sam", "Noor", "Dele", "Ana", "Tomas", "Hana", "Marcus",
@@ -293,13 +368,21 @@ function bigName(i: number): string {
   return `${first} ${last}`;
 }
 
-export const GUESTS_BIG: Chip[] = Array.from({ length: 240 }, (_, i) => ({
-  id: `gb-${i}`,
-  displayName: bigName(i),
-  slug: i % 5 === 0 ? `guest${i}` : null,
-  avatarMarker: null,
-  avatarUrl: i % 3 === 0 ? pic(i + 1) : null,
-}));
+const BIG_CONFIRMED = 80;
+
+export const GUESTS_BIG: Chip[] = Array.from(
+  { length: 240 },
+  (_, i): Chip =>
+    i < BIG_CONFIRMED
+      ? {
+          id: `gb-${i}`,
+          displayName: bigName(i),
+          slug: i % 5 === 0 ? `guest${i}` : null,
+          avatarUrl: i % 3 === 0 ? pic(i + 1) : null,
+          seed: `pp-gb-${i}`,
+        }
+      : { kind: "unverified", id: `gb-${i}`, displayName: bigName(i) },
+);
 
 /* ── The album under it all ──────────────────────────────────────────────── */
 

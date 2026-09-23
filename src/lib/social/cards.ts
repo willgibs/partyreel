@@ -18,7 +18,7 @@
  *
  * `seed` is OPTIONAL on the type (never optional at RUNTIME — this function
  * always sets it): a wiring lane never breaks the props of a module the lab
- * imports, and the retired `profile-page` sandbox board still feeds
+ * imports, and the `profile-page` sandbox board still feeds
  * `GuestList` its own `Chip[]` fixtures, structurally close to
  * `ProfileCardItem` but without a `seed`. Required would break that board;
  * optional lets it keep drawing today's ungraded grey while every REAL

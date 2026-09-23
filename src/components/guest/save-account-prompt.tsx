@@ -141,10 +141,13 @@ export function SaveAccountPrompt({
       <p className="font-heading text-subsection">
         {count === 1 ? "Keep this photo" : "Keep these photos"}
       </p>
+      {/* ★ "In your account", never "on your profile": confirming saves the
+          event and claims the photographs into the account, and a profile
+          shows nothing until its owner chooses it (profiles-social.md). */}
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
         Confirm your email and{" "}
         {count === 1 ? "it stays" : count > 1 ? `all ${count} stay` : "they stay"}{" "}
-        with you: this event on your profile, and everything you added to it.
+        with you: this event in your account, and everything you added to it.
       </p>
       <div className="flex justify-center">
         <SaveEventButton
