@@ -97,8 +97,12 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // confirm it; uploads made under your address by someone else are
     // removed when you mark that event as not yours. Attended-event
     // visibility on a public profile is opt-in now, not opt-out.
-    version: "1.5",
-    lastUpdated: "2026-09-22",
+    // 1.6 (2026-09-23): the storage guard. A Pro size or billing interval
+    // changes from your account (no longer "through the billing portal"),
+    // and a Pro purchase or change is available only for a size that holds
+    // what you already store.
+    version: "1.6",
+    lastUpdated: "2026-09-23",
     status: "pending-review",
     effectiveDate: null,
   },

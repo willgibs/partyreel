@@ -272,18 +272,20 @@ export default async function AccountPage({
           <div className="flex flex-wrap gap-2">
             {/* UPGRADE OPENS THE SHEET, not the marketing page (`object=sheet`):
                 this card is where a host looks at what they pay, so the buying
-                decision happens in the same breath rather than a tab away. */}
-            {tier !== "pro" && (
-              <PricingSheet
-                trigger={{ kind: "plan" }}
-                plan={{ tier, hasBilling, passExpiry }}
-                returnTo="/account"
-              >
-                <Button size="sm">
-                  {tier === "free" ? "Upgrade" : "Change plan"}
-                </Button>
-              </PricingSheet>
-            )}
+                decision happens in the same breath rather than a tab away. A
+                Pro host's Change plan opens the same sheet on the six prices
+                with theirs marked, and each switch runs the storage check
+                before Stripe's confirm page (billing-caps.md). The portal
+                button beside it keeps the card, invoices and cancelling. */}
+            <PricingSheet
+              trigger={{ kind: "plan" }}
+              plan={{ tier, hasBilling, passExpiry }}
+              returnTo="/account"
+            >
+              <Button size="sm">
+                {tier === "free" ? "Upgrade" : "Change plan"}
+              </Button>
+            </PricingSheet>
             {hasBilling && <ManageBillingButton />}
             {tier === "event_pass" && (
               <CheckoutButton

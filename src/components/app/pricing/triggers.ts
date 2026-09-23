@@ -71,17 +71,22 @@ export const LOCKED_FEATURES: Record<
 };
 
 /**
- * The Pro size the sheet opens on. A cap gate resolves through the SAME
+ * The Pro size the sheet opens on: the SMALLEST that holds what the host needs
+ * (the storage guard's call, Will 2026-09-22), resolved through the SAME
  * `smallestProFor` the marketing calculator uses, so the app can never upsell
- * past fit; everything else opens on the smallest Pro, which is the honest
- * floor for a Free host being asked for money for the first time.
+ * past fit. "Needs" is the larger of what a door says it was refused for and
+ * what the server says the host stores (`storedBytes`, from the sheet's own
+ * read when it opens), so a door that knows nothing about bytes (the create
+ * wizard, the restore button) still opens on a size the host fits, and a host
+ * storing nothing opens on the smallest Pro, the honest floor for a first ask.
  */
-export function openingPlanFor(trigger: PricingTrigger): Plan {
-  const pro = plansForTier("pro");
-  if (trigger.kind === "room" && typeof trigger.needed === "number") {
-    return smallestProFor(trigger.needed);
-  }
-  return pro[0];
+export function openingPlanFor(trigger: PricingTrigger, storedBytes = 0): Plan {
+  const needed =
+    trigger.kind === "room" && typeof trigger.needed === "number"
+      ? trigger.needed
+      : 0;
+  const bytes = Math.max(needed, storedBytes);
+  return bytes > 0 ? smallestProFor(bytes) : plansForTier("pro")[0];
 }
 
 /**
