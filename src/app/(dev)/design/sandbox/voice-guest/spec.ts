@@ -97,7 +97,7 @@ export const VOICE_GUEST = defineExploration({
           id: "today",
           label: "As shipped: \"shots land in one album\"",
           means:
-            "The speed and the album, told flat. Elsewhere this register says \"Everything else is in Maya's album.\"",
+            "Its first row is the voice board's ruled pick, as swept to \"No app required.\"; its second was never asked. Elsewhere: \"Everything else is in Maya's album.\"",
         },
         {
           id: "warm",
