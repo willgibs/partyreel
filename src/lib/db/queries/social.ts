@@ -796,7 +796,11 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
  * AFTER its own access gate (the hub's ownership, the album's resolved access), and only numbers or
  * names the album already shows ever leave it. An event that is missing or deleted has no guests.
  */
-export async function getEventGuests(eventId: string): Promise<EventGuests> {
+export const getEventGuests = cache(async function getEventGuests(
+  eventId: string,
+): Promise<EventGuests> {
+  // cache(): request-scoped, because the album page asks twice in one render (its header's count
+  // and its guest list), and the answer cannot change between them.
   const admin = createAdminClient();
   const [eventRes, approved, rows] = await Promise.all([
     admin
@@ -839,7 +843,7 @@ export async function getEventGuests(eventId: string): Promise<EventGuests> {
     ),
     rows,
   });
-}
+});
 
 export type GuestListEntry = SocialProfileCard;
 
