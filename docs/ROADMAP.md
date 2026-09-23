@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
+- The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
+- The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
+- The lab: `sandbox/gallery-fixtures.ts` (shared by `host-curation` and four reel boards) still mints a nameless `isAnonymous` uploader and puts the host's own uploads in `REVIEW_ITEMS`, neither of which the product can do now.
 - Host: the hub link row, the code mini-modal and the print sheet DISPLAY a claimed slug as `<site>/<slug>`, a path with no route (they copy and encode the permanent link); build it with the uncalled `preferredEventUrl` (`dashboard/[eventId]/page.tsx:123`, `(print)/dashboard/[eventId]/print/page.tsx:59`).
 - Billing (Will's call): checkout lets stacked Event Passes above the chosen Pro size start Pro, shrinking the cap into over-cap grace (`api/stripe/checkout/route.ts` compares no sizes); decide whether a move may shrink a cap.
 - Guest: the name step's field carries `autoFocus` (`guest-name-step.tsx:356`) though the password gate drops it for the iOS keyboard; check on a real iPhone.

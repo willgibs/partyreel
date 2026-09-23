@@ -12,7 +12,6 @@
  *
  *   review <board> r<n>: <ask>=<option> "a note"; item:<id>=keep|refine|kill "a note"; call:<id>=yes|no "a note"; note: "a board note"
  *   review <board> r<n>: <ask>=? "what was unclear"     (not answered: the question needs rewording)
- *   review <board> r<n>: <ask>=stands "the earlier ruling stands"   (an overtaken question, left to its ruling)
  *   review library: <entry-id>=keep|redesign|retire "a note"
  *
  * `?` is the reviewer's own answer, "this question is not clear to me" (Will's
@@ -72,23 +71,9 @@ const RULES = [
 
 /** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
 const ITEM_VERDICTS = ["keep", "refine", "kill"];
-/**
- * THE RESERVED ANSWER (Will, 2026-09-19): a question a later ruling reached,
- * left to that ruling. "I'd still like to see the explorations that were
- * voided by my decisions ... add an optional trash button to kill the question
- * in the board if no answer"; what that press actually says is that the
- * earlier ruling holds, so it is recorded as the answer it is rather than as a
- * deletion. Mirrored from sandbox/overtaken.ts, which is the desk's side of
- * the mechanism, and read off that file below so the word is only ever
- * accepted on a question the map actually names.
- */
-const STANDS = "stands";
-const OVERTAKEN = ["src", "app", "(dev)", "design", "sandbox", "overtaken.ts"];
 const LIBRARY_VERDICTS = ["keep", "redesign", "retire"];
 /** The Library's line carries no round; the ledger stores one ruling per entry. */
 export const LIBRARY_LEDGER = "_library";
-/** The round's own notes, where an override on an overtaken question is echoed. */
-export const WINDOW_LEDGER = "_window";
 
 /** A refusal the reader can act on: what was wrong, and where in the paste. */
 export class ReviewError extends Error {
@@ -424,48 +409,6 @@ export function readSpec(id, source) {
   return { id, round, asks, catalog, items, calls };
 }
 
-/**
- * THE ASKS A LATER RULING REACHED, by board, each naming the board that
- * reached it (Will, 2026-09-19).
- *
- * `sandbox/overtaken.ts` is a flat map keyed "<board>.<ask>" whose entries
- * carry a `by`, so the ids come out by the same regex reading the rest of this
- * script uses on a spec: the script never imports TypeScript, and both are
- * quoted literals. A missing file is not an error, it is a round in which
- * nothing was overtaken, and `stands` is then refused everywhere, which is
- * correct.
- */
-function readOvertaken(root) {
-  const file = join(root, ...OVERTAKEN);
-  const out = new Map();
-  if (!existsSync(file)) return out;
-  const src = readFileSync(file, "utf8");
-  const body = /OVERTAKEN[^=]*=\s*\{([\s\S]*)\n\};/.exec(src);
-  if (!body) return out;
-  const entry =
-    /^\s*"([a-z0-9-]+)\.([a-z0-9-]+)":\s*\{([\s\S]*?)^\s*\},$/gm;
-  for (const m of body[1].matchAll(entry)) {
-    const by =
-      /\bby:\s*"([a-z0-9-]+)"/.exec(m[3])?.[1] ??
-      /\.\.\.([A-Z_]+)/.exec(m[3])?.[1] ??
-      null;
-    const asks = out.get(m[1]) ?? new Map();
-    asks.set(m[2], by);
-    out.set(m[1], asks);
-  }
-  // A shorthand spread (`...APP_SHAPE`) names a const rather than a board, so
-  // resolve it to the board id that const declares.
-  const consts = new Map(
-    [...src.matchAll(/const\s+([A-Z_]+)\s*=\s*\{\s*by:\s*"([a-z0-9-]+)"/g)].map(
-      (m) => [m[1], m[2]],
-    ),
-  );
-  for (const asks of out.values())
-    for (const [ask, by] of asks)
-      if (by && consts.has(by)) asks.set(ask, consts.get(by));
-  return out;
-}
-
 /** Every standing board's spec, by id. An unreadable spec is a loud failure. */
 export function readSpecs(root) {
   const dir = join(root, ...SANDBOX);
@@ -478,13 +421,10 @@ export function readSpecs(root) {
   } catch {
     throw new ReviewError(`no sandbox directory at ${dir}`);
   }
-  const overtaken = readOvertaken(root);
   for (const id of boards.sort()) {
     const file = join(dir, id, "spec.ts");
     if (!existsSync(file)) continue;
-    const spec = readSpec(id, readFileSync(file, "utf8"));
-    spec.overtaken = overtaken.get(id) ?? new Map();
-    out.set(id, spec);
+    out.set(id, readSpec(id, readFileSync(file, "utf8")));
   }
   return out;
 }
@@ -1010,26 +950,6 @@ export function validate(
             `${e.board}.${a.ask}=? needs a note saying what was unclear`,
           );
         }
-      } else if (a.choice === STANDS) {
-        // ★ THE RESERVED WORD IS CHECKED BEFORE THE OPTIONS, so a board that
-        // ever names an option "stands" cannot shadow the answer that leaves a
-        // question to the ruling that reached it. It owes its reason for the
-        // same reason "?" does: a ledger row nobody can read back has to be
-        // reconstructed from memory.
-        const reached = spec.overtaken ?? new Map();
-        if (!reached.has(a.ask)) {
-          at(
-            e.line,
-            a.choiceAt,
-            `${e.board}.${a.ask} is not a question an earlier ruling reached, so nothing can stand over it (sandbox/overtaken.ts names ${list([...reached.keys()])})`,
-          );
-        } else if (!a.note || !a.note.trim()) {
-          at(
-            e.line,
-            a.choiceAt,
-            `${e.board}.${a.ask}=stands needs a note saying which ruling stands`,
-          );
-        }
       } else if (!ask.options.includes(a.choice)) {
         at(
           e.line,
@@ -1217,9 +1137,6 @@ export function applyEntries(root, entries, { by, at }) {
   const seen = new Map();
   const changed = new Map();
   const summary = [];
-  // The map, and the overrides this message records against it (below).
-  const reached = readOvertaken(root);
-  const overrides = [];
   for (const e of entries) {
     if (e.kind === "library") {
       const ledger = seen.get(LIBRARY_LEDGER) ?? readLibraryLedger(root);
@@ -1302,8 +1219,6 @@ export function applyEntries(root, entries, { by, at }) {
       }
       // "?" lands as a null choice: the ask stays open on the desk, flagged as
       // waiting on a clearer question, with the reviewer's words beside it.
-      // ★ `stands` LANDS AS ITSELF, never null: it is a decision, and the desk
-      // counts it as one (sandbox/overtaken.ts, `outcomeOf`).
       const entry = { ask: a.ask, choice: a.choice === "?" ? null : a.choice };
       if (a.note) entry.note = a.note;
       entry.by = by;
@@ -1317,17 +1232,6 @@ export function applyEntries(root, entries, { by, at }) {
         a.choice,
         was < 0 ? "new" : "replaced",
       ]);
-      // ★ AN ANSWER TO AN OVERTAKEN QUESTION IS THE NEW RULING (Will,
-      // 2026-09-19), and the lane that wired the earlier one has to hear about
-      // it. It hears where it already reads: a window note aimed at the board
-      // whose ruling was overridden.
-      const over = reached.get(e.board)?.get(a.ask);
-      if (over && a.choice !== STANDS && a.choice !== "?") {
-        overrides.push({
-          on: over,
-          text: `overridden by ${e.board}.${a.ask}=${a.choice}, ${at.slice(0, 10)}`,
-        });
-      }
     }
     // One verdict per item per round: ruling again in the same round
     // overwrites, exactly as answering an ask again does.
@@ -1392,53 +1296,7 @@ export function applyEntries(root, entries, { by, at }) {
       summary.push([`${e.board} r${e.round}`, "note", n.text, "added"]);
     }
   }
-  echoOverrides(root, overrides, { by, at, seen, changed, summary });
   return { ledgers: changed, summary };
-}
-
-/**
- * EVERY OVERRIDE, ECHOED INTO THE WINDOW (Will, 2026-09-19).
- *
- * ★ WHY A WINDOW NOTE AND NOT A NEW FILE. When he answers a question a later
- * ruling had already reached, the answer IS the new ruling, and the lane that
- * wired the earlier one is usually already open. A window note aimed at the
- * overtaken board lands where that lane already looks (the desk prints them on
- * the board's row, and `windowNotesFor` hands them to the board page), so the
- * mechanism needs no second place to look and no ledger of its own.
- *
- * ★ AND IT IS IDEMPOTENT, like every other note this script writes: the same
- * sentence twice would read as two separate overrides. Nothing is appended to
- * the window unless something genuinely new was recorded, so a stale re-send
- * still writes no file at all.
- */
-function echoOverrides(root, overrides, { by, at, seen, changed, summary }) {
-  if (overrides.length === 0) return;
-  const ledger = seen.get(WINDOW_LEDGER) ?? readLedger(root, WINDOW_LEDGER);
-  seen.set(WINDOW_LEDGER, ledger);
-  if (!Array.isArray(ledger.rounds)) ledger.rounds = [];
-  let round = ledger.rounds.reduce(
-    (a, b) => (a === null || Number(b.n) > Number(a.n) ? b : a),
-    null,
-  );
-  if (!round) {
-    round = { n: 1, opened: at.slice(0, 10), answers: [], notes: [] };
-    ledger.rounds.push(round);
-  }
-  if (!Array.isArray(round.notes)) round.notes = [];
-  let wrote = false;
-  for (const o of overrides) {
-    const held = round.notes.some(
-      (n) => n.on === o.on && flat(n.text) === flat(o.text),
-    );
-    if (held) {
-      summary.push([`${WINDOW_LEDGER} r${round.n}`, o.on, o.text, "unchanged"]);
-      continue;
-    }
-    round.notes.push({ on: o.on, text: o.text, by, at });
-    summary.push([`${WINDOW_LEDGER} r${round.n}`, o.on, o.text, "added"]);
-    wrote = true;
-  }
-  if (wrote) changed.set(WINDOW_LEDGER, ledger);
 }
 
 export function writeLedgers(root, ledgers) {
@@ -1487,7 +1345,6 @@ const HELP = `pnpm lab:review "<the pasted line>"
   review <board> r<n>: <ask>=? "what was unclear"      (not answered; needs the note)
   review <board> r<n>: item:<id>=keep|refine|kill "a note"   (one catalog card)
   review <board> r<n>: call:<id>=yes|no "a note"   (a call the lane carried)
-  review <board> r<n>: <ask>=stands "the earlier ruling stands"   (an overtaken question)
   review library: <entry-id>=keep|redesign|retire "a note"   (a Library entry)
 
   A line that merely repeats what the ledger already holds is a no-op

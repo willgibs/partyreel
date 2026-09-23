@@ -944,7 +944,7 @@ export const RULINGS: Ruling[] = [
       "src/components/guest/guest-masonry.tsx",
     ],
     board: {
-      note: "Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to the album, and whether an open photograph has an address",
+      note: "Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to where it opened, a tile or the reel, and whether an open photograph has an address",
       variants: [
         "The opening",
         "What it holds",

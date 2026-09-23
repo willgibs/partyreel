@@ -32,7 +32,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `recheck-viewer-curation` | `media-viewer` and `host-curation` current (the five badges adapted or removed by the decision-outcomes judgment, the viewer asked for both origins, the Unverified credit); then the overtaken mechanism retired | cut `c2482757`, committed `1c560b16`; running (agent `a739c5d0751e54b60`; resume by SendMessage) | Opus, :3134 | integrate (board `media-viewer`, then demo `host-curation`); the lines it names in `docs/reviews/README.md`, STATUS, the ROADMAP and `usher/` (the kit's `batch-reader.mjs`, `board-card.mjs`, `review-sheet.mjs` read the map) |
+| `identity-sql-gaps` | two identity leaks closed in SQL: an unconfirmed sign-up's address out of `guests.email` and the host's grant; `get_public_profile`'s attended arm behind the album's gate | cut `ceaee403`, committed `92421d85`; running (agent `ad831a8ca1313dc19`) | Opus, :3132 | integrate (`none`); then APPLY its migration in the order its Handoff names, `get_advisors`, regenerate `types.ts` if a signature moved |
 
 ## Next, in order
 
@@ -42,11 +42,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
    found (an unconfirmed sign-up's address in `guests.email` inside the host's SELECT grant; `get_public_profile`'s
    attended arm admitting any signed-in viewer where the album asks for a confirmed email); the migration is the
    Orchestrator's to apply.
-2. **Recheck the open boards** (Will's suggestion): four lanes cut at `c2482757` (In flight above), on the survey's
-   findings (the scratchpad's `recheck/report.md`) and his decision-outcomes judgment of 2026-09-22 (a reached question
-   that still holds potential value is adapted to the current context; only one solved at its best is removed; the
-   Orchestrator judges). Five boards were already current. The overtaken mechanism retires in `recheck-viewer-curation`
-   (the Orchestrator's call under his word; his to overrule).
+2. **The board recheck is done** (Will's suggestion): all four lanes merged (`recheck-mail-admin-export`,
+   `recheck-help-press`, `recheck-guest-identity`, `recheck-viewer-curation` at `c6c79885`, gate 124), each reached
+   question judged by his decision-outcomes rule; the overtaken mechanism retired. Every standing board is current
+   with the identity and reel rounds; one alias build carries them for his desk review.
 3. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team). The sweep lane also takes the reel's lines in

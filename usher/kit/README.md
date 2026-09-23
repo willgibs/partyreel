@@ -45,8 +45,8 @@ silent on good work. Many refusals would mean the design upstream of the scripts
    on them.
 5. **MERGE RED** on a registry file (`touchpoints.ts`, `registry.ts`, `boards.ts`): two new entries on one spot lose
    their closing braces in git's three-way merge. Rebuild the damaged block from both sides (`git show <lane-sha>:<file>`
-   for the new entry, `git show <launch-prep-sha>:<file>` for the rest), run the four lab tests
-   (`touchpoints.test.ts`, `sandbox/registry.test.ts`, `(shell)/lab/_desk/queue.test.ts`, `sandbox/overtaken.test.ts`),
+   for the new entry, `git show <launch-prep-sha>:<file>` for the rest), run the three lab tests
+   (`touchpoints.test.ts`, `sandbox/registry.test.ts`, `(shell)/lab/_desk/queue.test.ts`),
    `git add` the file, `git commit -F $S/msg-<track>.txt`, then `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`
    and read its `EXIT[...]` lines. `hand-merge.sh` with `closer.py` repairs the common case automatically.
 6. The record: `python3 usher/kit/record.py $S/record-<track>.json` (the In-flight row, ROADMAP lines; see its

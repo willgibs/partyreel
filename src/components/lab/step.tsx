@@ -16,7 +16,6 @@ import { CopySoFar } from "@/app/(dev)/design/(shell)/lab/_desk/copy-so-far";
 import type { Transcribed } from "@/app/(dev)/design/(shell)/lab/_desk/review-message";
 import {
   setAnswerNote,
-  standAnswer,
   toggleAnswer,
   useReviewStore,
 } from "@/app/(dev)/design/(shell)/lab/_desk/review-store";
@@ -25,9 +24,7 @@ import {
   type ItemsStep,
   SESSION_END,
   type SessionOption,
-  type OvertakenBadge as OvertakenBadgeData,
   type SessionStep,
-  STANDS,
   stepBlocked,
   stepDone,
   stepParam,
@@ -101,19 +98,16 @@ import { useDesignKey } from "./walk";
  * a board page (the desk's dry run) there is no evidence function, and the
  * options degrade to what the spec declares in words.
  *
- * ★ AND A QUESTION AN EARLIER RULING REACHED IS BADGED IN PLACE, NEVER REMOVED
- * (Will, 2026-09-19: "In place in the board's walk, badged"). The badge says
- * which ruling reached it, when, in plain words, and carries the lane's one
- * line about whether these options may still beat it. The dock then offers a
- * third dashed answer beside "Not clear to me": "The ruling stands", which is
- * the trash he asked for, drawn as the answer it is. Answering the question as
- * drawn is an OVERRIDE and records the new ruling; nothing is ever recorded by
- * precedent, and nothing is redrawn.
+ * ★ A QUESTION A NEWER RULING REACHED IS RESHAPED ON ITS BOARD, NEVER BADGED
+ * HERE (Will, 2026-09-22: an earlier pick that closed the road to a better
+ * answer is adapted to the current context, and a question already solved at
+ * its best is removed). So the step draws every question the same way, and
+ * the ground a newer ruling moved lives in the question's own context.
  *
  * Keys: 1..9 shows an option and a second press picks it; x blinks back to the
  * one shown before (A and B); g flips or lays side by side; n goes to the note;
- * ? marks the question unclear; s says the earlier ruling stands; Enter and the
- * arrows step, Enter from the note too; Escape lets the note go. Enter on a
+ * ? marks the question unclear; Enter and the arrows step, Enter from the note
+ * too; Escape lets the note go. Enter on a
  * focused control belongs to that control: an Enter that pressed a button AND
  * advanced the review answered a question the reader never looked at.
  */
@@ -209,7 +203,6 @@ export function Step({
       : undefined;
   const choice = held?.choice ?? "";
   const unclear = step?.kind === "ask" && choice === UNCLEAR;
-  const stood = step?.kind === "ask" && choice === STANDS;
   // ★ "?" IS AN ANSWER, AND IT OWES ITS REASON. The ledger grammar is
   // `<ask>=? "why"`, and `pnpm lab:review` refuses the line without the note:
   // an unclear question that never says what was unclear cannot be rewritten.
@@ -353,19 +346,6 @@ export function Step({
     noteRef.current?.focus();
   };
 
-  /**
-   * ★ THE RULING STANDS, and that is an ANSWER, not a skip. It goes through the
-   * store's own writer so the default note rides with it (the grammar refuses a
-   * bare reserved word), and the board is put back into the state the question
-   * was asked in, exactly as clearing a pick does: standing by an earlier ruling
-   * is not an argument for any option on this stage.
-   */
-  const markStands = () => {
-    if (step?.kind !== "ask") return;
-    standAnswer(step.board, step.round, step.askId);
-    board?.setState(stateFor(step));
-  };
-
   const writeNote = (note: string) => {
     if (step?.kind !== "ask") return;
     setAnswerNote(step.board, step.round, step.askId, note);
@@ -429,12 +409,6 @@ export function Step({
       }
       if (pressed === "?") {
         markUnclear();
-        return true;
-      }
-      // Only where there is a ruling to stand by: `s` on an ordinary question
-      // would record an answer to something nothing overtook.
-      if (key === "s" && step.overtaken) {
-        markStands();
         return true;
       }
     }
@@ -550,14 +524,12 @@ export function Step({
         sent={sent}
         note={held?.note ?? ""}
         unclear={unclear}
-        stood={stood}
         needsWhy={needsWhy}
         noteRef={noteRef}
         onPress={press}
         onChoose={choose}
         onNote={writeNote}
         onUnclear={markUnclear}
-        onStands={markStands}
         back={seek(at - 1, -1) >= 0 ? () => goTo(at - 1) : undefined}
         next={needsWhy ? undefined : () => goTo(at + 1)}
         filled={filled}
@@ -702,9 +674,6 @@ function Head({ step }: { step: SessionStep }) {
         <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
           {step.kind === "items" ? headingFor(step) : step.question}
         </h1>
-        {step.kind === "ask" && step.overtaken && (
-          <OvertakenBadge note={step.overtaken} />
-        )}
         {step.kind === "ask" ? (
           step.context && (
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -736,48 +705,6 @@ function Head({ step }: { step: SessionStep }) {
         </div>
       )}
     </header>
-  );
-}
-
-/**
- * AN EARLIER RULING REACHED THIS QUESTION (Will, 2026-09-19).
- *
- * ★ PLAIN WORDS WITH THE DATE, NEVER THE CLAUSE. "Ruled since app-shape r1, 19
- * Sep: sharing is a sheet" is readable by someone who has never seen the ledger
- * grammar; `share=room` is not, and the reviewer this is for is the one person
- * who never reads the grammar. Under it, the lane's one line: whether these
- * options may still beat the ruling, or what the ruling already covers.
- *
- * ★ AND THE "AS TODAY" GLOSS, because the words are not ours to fix. An option
- * labelled "the share dialog at 375, as today" was drawn before sharing became
- * a sheet, and a board's spec is never edited by another lane: the badge says
- * so once, where the options are about to be read.
- *
- * A row, not a card: this is context for a question, not a second question. No
- * motion, nothing to press, so reduced motion is honoured by having nothing to
- * honour.
- */
-function OvertakenBadge({ note }: { note: OvertakenBadgeData }) {
-  return (
-    <div
-      data-lab-overtaken={note.by}
-      data-lab-overtaken-line={note.conceded ? "concedes" : "stands"}
-      className="mt-3 border-l-2 border-border pl-3"
-    >
-      <p className="text-[12px] leading-snug font-medium">{note.badge}</p>
-      <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-        {note.line}
-      </p>
-      {note.gloss && (
-        <p className="mt-0.5 text-[11px] leading-relaxed text-faint">
-          {note.gloss}
-        </p>
-      )}
-      <p className="mt-1 text-[11px] leading-relaxed text-faint">
-        It is still yours to answer. Answering it records the new ruling; the
-        dock&rsquo;s third button says the earlier one stands.
-      </p>
-    </div>
   );
 }
 
@@ -1474,14 +1401,12 @@ function Dock({
   sent,
   note,
   unclear,
-  stood,
   needsWhy,
   noteRef,
   onPress,
   onChoose,
   onNote,
   onUnclear,
-  onStands,
   back,
   next,
   filled,
@@ -1494,15 +1419,12 @@ function Dock({
   sent?: { build: string | null; at: string };
   note: string;
   unclear: boolean;
-  /** The reviewer said the earlier ruling stands (an overtaken ask only). */
-  stood: boolean;
   needsWhy: boolean;
   noteRef: React.RefObject<HTMLInputElement | null>;
   onPress: (o: SessionOption) => void;
   onChoose: (id: string) => void;
   onNote: (v: string) => void;
   onUnclear: () => void;
-  onStands: () => void;
   back?: () => void;
   next?: () => void;
   filled: boolean;
@@ -1560,16 +1482,13 @@ function Dock({
       )}
 
       {step.kind === "ask" && (
-        /* ★ THE NOTE ROW WRAPS (the overtaken lane, 2026-09-19). At 1280 and up
-           the dock is one row and the note's column falls to its 14rem floor
-           whenever the options row is long; two dashed answers and a field
-           cannot share 224 px, and measured on the first-event board the field
-           came out at 26 px. Wrapping is the fix this lane owns: the field
-           keeps a usable minimum and the answers drop to a line of their own
-           where there is no room, and snap back to one row the moment there is
-           (collapsing the lab's sidebar is enough). The one-row grid itself is
-           `design.css`, which is not this lane's; the Handoff carries the
-           column patch that would make the wrap rare. */
+        /* ★ THE NOTE ROW WRAPS. At 1280 and up the dock is one row and the
+           note's column falls to its 14rem floor whenever the options row is
+           long; a field, a dashed answer and the words beside them cannot share
+           224 px (measured on a long board, the field came out at 26 px). So
+           the field keeps a usable minimum and the answer drops to a line of
+           its own where there is no room, and snaps back to one row the moment
+           there is (collapsing the lab's sidebar is enough). */
         <div className="lab-dock-note flex-wrap">
           <input
             ref={noteRef}
@@ -1605,48 +1524,6 @@ function Dock({
           >
             {unclear ? "Marked: not clear to me" : "Not clear to me"}
           </button>
-          {/* ★ THE THIRD ANSWER, AND ONLY WHERE THERE IS A RULING TO STAND BY
-              (Will, 2026-09-19). He asked for "an optional trash button to kill
-              the question in the board if no answer"; a trash beside three
-              options would read as killing the OPTIONS, and `kill` is already
-              the catalog's verdict word. What he is actually doing is agreeing
-              with the earlier ruling, so it is drawn as the answer it is and
-              recorded as one: `<ask>=stands`, counted everywhere the desk
-              counts. Primed when the lane conceded, so agreeing costs one press
-              and nothing is recorded by looking. */}
-          {step.kind === "ask" && step.overtaken && (
-            <button
-              type="button"
-              data-dir-press
-              data-lab-stands=""
-              aria-pressed={stood}
-              onClick={onStands}
-              title="Press s. Recorded as an answer: the wiring follows the earlier ruling."
-              className={cn(
-                "shrink-0 rounded-lg border border-dashed px-3 py-2 text-[11px] font-medium transition-colors duration-150 motion-reduce:transition-none",
-                stood
-                  ? "border-foreground/40 bg-card text-foreground"
-                  : step.overtaken.conceded
-                    ? "border-foreground/30 text-foreground hover:bg-muted/40"
-                    : "border-border text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {stood ? "Marked: the ruling stands" : "The ruling stands"}
-              {!stood && step.overtaken.conceded && (
-                <span className="ml-1.5 font-normal text-muted-foreground">
-                  the lane concedes
-                </span>
-              )}
-            </button>
-          )}
-          {/* The transcriber learns `stands` at this round's merge; until then
-              a paste carrying one is refused by name, which is the honest
-              failure and is said here rather than discovered in chat. */}
-          {stood && (
-            <span className="shrink-0 text-[11px] text-faint">
-              Recorded as an answer.
-            </span>
-          )}
           {needsWhy && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
               Say what was unclear, then go on.

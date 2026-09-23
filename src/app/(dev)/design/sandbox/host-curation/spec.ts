@@ -2,8 +2,7 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE HOST'S ACT OF REVIEWING WHAT GUESTS SEND, ROUND ONE (2026-09-19;
- * RESHAPED 2026-09-21).
+ * THE HOST'S ACT OF REVIEWING WHAT GUESTS SEND, ROUND ONE.
  *
  * Will (2026-09-19): the app is unprotected,
  * "absolutely everything is up for relitigation or reconcepting from the ground
@@ -13,23 +12,28 @@ import { defineExploration } from "@/components/lab/exploration";
  * is the knob on every decision because the tile row collapses to two chips
  * there and a queue that only works at 1440 is a finding.
  *
- * ★ RESHAPED, NEVER ANSWERED BY PRECEDENT (the overtaken audit, Will
- * 2026-09-21: a question that "fits the flow of potentially offering a better
- * solution than the earlier selection that overtook it ... should be reshaped
- * to be a more current question with updated context"). Seven of these eight
- * questions wore a badge naming a ruling that had landed on top of them since
- * they were drawn, and one of the seven had conceded outright. Every badge is
- * FOLDED INTO ITS QUESTION now: the ruling is the ground the answer stands on
- * rather than a note beside it. No option was dropped here, because none of
- * the rulings forbids one; the board stays at round one and stays unanswered.
- * `keys` was never reached by anything and is untouched.
+ * ★ EVERY QUESTION STANDS ON THE CURRENT PRODUCT, AND NOTHING A NEWER BOARD ASKS
+ * IS ASKED AGAIN (Will, 2026-09-22: a question an earlier pick reached is
+ * adapted where its options can still beat the current path, and removed where
+ * its context is already solved at its best). Two newer rounds are the ground
+ * the answers stand on, never walls:
+ *  - THE REEL. The live reel and the venue wall play only what is approved, so
+ *    on a moderated event the queue is what keeps them thin. That reaches three
+ *    questions here: what the queue does when one lands (`arrivals`), how many
+ *    places say the count (`count`, beside the wall's own `reel-screen.review`
+ *    and the reel view's `reel-host.review`, which are theirs and never asked
+ *    here), and whether a refused guest is told, now the album may tell her
+ *    when one of hers is in (`reel-front.yours`).
+ *  - IDENTITY. Every uploader passed a door that asked a name, so a credit is a
+ *    name, with the Unverified mark where nobody proved it, and the host never
+ *    sees an unproved address (`peek`). A typed name has no profile, and a
+ *    confirmed account's shows only the events its owner chose (`told`).
  *
- * ★ THE ONE CONCESSION IS OPEN AGAIN, AND THAT IS THE REASON THE AUDIT EXISTS.
- * `peek` conceded to the rule that every action on a photograph lives in the
- * lightbox's controls; he then narrowed that rule to a PHONE in his own words
- * ("Desktop should still support hover on cards"). So the phone's half is
- * ruled, the desk's half never was, and the question is reshaped to the half
- * that is still open rather than deleted for the half that is not.
+ * ★ `peek` IS ASKED AT A DESK. It conceded once to the rule that every action
+ * on a photograph lives in the lightbox's controls; he then narrowed that rule
+ * to a phone in his own words ("Desktop should still support hover on cards").
+ * So the phone's half is ruled, the desk's half never was, and the question is
+ * asked on the half that is still open.
  *
  * ★ THE ORDER IS THE ACT. Six decisions are roots and can be taken in any
  * order: how a waiting photograph is SHOWN, what the refusing button is CALLED,
@@ -74,12 +78,12 @@ const DRAFT = defineExploration({
   title: "Reviewing what guests send",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-22",
     changed:
-      "Reshaped by the overtaken audit: seven questions now carry the rulings that reached them as their own context, the peek is asked at a desk because the phone's half is ruled, the crop is named as the exception one tile would have to build, and the queue answers a guest's waiting tile.",
+      "Rechecked against the identity and reel rounds: an arrival and the count are asked with the reel and the wall they now reach, the refused guest beside the album's own good news, and the peek's credit and ground as they ship.",
   },
   context:
-    "A host turned on \"Review uploads before they appear\". Every upload now waits in a queue above their album until they approve it or put it down. Every option is the shipped review surface with one thing changed, over one wedding's seven waiting uploads, at 1440 with 375 on the knob. Nothing here approves, hides or removes anything: the triage machine is forked so its two Server Functions are a resolved promise.",
+    "A host turned on \"Review uploads before they appear\". Every upload now waits in a queue above their album until they approve it or put it down, and nothing waiting reaches the live reel or the venue wall. Every option is the shipped review surface with one thing changed, over one wedding's seven waiting uploads, at 1440 with 375 on the knob. Nothing here approves, hides or removes anything: the triage machine is forked so its two Server Functions are a resolved promise.",
   bible: [1, 4, 12, 21, 22],
   asks: [
     {
@@ -263,15 +267,15 @@ const DRAFT = defineExploration({
       id: "arrivals",
       label: "One lands mid-visit",
       question:
-        "A photograph lands while the host is reviewing with a selection held: what should the queue do?",
+        "A photograph lands mid-review with a selection held, and nothing waiting reaches the reel or the wall until approved: what should the queue do?",
       context:
-        "Nothing. The host's hub is live now, a tile arriving under the glow with the count moving, but the Review room is not: a host can clear it, read all caught up, and leave with uploads waiting. Three land here, one tile selected.",
+        "Nothing, today. The hub is live but the Review room is not: a host can read all caught up and leave uploads waiting, off the reel and the wall. Whether its header says so is reel-host.review's. Three land here, one tile selected.",
       options: [
         {
           id: "silence",
           label: "Nothing, as wired",
           means:
-            "They exist in the database and on no screen the host is looking at, including the one that says caught up.",
+            "They exist in the database and on no screen the host is looking at, the caught-up one included, so they reach neither the reel nor the wall.",
         },
         {
           id: "prompt",
@@ -288,31 +292,32 @@ const DRAFT = defineExploration({
       ],
       recommended: "prompt",
       because:
-        "All caught up is a promise this page cannot keep, and the hub beside it keeps that promise already. A prompt keeps it honest and the surface still, which matters most on the one screen a host works down methodically.",
+        "All caught up is a promise this page cannot keep, and a thin reel and a quiet wall are what breaking it costs now. The hub keeps the promise already; a prompt keeps it here and the surface still, which matters most on the one screen a host works down methodically.",
       overrule:
         "If a host would rather the queue simply be right, live insertion is the same build with one rule dropped.",
       lands:
-        "Whether the Review room learns what the hub already knows, and what it costs a selection.",
+        "Whether the Review room learns what the hub already knows, what it costs a selection, and how soon an upload can reach the reel.",
       configs: [SCREEN],
     },
     {
       id: "count",
       label: "The count",
-      question: "How many places should tell a host how many uploads are waiting?",
+      question:
+        "How many places should say how many uploads are waiting, now that the wall and the host's reel view may say it too?",
       context:
-        "Three: the header bell, the event card's amber chip, and the Review header, which moves live now. They disagree and none links to the work. The dashboard's aggregate is the pulse, and a single event's prompt there is refused.",
+        "Three say it today: the header bell, the event card's amber chip and the live Review header. They disagree and none leads to the work. Whether the wall and the reel view say it is reel-screen.review's and reel-host.review's.",
       options: [
         {
           id: "three",
           label: "All three, as wired",
           means:
-            "The pulse on the dashboard, a per-event chip, and a live header count, disagreeing quietly.",
+            "The pulse on the dashboard, a per-event chip and a live header count, disagreeing quietly, and any count on the wall or the reel view one more.",
         },
         {
           id: "deeplink",
           label: "Three that agree, and lead somewhere",
           means:
-            "The bell names the event and opens its queue; all three read the same number.",
+            "The bell names the event and opens its queue, and every place that says the count, the wall and the reel view included, reads one number.",
         },
         {
           id: "one",
@@ -323,46 +328,47 @@ const DRAFT = defineExploration({
       ],
       recommended: "deeplink",
       because:
-        "A count is a call to action, and the bell's is the only one a host meets when they are not already looking at the event. It should land on the queue. The pulse answers the aggregate, so the chip and the bell are what is left.",
+        "A count is a call to action, and with a wall and a reel view that may say it too, five places disagreeing is worse than none. The bell's is the only one a host meets away from the event, so it should land on the queue, and every count should read one number.",
       overrule:
         "He refuses a single event's prompt on the dashboard. If the bell is one of those, the card's chip is the count a host decides from.",
       lands:
-        "Where a waiting count is said beside the pulse, what it links to, and which surfaces own it.",
+        "Where a waiting count is said beside the pulse, what it links to, and that every surface saying it reads one number.",
       configs: [SCREEN],
     },
     {
       id: "told",
       label: "The guest",
-      question: "Should a guest whose photograph was refused ever be told?",
+      question:
+        "Should a guest whose photograph was refused ever be told, now the album may tell her when one of hers is in?",
       context:
-        "A guest is told once, at upload, that the host reviews; after that nothing, ever, and the FAQ answers this in public with \"Never\". Since: a guest owns their photographs, their tiles carry a mark, and they may keep a profile.",
+        "She learns at upload that the host reviews; a refused photograph's tile then waits under a clock until her visit ends, and the FAQ promises silence. reel-front.yours may tell her when one is in, so that silence speaks.",
       options: [
         {
           id: "never",
           label: "Never, as wired",
           means:
-            "They sent ten and can see nine. Nothing on any page, or in any email, accounts for the tenth.",
+            "She sent ten and can see nine. Nothing on any page, or in any email, accounts for the tenth.",
         },
         {
           id: "line",
-          label: "A quiet line in their own feed",
+          label: "A quiet line in her own uploads",
           means:
-            "The photograph stays theirs, dimmed on their own tiles and on their profile, marked not in the album. No reason, no appeal, nobody else sees it.",
+            "The photograph stays hers, dimmed on her own tiles and marked not in the album. No reason, no appeal, and nobody else sees it.",
         },
         {
           id: "message",
           label: "A message",
           means:
-            "A notice that names the event and says one of theirs was not added.",
+            "A notice that names the event and says one of hers was not added. Only a confirmed address can carry it; a typed one is never mailed.",
         },
       ],
-      recommended: "never",
+      recommended: "line",
       because:
-        "A refusal is the host's private judgement about their own party. Telling a guest turns a quiet act of curation into a social event at a wedding, and the FAQ already promises silence in public.",
+        "Silence is not neutral any more: the album may say when one of hers is in, and her waiting tile keeps saying the host has not decided after the host has. A quiet line on her own copy, seen by nobody else and giving no reason, is the least a refusal can honestly say.",
       overrule:
-        "This is the one on this board to overrule. If a guest has a right to know where their own photograph went, the line says it to them alone.",
+        "If a refusal should stay the host's private judgement, as the FAQ promises in public, never keeps curation from becoming a social event at a wedding.",
       lands:
-        "A public FAQ answer, what a guest's own feed and profile show, and whether a refusal ever sends anything.",
+        "A public FAQ answer, what a guest's own tiles and uploads show, and whether a refusal ever sends anything.",
       configs: [SCREEN],
     },
   ],
