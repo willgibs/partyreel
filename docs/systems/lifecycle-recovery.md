@@ -90,8 +90,9 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
 ## The sweeps that nudge / enforce (decisions key off ACTIVE bytes)
 
-- **Over-capacity** targets ONLY lapsed paid accounts (Free is upload-blocked before it can exceed cap),
-  and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at hard-delete). Over → set
+- **Over-capacity** takes every account whose ACTIVE bytes exceed its CURRENT effective cap (a lapsed paid
+  account, or a move to a smaller cap such as stacked passes into a smaller Pro; Free is upload-blocked before it
+  can exceed its cap; candidates are accounts over 2 GB used), and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at hard-delete). Over → set
   `storage_grace_until` (`OVER_CAP_GRACE_DAYS`=45) + email; near the deadline → reminder; past grace →
   auto-reduce (`selectForAutoReduce`, largest-first → the removed path reclaims after the window) + email;
   back under → clear grace.
@@ -109,7 +110,7 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   to the in-app self-serve restore (NOT "reply to this email"); voluntary deletes are never emailed (the bell
   nudge covers them in-app → [notifications-analytics-growth.md](notifications-analytics-growth.md)).
 
-## Host-facing recovery (the "Trash" tab)
+## Host-facing recovery (the "Deleted" filters)
 
 > The product's filters say **"Deleted"** (on the dashboard's events list and in the album's View menu;
 > never a tab), while the delete confirmation and the marketing copy still say "Trash"; the model's

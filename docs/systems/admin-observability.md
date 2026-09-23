@@ -153,7 +153,7 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
   [`stripe/dashboard.ts`](../../src/lib/stripe/dashboard.ts), pure + unit-tested), read with the service
   role in [`queries/accounts.ts`](../../src/lib/db/queries/accounts.ts). Its one write is the operator's
   account deletion (`deleteAccountAsOperatorAction`, the host's own deletion path); tier/cap stay the
-  Stripe webhook's alone → [billing-caps.md](billing-caps.md).
+  Stripe webhook's and the pass recompute's alone → [billing-caps.md](billing-caps.md).
 - **Albums** — proactive moderation: a recent-uploads feed across all events + an album drill-in, with
   direct soft-remove + restore within the grace. Service-role cross-host reads
   ([`queries/moderation.ts`](../../src/lib/db/queries/moderation.ts)), tiles through the shared grid-items
@@ -166,7 +166,7 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
 - **Overview** — the home: [`lib/admin/kpi.ts`](../../src/lib/admin/kpi.ts) (pure) computes the four
   figures and their fortnight delta, a server-drawn sparkline carries the signups, and
   [`lib/admin/queue.ts`](../../src/lib/admin/queue.ts) ranks the queue. ★ **Paid subscribers carries no delta**: the
-  Stripe webhook is the sole writer of `tier` and writes no history, so `null` is the honest answer and a
+  webhook and the pass recompute are the only writers of `tier` and write no history, so `null` is the honest answer and a
   plausible arrow would be a fabrication.
 - **Metrics** — platform KPIs (accounts / content / engagement / growth), live Stripe revenue, `recharts`
   charts. The migration-free service-role aggregator

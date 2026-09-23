@@ -96,7 +96,8 @@ stays the guard behind the door (the wizard toasts on `limit_reached`).
   (never hand-rolled per field): it owns the glyph beside the label and the deferred open, a tick late so radix's
   dismissable-layer doesn't catch the switch's own click and auto-close it. Turning it back ON is instant.
   ENFORCEMENT is the gated gallery (→ [guest-flow.md](guest-flow.md)): `resolveGalleryDecision` teaser-gates an
-  unverified guest and `create_guest` refuses an upload without a confirmed email. The live "what your guests will
+  unverified guest, `create_guest` refuses the join without a confirmed email, and `create_media` refuses each
+  upload from a row with no `verified_at`. The live "what your guests will
   experience" line under the access controls is `guestExperienceSummary()`
   ([`guest-experience-summary.ts`](../../src/lib/events/guest-experience-summary.ts)).
 - **"Require an upload to view" (`events.require_upload_to_view`, off by default) holds the full album from a guest
@@ -298,7 +299,7 @@ SHEETS; the album is the hub page itself.
   bursts coalesced), or a changed validator from
   [`/api/events/<id>/live`](../../src/app/api/events/[eventId]/live/route.ts) (RLS-scoped reads, no presigns, a
   bodiless 304 when nothing moved), polled on the guest album's hybrid cadence (60 s while the socket is up, 12 s when
-  it is down, paused while the tab is hidden). ★ **The poll is not redundant with the socket**: the
+  it is down, stopping when the tab goes hidden). ★ **The poll is not redundant with the socket**: the
   `media_gallery_doorbell` trigger fires only on the APPROVED-VISIBLE set, so on a moderated event a held upload wakes
   nobody; the host fingerprint ([`lib/events/host-fingerprint.ts`](../../src/lib/events/host-fingerprint.ts): event
   id, the visible ids and statuses, the PENDING count) is how the one person who can approve it hears of it. A refresh
@@ -450,8 +451,9 @@ hosts and old devices. Four rules follow, and they are why the surface is sparse
   silent montage, which is what Reels and TikTok want: people add trending audio when they post.
 - **Generation is FREE on every tier, and the free export is FULL quality.** The free levers are the watermark and the
   shorter length (30 s free, 60 s paid, `MAX_REEL_SECONDS`), never the quality; the watermark doubles as an upgrade
-  nudge and free marketing on every shared reel. Paid hosts carry zero Partyreel branding on their event surface, and
-  there is deliberately **NO end-card** on any reel; do not revisit it as a growth extra.
+  nudge and free marketing on every shared reel. A paid host's reel carries zero Partyreel branding (the guest
+  page's header keeps the Partyreel logo and its CTA on every tier), and there is deliberately **NO end-card** on
+  any reel; do not revisit it as a growth extra.
 - **Video in the reel is self-bounding.** Only paid tiers (Pro and Event Pass) can upload video, so video in the reel is paid-only with no
   special-casing anywhere. A video item draws its POSTER still.
 

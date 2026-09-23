@@ -27,8 +27,8 @@ layout's `headerActions` before `UserMenu`.
 
 **Invariants:** `announcements` is operator-write-only (RLS: a SELECT policy for `authenticated`, NO write
 policy, so host inserts are RLS-denied, proven by a 42501 contract check; the operator publishes via the
-`/admin` compose UI → [admin-observability.md](admin-observability.md)). `announcements_seen_at` is the ONE
-host-writable addition to the `profiles` column-grant allowlist (the host self-bumps via the RLS
+`/admin` compose UI → [admin-observability.md](admin-observability.md)). `announcements_seen_at` is one of the
+two host-writable columns on the `profiles` grant allowlist (with `welcomed_at`; the host self-bumps it via the RLS
 `markAnnouncementsSeen`); `tier`/`storage_*`/`is_admin` stay off it. **No real-time push**: the badge
 refreshes on navigation/page-load (cron signals are daily). There is no per-item feed and no per-item
 announcement un-read.
@@ -133,7 +133,7 @@ session (never the request body: no victim-address poisoning), applies a per-IP 
 and calls the service-role-only **`capture_guest_email`** RPC through the admin client: it sets
 `guests.email` only if null, and upserts the durable **`newsletter_signups`** table (RLS deny-all).
 `newsletter_signups` is standalone (NOT a `guests` column) so the marketing list survives event/guest
-deletion (`event_id` is `on delete set null`). An UNPROVED address never reaches `guests.email`: it lives
+deletion (`event_id` is `on delete set null`). A TYPED address never reaches `guests.email`: it lives
 in `guests.pending_email` (written only by the join's `create_guest` and by `set_guest_pending_email`
 through `/api/guests/email`) until a confirmed account claims it
 (→ [guest-flow.md](guest-flow.md)). No "email me the album link" send exists (it would reuse `sendOnce`).

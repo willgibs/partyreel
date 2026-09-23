@@ -90,7 +90,7 @@ transiently wrong, which is exactly when a restore is in progress.
 | GitHub DB-backup fails | the run fails loudly + the post-upload byte-size verify, and its heartbeat closes with `always()` so a failure shows as FAILED on `/admin/jobs` rather than as a silence; a run that stops firing altogether trips the missed-run alert |
 | DB-password / secret drift | the backup breaks until the secret updates (the app uses separate Supabase API keys, unaffected) |
 | Avatars not in the R2 WORM backup | by design: on Supabase Storage (bytes ride Supabase infra durability, metadata in pg_dump); derivable, so no WORM tier needed |
-| Prune breaker tripped / source looks empty | deletes nothing, alerts (Sentry + deduped email); dry-run + the 36-day lock are independent backstops |
+| Prune breaker tripped / source looks empty | deletes nothing, alerts (Sentry + deduped email); dry-run, the 36-day age gate and the 35-day lock are independent backstops |
 
 Every pillar meets the zero-silent-failure rule: the reconcile, the prune and the DB backup each carry a
 kill switch and a heartbeat, and a missing run raises a Sentry event. The model + the per-job

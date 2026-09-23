@@ -149,7 +149,8 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
   [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to
   open, one extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the `save`
-  wear); only a nameless legacy row reads **"A guest"**.
+  wear); only a nameless legacy row reads **"A guest"**, and a verified row whose account has no profile name
+  (a deleted account's surviving upload) renders no credit at all.
   [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library
   gallery mounts. ★ The mark carries its OWN door rather than a prop, because the credit sits three modules
   deep under `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one.
@@ -215,8 +216,8 @@ does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-g
   real teaser photos appear ONLY once the password is proven (never before it).
 
 ★ **THE UPLOAD GATE FAILS OPEN, AND THE FAIL-OPEN IS THE SERVER'S.** `canContribute = accepting_uploads && !albumFull`,
-where `albumFull` is exactly the pair the presign ladder refuses `cap_reached` on (the storage cap with its
-grace, or the monthly ingress cap), carried verbatim by `get_upload_gate`, so the gate never holds a guest
+where `albumFull` is exactly the pair the presign ladder refuses `cap_reached` on (the storage cap plus its 10%
+write headroom, or the monthly ingress cap), carried verbatim by `get_upload_gate`, so the gate never holds a guest
 the presign would refuse. An unreachable `get_upload_gate` resolves to `{contributed: false, albumFull: true}`
 with a captured warning, which opens the album. The ticket is punched ONCE: any media row that ever
 completed counts, whatever its status since, so a host's curation or a guest's own delete never re-closes a
@@ -531,9 +532,9 @@ the field before they confirm.
   suppression + jitter, one trailing flush for bursts).
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
-  when the socket is down; stopped while `document.hidden`. Every poll sends `If-None-Match`; the route
-  answers an unchanged gallery with a **bare 304** (zero payload, zero presigns) — see the route notes in
-  [uploads-and-r2.md](uploads-and-r2.md) and the ETag invariant below.
+  when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
+  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns); see
+  the ETag invariant below.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
   fingerprint ([`gallery-fingerprint.ts`](../../src/lib/events/gallery-fingerprint.ts)) hashes `access` +
   `gate` + `teaserTotal` + the item ids/attribution (the verified mark included) + the presign bucket id,

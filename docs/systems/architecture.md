@@ -47,7 +47,7 @@ src/app/
   admin one, so it runs on the app surface only. Full perimeter: [admin-observability.md](admin-observability.md).
 - The always-dark **`--gallery`** tokens are not a page surface: they paint the `EventCard` no-cover
   placeholder and the marketing reel and gallery frames (the lightbox backdrop is the `glass-behind`
-  utility). → see [uploads-and-r2.md](uploads-and-r2.md).
+  utility). → see [design-system.md](design-system.md).
 
 ## Two stores of truth
 

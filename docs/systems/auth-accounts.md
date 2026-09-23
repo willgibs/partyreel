@@ -46,7 +46,8 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the host 
   "Need more?" (the pricing sheet) doors. It shows the plan, storage, the event cap ("3 of 3 used", the
   upgrade trigger) and a Pass's expiry, with the pricing sheet, Manage billing and Renew.
   ★ **Every fact on the Plan card is server-derived**: `tier`, `storage_cap_bytes`, `event_slots` and
-  `tier_expires_at` are webhook-written columns read through the RLS-scoped profile row, and the page's
+  `tier_expires_at` are columns only the Stripe webhook and the pass recompute write, read through the
+  RLS-scoped profile row, and the page's
   only search params are `?reset` and `?welcome` (Stripe's return marker, which opens the receipt and never
   decides a plan). A Plan card is exactly where trusting the client would be cheapest and worst →
   [billing-caps.md](billing-caps.md); [plan-card.test.ts](../../src/app/(app)/account/plan-card.test.ts) pins the read path.
