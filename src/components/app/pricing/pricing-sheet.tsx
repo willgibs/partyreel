@@ -5,12 +5,14 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import {
   LOCKED_FEATURES,
   openingPlanFor,
   proBenefitLines,
   type PricingTrigger,
 } from "@/components/app/pricing/triggers";
+import { usePlanFacts } from "@/components/app/pricing/use-plan-facts";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,10 +25,17 @@ import {
 } from "@/components/ui/sheet";
 import { trackAttrs } from "@/lib/analytics/events";
 import {
+  formatBytesUp,
+  planHolds,
+  refusalSentence,
+  type StorageRefusal,
+} from "@/lib/billing/storage-guard";
+import {
   DEFAULT_TIER,
   TIER_NAMES,
   formatCapacity,
   planById,
+  plansForTier,
   type Plan,
   type Tier,
 } from "@/lib/constants/tiers";
@@ -50,13 +59,21 @@ import { cn, formatBytes } from "@/lib/utils";
  * question is answered a click away. His one addition is the Pro card's three
  * benefit lines ("phrased better"), which live in `triggers.ts`.
  *
+ * ★ IT KNOWS WHAT THE HOST STORES (the storage guard, Will 2026-09-22: no plan
+ * change leaves a host storing more than the new cap). When it opens it reads
+ * `/api/stripe/plan-facts`, so it opens on the smallest Pro size that FITS
+ * whatever door opened it, says which smaller sizes it skipped, and shows a Pro
+ * host the six prices with theirs marked (`pro-price-list.tsx`), each switch
+ * going through the storage check before Stripe's confirm page. The facts beat
+ * the door's claim when they arrive: they are fresher and come from the server.
+ *
  * ★ NOTHING HERE DECIDES AN ENTITLEMENT, AND IT COULD NOT IF IT TRIED
- * (billing-caps.md). `plan.tier` is server-derived at every call site and is
- * used only to pick which sentence a host reads; the Stripe webhook remains the
- * sole writer of `profiles.tier` and `storage_cap_bytes`; and the checkout
- * route re-resolves the entitlement from `profiles` before it will open a
- * session, so a forged prop buys a wrong headline and nothing else. Every price
- * on this surface is read from `tiers.ts`.
+ * (billing-caps.md). The tier, the bytes and the current price only pick which
+ * sentence a host reads and which size the card offers; the Stripe webhook
+ * remains the sole writer of `profiles.tier` and `storage_cap_bytes`; and the
+ * checkout and change-plan routes re-resolve everything from `profiles` and
+ * Stripe before they will open a session, so a forged prop buys a wrong
+ * headline and nothing else. Every price on this surface is read from `tiers.ts`.
  *
  * ★ IT IS BOTH A TRIGGERED AND A CONTROLLED SURFACE. A door that is a BUTTON
  * (the Plan card's Upgrade, the storage meter's Need more, the lock chip)
@@ -76,6 +93,11 @@ export type PricingPlanFacts = {
 
 export type PricingSheetProps = {
   trigger: PricingTrigger;
+  /**
+   * What the door knows (tier, billing, pass expiry): the first paint. The
+   * sheet's own read replaces it once it lands, so a door never has to carry
+   * bytes or a current price.
+   */
   plan: PricingPlanFacts;
   /**
    * The app path Checkout should come back to (`back=finish`). Validated AGAIN
@@ -100,11 +122,15 @@ function lead(
   tier: Tier,
   opening: Plan,
   passExpiry?: string | null,
+  switchBlocked = false,
 ): { title: string; sub: string } {
   if (tier === "pro") {
     return {
       title: `You are on ${TIER_NAMES.pro} already`,
-      sub: "Change your storage size, switch to yearly or cancel in the billing portal.",
+      // Never promise a switch the list below cannot open.
+      sub: switchBlocked
+        ? "Here is every Pro size. This plan can't switch from here right now; the note under the list says why."
+        : "Change your size, or switch between monthly and yearly, here. Your card, invoices and cancelling stay in the billing portal.",
     };
   }
   if (tier === "event_pass") {
@@ -130,6 +156,28 @@ function lead(
     title: "Your plan",
     sub: `You are on ${TIER_NAMES.free}. Here is what paid adds.`,
   };
+}
+
+/**
+ * The one line under the cards about FIT (plain until the `host-storage` board
+ * designs it): nothing when every size holds what the host stores; the sizes the
+ * sheet skipped when it opened on a bigger one; the numbers when even the largest
+ * cannot, since that checkout would only be refused.
+ */
+function fitNote(stored: number, opening: Plan): string | null {
+  if (stored <= 0) return null;
+  if (!planHolds(opening, stored)) {
+    return refusalSentence(stored, opening, null);
+  }
+  // Only sizes that truly cannot hold it: a door's own byte count may have
+  // raised the opening size too, and the note must never blame a size that fits.
+  const skipped = plansForTier("pro", opening.interval ?? "month").filter(
+    (plan) =>
+      plan.storageBytes < opening.storageBytes && !planHolds(plan, stored),
+  );
+  if (skipped.length === 0) return null;
+  const names = skipped.map((plan) => plan.name).join(" and ");
+  return `${names} ${skipped.length === 1 ? "holds" : "hold"} less than the ${formatBytesUp(stored)} you store.`;
 }
 
 function Benefit({ children }: { children: ReactNode }) {
@@ -210,15 +258,41 @@ export function PricingSheet({
   const isOpen = controlled ? open : selfOpen;
   const setOpen = controlled ? (onOpenChange ?? (() => {})) : setSelfOpen;
 
-  const tier = plan.tier ?? DEFAULT_TIER;
+  // The server's answer, once it lands (null until then, and in the Library).
+  const facts = usePlanFacts(isOpen);
+  // A refusal a buy or switch came back with; cleared when the sheet closes.
+  const [refusal, setRefusal] = useState<StorageRefusal | null>(null);
+  function changeOpen(next: boolean) {
+    if (!next) setRefusal(null);
+    setOpen(next);
+  }
+
+  const tier = facts?.tier ?? plan.tier ?? DEFAULT_TIER;
+  const hasBilling = facts?.hasBilling ?? plan.hasBilling;
+  const passExpiry = facts ? facts.passExpiry : plan.passExpiry;
+  const stored = facts?.activeBytes ?? 0;
+
   const free = planById("free");
   const pass = planById("event_pass");
-  const opening = openingPlanFor(trigger);
-  const head = lead(trigger, tier, opening, plan.passExpiry);
+  const opening = openingPlanFor(trigger, stored);
+  const head = lead(
+    trigger,
+    tier,
+    opening,
+    passExpiry,
+    Boolean(facts?.changeBlocked),
+  );
   const isFree = tier === "free";
+  const note = fitNote(stored, opening);
+  // Moving to a cap SMALLER than the one in force (a pass holder with stacked
+  // passes into a small Pro) shrinks Deleted too; said before they buy.
+  const shrinks =
+    facts?.capBytes != null &&
+    opening.storageBytes < facts.capBytes &&
+    planHolds(opening, stored);
 
   return (
-    <Sheet open={isOpen} onOpenChange={setOpen}>
+    <Sheet open={isOpen} onOpenChange={changeOpen}>
       {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
       <SheetContent
         responsive
@@ -234,12 +308,19 @@ export function PricingSheet({
 
         <div className="space-y-3 px-4">
           {tier === "pro" ? (
-            /* A subscriber is told she subscribes, which is the whole of what
-               /pricing gets wrong today. The portal owns every move from here
-               (billing-caps.md: checkout refuses a second subscription). */
-            plan.hasBilling ? (
-              <ManageBillingButton className="w-full" />
-            ) : null
+            /* A subscriber is told she subscribes, and her plan is six prices
+               with hers marked. Sizes and cadences change HERE, through the
+               storage check; the portal keeps the card, the invoices and
+               cancelling (billing-caps.md). */
+            <>
+              <ProPriceList
+                facts={facts}
+                returnTo={returnTo}
+                refusal={refusal}
+                onRefused={setRefusal}
+              />
+              {hasBilling ? <ManageBillingButton className="w-full" /> : null}
+            </>
           ) : (
             <>
               <div className="flex gap-3">
@@ -260,6 +341,7 @@ export function PricingSheet({
                   <CheckoutButton
                     planId={opening.id}
                     next={returnTo}
+                    onRefused={setRefusal}
                     size="sm"
                     variant="secondary"
                     className="mt-auto w-full"
@@ -272,6 +354,34 @@ export function PricingSheet({
                   </CheckoutButton>
                 </PlanCard>
               </div>
+
+              {/* FIT, plainly: the refusal's own numbers when a buy came back
+                  refused, else which sizes were skipped and why. */}
+              {refusal ? (
+                <p
+                  role="alert"
+                  data-note="refusal"
+                  className="text-xs text-pretty text-foreground"
+                >
+                  {refusal.message}
+                </p>
+              ) : note ? (
+                <p
+                  data-note="fit"
+                  className="text-xs text-pretty text-muted-foreground"
+                >
+                  {note}
+                </p>
+              ) : null}
+              {shrinks ? (
+                <p
+                  data-note="deleted"
+                  className="text-xs text-pretty text-muted-foreground"
+                >
+                  A smaller plan also shrinks Deleted: it keeps items only up to
+                  the new size.
+                </p>
+              ) : null}
 
               {/* THE PASS ON ONE LINE (`pass=line`). It opens the same gate for
                   less, so leaving it out would be dishonest; giving it Pro's

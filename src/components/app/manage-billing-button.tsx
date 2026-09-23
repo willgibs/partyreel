@@ -6,8 +6,11 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-// Opens the Stripe Billing Portal for the signed-in host. Only rendered when the host
-// already has a Stripe customer (has been through checkout).
+// Opens the Stripe Billing Portal for the signed-in host: the card on file, the
+// invoices and cancelling. Only rendered when the host already has a Stripe customer
+// (has been through checkout). It is NOT the way to change a Pro size or cadence:
+// that is the plan sheet's price list through /api/stripe/change-plan, which checks
+// what the host stores first (the storage guard, billing-caps.md).
 //
 // Rest props pass through to the Button (like CheckoutButton's) so the pricing sheet
 // can give a Pro host a full-width portal door without a second component; the default
