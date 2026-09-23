@@ -37,10 +37,9 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 1. **The reshape (Will, 2026-09-22) is done:** every docs lane merged (`pointer-sweep`, `roadmap-lean`, `docs-rules`,
    `docs-product-trim`, `systems-trim` at `daaf2dd2`, gate 123); the Orchestrator's own part, the bible's present-tense
-   `why` lines and memory are in. Next from it: `identity-sql-gaps`, a fix lane for two identity leaks the systems lane
-   found (an unconfirmed sign-up's address in `guests.email` inside the host's SELECT grant; `get_public_profile`'s
-   attended arm admitting any signed-in viewer where the album asks for a confirmed email); the migration is the
-   Orchestrator's to apply.
+   `why` lines and memory are in. The two identity leaks it found are closed: `identity-sql-gaps` merged at `dc317541`
+   (gate 125) and its migration `20260922200000_identity_sql_gaps` applied (both bodies' checksums as proved, the host's
+   `guests.email` read refused, the contract check held and rolled back, the advisors unchanged).
 2. **The board recheck is done** (Will's suggestion): all four lanes merged (`recheck-mail-admin-export`,
    `recheck-help-press`, `recheck-guest-identity`, `recheck-viewer-curation` at `c6c79885`, gate 124), each reached
    question judged by his decision-outcomes rule; the overtaken mechanism retired. Every standing board is current
