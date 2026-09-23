@@ -69,9 +69,7 @@ describe("createEventSchema: the host's identity switch", () => {
 
   it("keeps the legacy twin's default OPPOSITE, so a row naming either is consistent", () => {
     const parsed = createEventSchema.parse({ name: "Sarah's wedding" });
-    expect(parsed.allow_anonymous_uploads).toBe(
-      !parsed.require_verified_email,
-    );
+    expect(parsed.allow_anonymous_uploads).toBe(!parsed.require_verified_email);
   });
 
   it("takes the switch off when the host asks", () => {
@@ -98,8 +96,69 @@ describe("createEventSchema: the upload gate (Will, the door as three steps, 202
     expect(parsed.require_upload_to_view).toBe(true);
   });
 
-  it("updateEventSchema carries the switch too (createEventSchema.partial())", () => {
+  it("updateEventSchema carries the switch too", () => {
     const parsed = updateEventSchema.parse({ require_upload_to_view: true });
     expect(parsed.require_upload_to_view).toBe(true);
+  });
+});
+
+// ★ AN UPDATE CARRIES EXACTLY THE KEYS SENT. `updateEvent` patches every defined key, so a key the
+// schema INVENTS is a write the host never made: zod 4's `.partial()` keeps each `.default()`, so
+// an update derived from the defaulted create turns a QR style save into "open the album, reopen
+// uploads, approve every held upload".
+describe("updateEventSchema: a partial save is exactly its keys", () => {
+  it("parses an empty save to nothing at all", () => {
+    expect(updateEventSchema.parse({})).toEqual({});
+  });
+
+  it("parses a QR style save to the QR style alone", () => {
+    expect(updateEventSchema.parse({ qr_style: "dots" })).toEqual({
+      qr_style: "dots",
+    });
+  });
+
+  it("parses the review room's switch to the switch alone", () => {
+    expect(
+      updateEventSchema.parse({ moderation_mode: "hold_for_approval" }),
+    ).toEqual({ moderation_mode: "hold_for_approval" });
+  });
+
+  it("invents none of the settings a create defaults", () => {
+    const parsed = updateEventSchema.parse({ name: "Renamed" });
+    for (const key of [
+      "visibility",
+      "accepting_uploads",
+      "require_verified_email",
+      "require_upload_to_view",
+      "moderation_mode",
+      "qr_style",
+    ]) {
+      expect(parsed).not.toHaveProperty(key);
+    }
+  });
+
+  it("still validates what it is sent", () => {
+    expect(updateEventSchema.safeParse({ qr_style: "neon" }).success).toBe(
+      false,
+    );
+    expect(updateEventSchema.safeParse({ name: "" }).success).toBe(false);
+  });
+});
+
+describe("createEventSchema: a create with only a name lands every default", () => {
+  it("carries each column default (they mirror the events table's own)", () => {
+    expect(createEventSchema.parse({ name: "Sarah's wedding" })).toMatchObject({
+      name: "Sarah's wedding",
+      visibility: "open",
+      accepting_uploads: true,
+      require_verified_email: true,
+      require_upload_to_view: false,
+      moderation_mode: "live",
+      qr_style: "classic",
+    });
+  });
+
+  it("still requires the name", () => {
+    expect(createEventSchema.safeParse({}).success).toBe(false);
   });
 });

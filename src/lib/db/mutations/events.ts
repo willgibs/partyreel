@@ -114,8 +114,9 @@ export async function updateEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Only patch keys that were provided (updateEventSchema is partial). Nullable
-  // text columns take null when cleared.
+  // Only patch keys that were provided: updateEventSchema is partial with NO defaults, so a
+  // defined key here is one the caller sent (validation/event.ts owns why). Nullable text columns
+  // take null when cleared.
   const patch: TablesUpdate<"events"> = {};
   if (values.name !== undefined) patch.name = values.name;
   if (values.description !== undefined)

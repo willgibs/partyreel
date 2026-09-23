@@ -231,8 +231,7 @@ host-writable allowlist. The "how it works" copy and pictures are single-sourced
 
 [`/dashboard/[eventId]`](../../src/app/(app)/dashboard/[eventId]/page.tsx) is a **HUB**: a live QR code left of the
 title + metadata + link stack, a row of CARDS into the event's rooms, and the ALBUM beneath them in most-recent order,
-the page's subject. `event-feed.tsx` (the stacked feed the hub replaced, with the `event-feed-action-bar.tsx` and
-`event-filter-pills.tsx` only it imports) has no importer, not even the lab: dead code, whatever its neighbours'
+the page's subject. `event-filter-pills.tsx` has no importer, not even the lab: dead code, whatever its neighbours'
 comments say.
 
 ★ **It is the ONE wide page in the host app**: a host sees as many photographs at once as a guest. The page marks its
