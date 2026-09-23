@@ -21,8 +21,9 @@ link, or one pair of panels loses its sweep (a Vitest pin holds the order). The 
 contract ([design-system.md](design-system.md)); its clocks are `--mkt-dropdown-*` / `--mkt-nav-*` on
 `[data-mkt]`, and `--mkt-dropdown-open-ms` is shared by the enter animation, the box morph and the cross-slide so
 they cannot drift apart. JS reads hover intent (`--mkt-nav-intent-ms`) through `readCssMs`, never `parseInt`. The
-measured indicator ([`nav-indicator.tsx`](../../src/components/marketing/chrome/nav-indicator.tsx)) doubles as the
-panel's `transform-origin` source (`NAV_INDICATOR` swaps pill↔underline). **Every chrome clock carries a
+measured indicator ([`nav-indicator.tsx`](../../src/components/marketing/chrome/nav-indicator.tsx)) draws the
+pill or the underline (`NAV_INDICATOR`); the panel's `transform-origin` comes from the open trigger's own rect,
+which `handleValueChange` writes as `--mkt-nav-origin-dx` for the viewport. **Every chrome clock carries a
 `var(…, fallback)`**: the root `app/not-found.tsx` renders this header WITHOUT marketing.css, where a bare `--mkt-*`
 is silently unset. The header's glass is an inert `-z-10` layer whose opacity animates
 ([`header-shell.tsx`](../../src/components/marketing/chrome/header-shell.tsx)); the bar itself never carries
@@ -33,9 +34,10 @@ that one knob. It leaves once the reader commits 8px past a one-header-height re
 upward movement, at the top, and on `:focus-within`; it never leaves with a nav panel or the phone sheet open. The
 hide and its three escapes are ONE compound selector, so no utility ordering decides them. `-translate-y-full`
 writes the standalone `translate` property, so the clock is `transition-[translate]`, never
-`transition-transform`. The site's one scroll listener (passive, rAF-coalesced, attached only while read) lives in
+`transition-transform`. The header's one scroll listener (passive, rAF-coalesced, attached only while read) lives in
 [`use-scroll-direction.ts`](../../src/lib/shared/use-scroll-direction.ts), because direction is the one thing an
-IntersectionObserver cannot report; the glass keeps its observer.
+IntersectionObserver cannot report; the glass keeps its observer (the article reading spine and the root 404's
+trail keep scroll listeners of their own).
 ★ **The header's right cluster reads the session on the client, from a cookie, so every marketing route stays
 prerendered.** [`session-hint.tsx`](../../src/components/marketing/chrome/session-hint.tsx) runs on
 `useSyncExternalStore` with the SERVER SNAPSHOT `false`: ~50 prerendered routes ship the stranger's Log in and
@@ -53,7 +55,9 @@ follows the in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`s
 
 ★ **Never promise "no account", anywhere.** Require verified emails defaults ON for a new event, so the claim is
 **"No app required."**, never "No app, no account." It runs across the OG cards, the trust strip, the footer,
-`features.ts`, `events.ts`, `press.ts`, `careers.ts`, `llms.txt`, the guest door, and the help and blog articles.
+`events.ts`, `press.ts`, `careers.ts`, the JSON-LD `featureList`, the guest door, and the help and blog articles
+(`llms.txt` says "no app to install and no password to invent", then names the email code). One line still breaks
+the rule: the /blog index's closing CtaBand ships "No app or account for your guests."
 **"No app"
 STAYS** as a benefit; the fence is only on defining Partyreel AGAINST another product ("we're not cloud
 storage"), never on naming an absence a guest is wary of (bible 20). A line that PROMISES a guest needs no account
@@ -114,8 +118,9 @@ Each entry below names a marketing page's copy single-source and the traps its l
   everywhere" runs one `useAlbumFill` into a laptop and a `PhoneShell`, so a tile lands on both in one commit
   ([`album-fill-grid.tsx`](../../src/components/marketing/sections/features/album/album-fill-grid.tsx) over
   [`use-album-fill.ts`](../../src/components/marketing/sections/features/album/use-album-fill.ts): the guest
-  album's arrival grammar, newest-first with older tiles sliding down on `useFlip` and the ~2.5s green check, all
-  from ONE tick and a pure derivation the test pins).
+  album's arrival grammar, newest-first with older tiles sliding down on `useFlip`, the ~2.5s green check, the live
+  "N photos & videos from M guests" line and a progress strip on uploads still in flight, all from ONE tick and a
+  pure derivation the test pins).
   ★ The fill grid's FLIP wrapper carries no transform of its own, and its `layoutKey` is the mounted count, never
   the tick. The entrance lives on the inner element and the beat stays above `--tune-reorder-ms`, or a landing
   re-runs the layout effect mid-slide and snaps the column. No "Just added" chip and no "Maya added 3" toast:
@@ -136,7 +141,8 @@ Each entry below names a marketing page's copy single-source and the traps its l
   ([`event-object.tsx`](../../src/components/marketing/sections/events/event-object.tsx)) under
   `SectionLight placement="room"` → the statement, still dark
   ([`event-statement.tsx`](../../src/components/marketing/sections/events/event-statement.tsx), one claim on the
-  `chapter` step) → the turn ([`event-turn.tsx`](../../src/components/marketing/sections/events/event-turn.tsx), a
+  `chapter` step, the type's long tail, `nestedThemes`, as one running line under a hairline, never a chip row that
+  reads as a tag cloud) → the turn ([`event-turn.tsx`](../../src/components/marketing/sections/events/event-turn.tsx), a
   full-width photograph that IS the chapter cut) → ONE `PaperChapter` holding
   [`built-for.tsx`](../../src/components/marketing/built-for.tsx) alone → the door proof
   ([`event-door.tsx`](../../src/components/marketing/sections/events/event-door.tsx)) → the FAQ → `CtaBand`. The
@@ -160,7 +166,7 @@ Each entry below names a marketing page's copy single-source and the traps its l
   a photograph cannot do the job (the conference badge, and the filling pane where `media.statement` is null).
   **At 375** the lockup takes `subheadShort`, the hero's padding closes to `pt-10 pb-0` so the object CROSSES the
   fold, and the FAQ-to-close gap halves below `sm` (`max-sm:pb-10` / `max-sm:pt-10`). The FAQ is
-  `faq-accordion.tsx` with its FAQPage JSON-LD.
+  `faq-accordion.tsx` (native `<details>` only), and each page mounts `FaqPageJsonLd` over the same items itself.
 - **Media-frame library** ([`frames/`](../../src/components/marketing/frames)): a `BrowserFrame` base + a
   vocabulary (`AlbumFrame`/`GalleryFrame`/`ReelFrame`/`PhoneFrame`/`QrFrame`), never one visual reused.
   `QrFrame`'s `liveQrUrl?` renders a REAL scannable QR
@@ -230,8 +236,9 @@ Each entry below names a marketing page's copy single-source and the traps its l
   is not for, and never fence a use case. **The comparison stays CATEGORY-LEVEL** (the cross-platform album, the
   drip-fed thread, the account wall, the per-person rental), never a product name. **The zero-team rule is RELAXED
   here** for a first-person origin and a join-our-team close, but still no headcount and no founder biography.
-- **THE UTILITY-PAGE RHYTHM (bible 16): cinema hero, paper body, ink footer, on EVERY utility page** (about, blog,
-  careers, press, privacy, terms). The dark ground BOOKENDS a short page rather than interrupting it, because it has
+- **THE UTILITY-PAGE RHYTHM (bible 16): cinema hero, paper body, ink footer, on every utility page** (about, blog,
+  careers, press, privacy, terms) but one: /contact opens on a paper `PageHero` inside `(paper)`, a route group that
+  exists only for it. The dark ground BOOKENDS a short page rather than interrupting it, because it has
   too few sections to alternate chapters. **The paper/cinema split is per-CHAPTER, not per-page**: a page takes
   the rhythm by JOINING THE `(cinema)` GROUP and wrapping its body in ONE `PaperChapter` (as /help and the feature
   pages do), and the dark nav, dropdowns, overscroll and `#040405` browser chrome come with the group. Route groups
@@ -259,7 +266,9 @@ Each entry below names a marketing page's copy single-source and the traps its l
   has met the pitch twice, so the middle is **the roll → the selects → the reel**
   ([`careers-story.tsx`](../../src/components/marketing/sections/careers/careers-story.tsx)): the contact sheet
   with all but four frames dimmed (the dimming IS the argument), the survivors in the album chrome, then the real
-  loop via `InlineReelPlayer` (the player, never the reel engine, which stays out of marketing chunks). About forty
+  loop via `InlineReelPlayer` (the player, never the reel engine: the engine stays out of first-load marketing
+  chunks, the pure `engine/style-registry` being the one engine module there, and /reel's style switcher reaches
+  `CanvasReelPlayer` only behind a lazy boundary). About forty
   words carry all three; never add a paragraph section to explain a beat. The hero composes `PageHero` over the
   **contact sheet** ([`contact-sheet.tsx`](../../src/components/marketing/sections/careers/contact-sheet.tsx)) in
   its backdrop, a few frames circled as selects whose stroke draws in on arrival, and is pulled UP under the
@@ -270,9 +279,9 @@ Each entry below names a marketing page's copy single-source and the traps its l
   id-based selection would circle every keeper three times. The composition is this page's alone (the media
   doctrine in [`event-object.tsx`](../../src/components/marketing/sections/events/event-object.tsx)). Marks stay
   ACHROMATIC (white pencil, never red): there is no brand hue (bible 1).
-  ★ **Nothing in the careers hero is lazy-loaded.** The sheet fills the first screen, so every cell is above the
-  fold and `loading="lazy"` is the wrong lever; `priority` stays at six, since a preload per frame would fight the
-  LCP element for bandwidth. The h1 takes the **site ladder** (bible 5) at the `lg` step, never a private ramp. The
+  ★ **The careers hero's unique pass is never lazy-loaded.** The sheet fills the first screen, so one set of the
+  unique frames loads eager (`eagerFrames`) and only the two repeats keep `loading="lazy"` (their images come from
+  cache); `priority` stays at six, since a preload per frame would fight the LCP element for bandwidth. The h1 takes the **site ladder** (bible 5) at the `lg` step, never a private ramp. The
   full-bleed glass wash follows the crossfade note in [design-system.md](design-system.md), and the scrim is tuned
   against PHOTOGRAPHY (density plus a uniform 0.8 dim on hero frames), so the type wins without crushing the
   images. The close is a small follow-up to **/contact** inside the roles section, never a CtaBand, whose heading
@@ -284,12 +293,13 @@ Each entry below names a marketing page's copy single-source and the traps its l
   avoid "build". Listings are ONE card design on the house gray plate (`bg-muted/50`), turning to white card stock
   on hover; the General Application's honesty lives in its DATA (no team, type "Always open", its own action
   label), never a second container. **The philosophy indices are CIRCLED by the sheet's own `SelectMark`**: one
-  gesture at three scales, and true rather than decorative, since three principles survived a cut from four. Off
+  gesture at three scales, and true rather than decorative, since the principles are the kept selects. Off
   the sheet the mark takes the SURFACE's ink (the sheet's near-white vanishes on paper) and draws on its section's
   Reveal, not the page-load clock. Copy lives in [`careers.ts`](../../src/lib/constants/careers.ts), a
   content-policy `CLAIM_FILES` entry (the role page's apply notes are inline prose, covered by the neutralization
   fence over all of `(marketing)`);
-  its `offer` block, "Competitive compensation" included, stays by Will's ruling. **No `JobPosting` JSON-LD**
+  its `offer` block keeps "Competitive compensation": the posting is meant to spark a conversation, not to
+  specify an offer. **No `JobPosting` JSON-LD**
   while the listing is placeholder. **`/careers/[slug]` is a SPEC SHEET**: dark title block → a paper document
   (reading column beside a sticky spec rail) → the application chapter on its own gray band. Each role's
   **EMBLEM** ([`role-emblem.tsx`](../../src/components/marketing/sections/careers/role-emblem.tsx), an achromatic
@@ -333,8 +343,8 @@ Each entry below names a marketing page's copy single-source and the traps its l
   invite → guests → album → share → reel → pay → account → trust → fix), every category but troubleshooting
   linking up to its marketing `feature`; a new category lands WITH its first article, its emblem, its strip label +
   grid column and its `CATEGORY_TOPIC` row, since the test requires ≥1 article per category and the contact map is
-  exhaustive by type. The guest lane is "For guests" (slug `guest-experience`); `account-and-profile` is the tenth
-  shelf. Frontmatter takes an optional `audience` (`host|guest|both`, defaulting from the category), `plans`
+  exhaustive by type. The guest lane is "For guests" (slug `guest-experience`); `account-and-profile` (sign-in, name
+  and photo, the handle, following, notifications) is the eighth of the ten. Frontmatter takes an optional `audience` (`host|guest|both`, defaulting from the category), `plans`
   ("Applies to" badges) and `action` (the one door under the short answer); `description` caps at 200
   (`HELP_DESCRIPTION_MAX`). The ranked ⌘K **search palette** mounts from
   [`help/layout.tsx`](../../src/app/(marketing)/(cinema)/help/layout.tsx)
@@ -343,11 +353,13 @@ Each entry below names a marketing page's copy single-source and the traps its l
   sole match reason, and a static "Pages" tail leads onward). The index sheet has numbered panes, DOM-art
   [`help-emblems.tsx`](../../src/components/marketing/help/help-emblems.tsx), a live-constants numbers strip and a
   guest fast lane; at ten categories the strip cells need `sm:min-w-0` or the desktop strip scrolls, and panes with
-  7+ guides split into two columns. Articles are answer-first: `description` is the "In short" lead, the ToC
+  7+ guides split into two columns. Troubleshooting always closes the sheet wide and the guest pane goes wide only
+  when the remaining count is odd, which keeps the two-column rows even at any category count. The empty ⌘K search
+  offers the ten category chips. Articles are answer-first: `description` is the "In short" lead, the ToC
   scroll-spies through the pure `pickActiveHeading`, related articles need a shared keyword and exclude the
   prev/next siblings (or Related duplicates pagination), an audience tag shows only when it says something the
   category chip does not, guest articles end on /how-it-works (the growth loop stated once), the feedback row hands
-  misses to `/contact?about=<slug>`, and `@media print` rides `data-print-*` hooks (the day-of checklist is the
+  misses to `/contact?about=<slug>` (a Yes offers "Up next"), and `@media print` rides `data-print-*` hooks (the day-of checklist is the
   guide a host prints). The MDX components are one map,
   [`mdx-components.tsx`](../../src/components/marketing/mdx-components.tsx), composed from `mdx/spec-shared.tsx`,
   `mdx/spec-help.tsx` and `mdx/spec-blog.tsx` (the composer throws on a duplicate name): `Callout`,
@@ -495,15 +507,17 @@ search result and unfurl cuts it mid-clause. The meta copy is `SITE_DESCRIPTION_
 reaches every consumer (root metadata, manifest, RSS, JSON-LD); `home-sections.test.ts` pins the composition
 under 160 and pins the two apart. OG images are **code-generated via `next/og`** (the site-wide
 [`opengraph-image.tsx`](../../src/app/opengraph-image.tsx), per-route cards beside most marketing pages, and a
-per-event card at `(guest)/e/[token]/opengraph-image.tsx`). `sitemap.ts`/`robots.ts` list and allow ONLY the
-marketing routes (sitemap `lastModified` carries a page's content date where it has one; build time elsewhere).
+per-event card at `(guest)/e/[token]/opengraph-image.tsx`). `sitemap.ts` lists ONLY the marketing routes
+(`lastModified` carries a page's content date where it has one; build time elsewhere); `robots.ts` allows everything
+but its disallow list (the app, admin, auth, `/e/` and `/api/`), so the public `/u/[slug]` profiles stay
+crawlable.
 
 **The AI-discoverability layer:** `/llms.txt` + `/llms-full.txt` (the llmstxt.org format) are built by pure fns in
 [`content/llms.ts`](../../src/lib/content/llms.ts) (numbers from `tiers.ts`/`limits.ts`; the builders are
 content-policy `CLAIM_FILES`, so the social-proof and backstop fences cover the AI surface; link integrity is
 unit-tested against the real routes) and served by force-static routes. `robots.ts` names 14 AI crawlers with
 explicit allow blocks (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, ...); a `SoftwareApplication`
-schema mounts sitewide beside Org/WebSite (offers = the shared AggregateOffer; NO ratings or reviews, because
+schema mounts across the marketing site (the `(marketing)` layout) beside Org/WebSite (offers = the shared AggregateOffer; NO ratings or reviews, because
 absent beats fabricated). The llms files compare CATEGORIES, never rival brand names, and their "When it is not"
 section is deliberate credibility: never "fix" it into pure praise. The press boilerplate and fact sheet live in
 [`constants/press.ts`](../../src/lib/constants/press.ts), the one quotable home for /press and the llms builders.
