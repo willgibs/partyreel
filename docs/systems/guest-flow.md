@@ -155,9 +155,10 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
     status, so it never eats ids `Retry all` just re-queued in the same close. While the door's upload step
     shows, it owns the run's failures (`suppressFailures`).
   - ★ **THE FLIP, MID-RUN.** A host can turn Require verified emails ON mid-run; the routes then answer 403
-    `verification_required`, carried up as `UploadOutcome.code` (the ONE code the queue reads by name). It
-    spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their uid mints a verified
-    row and the run continues); a name-only guest cannot, so the session is dropped and everything still
+    `verification_required`, carried up as `UploadOutcome.code` (one of the TWO codes the queue reads by name,
+    both the session's). It spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their
+    uid mints a verified row and the run continues on it: the queue reads its ticket per FILE, never once per
+    run); a name-only guest cannot, so the session is dropped and everything still
     queued fails in place with the SERVER's sentence, opening the failure sheet once. ★ **THE PAGE'S REFRESH
     WAITS FOR THE SHEET TO CLOSE.** `useUploadQueue`'s `onVerificationRequired(message, hadQueuedFiles)`
     tells `EventExperience` whether a sheet is about to stand in the way: `hadQueuedFiles=true` holds the
@@ -165,6 +166,15 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
     `router.refresh()` flips `access` to `teaser` and remounts the gallery-and-upload slot (`key={access}`)
     out from under it; `hadQueuedFiles=false` (`joinSilently`'s own refusal) and a run from the door's step
     (outside `key={access}`) refresh at once.
+  - ★ **SOMEBODY ELSE'S TICKET** (`session_other_account`, the Invariants' owner rule). The file is NOT failed:
+    the queue puts the ticket down (`dropGuestTicket`: the token, its name and address flag, the name prefill
+    when it is that same name, then the cookie, AWAITED so it cannot land after the re-join's fresh one) and
+    re-queues it. A CONFIRMED viewer joins silently (once per chain) and the same file goes up on their own row;
+    anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
+    and the name or email step opens) while the files wait `queued`, resuming the moment its join hands a ticket
+    down through `sessionToken`. A join nobody at the door could fix fails the waiting files in place, and a
+    Retry with no ticket joins first. The name step and the add-email dialog read the code the same way: the
+    ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
   approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
   the tile turns optimistic with zero flicker.
@@ -268,10 +278,15 @@ when absent or different: by `POST /api/guests` (a mint), `POST /api/guests/name
 `POST /api/guests/email` (success), `POST /api/r2/complete-upload` (a created row, via
 `CreateRecordOutcome.setCookies`, applied to the 200 alone) and the gallery poll's heal (a differing body
 token), **only as a 200 with no ETag**, because Vercel's edge turns a validator-matching 200 into a 304
-and drops `Set-Cookie`. `POST /api/guests/leave` expires it, and the guest sign-out calls it via
-`leaveGuestSession`, so a shared phone never renders the full album on the last contributor's ticket. ★ The
-WRITE routes (name, email, mine, remove, presign, complete) read the token from the BODY only, pinned by a
-source test in `session-cookie.test.ts`, so the CSRF surface does not move.
+and drops `Set-Cookie`. `POST /api/guests/leave` expires it (`{ qr_token }` one event's, `{ all: true }` every
+`pr_guest_*` the request carried); ★ **EVERY SIGN-OUT PUTS DOWN EVERY TICKET ON THE DEVICE**, the tokens, names,
+address flags and the name prefill with the cookies: the guest page's account menu through
+`leaveAllGuestSessions`, the app's account menu through `forgetGuestTickets` on its form's submit and
+`signOutAction` expiring the cookies on its own response
+([`session-cookie-family.ts`](../../src/lib/guest/session-cookie-family.ts)), so a shared phone never renders
+the full album, or uploads, on the last person's ticket (the owner rule is the guarantee; this is the
+courtesy). ★ The WRITE routes (name, email, mine, remove, presign, complete) read the token from the BODY only,
+pinned by a source test in `session-cookie.test.ts`, so the CSRF surface does not move.
 
 ★ **The withheld set never reaches the browser**: the teaser is a capped server read (`getApprovedPhotoTeaser`,
 self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a CSS blur over a loaded
@@ -459,6 +474,14 @@ through flags in the sheet. No step counter to desync.
   it in neither number, and the confirm says so with no window ("It's deleted from the event right away and
   can't be recovered."), because a number of days reads as a hold the host can still reach.
   [`media.test.ts`](../../src/lib/db/queries/media.test.ts) pins the host reads against a withdrawn row.
+- ★ **UPLOADS ARE HELD TO THE SAME OWNER: a guest row with `user_id` set writes only for that signed-in
+  account.** Presign AND complete (a presign outlives a sign-out), rename and attach-address ask
+  `checkSessionOwner` ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's
+  `user_id`, service-role and never returned, against `getUser()`, which only a claimed row pays) and refuse
+  anyone else with 403 `session_other_account`, under the lock and closed uploads and ABOVE the identity gate (a
+  confirmed row's own `verified_at` is what let a stale ticket upload past Require verified emails). A confirmed
+  row whose account was deleted (`user_id` nulled by the FK, `verified_at` kept) writes for nobody. A name-only
+  row stays the device's ticket. The client's side is "The upload act".
 
 ## Joining + identity
 
@@ -549,8 +572,9 @@ the field before they confirm.
   HELD SESSION TOKEN ALWAYS TRIES RENAME FIRST, WHICHEVER DOOR OPENED IT.** `guest-name-step.tsx` calls
   `renameGuest` whenever a session token is held, so a device with a session but no LOCAL name never mints a
   SECOND row and strands the first one's photographs with no name; it falls back to `joinEvent` only on
-  `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`) or `unauthorized` (a verified row: the
-  route, not the component, is the truth).
+  `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`), `unauthorized` (a verified row: the
+  route, not the component, is the truth) or `session_other_account` (an account's row the viewer is not,
+  whose ticket goes down first).
 - ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries
   `require_verified_email` + `guest_verified`, so presign and complete both answer 403
   `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a
@@ -717,11 +741,12 @@ CTA (the SSR default → zero flash for the anonymous majority); logged-in → t
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL;
 event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out**
-puts the guest capability down (`leaveGuestSession`: the localStorage token through the module-singleton
-`emit()` in [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), the `pr_guest_<eventId>`
-cookie through `POST /api/guests/leave`), signs out, then `router.refresh()`s — so the visitor STAYS on
-the event page, a verified-email event re-gates to the door's email step (`<EnterEventPrompt>`), and the
-next person on a shared device inherits nothing.
+puts EVERY guest ticket on the device down, not only this album's (`leaveAllGuestSessions`: the localStorage
+tokens, names and flags through the module-singleton `emit()`s in
+[`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through
+`POST /api/guests/leave` `{ all: true }`, on `/u/[slug]` too), signs out, then `router.refresh()`s — so the
+visitor STAYS on the event page, a verified-email event re-gates to the door's email step
+(`<EnterEventPrompt>`), and the next person on a shared device inherits nothing.
 
 ★ **A THIRD STATE, for the commonest person at a name-only party**: signed out WITH a stored name, the
 header wears [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the

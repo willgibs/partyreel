@@ -51,6 +51,12 @@ vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
+// Whose ticket is this (the upload-owner lane, 2026-09-23): the rule itself is pinned in
+// lib/guest/session-owner.test.ts against the real clients; here it is the route's gate.
+const checkSessionOwner = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
+}));
 
 const { POST } = await import("@/app/api/guests/email/route");
 
@@ -85,6 +91,40 @@ beforeEach(() => {
   setGuestPendingEmail.mockResolvedValue({
     ok: true,
     data: { guest_id: "g1", email_attached: true },
+  });
+  checkSessionOwner.mockResolvedValue({ ok: true });
+});
+
+describe("an account's row takes an address only from that account (upload-owner)", () => {
+  it("★ 403 session_other_account for a ticket whose row is someone else's: no write, no cookie", async () => {
+    checkSessionOwner.mockResolvedValue({
+      ok: false,
+      code: "session_other_account",
+      message:
+        "Someone else added photos from this device. Try again to add yours.",
+    });
+    const res = await post({
+      qr_token: TOKEN,
+      session_token: SESSION,
+      email: ADDRESS,
+    });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { code?: string };
+    expect(body.code).toBe("session_other_account");
+    expect(JSON.stringify(body)).not.toContain(ADDRESS);
+    expect(setGuestPendingEmail).not.toHaveBeenCalled();
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("a typo is still answered under the field first, before anyone's ticket is asked about", async () => {
+    await post({
+      qr_token: TOKEN,
+      session_token: SESSION,
+      email: "not-an-address",
+    });
+    expect(checkSessionOwner).not.toHaveBeenCalled();
+    await post({ qr_token: TOKEN, session_token: SESSION, email: ADDRESS });
+    expect(checkSessionOwner).toHaveBeenCalledWith(SESSION);
   });
 });
 

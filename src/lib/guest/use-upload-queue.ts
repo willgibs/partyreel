@@ -14,13 +14,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { joinEvent } from "@/lib/guest/join";
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
+import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 /**
- * The one refusal code this queue reads by name (the identity reshape,
- * 2026-09-21). Everything else is a file's own problem and belongs to the
- * failure sheet; this one is the SESSION's, and it invalidates every file still
- * waiting behind it.
+ * The two refusal codes this queue reads by name. Everything else is a file's
+ * own problem and belongs to the failure sheet; these two are the SESSION's.
+ *
+ *   `verification_required` (the identity reshape, 2026-09-21): the host turned
+ *   Require verified emails on under a name-only ticket, which invalidates every
+ *   file still waiting behind it.
+ *
+ *   `session_other_account` (`SESSION_OTHER_ACCOUNT`, the upload-owner lane,
+ *   2026-09-23): the ticket this device kept belongs to an account the viewer is
+ *   not. The ticket goes down and the viewer joins as themselves, and the file
+ *   is NOT failed: it waits and goes up on the new ticket, so no photograph is
+ *   lost and none is credited to the ticket's owner.
  */
 const VERIFICATION_REQUIRED = "verification_required";
 
@@ -100,6 +110,7 @@ export function useUploadQueue({
   isDemo,
   isVerified = false,
   onVerificationRequired,
+  onDoorNeeded,
 }: {
   qrToken: string;
   sessionToken: string | null;
@@ -108,10 +119,11 @@ export function useUploadQueue({
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
   /**
-   * The viewer holds a CONFIRMED account. It decides what a mid-run
-   * `verification_required` costs: a signed-in guest re-joins silently (their
-   * own uid mints a verified row and the run carries on), a name-only guest
-   * cannot, so the run ends and the page re-gates.
+   * The viewer holds a CONFIRMED account. It decides what a lost ticket costs:
+   * a signed-in guest re-joins silently (their own uid mints their own row and
+   * the run carries on), a name-only guest or a signed-out visitor cannot. For a
+   * mid-run `verification_required` the run then ends and the page re-gates; for
+   * a `session_other_account` the files wait for the door (`onDoorNeeded`).
    */
   isVerified?: boolean;
   /**
@@ -124,6 +136,17 @@ export function useUploadQueue({
    * guest-upload.tsx's own comment for why that matters).
    */
   onVerificationRequired?: (message: string, hadQueuedFiles: boolean) => void;
+  /**
+   * Files are waiting and this device holds no ticket the queue can mint on its
+   * own (the upload-owner lane, 2026-09-23): the viewer is signed out, or signed
+   * in without a confirmed email, so only the door can name them (a name in
+   * names mode, the email step in verified mode). The caller re-resolves who is
+   * here (the page refreshes, so a sign-out in another tab is seen too) and the
+   * door opens; the files stay `queued` and go up the moment its join hands a
+   * ticket down through `sessionToken`. Nothing is failed and nothing opens a
+   * failure sheet: from the guest's side the door simply asks their name.
+   */
+  onDoorNeeded?: () => void;
 }) {
   const [items, setItems] = useState<QueueItem[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
@@ -141,6 +164,11 @@ export function useUploadQueue({
   // host's flip gets a fresh, verified row and carries on. Without the guard a
   // route that keeps refusing would have this loop minting rows forever.
   const rejoinedRef = useRef(false);
+  /* The same guard for a ticket that was not the viewer's (see `acquireTicket`):
+     one silent join per chain of refusals, spent until a file actually lands or
+     the guest presses Retry, so a server that kept refusing the row it had just
+     minted could never turn this loop into a row factory. */
+  const silentJoinSpentRef = useRef(false);
   const isVerifiedRef = useRef(isVerified);
   useEffect(() => {
     isVerifiedRef.current = isVerified;
@@ -158,16 +186,93 @@ export function useUploadQueue({
     [sync],
   );
 
+  /**
+   * Fail everything still waiting, in place, with one sentence (a join that
+   * nobody at the door could fix: offline, a rate limit, a dead link). The
+   * failure sheet opens once over the lot, and its Retry comes back through
+   * `retry`, which gives the silent join another chance.
+   */
+  const failWaiting = useCallback(
+    (message: string, code?: string) => {
+      sync(
+        itemsRef.current.map((it) =>
+          it.status === "queued"
+            ? {
+                ...it,
+                status: "error" as const,
+                progress: 0,
+                error: message,
+                errorCode: code,
+              }
+            : it,
+        ),
+      );
+    },
+    [sync],
+  );
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     A RUN WITH FILES WAITING AND NO TICKET (the upload-owner lane, 2026-09-23).
+
+     The ticket went down under the run (a `session_other_account` below, or a
+     Retry after one), so the viewer joins again AS WHOEVER IS HOLDING THE PHONE
+     NOW, which the server decides, never the ticket.
+
+     ★ A CONFIRMED ACCOUNT JOINS SILENTLY: `create_guest` mints its own row from
+     its own uid, and the run carries on as if nothing happened, because nothing
+     about THEM changed. Once per chain (`silentJoinSpentRef`).
+
+     ★ ANYONE ELSE MEETS THE DOOR: a signed-out visitor or an unconfirmed account
+     has no identity the queue can mint on its own (a name in names mode, a
+     proved email in verified mode), so `onDoorNeeded` hands them to it and the
+     files wait, `queued`, for the ticket its join hands down. A 422 from the
+     silent join means the page thought this viewer was confirmed and the server
+     does not (a sign-out in another tab): the door is the answer there too.
+
+     Returns the new ticket, or null when this run stops here.
+     ────────────────────────────────────────────────────────────────────────── */
+  const acquireTicket = useCallback(async (): Promise<string | null> => {
+    if (isDemo) {
+      // The demo mints nothing and never loses its ticket; this is a belt.
+      sessionRef.current = "demo";
+      onSession("demo");
+      return "demo";
+    }
+    if (isVerifiedRef.current && !silentJoinSpentRef.current) {
+      silentJoinSpentRef.current = true;
+      const joined = await joinEvent({ qrToken });
+      if (joined.ok) {
+        sessionRef.current = joined.guest.sessionToken;
+        onSession(joined.guest.sessionToken);
+        return joined.guest.sessionToken;
+      }
+      if (
+        joined.refusal.kind !== "name_required" &&
+        joined.refusal.kind !== "verification_required"
+      ) {
+        failWaiting(joined.refusal.message, joined.refusal.kind);
+        return null;
+      }
+    }
+    onDoorNeeded?.();
+    return null;
+  }, [isDemo, qrToken, onSession, onDoorNeeded, failWaiting]);
+
   // One file at a time — robust on flaky mobile connections.
   const runQueue = useCallback(async () => {
     if (processingRef.current) return;
-    const token = sessionRef.current;
-    if (!token) return;
     processingRef.current = true;
     try {
       for (;;) {
         const next = itemsRef.current.find((it) => it.status === "queued");
         if (!next) break;
+        /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
+           below swap it mid-run, and the file after a swap must go up on the NEW
+           one. (It used to be read once at the top, so the verified re-join
+           after a mid-run flip re-sent the refused file on the SPENT ticket and
+           failed the run it was written to save.) */
+        const token = sessionRef.current ?? (await acquireTicket());
+        if (!token) break;
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
         const onProgress = (f: number) =>
           patch(next.id, { progress: Math.round(f * 100) });
@@ -197,6 +302,8 @@ export function useUploadQueue({
           };
         }
         if (outcome.ok) {
+          // A file landed on this ticket: any later refusal is a new chain.
+          silentJoinSpentRef.current = false;
           patch(next.id, {
             status: "done",
             progress: 100,
@@ -210,6 +317,27 @@ export function useUploadQueue({
             kind: outcome.kind,
             status: outcome.status,
           });
+          continue;
+        }
+        /* ──────────────────────────────────────────────────────────────────
+           SOMEBODY ELSE'S TICKET (the upload-owner lane, 2026-09-23).
+
+           This device kept a ticket whose row belongs to an account, and the
+           viewer is not that account (signed out, or signed in as someone
+           else): the routes refuse it (lib/guest/session-owner.ts), at presign
+           or, when a sign-out overtook a presign, at completion. The ticket is
+           put down (the token, the name and address flag beside it, the
+           cookie) and this file goes back in the queue rather than into the
+           failure sheet; the next pass finds no ticket and `acquireTicket`
+           joins as the viewer the server says this is. So nothing is lost and
+           nothing is credited to the ticket's owner, and a guest who is signed
+           in never learns it happened.
+           ────────────────────────────────────────────────────────────────── */
+        if (outcome.code === SESSION_OTHER_ACCOUNT) {
+          sessionRef.current = null;
+          onSession(null);
+          patch(next.id, { status: "queued", progress: 0 });
+          await dropGuestTicket(qrToken);
           continue;
         }
         /* ──────────────────────────────────────────────────────────────────
@@ -272,7 +400,32 @@ export function useUploadQueue({
     } finally {
       processingRef.current = false;
     }
-  }, [patch, sync, onUploaded, onSession, onVerificationRequired, isDemo, qrToken]);
+  }, [
+    patch,
+    sync,
+    onUploaded,
+    onSession,
+    onVerificationRequired,
+    acquireTicket,
+    isDemo,
+    qrToken,
+  ]);
+
+  /* ★ AND THE RUN RESUMES WHEN A TICKET ARRIVES FROM THE DOOR (the upload-owner
+     lane, 2026-09-23). Files left `queued` for `onDoorNeeded` wait for exactly
+     one thing: the name step's join (or the email step's confirmation) handing a
+     fresh ticket down through `sessionToken`. That is the moment to carry on.
+     Keyed on the ticket alone, through a ref to the live runner, so a re-render
+     never starts a run; the runner's own guard makes a second call a no-op. */
+  const runQueueRef = useRef(runQueue);
+  useEffect(() => {
+    runQueueRef.current = runQueue;
+  }, [runQueue]);
+  useEffect(() => {
+    if (!sessionToken) return;
+    if (!itemsRef.current.some((it) => it.status === "queued")) return;
+    void runQueueRef.current();
+  }, [sessionToken]);
 
   const enqueue = useCallback(
     (files: File[]) => {
@@ -351,9 +504,16 @@ export function useUploadQueue({
     [enqueue, joinSilently],
   );
 
-  /** Reset an errored item and re-run the queue (identical to the old list Retry). */
+  /**
+   * Reset an errored item and re-run the queue (identical to the old list
+   * Retry). A Retry is the guest's own fresh try, so it also gives the silent
+   * join back (a network blip may be what spent it). With no ticket on the
+   * device the run joins as the viewer first (`acquireTicket`); "Retry all"
+   * lands here once per file, and the runner's own guard keeps that to ONE join.
+   */
   const retry = useCallback(
     (id: string) => {
+      silentJoinSpentRef.current = false;
       patch(id, {
         status: "queued",
         progress: 0,

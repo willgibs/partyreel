@@ -21,8 +21,8 @@ Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-da
   (his ruling), the round's Now lines, and `host_storage_summary` (applied).
 - **Milestone 27 is live** (`546e2489`); the identity contract applied after it (Will's approval), and the Stripe TEST
   walk passed on partyreel.com (Checkout to Pro 100 GB, Change plan to 500 GB, the $10.00 proration).
-- **Next, before milestone 28** (approved): `upload-owner` (building), a guest's own delete final and said so, and the
-  1,000-row audit (Will: "Let's ensure we will not face any of those issues here").
+- **Next, before milestone 28** (approved): `upload-owner` merged (a claimed guest row uploads only for its signed-in
+  owner); `delete-final` building (a guest's own delete final, and said so); the 1,000-row audit, then its fixes.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
