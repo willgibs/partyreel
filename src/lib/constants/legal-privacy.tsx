@@ -163,7 +163,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       ul(
         "The event name, date, description, cover and settings a host chooses.",
         "The photos and videos you upload, and the smaller preview image we generate from each one for browsing.",
-        "Likes, saved events, follows and blocks, if you use those features, and any reports you file. Reports are stored without your identity.",
+        "Likes, follows and blocks, if you use those features, and any reports you file. Reports are stored without your identity.",
       ),
       sub("upload-records", "Upload records"),
       // trust-safety-forensics.md (A3-lite capture): the one-paragraph disclosure the ADR

@@ -224,7 +224,8 @@ here too; `../help/AUTHORING.md` lists them.
 - **Sharing and download.** One link per event. Per-item originals; a full-quality zip for hosts
   and guests, with type filters and the host's "include hidden" option. Likes from anyone with an
   account (a signed-out tap asks for an email first); the per-event like count is host-only.
-  Saved events and profiles are free.
+  Profiles are free, and a guest's events reach their dashboard through their own uploads
+  (there is no separate save).
 - **The reel.** Curated by the host from the album, in a catalog of styles, portrait or
   landscape, rendered on the host's own device (no queue, no fee), shared to guests only once
   the host publishes it. Videos contribute their poster frame.

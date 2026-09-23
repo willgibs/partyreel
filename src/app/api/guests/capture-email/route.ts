@@ -13,7 +13,8 @@ import { createClient } from "@/lib/supabase/server";
 // Newsletter opt-in capture (H3 server-mediation). capture_guest_email is service-role-only now, so this
 // route is the only caller. The email is derived from the VERIFIED session here (getUser), NEVER from the
 // client body, which closes the victim-email poisoning surface. The guest session_token (capability) ties
-// the opt-in to the guest row. Signed-in-only by design (the opt-in lives in the account-first save flow).
+// the opt-in to the guest row. Signed-in-only by design: the opt-in is a switch inside the post-upload
+// offer card's confirm door (save-account-prompt.tsx), posted only once that door has confirmed an email.
 //
 // ★ THE CRACK THIS CLOSES (the guest identity round, 2026-09-22). `capture_guest_email` writes into
 // `guests.email`, the column whose single invariant is "CONFIRMED, the row's own account's address":

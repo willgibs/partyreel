@@ -112,7 +112,7 @@ Studio** (the reel editor, glossed on first use in an article), **panel** (a
 Studio sub-view; never "sheet"), **event link** (the address guests open;
 "permanent link" only against a "custom link"), **share dialog** (the host's
 Share sheet; guests have the `Invite` button), the **Show** menu (the
-dashboard's All events, Saved and Deleted), the **View** menu (the event
+dashboard's All events, Guest and Deleted), the **View** menu (the event
 page's sort, filter and tile size), **grid** (the album layout), **Review**
 (the switch and the section; "waiting in Review" for the state), and
 **confirm an email** for what a guest does at the email step.
@@ -187,7 +187,7 @@ Ten categories in lifecycle order; the article order within each is the
 2. how-guests-join-and-upload
 3. what-you-can-upload
 4. browse-the-album
-5. save-an-event-and-find-your-uploads
+5. find-your-uploads-and-events
 6. profiles-guest-lists-and-following
 7. what-guests-can-and-cant-see
 8. report-a-problem-as-a-guest

@@ -346,7 +346,7 @@ export default async function AccountPage({
           <CardTitle>Public profile</CardTitle>
           <CardDescription>
             Your page on Partyreel: the events you host and choose to share,
-            plus events you joined. Follower counts stay private to you.
+            plus events you added photos to. Follower counts stay private to you.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -357,10 +357,10 @@ export default async function AccountPage({
           <ProfileBioForm bio={bio} />
           <div className="space-y-2 border-t border-border/60 pt-5">
             <p className="text-xs font-medium text-muted-foreground">
-              Events you joined
+              Events you added photos to
             </p>
             <p className="text-xs text-muted-foreground">
-              Events you joined are private until you turn one on here.
+              Events you added photos to are private until you turn one on here.
               Turning one off never removes you from that event&rsquo;s own
               guest list (the host controls that).
             </p>

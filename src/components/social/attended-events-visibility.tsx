@@ -14,12 +14,17 @@ import { formatEventDate } from "@/lib/utils";
 
 /**
  * The guest-side profile key (profiles-social.md point 2; "nothing until
- * chosen", the guest identity round, 2026-09-22): per attended event, "show
- * this on my public profile" — OFF by default, on only once the guest turns
- * it on here (a `profile_shown_events` row). Turning one off here NEVER
- * removes you from the event's own guest list — that list is the HOST's key,
- * never this one. Optimistic switches (a high-frequency toggle: instant),
- * reverted with a toast on failure.
+ * chosen", the guest identity round, 2026-09-22): per event this person ADDED
+ * PHOTOS TO (guest by upload, 2026-09-22: a person is a guest only through an
+ * upload of theirs; the list is an approved upload on a confirmed identity,
+ * exactly what their public line needs), "show this on my public profile" —
+ * OFF by default, on only once the guest turns it on here (a
+ * `profile_shown_events` row). Turning one off here NEVER removes you from the
+ * event's own guest list — that list is the HOST's key, never this one. A
+ * choice outlives the guest's last removal: the event leaves this list and the
+ * profile meanwhile, and a later upload brings it back already chosen.
+ * Optimistic switches (a high-frequency toggle: instant), reverted with a
+ * toast on failure.
  */
 export function AttendedEventsVisibility({
   events,
@@ -53,7 +58,7 @@ export function AttendedEventsVisibility({
   if (events.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Events you add photos to (signed in) can show on your profile. None yet.
+        Events you add photos to with a confirmed email can show on your profile. None yet.
       </p>
     );
   }
