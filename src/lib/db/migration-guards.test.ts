@@ -29,6 +29,10 @@
  *      unproved address lives in its own fail-closed column with its CHECK and partial index, the
  *      five claim/attach RPCs sit exactly where database-security.md puts them, nothing expires, and
  *      a profile publishes no attended event until its owner chooses it.
+ *   8. The identity SQL gaps (2026-09-22, migration 20260922200000): `guests.email` is written by
+ *      create_guest only beside a confirmation, the host's guests SELECT grant (latest-wins) no
+ *      longer carries `email`, and get_public_profile's attended arm applies the album's own
+ *      confirmed-email gate, pinned against the album code it mirrors.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -83,6 +87,40 @@ function latestDefinition(name: string): { body: string; file: string } {
     latest = { body: sql.slice(start, close + tag.length + 1), file: sql };
   }
   expect(latest, `${name} defined nowhere`).not.toBeNull();
+  return latest!;
+}
+
+/**
+ * The host's column-scoped SELECT on `guests` as it stands on the live DB: the LAST
+ * `grant select (...) on public.guests to authenticated;` across the migration set, with the
+ * whole FILE that holds it (the table-level revoke that must precede it lives there too). Grants
+ * are resolved latest-wins exactly like bodies, because a later migration re-granting the list is
+ * what changes the host's view, and an older grant still sitting in its file proves nothing.
+ */
+function latestGuestsSelectGrant(): { columns: string[]; file: string } {
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  let latest: { columns: string[]; file: string } | null = null;
+  for (const file of files) {
+    // Comments stripped first: a grant quoted in prose is not a grant.
+    const sql = collapse(
+      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
+    );
+    const grants = [
+      ...sql.matchAll(
+        /grant select \(([^)]*)\) on public\.guests to authenticated;/g,
+      ),
+    ];
+    const last = grants.at(-1);
+    if (last) {
+      latest = {
+        columns: last[1].split(",").map((c) => c.trim()),
+        file: sql,
+      };
+    }
+  }
+  expect(latest, "no guests SELECT grant anywhere").not.toBeNull();
   return latest!;
 }
 
@@ -476,11 +514,10 @@ describe("the guest identity round, wave 0 — the unproved address", () => {
     // until a grant names it. The host sees a badge, never the address — that IS the ruling
     // ("there's no impersonation risk if the host can't see the attributed email"), and one
     // `grant select (…, pending_email, …)` anywhere in the set would undo it silently.
-    const sql = collapse(allMigrations());
-    expect(sql).toMatch(
-      /grant select \(id, event_id, user_id, email, created_at\) on public\.guests to authenticated;/,
+    expect(latestGuestsSelectGrant().columns).not.toContain("pending_email");
+    expect(collapse(allMigrations())).not.toMatch(
+      /grant select \([^)]*pending_email/,
     );
-    expect(sql).not.toMatch(/grant select \([^)]*pending_email/);
   });
 
   it("nothing expires it: no expiry job, no expiry function", () => {
@@ -689,5 +726,111 @@ describe("the guest identity round — a profile publishes nothing until chosen"
     expect(latestDefinition("get_public_profile").file).toContain(
       "grant execute on function public.get_public_profile(text) to anon, authenticated;",
     );
+  });
+});
+
+describe("the identity SQL gaps — only a confirmed address reaches guests.email", () => {
+  // Will's guest-identity ruling (guest-flow.md "Joining + identity"): the host sees a badge, never
+  // an unproven address. `guests.email` means "confirmed" to every reader (the uploader resolver,
+  // the forensic `guest_email`), so the mint writes it only beside the confirmation that proves it,
+  // and the host's PostgREST view no longer carries the column at all (migration 20260922200000).
+
+  it("create_guest drops the session's address unless auth.users confirmed it, before the insert", () => {
+    const body = collapse(latestDefinition("create_guest").body);
+    const drop = body.indexOf(
+      "if v_confirmed is null then v_email := null; end if;",
+    );
+    expect(
+      drop,
+      "an unconfirmed session's address reaches the row again",
+    ).toBeGreaterThan(-1);
+    // After the auth.users read that fills the variable, before the insert that writes it.
+    expect(drop).toBeGreaterThan(
+      body.indexOf(
+        "select email, email_confirmed_at into v_email, v_confirmed from auth.users where id = v_uid;",
+      ),
+    );
+    expect(drop).toBeLessThan(body.indexOf("insert into public.guests"));
+    // And `email` is still written from that variable alone, never from a parameter.
+    expect(body).toContain(
+      "v_uid, nullif(trim(coalesce(v_email, '')), ''), v_session_token,",
+    );
+  });
+
+  it("★ the host's guests SELECT grant (latest-wins) no longer carries email", () => {
+    // Every guests read on both deployed codebases runs on the service-role admin client, so the
+    // host's PostgREST view narrows to what nothing sensitive rides on.
+    const { columns, file } = latestGuestsSelectGrant();
+    expect(columns).toEqual(["id", "event_id", "user_id", "created_at"]);
+    // The QA #41 shape: the TABLE-level revoke first (it cascades to every column grant), then the
+    // whole allowlist in the same file. A bare column revoke is a silent no-op beside a table
+    // grant; a table revoke without the full re-grant takes the other columns with it.
+    const revoke = file.indexOf(
+      "revoke select on public.guests from public, anon, authenticated;",
+    );
+    expect(revoke).toBeGreaterThan(-1);
+    expect(revoke).toBeLessThan(
+      file.indexOf(
+        "grant select (id, event_id, user_id, created_at) on public.guests to authenticated;",
+      ),
+    );
+  });
+
+  it("no migration hands a client role a table-wide SELECT on guests", () => {
+    // A table-level grant would re-open every column at once, the plaintext capability token and
+    // both addresses included, past every column-scoped grant above.
+    expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
+      /grant [a-z, ]*\b(?:select|all)\b[a-z, ]* on (?:table )?public\.guests to [^;]*\b(?:authenticated|anon)\b/,
+    );
+  });
+
+  it("the existing rows lose only an address no account ever confirmed", () => {
+    // A one-time rule, pinned so the file cannot drift before it is applied: the address itself is
+    // the test, never the row's flag alone (a confirmed address a newsletter capture wrote onto an
+    // unverified row was still proved by its owner), and a verified row is never touched.
+    expect(collapse(allMigrations())).toContain(
+      "update public.guests g set email = null where g.email is not null and g.verified_at is null and not exists ( select 1 from auth.users u where u.email_confirmed_at is not null and lower(btrim(u.email)) = lower(btrim(g.email)) );",
+    );
+  });
+});
+
+describe("the identity SQL gaps — the attended arm applies the album's own gate", () => {
+  // The album (resolveGalleryDecision) answers its owner `full` first, then holds a viewer without
+  // a CONFIRMED email at the teaser on a Require-verified-emails event, and the teaser never renders
+  // the Guests list. The attended arm of get_public_profile is that list's reverse surface (QA #36's
+  // principle: never disclose membership the album withholds from the same viewer), so it refuses
+  // the same viewer. The QA #36 clause itself is pinned in social/public-profile-visibility.test.ts.
+  const { body } = latestDefinition("get_public_profile");
+  const start = body.indexOf("'attended_events'");
+  const attended = collapse(
+    body
+      .slice(start, body.indexOf("'[]'::jsonb", start))
+      .replace(/--[^\n]*/g, ""),
+  );
+
+  it("admits, on a verified-required event, only the event's host or a confirmed viewer", () => {
+    // Keyed on `require_verified_email`: nothing new keys on the legacy `allow_anonymous_uploads`.
+    expect(attended).toContain(
+      "and ( not e.require_verified_email or e.host_id = (select auth.uid()) or exists ( select 1 from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null ) )",
+    );
+  });
+
+  it("mirrors the album's code: the owner first, then the gate, and `isAuthed` IS email_confirmed_at", () => {
+    // If the album's definition of a confirmed viewer moves, the SQL mirror above must move with
+    // it: this is the coupling that keeps the two surfaces answering the same viewer the same way.
+    const access = collapse(
+      readFileSync(join(ROOT, "src/lib/events/gallery-access.ts"), "utf8"),
+    );
+    expect(access).toContain(
+      'if (ctx.isOwner) return { access: "full", gate: null };',
+    );
+    expect(access).toContain(
+      "if (event.require_verified_email && !ctx.isAuthed) {",
+    );
+    const page = readFileSync(
+      join(ROOT, "src/app/(guest)/e/[token]/page.tsx"),
+      "utf8",
+    );
+    expect(page).toContain("isAuthed = Boolean(user.email_confirmed_at);");
   });
 });
