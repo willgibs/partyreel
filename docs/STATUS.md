@@ -27,8 +27,8 @@ window of the original fetched by range and decoded on the viewer's device. The 
 - **Next:** his desk review; then the wiring (the expand migration first; the old reel stays live on the alias until
   one build replaces it; the drop migration after the red-team).
 - **Done alongside:** the reshape (the docs, the Library and the lab state current rules, never history) and the
-  board recheck (every standing board current with the identity and reel rounds). Two identity leaks it found in SQL
-  are closed and applied (a host reading an unconfirmed address; a profile past the album's email gate).
+  board recheck (every standing board current with the identity and reel rounds). The identity leaks it found in SQL are
+  closed and applied, and a defects round fixed the published claims and app bugs the ROADMAP named.
 
 ## The desk
 

@@ -32,7 +32,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `defects-copy` | the published words made true: bible 20's refused promises, the free host page sold as paid, one word for the bin, the no-expiry lines, four help-content fixes, stale comments | cut `da64829f`, committed `cca9f7b7`; running (agent `ace4577df6c7171df`) | Sonnet, :3133 | integrate (`none`); retire the ROADMAP lines its Handoff names |
 
 ## Next, in order
 
@@ -45,8 +44,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
    `recheck-help-press`, `recheck-guest-identity`, `recheck-viewer-curation` at `c6c79885`, gate 124), each reached
    question judged by his decision-outcomes rule; the overtaken mechanism retired. Every standing board is current
    with the identity and reel rounds; one alias build carries them for his desk review.
-3. **A defects round** (the Orchestrator's, from the ROADMAP's Now list while Will reviews): three lanes (In flight
-   above) fixing defects against rules already on record; no product decisions.
+3. **The defects round is done** (the Orchestrator's, from the ROADMAP's Now list): `guests-grant-tidy` at `39aa374b`
+   (gate 126, its migration applied), `defects-app` at `644764ef` (gate 127), `defects-copy` at `5e21c390` (gate 128).
+   Owed: a signed-in live look on the alias at what the app lane could not reach locally (the storage chip and its
+   sheet, the slug displays, the delete dialog, both confirm doors' round trips).
 4. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team). The sweep lane also takes the reel's lines in
