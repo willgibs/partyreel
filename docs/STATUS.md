@@ -16,13 +16,14 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 ## The current round: the loose ends, milestone 27, and the event-safety board
 
 Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
-- **The rulings round's loose ends**, in two production lanes and a lab lane. First a live defect: a one-field event
-  save (a QR style, the review switch) also reset visibility, pause, both door switches and moderation to their
-  defaults, opening a password or private album and approving every held upload. Then the round's Now lines, the
-  identity contract (dropping `allow_anonymous_uploads`), the Guests room showing a confirmed guest's address to the
-  host alone (his ruling: "only the host sees it"), and one storage aggregate (`host_storage_summary`, applied).
-- **Milestone 27** (his yes) after the lanes' alias red-team; the identity contract right after its pass; then a real
-  TEST subscription on partyreel.com with his final clicks (Checkout, then the change-plan confirm page).
+- **The rulings round's loose ends are merged**: a one-field event save writes only its field (it had opened password
+  and private albums and approved held uploads), the Guests room shows a confirmed guest's address to the host alone
+  (his ruling), the round's Now lines, and `host_storage_summary` (applied).
+- **Milestone 27 is live** (`546e2489`). The identity contract (`20260923150000_identity_contract.sql`, dropping the
+  unused `events.allow_anonymous_uploads` and its trigger) is ready and proved, and waits on Will: the auto-mode
+  classifier refused the destructive apply. Nothing reads the column; leaving it costs nothing.
+- **Stripe TEST with his final clicks**, staged when he is ready (Checkout as willg97, then the change-plan confirm
+  page). **`upload-owner`** is building: a claimed guest row uploads only for its signed-in owner.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
@@ -39,18 +40,18 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
-  `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `a760b998` (build 3, red-teamed
-  2026-09-23 in Will's Chrome): a one-field save keeps every other setting, the Guests room shows a confirmed
-  guest's address to the host alone, the delete confirm names 30 days, the post-upload card and the header's guest
-  count move live, a guest-made account lands on its Guest card, the demo reads "from 3 guests". Found there: a
-  kept ticket credits the next person's uploads to a confirmed guest (`upload-owner` is fixing it). No push
-  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **Prod:** partyreel.com is `main` at tag `milestone-27` (`546e2489`, 2026-09-23), both projects READY and passed:
+  the dashboard renders again, `/account` and profiles, the demo reads "from 3 guests", a real upload held for review
+  on a verified-emails event, the lab 404s without its key, no runtime error since the deploy. `admin.partyreel.com`
+  is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `a760b998` (build 3), red-teamed
+  2026-09-23 in Will's Chrome; the red-team found a kept ticket crediting the next person's uploads to a confirmed
+  guest (`upload-owner`). No push deploys; each `[preview]` record gets one build by API
+  ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 3,870 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 4,150 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
   backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.
@@ -71,6 +72,8 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first; every standing board is current with the rulings of 2026-09-22.
-- **The Stripe clicks** once milestone 27 is live: a test card and Subscribe on Stripe Checkout as willg97, then Back
-  and Confirm on the change-plan confirm page (staged for him when he is ready).
+- **The Stripe clicks** (say when you are at the keyboard): willg97 staged to Free, then his test card and Subscribe on
+  Stripe Checkout, then Back and Confirm on the change-plan confirm page.
+- **The identity contract's apply**: approve the destructive migration, or leave the unused column in place.
+- **His desk review**: 26 boards; the six reel boards first, and the new `event-safety`.
+- **A milestone 28, on his word**, once `upload-owner` is red-teamed (it fixes a live misattribution).
