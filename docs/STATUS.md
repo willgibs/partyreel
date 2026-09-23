@@ -28,8 +28,8 @@ window of the original fetched by range and decoded on the viewer's device. The 
 - **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
   to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
   host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
-  guest journey. `recheck-by-upload`, `storage-guard` and the `host-storage` and `voice-guest` boards are merged;
-  `guest-by-upload` follows (the pickup has it).
+  guest journey. all five lanes merged; `guest-by-upload`'s first migration applied (function bodies only); the save
+  tables drop after alias build 2's red-team, and partyreel.com's older build then errors on its dashboard.
 
 ## The desk
 

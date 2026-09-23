@@ -1178,7 +1178,7 @@ export const RULINGS: Ruling[] = [
     title: "The door into the host app",
     surface: "host",
     ruled:
-      "One AccountDoor serves every account ask (the login page, the guest gate, Save, a like, the guest menu's sign-in): an email code first, Google beneath, a password on a quiet link, an existing account named only after the code, passkeys behind a flag; the welcome is a five-screen tour on the site's own pictures.",
+      "One AccountDoor serves every account ask (the login page, the guest gate, the post-upload keep, a like, the guest menu's sign-in): an email code first, Google beneath, a password on a quiet link, an existing account named only after the code, passkeys behind a flag; the welcome is a five-screen tour on the site's own pictures.",
     shipped: "One door, the tour as a film",
     why: "One account object rather than a login form per place; it asks for a confirmed email rather than an account, and never says which addresses exist.",
     lives: [

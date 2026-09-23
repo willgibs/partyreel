@@ -67,7 +67,10 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // gained a per-event flag for whether one was added, never the address;
     // attended-event visibility on a public profile is opt-in now (nothing
     // shows until its owner turns it on), not opt-out.
-    version: "1.5",
+    // 1.6 (2026-09-23): the guest-by-upload round. Saved events are no longer
+    // kept (a person is a guest of an event through their uploads), so the
+    // list of what we keep reads likes, follows and blocks.
+    version: "1.6",
     lastUpdated: "2026-09-22",
     status: "pending-review",
     effectiveDate: null,

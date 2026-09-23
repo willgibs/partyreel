@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest: on a require-upload event whose album is FULL, the last-removal confirm says the album closes, but the gate fails open on a full album, so it does not; say it only when the gate's `album_full` is false (the lightbox would need that fact).
+- Guest, the demo: every demo upload is the host's and the host never counts, so its header reads "9 photos & videos" with no guests clause; seed a few guest uploads (real uploads, `seed-demo-event.mjs`) to bring back "from N guests".
+- Social: `getProfileCards` hydrates the guest list by one `.in()` of user ids, so a party with several hundred confirmed guests builds a long URL; chunk it (the counts themselves are event-keyed).
+- Code hygiene: `e/[token]/page.tsx`'s `socialSeam` cast (its own comment says collapse it once the server lane is on the tree, which it is) and its unused `requireVerifiedEmail` (a lint warning).
+- Code hygiene: comments that still name save: `likes-provider.tsx:26` (SaveEventButton), `queries/guest-events.ts:19` (`save_event` among the anon-client RPCs), `voice-guest`'s `parts.tsx:425,473` and `lines.ts:148` (`save-event-button.tsx`, the `save` wear), and its `spec.ts` keep `lands` ("the door's save words").
 - The lab and the kit: `Scene`, `Fit` and `Measured` are copied verbatim in three boards (`guest-capture`, `identity-door`, `voice-guest`); lift them into `src/components/lab`.
 - Billing follow-ons: a SECURITY DEFINER `host_storage_summary()` returning active and Deleted bytes in one aggregate, to replace the paged row read behind the storage meter and the storage guard for very large albums.
 - Billing follow-ons: the webhook warns (Sentry) on a subscription item with quantity above 1 (the old portal stepper's multiples, which provisioning reads as one cap).
@@ -28,9 +33,6 @@ below hold the rest by surface.
 - Help: `your-dashboard-explained.mdx` carries the stale `<Path>Account menu › Dashboard</Path>` breadcrumb (the account menu has no Dashboard item; the logo is the door), beside its own billing help-sync line.
 - Marketing: `faq-data.ts`'s "How long do you keep my photos?" answer reconciles only the Event Pass exception; the Free plan's inactivity removal (the help guide's rule 7) is missing from it.
 - Marketing: `/events/weddings` and `/events/trips` still say "no expiry clock counting down" on the memories (`src/lib/constants/events.ts`, four lines), with no word of the Free plan's inactivity removal.
-- Guest: the follow moment never plays after a Google or magic-link confirm: `ClaimHandlePrompt` consumes `pr_pending_offer_<qr_token>` only inside the post-upload slot, which needs an upload this visit (`guest-upload.tsx`'s `doneCount > 0`), so a full-reload return shows nothing until the guest's next upload.
-- Code hygiene: `dashboard/trash-section.tsx` has no importer and its empty state still says "Nothing in your trash."; it retires with the other unmounted components.
-- Profiles (Will's call): should a profile's attended event also follow Require an upload to view? The album holds a viewer who has not uploaded at the teaser (no Guests list) while uploads are open, yet `get_public_profile`'s attended arm shows that viewer the line; recommended: on such an event admit only the host or a signed-in viewer whose own guest row there has a completed upload.
 - The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
 - The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
 - The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
@@ -146,13 +148,12 @@ The app:
 - Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
 - Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
 - Host: no test covers `useReviewTriage` or the bulk mutations.
-- Host: the hub's Guests card counts profile-backed guests only while the album and the Guests room count the named unverified too; count them (Will's call; recommended yes).
 - Host: the gallery doorbell rings only when the approved-visible set changes, so a pending upload never wakes the host; the hub bridges it with a host fingerprint route (`/api/events/[eventId]/live`) polled on the guest cadence, which a host channel rung on every arrival (a migration on `media_gallery_doorbell`) would retire.
 - Host: the album keeps its own arrival timers (`host-media-grid.tsx`'s `useArrivedIds`) beside the shared `useArrivalMarks` (`lib/shared/arrival.ts`); fold it onto the hook so both surfaces hold an arrival for one length.
 - Host: the View menu's Sort ships disabled because the hub gallery's client holds one page, not the whole approved list; it switches on when the list is whole or the sort moves server-side, and a size sort (largest or smallest first) joins it then, the host's way to the heaviest files (Will, 2026-09-22).
 - Host: empty states draw "nothing here yet" four ways (`shared/empty-state.tsx`, `dashboard/empty-section-teaser.tsx`, `dashboard/events-empty-teaser.tsx`, `event-feed/feed-section-empty.tsx`) and the Likes section two ways for one interaction (`EmptySectionTeaser` when the server knows it is empty, `my-likes-gallery.tsx`'s bare `EmptyState` after the last unlike); one grammar (`empty-state.tsx`'s comment calls `quiet` the default while the code defaults to `icon`).
 - Host: the ghost pack's file list is built three times (`guest/gallery-empty-state.tsx`'s `GUEST_GHOST_FRAMES`, and a list each in `dashboard/events-empty-teaser.tsx` and `dashboard/empty-section-teaser.tsx`); one exported list.
-- Host: `event-feed/event-feed.tsx`, `event-feed/event-feed-action-bar.tsx` and `dashboard/trash-section.tsx` have no importer; delete them.
+- Host: `event-feed/event-feed.tsx` and `event-feed/event-feed-action-bar.tsx` have no importer; delete them.
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for a hand.
 - Host: one label for creating an event (the dashboard says New event, the empty teaser Create your first event, the welcome Create my first event, the app's 404 Create an event).
 - Host: the wizard's QR swatches encode `/e/` plus 32 zeroes (`previewJoinUrl`), a 404 when a host test-scans one; say they are samples, or encode the real link once the event exists.
@@ -171,9 +172,9 @@ The app:
 - Profile: the overflow menu opens over the person's own name at 375.
 - Profile: `src/lib/validation/report.test.ts` has no person-arm cases (both subjects, neither, a cross-subject `media_id`).
 - Guest: a name-only guest whose session drops re-joins on the same device as a second guest row with the same name, so the guest list shows one person twice; key the re-join on `pr_device_id` (the same row) or de-dupe the list by name and device (Will's to pick).
-- Guest: the album's header holds `stats.contributorCount` from the render, so a guest's own first upload under-counts the guests by one until a reload (`event-experience.tsx`); a small server signal on the gallery poll fixes it, never a client heuristic (a returning contributor would over-count).
+- Guest: the album's header holds `stats.guestCount` from the render, so a guest's own first upload under-counts the guests by one until a reload (`event-experience.tsx`); a small server signal on the gallery poll fixes it, never a client heuristic (a returning contributor would over-count).
 - Guest: `get_event_by_qr_token` does not return `events.max_upload_bytes`, so the upload sheet's terms line states the product's limits rather than the host's own cap; add the column (with the types and `queries/guest-events.ts`) and `uploadTermsLine`'s `capBytes` seam takes it.
-- Guest: Download all (`ExportDialog`) and Save (`SaveEventButton`) are still centred `Dialog`s where the guest's other dialogs ride the responsive Sheet.
+- Guest: Download all (`ExportDialog`) and the confirm door (`ConfirmEmailDialog`) are still centred `Dialog`s where the guest's other dialogs ride the responsive Sheet.
 - Guest: two identity seams read the server's names through narrow casts (`socialSeam` and the guest list's second argument in `(guest)/e/[token]/page.tsx`; `isVerified` in `media-lightbox.tsx`); collapse them onto the merged types.
 - Guest: the album, the door and the report dialog carry no link to `/help` (only the guest 404s do).
 - Guest: the media viewer's own image and video have no loading state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture in the product on venue Wi-Fi).
