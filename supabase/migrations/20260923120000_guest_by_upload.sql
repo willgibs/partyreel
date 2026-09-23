@@ -44,8 +44,14 @@
 --   select p.oid::regprocedure, md5(p.prosrc) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 --    where n.nspname = 'public' and p.proname in ('get_public_profile', 'get_upload_gate',
 --      'list_guest_rows_by_email', 'claim_guest_rows_by_email', 'claim_anonymous_uploads');
--- (2) apply verbatim; (3) get_advisors; (4) run the rolled-back contract check commented at the foot
--- (it rides "Ghost check (disposable)" and ends in a deliberate raise, so nothing persists).
+-- (2) apply verbatim, then the same query reads each body's md5 as this file's (the lane measured):
+--     get_public_profile(text)            ee6107d051957a09751d331a44a54841
+--     get_upload_gate(uuid,text,uuid)     dd418301c9d672c6a7a667232154928b
+--     list_guest_rows_by_email()          efba056af25969e1ec9f2caa0956d9db
+--     claim_guest_rows_by_email(uuid[])   51398d469cce4523c345a87ab53dd5b5
+--     claim_anonymous_uploads(text[])     46ffb1fc4b0cab2aebaa8fde8c356616
+-- (3) get_advisors; (4) run the rolled-back contract check commented at the foot (it rides "Ghost
+-- check (disposable)" and ends in a deliberate raise, so nothing persists).
 --
 -- EXPECTED ADVISOR DELTA: NONE. Every function is `create or replace` with an unchanged signature,
 -- which keeps its ACL (the grants are re-stated below as the belt against the MCP anon-default

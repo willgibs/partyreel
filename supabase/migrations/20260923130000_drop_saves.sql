@@ -23,12 +23,15 @@
 -- reads `saved_events`), then the two tables, whose indexes and RLS policies go with them. Every
 -- statement is `if exists`, so a re-run is a no-op. Measured read-only on 2026-09-23: both tables
 -- hold 0 rows, no foreign key points at either, no trigger, view or publication involves them, and no
--- function body names either table outside the two functions dropped here.
+-- function body names either table outside the two functions dropped here, except a COMMENT in the
+-- live `get_public_profile` naming `profile_hidden_events`, which the expand file rewords.
 --
--- APPLY PROTOCOL (database-security.md → Workflow): (1) confirm the alias's build no longer calls
--- `get_saved_events` / `save_event` / `profile_hidden_events` (alias build 2 is live and red-teamed);
--- (2) apply verbatim; (3) get_advisors; (4) run the rolled-back contract check at the foot;
--- (5) regenerate src/lib/db/types.ts (the two functions and the two tables leave it).
+-- APPLY PROTOCOL (database-security.md → Workflow): (0) the expand file is already applied (its
+-- `get_public_profile` md5 reads ee6107d051957a09751d331a44a54841; check 2 below fails without it);
+-- (1) confirm the alias's build no longer calls `get_saved_events` / `save_event` /
+-- `profile_hidden_events` (alias build 2 is live and red-teamed); (2) apply verbatim;
+-- (3) get_advisors; (4) run the rolled-back contract check at the foot; (5) regenerate
+-- src/lib/db/types.ts (the two functions and the two tables leave it).
 --
 -- EXPECTED ADVISOR DELTA: lint 0029 (authenticated-only SECURITY DEFINER) loses exactly two,
 -- `save_event` and `get_saved_events` (34 -> 32 as measured on 2026-09-23). 0028 stays the same five.
