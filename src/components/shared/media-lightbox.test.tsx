@@ -21,6 +21,8 @@ import type { GridMedia } from "@/components/app/media-grid";
 // a regex copy of the old string here would have been the one thing that did not.
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DeleteConsequence } from "@/lib/guest/delete-consequence";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 import { setReducedMotion } from "../../../vitest.setup";
 import { MediaLightbox } from "./media-lightbox";
@@ -478,6 +480,58 @@ describe("canDelete gates the personal Delete per item", () => {
       </TooltipProvider>,
     );
     expect(screen.getByRole("button", { name: /^delete$/i })).toBeTruthy();
+  });
+});
+
+/* A GUEST'S OWN DELETE IS FINAL, AND SAYS SO (Will, 2026-09-23: "I want it gone everywhere, not
+   still visible to the host as well", in words "closer to 'deleted immediately from event and
+   cannot be recovered' so they don't confuse a 30-day hold with a host still having access"). The
+   promise is pinned, never the sentence: the uploader's own confirm names no window and no place
+   it waits; a HOST's own upload (the personal Uploads' host arm, which stays restorable) keeps the
+   host's Deleted and its window; the album's consequence line still follows either. */
+describe("the uploader's own delete says what it does", () => {
+  const WINDOW = `${RECENTLY_DELETED_WINDOW_DAYS} days`;
+
+  function openOwnDelete(item: GridMedia, consequence?: string) {
+    const onDeleteCurrent = vi.fn();
+    render(
+      <TooltipProvider>
+        <DeleteConsequence.Provider value={consequence ? () => consequence : null}>
+          <MediaLightbox
+            items={[item]}
+            index={0}
+            onClose={() => {}}
+            onIndexChange={() => {}}
+            onDeleteCurrent={onDeleteCurrent}
+          />
+        </DeleteConsequence.Provider>
+      </TooltipProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    const dialog = screen.getByRole("dialog", { name: /delete this upload/i });
+    return { dialog, onDeleteCurrent };
+  }
+
+  it("a guest's own delete promises no window and no place it waits, and still deletes", () => {
+    const { dialog, onDeleteCurrent } = openOwnDelete(PHOTOS[0]);
+    expect(dialog.textContent).not.toContain(WINDOW);
+    // "Deleted" is the host's place; a guest's withdrawal never reaches it.
+    expect(dialog.textContent).not.toMatch(/\bDeleted\b/);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    expect(onDeleteCurrent).toHaveBeenCalledWith(PHOTOS[0]);
+  });
+
+  it("a host's own upload keeps the host's words: Deleted, and the window off the constant", () => {
+    const { dialog } = openOwnDelete({ ...PHOTOS[0], isHost: true });
+    expect(dialog.textContent).toMatch(/\bDeleted\b/);
+    expect(dialog.textContent).toContain(WINDOW);
+  });
+
+  it("the album's consequence line still follows the final sentence", () => {
+    const line = "This is your last upload here, so the album closes until you add another.";
+    const { dialog } = openOwnDelete(PHOTOS[0], line);
+    expect(dialog.textContent).toContain(line);
+    expect(dialog.textContent).not.toContain(WINDOW);
   });
 });
 

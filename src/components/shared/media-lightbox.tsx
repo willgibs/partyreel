@@ -235,6 +235,21 @@ function AttributionPill({
 // the color language does not.
 const LIGHTBOX_ACTION = `text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100 ${GLASS_MARK_LIT}`;
 
+// THE HOST'S REMOVAL, SAID ONCE. It is restorable, so it names the place the item
+// waits (Deleted, the app's one word for it) and the window, read off the constant.
+// Two confirms say it because two doors do it: the curate group's Remove, and a
+// host deleting their OWN upload from the personal Uploads (remove_my_upload's host
+// arm leaves that row restorable, unlike a guest's own delete below).
+function HostRemovalWords() {
+  return (
+    <>
+      It disappears from the album right away and moves to Deleted, where you can
+      restore it for {RECENTLY_DELETED_WINDOW_DAYS} days. Guests won&rsquo;t see
+      it.
+    </>
+  );
+}
+
 export function MediaLightbox({
   items,
   index,
@@ -822,11 +837,19 @@ export function MediaLightbox({
                       </ActionTooltip>
                     )}
                     {/* The uploader's OWN delete (the guest album and the personal
-                        Uploads) — never co-occurs with the host curate group (the host
-                        grid sets onRemove, not this). ★ It is final for the host too
-                        (`removed_by_uploader`: never in Deleted, never restorable), so
-                        its words say the window the bytes are held, read off the
-                        constant, and promise no way back. */}
+                        Uploads): never co-occurs with the host curate group (the host
+                        grid sets onRemove, not this).
+                        ★ A GUEST'S OWN DELETE IS FINAL, AND SAYS SO (Will, 2026-09-23:
+                        "I want it gone everywhere, not still visible to the host as
+                        well"). The row is marked `removed_by_uploader`, so no host
+                        surface shows or restores it, and the words promise exactly
+                        that and NO window: the bytes do wait out the 30-day hold
+                        before the purge, but a number of days here reads as a hold
+                        somebody could still reach.
+                        ★ A HOST'S OWN UPLOAD IS THE ONE EXCEPTION (`isHost`, which only
+                        the personal Uploads can pair with this Trash: the album gives a
+                        guest the Trash on their own uploads alone). Its delete is
+                        restorable, so it says the host's words. */}
                     {onDeleteCurrent &&
                       (canDelete ? canDelete(current) : true) && (
                         <Dialog>
@@ -848,9 +871,14 @@ export function MediaLightbox({
                             <DialogHeader>
                               <DialogTitle>Delete this upload?</DialogTitle>
                               <DialogDescription>
-                                It will be removed from the event right away,
-                                and permanently deleted after{" "}
-                                {RECENTLY_DELETED_WINDOW_DAYS} days.
+                                {current.isHost ? (
+                                  <HostRemovalWords />
+                                ) : (
+                                  <>
+                                    It&rsquo;s deleted from the event right away
+                                    and can&rsquo;t be recovered.
+                                  </>
+                                )}
                                 {deleteConsequence && ` ${deleteConsequence}`}
                               </DialogDescription>
                             </DialogHeader>
@@ -954,13 +982,7 @@ export function MediaLightbox({
                               <DialogHeader>
                                 <DialogTitle>Remove this item?</DialogTitle>
                                 <DialogDescription>
-                                  {/* A host's removal is restorable: it waits in
-                                      Deleted (the app's one word for the place)
-                                      for the window, read off the constant. */}
-                                  It disappears from the album right away and
-                                  moves to Deleted, where you can restore it for{" "}
-                                  {RECENTLY_DELETED_WINDOW_DAYS} days. Guests
-                                  won&rsquo;t see it.
+                                  <HostRemovalWords />
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>

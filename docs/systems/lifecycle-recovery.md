@@ -46,17 +46,21 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   `RECENTLY_DELETED_BUDGET_MULTIPLIER × effective cap` (the multiplier is 1), evicting oldest-first: the
   anti-abuse backstop (size is the bound, not the clock). So a move to a smaller cap shrinks Deleted too and
   its oldest items purge early; the plan sheet says so before a switch that fits but shrinks the cap.
-  `profiles.storage_grace_until` is service-role-write-only.
+  `profiles.storage_grace_until` is service-role-write-only. The sweep's own sum counts every binned byte it
+  may evict (a guest's withdrawal included; held and system-removed rows excluded), which is wider than the
+  meter's Deleted figure (only what the host can restore, below).
 - **Delete-own** reuses this window: a signed-in uploader through the authenticated SECURITY DEFINER
   `remove_my_upload(uuid)` RPC ("Your uploads" on their own `/u/[slug]`, and the guest album's delete;
   re-checks ownership via the `get_my_uploads` host-arm/guest-arm predicates, then soft-removes;
   idempotent), a name-only guest through `POST /api/guests/remove` → the service-role
   `remove_my_upload_by_session`. ★ A guest's self-deletion of an upload to SOMEONE ELSE's event is marked
-  **`media.removed_by_uploader=true` = PRIVATE to that host**: excluded from the host's bin by
-  `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (RLS does NOT filter it, so
-  dropping that line shows the host a Restore the RPC always refuses) AND refused by `restore_media` (the
-  uploader's deletion wins; it still auto-purges and counts in that host's standby meter). A host deleting
-  their OWN event's upload leaves it `false` (host-restorable, like the gallery's Remove). The marker is
+  **`media.removed_by_uploader=true` = FINAL, for that host too** (Will, 2026-09-23): excluded from the host's
+  bin by `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (RLS does NOT filter it, so
+  dropping that line shows the host a Restore the RPC always refuses), refused by `restore_media` (the
+  uploader's deletion wins), and counted in NEITHER of `host_storage_summary`'s numbers (a removed row, and
+  not the host's to restore). It still auto-purges on the window. Its confirm names no window ("It's deleted
+  from the event right away and can't be recovered."). A host deleting their OWN event's upload leaves it
+  `false` (host-restorable, like the gallery's Remove), and that confirm says Deleted and the window. The marker is
   write-locked: set only by those two delete-own RPCs and by `disown_guest_rows_by_email` (the dashboard's
   "Not mine"), never in the `authenticated (status, removed_at)` grant.
 
@@ -144,7 +148,8 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   read through RLS (`listRecentlyDeletedEvents`/`listRecentlyDeletedMedia`, windowed to 30d; the countdown
   is computed in the QUERY so the RSC stays render-pure). The storage meter reads ACTIVE bytes
   (`getHostStorageSummary`, [`db/queries/storage.ts`](../../src/lib/db/queries/storage.ts)) plus a
-  "+ X in Deleted (frees automatically)" line and an over-budget note. The lightbox hides Save when an
+  "+ X in Deleted (frees automatically)" line, whose X is only what the host can restore (the bin above; a
+  guest's withdrawal is in neither number), and an over-budget note. The lightbox hides Save when an
   item has no `downloadUrl` (no download from the bin).
 
 ## See also

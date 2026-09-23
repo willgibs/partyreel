@@ -14830,7 +14830,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 139
+          "line": 141
         },
         {
           "title": "mouse pointers never engage the finger-follow",
@@ -14838,7 +14838,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 144
+          "line": 146
         },
         {
           "title": "a sub-10px wiggle stays unlocked (tap territory)",
@@ -14846,7 +14846,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 156
+          "line": 158
         },
         {
           "title": "a vertical move releases the gesture to the browser",
@@ -14854,7 +14854,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 163
+          "line": 165
         },
         {
           "title": "a horizontal lock engages: data-dragging + 1:1 follow",
@@ -14862,7 +14862,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 173
+          "line": 175
         },
         {
           "title": "clamps a long pull toward a real neighbor to one slide width",
@@ -14870,7 +14870,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 184
+          "line": 186
         },
         {
           "title": "damps the pull past the FIRST item (no prev)",
@@ -14878,7 +14878,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 191
+          "line": 193
         },
         {
           "title": "slow short drag springs back (200ms settle, no index change)",
@@ -14886,7 +14886,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 203
+          "line": 205
         },
         {
           "title": "a long slow drag commits by DISTANCE (20% of width)",
@@ -14894,7 +14894,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 214
+          "line": 216
         },
         {
           "title": "a quick flick commits by VELOCITY regardless of distance",
@@ -14902,7 +14902,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 228
+          "line": 230
         },
         {
           "title": "a commit toward a missing neighbor cannot happen at the END of the set",
@@ -14910,7 +14910,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 237
+          "line": 239
         },
         {
           "title": "pointercancel snaps back to center",
@@ -14918,7 +14918,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 246
+          "line": 248
         },
         {
           "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
@@ -14926,7 +14926,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 255
+          "line": 257
         },
         {
           "title": "arrow keys step through the set within bounds",
@@ -14934,7 +14934,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 268
+          "line": 270
         },
         {
           "title": "arrow keys at the edges do nothing",
@@ -14942,7 +14942,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 276
+          "line": 278
         },
         {
           "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
@@ -14950,7 +14950,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 282
+          "line": 284
         },
         {
           "title": "a clean CENTER-third tap on the letterbox closes the viewer",
@@ -14958,7 +14958,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 294
+          "line": 296
         },
         {
           "title": "a LEFT-third letterbox tap steps to the previous item (no close)",
@@ -14966,7 +14966,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 304
+          "line": 306
         },
         {
           "title": "a RIGHT-third letterbox tap steps to the next item (no close)",
@@ -14974,7 +14974,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 312
+          "line": 314
         },
         {
           "title": "a side tap at an edge is a NO-OP (never an accidental close)",
@@ -14982,7 +14982,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 320
+          "line": 322
         },
         {
           "title": "the position counter reflects the controlled index (pill format)",
@@ -14990,7 +14990,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 328
+          "line": 330
         },
         {
           "title": "a drag starting in a PLAYING video's scrubber strip never swipes",
@@ -14998,7 +14998,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 335
+          "line": 337
         },
         {
           "title": "the same drag swipes once the video is PAUSED",
@@ -15006,7 +15006,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 351
+          "line": 353
         },
         {
           "title": "the GUEST pill carries NO curate controls, even with a status",
@@ -15014,7 +15014,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 389
+          "line": 391
         },
         {
           "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
@@ -15022,7 +15022,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 399
+          "line": 401
         },
         {
           "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
@@ -15030,7 +15030,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 410
+          "line": 412
         },
         {
           "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
@@ -15038,7 +15038,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 419
+          "line": 421
         },
         {
           "title": "host Remove is behind a modal confirm (no accidental delete)",
@@ -15046,7 +15046,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 429
+          "line": 431
         },
         {
           "title": "shows the Trash on the item it allows and never on another",
@@ -15054,7 +15054,31 @@
             "canDelete gates the personal Delete per item"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 451
+          "line": 453
+        },
+        {
+          "title": "a guest's own delete promises no window and no place it waits, and still deletes",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 515
+        },
+        {
+          "title": "a host's own upload keeps the host's words: Deleted, and the window off the constant",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 524
+        },
+        {
+          "title": "the album's consequence line still follows the final sentence",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 530
         },
         {
           "title": "draws the album on its own element, with the media never inside it",
@@ -15062,7 +15086,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 496
+          "line": 550
         },
         {
           "title": "wears the ONE material on the pill, the capsule and the close",
@@ -15070,7 +15094,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 517
+          "line": 571
         },
         {
           "title": "a confirmed name stands plain, with no mark",
@@ -15078,7 +15102,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 558
+          "line": 612
         },
         {
           "title": "a name nobody proved is named AND marked",
@@ -15086,7 +15110,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 566
+          "line": 620
         },
         {
           "title": "a row with no name names nobody: no stand-in, no mark, the counter alone",
@@ -15094,7 +15118,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 574
+          "line": 628
         },
         {
           "title": "the mark offers the way out on the viewer's OWN upload only",
@@ -15102,7 +15126,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 583
+          "line": 637
         },
         {
           "title": "says nothing about proof it was never given: an item with no flag is plain",
@@ -15110,7 +15134,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 603
+          "line": 657
         },
         {
           "title": "reads \"Unverified\", never a claim that a name was checked",
