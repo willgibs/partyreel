@@ -1,6 +1,6 @@
 ---
 track: recheck-guest-identity
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c2482757"            # the launch-prep SHA the branch was cut from
 board: guest-capture
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -63,24 +63,50 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+None of these was a one-way door: each is taken on its recommendation, built, and repeated under "Calls his to overrule".
+
+- Reshape `guest-capture.landing` or remove it? Recommended and taken: remove (its `profile` option cannot exist; its `dashboard` road is the destination `identity-claims.pointer` asks how to point at; the album is the ground all three identity boards stand on).
+- Which noun makes the three shipped lines true? Recommended and taken: "in your account" for all three, not "on your dashboard": the `save` wear also opens from the Unverified mark and the guest name menu, which claim the uploads but never save the event, so only the account is true on every path.
+- Where does the reel's tile sit against the offer? Taken: directly UNDER the post-upload card, at the album's head (the reel plan's C, "its OWN slot directly above `aboveAlbum`", and `event-experience.tsx`'s order: `GuestUpload` in the words column, then the BLEED album); the survey said "above this slot".
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: no system doc is in `owns`, and `git grep` finds the three retired lines in no doc and no help article.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: confirming from the Unverified mark (`unverified-mark.tsx`) or the guest name menu (`guest-name-menu.tsx`) claims the uploads but never saves the event, so it lands in the account (Events you joined) and not on the dashboard, unlike the offer card's door (`SaveEventButton`); save it on those two paths too.
+- Now: `content/help/save-an-event-and-find-your-uploads.mdx` lists Uploads and Likes on the dashboard, but they live in the profile's owner mode (`u/[slug]/owner-sections.tsx`, profiles-social.md "The owner mode"); the article and the code disagree.
+- Now: a confirmed account with no handle has no page, so the owner mode's uploads, likes and connections are unreachable for it; they need a home that does not require a handle (or `identity-profile.setup` answers it).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** the work `88deb724`; three sync merges of `origin/launch-prep` as it moved under the lane (`c42811eb` docs-rules, roadmap-lean and the bible's why lines; `d756489f` recheck-mail-admin-export; `4a7f3aee` recheck-help-press), none touching an owned path. The gates below ran on `4a7f3aee`, with `origin/launch-prep` fully merged.
+- **Gates on the synced tree, each on its own exit code:** `pnpm design:rules` 0 (no generated diff) · `collect-specimens.mjs` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (9 warnings, none in a touched file) · `pnpm test` 0 (350 files, 3867 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3135` 0 (486 checks; reading: guest-capture 317, profile-page 258 of 1200) · `pnpm lab:demo --board guest-capture` 0 (4 steps, every option moves the stage) · `pnpm lab:demo --board profile-page` 0 (3 steps). Both boards also captured at 1440 (a local, uncommitted flip of the SCREEN default, `--save-shots`, reverted) and at 375; `lab:demo` emulates reduced motion, and nothing on either board moves beyond the shipped tiles' own fades.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the twelve owned board files under `sandbox/guest-capture/` and `sandbox/profile-page/`, the three owned production files (`auth/account-door.tsx`, `guest/follow-moment-card.tsx`, `guest/save-account-prompt.tsx`), this manifest, and ONE exception: `src/app/(dev)/design/sandbox/identity-claims/parts.tsx`, one line (its `MomentCard` quotes the shipped moment line, which this lane changed, so it now reads "It is in your account now"; no open lane owns that board).
+- **The three shipped lines, now true** (no test pinned the old words; none was edited): `account-door.tsx` save wear "Confirm your email and this event stays in your account, with every photo you added. Confirming makes a free account." · `follow-moment-card.tsx` "It is in your account now, and this event came with it." (and "All N are in your account now, and this event came with them.") · `save-account-prompt.tsx` "...it stays with you: this event in your account, and everything you added to it." Each carries a WHY-comment stating the rule.
+- **guest-capture, one line per reached question** (round 1 kept; `round.changed` says what moved):
+  - `moment` ADAPTED: "When should the offer to keep what she added first reach Priya?" to "The door already offered an optional email. When should the second ask, to keep what she added, first reach Priya?"; options kept (the door's ask strengthens `tenth`, said in its means and the overrule); recommendation stays `first`; redrawn with the reel's tile under the card and the heading counting as shipped ("Keep this photo").
+  - `shape` ADAPTED: "Should the ask sit in its own card, ride the photo it is about, or become the sheet's last screen?" to "Should the second ask stand in its own card, ride the photograph it is about, or close the door's own sheet?"; `inline` redrawn as a real caption inside her newest tile's column block (it used to draw a thumbnail above the album), `sheet-step`'s means now says it is the same sheet that offered the email a minute earlier; recommendation stays `inline`.
+  - `follow` ADAPTED: "Once she confirms, where should Priya actually be offered a follow, and of whom?" to "Once she confirms, where should Priya be offered a follow of Maya, her host: on the moment card, in the Guests list, or on Maya's page?"; redrawn in the page's real order (the Guests list under the whole album: measured 1459px down for `list`, 136px for `card`), the list as shipped (confirmed first, Unverified on the plain disc with the mark, Priya listed without a Follow of herself); recommendation moves `list` to `card`.
+  - `landing` REMOVED: "Once everything is confirmed, should Priya still be looking at the album, or somewhere new?" `profile` cannot exist (a 404 until a handle), `dashboard` is `identity-claims.pointer`'s destination, and staying on the album is the ground all three identity boards stand on: nothing left in it could beat that path.
+  - `name` ADAPTED: "Should the name Priya typed at the door become her profile silently, or does she get a say?" to "When the name Priya typed becomes her account's name, should she get one look at it first?"; `together` dropped (the handle is `identity-profile.setup`'s); `silent` against `confirm` kept; recommendation moves `together` to `silent` (the ruling's own, editable from Account).
+  - The drawn copy REDRAWN everywhere it is quoted ("this event in your account", "It is in your account now").
+- **profile-page, one line per reached question** (round 2 kept):
+  - `view-all` REDRAWN, question unchanged ("How should the full guest list open from the faces row?"): every option drew the closed faces row (the shipped `GuestList` condenses above twelve), so the chips are quoted and the list is open in all four; the 24 and the 240 now hold the confirmed first and then the Unverified, marked (measured at 240 on a phone: sheet 578px in 149 rows, page 5292px, centred 650px, inline 503px in 12 rows).
+  - `quick-look` ADAPTED: "What should a name in the guest list open first?" to "What should tapping a name in the guest list open first, when most names have no page behind them?"; its own knob `tapped` (Nina, Unverified; Jay, confirmed without a handle; Priya, a page) replaces `who`; the look shows what a guest added to this album for every name, and a page's chosen events and Open full profile only where a page exists; `none` is "as shipped" (a pageless name opens nothing); recommendation stays `sheet`.
+  - `way-back` ADAPTED (lightly; the survey did not list it): question and options unchanged; its because and overrule assumed "most people at a party are signed out", which Require verified emails on by default reverses, so both now say it per mode; Noor (an empty page, `identity-profile.page`'s question) left the `who` knob.
+  - The profile page itself REDRAWN as it ships wherever it is drawn (the bio under the row, not in it; one Events grid with Host and Guest markers; the seeded `xl` avatar), since `quick-look.none` and all of `way-back` stand on it.
+- **For other homes (the Orchestrator's):** `touchpoints.ts`'s `guest-capture` note and variants still name "The landing" ("where she lands afterward"); `social/guest-list.tsx`'s comment says "the retired profile-page sandbox board still feeds this component its own fixtures", but the board is standing and no longer imports it; the desk move (`guest-capture` below `identity-profile`) is yours at the record.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:**
+  - `guest-capture.landing` removed rather than reshaped to album against dashboard.
+  - `guest-capture.follow` now recommends `card` (the honest distance of the list, 1459px, and a names-mode list mostly without a Follow).
+  - `guest-capture.name` recommends `silent`, the ruling's own, over `confirm`.
+  - `profile-page.quick-look`'s look carries "N photos in this album" for every name, a new road for the names with no page.
+  - "In your account" as the one noun in all three shipped lines, "on your dashboard" never (see Questions).
+  - The reel's tile drawn under the offer card, at the album's head, wearing `reel-front`'s recommendations (`tile=live` resting on one still, `yours=badge`).
+  - `way-back` adapted though the survey left it alone; Noor out of the cast.
+  - The one-line exception in `identity-claims/parts.tsx`.
+- **Look at first:** `guest-capture.follow` at 375, `list` against `card` (the caption reads the distance); then `profile-page.quick-look` with the `tapped` knob on Nina, then on Priya.
