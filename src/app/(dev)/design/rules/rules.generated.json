@@ -15305,6 +15305,62 @@
           ],
           "file": "src/components/social/guest-list.test.tsx",
           "line": 138
+        },
+        {
+          "title": "shows a confirmed guest's address with the name when the host passes it",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 187
+        },
+        {
+          "title": "★ shows no address at all without the prop (every guest-facing caller)",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 205
+        },
+        {
+          "title": "★ never puts an address under a name nobody proved, even one keyed to its row",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 210
+        },
+        {
+          "title": "carries the address into the opened names panel, not only the chips",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 221
+        },
+        {
+          "title": "shortens from the middle and keeps the domain whole",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 244
+        },
+        {
+          "title": "gives up a very long domain's end last, never the part before the @ it has room for",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 259
+        },
+        {
+          "title": "draws an ordinary address whole, once",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 269
         }
       ]
     },

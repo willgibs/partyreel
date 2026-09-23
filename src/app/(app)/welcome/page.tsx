@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 
 import { WelcomeFlow } from "@/components/app/welcome-flow";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
+import { countActiveEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getMyGuestEventCards } from "@/lib/db/queries/social";
 import { createClient } from "@/lib/supabase/server";
-import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
+import {
+  isGuestFirstVisit,
+  needsDisplayName,
+  shouldShowWelcome,
+} from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "Welcome" };
 
@@ -16,6 +22,10 @@ export const metadata: Metadata = { title: "Welcome" };
 // claimable guest row's typed name (the guest identity round, 2026-09-22): a confirmed account that
 // has just proved an address it typed under a name at some event's door should not have to type that
 // same name again a second time. Either way the field stays editable.
+//
+// ★ A GUEST-MADE ACCOUNT IS OWED THE NAME, NEVER THE TOUR (`isGuestFirstVisit`, lib/welcome.ts): an account that hosts
+// nothing and holds a Guest card came for that card, so a nameless one names itself here and goes straight to its
+// dashboard, whose first visit marks it welcomed. The tour is a host's, and the dashboard keeps its host pitch.
 export default async function WelcomePage() {
   const supabase = await createClient();
   const [
@@ -24,10 +34,14 @@ export default async function WelcomePage() {
     },
     profile,
     claimableRows,
+    hostedEvents,
+    guestCards,
   ] = await Promise.all([
     supabase.auth.getUser(),
     getProfile(),
     getMyClaimableGuestRows(),
+    countActiveEvents(),
+    getMyGuestEventCards(),
   ]);
 
   const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -46,7 +60,14 @@ export default async function WelcomePage() {
   return (
     <WelcomeFlow
       needsName={needsDisplayName(profile?.display_name)}
-      needsWelcome={shouldShowWelcome(profile?.welcomed_at)}
+      needsWelcome={
+        shouldShowWelcome(profile?.welcomed_at) &&
+        !isGuestFirstVisit({
+          welcomedAt: profile?.welcomed_at,
+          hostedEvents,
+          guestCards: guestCards.length,
+        })
+      }
       namePrefill={namePrefill}
     />
   );

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
+import { MarkWelcomedOnMount } from "@/app/(app)/welcome/mark-welcomed";
 import { ClaimsCard } from "@/components/app/dashboard/claims-card";
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
@@ -44,7 +45,7 @@ import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
-import { needsDisplayName, shouldShowWelcome } from "@/lib/welcome";
+import { resolveDashboardEntry } from "@/lib/welcome";
 import { PageHeading } from "@/components/shared/page-heading";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -108,15 +109,19 @@ export default async function DashboardPage({
       cookies(),
     ]);
 
-  // Onboarding gate: a brand-new account (welcomed_at null) gets the one-time intro, AND every
-  // account must set a public display name (Phase 1) before reaching the dashboard. Runs BEFORE
-  // the presign batch + any JSX, so a nameless account redirects with zero content flash.
-  if (
-    needsDisplayName(profile?.display_name) ||
-    shouldShowWelcome(profile?.welcomed_at)
-  ) {
-    redirect("/welcome");
-  }
+  // Onboarding gate: every account must set a public display name (Phase 1) before reaching the
+  // dashboard, and a brand-new one (welcomed_at null) gets the one-time intro, UNLESS it is a
+  // guest's: an account that hosts nothing and already holds a Guest card (the capture's "this
+  // event came with it") lands here on its first visit, and that visit is marked as its welcome
+  // (`resolveDashboardEntry`, lib/welcome.ts). Runs BEFORE the presign batch + any JSX, so a
+  // redirected account sees zero content flash.
+  const entry = resolveDashboardEntry({
+    displayName: profile?.display_name,
+    welcomedAt: profile?.welcomed_at,
+    hostedEvents: events.length,
+    guestCards: guestCards.length,
+  });
+  if (entry === "welcome") redirect("/welcome");
 
   // ONE clock reading for the whole render, taken HERE rather than inside any
   // component: a Date read during render is impure (react-hooks purity), and
@@ -276,6 +281,11 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
+      {/* A guest's first visit is its welcome: marked once, from the client,
+          since this server component cannot write with the visitor's cookies
+          after it renders. It draws nothing; the Guest card below leads. */}
+      {entry === "guest-first-visit" && <MarkWelcomedOnMount />}
+
       {justBought && (
         <WelcomeToPro
           // The webhook is the only writer of profiles.tier, and Stripe can land the
