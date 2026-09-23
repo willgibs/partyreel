@@ -198,14 +198,12 @@ describe("toBillingTier (DB tier_type → billing Tier)", () => {
 });
 
 describe("isSettingLocked (tier-gated event settings)", () => {
-  it("does NOT gate either identity flag (free on every tier, default on)", () => {
-    // Require-accounts stopped being a Pro feature in S5, and the identity reshape (2026-09-21)
-    // renamed the idea rather than re-pricing it: Require verified emails is free for every tier
-    // and on by default, so NEITHER the new switch nor the legacy twin belongs in
-    // GATED_EVENT_SETTINGS. Gating it would put safety behind a paywall, which is the exact
-    // trade S5 reversed.
-    expect([...GATED_EVENT_SETTINGS]).not.toContain("allow_anonymous_uploads");
+  it("does NOT gate the door's safety switches (free on every tier)", () => {
+    // Require verified emails (on by default) and Require an upload to view are safety, and
+    // gating either would put safety behind a paywall, so neither belongs in
+    // GATED_EVENT_SETTINGS.
     expect([...GATED_EVENT_SETTINGS]).not.toContain("require_verified_email");
+    expect([...GATED_EVENT_SETTINGS]).not.toContain("require_upload_to_view");
   });
   it("locks password on Free, unlocks on paid tiers", () => {
     expect(isSettingLocked("password", "free")).toBe(true);

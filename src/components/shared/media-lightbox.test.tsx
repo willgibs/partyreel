@@ -545,18 +545,15 @@ describe("the lightbox's ground is separate from the photograph", () => {
  *
  * Anonymity left the product, so what is pinned is the three things a credit can
  * now BE and nothing about how any of them look: a confirmed name stands plain, a
- * typed one is marked, and a row minted before the change says "A guest" rather
- * than inventing a name or leaving the line blank. The mark's own way out is
- * pinned too, because it is the one Will asked for by name ("want to correct that
- * immediately by verifying") and it exists only on your own upload.
+ * typed one is marked, and a row with no name names nobody (no invented stand-in,
+ * no mark, the counter alone). The mark's own way out is pinned too, because it
+ * is the one Will asked for by name ("want to correct that immediately by
+ * verifying") and it exists only on your own upload.
  */
 describe("MediaLightbox: the uploader's credit", () => {
-  // `isVerified` lands on GridMedia in the identity reshape's server lane; the
-  // intersection keeps this file green on both sides of that merge, and the
-  // component reads the field structurally for the same reason.
-  const credited = (
-    extra: Partial<GridMedia> & { isVerified?: boolean },
-  ): GridMedia[] => [{ ...PHOTOS[0], ...extra } as GridMedia];
+  const credited = (extra: Partial<GridMedia>): GridMedia[] => [
+    { ...PHOTOS[0], ...extra },
+  ];
 
   it("a confirmed name stands plain, with no mark", () => {
     mount(credited({ uploaderName: "Priya", isVerified: true }), 0);
@@ -574,9 +571,13 @@ describe("MediaLightbox: the uploader's credit", () => {
     ).toBeInTheDocument();
   });
 
-  it('a legacy nameless row reads "A guest", never a blank credit', () => {
-    mount(credited({ uploaderName: null, isAnonymous: true }), 0);
-    expect(screen.getByText("A guest")).toBeInTheDocument();
+  it("a row with no name names nobody: no stand-in, no mark, the counter alone", () => {
+    mount(credited({ uploaderName: null, isVerified: false }), 0);
+    expect(screen.queryByText(/a guest/i)).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeNull();
+    expect(screen.getByText("1 of 1")).toBeInTheDocument();
   });
 
   it("the mark offers the way out on the viewer's OWN upload only", () => {

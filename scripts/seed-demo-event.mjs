@@ -20,17 +20,33 @@
  *     profiles.storage_used_bytes and the cap checks honest (uploads-and-r2.md invariant).
  * The result is indistinguishable from a host batch upload: guest_id null, status approved.
  *
+ * ★ THE GUEST MODE (`--guests`): the host never counts as a guest, so an album of host uploads alone
+ * reads "9 photos & videos" with no "from N guests". `--guests "Maya J.,Tom R.,Priya S."` attributes
+ * the folder's files, in name order, to the host and the named guests IN TURN (file 1 the host's,
+ * file 2 the first guest's, and so on, round the list again), with no new media files. Each name
+ * gets ONE name-only guest row, exactly as the door mints it: `create_guest` with the event's
+ * qr_token and the name (the RPC returns the row's session token), reused by name on every re-run so
+ * no duplicate rows pile up. That guest's files then ride the SAME pipeline as the host's, with the
+ * row written by `create_media` under that session token, the RPC the guest complete route calls.
+ * Both RPCs are service-role-only, which this script already is. The event must be name-only
+ * (Require verified emails off) and live (no review), so the rows land approved and each name is a
+ * guest the album's count names; the script refuses to seed guests into anything else rather than
+ * flip a host's switches for them.
+ *
  * Usage:
  *   node scripts/seed-demo-event.mjs <folder>
  *   node scripts/seed-demo-event.mjs <folder> --name "Partyreel Demo" --host willg97@gmail.com
+ *   node scripts/seed-demo-event.mjs <folder> --guests "Maya J.,Tom R.,Priya S."
  *   node scripts/seed-demo-event.mjs <folder> --dry-run     # plan only, no writes
  *
- * Defaults: --name "Partyreel Demo"; --host = whoever owns the event with that name today.
+ * Defaults: --name "Partyreel Demo"; --host = whoever owns the event with that name today; no guests.
  *
  * IDEMPOTENT BY REPLACEMENT. A re-run wipes the event's media first (R2 objects, then rows via
  * purge_media_rows so storage_used_bytes is decremented) and seeds the folder fresh, so the same
  * command always lands the same album. The event itself is reused (same id, same qr_token, so the
- * marketing QR keeps working); it is created only when the name does not exist yet.
+ * marketing QR keeps working); it is created only when the name does not exist yet. Guest ROWS are
+ * reused by name, never deleted: a row whose uploads were wiped carries nothing, and a row with no
+ * live upload makes nobody a guest.
  *
  * Requires: ffmpeg + ffprobe on PATH (dimensions, durations, preview/poster encoding; Node has no
  * image codecs and adding an npm dependency is out of this script's lane). Reads env from
@@ -79,11 +95,24 @@ function flag(name) {
 const DRY_RUN = argv.includes("--dry-run");
 const EVENT_NAME = flag("name") ?? DEFAULT_EVENT_NAME;
 const HOST_EMAIL = flag("host");
-const folderArg = argv.find((a) => !a.startsWith("--"));
+/** The guest mode's names, trimmed, de-duplicated, in the order given (the turn order). */
+const GUEST_NAMES = [
+  ...new Set(
+    (flag("guests") ?? "")
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean),
+  ),
+];
+// The folder is the one positional argument: every other token is a flag or a flag's value.
+const FLAGS_WITH_VALUES = new Set(["--name", "--host", "--guests"]);
+const folderArg = argv.find(
+  (a, i) => !a.startsWith("--") && !FLAGS_WITH_VALUES.has(argv[i - 1]),
+);
 
 if (!folderArg) {
   console.error(
-    "Usage: node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event name>] [--dry-run]",
+    'Usage: node scripts/seed-demo-event.mjs <folder> [--host <email>] [--name <event name>] [--guests "Name A,Name B"] [--dry-run]',
   );
   process.exit(1);
 }
@@ -413,7 +442,7 @@ async function resolveEvent(hostId) {
   const { data: existing, error } = await supabase
     .from("events")
     .select(
-      "id, name, qr_token, visibility, moderation_mode, accepting_uploads",
+      "id, name, qr_token, visibility, moderation_mode, accepting_uploads, require_verified_email",
     )
     .eq("host_id", hostId)
     .eq("name", EVENT_NAME)
@@ -437,15 +466,11 @@ async function resolveEvent(hostId) {
       visibility: "open",
       moderation_mode: "live",
       accepting_uploads: true,
-      // The identity reshape (20260921150000): the demo album asks nothing of a visitor, so the
-      // switch is OFF. BOTH columns are named while the legacy twin still exists — the trigger
-      // would derive either from the other, but a seed script is read as documentation of the
-      // shape, and naming both says plainly that they are one setting until the column drops.
-      allow_anonymous_uploads: true,
+      // The demo album asks nothing of a visitor, so Require verified emails is OFF (names mode).
       require_verified_email: false,
     })
     .select(
-      "id, name, qr_token, visibility, moderation_mode, accepting_uploads",
+      "id, name, qr_token, visibility, moderation_mode, accepting_uploads, require_verified_email",
     )
     .single();
   if (insErr) fail(`Couldn't create the event: ${insErr.message}`);
@@ -555,6 +580,85 @@ async function wipeExistingMedia(eventId) {
   );
 }
 
+// --- the guest mode (one name-only row per name, reused) -------------------
+
+/**
+ * The guest mode's precondition: a name-only, live, open event taking uploads, so every seeded guest
+ * row mints without a confirmed email and every upload lands approved (the album's count names only
+ * guests with an APPROVED upload). Refuses rather than flipping a host's switches for them.
+ */
+function assertGuestReady(event) {
+  const problems = [];
+  if (event.require_verified_email)
+    problems.push("Require verified emails is ON");
+  if (event.moderation_mode !== "live")
+    problems.push("uploads wait for review");
+  if (event.visibility !== "open")
+    problems.push(`the event is ${event.visibility}`);
+  if (!event.accepting_uploads) problems.push("uploads are closed");
+  if (problems.length > 0) {
+    fail(
+      `--guests needs a name-only, live, open event taking uploads, and "${event.name}" is not: ` +
+        `${problems.join("; ")}.\nChange the event's settings deliberately, then re-run.`,
+    );
+  }
+}
+
+/**
+ * name -> the session token of that name's one guest row on this event. A row is reused when the
+ * name already has one (a name-only row: no account, never verified), so re-runs never pile rows
+ * up; otherwise `create_guest` mints it exactly as the door does, with the name and nothing else.
+ */
+async function resolveGuestSessions(event, names) {
+  const sessions = new Map();
+  for (const name of names) {
+    const { data: existing, error } = await supabase
+      .from("guests")
+      .select("id, session_token")
+      .eq("event_id", event.id)
+      .eq("display_name", name)
+      .is("user_id", null)
+      .is("verified_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error)
+      fail(`Couldn't look up the guest row for "${name}": ${error.message}`);
+    if (existing) {
+      console.log(`  guest "${name}": reusing row ${existing.id}`);
+      sessions.set(name, existing.session_token);
+      continue;
+    }
+    if (DRY_RUN) {
+      console.log(`  guest "${name}": would CREATE a name-only row`);
+      sessions.set(name, null);
+      continue;
+    }
+    const { data: minted, error: mintErr } = await supabase.rpc(
+      "create_guest",
+      {
+        p_qr_token: event.qr_token,
+        p_display_name: name,
+      },
+    );
+    if (mintErr) fail(`create_guest failed for "${name}": ${mintErr.message}`);
+    console.log(`  guest "${name}": created row ${minted.guest_id}`);
+    sessions.set(name, minted.session_token);
+  }
+  return sessions;
+}
+
+/**
+ * Who uploads the file at `index` (the folder's name order): the host and the named guests take
+ * turns, the host first, so with no guests every file is the host's exactly as before.
+ */
+function uploaderFor(index, names, sessions) {
+  const turn = index % (names.length + 1);
+  if (turn === 0) return { kind: "host", label: "host" };
+  const name = names[turn - 1];
+  return { kind: "guest", label: name, sessionToken: sessions.get(name) };
+}
+
 // --- the seed half (one file = one upload) ----------------------------------
 
 /** Folder -> the files we can upload, in name order (which becomes gallery order, oldest first). */
@@ -586,10 +690,12 @@ async function collectFiles(folder) {
 }
 
 /**
- * One file, all the way through: strip -> measure -> preview -> PUT -> HEAD -> create_media_as_host.
- * Returns a summary row, or null when the item was skipped (with the reason already printed).
+ * One file, all the way through: strip -> measure -> preview -> PUT -> HEAD -> the create RPC
+ * (`create_media_as_host` for the host's files, `create_media` under the guest row's session token
+ * for a guest's). Returns a summary row, or null when the item was skipped (with the reason already
+ * printed).
  */
-async function seedFile(file, { hostId, eventId }) {
+async function seedFile(file, { hostId, eventId, uploader }) {
   const raw = new Uint8Array(await readFile(file.path));
 
   // Step 0, exactly as uploader.ts does it: strip BEFORE anything reads a size, so the size we
@@ -659,7 +765,7 @@ async function seedFile(file, { hostId, eventId }) {
   if (DRY_RUN) {
     await rm(workDir, { recursive: true, force: true });
     console.log(
-      `  would upload ${file.name} (${file.kind}, ${measured ? `${measured.width}x${measured.height} ${orientation}` : "no dims"}, ` +
+      `  would upload ${file.name} as ${uploader.label} (${file.kind}, ${measured ? `${measured.width}x${measured.height} ${orientation}` : "no dims"}, ` +
         `${mb(bytes.length)}${preview ? `, preview ${fmt(preview.bytes.length)} B` : ", no preview"})`,
     );
     return {
@@ -667,6 +773,7 @@ async function seedFile(file, { hostId, eventId }) {
       kind: file.kind,
       orientation,
       bytes: bytes.length,
+      uploader: uploader.label,
     };
   }
 
@@ -717,9 +824,8 @@ async function seedFile(file, { hostId, eventId }) {
   );
   const realSize = Number(head.ContentLength ?? 0);
 
-  const { data, error } = await supabase.rpc("create_media_as_host", {
-    p_host_id: hostId,
-    p_event_id: eventId,
+  // The same measured facts ride either RPC; only WHO writes the row differs.
+  const shared = {
     p_media_id: mediaId,
     p_type: file.kind,
     p_original_key: key,
@@ -728,19 +834,39 @@ async function seedFile(file, { hostId, eventId }) {
     p_duration_seconds: measured?.duration ?? undefined,
     p_width: measured?.width ?? undefined,
     p_height: measured?.height ?? undefined,
-  });
+  };
+  const { data, error } =
+    uploader.kind === "guest"
+      ? await supabase.rpc("create_media", {
+          p_session_token: uploader.sessionToken,
+          ...shared,
+        })
+      : await supabase.rpc("create_media_as_host", {
+          p_host_id: hostId,
+          p_event_id: eventId,
+          ...shared,
+        });
   if (error) {
     // Leave no orphan: the RPC refused (cap, tier, key), so the bytes have no business in R2.
     await deleteKeys([key, previewKey].filter(Boolean));
-    console.error(`  FAILED ${file.name}: ${error.message}`);
+    console.error(
+      `  FAILED ${file.name} (${uploader.label}): ${error.message}`,
+    );
     return null;
   }
 
   console.log(
-    `  ${file.name} -> ${data.status} ${file.kind} ${measured ? `${measured.width}x${measured.height}` : "?"} ` +
+    `  ${file.name} -> ${data?.status ?? "created"} ${file.kind} as ${uploader.label} ` +
+      `${measured ? `${measured.width}x${measured.height}` : "?"} ` +
       `(${mb(realSize)}${preview ? `, preview ${fmt(preview.bytes.length)} B` : ", no preview"})`,
   );
-  return { name: file.name, kind: file.kind, orientation, bytes: realSize };
+  return {
+    name: file.name,
+    kind: file.kind,
+    orientation,
+    bytes: realSize,
+    uploader: uploader.label,
+  };
 }
 
 // --- main -------------------------------------------------------------------
@@ -771,12 +897,31 @@ console.log(`\nFound ${fmt(files.length)} file(s) to seed.\n`);
 
 if (event) await wipeExistingMedia(event.id);
 
+// The guest mode: one name-only row per name, resolved before any file needs a token. A dry run
+// that would CREATE the event has no qr_token to mint against yet, and only plans.
+let guestSessions = new Map();
+if (GUEST_NAMES.length > 0) {
+  console.log(
+    `\nGuests: ${GUEST_NAMES.map((n) => `"${n}"`).join(", ")} (files go host, then each guest, in turn)`,
+  );
+  if (event) {
+    assertGuestReady(event);
+    guestSessions = await resolveGuestSessions(event, GUEST_NAMES);
+  } else {
+    for (const name of GUEST_NAMES) guestSessions.set(name, null);
+  }
+}
+
 console.log("");
 const seeded = [];
-for (const file of files) {
+for (const [index, file] of files.entries()) {
   // event is null only in a dry run that would have CREATED it; seedFile returns before it needs
-  // an id in that case.
-  const row = await seedFile(file, { hostId, eventId: event?.id ?? null });
+  // an id (or a guest's token) in that case.
+  const row = await seedFile(file, {
+    hostId,
+    eventId: event?.id ?? null,
+    uploader: uploaderFor(index, GUEST_NAMES, guestSessions),
+  });
   if (row) seeded.push(row);
 }
 
@@ -785,9 +930,15 @@ const videos = seeded.filter((r) => r.kind === "video").length;
 const orientations = new Set(seeded.map((r) => r.orientation));
 const totalBytes = seeded.reduce((sum, r) => sum + r.bytes, 0);
 
+const byUploader = new Map();
+for (const row of seeded) {
+  byUploader.set(row.uploader, (byUploader.get(row.uploader) ?? 0) + 1);
+}
+
 console.log(`
 Summary ${DRY_RUN ? "(dry-run)" : "(LIVE)"}:
   seeded:       ${fmt(seeded.length)} of ${fmt(files.length)}  (${fmt(photos)} photo, ${fmt(videos)} video)
+  uploaders:    ${[...byUploader].map(([who, n]) => `${who} ${n}`).join(", ") || "none"}
   orientations: ${[...orientations].join(", ") || "none"}
   bytes:        ${mb(totalBytes)}`);
 

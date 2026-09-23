@@ -207,8 +207,8 @@ export function GuestNameStep({
          "join"-mode open on a device that already holds a session but no
          LOCAL name (a row minted before the reshape, or by the queue's own
          silent join) fell into the join branch below and minted a SECOND
-         row for the same person, stranding the first one's photographs under
-         "A guest". A session token means a row already exists to answer for,
+         row for the same person, stranding the first one's photographs with
+         no name. A session token means a row already exists to answer for,
          whichever door raised this step, so it is `renameGuest`'s to try
          first now, regardless of mode.
 

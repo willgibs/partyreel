@@ -68,7 +68,6 @@ export async function toHostGalleryItems({
         isHost: who?.isHost ?? false,
         // The host sees the mark too (`host-lens=badge`): an unproven name reads as one.
         isVerified: who?.isVerified ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
         uploaderEmail: who?.email ?? null,
         likeCount: likeCounts.get(m.id) ?? 0,
         // Quick-add signals (R3), never rendered: recency + per-uploader coverage.

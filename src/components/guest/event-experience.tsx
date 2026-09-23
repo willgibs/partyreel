@@ -54,6 +54,7 @@ import {
   DEFAULT_TILE_SIZE,
   type TileSize,
 } from "@/lib/shared/tile-size-cookie";
+import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
@@ -132,6 +133,7 @@ export function EventExperience({
   isVerified = false,
   hostCard = null,
   initialTileSize,
+  albumFull = false,
 }: {
   event: GuestEvent;
   qrToken: string;
@@ -141,7 +143,8 @@ export function EventExperience({
   galleryPromise: Promise<GalleryPayload>;
   /** Header stats: numbers only, never identities. N goes live via
    *  LiveGallery's onCountChange; M is THE ONE COUNT of guests (getEventGuests,
-   *  the same the host's hub reads; never the host), static per load. */
+   *  the same the host's hub reads; never the host), seeded here and kept
+   *  current by the gallery poll (`onGuestCountChange`). */
   stats: { approvedTotal: number; guestCount: number };
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
@@ -195,6 +198,13 @@ export function EventExperience({
    *  the streaming skeleton, so both lay out one column count; this shell holds
    *  no tile-size state of its own. */
   initialTileSize?: TileSize;
+  /**
+   * The album cannot take another upload (the presign's own caps, read off the
+   * upload gate by the page: `resolveViewerDecision`'s `albumFull`). The gate
+   * FAILS OPEN on a full album, so there a guest's own last removal does not
+   * close it, and the lightbox must not say it does.
+   */
+  albumFull?: boolean;
 }) {
   const router = useRouter();
   // ONE resolution of the size for both boxes the album occupies: the skeleton
@@ -230,8 +240,20 @@ export function EventExperience({
      renders nothing until after hydration, so no server-rendered DOM depends on it. */
   const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
   // The live media count: seeded by the RSC stats, kept current by LiveGallery
-  // (incl. optimistic tiles). M (the guests) stays static per load.
+  // (incl. optimistic tiles). M (the guests) is the SERVER's count, seeded by the
+  // RSC and refreshed by any gallery poll that changed something: a guest's own
+  // first upload makes them one, and only the server can tell a first upload from
+  // a returning contributor's.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
+  const [guestCount, setGuestCount] = useState(stats.guestCount);
+  // A refresh re-renders the page with a fresh server count: adopt it (the sanctioned
+  // adjust-state-during-render pattern, as `contributionSeen` below), so the poll's number and
+  // the render's number can never disagree for longer than one of them takes to arrive.
+  const [seededGuestCount, setSeededGuestCount] = useState(stats.guestCount);
+  if (stats.guestCount !== seededGuestCount) {
+    setSeededGuestCount(stats.guestCount);
+    setGuestCount(stats.guestCount);
+  }
   const uploadRef = useRef<GuestUploadHandle>(null);
 
   /* ────────────────────────────────────────────────────────────────────────
@@ -403,13 +425,24 @@ export function EventExperience({
      still open changes nothing, and the one that finds it shut brings the door back WITH its upload
      step (see `contributionAnswered`).
      ──────────────────────────────────────────────────────────────────────── */
-  const closesOnLastRemoval =
-    !isDemo &&
-    !isOwner &&
-    event.require_upload_to_view &&
-    event.accepting_uploads;
+  // ★ NOT ON A FULL ALBUM: the gate fails open there (a guest must never be held at a step they
+  // cannot pass), so the last removal closes nothing and the confirm says nothing about it.
+  const closesOnLastRemoval = lastRemovalCloses({
+    isDemo,
+    isOwner,
+    requireUpload: event.require_upload_to_view,
+    acceptingUploads: event.accepting_uploads,
+    albumFull,
+  });
+  /* The uploads this visit removed again, by id. The post-upload card counts what is still in the
+     album (a finished queue item whose upload was removed is not "on this album" any more), so the
+     card says "Your 1 photo" after one of two goes, and leaves once none is left. */
+  const [removedIds, setRemovedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const handleOwnRemoved = useCallback(
-    (remaining: number) => {
+    (removedId: string, remaining: number) => {
+      setRemovedIds((prev) => new Set(prev).add(removedId));
       if (!closesOnLastRemoval || remaining > 0) return;
       pendingStricterRef.current = false;
       router.refresh();
@@ -855,11 +888,10 @@ export function EventExperience({
               >
                 {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
                 {" & videos"}
-                {stats.guestCount > 0 && (
+                {guestCount > 0 && (
                   <>
                     {" "}
-                    from {stats.guestCount}{" "}
-                    {stats.guestCount === 1 ? "guest" : "guests"}
+                    from {guestCount} {guestCount === 1 ? "guest" : "guests"}
                   </>
                 )}
               </p>
@@ -1027,6 +1059,7 @@ export function EventExperience({
                     // offer card's door opens on it instead of asking twice.
                     hintEmail={attachedEmail}
                     moment={moment}
+                    removedIds={removedIds}
                   />
                 </div>
               ) : (
@@ -1106,6 +1139,7 @@ export function EventExperience({
                 approvedTotal={stats.approvedTotal}
                 closesOnLastRemoval={closesOnLastRemoval}
                 onOwnRemoved={handleOwnRemoved}
+                onGuestCountChange={setGuestCount}
               />
             </div>
           </Suspense>
@@ -1153,7 +1187,7 @@ export function EventExperience({
               they came to see. */}
           {isDemo && (
             <div className={COLUMN}>
-              <ClosingCard guestCount={stats.guestCount} />
+              <ClosingCard guestCount={guestCount} />
             </div>
           )}
         </>

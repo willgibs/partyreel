@@ -68,8 +68,10 @@ export function EventSettingsForm({
   // the gate is tier-driven and enforced at upload (create_media), not a host switch.
   const videosAllowed = videosAllowedForTier(tier);
 
-  // updateEventSchema is createEventSchema.partial(), so every field is optional; we
-  // still prefill from the row so the controls are controlled from the first render.
+  // updateEventSchema carries every field optional and NO defaults, so a save writes exactly the
+  // fields below, prefilled from the row so the controls are controlled from the first render.
+  // ★ `qr_style` is deliberately NOT here: the QR designer owns it (its own one-field save), and a
+  // form that held it would write it back on every save of an unrelated field.
   const form = useForm<UpdateEventInput, unknown, UpdateEventValues>({
     resolver: zodResolver(updateEventSchema),
     defaultValues: {

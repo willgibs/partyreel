@@ -116,22 +116,36 @@ export async function getApprovedPhotoTeaser(
 export async function getGalleryStats(
   event: Pick<GuestEvent, "id" | "visibility">,
 ): Promise<{ approvedTotal: number; guestCount: number }> {
-  if (event.visibility !== "open" && event.visibility !== "password") {
-    return { approvedTotal: 0, guestCount: 0 };
-  }
+  if (!countsVisible(event)) return { approvedTotal: 0, guestCount: 0 };
   const [total, guests] = await Promise.all([
     createAdminClient()
       .from("media")
       .select("id", { count: "exact", head: true })
       .eq("event_id", event.id)
       .eq("status", "approved"),
-    getEventGuests(event.id),
+    getGuestCount(event),
   ]);
   if (total.error) throw total.error;
-  return {
-    approvedTotal: total.count ?? 0,
-    guestCount: guestCount(guests),
-  };
+  return { approvedTotal: total.count ?? 0, guestCount: guests };
+}
+
+/**
+ * M alone, for the gallery poll (guest-flow.md, "Stats"): the header's guest count moves when a
+ * guest's first upload lands, and only the server can say whether that upload made a NEW guest (a
+ * returning contributor would be counted twice by any client arithmetic). The poll asks for it
+ * after its 304 check, so the steady poll never pays for it. Same visibility posture and the same
+ * ONE COUNT as the header's stats above.
+ */
+export async function getGuestCount(
+  event: Pick<GuestEvent, "id" | "visibility">,
+): Promise<number> {
+  if (!countsVisible(event)) return 0;
+  return guestCount(await getEventGuests(event.id));
+}
+
+/** Counts are for an open or a password event (the entry tease); never a private one. */
+function countsVisible(event: Pick<GuestEvent, "visibility">): boolean {
+  return event.visibility === "open" || event.visibility === "password";
 }
 
 /**
@@ -172,12 +186,22 @@ export async function getHostAvatarSeed(
 }
 
 /**
+ * PostgREST answers at most `max_rows` rows per request (1000 on this project), silently, so a read
+ * that can outgrow one page walks KEYSET pages ordered by id (storage.ts's shape): an offset would
+ * skip a row whenever one is removed mid-read, and the first page asks for the exact count so the
+ * common album (under a thousand items) is ONE round trip. Exported for the paging test.
+ */
+export const IDENTITY_PAGE = 1000;
+
+/**
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
- * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified/isAnonymous onto
- * the client (never email). Two batched reads: the host's name (for host uploads), then all media
- * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().
+ * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
+ * client (never email). The host's name (for host uploads), then every media row with the
+ * uploader's guest + profile, read to exhaustion in keyset pages (an album past a thousand items
+ * would otherwise lose the identities of everything past the first page). The CASE logic is the
+ * pure resolveUploaderIdentity().
  */
 export async function getUploaderIdentities(
   eventId: string,
@@ -204,20 +228,36 @@ export async function getUploaderIdentities(
     hostName = hp?.display_name ?? null;
   }
 
-  // All media for the event with the uploader's guest + linked profile, one batched read.
-  const { data, error } = await admin
-    .from("media")
-    .select(
-      // The identity reshape (20260921150000): display_name + verified_at are what the one
-      // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
-      // column-scoped, QA #41), which is exactly why this read is on the admin client.
-      "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
-    )
-    .eq("event_id", eventId);
-  if (error) throw error;
-
-  const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
+  // Every media row for the event with the uploader's guest + linked profile, in keyset pages. The
+  // loop never trusts a page's length against the page size (PostgREST clamps to its own max_rows,
+  // so a short page is not proof of the last one): it stops at the first page's count or at an
+  // empty page, whichever comes first.
   const map = new Map<string, UploaderIdentity>();
-  for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+  let total: number | null = null;
+  let lastId: string | null = null;
+  for (;;) {
+    let query = admin
+      .from("media")
+      .select(
+        // The identity reshape (20260921150000): display_name + verified_at are what the one
+        // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
+        // column-scoped, QA #41), which is exactly why this read is on the admin client.
+        "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
+        lastId === null ? { count: "exact" } : undefined,
+      )
+      .eq("event_id", eventId)
+      .order("id", { ascending: true })
+      .limit(IDENTITY_PAGE);
+    if (lastId !== null) query = query.gt("id", lastId);
+    const { data, error, count } = await query;
+    if (error) throw error;
+    if (lastId === null) total = count ?? null;
+
+    const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
+    if (rows.length === 0) break;
+    for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+    lastId = rows[rows.length - 1].id;
+    if (total !== null && map.size >= total) break;
+  }
   return map;
 }

@@ -96,8 +96,11 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   → `{approvedTotal, guestCount}`: a head count of approved media, and THE ONE COUNT of guests (`getEventGuests`,
   the same function the host's hub reads, so the album and the hub never say two numbers for one party; never the
   host). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
-  `onCountChange`; M is static per load (a guest's own first upload shows in M on the next load). Threaded from the
-  page RSC, NOT the poll route (ETag semantics untouched).
+  `onCountChange`; M is seeded by the page RSC and kept current by the gallery poll, which carries `guestCount` on
+  a 200 only (read after its 304 check, so the steady poll pays nothing, and never on a locked page) and hands it up
+  through `onGuestCountChange`: a guest's own first upload moves M without a reload, and only the server can tell a
+  first upload from a returning contributor's. It stays outside the ETag: whatever moves M changes the payload the
+  ETag already hashes.
 - **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED
   column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
   never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
@@ -178,8 +181,9 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
   [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to
   open, one extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm
-  door); only a nameless legacy row reads **"A guest"**, and a verified row whose account has no profile name
-  (a deleted account's surviving upload) renders no credit at all.
+  door). A row with no name renders no credit at all, only the counter, never an invented stand-in: a row
+  minted before names were asked (`create_guest` refuses a new one) and a verified row whose account has no
+  profile name (a deleted account's surviving upload).
   [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library
   gallery mounts. ★ The mark carries its OWN door rather than a prop, because the credit sits three modules
   deep under `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one.
@@ -368,7 +372,9 @@ through flags in the sheet. No step counter to desync.
   adding", which refreshes and trusts the decision that comes back, never a local skip (the server would
   still answer `upload`: a loop). The ON line reads "The host has asked everyone to add a photo before the
   album opens." (an empty album: "Nothing here yet. Add the first photo and the album opens.") and names no
-  host, since a long name breaks it. The OFF-state ghost "Skip for now" ("Look around" in the demo) is once
+  host, since a long name breaks it. ★ "The album opens" is the ON door's alone: OFF, the album is already
+  open, so the step says "Add one now, or look around first." (empty: "Nothing here yet. Add the first
+  photo."), and its failure line asks for another file without promising the album. The OFF-state ghost "Skip for now" ("Look around" in the demo) is once
   per pass and never on the failure view; ON there is none, and `computeDoor` ignores `skipped` and
   `returning` so a stale flag cannot open an album.
 - **THE FLIP AND THE DRIFT.** The completion route writes the session cookie on its own response, every
@@ -415,7 +421,10 @@ through flags in the sheet. No step counter to desync.
   intended sharing model: whoever holds the link acts within whatever the configs allow, and a password
   handed round a party is as shared as the party. So a surface may never leak one (no token in an OG tag,
   a log line, a referrer or an analytics row), and the defenses that matter are the ones that survive a
-  leaked link: the config gates, the per-request re-checks, and a host's ability to rotate.
+  leaked link: the config gates (a password, Require verified emails, Require an upload to view, private,
+  uploads closed), the per-request re-checks, and the host's own switches, which shut a leaked link's door
+  without moving it. The link itself never rotates: the `qr_token` is printed on every QR, so it is
+  permanent by design (a custom slug is a mutable alias to it, never a replacement).
 - **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
   admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock cookie) after `/api/guests/unlock`
@@ -450,11 +459,10 @@ through flags in the sheet. No step counter to desync.
 ★ **EVERY UPLOAD CARRIES AN IDENTITY, AND THE HOST'S SWITCH DECIDES WHICH KIND.** It is
 **`events.require_verified_email`**, ON by default: on, a guest confirms an email before the full album and
 any upload; off, a guest types a display name at the door and uploads under it with the unverified mark.
-`allow_anonymous_uploads` survives only as the compatibility twin the `events_sync_verified_email_flags`
-trigger holds exactly opposite (→ [database-security.md](database-security.md)). No new code keys on it, but
-`get_public_profile`'s anonymous-viewer clause still reads it and `get_event_by_qr_token` still returns it
-(→ [profiles-social.md](profiles-social.md)), so dropping it re-points that clause. Only nameless legacy rows
-still read as "A guest".
+It is the one identity switch: its legacy twin `allow_anonymous_uploads` is read and written by no code, and
+the identity contract (`20260923150000_identity_contract.sql`, applied after milestone 27) drops it with its
+trigger (→ [database-security.md](database-security.md)). A nameless row, one minted before names were
+asked, credits nobody.
 
 ★ **THREE LEVELS OF TRUST, AND A ROW IS AT EXACTLY ONE.**
 
@@ -500,7 +508,7 @@ name writes the PROFILE's; the album has no inline name panel, and the shared `S
 
 ★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S.** `EnterEventPrompt.onVerified` is a plain
 callback and `entry-modal.tsx` owns the sequence, because the door holds a name never sent anywhere and the
-order decides whether a guest lands named or as "A guest": claim this browser's anonymous uploads →
+order decides whether a guest lands named or with no name at all: claim this browser's anonymous uploads →
 `joinEvent` (verified and NAMELESS, since `create_guest` nulls a typed name beside a confirmed account) →
 one own-row read of `profiles.display_name` → when null and a name was typed, `updateDisplayNameAction` →
 hold the beat → refresh. **The account's own name wins** over a typed one, and the email step says so above
@@ -512,9 +520,10 @@ the field before they confirm.
   door believes `email_attached` over its own form (a verified-required event and a confirmed session both
   null the field). The ROUTE owns the refusals: 422 `verification_required` (the switch is on and nothing was
   proved), `name_required`, `name_invalid` (over 60, a reserved name, or profanity, checked server-side
-  because the obscenity matcher must never ship to a browser), `email_invalid`. ★ **The DB deliberately
-  still accepts a NAMELESS mint** (a confirmed joiner's row is nameless by design), **so the name
-  requirement is the route's and nothing else's.**
+  because the obscenity matcher must never ship to a browser), `email_invalid`. ★ **The name requirement
+  is the route's first**, and `create_guest` is the belt under it: it refuses a nameless mint by an
+  UNCONFIRMED caller ("Add your name to upload.", which `createGuest` maps to `name_required` ahead of its
+  `verification_required` fallback) and mints a confirmed joiner nameless by design (the identity contract).
 - **Attaching an address afterwards:** `POST /api/guests/email {qr_token, session_token, email | null}`
   over the service-role `set_guest_pending_email` (its own `attach_email` limiter) answers
   `{email_attached}`, never the address. Callers: the door's held-session path and the header menu's Add
@@ -526,13 +535,14 @@ the field before they confirm.
   `user.email_confirmed_at`, and `create_guest` stamps `verified_at` from `auth.users` itself (a proved
   claim stamps it too). The ONE precedence rule ([`uploader-identity.ts`](../../src/lib/media/uploader-identity.ts))
   reads the same way: host → `verified_at` set means the PROFILE's name, verified → else the typed
-  `guests.display_name`, unverified → else "A guest". `isAnonymous` survives narrowed to that last case.
+  `guests.display_name`, unverified → else no name at all (a row minted before names were asked), which
+  credits nobody.
 - **Naming a row afterwards:** `POST /api/guests/name {qr_token, session_token, display_name}` over
   `set_guest_display_name`, for a nameless row or a new name; its own limiter kind (`rename`), tighter than
   `join` and still venue-sized. A VERIFIED guest is refused (403): one row never carries two names. ★ **A
   HELD SESSION TOKEN ALWAYS TRIES RENAME FIRST, WHICHEVER DOOR OPENED IT.** `guest-name-step.tsx` calls
   `renameGuest` whenever a session token is held, so a device with a session but no LOCAL name never mints a
-  SECOND row and strands the first one's photographs under "A guest"; it falls back to `joinEvent` only on
+  SECOND row and strands the first one's photographs with no name; it falls back to `joinEvent` only on
   `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`) or `unauthorized` (a verified row: the
   route, not the component, is the truth).
 - ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries
@@ -655,11 +665,17 @@ the field before they confirm.
   the anonymous list is `POST /api/guests/mine` (`listSessionMediaIds`, the token in the BODY, fetched once
   per mount); both live in [`mutations/guest-media.ts`](../../src/lib/db/mutations/guest-media.ts). It is
   deliberately NOT in the gallery payload or its ETag: that fingerprint is per ACCESS and shared between
-  viewers, this list is per person. The ids reach the grid as `canDelete`, gating the lightbox's Trash per
-  item. A removal marks `removed_by_uploader`, so the host's bin never shows it and `restore_media` refuses
-  it; the purge cron reclaims the bytes on the usual 30-day path. ★ **On a Require-an-upload-to-view album with
-  uploads open, removing your LAST live upload closes the album again** (Own deletes close it), and the confirm
-  says so first: `LiveGallery` hands the lightbox the line through the `DeleteConsequence` context
+  viewers, this list is per person. Between those reads `LiveGallery` adds what this visit completed and drops
+  what this visit removed, on EITHER identity (the completion and the removal are themselves server answers), so
+  a signed-in guest's new photograph has its Trash and mark at once and a removed one stops counting. The ids
+  reach the grid as `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so
+  the host's bin never shows it and `restore_media` refuses it; the purge cron reclaims the bytes after
+  `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm names. The post-upload card counts this visit's
+  uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
+  Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
+  deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second
+  identity-less gate read for a guest who has contributed, and the line stays silent), and the confirm says so
+  first: `LiveGallery` hands the lightbox the line through the `DeleteConsequence` context
   ([`delete-consequence.ts`](../../src/lib/guest/delete-consequence.ts); the lightbox sits under a grid other
   surfaces own, so a prop cannot reach it), counting the guest's own ids plus any held file still waiting. When
   that removal lands, the page refreshes onto the server's answer at once rather than holding the album until the

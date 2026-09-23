@@ -53,10 +53,15 @@ becomes one iteration (a curl of a three-line "URL" returns 0 bytes); pipe into 
   through REAL uploads via the product, never raw DB rows: a `media` row with no R2 object renders broken
   images and poisons later checks.
 - **Reseeding an album from a folder:** `node scripts/seed-demo-event.mjs <folder> [--host <email>]
-  [--name <event>] [--dry-run]` drives that same write path from Node (`mediaObjectKey`, the EXIF
-  strip, a ~640px WebP preview or video poster, an R2-HEAD size, `create_media_as_host`), replaces
-  the event's media on every run, and prints the event's `NEXT_PUBLIC_DEMO_QR_TOKEN`; it defaults to
-  the "Partyreel Demo" event and its host, and needs ffmpeg and ffprobe on PATH.
+  [--name <event>] [--guests "Maya J.,Tom R.,Priya S."] [--dry-run]` drives that same write path from
+  Node (`mediaObjectKey`, the EXIF strip, a ~640px WebP preview or video poster, an R2-HEAD size,
+  `create_media_as_host`), replaces the event's media on every run, and prints the event's
+  `NEXT_PUBLIC_DEMO_QR_TOKEN`; it defaults to the "Partyreel Demo" event and its host, and needs ffmpeg
+  and ffprobe on PATH. `--guests` gives the album guests (the host never counts as one): the folder's
+  files, in name order, go to the host and each named guest in turn, each name through ONE name-only row
+  (`create_guest`, reused by name on every re-run) and its files through `create_media` under that row's
+  session token; it refuses an event that is not name-only, live, open and taking uploads. The demo's
+  own reseed is the Orchestrator's (the demo is shared by partyreel.com and the alias).
 
 ## Chrome MCP blind spots
 

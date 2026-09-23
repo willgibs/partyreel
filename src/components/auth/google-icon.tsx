@@ -1,5 +1,6 @@
 // lucide-react dropped brand glyphs, so the Google "G" is inlined. Shared by every "Continue with
-// Google" affordance (the save-event dialog, the like-to-account dialog) so the SVG lives in ONE place.
+// Google" affordance (the account door in all its wears, the sign-in failure paths) so the SVG lives
+// in ONE place.
 export function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">

@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -132,11 +133,10 @@ function prefersReducedMotion() {
 // ★ EVERY UPLOAD CARRIES A NAME NOW (the identity reshape, 2026-09-21).
 // "Anonymous" and its (i) explainer are gone with the concept: a guest either
 // confirmed an email (their profile name, plain) or typed one at the door (that
-// name, with `UnverifiedMark` beside it). ★ "A GUEST" IS THE LEGACY LABEL, and
-// only that: rows minted before the reshape carry no name at all, and the one
-// thing the album must not do is invent one or leave the credit blank. His to
-// overrule; there is no other row it can ever describe, because nothing minted
-// after the reshape reaches this branch.
+// name, with `UnverifiedMark` beside it). ★ A ROW WITH NO NAME NAMES NOBODY: a
+// row minted before names were asked (the identity contract refuses a new one)
+// and a deleted account's surviving upload both render no credit at all, the
+// counter alone. Never an invented stand-in for a person nobody can vouch for.
 function AttributionPill({
   item,
   viewerIsHost,
@@ -150,14 +150,11 @@ function AttributionPill({
   position: string;
 }) {
   const name = item.uploaderName?.trim() || null;
-  // `isVerified` lands on GridMedia in the identity reshape's server lane; read
-  // structurally so this file is correct on both sides of that merge. Undefined
-  // (a surface that has not been rebuilt, a lab fixture) reads as VERIFIED, so a
-  // name is never marked on a guess.
-  const unverified =
-    (item as { isVerified?: boolean }).isVerified === false && name !== null;
-  const legacy = item.isAnonymous && name === null;
-  const hasAttribution = legacy || item.isHost || name !== null;
+  // Undefined (a surface that passes no identity, a lab fixture) reads as
+  // VERIFIED, so a name is never marked on a guess; only an explicit `false`
+  // beside a real name draws the mark.
+  const unverified = item.isVerified === false && name !== null;
+  const hasAttribution = item.isHost || name !== null;
   const eventName = item.eventName?.trim() || null;
   const eventLabel =
     eventName &&
@@ -184,32 +181,29 @@ function AttributionPill({
           GLASS_MARK_LIT,
         )}
       >
-        {hasAttribution &&
-          (legacy ? (
-            <span>A guest</span>
-          ) : (
-            <>
-              {name && <span>{name}</span>}
-              {unverified && (
-                <span className="pointer-events-auto">
-                  <UnverifiedMark
-                    name={name}
-                    tone="lit"
-                    own={isOwn}
-                    viewerIsHost={viewerIsHost}
-                  />
-                </span>
-              )}
-              {item.isHost && (
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white hover:bg-white/20"
-                >
-                  Host
-                </Badge>
-              )}
-            </>
-          ))}
+        {hasAttribution && (
+          <>
+            {name && <span>{name}</span>}
+            {unverified && (
+              <span className="pointer-events-auto">
+                <UnverifiedMark
+                  name={name}
+                  tone="lit"
+                  own={isOwn}
+                  viewerIsHost={viewerIsHost}
+                />
+              </span>
+            )}
+            {item.isHost && (
+              <Badge
+                variant="secondary"
+                className="bg-white/20 text-white hover:bg-white/20"
+              >
+                Host
+              </Badge>
+            )}
+          </>
+        )}
         {hasAttribution && <span className="text-white/40">·</span>}
         <span className="text-white/70 tabular-nums">{position}</span>
       </span>
@@ -827,8 +821,12 @@ export function MediaLightbox({
                         </button>
                       </ActionTooltip>
                     )}
-                    {/* Personal Uploads delete (unchanged) — never co-occurs with the
-                        host curate group (the host grid sets onRemove, not this). */}
+                    {/* The uploader's OWN delete (the guest album and the personal
+                        Uploads) — never co-occurs with the host curate group (the host
+                        grid sets onRemove, not this). ★ It is final for the host too
+                        (`removed_by_uploader`: never in Deleted, never restorable), so
+                        its words say the window the bytes are held, read off the
+                        constant, and promise no way back. */}
                     {onDeleteCurrent &&
                       (canDelete ? canDelete(current) : true) && (
                         <Dialog>
@@ -851,8 +849,8 @@ export function MediaLightbox({
                               <DialogTitle>Delete this upload?</DialogTitle>
                               <DialogDescription>
                                 It will be removed from the event right away,
-                                and permanently deleted after a short grace
-                                period.
+                                and permanently deleted after{" "}
+                                {RECENTLY_DELETED_WINDOW_DAYS} days.
                                 {deleteConsequence && ` ${deleteConsequence}`}
                               </DialogDescription>
                             </DialogHeader>
@@ -956,9 +954,13 @@ export function MediaLightbox({
                               <DialogHeader>
                                 <DialogTitle>Remove this item?</DialogTitle>
                                 <DialogDescription>
-                                  It disappears from the album right away and is
-                                  permanently deleted after a short grace
-                                  period. Guests won&rsquo;t see it.
+                                  {/* A host's removal is restorable: it waits in
+                                      Deleted (the app's one word for the place)
+                                      for the window, read off the constant. */}
+                                  It disappears from the album right away and
+                                  moves to Deleted, where you can restore it for{" "}
+                                  {RECENTLY_DELETED_WINDOW_DAYS} days. Guests
+                                  won&rsquo;t see it.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>

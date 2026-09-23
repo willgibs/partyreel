@@ -69,6 +69,7 @@ export function GuestUpload({
   host,
   hintEmail,
   moment = false,
+  removedIds,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -107,6 +108,12 @@ export function GuestUpload({
    * return (guest by upload, 2026-09-22).
    */
   moment?: boolean;
+  /**
+   * The media ids this visit's own removals took back out of the album (the
+   * page keeps them). A finished upload that was removed again is not "on this
+   * album" any more, so the slot's count leaves it out.
+   */
+  removedIds?: ReadonlySet<string>;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -163,7 +170,13 @@ export function GuestUpload({
     setFailuresOpen(open);
   };
 
-  const doneCount = items.filter((it) => it.status === "done").length;
+  // What this visit added that is STILL in the album: a finished upload the guest removed again
+  // leaves the count, and the slot unmounts once nothing of theirs from this visit is left (unless
+  // a confirmation's follow moment holds it up on its own).
+  const doneCount = items.filter(
+    (it) =>
+      it.status === "done" && !(it.mediaId && removedIds?.has(it.mediaId)),
+  ).length;
   const holdForApproval = event.moderation_mode === "hold_for_approval";
   const hostName = event.host_display_name ?? "the host";
 

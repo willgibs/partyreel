@@ -44,8 +44,10 @@ export const EVENT = {
  *  rather than a copy of its markup — the confirm-switch decision wraps the
  *  shipped component byte for byte. Values mirror the schema's own defaults
  *  (`validation/event.ts`) so the fixture can never drift from what a real row
- *  looks like. */
-export const HOST_EVENT: HostEvent = {
+ *  looks like. A cast rather than an annotation: the identity contract drops a
+ *  column from the generated row type when it is applied, and this object names
+ *  only the columns that stay, so it stands on both sides of that regeneration. */
+export const HOST_EVENT = {
   id: "11111111-1111-4111-8111-111111111111",
   host_id: "22222222-2222-4222-8222-222222222222",
   name: EVENT.name,
@@ -53,9 +55,8 @@ export const HOST_EVENT: HostEvent = {
   event_date: EVENT.date,
   visibility: "open",
   accepting_uploads: true,
-  allow_anonymous_uploads: false,
-  require_verified_email: true, // the identity reshape's twin (the legacy flag's opposite), patched at wave 0's merge
-  require_upload_to_view: false, // the door ruling's switch (2026-09-21), off by default; patched at its wave 0
+  require_verified_email: true, // the host's identity switch, on by default
+  require_upload_to_view: false, // the door's upload step, off by default
   max_upload_bytes: null,
   moderation_mode: "hold_for_approval",
   qr_style: "classic",
@@ -68,7 +69,7 @@ export const HOST_EVENT: HostEvent = {
   created_at: "2026-08-01T12:00:00.000Z",
   updated_at: "2026-09-18T12:00:00.000Z",
   has_password: false,
-};
+} as HostEvent;
 
 /** width/height pairs the gallery cycles through, so the masonry mixes
  *  portrait, square and landscape the way a real party album does. */
@@ -85,11 +86,15 @@ const RATIOS: readonly [number, number][] = [
   [4, 5],
 ];
 
+/** Who uploads, as the product mints them now: every upload carries a name.
+ *  Two guests confirmed an email (their profile names stand plain) and one typed
+ *  a name at a names-mode door (it wears the unverified mark); a nameless guest
+ *  is a row the product can no longer make, so the fixture draws none. */
 const UPLOADERS = [
-  { key: "host", name: "Mia Calder", isHost: true, isAnonymous: false },
-  { key: "g1", name: "Ruby N.", isHost: false, isAnonymous: false },
-  { key: "g2", name: null, isHost: false, isAnonymous: true },
-  { key: "g3", name: "Theo Calder", isHost: false, isAnonymous: false },
+  { key: "host", name: "Mia Calder", isHost: true, isVerified: true },
+  { key: "g1", name: "Ruby N.", isHost: false, isVerified: true },
+  { key: "g2", name: "Sam O.", isHost: false, isVerified: false },
+  { key: "g3", name: "Theo Calder", isHost: false, isVerified: true },
 ] as const;
 
 function media(
@@ -110,7 +115,7 @@ function media(
     height: h,
     uploaderName: uploader.name,
     isHost: uploader.isHost,
-    isAnonymous: uploader.isAnonymous,
+    isVerified: uploader.isVerified,
     likeCount: i % 5 === 0 ? 3 : i % 3 === 0 ? 1 : 0,
     createdAt: "2026-08-15T18:00:00.000Z",
     uploaderKey: uploader.key,
@@ -123,16 +128,26 @@ export const GALLERY_ITEMS: GridMedia[] = Array.from({ length: 18 }, (_, i) =>
   media(i, { id: `gallery-${i}` }),
 );
 
+/** The guests alone: a host's own upload lands approved and never waits in
+ *  Review, so the queue below draws only these. */
+const GUESTS = UPLOADERS.filter((u) => !u.isHost);
+
 /** The Review queue: pending, a couple flagged as video so the peek/select
- *  grammar has something worth judging before it approves. */
-export const REVIEW_ITEMS: GridMedia[] = Array.from({ length: 7 }, (_, i) =>
-  media(i + 3, {
+ *  grammar has something worth judging before it approves. Every item is a
+ *  GUEST's: the host's own uploads skip moderation, so Review never holds one. */
+export const REVIEW_ITEMS: GridMedia[] = Array.from({ length: 7 }, (_, i) => {
+  const guest = GUESTS[i % GUESTS.length];
+  return media(i + 3, {
     id: `review-${i}`,
     status: "pending",
     type: i === 2 ? "video" : "photo",
     likeCount: undefined,
-  }),
-);
+    uploaderName: guest.name,
+    isHost: false,
+    isVerified: guest.isVerified,
+    uploaderKey: guest.key,
+  });
+});
 
 /** The "Recently deleted" bin: a countdown per item, no downloadUrl (the bin
  *  never offers the original file). */

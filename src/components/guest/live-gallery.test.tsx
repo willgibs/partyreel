@@ -124,18 +124,27 @@ function pollResponse({
   items = [],
   teaserTotal = null,
   etag = "etag-2",
+  guestCount,
 }: {
   access: GalleryAccess;
   gate?: string | null;
   items?: GridMedia[];
   teaserTotal?: number | null;
   etag?: string;
+  guestCount?: number;
 }) {
   return {
     status: 200,
     ok: true,
     headers: { get: (name: string) => (name.toLowerCase() === "etag" ? etag : null) },
-    json: async () => ({ ok: true, items, access, gate, teaserTotal }),
+    json: async () => ({
+      ok: true,
+      items,
+      access,
+      gate,
+      teaserTotal,
+      ...(guestCount === undefined ? {} : { guestCount }),
+    }),
   };
 }
 
@@ -532,5 +541,105 @@ describe("LiveGallery: a stricter drift never yanks an open album (DEFECT 1)", (
         (i) => i.id,
       ),
     ).toEqual(["m3"]);
+  });
+});
+
+/* ── THIS VISIT'S OWN ADDS AND REMOVALS, ON EITHER IDENTITY (guest-followons,
+   2026-09-23). The server lists arrive once a render (`canDeleteIds`) or once a
+   mount (`/api/guests/mine`), so between them the gallery itself has to know
+   what this device just added and just removed: a signed-in guest's new
+   photograph had no Trash and no mark, and a removed one still counted toward
+   "your last upload", so the last-removal warning and the page's refresh read
+   one upload too many. ── */
+
+const { removeMyUploadGuestAction } = await import(
+  "@/app/(guest)/e/[token]/actions"
+);
+
+type MasonryProps = {
+  items: GridMedia[];
+  canDelete?: (item: GridMedia) => boolean;
+  onDeleteItem?: (id: string) => void;
+  mineIds?: ReadonlySet<string>;
+};
+const lastMasonry = () =>
+  guestMasonrySpy.mock.calls.at(-1)![0] as MasonryProps;
+
+describe("LiveGallery: a visit's own adds and removals, on either identity", () => {
+  it("a signed-in guest's new photograph is theirs the moment it lands (Trash and mark)", async () => {
+    const ref = createRef<LiveGalleryHandle>();
+    await mount({ ref, isAuthed: true, canDeleteIds: [] });
+    await act(async () => {
+      ref.current!.notifyUploaded({
+        mediaId: "m9",
+        queueId: "q1",
+        file: new File(["x"], "x.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "approved",
+      });
+    });
+    const props = lastMasonry();
+    expect(props.canDelete?.(makeItem("m9"))).toBe(true);
+    expect(props.mineIds?.has("m9")).toBe(true);
+    expect(props.canDelete?.(makeItem("m2"))).toBe(false);
+  });
+
+  it("passes each removed id up, and a removal leaves the count on a signed-in guest too", async () => {
+    vi.mocked(removeMyUploadGuestAction).mockResolvedValue({ ok: true });
+    const onOwnRemoved = vi.fn();
+    await mount({
+      isAuthed: true,
+      canDeleteIds: ["m1", "m2"],
+      closesOnLastRemoval: true,
+      onOwnRemoved,
+    });
+    await act(async () => {
+      lastMasonry().onDeleteItem?.("m1");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(onOwnRemoved).toHaveBeenLastCalledWith("m1", 1);
+    // The RSC's list still names m1 (nothing re-rendered the page), and the gallery knows better.
+    expect(lastMasonry().canDelete?.(makeItem("m1"))).toBe(false);
+    await act(async () => {
+      lastMasonry().onDeleteItem?.("m2");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    // The LAST one: nothing of theirs is left, which is what closes a require-upload album.
+    expect(onOwnRemoved).toHaveBeenLastCalledWith("m2", 0);
+  });
+});
+
+describe("LiveGallery: the header's guest count comes from the server", () => {
+  it("reports the poll's guest count, and only from a poll that carried one", async () => {
+    const onGuestCountChange = vi.fn();
+    await mount({ onGuestCountChange });
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({ access: "full", items: [makeItem("m1")] }),
+    );
+    await poll();
+    expect(onGuestCountChange).not.toHaveBeenCalled();
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "full",
+        items: [makeItem("m1"), makeItem("m3")],
+        etag: "etag-3",
+        guestCount: 5,
+      }),
+    );
+    await poll();
+    expect(onGuestCountChange).toHaveBeenCalledWith(5);
+  });
+
+  it("a 304 changes nothing", async () => {
+    const onGuestCountChange = vi.fn();
+    await mount({ onGuestCountChange });
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      status: 304,
+      ok: false,
+      headers: { get: () => null },
+      json: async () => ({}),
+    });
+    await poll();
+    expect(onGuestCountChange).not.toHaveBeenCalled();
   });
 });

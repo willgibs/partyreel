@@ -14,7 +14,8 @@
  *   3. The newly locked columns are never granted to `authenticated`, and the two revokes drop the
  *      TABLE grant before re-granting columns (a column revoke is a silent no-op otherwise).
  *   4. restore_media refuses operator takedowns and lands on the PRIOR status.
- *   5. The two anon READ RPCs keep their new redactions.
+ *   5. The two anon READ RPCs' redactions as this file wrote them (each is re-pinned latest-wins
+ *      where its winning body lives: db/migration-guards.test.ts, social/public-profile-visibility.test.ts).
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -210,15 +211,18 @@ describe("grant contractions (QA #23 + #41)", () => {
 });
 
 describe("anon read redactions (QA #36 + #40)", () => {
-  it("get_public_profile mirrors the album's account-required gate", () => {
+  it("this file's get_public_profile wrote QA #36 as its first clause, within the consent scope", () => {
+    // What this file holds, and nothing more: the Q3 body gated the attended arm on a signed-in
+    // viewer for an account-required album. That clause was written on the legacy
+    // `allow_anonymous_uploads` flag, which the identity contract (20260923150000) dropped; the
+    // WINNING body carries QA #36 in its confirmed-viewer gate instead, pinned latest-wins in
+    // src/lib/social/public-profile-visibility.test.ts, which is where a regression would show.
     const body = fn("get_public_profile");
     expect(body).toContain(
       "and (e.allow_anonymous_uploads or (select auth.uid()) is not null)",
     );
-    // The pre-existing consent scope must survive the replacement.
     expect(body).toContain("e.show_guest_list");
     expect(body).toContain("e.visibility = 'open'");
-    expect(body).toContain("profile_hidden_events");
   });
 
   it("get_event_by_qr_token redacts metadata for a non-owner of a gated event", () => {

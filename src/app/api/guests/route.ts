@@ -28,9 +28,9 @@ import {
 //
 // ★ THE IDENTITY RESHAPE (Will, 2026-09-21): every join now carries an identity, and which one is
 // the host's switch. `require_verified_email` ON: nothing but a CONFIRMED session passes. OFF: the
-// guest types a display name at the door and joins unverified under it. The DB deliberately still
-// accepts a NAMELESS mint (wave 0 kept production alive through the deploy window), so the name
-// requirement is THIS ROUTE'S 422 and nothing else's.
+// guest types a display name at the door and joins unverified under it. The name requirement is
+// THIS ROUTE'S 422 first (with the profanity check, which SQL cannot own); `create_guest` refuses a
+// nameless unconfirmed mint too ("Add your name to upload."), the belt under it.
 //
 // ★ AND THE OPTIONAL ADDRESS UNDER IT (the guest identity round, Will 2026-09-22): on a names-mode
 // door the guest may also type an email. It is stored UNPROVED in `guests.pending_email` and is
@@ -212,6 +212,7 @@ export async function POST(request: Request) {
       result.code === "not_found"
         ? 404
         : result.code === "verification_required" ||
+            result.code === "name_required" ||
             result.code === "name_invalid" ||
             result.code === "email_invalid"
           ? 422

@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 // Email-safety invariant (Phase 2): uploader EMAIL is host-gallery-only. Every GUEST-facing
 // GridMedia is built by toGridItems (the SSR page, the live-poll route, and the password-unlock
-// path all funnel through it), which copies ONLY name/isHost/isVerified/isAnonymous off the
-// identities map and NEVER the email. This standing guard fails if a future edit ever assigns an
+// path all funnel through it), which copies ONLY name/isHost/isVerified off the identities map
+// and NEVER the email. This standing guard fails if a future edit ever assigns an
 // email there, so a guest payload can never carry an uploader's email. (The host dashboard builds
 // its own items with email, separately, in lib/event/gallery-items.ts.)
 //
@@ -45,14 +45,14 @@ describe("email-safety: the guest-facing GridMedia builder never carries email",
     }
   });
 
-  it("the guest payload names exactly four identity fields, and none of them is an address", () => {
-    // The allow-list, read back off the source: if a fifth ever appears it should be a deliberate
+  it("the guest payload names exactly three identity fields, and none of them is an address", () => {
+    // The allow-list, read back off the source: if a fourth ever appears it should be a deliberate
     // edit here, not a silent one there.
     const assigned = [...src.matchAll(/(\w+): who\?\.(\w+)/g)].map(
       ([, key]) => key,
     );
     expect(new Set(assigned)).toEqual(
-      new Set(["uploaderName", "isHost", "isVerified", "isAnonymous"]),
+      new Set(["uploaderName", "isHost", "isVerified"]),
     );
   });
 });

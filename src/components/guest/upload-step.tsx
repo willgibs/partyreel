@@ -190,7 +190,7 @@ export function UploadStep({
           {!stuck && (
             <p className="mt-2 text-base leading-relaxed text-muted-foreground">
               {verdict === "choose"
-                ? "Pick something else and the album opens."
+                ? uploadStepChooseAgain(requireUpload)
                 : "Give it one more go."}
             </p>
           )}
@@ -272,6 +272,10 @@ export function UploadStep({
 /**
  * The step's one sentence, which is the whole difference between the two switch states.
  *
+ * ★ "THE ALBUM OPENS" BELONGS TO THE REQUIRE-UPLOAD DOOR ALONE. With the switch OFF the album is
+ * already open (the step is a nudge with a skip under it), so a line promising it opens would be a
+ * small lie told at the door; OFF says what is true instead: add one now, or look first.
+ *
  * ★ THE HOST GOES UNNAMED HERE (Will, 2026-09-21, "the door's first look", overruling a
  * `door-steps` call that named the host: "Instead of naming the host in the 'XYZ has asked...',
  * let's simply say 'The host has asked...' to account for long host names breaking good design.").
@@ -287,11 +291,20 @@ export function uploadStepReason(input: {
   if (input.isDemo) {
     return "Add a photo the way a guest would. Nothing you add is saved.";
   }
-  if (input.albumEmpty) {
-    return "Nothing here yet. Add the first photo and the album opens.";
-  }
   if (input.requireUpload) {
-    return "The host has asked everyone to add a photo before the album opens.";
+    return input.albumEmpty
+      ? "Nothing here yet. Add the first photo and the album opens."
+      : "The host has asked everyone to add a photo before the album opens.";
   }
-  return "Add one now and the album opens.";
+  return input.albumEmpty
+    ? "Nothing here yet. Add the first photo."
+    : "Add one now, or look around first.";
+}
+
+/** The failure view's line when only a different file can help: the album-opens promise is the
+ *  require-upload door's alone, as above. */
+export function uploadStepChooseAgain(requireUpload: boolean): string {
+  return requireUpload
+    ? "Pick something else and the album opens."
+    : "Pick something else to add.";
 }

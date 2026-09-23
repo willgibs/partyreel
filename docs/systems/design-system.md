@@ -1013,12 +1013,10 @@ REEL REVEAL grammar's `--tune-rvl-*` / `--tune-rxp-*` set. The reveal's beats an
 reorder are ratified and off the tuner panel; a retune moves the CSS default, the CSS fallback and any
 JS fallback (`src/components/reel/reveal-constants.ts`) together.
 
-**The contextual floating action bar**
-([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx)) has no
-importer (the hub replaced the stacked feed it served). Its pattern stands for any long scroll that needs a
-section-aware action in reach: one fixed-bottom surface following a scroll-spy (`useActiveSection`) and
-morphing its action through the same `[data-section-swap]` crossfade, and a section with nothing to act on
-shows no bar (never a disabled placeholder).
+**The contextual floating action bar** (no surface wears one today): the pattern for any long scroll that
+needs a section-aware action in reach is one fixed-bottom surface following a scroll-spy (`useActiveSection`)
+and morphing its action through the same `[data-section-swap]` crossfade, and a section with nothing to act
+on shows no bar (never a disabled placeholder).
 
 **Multi-select primitives** (Review triage and the Gallery album bulk-select). `useSelection(ids)`
 ([`event-feed/use-selection.ts`](../../src/components/app/event-feed/use-selection.ts)) is the pure

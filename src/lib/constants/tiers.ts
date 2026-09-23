@@ -293,10 +293,10 @@ export function annualPlanFor(id: PlanId): Plan | null {
  * pro + event_pass — all have them.) Note: locked only blocks CREATE/CHANGE; a downgraded host
  * keeps the existing artifact and can still REMOVE it (see EventPasswordControl / clear_event_slug).
  *
- * NOTE: "Require accounts to upload" (`allow_anonymous_uploads`) was previously gated here but is now
- * FREE for any tier and DEFAULT-ON (safety + guest-email capture grows the platform; anon uploads
- * capture no emails, so free events seeded no new account-holders). It's an opt-in-anon toggle now,
- * not a Pro feature.
+ * NOTE: the door's safety switches are FREE on every tier and never belong here: Require verified
+ * emails (`require_verified_email`, on by default: a confirmed address is a guest the host can
+ * identify, and one who can keep what they add) and Require an upload to view
+ * (`require_upload_to_view`). Safety behind a paywall is the trade this list refuses.
  */
 export const GATED_EVENT_SETTINGS = ["password", "custom_slug"] as const;
 export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];

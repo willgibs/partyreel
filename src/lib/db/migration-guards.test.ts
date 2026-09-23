@@ -16,10 +16,10 @@
  *      body must re-assert the grant explicitly (the MCP anon-grant landmine cuts both ways).
  *   4. The identity reshape (2026-09-21, migration 20260921150000): anonymity left the product, so
  *      every one of its load-bearing SQL facts is pinned here rather than in the file that happens
- *      to hold it today — the twin-keeper trigger, create_guest's verified-email refusal and its
- *      nulled name, create_media's post-flip refusal AND the exact wording that keeps the SHIPPED
- *      mapCheckViolation correct, get_upload_context's two new keys, set_guest_display_name's
- *      posture, and the display-name cap's parity with DISPLAY_NAME_MAX_LENGTH.
+ *      to hold it today — create_guest's verified-email refusal and its nulled name, create_media's
+ *      post-flip refusal AND the wording mapCheckViolation splits on, get_upload_context's two new
+ *      keys, set_guest_display_name's posture, and the display-name cap's parity with
+ *      DISPLAY_NAME_MAX_LENGTH.
  *   5. get_event_by_qr_token's QA #40 redaction, which until now was pinned to the FILE that added
  *      it (escalation-guards.test.ts). The reshape drops and recreates that function, which is
  *      exactly the drift a file-pinned guard cannot see — so it gets a latest-wins guard too.
@@ -42,6 +42,11 @@
  *      guest's OWN deletes (never on a host's removal), a profile's attended line follows the album's
  *      Require an upload to view, the claim card and Claim all skip a row with no live upload, the
  *      token claim's count is the claimed rows that carry one, and the save objects are dropped.
+ *  11. The identity contract (migration 20260923150000): the legacy `allow_anonymous_uploads` column,
+ *      its twin-keeper trigger and the trigger's function are dropped and never recreated, and no
+ *      executable SQL after the drop names the column; get_event_by_qr_token returns the two door
+ *      switches and no legacy key; create_guest refuses a nameless mint by an unconfirmed caller in
+ *      its own words, which the app maps ahead of its verification fallback.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -268,31 +273,61 @@ describe("QA #18 — get_upload_context feeds the route lock re-check", () => {
   });
 });
 
-describe("the identity reshape — the host's switch and its legacy twin", () => {
-  // `require_verified_email` lands BESIDE `allow_anonymous_uploads` rather than replacing it, so
-  // the build already in production keeps reading a truthful flag through the deploy window. The
-  // trigger is what makes that true, and get_public_profile's QA #36 attended-arm clause still
-  // reads the legacy column — drop the trigger and that clause silently goes stale.
-  it("keeps the two flags opposite in both directions", () => {
-    const { body } = latestDefinition("sync_event_verified_email_flags");
-    expect(body).toContain(
-      "new.require_verified_email := not new.allow_anonymous_uploads;",
-    );
-    expect(body).toContain(
-      "new.allow_anonymous_uploads := not new.require_verified_email;",
-    );
+describe("the identity contract — the legacy twin is gone and stays gone", () => {
+  // `require_verified_email` is the host's one identity switch. Its legacy twin,
+  // `events.allow_anonymous_uploads`, and the trigger that held the two opposite are dropped by
+  // 20260923150000, functions first (every body that read the column is replaced before the column
+  // goes), trigger before its function. ★ `latestDefinition` finds only `create` statements, so a
+  // dropped object's old pins would stay green while false: what is pinned here is the DROP, and
+  // that nothing later in the set brings any of it back (the save objects' pattern, at the foot).
+  const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+  const drops = [
+    "create or replace function public.get_public_profile(",
+    "drop function public.get_event_by_qr_token(text);",
+    "drop trigger events_sync_verified_email_flags on public.events;",
+    "drop function public.sync_event_verified_email_flags();",
+    "alter table public.events drop column allow_anonymous_uploads;",
+  ].map((statement) => sql.lastIndexOf(statement));
+
+  it("drops the trigger, then its function, then the column, after replacing every reader", () => {
+    expect(drops.every((at) => at > -1)).toBe(true);
+    expect([...drops].sort((a, b) => a - b)).toEqual(drops);
   });
 
-  it("stays off the RPC surface (trigger-only, NEITHER advisor list)", () => {
-    expect(latestDefinition("sync_event_verified_email_flags").file).toContain(
-      "revoke execute on function public.sync_event_verified_email_flags() from public, anon, authenticated;",
-    );
+  it("nothing later in the set recreates the trigger, its function or the column", () => {
+    const after = sql.slice(Math.max(...drops));
+    for (const revival of [
+      /create (or replace )?trigger events_sync_verified_email_flags\b/,
+      /create (or replace )?function public\.sync_event_verified_email_flags\(/,
+      /add column (if not exists )?allow_anonymous_uploads\b/,
+    ]) {
+      expect(after).not.toMatch(revival);
+    }
   });
 
-  it("fires BEFORE insert or update on events", () => {
-    expect(collapse(allMigrations())).toContain(
-      "create or replace trigger events_sync_verified_email_flags before insert or update on public.events for each row execute function public.sync_event_verified_email_flags();",
+  it("no executable SQL after the drop names the legacy column", () => {
+    // A body that still read it would pass every create and fail at its first call.
+    const at = sql.lastIndexOf(
+      "alter table public.events drop column allow_anonymous_uploads;",
     );
+    const after = sql.slice(
+      at +
+        "alter table public.events drop column allow_anonymous_uploads;".length,
+    );
+    expect(after).not.toContain("allow_anonymous_uploads");
+  });
+
+  it("the winning bodies that read events name only the new switch", () => {
+    for (const name of [
+      "get_public_profile",
+      "get_event_by_qr_token",
+      "create_guest",
+    ]) {
+      expect(
+        latestDefinition(name).body.replace(/--[^\n]*/g, ""),
+        name,
+      ).not.toContain("allow_anonymous_uploads");
+    }
   });
 });
 
@@ -326,11 +361,40 @@ describe("the identity reshape — create_guest mints an identity", () => {
     );
   });
 
-  it("still mints without a name (the deployed build passes none)", () => {
-    // An expand migration production survives: the shipped /api/guests sends three arguments and
-    // no name at all. A required name here would 422 every anonymous upload until wave 1 deploys.
+  it("refuses a nameless mint by an unconfirmed caller, in its own words, before the insert", () => {
+    // The identity contract: every unconfirmed row carries a name. After the name is normalised and
+    // a confirmed caller's is nulled, and before the row is written.
+    const body = collapse(
+      latestDefinition("create_guest").body.replace(/--[^\n]*/g, ""),
+    );
+    const raise = body.indexOf(
+      "if v_name is null and v_confirmed is null then raise exception 'Add your name to upload.' using errcode = 'check_violation'; end if;",
+    );
+    expect(raise).toBeGreaterThan(
+      body.indexOf("if v_confirmed is not null then v_name := null; end if;"),
+    );
+    expect(raise).toBeLessThan(body.indexOf("insert into public.guests"));
+  });
+
+  it("still mints a CONFIRMED caller nameless (the profile's name is its identity)", () => {
+    // Never an unconditional name requirement: a verified row is nameless by design.
     expect(collapse(latestDefinition("create_guest").body)).not.toContain(
       "if v_name is null then raise",
+    );
+  });
+
+  it("the app maps the nameless refusal to name_required ahead of its verification fallback", () => {
+    // createGuest's last check_violation arm reads ANY unknown refusal as verification_required,
+    // so a refusal it does not name first would send a nameless guest to the email step.
+    const mutation = collapse(
+      readFileSync(join(ROOT, "src/lib/db/mutations/guest.ts"), "utf8"),
+    );
+    const named = mutation.indexOf(
+      'if (m.includes("add your name")) { return { ok: false, code: "name_required", message: error.message }; }',
+    );
+    expect(named).toBeGreaterThan(-1);
+    expect(named).toBeLessThan(
+      mutation.indexOf('code: "verification_required", message: error.message'),
     );
   });
 });
@@ -342,23 +406,24 @@ describe("the identity reshape — create_media gates the upload, not only the j
     );
   });
 
-  it("words that refusal so the SHIPPED error mapping still reads uploads_closed", () => {
-    // The coupling is real and invisible: mapCheckViolation matches the substring "not accepting"
-    // FIRST, so this wording is what stops the deployed build showing "Couldn't save the upload"
-    // for a refusal it understands perfectly well. Reword one side and this fails.
+  it("words the two refusals so mapCheckViolation splits them apart", () => {
+    // The coupling is real and invisible: the identity refusal ALSO reads "not accepting", so
+    // mapCheckViolation must test "verified email" ABOVE the general "not accepting" branch or the
+    // identity refusal disappears into uploads_closed. Reword one side and this fails.
     const body = latestDefinition("create_media").body;
     expect(body).toContain(
       "This event is not accepting uploads without a verified email.",
     );
     expect(body).toContain("This event is not accepting uploads.");
-    const mutation = readFileSync(
-      join(ROOT, "src/lib/db/mutations/guest.ts"),
-      "utf8",
+    const mutation = collapse(
+      readFileSync(join(ROOT, "src/lib/db/mutations/guest.ts"), "utf8"),
     );
-    expect(mutation).toContain('m.includes("not accepting")');
-    expect(collapse(mutation)).toContain(
+    const identity = mutation.indexOf('if (m.includes("verified email"))');
+    const closed = mutation.indexOf(
       'if (m.includes("not accepting") || m.includes("no longer exists")) { return { ok: false, code: "uploads_closed",',
     );
+    expect(identity).toBeGreaterThan(-1);
+    expect(closed).toBeGreaterThan(identity);
   });
 });
 
@@ -424,16 +489,17 @@ describe("QA #40 — get_event_by_qr_token's redaction survives a drop + create"
     );
   });
 
-  it("returns BOTH identity flags, neither of them redacted", () => {
-    // The lock screen and the entry sheet must render the right refusal, and the deployed build
-    // still reads the legacy one. Redacting either would break a page the RPC exists to back.
+  it("returns both door switches unredacted, and no legacy flag", () => {
+    // The lock screen and the entry sheet must render the right refusal: redacting a switch would
+    // break a page the RPC exists to back. The legacy twin left with its column.
     const body = collapse(latestDefinition("get_event_by_qr_token").body);
     expect(body).toContain(
-      "e.accepting_uploads, e.allow_anonymous_uploads, e.require_verified_email,",
+      "e.accepting_uploads, e.require_verified_email, e.require_upload_to_view,",
     );
     expect(body).toContain(
-      "allow_anonymous_uploads boolean, require_verified_email boolean,",
+      "accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean,",
     );
+    expect(body).not.toContain("allow_anonymous_uploads");
   });
 
   it("re-asserts the anon EXECUTE grant its drop took away (0028)", () => {
@@ -450,8 +516,8 @@ describe("claim_anonymous_uploads writes email ONLY on the confirmed arm", () =>
   // a guest row came from its own mint. It no longer does: a CONFIRMED caller presenting the
   // session token holds the device that made the upload AND has proved an address — strictly more
   // proof than claim_guest_rows_by_email asks for — so this is the one legitimate path from a typed
-  // address to a confirmed one. What must NOT drift is the split: the unconfirmed arm still stamps
-  // user_id and nothing else, which is what keeps the deployed build's sign-in correct.
+  // address to a confirmed one. What must NOT drift is the split: the unconfirmed arm stamps user_id
+  // and nothing else, so an unconfirmed sign-in never claims an address it has not proved.
   const body = collapse(latestDefinition("claim_anonymous_uploads").body);
   const updates = body
     .split("update public.guests")
@@ -473,7 +539,7 @@ describe("claim_anonymous_uploads writes email ONLY on the confirmed arm", () =>
     expect(confirmed).toContain("user_id is null");
   });
 
-  it("the unconfirmed arm is unchanged: user_id and nothing else", () => {
+  it("the unconfirmed arm stamps user_id and nothing else", () => {
     const unconfirmed = updates[1];
     expect(unconfirmed).toContain("set user_id = v_uid");
     expect(unconfirmed).not.toContain("email");
@@ -837,8 +903,8 @@ describe("the identity SQL gaps — only a confirmed address reaches guests.emai
   });
 
   it("★ the host's guests SELECT (replayed across the set) never carries email again", () => {
-    // Every guests read on both deployed codebases runs on the service-role admin client, so the
-    // host's PostgREST view narrowed to what nothing sensitive rides on (and, since the grant
+    // Every guests read runs on the service-role admin client or a SECURITY DEFINER function, so
+    // the host's PostgREST view narrowed to what nothing sensitive rides on (and, since the grant
     // tidy, to nothing at all).
     expect(hostSelects("email")).toBe(false);
   });
@@ -925,8 +991,8 @@ describe("the identity SQL gaps — the attended arm applies the album's own gat
 
 describe("the guests grant tidy: no client reads guests, and a capture lands only on its own account's row", () => {
   // Migration 20260922213000. The host's last PostgREST view of `guests`, `(id, event_id, user_id,
-  // created_at)`, had no reader on either deployed codebase (every read is the service-role client
-  // or a SECURITY DEFINER function), so the SELECT and its row filter went. And capture_guest_email,
+  // created_at)`, had no reader (every read is the service-role client or a SECURITY DEFINER
+  // function), so the SELECT and its row filter went. And capture_guest_email,
   // which filled an EMPTY `guests.email` on whatever row the session token named, now fills it only
   // on a row whose own account is the confirmed owner of that address: on a shared phone the token
   // names the last joiner's row, and a VERIFIED row with no address printed the stranger's address
@@ -949,8 +1015,9 @@ describe("the guests grant tidy: no client reads guests, and a capture lands onl
     latestDefinition("capture_guest_email").body.replace(/--[^\n]*/g, ""),
   );
 
-  it("keeps the signature both deployed routes call by argument name", () => {
-    // PostgREST resolves an RPC by its argument NAMES, and main's route calls it as it is today.
+  it("keeps the signature its route calls by argument name", () => {
+    // PostgREST resolves an RPC by its argument NAMES, and /api/guests/capture-email calls it by
+    // these.
     expect(capture).toContain(
       "create or replace function public.capture_guest_email( p_session_token text, p_email text, p_newsletter_opt_in boolean default false ) returns jsonb",
     );

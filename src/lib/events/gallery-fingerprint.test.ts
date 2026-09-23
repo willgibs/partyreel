@@ -8,7 +8,6 @@ const item = (over: Partial<GalleryFingerprintItem> = {}): GalleryFingerprintIte
   uploaderName: "Alice",
   isHost: false,
   isVerified: true,
-  isAnonymous: false,
   ...over,
 });
 
@@ -23,7 +22,6 @@ const base = {
       id: "m2",
       uploaderName: null,
       isVerified: false,
-      isAnonymous: true,
     }),
   ],
 };
@@ -32,10 +30,9 @@ describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    // g3 since the door round (2026-09-21): the gate joined the tuple at g2 -> g3, as isVerified
-    // had at g1 -> g2, so a client holding an older ETag must re-pull rather than 304 past a
-    // change it cannot see.
-    expect(a).toMatch(/^"g3-[A-Za-z0-9_-]{27}"$/);
+    // g4 since the identity contract: the item tuple lost the retired nameless-legacy flag, and a
+    // client holding an older ETag must re-pull rather than 304 past a change it cannot see.
+    expect(a).toMatch(/^"g4-[A-Za-z0-9_-]{27}"$/);
   });
 
   it("changes with item order, membership, and every identity field", () => {
@@ -47,9 +44,6 @@ describe("galleryEtag", () => {
     ).not.toBe(a);
     expect(
       galleryEtag({ ...base, items: [item({ isHost: true }), base.items[1]] }),
-    ).not.toBe(a);
-    expect(
-      galleryEtag({ ...base, items: [item({ isAnonymous: true }), base.items[1]] }),
     ).not.toBe(a);
     // The mark is viewer-visible content: a guest who proves an email later must not be served a
     // 304 that keeps the mark on screen.

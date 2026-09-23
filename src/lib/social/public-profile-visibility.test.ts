@@ -26,11 +26,12 @@
  * host publishing their OWN event link (link-in-bio; discovery decoupled from
  * access), and a gated event still hits its lock at /e/. Don't "fix" that arm.
  *
- * ★ The identity reshape (2026-09-21) did NOT replace this function, and the attended arm's
- * account-required clause still names `allow_anonymous_uploads`. That stays correct only because
- * the events_sync_verified_email_flags trigger keeps the legacy flag exactly opposite to the new
- * `require_verified_email` switch, so the last test below pins the two together: whoever finally
- * drops the legacy column must re-point this clause in the same change.
+ * ★ QA #36 lives in the album's own gate now. Its first clause ("an account-required album hides
+ * its attendance from an anonymous viewer") was written on the legacy `allow_anonymous_uploads`
+ * flag; the identity contract (20260923150000) dropped that flag and the clause with it, because the
+ * confirmed-viewer gate beside it already says more: on a Require-verified-emails event, only the
+ * host or a CONFIRMED viewer, and an anonymous viewer has no uid to be either. The pins below hold
+ * the gate, and that the legacy flag is named nowhere in the arm.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -91,13 +92,13 @@ describe("get_public_profile consent scope (migration SQL)", () => {
   const attended = arm(body, "attended_events");
   const hosted = arm(body, "hosted_events");
 
-  it("the attended arm keeps every gate: host key, open-only, hides, approved media", () => {
+  it("the attended arm keeps every gate: host key, open-only, the album's own gate, approved media", () => {
     expect(attended).toContain("e.show_guest_list");
-    // QA #36 (20260729180000): an open but account-required album hides its guest list
-    // from an anonymous viewer, so the reverse surface must too. 20260919120000 dropped
-    // this clause once; this line is what stops it happening twice.
-    expect(attended).toContain(
-      "(e.allow_anonymous_uploads or (select auth.uid()) is not null)",
+    // QA #36: an open album that requires a verified email hides its guest list from anyone
+    // without a CONFIRMED email (and so from an anonymous viewer, who has no uid), so the reverse
+    // surface must too. A replacement that drops this gate re-publishes that attendance.
+    expect(code(attended).replace(/\s+/g, " ")).toContain(
+      "and ( not e.require_verified_email or e.host_id = (select auth.uid()) or exists ( select 1 from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null ) )",
     );
     expect(attended).toContain("e.visibility = 'open'");
     expect(attended).toContain("e.deleted_at is null");
@@ -145,20 +146,22 @@ describe("get_public_profile consent scope (migration SQL)", () => {
     expect(hosted).not.toContain("e.visibility = 'open'");
   });
 
-  it("the legacy flag it reads is kept truthful by the twin-keeper trigger", () => {
-    // The attended arm's account-required clause names allow_anonymous_uploads, which the identity
-    // reshape demoted to a compatibility twin. If this trigger ever goes without the clause being
-    // re-pointed, an account-required album starts publishing its attendance to anonymous viewers
-    // again — the exact 2026-07-08 leak, reintroduced by a column rename nobody connected to it.
+  it("names no legacy flag: the column and its twin-keeper are gone, and the gate stands alone", () => {
+    // The identity contract dropped `allow_anonymous_uploads` with the trigger that kept it opposite
+    // to `require_verified_email`. A body that still named the column would fail at its first call,
+    // and a clause re-pointed at a dead flag is the 2026-07-08 leak waiting to come back.
+    expect(code(body)).not.toContain("allow_anonymous_uploads");
     const all = migrationFiles()
       .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
       .join("\n")
+      .replace(/--[^\n]*/g, "")
       .replace(/\s+/g, " ");
-    expect(all).toContain(
-      "create or replace trigger events_sync_verified_email_flags before insert or update on public.events",
+    const dropped = all.lastIndexOf(
+      "drop trigger events_sync_verified_email_flags on public.events;",
     );
-    expect(all).toContain(
-      "new.allow_anonymous_uploads := not new.require_verified_email;",
+    expect(dropped).toBeGreaterThan(-1);
+    expect(all.slice(dropped)).not.toMatch(
+      /create (or replace )?trigger events_sync_verified_email_flags\b/,
     );
   });
 

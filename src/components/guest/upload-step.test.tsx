@@ -12,6 +12,7 @@ import {
   UploadStep,
   classifyRefusal,
   classifyRun,
+  uploadStepChooseAgain,
   uploadStepReason,
 } from "@/components/guest/upload-step";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
@@ -101,21 +102,41 @@ describe("the refusal ladder", () => {
 });
 
 describe("the step's one sentence", () => {
-  it("is the whole difference between the two switch states, and ON never names the host", () => {
-    const base = { isDemo: false, albumEmpty: false };
-    expect(uploadStepReason({ ...base, requireUpload: false })).toBe(
-      "Add one now and the album opens.",
+  const base = { isDemo: false, albumEmpty: false };
+
+  it("promises the album opens ONLY where the host requires an upload (an OFF album is already open)", () => {
+    for (const albumEmpty of [false, true]) {
+      expect(
+        uploadStepReason({ ...base, albumEmpty, requireUpload: true }),
+      ).toMatch(/the album opens/);
+      expect(
+        uploadStepReason({ ...base, albumEmpty, requireUpload: false }),
+      ).not.toMatch(/album opens/);
+    }
+    expect(uploadStepChooseAgain(true)).toMatch(/the album opens/);
+    expect(uploadStepChooseAgain(false)).not.toMatch(/album opens/);
+  });
+
+  it("differs between the two switch states, and between a full album and an empty one", () => {
+    const lines = new Set(
+      [true, false].flatMap((requireUpload) =>
+        [true, false].map((albumEmpty) =>
+          uploadStepReason({ ...base, requireUpload, albumEmpty }),
+        ),
+      ),
     );
+    expect(lines.size).toBe(4);
+  });
+
+  it("ON never names the host (Will, the door's first look)", () => {
     // ★ Will, "the door's first look", 2026-09-21: "let's simply say 'The host has asked...'
-    // to account for long host names breaking good design." No hostName input any more.
+    // to account for long host names breaking good design." There is no hostName input at all.
     expect(uploadStepReason({ ...base, requireUpload: true })).toBe(
       "The host has asked everyone to add a photo before the album opens.",
     );
-    // An empty album is the same ask worded for the first guest through the door.
-    expect(
-      uploadStepReason({ ...base, requireUpload: true, albumEmpty: true }),
-    ).toBe("Nothing here yet. Add the first photo and the album opens.");
-    // The demo says what it is instead, whatever the switches read.
+  });
+
+  it("the demo says what it is instead, whatever the switches read", () => {
     expect(
       uploadStepReason({ ...base, isDemo: true, requireUpload: true }),
     ).toBe("Add a photo the way a guest would. Nothing you add is saved.");
@@ -191,6 +212,13 @@ describe("the surface", () => {
     expect(
       screen.queryByRole("button", { name: "Skip for now" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("an OFF door's failure line promises nothing it cannot keep", () => {
+    mount({
+      queue: [item({ errorCode: "too_large", error: "Too large." })],
+    });
+    expect(screen.queryByText(/album opens/)).not.toBeInTheDocument();
   });
 
   it("a file the guest can do nothing about offers another file, never a Retry", () => {

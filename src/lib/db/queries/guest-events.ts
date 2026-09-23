@@ -16,7 +16,7 @@ export type GuestEvent = {
   id: string;
   // The CANONICAL permanent capability (database-security.md). This page may be reached via a custom
   // slug alias (host-app.md), so every downstream qr_token-keyed call — the gallery poll,
-  // create_guest, save_event, create_report, verify_event_password — MUST use this, NOT
+  // create_guest, create_report, verify_event_password — MUST use this, NOT
   // the route param (those RPCs match qr_token only; a slug would resolve to nothing).
   qr_token: string;
   name: string;
@@ -33,12 +33,6 @@ export type GuestEvent = {
   require_verified_email: boolean;
   /** Require an upload to view (the door as three steps, 2026-09-21): ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
   require_upload_to_view: boolean;
-  // Its LEGACY TWIN, kept exactly opposite by the events_sync_verified_email_flags trigger. It is
-  // still returned because the milestone build on `main` reads it and because
-  // get_public_profile's attended-arm clause is still written on it (QA #36). Nothing new should
-  // key on it; it goes when the column does, and that change re-points that clause in the same
-  // breath (database-security.md).
-  allow_anonymous_uploads: boolean;
   event_date: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
   // falls back to 'classic' for null/legacy values.
@@ -143,7 +137,6 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     accepting_uploads: row.accepting_uploads,
     require_verified_email: row.require_verified_email,
     require_upload_to_view: row.require_upload_to_view,
-    allow_anonymous_uploads: row.allow_anonymous_uploads,
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,

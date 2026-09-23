@@ -63,6 +63,14 @@ export async function isEventOwner(
 }
 
 /**
+ * The decision, plus one fact only the upload gate knows: the album cannot take another upload
+ * (the presign's own two caps, `get_upload_gate`'s `album_full`). The gate FAILS OPEN on it, which
+ * is why a guest's own last removal does not close a full album; the page reads it so the
+ * lightbox never warns of a closing that will not happen. False whenever it was not read.
+ */
+export type ViewerDecision = GalleryDecision & { albumFull: boolean };
+
+/**
  * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET" (the door as three steps, 2026-09-21).
  *
  * The page RSC and the gallery poll used to carry the same eight lines of resolution each; the
@@ -77,6 +85,13 @@ export async function isEventOwner(
  *
  * ★ THE DEMO NEVER REACHES HERE (both callers short-circuit it to full), and the host is the owner,
  * whom the resolver answers first.
+ *
+ * ★ `albumFull` COSTS A SECOND READ FOR A GUEST WHO HAS CONTRIBUTED, AND ONLY ON REQUEST. The gate
+ * reads the caps only for a viewer who has NOT contributed (the only one its fail-open decides for),
+ * so for a contributor its `album_full` is always false. The page asks (`withAlbumFull`), because
+ * that viewer is the one whose own last removal the lightbox warns about: an identity-less gate read
+ * is exactly the album's fullness (guest-gate.ts: no identity is an answer). The poll never asks, so
+ * the steady poll pays nothing new.
  */
 export async function resolveViewerDecision(
   event: GuestEvent,
@@ -87,7 +102,8 @@ export async function resolveViewerDecision(
     userId: string | null;
     sessionToken: string | null;
   },
-): Promise<GalleryDecision> {
+  opts: { withAlbumFull?: boolean } = {},
+): Promise<ViewerDecision> {
   const optimistic = resolveGalleryDecision(event, {
     isOwner: ctx.isOwner,
     isAuthed: ctx.isAuthed,
@@ -101,7 +117,7 @@ export async function resolveViewerDecision(
     !event.require_upload_to_view ||
     !event.accepting_uploads
   ) {
-    return optimistic;
+    return { ...optimistic, albumFull: false };
   }
 
   const gate = await getUploadGate({
@@ -110,7 +126,7 @@ export async function resolveViewerDecision(
     userId: ctx.userId,
   });
 
-  return resolveGalleryDecision(event, {
+  const decision = resolveGalleryDecision(event, {
     isOwner: ctx.isOwner,
     isAuthed: ctx.isAuthed,
     isUnlocked: ctx.isUnlocked,
@@ -119,6 +135,18 @@ export async function resolveViewerDecision(
     // make a contribution impossible is a full album -- including the read having failed.
     canContribute: !gate.albumFull,
   });
+
+  let albumFull = gate.albumFull;
+  if (gate.contributed && opts.withAlbumFull) {
+    albumFull = (
+      await getUploadGate({
+        eventId: event.id,
+        sessionToken: null,
+        userId: null,
+      })
+    ).albumFull;
+  }
+  return { ...decision, albumFull };
 }
 
 /** The un-presigned gallery for one viewer: rows + attribution + the teaser count. */
@@ -192,7 +220,6 @@ export function galleryEtagFor(
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
         isVerified: who?.isVerified ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
       };
     }),
   });

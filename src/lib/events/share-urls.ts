@@ -1,8 +1,8 @@
 /**
  * Event link builder — the single place that turns an event's qr_token into the
  * absolute guest-facing URL. One link per event (guest-flow.md): what a guest sees is
- * driven by the host's configs (visibility / accepting_uploads / allow_anonymous_uploads),
- * not by which link they hold.
+ * driven by the host's configs (visibility / accepting_uploads / require_verified_email /
+ * require_upload_to_view), not by which link they hold.
  *
  * Pure + client-safe (takes `siteUrl` as a string, no `server-only` import) so the
  * create wizard's client share step can build the URL from the `siteUrl` its server

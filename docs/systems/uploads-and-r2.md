@@ -142,8 +142,8 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   non-stable read presign, 60). Upload PUT/part presigns are NEVER stable (one-shot; freshness is the point).
 - ★ **Uploader email is HOST-gallery-only — guest surfaces NEVER carry it.** Attribution is resolved by ONE
   admin-read (`getUploaderIdentities`); the host gallery's items carry the `email`, but every guest-facing
-  item is built by `toGridItems`, which names ONLY the name and `isHost`/`isVerified`/`isAnonymous` and
-  NEVER the email (nor `pending_email`). Email-safe by construction (not a runtime viewer flag), guarded
+  item is built by `toGridItems`, which names ONLY the name and `isHost`/`isVerified` and NEVER the email
+  (nor `pending_email`). Email-safe by construction (not a runtime viewer flag), guarded
   by a standing source test (`grid-items.email-safety.test.ts`), so the guest SSR and
   `/api/guests/gallery` payloads carry no email field.
 - ★ **A locked event gates UPLOADS, not just viewing.** All THREE guest seams (the `/api/guests` mint,
@@ -252,8 +252,9 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   `getHostAvatarSeed`). The pure `resolveUploaderIdentity` CASE: `guest_id` null → **Host** (the host's
   display name, no email); a verified guest (`verified_at` set) → the PROFILE's name + (host-only)
   `guests.email`; an unverified typed name → that name with the unverified mark and NO address, ever; a
-  nameless legacy row → "A guest" (`isAnonymous`), with no explainer. A verified guest with no profile name
-  renders NOTHING rather than a label. Attribution is **lightbox-only**: `MediaTile` reads just `type`, `url`
+  nameless row (minted before names were asked; `create_guest` refuses a new one) → no name at all. A row
+  with no name renders NO credit, only the counter, never an invented stand-in, and a verified guest with no
+  profile name renders the same. Attribution is **lightbox-only**: `MediaTile` reads just `type`, `url`
   and `previewUrl`, so grid tiles stay clean by construction. The caption **fades out while a center video
   plays** (never fighting the native scrubber) and respects `prefers-reduced-motion`; demo tokens skip the
   resolver (simulated tiles carry no attribution); the mark's nested popover closes on the first Esc, the

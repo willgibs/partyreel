@@ -86,9 +86,9 @@ gallery and appears on no profile.
   STRICTER than the album in two corners, never looser: a full album opens for its viewers but the line stays
   hidden, and a name-only uploader known only by a cookie is not recognised (the function sees `auth.uid()`,
   never a session token). A choice in `profile_shown_events` survives the owner's last removal; the approved
-  upload hides the line meanwhile and a later upload shows it again unasked. The anonymous-viewer clause beside it
-  still reads the legacy `allow_anonymous_uploads` (kept in sync by the `events_sync_verified_email_flags`
-  trigger); the gate implies it, so dropping the column deletes that clause.
+  upload hides the line meanwhile and a later upload shows it again unasked. The confirmed-viewer gate carries
+  QA #36 (an anonymous viewer has no uid to pass it), so the identity contract drops the older anonymous-viewer
+  clause written on the legacy `allow_anonymous_uploads`.
   The open-only gate is the consent scope (the album-side list renders only to viewers who can OPEN the
   album, preserving "locked pages leak name + count only"). A migration-text Vitest guard
   ([public-profile-visibility.test.ts](../../src/lib/social/public-profile-visibility.test.ts)) pins it.
