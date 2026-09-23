@@ -38,6 +38,7 @@ export type RulingId =
   | "identity-profile"
   | "reel-screen"
   | "guest-capture"
+  | "voice-guest"
   | "reel-front"
   | "toasts"
   | "guest-verify"
@@ -115,6 +116,7 @@ export type SandboxId =
   | "identity-profile"
   | "reel-screen"
   | "guest-capture"
+  | "voice-guest"
   | "reel-front"
   | "site-chrome"
   | "profile-page"
@@ -281,6 +283,36 @@ export const RULINGS: Ruling[] = [
         "The offer's shape",
         "The follow surface",
         "What the name becomes",
+      ],
+    },
+  },
+  {
+    id: "voice-guest",
+    title: "The voice of the guest journey",
+    surface: "guest",
+    ruled:
+      "open: seven lines a guest reads, each in its real place: the welcome, the password's ask, the landing, a failed upload, the empty album's button, a held photo, and the capture's words",
+    shipped: null,
+    why: "The voice is built one won line at a time in its real place (bible 21); these seven are the guest's most-read words and where most of the asks live.",
+    lives: [
+      "src/components/guest/entry-modal.tsx",
+      "src/components/guest/password-gate.tsx",
+      "src/components/guest/upload/stack-tile.tsx",
+      "src/components/guest/upload/failure-sheet.tsx",
+      "src/components/guest/gallery-empty-state.tsx",
+      "src/components/guest/save-account-prompt.tsx",
+      "src/components/auth/account-door.tsx",
+    ],
+    board: {
+      note: "Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside three registers (plain and warm, bright and playful, quiet and exact), so the lines he picks build the voice",
+      variants: [
+        "The welcome",
+        "The password's ask",
+        "The landing",
+        "A failed upload",
+        "The empty album's button",
+        "A held photo",
+        "Keeping it",
       ],
     },
   },
@@ -1553,6 +1585,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-claims",
   "identity-profile",
   "guest-capture",
+  "voice-guest",
   "host-curation",
   "export-flow",
   "admin-triage",

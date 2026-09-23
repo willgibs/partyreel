@@ -7,6 +7,7 @@ import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/
 import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
 import { ReelScreenBoard } from "@/app/(dev)/design/sandbox/reel-screen/board";
 import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
+import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
 import { ReelFrontBoard } from "@/app/(dev)/design/sandbox/reel-front/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
@@ -51,6 +52,7 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "identity-profile": { Component: IdentityProfileBoard },
   "reel-screen": { Component: ReelScreenBoard },
   "guest-capture": { Component: GuestCaptureBoard },
+  "voice-guest": { Component: VoiceGuestBoard },
   "reel-front": { Component: ReelFrontBoard },
 
   "site-chrome": { Component: SiteChromeBoard },
