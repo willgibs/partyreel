@@ -33,6 +33,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `recheck-viewer-curation` | `media-viewer` and `host-curation` current (the five badges adapted or removed by the decision-outcomes judgment, the viewer asked for both origins, the Unverified credit); then the overtaken mechanism retired | cut `c2482757`, committed `1c560b16`; running (agent `a739c5d0751e54b60`; resume by SendMessage) | Opus, :3134 | integrate (board `media-viewer`, then demo `host-curation`); the lines it names in `docs/reviews/README.md`, STATUS, the ROADMAP and `usher/` (the kit's `batch-reader.mjs`, `board-card.mjs`, `review-sheet.mjs` read the map) |
+| `identity-sql-gaps` | two identity leaks closed in SQL: an unconfirmed sign-up's address out of `guests.email` and the host's grant; `get_public_profile`'s attended arm behind the album's gate | cut `ceaee403`, committed `92421d85`; running (agent `ad831a8ca1313dc19`) | Opus, :3132 | integrate (`none`); then APPLY its migration in the order its Handoff names, `get_advisors`, regenerate `types.ts` if a signature moved |
 
 ## Next, in order
 
