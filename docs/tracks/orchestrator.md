@@ -33,6 +33,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `upload-owner` | a claimed guest row uploads only for its signed-in owner (the alias red-team's finding: a kept ticket credited partyr33l's photo to hi@willgibs); sign-out clears the device's tickets | building (agent a51450b994653b8eb) | Opus, :3131 | lands after milestone 27, in milestone 28 |
 
 ## Next, in order
 

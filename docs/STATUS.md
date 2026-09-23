@@ -41,8 +41,11 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 
 - **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
   `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `9a5eac29`: save gone and a guest
-  only by uploading, the storage guard, every standing board current, both engines (old reel live). No push
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `a760b998` (build 3, red-teamed
+  2026-09-23 in Will's Chrome): a one-field save keeps every other setting, the Guests room shows a confirmed
+  guest's address to the host alone, the delete confirm names 30 days, the post-upload card and the header's guest
+  count move live, a guest-made account lands on its Guest card, the demo reads "from 3 guests". Found there: a
+  kept ticket credits the next person's uploads to a confirmed guest (`upload-owner` is fixing it). No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
