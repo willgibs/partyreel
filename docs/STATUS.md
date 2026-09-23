@@ -19,11 +19,10 @@ Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-da
 - **The rulings round's loose ends are merged**: a one-field event save writes only its field (it had opened password
   and private albums and approved held uploads), the Guests room shows a confirmed guest's address to the host alone
   (his ruling), the round's Now lines, and `host_storage_summary` (applied).
-- **Milestone 27 is live** (`546e2489`). The identity contract (`20260923150000_identity_contract.sql`, dropping the
-  unused `events.allow_anonymous_uploads` and its trigger) is ready and proved, and waits on Will: the auto-mode
-  classifier refused the destructive apply. Nothing reads the column; leaving it costs nothing.
-- **Stripe TEST with his final clicks**, staged when he is ready (Checkout as willg97, then the change-plan confirm
-  page). **`upload-owner`** is building: a claimed guest row uploads only for its signed-in owner.
+- **Milestone 27 is live** (`546e2489`); the identity contract applied after it (Will's approval), and the Stripe TEST
+  walk passed on partyreel.com (Checkout to Pro 100 GB, Change plan to 500 GB, the $10.00 proration).
+- **Next, before milestone 28** (approved): `upload-owner` (building), a guest's own delete final and said so, and the
+  1,000-row audit (Will: "Let's ensure we will not face any of those issues here").
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
@@ -72,8 +71,4 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **The Stripe clicks** (say when you are at the keyboard): willg97 staged to Free, then his test card and Subscribe on
-  Stripe Checkout, then Back and Confirm on the change-plan confirm page.
-- **The identity contract's apply**: approve the destructive migration, or leave the unused column in place.
 - **His desk review**: 26 boards; the six reel boards first, and the new `event-safety`.
-- **A milestone 28, on his word**, once `upload-owner` is red-teamed (it fixes a live misattribution).
