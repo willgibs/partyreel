@@ -1,8 +1,9 @@
 /**
- * Operator-internal account reads for the admin Accounts browser (P4). SERVICE-ROLE admin client —
- * there is no cross-host profile read elsewhere (RLS scopes `profiles` to the owner). The
- * /admin/accounts pages gate on requireAdmin() first. READ-ONLY: billing changes go through Stripe
- * (the webhook stays the SOLE writer of tier/cap/subscription); nothing here writes.
+ * Operator-internal account reads for the admin Accounts browser (P4). SERVICE-ROLE admin client,
+ * because RLS scopes `profiles` to its owner and an operator reads every account's whole row (the
+ * social reads take only a profile's four public card columns). The /admin/accounts pages gate on
+ * requireAdmin() first. READ-ONLY: billing changes go through Stripe (the webhook stays the SOLE
+ * writer of tier/cap/subscription); nothing here writes.
  */
 import "server-only";
 
