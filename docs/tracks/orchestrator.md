@@ -32,17 +32,16 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `systems-trim` | `docs/systems/` and `docs/SYSTEMS.md` trimmed to present-tense truth, headings untouched | cut `6fd4bbbd`, committed `45e249a4`; running (agent `a7113c2ad80271cd8`; resume by SendMessage) | Opus, :3132 | integrate (`none`) |
 | `recheck-viewer-curation` | `media-viewer` and `host-curation` current (the five badges adapted or removed by the decision-outcomes judgment, the viewer asked for both origins, the Unverified credit); then the overtaken mechanism retired | cut `c2482757`, committed `1c560b16`; running (agent `a739c5d0751e54b60`; resume by SendMessage) | Opus, :3134 | integrate (board `media-viewer`, then demo `host-curation`); the lines it names in `docs/reviews/README.md`, STATUS, the ROADMAP and `usher/` (the kit's `batch-reader.mjs`, `board-card.mjs`, `review-sheet.mjs` read the map) |
 
 ## Next, in order
 
-1. **The reshape (Will, 2026-09-22):** the Orchestrator's own part is done (`76dcea01`, `8f68e749`: STATUS a
-   snapshot, the runbook, `docs/PROGRAM.md` and `docs/tracks/README.md` as rules, the STATUS-row tool retired,
-   `usher/` without logs, the old pickup file a pointer, memory consolidated). `pointer-sweep` merged at `b314fc97` (gate
-   116) and `roadmap-lean` at `7e068786` (gate 117; the lab candidates joined the ROADMAP as one bucket). `docs-rules` at `37e4eb15` (gate 118: `rulings.md` and the specs
-   retired, the Library's rulings on its rules page). The bible's `why` lines are in the present tense (`fc63a199`).
-   `docs-product-trim` at `160ed7b2` (gate 121). Left: `systems-trim`.
+1. **The reshape (Will, 2026-09-22) is done:** every docs lane merged (`pointer-sweep`, `roadmap-lean`, `docs-rules`,
+   `docs-product-trim`, `systems-trim` at `daaf2dd2`, gate 123); the Orchestrator's own part, the bible's present-tense
+   `why` lines and memory are in. Next from it: `identity-sql-gaps`, a fix lane for two identity leaks the systems lane
+   found (an unconfirmed sign-up's address in `guests.email` inside the host's SELECT grant; `get_public_profile`'s
+   attended arm admitting any signed-in viewer where the album asks for a confirmed email); the migration is the
+   Orchestrator's to apply.
 2. **Recheck the open boards** (Will's suggestion): four lanes cut at `c2482757` (In flight above), on the survey's
    findings (the scratchpad's `recheck/report.md`) and his decision-outcomes judgment of 2026-09-22 (a reached question
    that still holds potential value is adapted to the current context; only one solved at its best is removed; the
