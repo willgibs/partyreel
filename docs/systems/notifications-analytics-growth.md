@@ -1,7 +1,7 @@
 # Notifications, analytics & growth
 
-> ROLE: the host notification bell, link analytics, the marketing web analytics, saved events, and guest email capture — the engagement + growth surfaces.
-> BELONGS HERE: the derive-on-read bell, `link_stats`, the Vercel WA/Speed-Insights marketing layer (`analytics/events.ts` + `analytics/web.ts`), `save_event`/`get_saved_events`, `capture_guest_email`. · NOT HERE: the guest page that mounts the Save button (→ [guest-flow.md](guest-flow.md)), the operator announcement compose UI (→ [admin-observability.md](admin-observability.md)), the lifecycle nudges that some alerts mirror (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
+> ROLE: the host notification bell, link analytics, the marketing web analytics, and guest email capture — the engagement + growth surfaces.
+> BELONGS HERE: the derive-on-read bell, `link_stats`, the Vercel WA/Speed-Insights marketing layer (`analytics/events.ts` + `analytics/web.ts`), `capture_guest_email` and the newsletter opt-in. · NOT HERE: the guest page's confirm doors and the offer card that carries the opt-in (→ [guest-flow.md](guest-flow.md)), how a guest's events reach their dashboard (→ [host-app.md](host-app.md)), the operator announcement compose UI (→ [admin-observability.md](admin-observability.md)), the lifecycle nudges that some alerts mirror (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
 > GROWS BY: integrate-in-place.
 
 ## Notification center (derive-on-read)
@@ -90,43 +90,12 @@ untracked too). Both products are ON project-side and installed (`@vercel/analyt
   counting; if the vendor ever changes, re-verify its "no cookies / never identifies you / no
   cross-site" sentences still hold.
 
-## Saved events (the accounts-from-guest growth loop)
-
-A signed-in visitor can SAVE any event to their dashboard: the FREE account-creation growth payoff. It
-AUGMENTS the anonymous capability flow; the upload pipeline is untouched. Saved events are rows of kind
-`saved` in the dashboard's events list: interleaved with hosted events by recency under "All events" (the
-recency key is `saved_at`, threaded through `SavedEventCardData`; a saved row carries "Hosted by X") and
-alone under the "Saved" filter (→ [host-app.md](host-app.md)).
-
-- **Save = `save_event(p_qr_token)`** (authenticated-only SECURITY DEFINER): resolves the event from the
-  page's TOKEN (never a client `event_id`), refuses `private` + your-own events (owner → no-op), idempotent.
-  Status-check + **unsave** are plain per-user RLS (`saved_events_owner_all`, `auth.uid() = user_id`) from
-  the browser client, with no API route.
-- **`get_saved_events()`** (authenticated-only SECURITY DEFINER, `auth.uid()`-based, NO `p_user_id`) reads
-  the names/covers of events the saver does NOT own, so it MUST be DEFINER. It MASKS by visibility: `open` →
-  cover; `password` → cover NULL (gated media must never leak as a thumbnail); `private` → all NULL +
-  `accessible=false`; deleted → excluded. It returns the event's `qr_token` (masked null for private), so
-  saved cards link `/e/[qr_token]`. Cover keys are presigned server-side.
-- **Advisors:** both RPCs are in the authenticated (0029) list ONLY, never anon (0028); `saved_events` has a
-  policy (no `rls_enabled_no_policy` INFO).
-- **`saved_events(user_id, event_id, saved_at)`** is PK'd on the pair with BOTH FKs `on delete cascade`, so
-  deleting the event or the account removes the save with no sweep to write. Saving stays FREE on every
-  tier: it is the reason a visitor makes an account, so pricing it would cost more than it earns.
-- **Gotcha:** `get_saved_events`'s generated return type understates nullability (a `RETURNS TABLE` fn types
-  every column non-null); `SavedEventRow` in [`saved-events/card.ts`](../../src/lib/saved-events/card.ts)
-  models the TRUE nullability and the query layer casts to it. Never trust the generated nullability for
-  `RETURNS TABLE` fns.
-- The **Save button** ([`save-event-button.tsx`](../../src/components/guest/save-event-button.tsx)) mounts
-  inside the post-upload `<SaveAccountPrompt>` ("Confirm your email", with the newsletter opt-in); a
-  signed-OUT visitor gets `<AccountDoor wear="save">` (the shared code-first OTP + Google). A
-  `pr_pending_save_${eventId}` localStorage flag completes the save after a REDIRECT sign-in returns; the
-  in-page code path saves directly in `onVerified`. The guest page's door and menu: → [guest-flow.md](guest-flow.md).
-
 ## Guest email capture
 
-The newsletter opt-in is a switch in the account-first save flow of the post-upload `<SaveAccountPrompt>`
-([`save-account-prompt.tsx`](../../src/components/guest/save-account-prompt.tsx), rendered by
-[`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)). Opt-in POSTs to
+The newsletter opt-in ("Send me occasional Partyreel updates") is a switch inside the confirm door of the
+post-upload offer card, `<SaveAccountPrompt>` ([`save-account-prompt.tsx`](../../src/components/guest/save-account-prompt.tsx),
+rendered by [`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)), its one place in the product, and it
+posts only on an in-page confirmation. Opt-in POSTs to
 [`/api/guests/capture-email`](../../src/app/api/guests/capture-email), which requires a session whose
 email is CONFIRMED (`email_confirmed_at`; an unconfirmed sign-up gets 401), derives the address from that
 session (never the request body: no victim-address poisoning), applies a per-IP abuse limit (fail-open),
@@ -140,4 +109,4 @@ through `/api/guests/email`) until a confirmed account claims it
 
 ## See also
 
-[guest-flow.md](guest-flow.md) (mounts the Save button / capture) · [admin-observability.md](admin-observability.md) (announcement publishing) · [lifecycle-recovery.md](lifecycle-recovery.md) (the nudges some alerts mirror) · [database-security.md](database-security.md).
+[guest-flow.md](guest-flow.md) (the offer card and its confirm door) · [admin-observability.md](admin-observability.md) (announcement publishing) · [lifecycle-recovery.md](lifecycle-recovery.md) (the nudges some alerts mirror) · [database-security.md](database-security.md).

@@ -18,18 +18,20 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the host 
 - Clients: [`lib/supabase/`](../../src/lib/supabase) — `client` / `server` / `middleware` / `admin`.
 - **ONE account door, worn five ways** ([`account-door.tsx`](../../src/components/auth/account-door.tsx)):
   `<AccountDoor>` renders on the host `/login`, the guest gate
-  ([`enter-event-prompt.tsx`](../../src/components/guest/enter-event-prompt.tsx)), Save
-  ([`save-event-button.tsx`](../../src/components/guest/save-event-button.tsx)), a like
-  ([`likes-provider.tsx`](../../src/components/likes/likes-provider.tsx)) and a name-only guest's own two
-  rows ([`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx)'s way out and the header's
-  [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx)). Each passes only its REASON
+  ([`enter-event-prompt.tsx`](../../src/components/guest/enter-event-prompt.tsx)), a like
+  ([`likes-provider.tsx`](../../src/components/likes/likes-provider.tsx)) and the album's one confirm door
+  ([`confirm-email-dialog.tsx`](../../src/components/auth/confirm-email-dialog.tsx)), which the post-upload offer
+  card, a name-only guest's own mark ([`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx)) and
+  the header's [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) all open; it claims the
+  uploads and nothing else (there is no save: [guest-flow.md](guest-flow.md)). Each passes only its REASON
   (`wear`), its methods and where a redirect returns. `DOOR_WEAR` is the one table of headings and reason
   lines; a surface with its own semantic title (a `DialogTitle`, the gate's framing) reads the words from
   it and passes `chrome="none"`. **Every wear carries the Terms line** (`consent`, default true) except the
   gate, whose welcome step already says it.
-  ★ **The words ask for a CONFIRMED EMAIL, not an account.** `save` and `like` say what confirming does,
-  then name the free account as what it MAKES. `gate`'s sentence is Will's, verbatim, and changes only by
-  his ruling. `signin` is the fifth wear, for a named guest at a party who already holds an account and
+  ★ **The words ask for a CONFIRMED EMAIL, not an account.** `keep` and `like` say what confirming does,
+  then name the free account as what it MAKES; `keep`'s holds BEFORE an upload too (the name menu offers it the
+  moment a name is typed: "every photo you add here stays in your account, with this event"), and `like`'s promises
+  no place it cannot keep. `gate`'s sentence is Will's, verbatim, and changes only by his ruling. `signin` is the fifth wear, for a named guest at a party who already holds an account and
   wants tonight's photographs in it.
 - Inside it: [`email-sign-in.tsx`](../../src/components/auth/email-sign-in.tsx) (the one field: code +
   magic-link OTP), [`password-sign-in.tsx`](../../src/components/auth/password-sign-in.tsx) (`SignIn` behind
@@ -124,8 +126,8 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the host 
   a warning. The line is dismissible with "Not you? Sign out"; ★ on the guest gate the door HOLDS the
   caller's `onVerified` for four seconds or until a choice, because `claimAnonymousUploads` stamps a
   guest's photographs onto the signed-in account and the claim RPC never re-stamps an owned row.
-  ★ **Every guest-side wear AWAITS the uploads claim before it refreshes.** The capture door, the mark's own
-  way out and the header's menu all exist to make these photographs this account's; a `router.refresh()`
+  ★ **Every guest-side wear AWAITS the uploads claim before it refreshes.** The confirm door (from the offer card,
+  the mark or the header's menu) exists to make these photographs this account's; a `router.refresh()`
   that overtook the claim would redraw the very credit the guest just paid an email to fix, still marked.
   The claim is best-effort and never throws, so awaiting it costs one round trip. ★ **The claim names only
   a nameless profile**: under a confirmed session `claim_anonymous_uploads` copies the newest claimed row's
@@ -171,8 +173,9 @@ The `(app)` layout ([`layout.tsx`](../../src/app/(app)/layout.tsx)) is the host 
 - **The remembered address is `/login`-only, by prop** ([`remembered-email.ts`](../../src/lib/auth/remembered-email.ts)).
   A hint, never an authorization: it is parsed like untrusted input (it is the visitor's own storage),
   every read and write is wrapped because `localStorage` THROWS when site data is blocked, and it is shown
-  masked. ★ The guest gate and the Save dialog pass no hint at all — a phone passed around a party and a
-  venue's iPad must never show the last guest's address to the next one — and no email ever goes in a URL.
+  masked. ★ The guest gate and the album's confirm door never read it — a phone passed around a party and a
+  venue's iPad must never show the last guest's address to the next one (the confirm door may open on the address
+  typed at the door THIS visit, held in page memory only) — and no email ever goes in a URL.
   The memory is written only where the address is known before the door is left (a code, a password, a
   hinted Google press), so a Google-only host is never remembered: the passkey is the answer for them.
 - **Supabase Auth's rate limits are dashboard state** (Authentication > Rate Limits; nothing in the repo

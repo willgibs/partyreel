@@ -18,9 +18,13 @@ next host. **North-star metric: a host creates a second event.**
 - **Host**: throws the event (wedding, birthday, conference, trip); wants all the media in one place, light curation
   control and an easy way to share the result; has an account; pays, if anyone does. An event has one owner
   (`events.host_id`), its billing and storage anchor.
-- **Guest**: attends; wants to contribute in seconds from a phone with nothing to install. By default a guest
-  confirms an email with a code, and that confirmed email is their account; where the host turns verified emails
-  off, a guest types a display name and uploads under it with an "Unverified" mark. Every upload carries a name.
+- **Guest**: contributes; a person is a guest of an event by adding a photo or video to it, and only by that (a
+  password entered, an email confirmed, nothing uploaded: not a guest; every upload removed: no longer one). Will's
+  principle behind it: product choices favour the host's benefit, which is guests participating, so there is no
+  reward for attending without contributing. A guest wants to contribute in seconds from a phone with nothing to
+  install. By default a guest confirms an email with a code, and that confirmed email is their account; where the host
+  turns verified emails off, a guest types a display name and uploads under it with an "Unverified" mark. Every upload
+  carries a name, and the events a guest added to are what their account keeps.
 
 ## The core loop
 
@@ -34,8 +38,9 @@ next host. **North-star metric: a host creates a second event.**
    see the album.
 4. **Share**: the same link is the album, and with uploads closed it reads as a view-only album. It unfurls with a
    per-event preview card (`noindex`; the token is a private capability) and carries a quiet "Start for free" link
-   for a signed-out visitor; after a guest's first upload, a one-time offer invites them to keep the album on an
-   account (a guest who typed a name confirms an email to do it).
+   for a signed-out visitor; after a guest's first upload, a one-time offer invites them to confirm an email, which
+   keeps their photos in an account and brings the event with them onto their dashboard, then offers the host to
+   follow. There is no separate save: uploading to an event is what keeps it.
 5. **Reel**: a highlight reel stitched from the best clips (host curation, the canvas engine,
    on-device export, guest surfacing).
 
