@@ -56,6 +56,7 @@ export type RulingId =
   | "reel-view"
   | "help-center"
   | "host-curation"
+  | "host-storage"
   | "reel-host"
   | "reel-cut"
   | "first-event"
@@ -126,6 +127,7 @@ export type SandboxId =
   | "reel-view"
   | "help-center"
   | "host-curation"
+  | "host-storage"
   | "reel-host"
   | "reel-cut"
   | "press-page"
@@ -1062,6 +1064,35 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "host-storage",
+    title: "Where the largest files are",
+    surface: "host",
+    ruled:
+      "open: where a host sees each item's size, largest-first or grouped by event, how freeing space reads for a plan switch, the pricing sheet's refusal, and a Pro host's six prices",
+    shipped: null,
+    why: "Sizes are stored but shown nowhere; a host near a cap cannot find what is filling it, and no plan switch may leave them over the new cap.",
+    lives: [
+      "docs/systems/billing-caps.md",
+      "docs/systems/lifecycle-recovery.md",
+      "src/lib/constants/tiers.ts",
+      "src/components/app/dashboard/storage-meter.tsx",
+      "src/components/app/pricing/pricing-sheet.tsx",
+      "src/app/(app)/account/page.tsx",
+      "src/app/(app)/dashboard/page.tsx",
+      "src/components/app/event-feed/event-gallery.tsx",
+    ],
+    board: {
+      note: "Five decisions on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet, over one wedding videographer's account at 110.8 GB across four events: where a host sees each item's size, whether the list reads largest-first or grouped by event, how freeing space reads when a smaller plan is the reason, the pricing sheet's refusal of a size that does not fit, and how a Pro host's six prices sit beside it",
+      variants: [
+        "Where sizes live",
+        "The order",
+        "The goal",
+        "The refusal",
+        "The six prices",
+      ],
+    },
+  },
+  {
     id: "reel-cut",
     title: "From the reel to a cut",
     surface: "guest",
@@ -1554,6 +1585,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-profile",
   "guest-capture",
   "host-curation",
+  "host-storage",
   "export-flow",
   "admin-triage",
   "help-center",
