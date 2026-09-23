@@ -164,7 +164,7 @@ export const KEEP: Record<
       `Confirm your email and ${n === 1 ? "it stays" : `all ${n} stay`} with you: this event in your account, and everything you added to it.`,
     doorHeading: "Keep your photos",
     doorReason:
-      "Confirm your email and this event stays in your account, with every photo you added. Confirming makes a free account.",
+      "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account.",
   },
   warm: {
     heading: () => "Keep this event",
