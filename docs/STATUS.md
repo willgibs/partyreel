@@ -31,9 +31,9 @@ Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-da
 
 ## The desk
 
-25 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
+26 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
 order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`, `identity-door`,
-`identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `export-flow`,
+`identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`,
 `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
 `contact-page`, `press-page`.
 
