@@ -16,8 +16,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ ONE GUEST, PAST THE POINT THE OTHER TWO IDENTITY BOARDS LEAVE HER.
  * `identity-door` asks about the sheet that first meets a guest; `identity-
  * claims` asks about sorting her inbox of past events. This board's Priya has
- * already done both: verified, three events joined, and (her own line, the
- * manifest's) "none shown yet." Every option is her, in that same world
+ * already done both: verified, added photos to three events, and (her own
+ * line, the manifest's) "none shown yet." Every option is her, in that same world
  * (fixtures.ts).
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED (DECIDED ALREADY, this round's identity
@@ -49,7 +49,7 @@ const DRAFT = defineExploration({
       "New board, cut on his word once the identity foundation stood whole on the alias.",
   },
   context:
-    "Priya is verified, has joined three events (Maya and Jay's wedding among them), and has shown none of them: the guest identity round's own floor. This board asks four things left open once she is ready to make her page real: how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
+    "Priya is verified, has added photos to three events (Maya and Jay's wedding among them, each one making her a guest of it), and has shown none of them: the guest identity round's own floor. This board asks four things left open once she is ready to make her page real: how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
   bible: [1, 4, 12, 15, 19, 21, 22],
   asks: [
     {
@@ -93,7 +93,7 @@ const DRAFT = defineExploration({
       label: "What shows",
       question: "How should Priya actually choose which events show?",
       context:
-        "The account page already lists her three joined events as switches, each off until turned on (profiles-social.md: 'nothing until chosen'). This asks how that choice gets made, never whether it defaults off.",
+        "The account page already lists the three events she added photos to as switches, each off until turned on (profiles-social.md: 'nothing until chosen'). This asks how that choice gets made, never whether it defaults off.",
       options: [
         {
           id: "switches",
@@ -111,7 +111,7 @@ const DRAFT = defineExploration({
           id: "guest-menu",
           label: "Each event's own menu",
           means:
-            "The toggle lives on that event's own album, offered once Priya is verified there, never centralized.",
+            "The toggle lives on that event's own album, offered once Priya has added a photo there, never centralized.",
         },
       ],
       recommended: "picker",
@@ -163,7 +163,7 @@ const DRAFT = defineExploration({
       label: "The empty page",
       question: "What should a claimed, empty page say to a visitor?",
       context:
-        "Priya has claimed 'priya' and turned nothing on: no event shown, no bio written. /u/[slug] has never had to draw this state, because until this round nobody reached it with nothing chosen.",
+        "Priya has claimed 'priya' and shown nothing. /u/[slug] has never drawn this state. One wrinkle: The Block Party requires an upload to view, so a count must respect that door too, or it leaks what a shown 'guest at' line hides.",
       options: [
         {
           id: "nothing",
@@ -175,7 +175,7 @@ const DRAFT = defineExploration({
           id: "count",
           label: "The name, with a count",
           means:
-            "'3 events, kept private': the page states that she chose privacy over having nothing to show.",
+            "'2 events, kept private', not 3: only what this viewer could ever confirm counts, so The Block Party's own upload-to-view door keeps it out of the number too.",
         },
         {
           id: "not-found",
@@ -186,11 +186,11 @@ const DRAFT = defineExploration({
       ],
       recommended: "count",
       because:
-        "Naming the count tells a visitor this is a real, active guest who chose privacy, rather than reading as an abandoned or fake handle; 'nothing here yet' cannot tell those apart.",
+        "A count scoped to what this viewer could confirm still signals a real, active guest who chose privacy, without leaking a gated album she could not otherwise learn exists; 'nothing here yet' cannot do either, and the scoping matches the attended arm's own covers.",
       overrule:
-        "profiles-social.md's own model is already wordless about what a guest keeps back; the plainer line never hints at what exists behind it either.",
+        "A count that changes with who is asking is one more place to get the gate right; the plainer line never hints at what exists behind it either, gated or not.",
       lands:
-        "Whether an intentionally private page reads as empty or as deliberately quiet.",
+        "Whether an intentionally private page reads as empty or as deliberately quiet, and whether its own count can ever say more than a gated 'guest at' line would.",
       tile: "phone",
       configs: [SCREEN],
     },

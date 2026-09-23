@@ -518,9 +518,12 @@ export function PlanPair() {
               Get Pro at {proDisplay.priceLabel}
             </CheckoutButton>
             <p className="mt-3 text-center text-xs text-background/60">
+              {/* Sizes and cadences change from the account's plan sheet now
+                  (checked against what the host stores), cancelling from the
+                  billing portal it links: "your account" is true of both. */}
               {cadence === "year"
-                ? "One payment a year, two months free. Change or cancel any time in the billing portal."
-                : "Change size or cancel any time in the billing portal."}
+                ? "One payment a year, two months free. Change size or cancel any time from your account."
+                : "Change size or cancel any time from your account."}
             </p>
           </div>
         </div>

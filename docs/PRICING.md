@@ -51,9 +51,16 @@ The ≈ column is `formatCapacity` in `tiers.ts` (about 4 MB a photo and 150 MB 
   10× its sibling). Why not deeper: a full 2 TB plan costs about $369 a year in storage, about what a 20% discount
   would charge ($374), so ×10 (16.7% off) is the deepest uniform discount the catalog carries without the top plan
   going underwater, and starting conservative leaves deepening as a later gift. The yearly Stripe prices live on the
-  SAME products as the monthly ones (the portal's monthly-to-yearly switch walks same-product active prices,
-  `proration_behavior: always_invoice`); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A pass holder's prorated credit
-  lands as customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
+  SAME products as the monthly ones (one product per size, so the size reads the same in Checkout and on Stripe's
+  confirm page); env keys `STRIPE_PRICE_PRO_{100,500,2TB}_YR`. A Pro host moves between sizes and cadences from the
+  app's plan sheet (`/api/stripe/change-plan`, `proration_behavior: always_invoice`), and a pass holder's prorated
+  credit lands as customer balance, which pays the NEXT invoice: on yearly, that is a year out (never lost).
+- **A plan change never leaves a host storing more than the new cap** (Will, 2026-09-22). Any Pro purchase or Pro
+  size change must hold what the host already stores (active bytes against the plan's plain cap); a smaller one
+  is refused with the numbers ("You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or choose
+  Pro 500 GB.") until they remove enough. An Event Pass is never refused (passes stack). So Partyreel never
+  removes media, or pays for storage beyond the plan, because of a purchase; the 45-day over-capacity grace
+  remains for a plan that ENDS. The mechanism: [`systems/billing-caps.md`](systems/billing-caps.md).
 - **What Free gates.** Password locks and custom links are paid (`GATED_EVENT_SETTINGS` in `tiers.ts`, locked on
   Free), and **video is paid** (Pro and the Event Pass; a free event is photos-only for guests AND the host, enforced
   at upload in `create_media` / `create_media_as_host` and mirrored client-side by `videosAllowedForTier`). **Require
@@ -65,12 +72,10 @@ The ≈ column is `formatCapacity` in `tiers.ts` (about 4 MB a photo and 150 MB 
   The first-event experience must still shine; it sells the upgrade. **The upgrade triggers** (each opens the in-app
   pricing sheet on its own reason): a second event, outgrowing the first event's storage, wanting video, or a password
   lock or custom link.
-- **Saving an event is free**: any signed-in visitor can save an event (not a private one, not their own) to their
-  dashboard. Deliberately ungated: a saved event is the reason a guest makes a free account, not a paid perk.
 - **Event Pass economics.** Passes **STACK**: each purchase is a ledger row granting +1 event slot and +75 GB for its
   own one-year window (`event_passes` + `profiles.event_slots`). Moving to Pro converts every live pass into
   **PRORATED CREDIT**: the unused fraction of what was actually paid becomes Stripe customer balance that pays down
-  upcoming Pro invoices (nothing banked, nothing lost). The renewal ($15, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) is sold
+  upcoming Pro invoices (nothing banked, nothing lost), at a Pro size that holds what the passes store. The renewal ($15, `STRIPE_PRICE_EVENT_PASS_RENEWAL`) is sold
   only to a holder with a pass window active now (read from the ledger at checkout) and chains a new window onto the
   soonest-expiring active pass: it extends, never resets, and an unopened renewal year credits at 100%. The
   dashboard's "Renew Event Pass" button and the pre-expiry nudge email (14 days out) point at it. The renewal holds at
@@ -114,16 +119,17 @@ helpers `friendlyCapacity` and `formatCapacity`. The DB `tier_type` enum still l
 
 ## Stripe setup
 
-The catalog lives in TEST mode and is created with the Stripe MCP; the webhook endpoint and the Billing Portal are
-dashboard jobs (the MCP creates neither), and the env values are the human's to paste.
+The catalog lives in TEST mode and is created with the Stripe MCP; the webhook endpoint and the default Billing Portal
+configuration are dashboard jobs, the change-plan portal configuration is an API job (the dashboard edits only the
+default one), and the env values are the human's to paste.
 
 **Check the mode before any write.** The Stripe MCP reaches one account in one mode: `list_available_accounts_or_orgs`
 shows its `livemode` (false today), and every call names a `livemode` that must match it. A write in the wrong mode
 lands resources in the wrong catalog.
 
-**The catalog: 4 products, 8 prices.** One product per storage size, so the size shows in Checkout and in the portal's
-plan switcher, and **each yearly price rides the SAME product as its monthly sibling**, because same-product active
-prices are what the portal's monthly-to-yearly switch walks.
+**The catalog: 4 products, 8 prices.** One product per storage size, so the size shows in Checkout and on Stripe's
+confirm page for a plan change, and **each yearly price rides the SAME product as its monthly sibling**, so a size
+reads as one product at either cadence.
 
 | Product              | Price      | Type      | Test Price ID                    | Env key                           |
 | -------------------- | ---------- | --------- | -------------------------------- | --------------------------------- |
@@ -146,11 +152,19 @@ it as the subscription's status (`past_due` keeps Pro through dunning; a subscri
 Free). The test account also carries a temporary endpoint for the `launch-prep` alias, removed in ROADMAP's program
 teardown.
 
-**The Billing Portal** (dashboard, Settings → Billing → Customer portal): payment-method update, cancellation (at the
-period's end), and plan switching across **all six Pro prices** (both intervals on each of the three products) with
-`proration_behavior: always_invoice`. Six, not three: the portal is the ONLY route between monthly and yearly
-(checkout refuses a second subscription for an active Pro), so a portal listing only the monthly prices strands every
-annual plan.
+**The Billing Portal: two configurations, two jobs.**
+
+- **The default** (dashboard, Settings → Billing → Customer portal): payment-method update, invoice history,
+  customer details and cancellation (at the period's end), with **plan switching OFF**. Its switcher cannot know what
+  a host stores, and its quantity stepper (no maximum) could bill two or three times for one cap, so sizes and
+  cadences never change here. TEST: `bpc_1TcTxWPtjqmVkBwkcAldFEZA`.
+- **The change-plan configuration** (API only), tagged `metadata.partyreel_purpose=change_plan`:
+  `subscription_update` on over **all six Pro prices** (both cadences on each product),
+  `default_allowed_updates: ["price"]`, quantity adjustment off, `proration_behavior: always_invoice`,
+  `billing_cycle_anchor: unchanged`, no period-end scheduling; cancellation, invoice history and customer update
+  off; payment-method update on (Stripe requires it beside subscription updates). The app finds it by that tag (no
+  env value) and only ever opens it as a one-price confirm flow after the storage check. TEST:
+  `bpc_1UIhooPtjqmVkBwkcLe9YgYN`.
 
 **The ten env values** are the whole Stripe surface, and therefore the whole cutover: pasted into `.env.local` and
 Vercel, then a redeploy. Only the first two are secrets; the eight price IDs are public ids.
@@ -174,10 +188,10 @@ fires and the portal never shows a pass; provisioning rides `checkout.session.co
 ## Test to live cutover
 
 **The code needs ZERO changes to go live**: the keys, the webhook secret and the Price IDs are all env-referenced
-(`STRIPE_*`), the `apiVersion` pin is mode-independent, and URLs come from `getSiteUrl()`. Going live is purely
-**re-creating the Stripe resources in LIVE mode and swapping the env values**. Test and live are fully separate in
-Stripe (products, prices, webhook endpoints, the portal configuration, coupons and API keys all exist per mode), so
-none of the test setup carries over.
+(`STRIPE_*`), the change-plan portal configuration is found by its tag, the `apiVersion` pin is mode-independent,
+and URLs come from `getSiteUrl()`. Going live is purely **re-creating the Stripe resources in LIVE mode and swapping
+the env values**. Test and live are fully separate in Stripe (products, prices, webhook endpoints, both portal
+configurations, coupons and API keys all exist per mode), so none of the test setup carries over.
 
 **Prerequisite:** the Stripe account activated for live payments (business details and a bank account); live mode is
 inert until then.
@@ -187,20 +201,22 @@ inert until then.
 2. **Re-create the 4 products and 8 prices in LIVE** (the Stripe MCP or the dashboard): the three Pro products each
    with **both** a monthly and a yearly price (100 GB $9/$90, 500 GB $19/$190, 2 TB $39/$390), named without the
    em-dash, and the Event Pass product with **both** one-time prices ($24 purchase, $15 renewal). Capture the eight
-   new **live** `price_…` IDs. Put each yearly price on the same product as its monthly sibling, or the portal's
-   monthly-to-yearly switch has nothing to walk.
+   new **live** `price_…` IDs. Put each yearly price on the same product as its monthly sibling.
 3. **Create the webhook endpoint in LIVE** (dashboard, live mode): the URL and the five events above; copy the
    **live** signing secret (`whsec_…`).
-4. **Configure the Billing Portal in LIVE** (dashboard, live mode) as above, across **all six live Pro prices**; the
-   test configuration does not carry over.
+4. **Configure both portal configurations in LIVE**, as above: the default in the dashboard (card, invoices,
+   customer details, cancellation; plan switching OFF), and the change-plan configuration through the API over
+   **all six live Pro prices** with the SAME tag, `metadata.partyreel_purpose=change_plan`. No env value names it;
+   until one live configuration carries the tag, a Pro host's Change plan answers "unavailable" (it fails closed,
+   never onto the default).
 5. **Swap the ten env values** in `.env.local` and **Vercel**, then redeploy: `STRIPE_SECRET_KEY` = `sk_live_…`,
    `STRIPE_WEBHOOK_SECRET` = the **live** `whsec_…`, and all eight `STRIPE_PRICE_*` IDs = the **live** price IDs.
    Ten values, one redeploy: a half-swapped set means an unswapped plan checks out against the wrong mode's price
    and 500s.
 6. **Smoke-test carefully: real cards charge real money.** One real upgrade with a real card, confirm `tier='pro'`
    (Supabase MCP), then cancel and refund. The flow is proven in test mode (identical code), so this is a
-   keys-and-resources check; add one **yearly** checkout and one **portal switch**, which have never run against live
-   keys.
+   keys-and-resources check; add one **yearly** checkout and one **Change plan** switch (Stripe's confirm page for
+   one price at quantity 1, then back in the app), which have never run against live keys.
 
 **Rollback:** revert the ten env values to the test ones in Vercel and redeploy (live Stripe data persists, unused
 while the keys are test).

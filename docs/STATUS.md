@@ -21,31 +21,31 @@ anyone's, made on their device (saved or shared as a file; "Add to the album" on
 window of the original fetched by range and decoded on the viewer's device. The plan:
 `~/.claude/plans/great-work-however-1-dapper-twilight.md`.
 
-- **On the tree:** the rolling live composer and the video window reader, with their harnesses at
-  `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video` (a 20-minute soak on the alias held: no stall, the
-  clock never backward, zero failures, the heap flat at 13 to 19 MB); six boards on the desk.
+- **On the tree:** the rolling live composer and the video window reader (harnesses `/design/lab/tools/reel-live` and
+  `/design/lab/tools/reel-video`; a 20-minute alias soak held, the heap flat at 13 to 19 MB); six boards on the desk.
 - **Next:** his desk review; then the wiring (the expand migration first; the old reel stays live on the alias until
   one build replaces it; the drop migration after the red-team).
 - **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
   to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
   host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
-  guest journey. Five lanes: `recheck-by-upload`, `guest-by-upload`, `storage-guard`, and the `host-storage` and
-  `voice-guest` boards (the pickup has them).
+  guest journey. `recheck-by-upload`, `storage-guard` and the `host-storage` board are merged; `guest-by-upload` and
+  the `voice-guest` board follow (the pickup has them).
 
 ## The desk
 
-23 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
+24 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
 order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`, `identity-door`,
-`identity-claims`, `identity-profile`, `guest-capture`, `host-curation`, `export-flow`, `admin-triage`, `help-center`,
-`emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
+`identity-claims`, `identity-profile`, `guest-capture`, `host-curation`, `host-storage`, `export-flow`, `admin-triage`,
+`help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`,
+`press-page`.
 
 ## Live state
 
 - **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
   `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `64fbe302`: every standing board
-  current with the identity and reel rounds, the defects round, the six reel boards and both engines (old reel live). No
-  push deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6d1e7a45`: every standing board
+  current with tonight's rulings, the six reel boards and both engines (old reel live), the key a light guard. No push
+  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
@@ -70,9 +70,9 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first, and every `media-viewer` question but `who`; `identity-door`,
-  `identity-claims`, `identity-profile`, `guest-capture` and `media-viewer.who` once `recheck-by-upload` lands
-  (tonight's rulings reach them).
+- **His desk review**: the six reel boards first; every standing board is current with tonight's rulings
+  (`recheck-by-upload` merged: `identity-door.gate` now recommends the ruled line alone, `identity-profile.page`'s
+  count is viewer-scoped, `identity-claims.after` lands a claimed event as a Guest card).
 - **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
   `milestone-26`, far beyond the "about two rounds" rule, and once the save tables drop, partyreel.com's older build
   errors on its dashboard, its profile hide toggle and its Save buttons until it ships.

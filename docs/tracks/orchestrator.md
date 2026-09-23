@@ -32,6 +32,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `guest-by-upload` | save dies; one definition of a guest; the profile line follows the album; own deletes close the door | running | Opus, :3132 | apply the expand file at the merge; the contract file only after alias build 2's red-team, then `types.ts`; the Privacy version line in `legal.ts`; the `app-door` ruled row in `touchpoints.ts` |
+| `voice-guest` | NEW board: seven real lines of the guest journey, the capture's words among them | running | Opus, :3135 | syncs after `recheck-by-upload`; desk after `guest-capture` |
 
 ## Next, in order
 
@@ -45,16 +47,19 @@ model Will seats (Fable or Opus); nothing here depends on which.
    current); `guest-by-upload`'s expand file at its merge; the last record `[preview]` (alias build 2); then the
    general portal configuration loses `subscription_update`, the red-team, and `guest-by-upload`'s contract file with
    `types.ts` regenerated.
+   Pending from merged lanes: the pricing sheet's component note from `storage-guard`'s Handoff lands in
+   `component-notes.ts` at `guest-by-upload`'s record (its file); after alias build 2, `storage-guard`'s one Stripe call
+   (`features[subscription_update][enabled]=false` on `bpc_1TcTxWPtjqmVkBwkcAldFEZA`); a change-plan session's live check
+   needs a real TEST subscription (a TEST checkout as willg97, card 4242, on Stripe's page: Will's hands).
 2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G; the
    expand migration first, the drop migration and the R2 sweep of stored reel files after the red-team). The sweep
    lane also takes the reel's lines in `PRD.md`, `PRICING.md` and the two content authoring guides.
 
 ## Waiting on Will
 
-- **His desk review** on the alias (`/design/lab?key=`, the value in `.env.local`; Start the review): the six reel
-  boards and `media-viewer` (all but `who`) now; `identity-door`, `identity-claims`, `identity-profile`,
-  `guest-capture` and `media-viewer.who` after `recheck-by-upload` lands; the harnesses `/design/lab/tools/reel-live`
-  and `/design/lab/tools/reel-video`.
+- **His desk review** on the alias (`/design/lab?key=`, the value in `.env.local`; Start the review): every standing
+  board is current (`recheck-by-upload` merged at `0d6eb748`); the six reel boards first; the harnesses
+  `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`.
 - **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
   `milestone-26`; once the save tables drop, partyreel.com's older build errors on its dashboard until it ships.
 - **The Guests room's addresses** (a ROADMAP call: his reason for the credit's address reaches it).

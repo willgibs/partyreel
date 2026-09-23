@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1225 contracts on 162 components · 24 standing boards.**
+**22 laws · 18 policies · 1233 contracts on 162 components · 25 standing boards.**
 
 ## What binds you
 
@@ -370,7 +370,7 @@ Contracted but outside the library's directories:
 - `src/components/app/event-uploads.tsx` (13 guards)
 - `src/components/app/host-media-grid.tsx` (13 guards)
 - `src/components/app/pricing/lock-chip.tsx` (7 guards)
-- `src/components/app/pricing/pricing-sheet.tsx` (12 guards)
+- `src/components/app/pricing/pricing-sheet.tsx` (20 guards)
 - `src/components/app/pricing/return-path.ts` (7 guards)
 - `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
 - `src/components/app/print/print-stock.tsx` (14 guards)
@@ -483,7 +483,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | --- | --- | --- |
 | `identity-door` | guest | Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives |
 | `identity-claims` | host | Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album points to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at |
-| `identity-profile` | guest | Four decisions on the account page's real cards and the public profile page, over Priya, verified with three events joined and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor |
+| `identity-profile` | guest | Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor |
 | `reel-screen` | guest | Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub |
 | `guest-capture` | guest | Four decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, and whether the name she typed at the door gets one look before it becomes her account's |
 | `voice-guest` | guest | Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside three registers (plain and warm, bright and playful, quiet and exact), so the lines he picks build the voice |
@@ -499,6 +499,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `emails` | shared | Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox |
 | `help-center` | marketing | Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches |
 | `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
+| `host-storage` | host | Five decisions on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet, over one wedding videographer's account at 110.8 GB across four events: where a host sees each item's size, whether the list reads largest-first or grouped by event, how freeing space reads when a smaller plan is the reason, the pricing sheet's refusal of a size that does not fit, and how a Pro host's six prices sit beside it |
 | `reel-cut` | guest | Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode |
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |

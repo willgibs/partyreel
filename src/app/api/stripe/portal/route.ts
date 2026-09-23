@@ -5,10 +5,13 @@ import { getStripe } from "@/lib/stripe/client";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/site-url";
 
-// Opens the Stripe Billing Portal for the signed-in host (manage/cancel subscription,
-// update card) and returns the portal URL. Requires a Stripe customer — only hosts
-// who've been through checkout have one. Cancellations flow back via the subscription
-// webhooks, so this route makes no entitlement writes.
+// Opens the Stripe Billing Portal for the signed-in host (the card, the invoices,
+// cancelling) on the account's DEFAULT configuration, and returns the portal URL.
+// Requires a Stripe customer — only hosts who've been through checkout have one.
+// Cancellations flow back via the subscription webhooks, so this route makes no
+// entitlement writes. A Pro size or cadence change never comes here: it goes through
+// /api/stripe/change-plan, which checks the storage first (billing-caps.md), and the
+// default configuration's own plan switcher is switched off once that path is live.
 export const runtime = "nodejs";
 
 export async function POST() {

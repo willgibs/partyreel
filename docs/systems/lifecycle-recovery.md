@@ -44,8 +44,9 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   every removal path. Un-spoofable, NO host grant on either; never grant `update(purge_at)`.
 - **`standby_budget`** caps total deleted-but-stored bytes per account to
   `RECENTLY_DELETED_BUDGET_MULTIPLIER × effective cap` (the multiplier is 1), evicting oldest-first: the
-  anti-abuse backstop (size is the bound, not the clock). `profiles.storage_grace_until` is
-  service-role-write-only.
+  anti-abuse backstop (size is the bound, not the clock). So a move to a smaller cap shrinks Deleted too and
+  its oldest items purge early; the plan sheet says so before a switch that fits but shrinks the cap.
+  `profiles.storage_grace_until` is service-role-write-only.
 - **Delete-own** reuses this window: a signed-in uploader through the authenticated SECURITY DEFINER
   `remove_my_upload(uuid)` RPC ("Your uploads" on their own `/u/[slug]`, and the guest album's delete;
   re-checks ownership via the `get_my_uploads` host-arm/guest-arm predicates, then soft-removes;
@@ -90,9 +91,12 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
 ## The sweeps that nudge / enforce (decisions key off ACTIVE bytes)
 
-- **Over-capacity** takes every account whose ACTIVE bytes exceed its CURRENT effective cap (a lapsed paid
-  account, or a move to a smaller cap such as stacked passes into a smaller Pro; Free is upload-blocked before it
-  can exceed its cap; candidates are accounts over 2 GB used), and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at hard-delete). Over → set
+- **Over-capacity** takes every account whose ACTIVE bytes exceed its CURRENT effective cap (a cancelled Pro
+  or a pass running out; a purchase or switch to a smaller cap does NOT land here, because checkout and
+  change-plan refuse a plan the host does not fit (the storage guard, [billing-caps.md](billing-caps.md)), so
+  what remains is a lapse, a change made in the Stripe dashboard, or storage that grew between the check and
+  Stripe's confirm; Free is upload-blocked before it can exceed its cap; candidates are accounts over 2 GB
+  used), and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at hard-delete). Over → set
   `storage_grace_until` (`OVER_CAP_GRACE_DAYS`=45) + email; near the deadline → reminder; past grace →
   auto-reduce (`selectForAutoReduce`, largest-first → the removed path reclaims after the window) + email;
   back under → clear grace.
