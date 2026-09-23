@@ -352,7 +352,7 @@ export const VOICE_GUEST = defineExploration({
           id: "today",
           label: "As shipped: \"Keep these photos\"",
           means:
-            "The photos first, the event as an aside; the door's \"you added\" does not hold before an upload. Elsewhere: \"Waiting for the host.\"",
+            "The photos first, the event as an aside, in the card and its door, which holds before an upload too. Elsewhere: \"Waiting for the host.\"",
         },
         {
           id: "warm",
