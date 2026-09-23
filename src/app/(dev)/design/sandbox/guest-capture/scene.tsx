@@ -7,19 +7,24 @@ import {
   useRef,
   useState,
 } from "react";
-import { AtSign, Check } from "lucide-react";
+import { AtSign, Check, Sparkles } from "lucide-react";
 
 import { Frame, useLabPrefs } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 import type { GridMedia } from "@/components/app/media-grid";
 import { MediaTile } from "@/components/app/media-grid";
+import { formatReelMeta, PosterCard } from "@/components/reel/poster-card";
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DEFAULT_STYLE_ID,
+  resolveStyleEntry,
+} from "@/lib/reel/engine/style-registry";
 import { cn } from "@/lib/utils";
 
-import { PRIYA } from "./fixtures";
+import { EVENT, PRIYA, REEL_STILL } from "./fixtures";
 
 /**
  * THE ONE FRAME EVERY DECISION DRAWS IN, AND THE GROUND UNDER IT.
@@ -180,11 +185,11 @@ export function Scene({
 /**
  * THE HEADER, QUOTED. Three states `guest-header.tsx` really has, drawn from
  * fixed props rather than a resolved session: `cta` (a stranger), `named` (a
- * guest who typed a name and has not confirmed — the ground for `moment` and
- * `shape`), `confirmed` (a fresh account, once the flow finishes — the ground
- * for `follow`, `landing`, `name`). The markup, the classes and the h-8 slot
- * that keeps the swap height-stable are copied line for line; only the
- * session read is gone.
+ * guest who typed a name and has not confirmed, wearing the plain disc: the
+ * ground for `moment` and `shape`), `confirmed` (a fresh account, its own
+ * colour, once the flow finishes: the ground for `follow` and `name`). The
+ * markup, the classes and the h-8 slot that keeps the swap height-stable are
+ * copied line for line; only the session read is gone.
  */
 export function Header({ state }: { state: "cta" | "named" | "confirmed" }) {
   return (
@@ -220,15 +225,42 @@ export function Header({ state }: { state: "cta" | "named" | "confirmed" }) {
   );
 }
 
+/** One photograph on the ruled column rule, in the shipped tile. */
+function StripTile({ item }: { item: GridMedia }) {
+  return (
+    <div
+      data-media-tile
+      style={
+        {
+          aspectRatio: `${item.width} / ${item.height}`,
+          borderRadius: "var(--radius-tile)",
+        } as CSSProperties
+      }
+      className="relative w-full overflow-hidden bg-black/10"
+    >
+      <MediaTile item={item} playBadge="none" />
+    </div>
+  );
+}
+
 /** The strip of tiles under the ask, laid out on the ruled column rule with
- *  the shipped tile — `gallery-width`'s law, worn here rather than re-judged. */
+ *  the shipped tile — `gallery-width`'s law, worn here rather than re-judged.
+ *
+ *  ★ A CAPTION RIDES INSIDE ITS TILE'S OWN COLUMN BLOCK. The album is one CSS
+ *  multi-column box, so "a line under one photograph" can only be drawn by
+ *  putting the line in the same `break-inside-avoid` block as the tile: then
+ *  it stays under that photograph at every column count, which is the honest
+ *  cost of the `shape` ask's inline option (a caption as narrow as a column). */
 export function AlbumStrip({
   items,
   heading,
+  caption,
 }: {
   items: GridMedia[];
   /** A line above the grid ("Showing yours"), when one decision needs it. */
   heading?: ReactNode;
+  /** A line under one tile, by the tile's id. */
+  caption?: { id: string; node: ReactNode };
 }) {
   return (
     <div data-gc-strip className="px-4 pb-6">
@@ -237,16 +269,12 @@ export function AlbumStrip({
         {items.map((item) => (
           <div
             key={item.id}
-            data-media-tile
-            style={
-              {
-                aspectRatio: `${item.width} / ${item.height}`,
-                borderRadius: "var(--radius-tile)",
-              } as CSSProperties
-            }
-            className="relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
+            className="mb-[var(--gap-gallery)] w-full break-inside-avoid"
           >
-            <MediaTile item={item} playBadge="none" />
+            <StripTile item={item} />
+            {caption?.id === item.id && (
+              <div className="pt-2 pb-1">{caption.node}</div>
+            )}
           </div>
         ))}
       </div>
@@ -254,27 +282,98 @@ export function AlbumStrip({
   );
 }
 
+/** The corner mark the reel's tile wears once a guest's photograph is in the
+ *  take: `reel-front`'s own drawing of its recommended `yours=badge`, quoted
+ *  so this board can show the beat that lands beside the offer without asking
+ *  about it (that board asks; this one only stands next to it). */
+function YoursChip() {
+  return (
+    <span className="flex items-center gap-1.5 rounded-full bg-[oklch(0.32_0.09_300)]/90 px-2 py-0.5 text-label font-semibold text-white uppercase backdrop-blur-sm">
+      <Sparkles className="size-2.5" aria-hidden />
+      Yours is in it
+    </span>
+  );
+}
+
+/**
+ * THE REEL'S TILE, AT THE ALBUM'S HEAD. The reel is the event's own live
+ * montage from its third item, with no host action, and its tile is its own
+ * slot directly above the album's first row, which puts it between the words
+ * column (where this board's offer and moment cards stand) and her
+ * photographs. Every scene here has well over three items, so every scene
+ * draws it: each ask is judged beside the tile that really stands under it.
+ *
+ * Drawn on the shipped reel face (`PosterCard`, `formatReelMeta`), resting on
+ * one still, because this board is not about the tile: `reel-front` asks what
+ * it is, whether it plays and what its corner says, and its recommendations
+ * are what it wears here. `data-gc-reel`, never `data-media-tile`, so the
+ * `moment` count of photographs never counts the reel as one of them.
+ */
+export function ReelTile({ count }: { count: number }) {
+  const meta = formatReelMeta({
+    styleLabel: resolveStyleEntry(DEFAULT_STYLE_ID).label,
+    momentCount: count,
+  });
+  return (
+    <div data-gc-reel>
+      <PosterCard
+        eventName={EVENT.name}
+        meta={meta}
+        chip={<YoursChip />}
+        media={
+          <div className="relative aspect-[2/1] w-full sm:aspect-[21/9]">
+            {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still standing in for the engine's resting frame */}
+            <img
+              src={REEL_STILL}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+            />
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
 /** The whole guest page's ground: header, then whatever the decision draws
- *  in the action slot, then the album. Every option holds this steady and
- *  moves only the one thing being asked. */
+ *  in the words column's post-upload slot, then the album's head (the reel's
+ *  tile), then the album, then whatever the page carries after the album (the
+ *  Guests list, which really does sit under every photograph). Every option
+ *  holds this steady and moves only the one thing being asked. */
 export function Ground({
   header,
   action,
   items,
   stripHeading,
+  caption,
+  after,
+  reelCount = items.length,
 }: {
   header: "cta" | "named" | "confirmed";
+  /** The post-upload slot's card, or null when the decision puts nothing there. */
   action: ReactNode;
   items: GridMedia[];
   stripHeading?: ReactNode;
+  caption?: { id: string; node: ReactNode };
+  after?: ReactNode;
+  /** What the reel counts: the whole album, even when a filter shows less. */
+  reelCount?: number;
 }) {
   return (
     <div className="min-h-full bg-background text-foreground">
       <Header state={header} />
-      <div className="mx-auto max-w-[640px] px-4 pt-5">{action}</div>
+      {action && (
+        <div className="mx-auto max-w-[640px] px-4 pt-5">{action}</div>
+      )}
       <div className="mx-auto max-w-[640px]">
-        <AlbumStrip items={items} heading={stripHeading} />
+        <div className="px-4 pt-5 pb-4">
+          <ReelTile count={reelCount} />
+        </div>
+        <AlbumStrip items={items} heading={stripHeading} caption={caption} />
       </div>
+      {after && (
+        <div className="mx-auto max-w-[640px] px-4 pb-10">{after}</div>
+      )}
     </div>
   );
 }

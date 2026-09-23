@@ -15,9 +15,11 @@ import { EventCard } from "@/components/app/event-card";
 import { GuestMasonry } from "@/components/guest/guest-masonry";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Logo } from "@/components/shared/logo";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
+import { GLASS_MARK } from "@/lib/glass";
+import { cn } from "@/lib/utils";
 
 import type { Party, Person } from "./fixtures";
 
@@ -109,24 +111,25 @@ function Facts({ person, option }: { person: Person; option: IdentityOption }) {
     );
   }
   return (
-    <>
-      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-        <span>@{person.slug}</span>
-        <span aria-hidden className="text-faint">
-          ·
-        </span>
-        <span>{person.joined}</span>
-      </p>
-      {option === "line" && person.line && (
-        <p className="mt-2 max-w-prose text-sm text-pretty text-foreground">
-          {person.line}
-        </p>
-      )}
-    </>
+    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+      <span>@{person.slug}</span>
+      <span aria-hidden className="text-faint">
+        ·
+      </span>
+      <span>{person.joined}</span>
+    </p>
   );
 }
 
 /**
+ * ★ THE LINE SITS UNDER THE ROW, NOT IN IT (Will, `identity=line`, as the page
+ * ships it): "Profile picture (avatar) should be center aligned to the
+ * name/meta group, so if a bio 1) doesn't exist it looks correct, or 2) does
+ * exist and runs at any length, the avatar is still aligned to the top
+ * name/meta". A line inside the flex row would drag the avatar down by half of
+ * whatever the person wrote, so `line` draws it after the row, exactly as
+ * `/u/[slug]` does, and the avatar is the shipped `xl` one in its own colour.
+ *
  * ★ THE ROW IS FIXED AT A PHONE, IN EVERY OPTION, AND THAT IS DELIBERATE.
  * The shipped block is `flex flex-wrap items-center gap-5` with the avatar, a
  * `min-w-0 flex-1` column and the actions all on ONE line. At 375 that leaves
@@ -153,25 +156,24 @@ export function Identity({
   actions?: ReactNode;
 }) {
   return (
-    <section className="flex flex-wrap items-center gap-5">
-      {person.avatar ? (
-        // eslint-disable-next-line @next/next/no-img-element -- a fixture still, square-cropped exactly as the shipped page crops a real avatar
-        <img
-          src={person.avatar}
-          alt=""
-          className="size-20 rounded-full border border-border object-cover"
-        />
-      ) : (
-        <div className="flex size-20 items-center justify-center rounded-full border border-border bg-muted text-2xl font-medium text-muted-foreground">
-          {person.name.slice(0, 1).toUpperCase()}
+    <>
+      <section className="flex flex-wrap items-center gap-5">
+        <Avatar size="xl" seed={person.seed}>
+          <AvatarImage src={person.avatar ?? undefined} alt="" />
+          <AvatarFallback>{person.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
+          <h1 className="font-heading text-page text-balance">{person.name}</h1>
+          <Facts person={person} option={option} />
         </div>
+        {actions}
+      </section>
+      {option === "line" && person.line && (
+        <p className="mt-4 max-w-prose text-sm text-pretty text-foreground">
+          {person.line}
+        </p>
       )}
-      <div className="min-w-0 flex-1 max-sm:basis-[calc(100%-6.25rem)]">
-        <h1 className="font-heading text-page text-balance">{person.name}</h1>
-        <Facts person={person} option={option} />
-      </div>
-      {actions}
-    </section>
+    </>
   );
 }
 
@@ -231,24 +233,46 @@ function AlsoAtRows({ parties }: { parties: Party[] }) {
   );
 }
 
-/**
- * The same rows as cards. It carries ONE cover from an album that is already
- * open to anyone with the link, and still no link of its own, so what it adds
- * over the rows above is a picture and nothing a viewer can reach.
- */
-function AlsoAtCards({ parties }: { parties: Party[] }) {
-  if (parties.length === 0) return null;
+/** The page's Host or Guest marker, `/u/[slug]`'s own `Marker`, copied. */
+function Marker({ role }: { role: "host" | "guest" }) {
   return (
-    <section aria-label="Also at" className="mt-10 space-y-3">
-      <h2 className={HEADING}>Also at</h2>
+    <span
+      className={cn(
+        "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
+        GLASS_MARK,
+      )}
+    >
+      {role === "host" ? "Host" : "Guest"}
+    </span>
+  );
+}
+
+/**
+ * ONE GRID, AS THE PAGE SHIPS IT (Will's `made-of=covers` note: "rather than a
+ * separate 'also at' section, maybe we could just have host/guest UI on each
+ * event card to denote within a single group"). Hosted and attended together,
+ * each with its marker; a Guest card carries its cover and no link, because
+ * being on a guest list is not a way into an album, and it is here at all only
+ * because its owner turned it on.
+ */
+function PartyGrid({ person }: { person: Person }) {
+  const parties = [
+    ...person.hosted.map((p) => ({ party: p, role: "host" as const })),
+    ...person.attended.map((p) => ({ party: p, role: "guest" as const })),
+  ];
+  return (
+    <section aria-label="Events" className="mt-10 space-y-3">
+      <h2 className={HEADING}>Events</h2>
       <ul className="grid gap-4 sm:grid-cols-2">
-        {parties.map((p) => (
-          <li key={p.id}>
+        {parties.map(({ party, role }) => (
+          <li key={party.id}>
             <EventCard
-              href={null}
-              name={p.name}
-              coverUrl={p.cover}
-              dateLabel={p.dateLabel}
+              href={role === "host" ? `#${party.id}` : null}
+              name={party.name}
+              coverUrl={party.cover}
+              dateLabel={party.dateLabel}
+              statusLabel={party.lock}
+              action={<Marker role={role} />}
             />
           </li>
         ))}
@@ -295,14 +319,12 @@ export function Body({
     );
   }
 
+  if (option === "covers") return <PartyGrid person={person} />;
+
   return (
     <>
       <Hosted parties={person.hosted} />
-      {option === "covers" ? (
-        <AlsoAtCards parties={person.attended} />
-      ) : (
-        <AlsoAtRows parties={person.attended} />
-      )}
+      <AlsoAtRows parties={person.attended} />
     </>
   );
 }

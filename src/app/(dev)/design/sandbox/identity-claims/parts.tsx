@@ -347,7 +347,7 @@ export function MomentCard({ extra }: { extra?: ReactNode }) {
         <div className="min-w-0">
           <p className="font-heading text-subsection">Your photo is safe</p>
           <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
-            It is on your profile now, and this event came with it.
+            It is in your account now, and this event came with it.
           </p>
         </div>
       </div>

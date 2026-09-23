@@ -4,14 +4,33 @@ import { useState } from "react";
 import { ArrowLeft, LayoutDashboard, Settings } from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
-import { GuestList } from "@/components/social/guest-list";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { floatingPanel } from "@/components/ui/floating-layer";
+import { cn } from "@/lib/utils";
 
-import { AlbumHead, Album, FacesRow, NamesSheet, Section } from "./album";
-import { type Chip, EVENT, GUESTS, type Person } from "./fixtures";
+import {
+  AlbumHead,
+  Album,
+  CHIP,
+  Face,
+  FacesRow,
+  HEADING,
+  headingCount,
+  NameList,
+  NamesSheet,
+  QuotedMark,
+  Section,
+} from "./album";
+import {
+  type Chip,
+  EVENT,
+  GUESTS,
+  isUnverified,
+  type Person,
+  type Tapped,
+} from "./fixtures";
 import { Body, Foot, Head, Identity, Menu, MenuRow, ProfilePage } from "./profile";
 import type { ScreenId } from "./scene";
 
@@ -68,10 +87,10 @@ function Pager({
 }
 
 /**
- * (a) In place, under the row, grouped: the interim `profile-wiring` ships,
- * with the pagination Will's own note asked for ("For bigger lists, we should
- * continue to have pagination to expand into groups"). Drawn already open: the
- * expansion is the subject, not the row.
+ * (a) In place, under the row, grouped, with the pagination Will's own note
+ * asked for ("For bigger lists, we should continue to have pagination to
+ * expand into groups"). Drawn already open: the expansion is the subject, not
+ * the row.
  */
 function ViewAllInline({ items }: { items: Chip[] }) {
   const [page, setPage] = useState(0);
@@ -79,7 +98,7 @@ function ViewAllInline({ items }: { items: Chip[] }) {
   const slice = items.slice(page * GROUP_SIZE, page * GROUP_SIZE + GROUP_SIZE);
   return (
     <div data-pp-list className="space-y-3">
-      <GuestList items={slice} />
+      <NameList items={slice} />
       <Pager page={page} pages={pages} onChange={setPage} />
     </div>
   );
@@ -108,7 +127,7 @@ function ViewAllSheet({ items }: { items: Chip[] }) {
             data-pp-list
             className="min-h-0 flex-1 overflow-y-auto px-6 pb-6"
           >
-            <GuestList items={items} />
+            <NameList items={items} />
           </div>
         </div>
       </div>
@@ -155,7 +174,7 @@ export function ViewAllPage({ items }: { items: Chip[] }) {
         <p className="mb-3 text-sm text-muted-foreground">
           {items.length} people added photos to {EVENT.name}.
         </p>
-        <GuestList items={items} />
+        <NameList items={items} />
       </div>
     </>
   );
@@ -174,7 +193,7 @@ export function ViewAllShowcase({
       <Head option="guest" signedIn />
       <AlbumHead photoCount={items.length > GUESTS.length ? 640 : undefined} />
       <Album count={2} />
-      <Section label="Guests" count={items.length}>
+      <Section label="Guests" count={headingCount(items)}>
         {option === "inline" && <ViewAllInline items={items} />}
         {option === "sheet" && <ViewAllSheet items={items} />}
         {option === "centred" && <ViewAllCentred items={items} />}
@@ -190,20 +209,18 @@ export function ViewAllShowcase({
 
 export type QuickLookOption = "sheet" | "mini-modal" | "none";
 
-/** The parties as small covers, plus the overflow line: the one place this
- *  round draws round one's `made-of=covers` at a size smaller than a grid
- *  column, so a card stays a peek rather than a second full page. */
+/** The events a page shows, as small covers, plus the overflow line: round
+ *  one's `made-of=covers` at a size smaller than a grid column, so a look
+ *  stays a peek rather than a second full page. Only what its owner chose:
+ *  `attended` is the opt-in list, never everything she went to. */
 function SmallCovers({ person }: { person: Person }) {
   const parties = [...person.hosted, ...person.attended];
-  if (parties.length === 0) {
-    return (
-      <p className="mt-4 text-sm text-muted-foreground">Nothing here yet.</p>
-    );
-  }
+  if (parties.length === 0) return null;
   const shown = parties.slice(0, 3);
   const rest = parties.length - shown.length;
   return (
-    <div className="mt-4">
+    <div className="mt-5 space-y-2">
+      <p className={HEADING}>Events</p>
       <div className="grid grid-cols-3 gap-2">
         {shown.map((p) => (
           <EventCard
@@ -215,23 +232,74 @@ function SmallCovers({ person }: { person: Person }) {
           />
         ))}
       </div>
-      {rest > 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">+{rest} more</p>
-      )}
+      {rest > 0 && <p className="text-xs text-muted-foreground">+{rest} more</p>}
     </div>
   );
 }
 
-/** The face, the name, the line and the parties as small covers, plus the
- *  door to the full page: Will's own words for what a quick look holds. */
-function QuickLookBody({ person }: { person: Person }) {
+/** Who this is, in the words the album already uses: a page's own head (the
+ *  handle, the month, the line) where there is a page; the name alone for a
+ *  confirmed account without one; the name and the mark for a typed name. */
+function LookHead({ tapped }: { tapped: Tapped }) {
+  if (tapped.person) return <Identity person={tapped.person} option="line" />;
+  const unverified = tapped.kind === "unverified";
+  return (
+    <section className="flex items-center gap-5">
+      <Avatar size="xl" seed={unverified ? undefined : (tapped.seed ?? undefined)}>
+        {!unverified && <AvatarImage src={tapped.avatar ?? undefined} alt="" />}
+        <AvatarFallback>{tapped.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="font-heading text-page text-balance">{tapped.name}</p>
+        {unverified && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <QuotedMark />
+            Unverified: anyone can type a name
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** The one thing every name on the list has: what they added to this album,
+ *  already public on it by name, so a look shows nothing the album did not. */
+function PhotosHere({ tapped }: { tapped: Tapped }) {
+  const shown = tapped.photosHere.slice(0, 4);
+  return (
+    <div className="mt-5 space-y-2">
+      <p className={HEADING}>{tapped.photosHere.length} photos in this album</p>
+      <div className="grid grid-cols-4 gap-1.5">
+        {shown.map((m) => (
+          <div
+            key={m.id}
+            className="aspect-square overflow-hidden bg-black/10"
+            style={{ borderRadius: "var(--radius-tile)" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a fixture still, not a presigned URL */}
+            <img src={m.url} alt="" className="size-full object-cover" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The look itself: who, what they added here, and, only where a page stands
+ *  behind the name, the events it shows and the door to it. */
+function LookBody({ tapped }: { tapped: Tapped }) {
   return (
     <>
-      <Identity person={person} option="line" />
-      <SmallCovers person={person} />
-      <Button type="button" className="mt-5 w-full">
-        Open full profile
-      </Button>
+      <LookHead tapped={tapped} />
+      <PhotosHere tapped={tapped} />
+      {tapped.person && (
+        <>
+          <SmallCovers person={tapped.person} />
+          <Button type="button" className="mt-5 w-full">
+            Open full profile
+          </Button>
+        </>
+      )}
     </>
   );
 }
@@ -242,13 +310,7 @@ function QuickLookBody({ person }: { person: Person }) {
  *  the shipped `Sheet`'s own bottom side is edge-to-edge at every width
  *  (`sheet.tsx`); the desk side narrows to a column pinned to the right edge,
  *  never full width, which is what keeps the rest of the list in view. */
-function QuickLookSheet({
-  person,
-  screen,
-}: {
-  person: Person;
-  screen: ScreenId;
-}) {
+function LookSheet({ tapped, screen }: { tapped: Tapped; screen: ScreenId }) {
   const desk = screen === "1440";
   return (
     <div
@@ -266,28 +328,10 @@ function QuickLookSheet({
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
         )}
         <div className="mx-auto w-full max-w-md">
-          <QuickLookBody person={person} />
+          <LookBody tapped={tapped} />
         </div>
       </div>
     </div>
-  );
-}
-
-/** The one chip a tap marks, so the mini-modal has something to sit under in
- *  the showcase: `GuestList` renders its own `<ul>` and takes no per-chip
- *  slot, so this repeats its chip markup for one row rather than editing the
- *  shipped component (the same move `OwnChip` made in round one). */
-function ClickedChip({ chip }: { chip: Chip }) {
-  return (
-    <span className="flex h-8 items-center gap-2 rounded-full border border-ring/50 bg-muted/60 py-1 pr-3 pl-1 text-sm ring-2 ring-ring/30">
-      <Avatar size="sm">
-        <AvatarImage src={chip.avatarUrl ?? undefined} alt="" />
-        <AvatarFallback className="text-[10px]">
-          {(chip.displayName ?? "?").slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <span className="max-w-40 truncate">{chip.displayName}</span>
-    </span>
   );
 }
 
@@ -295,42 +339,61 @@ function ClickedChip({ chip }: { chip: Chip }) {
  *  opens in (app-shape r1's `share=room`), reused for a look at a person
  *  rather than a code. Identical at both screens, unlike the Sheet, because
  *  the QR's own mini-modal never adapted by width either. */
-function QuickLookMiniModal({ person }: { person: Person }) {
-  const chip: Chip = {
-    id: person.id,
-    displayName: person.name,
-    slug: person.slug,
-    avatarMarker: null,
-    avatarUrl: person.avatar,
-  };
+function LookModal({ tapped }: { tapped: Tapped }) {
   return (
-    <>
-      <ClickedChip chip={chip} />
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-        <div
-          data-pp-card
-          className={`w-full max-w-sm overflow-y-auto rounded-2xl p-6 ${floatingPanel}`}
-        >
-          <QuickLookBody person={person} />
-        </div>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+      <div
+        data-pp-card
+        className={`max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl p-6 ${floatingPanel}`}
+      >
+        <LookBody tapped={tapped} />
       </div>
-    </>
+    </div>
+  );
+}
+
+/** The names, open in place as the shipped list opens them, with the one a
+ *  tap just landed on marked: the chip a look (or nothing) answers. */
+function ListWithTap({ tappedId }: { tappedId: string }) {
+  return (
+    <ul className="flex flex-wrap items-center gap-1.5">
+      {GUESTS.map((chip) => (
+        <li key={chip.id}>
+          <span
+            data-pp-tapped={chip.id === tappedId ? "" : undefined}
+            className={cn(
+              CHIP,
+              chip.id === tappedId
+                ? "border-ring/50 bg-muted/60 text-foreground ring-2 ring-ring/30"
+                : !isUnverified(chip) && chip.slug
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+            )}
+          >
+            <Face chip={chip} />
+            <span className="max-w-40 truncate">{chip.displayName}</span>
+            {isUnverified(chip) && <QuotedMark />}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export function QuickLookShowcase({
   option,
-  person,
+  tapped,
   screen,
 }: {
   option: QuickLookOption;
-  person: Person;
+  tapped: Tapped;
   screen: ScreenId;
 }) {
-  if (option === "none") {
+  // As shipped, a name with a page is a link straight to it.
+  if (option === "none" && tapped.person) {
     return (
       <ProfilePage
-        person={person}
+        person={tapped.person}
         head="guest"
         identity="line"
         body="covers"
@@ -344,16 +407,14 @@ export function QuickLookShowcase({
       <Head option="guest" signedIn />
       <AlbumHead />
       <Album count={2} />
-      <Section label="Guests" count={GUESTS.length}>
-        {option === "mini-modal" ? (
-          <QuickLookMiniModal person={person} />
-        ) : (
-          <>
-            <FacesRow items={GUESTS} onOpen={() => {}} />
-            <QuickLookSheet person={person} screen={screen} />
-          </>
-        )}
+      <Section label="Guests" count={headingCount(GUESTS)}>
+        {/* As shipped, every other name opens nothing: no page, no look. */}
+        <div data-pp-inert={option === "none" ? "" : undefined}>
+          <ListWithTap tappedId={tapped.id} />
+        </div>
       </Section>
+      {option === "sheet" && <LookSheet tapped={tapped} screen={screen} />}
+      {option === "mini-modal" && <LookModal tapped={tapped} />}
     </>
   );
 }

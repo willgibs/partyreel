@@ -2,19 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AtSign, Bookmark, Check, UserCheck, UserPlus } from "lucide-react";
+import { Bookmark, UserCheck, UserPlus } from "lucide-react";
 
-import { EventCard } from "@/components/app/event-card";
-import { AppShell } from "@/components/shared/app-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GLASS_MARK } from "@/lib/glass";
-import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
-import { EVENT, HOST, OTHER_GUESTS, PRIYA } from "./fixtures";
+import { EVENT, GUESTS, HOST, PRIYA } from "./fixtures";
 import { HandleGlyph, SettledMark } from "./scene";
 
 /**
@@ -29,6 +26,13 @@ import { HandleGlyph, SettledMark } from "./scene";
  * pressable is LOCAL STATE, the shipped icons, variants and words verbatim
  * (`profile-page`'s own fork of `FollowButton` is the precedent), and every
  * open popover, sheet or menu is QUOTED markup rather than a mounted primitive.
+ * The Unverified mark is quoted the same way: the shipped one is a Popover.
+ *
+ * ★ THE WORDS ARE THE SHIPPED WORDS. The offer, the moment and the door all say
+ * what confirming keeps: the event and every photograph, in her account (her
+ * dashboard, where she comes back to it). Never "on your profile": a profile
+ * publishes nothing until its owner chooses it, so a line promising one would
+ * be drawing a product that does not exist.
  */
 
 /* ── a follow button that moves a picture, never a row ──────────────────── */
@@ -49,16 +53,18 @@ export function LocalFollowButton({ initial = false }: { initial?: boolean }) {
   );
 }
 
-/* ── the offer, before she has confirmed anything (the `shape` decision) ─── */
+/* ── the offer, before she has confirmed anything (`moment`, `shape`) ────── */
 
+/** `save-account-prompt.tsx`'s own words, the heading counting the way it
+ *  does: singular for exactly one photograph, plural otherwise. */
 const offerWords = (count: number) => ({
-  heading: "Keep these photos",
+  heading: count === 1 ? "Keep this photo" : "Keep these photos",
   body: `Confirm your email and ${
     count === 1 ? "it stays" : `all ${count} stay`
-  } with you: this event on your profile, and everything you added to it.`,
+  } with you: this event in your account, and everything you added to it.`,
 });
 
-/** As shipped: the bordered card in the album's own slot. */
+/** As shipped: the bordered card in the words column's post-upload slot. */
 export function OfferCard({ count }: { count: number }) {
   const words = offerWords(count);
   return (
@@ -87,48 +93,34 @@ export function OfferCard({ count }: { count: number }) {
   );
 }
 
-/** A line under the tile it is about, no card built around it. Drawn beside
- *  Priya's own newest tile rather than inside the multi-column strip, which
- *  has no notion of "under one item" once it packs into columns. */
-export function OfferInline({
-  count,
-  tileUrl,
-}: {
-  count: number;
-  tileUrl: string;
-}) {
+/** A line under the photograph it is about, no card built around it. It
+ *  rides inside her newest tile's own column block (`AlbumStrip`'s caption),
+ *  so it is exactly as wide as that column: the cost of this shape, drawn. */
+export function OfferCaption({ count }: { count: number }) {
   return (
-    <div data-gc-offer="inline" className="flex gap-3">
-      <div
-        className="w-24 shrink-0 overflow-hidden bg-black/10"
-        style={{ aspectRatio: "4 / 5", borderRadius: "var(--radius-tile)" }}
+    <p
+      data-gc-offer="inline"
+      className="text-working text-pretty text-muted-foreground"
+    >
+      {count === 1 ? "Yours, unverified." : `Yours, ${count} unverified.`}{" "}
+      <button
+        type="button"
+        className="font-medium text-foreground underline underline-offset-4"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- a stand-in still, not a presigned URL */}
-        <img src={tileUrl} alt="" className="size-full object-cover" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
-        <p className="text-reading text-pretty text-foreground">
-          {count === 1 ? "Yours, unconfirmed." : `Yours, ${count} unconfirmed.`}{" "}
-          <button
-            type="button"
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Confirm your email
-          </button>{" "}
-          to keep {count === 1 ? "it" : "them"}.
-        </p>
-      </div>
-    </div>
+        Confirm your email
+      </button>{" "}
+      to keep {count === 1 ? "it" : "them"}.
+    </p>
   );
 }
 
-/** The last screen of the same sheet she just sent from — since the door
- *  ruling (2026-09-21, "the door as three steps") that sheet is
- *  the WELCOME sheet itself, held with no exit: the album has not been shown
- *  to her yet, so there is nothing to "take her to" and a dismiss may never
- *  read as one. Quoted (a real Sheet would portal to the lab page, not this
- *  frame): `ui/sheet.tsx`'s own classes, copied rather than mounted, pinned
- *  to this frame's own foot.
+/** The last screen of the door's own sheet. The sheet she sent her first
+ *  photograph from is the welcome sheet itself (welcome, then her name with
+ *  the optional email under it, then the first upload), held with no exit:
+ *  the album has not been shown to her yet, so there is nothing to "take her
+ *  to" and a dismiss may never read as one. Quoted (a real Sheet would portal
+ *  to the lab page, not this frame): `ui/sheet.tsx`'s own classes, copied
+ *  rather than mounted, pinned to this frame's own foot.
  *
  *  ★ `fixed`, NEVER `absolute` (`host-curation`'s own landmine, verbatim in
  *  its stylesheet: "the frame IS the viewport... an absolute box inside a
@@ -179,8 +171,8 @@ export function OfferSheet({ count }: { count: number }) {
   );
 }
 
-/* ── the moment, once she has confirmed (`follow`, and the ground `landing`
-      and `name` hold steady while they ask something else) ────────────── */
+/* ── the moment, once she has confirmed (`follow`, and the ground `name`
+      holds steady while it asks something else) ─────────────────────────── */
 
 export function MomentCard({
   count,
@@ -190,9 +182,11 @@ export function MomentCard({
   count: number;
   /** Mirrors the `follow` ask's own option ids: "card", the card's own host
    *  row, as shipped; "list", no row here, a line sends her to the list
-   *  below; "jump", the host's name is a link to her profile instead of a
-   *  button on this card. */
+   *  under the album; "jump", the host's name is a link to her profile
+   *  instead of a button on this card. */
   hostFollow: "card" | "list" | "jump";
+  /** The shipped card's handle line. Whether the card invites a page at all
+   *  is `identity-profile.prompt`'s question; it is drawn as shipped. */
   handleRow?: boolean;
 }) {
   return (
@@ -209,8 +203,8 @@ export function MomentCard({
           </p>
           <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
             {count === 1
-              ? "It is on your profile now, and this event came with it."
-              : `All ${count} are on your profile now, and this event came with them.`}
+              ? "It is in your account now, and this event came with it."
+              : `All ${count} are in your account now, and this event came with them.`}
           </p>
         </div>
       </div>
@@ -239,8 +233,8 @@ export function MomentCard({
 
       {hostFollow === "list" && (
         <p className="border-t border-border/60 pt-4 text-reading text-pretty text-muted-foreground">
-          {HOST.displayName} and every guest who added something are in the
-          Guests list below, each one followable from there.
+          {HOST.displayName} leads the Guests list under the album, with a
+          Follow beside her name.
         </p>
       )}
 
@@ -278,11 +272,31 @@ export function MomentCard({
   );
 }
 
+/** The Unverified mark on a chip, quoted: `unverified-mark.tsx`'s `paper`
+ *  tone (a dot in a small disc), without the Popover it opens in the product. */
+function QuotedMark() {
+  return (
+    <span
+      role="img"
+      aria-label="Unverified"
+      className="inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-border bg-muted"
+    >
+      <span aria-hidden className="size-1 rounded-full bg-muted-foreground" />
+    </span>
+  );
+}
+
 /** The named Guests section, real chips in the real shape, with Maya folded
  *  in as its first entry when the `follow` decision asks for that (`hostFirst`).
  *  A local fork rather than the shipped `GuestList`: that component's own
- *  Follow row is the real `FollowButton`, so a board that wants to show one
- *  pressable forks the chip too (the same reason `profile-page` forked it). */
+ *  Follow row is the real `FollowButton` and its mark is a real Popover, so a
+ *  board that wants either pressable forks the chip too (the same reason
+ *  `profile-page` forked it).
+ *
+ *  ★ THE SHIPPED ORDER AND THE SHIPPED RULES: confirmed accounts first, each
+ *  in its own colour, linking only where it has a handle and offering a Follow
+ *  only there (never on the viewer's own chip); then every typed name, on the
+ *  plain disc with the mark, linking nowhere and offering nothing. */
 export function GuestsSection({ hostFirst }: { hostFirst: boolean }) {
   const chip =
     "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
@@ -313,157 +327,69 @@ export function GuestsSection({ hostFirst }: { hostFirst: boolean }) {
             <LocalFollowButton />
           </li>
         )}
-        {OTHER_GUESTS.map((g) => (
-          <li key={g.name} className="flex items-center gap-1.5">
-            {g.slug ? (
-              <Link
-                href={`/u/${g.slug}`}
-                className={cn(chip, "text-foreground")}
-              >
-                <Avatar seed={g.seed} size="sm">
-                  <AvatarFallback className="text-[10px]">
-                    {g.name.slice(0, 1)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="max-w-40 truncate">{g.name}</span>
-              </Link>
-            ) : (
-              <span className={cn(chip, "text-muted-foreground")}>
-                <Avatar seed={g.seed} size="sm">
-                  <AvatarFallback className="text-[10px]">
-                    {g.name.slice(0, 1)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="max-w-40 truncate">{g.name}</span>
-                {!g.verified && (
-                  <span
-                    aria-hidden
-                    className="inline-flex size-4 items-center justify-center rounded-full border border-border bg-muted"
-                  >
-                    <span className="size-1 rounded-full bg-muted-foreground" />
-                  </span>
-                )}
-              </span>
-            )}
-            {g.slug && <LocalFollowButton />}
-          </li>
-        ))}
+        {GUESTS.map((g) => {
+          const face = (
+            <Avatar seed={g.seed ?? undefined} size="sm">
+              <AvatarFallback className="text-[10px]">
+                {g.name.slice(0, 1)}
+              </AvatarFallback>
+            </Avatar>
+          );
+          if (g.kind === "unverified") {
+            return (
+              <li key={g.name}>
+                <span className={cn(chip, "text-muted-foreground")}>
+                  {face}
+                  <span className="max-w-40 truncate">{g.name}</span>
+                  <QuotedMark />
+                </span>
+              </li>
+            );
+          }
+          return (
+            <li key={g.name} className="flex items-center gap-1.5">
+              {g.slug ? (
+                <Link
+                  href={`/u/${g.slug}`}
+                  className={cn(chip, "text-foreground")}
+                >
+                  {face}
+                  <span className="max-w-40 truncate">{g.name}</span>
+                </Link>
+              ) : (
+                <span className={cn(chip, "text-muted-foreground")}>
+                  {face}
+                  <span className="max-w-40 truncate">{g.name}</span>
+                </span>
+              )}
+              {g.slug && !g.self && <LocalFollowButton />}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
-/* ── where she is standing afterward (`landing`) ─────────────────────────── */
-
-const COVER = MARKETING_IMAGES[3].src;
-
-/** `/u/priya`, quoted: the identity block and one event card, exactly as
- *  `page.tsx` composes them, minus the two server calls that resolve it. */
-export function ProfileLanding() {
-  return (
-    <main className="mx-auto w-full max-w-[640px] flex-1 px-5 py-10">
-      <section className="flex flex-wrap items-center gap-5">
-        <Avatar size="xl" seed={PRIYA.seed}>
-          <AvatarFallback>{PRIYA.name.slice(0, 1)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-heading text-page text-balance">{PRIYA.name}</h1>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
-            <span>Joined just now</span>
-          </p>
-        </div>
-      </section>
-      <section aria-label="Events" className="mt-10 space-y-3">
-        <h2>
-          <span className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-            Events
-          </span>
-        </h2>
-        <ul className="grid gap-4 sm:grid-cols-2">
-          <li>
-            <EventCard
-              href={`/e/${EVENT.token}`}
-              name={EVENT.name}
-              coverUrl={COVER}
-              dateLabel={EVENT.date}
-              action={
-                <span
-                  className={cn(
-                    "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
-                    GLASS_MARK,
-                  )}
-                >
-                  Guest
-                </span>
-              }
-            />
-          </li>
-        </ul>
-      </section>
-    </main>
-  );
-}
-
-/** The dashboard, quoted onto the real `AppShell`: no session, no network,
- *  just the chrome and one saved-event card in the real shape. */
-export function DashboardLanding() {
-  return (
-    <AppShell
-      headerActions={
-        <Avatar size="sm" seed={PRIYA.seed}>
-          <AvatarFallback className="text-[10px]">
-            {PRIYA.name.slice(0, 1)}
-          </AvatarFallback>
-        </Avatar>
-      }
-    >
-      <div className="space-y-3">
-        <h2 className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-          Saved
-        </h2>
-        <ul className="grid gap-4 sm:grid-cols-2">
-          <li>
-            <EventCard
-              href={`/e/${EVENT.token}`}
-              name={EVENT.name}
-              coverUrl={COVER}
-              dateLabel={EVENT.date}
-              variant="saved"
-              byline={`Hosted by ${EVENT.host}`}
-              action={
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Check className="size-3" aria-hidden /> Saved
-                </span>
-              }
-            />
-          </li>
-        </ul>
-      </div>
-    </AppShell>
-  );
-}
-
 /* ── what the typed name becomes (`name`) ─────────────────────────────────── */
 
-/** The step this option ADDS, drawn in the moment card's own slot: what
+/** The step the `confirm` option ADDS, drawn in the moment card's slot: what
  *  stands there is the new thing, and the moment card itself (unchanged) is
- *  what follows once she submits it. */
-export function NameStepCard({ mode }: { mode: "confirm" | "together" }) {
+ *  what follows once she submits it. The handle is not in it: when and how a
+ *  page is set up is `identity-profile.setup`'s question. */
+export function NameStepCard() {
   const [name, setName] = useState<string>(PRIYA.name);
   return (
     <div
       data-media-tile
-      data-gc-namestep={mode}
+      data-gc-namestep="confirm"
       className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
     >
       <div>
-        <p className="font-heading text-subsection">
-          {mode === "confirm" ? "Is this right?" : "Make it yours"}
-        </p>
+        <p className="font-heading text-subsection">Is this right?</p>
         <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
-          {mode === "confirm"
-            ? "You typed this at the door. It becomes your profile's name."
-            : "Your name and a handle, settled together. Both are optional."}
+          You typed this at the door. It becomes your name everywhere you add
+          photos from now on.
         </p>
       </div>
       <div className="space-y-1.5">
@@ -474,14 +400,6 @@ export function NameStepCard({ mode }: { mode: "confirm" | "together" }) {
           onChange={(e) => setName(e.target.value)}
         />
       </div>
-      {mode === "together" && (
-        <div className="space-y-1.5">
-          <Label htmlFor="gc-handle" className="flex items-center gap-1">
-            <AtSign className="size-3.5" aria-hidden /> Handle
-          </Label>
-          <Input id="gc-handle" placeholder="priya" />
-        </div>
-      )}
       <Button size="default" className="w-full">
         Save and continue
       </Button>
