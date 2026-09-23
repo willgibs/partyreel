@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
 import { getEvent } from "@/lib/db/queries/events";
+import { getConfirmedGuestAddresses } from "@/lib/db/queries/guest-addresses";
 import { getEventGuestList } from "@/lib/db/queries/social";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 
@@ -38,6 +39,16 @@ export async function generateMetadata({
  * The teaser's door now opens the SETTINGS SHEET on the hub rather than the
  * retired settings route, because the consented flip lives there with the LOUD
  * copy that spells out what turning it on does.
+ *
+ * ★ AND THE HOST SEES A CONFIRMED GUEST'S ADDRESS UNDER THE NAME (Will,
+ * 2026-09-23: "Guests should not see other confirmed guests' emails, making
+ * them more comfortable knowing only the host sees it"). The same address the
+ * host's viewer shows under an uploader's name, for the listed profile cards
+ * only, read AFTER `getEvent` has proved the host (and proved again inside
+ * `getConfirmedGuestAddresses`). This page is the one caller of that module;
+ * the album renders the same `GuestList` and never passes `emails`. The room
+ * still shows nothing while the host's guest list is off (`getEventGuestList`
+ * answers null), so no address shows then either.
  */
 export default async function EventGuestsPage({ params }: PageProps) {
   const { eventId } = await params;
@@ -52,9 +63,21 @@ export default async function EventGuestsPage({ params }: PageProps) {
   // renders the mix: a hydrated card gets its avatar and link, an unverified
   // entry gets neither, both the small mark.
   let items: GuestListItem[] | null = null;
+  let emails: Map<string, string> | undefined;
   if (entries) {
     const { cards, unverified } = splitGuestList(entries);
-    items = [...(await withAvatarUrls(cards)), ...unverified];
+    // Only a profile card can carry an address (an unverified entry's id is
+    // its guest row's, and a name nobody proved never shows one), so only the
+    // cards' ids are asked for, and only their addresses reach the page.
+    const [hydrated, addresses] = await Promise.all([
+      withAvatarUrls(cards),
+      getConfirmedGuestAddresses(
+        event.id,
+        cards.map((card) => card.id),
+      ),
+    ]);
+    items = [...hydrated, ...unverified];
+    emails = addresses;
   }
 
   return (
@@ -68,7 +91,7 @@ export default async function EventGuestsPage({ params }: PageProps) {
       />
       <PageHeading>Guests</PageHeading>
       {items ? (
-        <GuestList items={items} />
+        <GuestList items={items} emails={emails} />
       ) : (
         <FeedSectionEmpty
           icon={Users}

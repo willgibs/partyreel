@@ -30,9 +30,13 @@ import "./welcome-flow.css";
 //      (the name step and the closing pair); the drift (welcome-flow.css) is the one thing this
 //      round adds to a picture the marketing site already drew.
 // A brand-new account does name -> tour; an already-welcomed but nameless account does name only
-// (then straight to /dashboard); a named-but-unwelcomed account does the tour only. Each exit
-// persists welcomed_at via markWelcomedAction BEFORE navigating so the gate doesn't bounce back
-// (skipped when the tour wasn't shown, since welcomed_at is already set).
+// (then straight to /dashboard); a named-but-unwelcomed account does the tour only. A nameless
+// GUEST-MADE account (hosting nothing, holding a Guest card) does name only as well: /welcome
+// passes it needsWelcome={false}, and its dashboard's first visit marks it welcomed
+// (`MarkWelcomedOnMount`, app/(app)/welcome/mark-welcomed.tsx), because the tour is a host's and
+// it came for its Guest card. Each tour exit persists welcomed_at via markWelcomedAction BEFORE
+// navigating so the gate doesn't bounce back (skipped when the tour wasn't owed, since the
+// marker is then either set already or the dashboard's to set).
 
 const TOUR_STEP_COUNT = 4;
 

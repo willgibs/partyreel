@@ -1,8 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 
 /**
@@ -34,94 +34,6 @@ export const SCREEN: Control = {
   ],
   default: "1440",
 };
-
-/** Zoom-fits a portalled frame to the lab's own Fit preference (a bare `Frame`
- *  has no opinion of its own). Zooming is honest: `zoom` on an ancestor scales
- *  the picture and leaves the iframe's own viewport alone. */
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/**
- * ★ THE NUMBERS UNDER A FRAME ARE MEASURED, NEVER COMPUTED. A board once drew
- * an option with its formula's sign backwards and the tile Will judged showed
- * the opposite of its words (docs/PROGRAM.md), so every claim this board makes
- * about a crop, a reach or a row's fit is read out of the frame's OWN document
- * after it settles. If the words above a frame and the caption under it
- * disagree, the caption is the truth.
- *
- * The observer is the FRAME'S, not the lab page's: the subtree lives in the
- * iframe's document, so it is watched with that window's `ResizeObserver` (it
- * fires when the copied stylesheets land, and the first layout is unstyled).
- * Two late passes cover what an observer cannot see: photographs decoding at
- * their natural heights in columns that never changed width.
- */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  probe: (root: HTMLElement, win: Window) => string;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        report.current(probe(el, win));
-      } catch {
-        // Not portalled in yet, or a selector that has not mounted this pass;
-        // the next timer or resize catches it.
-      }
-    };
-    read();
-    const timers = [200, 900, 1800].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-
-  return <div ref={ref}>{children}</div>;
-}
 
 export function Scene({
   id,

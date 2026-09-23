@@ -103,9 +103,14 @@ gallery and appears on no profile.
   count it; `getEventGuestList` lists it, returning null when `show_guest_list` is off, with `includeUnverified`
   (the Guests room and the guest album) appending the unverified rows. Every caller runs these AFTER its own access
   gate (host = ownership; guest album = `access === "full"`, never demo). Profile cards hydrate by an explicit id
-  list (the PGRST201 embed landmine), no `select(*)` on media. `GuestList` draws chips at or under `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces
+  list (the PGRST201 embed landmine), deduped and read at most 150 ids per `.in()` with the batches in parallel (a
+  long list rides the URL and is answered short past the row cap), selecting exactly the four card columns (the row
+  also holds the account's email); no `select(*)` on media. `GuestList` draws chips at or under `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces
   plus "N guests added photos" above it, expanding in place 24 at a time (a stand-in until the View-all
-  design lands); since that row says the count, the album drops its heading pill above the threshold.
+  design lands); since that row says the count, the album drops its heading pill above the threshold. In the host's
+  Guests room alone, a confirmed guest's chip carries their address under the name (`emails`, the rule in
+  [guest-flow.md](guest-flow.md)); nothing in `queries/social.ts` reads an address, and its outputs are pinned
+  address-free.
 - **Every `ProfileCardItem` carries a colour, not just an avatar URL.** `withAvatarUrls`
   ([`lib/social/cards.ts`](../../src/lib/social/cards.ts)) hydrates `seed: seedFor(card.id)`
   (`src/lib/avatar/seed.ts`, a server-side SHA-256) alongside `avatarUrl`, so every card surface (the

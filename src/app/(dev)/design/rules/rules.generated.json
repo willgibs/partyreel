@@ -7215,7 +7215,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7223,7 +7223,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7231,7 +7231,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7239,7 +7239,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7247,7 +7247,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
@@ -7463,7 +7463,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7471,7 +7471,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7479,7 +7479,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7487,7 +7487,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7495,7 +7495,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
@@ -7589,6 +7589,7 @@
         "DockRow",
         "ExplorationBoard",
         "ExplorationInput",
+        "Fit",
         "FitStage",
         "Frame",
         "FrameProps",
@@ -7608,6 +7609,7 @@
         "LibraryVerdict",
         "LookFirst",
         "Loupe",
+        "Measured",
         "Mode",
         "MotionToggle",
         "Note",
@@ -7813,7 +7815,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7821,7 +7823,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7829,7 +7831,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7837,7 +7839,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7845,7 +7847,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
@@ -15377,6 +15379,62 @@
           ],
           "file": "src/components/social/guest-list.test.tsx",
           "line": 138
+        },
+        {
+          "title": "shows a confirmed guest's address with the name when the host passes it",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 187
+        },
+        {
+          "title": "★ shows no address at all without the prop (every guest-facing caller)",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 205
+        },
+        {
+          "title": "★ never puts an address under a name nobody proved, even one keyed to its row",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 210
+        },
+        {
+          "title": "carries the address into the opened names panel, not only the chips",
+          "suite": [
+            "GuestList: the host's addresses"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 221
+        },
+        {
+          "title": "shortens from the middle and keeps the domain whole",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 244
+        },
+        {
+          "title": "gives up a very long domain's end last, never the part before the @ it has room for",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 259
+        },
+        {
+          "title": "draws an ordinary address whole, once",
+          "suite": [
+            "GuestList: a long address"
+          ],
+          "file": "src/components/social/guest-list.test.tsx",
+          "line": 269
         }
       ]
     },

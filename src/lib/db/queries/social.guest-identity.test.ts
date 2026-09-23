@@ -14,8 +14,8 @@
  * A recording fake stands in for the query builder: the thing worth pinning is the exact
  * PostgREST shape, which no amount of type-checking verifies.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -31,14 +31,23 @@ vi.mock("@/lib/supabase/avatar-storage", () => ({
 
 type Row = Record<string, unknown>;
 
-/** What each table answers, what each table was asked for, and every filter each query applied. */
+/** What each table answers, what each table was asked for (the last SELECT, and every one), and every filter each
+ *  query applied. */
 const answers: Record<string, Row[]> = {};
 const selected: Record<string, string> = {};
+const selects: Record<string, string[]> = {};
 const filters: Record<string, [string, ...unknown[]][]> = {};
 
 function builderFor(table: string) {
+  // `.in()` is the one filter the fake APPLIES (every other is only recorded): a batched read is only proved to
+  // merge its batches if each batch answers its own rows and nothing else.
+  let only: { column: string; values: Set<unknown> } | null = null;
   const result = () => {
-    const data = answers[table] ?? [];
+    const all = answers[table] ?? [];
+    const filter = only;
+    const data = filter
+      ? all.filter((row) => filter.values.has(row[filter.column]))
+      : all;
     return { data, count: data.length, error: null };
   };
   const record =
@@ -50,13 +59,20 @@ function builderFor(table: string) {
   const builder = {
     select(columns: string) {
       selected[table] = columns;
+      (selects[table] ??= []).push(columns);
       return builder;
     },
     eq: record("eq"),
     neq: record("neq"),
-    in: record("in"),
+    in(column: string, values: unknown[]) {
+      (filters[table] ??= []).push(["in", column, values]);
+      only = { column, values: new Set(values) };
+      return builder;
+    },
     is: record("is"),
     not: record("not"),
+    or: record("or"),
+    limit: () => builder,
     order: () => builder,
     range: () => builder,
     maybeSingle: () =>
@@ -77,8 +93,12 @@ const { presignDownload } = await import("@/lib/r2/presign");
 const {
   getEventGuestList,
   getEventGuests,
+  getFollowedHostEventCards,
   getHostCard,
   getMyAttendedEvents,
+  getMyBlocks,
+  getMyFollowers,
+  getMyFollowing,
   getMyGuestEventCards,
 } = await import("@/lib/db/queries/social");
 
@@ -87,6 +107,7 @@ const EVENT = "event-1";
 beforeEach(() => {
   for (const key of Object.keys(answers)) delete answers[key];
   for (const key of Object.keys(selected)) delete selected[key];
+  for (const key of Object.keys(selects)) delete selects[key];
   for (const key of Object.keys(filters)) delete filters[key];
   answers.events = [{ show_guest_list: true, host_id: "host-1" }];
   answers.media = [];
@@ -228,6 +249,24 @@ describe("queries/social.ts never reads the unproved address", () => {
       .join("\n");
     for (const forbidden of ["pending_email", "pendingEmail"]) {
       expect(code, forbidden).not.toContain(forbidden);
+    }
+  });
+
+  /* ★ NOR A CONFIRMED ONE (Will, 2026-09-23: "Guests should not see other confirmed guests' emails, making them
+     more comfortable knowing only the host sees it"). The host's one list of addresses is queries/guest-addresses.ts,
+     read by the Guests room alone; this module feeds the guest album and public profiles, so it never names an
+     address column or the credit's address field in its code. Whole words: `require_verified_email` is a switch,
+     not an address, and passes. */
+  it("★ names `email` and `uploaderEmail` nowhere outside a comment either", () => {
+    const code = readFileSync(
+      join(process.cwd(), "src/lib/db/queries/social.ts"),
+      "utf8",
+    )
+      .split("\n")
+      .filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line))
+      .join("\n");
+    for (const forbidden of [/\bemail\b/i, /\buploaderEmail\b/]) {
+      expect(code, String(forbidden)).not.toMatch(forbidden);
     }
   });
 });
@@ -469,5 +508,345 @@ describe("the events you added to", () => {
     await getMyAttendedEvents();
     expect(filters.events).toContainEqual(["in", "id", ["e-yes"]]);
     expect(filters.events).toContainEqual(["neq", "host_id", ME]);
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE PROFILE CARDS, IN BATCHES (a party with several hundred confirmed guests is several hundred ids, and one
+   `.in()` of them rides a URL that grows with the party and is answered short past PostgREST's row cap).
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("getProfileCards: in batches, into one map", () => {
+  const ME = "me";
+
+  it("★ 400 confirmed guests hydrate in three reads of at most 150, and all 400 come back", async () => {
+    const ids = Array.from({ length: 400 }, (_, i) => `u${i}`);
+    answers.guests = ids.map((id, i) => ({
+      id: `g${i}`,
+      user_id: id,
+      display_name: null,
+      verified_at: "2026-09-21T15:00:00Z",
+    }));
+    answers.media = ids.map((_, i) => ({ guest_id: `g${i}` }));
+    answers.profiles = ids.map((id) => ({
+      id,
+      display_name: `Guest ${id}`,
+      slug: null,
+      avatar_updated_at: null,
+    }));
+
+    const list = await getEventGuestList(EVENT);
+
+    const reads = (filters.profiles ?? []).filter(
+      ([method]) => method === "in",
+    );
+    expect(reads).toHaveLength(3);
+    for (const [, column, batch] of reads) {
+      expect(column).toBe("id");
+      expect((batch as string[]).length).toBeLessThanOrEqual(150);
+    }
+    const asked = reads.flatMap(([, , batch]) => batch as string[]);
+    expect(asked).toHaveLength(400);
+    expect(new Set(asked)).toEqual(new Set(ids));
+    expect(list).toHaveLength(400);
+  });
+
+  it("reads a repeated id once", async () => {
+    vi.mocked(getRequestAuth).mockResolvedValue({
+      user: { id: ME },
+      supabase: { from: (table: string) => builderFor(table) },
+    } as unknown as Awaited<ReturnType<typeof getRequestAuth>>);
+    answers.user_follows = [
+      { followee_id: "u1", created_at: "2026-09-20T10:00:00Z" },
+      { followee_id: "u1", created_at: "2026-09-19T10:00:00Z" },
+      { followee_id: "u2", created_at: "2026-09-18T10:00:00Z" },
+    ];
+    answers.profiles = [
+      { id: "u1", display_name: "Alex", slug: "alex", avatar_updated_at: null },
+      { id: "u2", display_name: "Theo", slug: null, avatar_updated_at: null },
+    ];
+    await getMyFollowing();
+    const reads = (filters.profiles ?? []).filter(
+      ([method]) => method === "in",
+    );
+    expect(reads).toEqual([["in", "id", ["u1", "u2"]]]);
+  });
+
+  it("★ reads exactly the four public card columns, never the account's email beside them", async () => {
+    answers.guests = [
+      {
+        id: "g1",
+        user_id: "u1",
+        display_name: null,
+        verified_at: "2026-09-21T15:00:00Z",
+      },
+    ];
+    answers.media = [{ guest_id: "g1" }];
+    answers.profiles = [
+      { id: "u1", display_name: "Alex", slug: "alex", avatar_updated_at: null },
+    ];
+    await getEventGuestList(EVENT);
+    expect(selects.profiles).toEqual([
+      "id, display_name, slug, avatar_updated_at",
+    ]);
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   NO ADDRESS IN ANY OUTPUT (Will, 2026-09-23: "only the host sees it"). The fake answers every row it holds with
+   the addresses planted beside the columns each read asks for, the way a `select("*")` or a spread row would carry
+   them, so a read that ever passed a row through whole fails here by name.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("queries/social.ts: no address leaves in any output", () => {
+  const ME = "me";
+  const PLANTED = [
+    "proved@example.com",
+    "typed@example.com",
+    "account@example.com",
+  ];
+
+  beforeEach(() => {
+    vi.mocked(getRequestAuth).mockResolvedValue({
+      user: { id: ME },
+      supabase: { from: (table: string) => builderFor(table) },
+    } as unknown as Awaited<ReturnType<typeof getRequestAuth>>);
+    vi.mocked(presignDownload).mockResolvedValue("https://cdn/signed");
+
+    const guestRow = {
+      email: "proved@example.com",
+      pending_email: "typed@example.com",
+    };
+    answers.events = [
+      {
+        id: "e1",
+        name: "The party",
+        event_date: null,
+        visibility: "open",
+        qr_token: "q1",
+        custom_slug: null,
+        host_id: "host-1",
+        show_guest_list: true,
+        created_at: "2026-09-01T00:00:00Z",
+      },
+    ];
+    answers.guests = [
+      {
+        id: "g-verified",
+        user_id: "u1",
+        display_name: null,
+        verified_at: "2026-09-21T15:00:00Z",
+        ...guestRow,
+      },
+      {
+        id: "g-named",
+        user_id: null,
+        display_name: "Theo",
+        verified_at: null,
+        ...guestRow,
+      },
+    ];
+    answers.media = [
+      {
+        guest_id: "g-verified",
+        event_id: "e1",
+        status: "approved",
+        type: "photo",
+        created_at: "2026-09-21T16:00:00Z",
+        original_key: "k1",
+        guests: { verified_at: "2026-09-21T15:00:00Z", ...guestRow },
+      },
+      {
+        guest_id: "g-named",
+        event_id: "e1",
+        status: "approved",
+        type: "photo",
+        created_at: "2026-09-21T17:00:00Z",
+        original_key: "k2",
+        guests: { verified_at: null, ...guestRow },
+      },
+    ];
+    answers.profiles = [
+      {
+        id: "u1",
+        display_name: "Alex",
+        slug: "alex",
+        avatar_updated_at: null,
+        email: "account@example.com",
+      },
+      {
+        id: "host-1",
+        display_name: "Will",
+        slug: "will",
+        avatar_updated_at: null,
+        email: "account@example.com",
+      },
+    ];
+    answers.user_follows = [
+      {
+        followee_id: "host-1",
+        follower_id: "u1",
+        created_at: "2026-09-20T10:00:00Z",
+      },
+    ];
+    answers.user_blocks = [
+      { blocked_id: "u1", created_at: "2026-09-20T10:00:00Z" },
+    ];
+    answers.profile_shown_events = [{ event_id: "e1" }];
+  });
+
+  it("★ every read a guest or a public page renders carries none of the planted addresses, under any key", async () => {
+    const outputs: Record<string, unknown> = {
+      guestList: await getEventGuestList(EVENT),
+      guestListWithUnverified: await getEventGuestList(EVENT, {
+        includeUnverified: true,
+      }),
+      eventGuests: await getEventGuests(EVENT),
+      hostCard: await getHostCard(EVENT),
+      following: await getMyFollowing(),
+      followers: await getMyFollowers(),
+      blocks: await getMyBlocks(),
+      guestCards: await getMyGuestEventCards(),
+      attended: await getMyAttendedEvents(),
+      followedHostEvents: await getFollowedHostEventCards(),
+    };
+    // A canary for the fake itself: the reads really did return people and events to inspect.
+    expect(JSON.stringify(outputs)).toContain("Alex");
+
+    for (const [read, output] of Object.entries(outputs)) {
+      const json = JSON.stringify(output, (_key, value) =>
+        value instanceof Map ? [...value] : value,
+      );
+      for (const address of PLANTED) {
+        expect(json, `${read} carried ${address}`).not.toContain(address);
+      }
+      expect(json, `${read} carried an address key`).not.toMatch(
+        /"(email|uploaderEmail|pending_email|pendingEmail)"/,
+      );
+    }
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE PUBLIC PROFILE'S RPC (the anon `get_public_profile`, readable by anyone with a handle). Text-parsed from the
+   NEWEST migration that defines it, so a redefinition is read the day it lands, and fail-closed: a body this parser
+   cannot find fails rather than passes.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("get_public_profile: no address in the payload, no address read", () => {
+  const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
+  const DEFINITION =
+    /create\s+(?:or\s+replace\s+)?function\s+public\.get_public_profile\s*\(/i;
+
+  function newestBody(): { file: string; body: string } {
+    const hits = readdirSync(MIGRATIONS)
+      .filter((file) => file.endsWith(".sql"))
+      .sort()
+      .map((file) => ({
+        file,
+        sql: readFileSync(join(MIGRATIONS, file), "utf8"),
+      }))
+      .filter(({ sql }) => DEFINITION.test(sql));
+    const newest = hits.at(-1);
+    if (!newest) throw new Error("No migration defines get_public_profile.");
+    const start = newest.sql.search(DEFINITION);
+    const open = newest.sql.indexOf("$$", start);
+    const close = newest.sql.indexOf("$$", open + 2);
+    if (open < 0 || close < 0) {
+      throw new Error(
+        `Cannot read get_public_profile's body in ${newest.file}.`,
+      );
+    }
+    // The body without its `--` comments, which quote the rules they hold and name columns in prose.
+    const body = newest.sql
+      .slice(open + 2, close)
+      .split("\n")
+      .map((line) => line.replace(/--.*$/, ""))
+      .join("\n");
+    return { file: newest.file, body };
+  }
+
+  it("found a definition with a payload to read (a canary for the parser)", () => {
+    const { body } = newestBody();
+    expect(body).toContain("jsonb_build_object");
+    expect(body).toContain("'display_name'");
+  });
+
+  it("★ no key of the payload names an address", () => {
+    const { file, body } = newestBody();
+    const literals = [...body.matchAll(/'([^']*)'/g)].map(([, text]) => text);
+    expect(literals.length).toBeGreaterThan(0);
+    for (const literal of literals) {
+      expect(literal, `${file}: '${literal}'`).not.toMatch(/mail/i);
+    }
+  });
+
+  it("★ reads no address column: the only email-named identifiers are the confirmation stamp and the host's switch", () => {
+    const { file, body } = newestBody();
+    const code = body.replace(/'[^']*'/g, "''");
+    const named = new Set(
+      [...code.matchAll(/\b\w*email\w*\b/gi)].map(([name]) =>
+        name.toLowerCase(),
+      ),
+    );
+    for (const name of named) {
+      expect(
+        ["email_confirmed_at", "require_verified_email"],
+        `${file} reads ${name}`,
+      ).toContain(name);
+    }
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   ONLY THE GUESTS ROOM HANDS `GuestList` AN ADDRESS. The album renders the same component for every guest who can
+   open it, so the prop that carries addresses must never ride there: read off every `<GuestList` in the tree,
+   braces balanced, so a spread counts as a way in too.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("the album never passes `emails` to GuestList", () => {
+  const ROOM = "src/app/(app)/dashboard/[eventId]/guests/page.tsx";
+  const ALBUM = "src/app/(guest)/e/[token]/page.tsx";
+
+  function files(dir: string): string[] {
+    return readdirSync(dir).flatMap((entry) => {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) return files(full);
+      return entry.endsWith(".tsx") ? [full] : [];
+    });
+  }
+
+  /** The attribute text of every `<GuestList ...>` opening tag in a source file (never `<GuestListCard` and kin). */
+  function guestListTags(source: string): string[] {
+    const tags: string[] = [];
+    for (const match of source.matchAll(/<GuestList(?![\w$])/g)) {
+      const start = (match.index ?? 0) + match[0].length;
+      let depth = 0;
+      let end = start;
+      for (; end < source.length; end++) {
+        const c = source[end];
+        if (c === "{") depth++;
+        else if (c === "}") depth--;
+        else if (c === ">" && depth === 0) break;
+      }
+      tags.push(source.slice(start, end));
+    }
+    return tags;
+  }
+
+  it("★ the album page's GuestList carries no `emails`, and no spread that could", () => {
+    const source = readFileSync(join(process.cwd(), ALBUM), "utf8");
+    for (const tag of guestListTags(source)) {
+      expect(tag).not.toMatch(/\bemails\b/);
+      expect(tag).not.toContain("{...");
+    }
+  });
+
+  it("★ and no file in the tree but the Guests room passes it", () => {
+    const passing = files(join(process.cwd(), "src"))
+      .filter((file) => !file.endsWith(".test.tsx"))
+      .filter((file) =>
+        guestListTags(readFileSync(file, "utf8")).some(
+          (tag) => /\bemails\b/.test(tag) || tag.includes("{..."),
+        ),
+      )
+      .map((file) => relative(process.cwd(), file));
+    expect(passing).toEqual([ROOM]);
   });
 });

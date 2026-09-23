@@ -145,7 +145,7 @@ export const WAITING: Record<Register, string> = {
 
 /** 7. The capture after her first photographs: the card's heading, reason
  *  and button (`save-account-prompt.tsx`), and the door it opens
- *  (`account-door.tsx`'s `save` wear). The button holds at "Confirm your
+ *  (`account-door.tsx`'s `keep` wear). The button holds at "Confirm your
  *  email" in every register: the Unverified mark and the name menu open the
  *  same door with those words (the board's carried `button` call). */
 export const KEEP_BUTTON = "Confirm your email";

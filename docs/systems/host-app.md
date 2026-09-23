@@ -219,10 +219,16 @@ event" / "I'll look around first". Its one addition is motion: a slow 16s scale-
 `marketing.css`'s `mkt-kenburns`/`mkt-wall-drift`), a deliberate bible-12 exception: an ambient breath, not a
 control's feedback, so the 300ms ceiling does not bind it. Shown **once** via `profiles.welcomed_at` (null =
 unwelcomed): `/dashboard` redirects there while it is null ([`welcome.ts`](../../src/lib/welcome.ts)
-`shouldShowWelcome`), and `/dashboard` and `/dashboard/new` redirect a nameless profile there too.
+`resolveDashboardEntry`), and `/dashboard` and `/dashboard/new` redirect a nameless profile there too.
 **Every exit calls `markWelcomed` BEFORE navigating** (an RLS self-update through `markWelcomedAction` in
 [`(app)/actions.ts`](../../src/app/(app)/actions.ts)), or the `/dashboard` guard bounces the host straight back. The
-`/welcome` route itself must NOT gate on `welcomed_at` or the name (no loop). `welcomed_at` is on the `profiles`
+`/welcome` route itself must NOT gate on `welcomed_at` or the name (no loop). ★ **A guest-made account never takes
+the tour** (`isGuestFirstVisit`): an unwelcomed account that hosts no live event and already holds a Guest card
+(the capture's "this event came with it") renders its dashboard on its first visit, Guest card leading, and is
+marked welcomed there by `MarkWelcomedOnMount` ([`welcome/mark-welcomed.tsx`](../../src/app/(app)/welcome/mark-welcomed.tsx):
+the same action from a client effect, once, since `after()` in a server component cannot read cookies; a failed
+write is retried by the next visit); a nameless one still names itself at `/welcome`, which then skips the tour. An
+account with nothing, or one hosting an event, takes the tour, and the empty events teaser keeps the host pitch. `welcomed_at` is on the `profiles`
 host-writable allowlist. The "how it works" copy and pictures are single-sourced in
 [`how-it-works.ts`](../../src/lib/constants/how-it-works.ts) and
 [`sections/how-it-works/`](../../src/components/marketing/sections/how-it-works), shared with the marketing page.

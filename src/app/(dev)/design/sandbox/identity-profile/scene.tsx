@@ -1,8 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -48,81 +48,9 @@ export const SCREEN: Control = {
   default: "375",
 };
 
-/* ── the frame, fit and measured (guest-capture's own machinery, copied: a
-   board's directory is deleted at its ruling, so this is a separate small
-   file rather than a shared import that would outlive it) ─────────────────── */
-
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/** A number read off the frame's own document, never computed. */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  /** `null` means "not settled yet": the read is skipped rather than
-   *  overwriting the caption with a lie. */
-  probe: (root: HTMLElement, win: Window) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el, win);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    const timers = [200, 900, 1800].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref}>{children}</div>;
-}
+/* ── the frame ──────────────────────────────────────────────────────────────
+   `Fit` and `Measured` are the kit's (`@/components/lab`); only `Scene` stays
+   here, since a board's directory is deleted whole at its ruling. ─────────── */
 
 export function Scene({
   id,

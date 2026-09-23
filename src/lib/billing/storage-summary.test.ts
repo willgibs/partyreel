@@ -1,67 +1,74 @@
 /**
- * THE METER COUNTS EVERY ITEM, not the first page of them.
+ * THE STORAGE METER AND THE STORAGE GUARD READ ONE AGGREGATE (`public.host_storage_summary`, 20260923140000).
  *
- * PostgREST silently caps a response at `max_rows` (1000 here). The summary used
- * one unpaged select, so an account past a thousand items was undercounted, and the
- * storage guard reads this number to refuse a plan the host does not fit. The fake
- * below serves the host's rows in id order and CLAMPS every response to its own
- * max_rows (deliberately smaller than the loop's page), which is the exact trap:
- * a loop that stopped on a "short" page would read three rows and quit.
+ * The meter's two numbers, and the storage guard's one (a plan change is refused off `activeBytes`, so an
+ * undercount SELLS a plan the host does not fit), come from one SQL SUM each, whatever the album's size. What is
+ * pinned: the read goes to the function with the id `getUser()` proved and nothing else, answers in one request, reads
+ * nothing for a signed-out caller, and throws rather than reporting an empty account; the admin's account view reads
+ * the same function and counts its items without reading rows; and the function's ACTIVE filter is `host_active_bytes`'
+ * (the one definition every upload function enforces), read off both migrations, so the meter can never show a host
+ * a number the cap does not enforce.
  */
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/env", () => ({ serverEnv: { STRIPE_SECRET_KEY: "sk_test_x" } }));
 
-type Row = {
-  id: string;
-  file_size_bytes: number;
-  status: string;
-  events: { deleted_at: string | null } | null;
+let signedIn = true;
+let rpcCalls: [string, unknown][] = [];
+let rpcAnswer: { data: unknown; error: unknown } = {
+  data: [{ active_bytes: 0, standby_bytes: 0 }],
+  error: null,
 };
+let mediaCountRead: {
+  select: string;
+  opts: unknown;
+  filters: unknown[][];
+} | null = null;
 
-let rows: Row[] = [];
-let maxRows = 3;
-let requests = 0;
-let failWith: { message: string } | null = null;
-
-/** A just-enough PostgREST builder: select(count) → order → limit → gt?, awaited. */
-function fakeClient() {
+/** Just enough of the admin client for the aggregate and for the account view's reads around it. */
+function fakeAdmin() {
   return {
-    from() {
-      let counted = false;
-      let after: string | null = null;
-      let limit = Infinity;
+    rpc(name: string, args: unknown) {
+      rpcCalls.push([name, args]);
+      return Promise.resolve(rpcAnswer);
+    },
+    from(table: string) {
+      const filters: unknown[][] = [];
+      let select = "";
+      let opts: unknown = undefined;
       const builder = {
-        select(_cols: string, opts?: { count?: string }) {
-          counted = opts?.count === "exact";
+        select(columns: string, options?: unknown) {
+          select = columns;
+          opts = options;
+          if (table === "media") mediaCountRead = { select, opts, filters };
           return builder;
         },
-        order() {
-          return builder;
-        },
-        limit(n: number) {
-          limit = n;
-          return builder;
-        },
-        gt(_col: string, value: string) {
-          after = value;
-          return builder;
-        },
-        then(resolve: (value: unknown) => void) {
-          requests += 1;
-          if (failWith) {
-            resolve({ data: null, error: failWith, count: null });
-            return;
-          }
-          const sorted = [...rows].sort((a, b) => a.id.localeCompare(b.id));
-          const tail = after
-            ? sorted.filter((r) => r.id.localeCompare(after!) > 0)
-            : sorted;
-          resolve({
-            data: tail.slice(0, Math.min(limit, maxRows)),
+        eq: (...args: unknown[]) => (filters.push(["eq", ...args]), builder),
+        is: (...args: unknown[]) => (filters.push(["is", ...args]), builder),
+        neq: (...args: unknown[]) => (filters.push(["neq", ...args]), builder),
+        maybeSingle: () =>
+          Promise.resolve({
+            data: {
+              id: "host-1",
+              tier: "pro",
+              storage_cap_bytes: null,
+              storage_used_bytes: 99,
+              stripe_subscription_id: null,
+              stripe_customer_id: null,
+              email: "host@example.com",
+            },
             error: null,
-            count: counted ? rows.length : null,
-          });
+          }),
+        then(resolve: (value: unknown) => unknown) {
+          // A HEAD count: no rows, just the number (2,500 items, past PostgREST's 1,000-row cap).
+          const count = table === "media" ? 2500 : 3;
+          return Promise.resolve({ data: null, count, error: null }).then(
+            resolve,
+          );
         },
       };
       return builder;
@@ -69,81 +76,52 @@ function fakeClient() {
   };
 }
 
-let signedIn = true;
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => fakeAdmin(),
+}));
 vi.mock("@/lib/supabase/request-auth", () => ({
   getRequestAuth: async () => ({
-    supabase: fakeClient(),
+    supabase: {},
     user: signedIn ? { id: "host-1" } : null,
   }),
 }));
 
-const { getHostStorageSummary, tallyStorageRows } =
+const { getHostStorageSummary, readHostStorageSummary, tallyStorageRows } =
   await import("@/lib/db/queries/storage");
-
-const live: Row["events"] = { deleted_at: null };
-const gone: Row["events"] = { deleted_at: "2026-09-01T00:00:00Z" };
-function row(
-  n: number,
-  bytes: number,
-  status = "approved",
-  events: Row["events"] = live,
-): Row {
-  return {
-    id: `m-${String(n).padStart(4, "0")}`,
-    file_size_bytes: bytes,
-    status,
-    events,
-  };
-}
+const { getAccountDetail } = await import("@/lib/db/queries/accounts");
 
 beforeEach(() => {
-  rows = [];
-  maxRows = 3;
-  requests = 0;
-  failWith = null;
   signedIn = true;
+  rpcCalls = [];
+  rpcAnswer = { data: [{ active_bytes: 0, standby_bytes: 0 }], error: null };
+  mediaCountRead = null;
 });
 
-describe("the storage summary pages to exhaustion", () => {
-  it("counts every row even when each response is clamped below the page size", async () => {
-    rows = Array.from({ length: 10 }, (_, i) => row(i, 100));
+describe("the storage summary is one aggregate", () => {
+  it("★ asks host_storage_summary for the SIGNED-IN host's own id, once", async () => {
+    rpcAnswer = {
+      data: [{ active_bytes: 47_093_782, standby_bytes: 2_491_989 }],
+      error: null,
+    };
     await expect(getHostStorageSummary()).resolves.toEqual({
-      activeBytes: 1000,
+      activeBytes: 47_093_782,
+      standbyBytes: 2_491_989,
+    });
+    expect(rpcCalls).toEqual([
+      ["host_storage_summary", { p_host_id: "host-1" }],
+    ]);
+  });
+
+  it("answers a 35,000-item account in the same one request as a small one", async () => {
+    rpcAnswer = {
+      data: [{ active_bytes: 140_000_000_000, standby_bytes: 0 }],
+      error: null,
+    };
+    await expect(getHostStorageSummary()).resolves.toEqual({
+      activeBytes: 140_000_000_000,
       standbyBytes: 0,
     });
-    // Four clamped pages of three, and it stops at the count rather than
-    // spending a fifth request to discover an empty page.
-    expect(requests).toBe(4);
-  });
-
-  it("answers a small account in ONE request", async () => {
-    maxRows = 1000;
-    rows = [row(1, 5), row(2, 7)];
-    await expect(getHostStorageSummary()).resolves.toEqual({
-      activeBytes: 12,
-      standbyBytes: 0,
-    });
-    expect(requests).toBe(1);
-  });
-
-  it("splits active from Deleted by status and by the event's deletion", async () => {
-    rows = [
-      row(1, 10),
-      row(2, 20, "removed"),
-      row(3, 40, "approved", gone),
-      row(4, 80, "hidden"),
-    ];
-    await expect(getHostStorageSummary()).resolves.toEqual({
-      activeBytes: 90,
-      standbyBytes: 60,
-    });
-  });
-
-  it("throws on a failed read rather than reporting an empty account", async () => {
-    // The guard would read a swallowed failure as "stores nothing" and sell
-    // any size; a failed read must fail the request instead.
-    failWith = { message: "boom" };
-    await expect(getHostStorageSummary()).rejects.toEqual({ message: "boom" });
+    expect(rpcCalls).toHaveLength(1);
   });
 
   it("reads nothing for a signed-out caller", async () => {
@@ -152,14 +130,212 @@ describe("the storage summary pages to exhaustion", () => {
       activeBytes: 0,
       standbyBytes: 0,
     });
-    expect(requests).toBe(0);
+    expect(rpcCalls).toEqual([]);
+  });
+
+  it("throws on a failed read rather than reporting an empty account", async () => {
+    // The guard would read a swallowed failure as "stores nothing" and sell any size; a failed read must fail the
+    // request instead.
+    rpcAnswer = { data: null, error: { message: "boom" } };
+    await expect(getHostStorageSummary()).rejects.toEqual({ message: "boom" });
+  });
+
+  it("reads numbers, never NaN: an absent row is zeros and a bigint sent as text is a number", async () => {
+    rpcAnswer = { data: [], error: null };
+    await expect(readHostStorageSummary("host-1")).resolves.toEqual({
+      activeBytes: 0,
+      standbyBytes: 0,
+    });
+    rpcAnswer = {
+      data: [{ active_bytes: "123", standby_bytes: "4" }],
+      error: null,
+    };
+    await expect(readHostStorageSummary("host-1")).resolves.toEqual({
+      activeBytes: 123,
+      standbyBytes: 4,
+    });
   });
 });
 
-describe("the per-page tally", () => {
+describe("the admin's account view reads the same aggregate", () => {
+  it("★ active bytes from host_storage_summary and the item count as a HEAD count, neither capped at 1,000 rows", async () => {
+    rpcAnswer = {
+      data: [{ active_bytes: 5_000_000_000, standby_bytes: 7 }],
+      error: null,
+    };
+    const account = await getAccountDetail("host-1");
+    expect(rpcCalls).toEqual([
+      ["host_storage_summary", { p_host_id: "host-1" }],
+    ]);
+    expect(account?.activeBytes).toBe(5_000_000_000);
+    expect(account?.mediaCount).toBe(2500);
+    // The count reads no rows, under the active filters.
+    expect(mediaCountRead?.opts).toEqual({ count: "exact", head: true });
+    expect(mediaCountRead?.filters).toEqual(
+      expect.arrayContaining([
+        ["eq", "events.host_id", "host-1"],
+        ["is", "events.deleted_at", null],
+        ["neq", "status", "removed"],
+      ]),
+    );
+  });
+});
+
+describe("the definitions, in code", () => {
+  const live = { deleted_at: null };
+  const gone = { deleted_at: "2026-09-01T00:00:00Z" };
+  const row = (
+    n: number,
+    bytes: number,
+    status = "approved",
+    events: { deleted_at: string | null } | null = live,
+  ) => ({ id: `m-${n}`, file_size_bytes: bytes, status, events });
+
+  it("splits active from Deleted by status and by the event's deletion, every row exactly once", () => {
+    expect(
+      tallyStorageRows({ activeBytes: 0, standbyBytes: 0 }, [
+        row(1, 10),
+        row(2, 20, "removed"),
+        row(3, 40, "approved", gone),
+        row(4, 80, "hidden"),
+        row(5, 160, "pending"),
+      ]),
+    ).toEqual({ activeBytes: 250, standbyBytes: 60 });
+  });
+
   it("adds onto the running totals", () => {
     expect(
       tallyStorageRows({ activeBytes: 1, standbyBytes: 2 }, [row(1, 3)]),
     ).toEqual({ activeBytes: 4, standbyBytes: 2 });
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────────────
+   THE AGGREGATE'S ACTIVE BYTES ARE host_active_bytes', READ OFF THE MIGRATIONS. Text-parsed (Vitest has no Postgres)
+   from the NEWEST migration defining each function, so a redefinition of either is read the day it lands, and
+   fail-closed: a body this parser cannot read fails rather than passes.
+   ──────────────────────────────────────────────────────────────────────────── */
+describe("host_storage_summary's active filter is host_active_bytes'", () => {
+  const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
+
+  function newestBody(fn: string): {
+    file: string;
+    body: string;
+    header: string;
+    sql: string;
+  } {
+    const definition = new RegExp(
+      `create\\s+(?:or\\s+replace\\s+)?function\\s+public\\.${fn}\\s*\\(`,
+      "i",
+    );
+    const hits = readdirSync(MIGRATIONS)
+      .filter((file) => file.endsWith(".sql"))
+      .sort()
+      .map((file) => ({
+        file,
+        sql: readFileSync(join(MIGRATIONS, file), "utf8"),
+      }))
+      .filter(({ sql }) => definition.test(sql));
+    const newest = hits.at(-1);
+    if (!newest) throw new Error(`No migration defines public.${fn}.`);
+    const start = newest.sql.search(definition);
+    const open = newest.sql.indexOf("$$", start);
+    const close = newest.sql.indexOf("$$", open + 2);
+    if (open < 0 || close < 0) {
+      throw new Error(`Cannot read public.${fn}'s body in ${newest.file}.`);
+    }
+    const header = newest.sql.slice(start, open);
+    // One line of normalized SQL: comments out, whitespace collapsed, lowercased.
+    const body = newest.sql
+      .slice(open + 2, close)
+      .split("\n")
+      .map((line) => line.replace(/--.*$/, ""))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/;$/, "")
+      .trim()
+      .toLowerCase();
+    return {
+      file: newest.file,
+      body,
+      header: header.toLowerCase(),
+      sql: newest.sql.toLowerCase(),
+    };
+  }
+
+  /** `a and b and c` → {a, b, c}, each trimmed (the filters here are flat conjunctions). */
+  function conjuncts(text: string): Set<string> {
+    return new Set(text.split(/\s+and\s+/).map((part) => part.trim()));
+  }
+
+  const active = newestBody("host_active_bytes");
+  const summary = newestBody("host_storage_summary");
+
+  it("found both definitions (a canary for the parser)", () => {
+    expect(active.body).toContain("sum(m.file_size_bytes)");
+    expect(summary.body).toContain("sum(m.file_size_bytes) filter");
+  });
+
+  it("both read the same rows: one host's media joined to its events", () => {
+    const from =
+      "from public.media m join public.events e on e.id = m.event_id";
+    expect(active.body).toContain(from);
+    expect(summary.body).toContain(from);
+    expect(active.body).toMatch(/where e\.host_id = p_host_id\b/);
+    expect(summary.body).toMatch(/where e\.host_id = p_host_id$/);
+  });
+
+  it("★ the aggregate's active filter is exactly host_active_bytes' own", () => {
+    const where = active.body.match(/where (.+)$/)?.[1];
+    if (!where)
+      throw new Error(
+        `Cannot read host_active_bytes' WHERE in ${active.file}.`,
+      );
+    const activeRule = conjuncts(where);
+    activeRule.delete("e.host_id = p_host_id");
+
+    const filters = [
+      ...summary.body.matchAll(
+        /sum\(m\.file_size_bytes\) filter \( where (.+?) \)/g,
+      ),
+    ].map(([, text]) => text);
+    // Two SUMs: active first, standby second.
+    expect(filters).toHaveLength(2);
+    expect(conjuncts(filters[0])).toEqual(activeRule);
+    expect(activeRule).toEqual(
+      new Set(["e.deleted_at is null", "m.status <> 'removed'"]),
+    );
+  });
+
+  it("★ standby is everything else: exactly the negation of the active filter, so every row is one of the two", () => {
+    const filters = [
+      ...summary.body.matchAll(
+        /sum\(m\.file_size_bytes\) filter \( where (not \((.+?)\)) \)/g,
+      ),
+    ];
+    expect(filters).toHaveLength(1);
+    const [, , negated] = filters[0];
+    const activeFilter = summary.body.match(
+      /sum\(m\.file_size_bytes\) filter \( where ((?!not ).+?) \)/,
+    )?.[1];
+    expect(activeFilter).toBeDefined();
+    expect(conjuncts(negated)).toEqual(conjuncts(activeFilter as string));
+  });
+
+  it("both stay service-role only: SECURITY DEFINER, an empty search_path, EXECUTE revoked from every client role", () => {
+    for (const [fn, parsed] of [
+      ["host_active_bytes", active],
+      ["host_storage_summary", summary],
+    ] as const) {
+      // The definition's own header, not a neighbour's in the same file.
+      expect(parsed.header, fn).toMatch(/security definer/);
+      expect(parsed.header, fn).toMatch(/set search_path = ''/);
+      expect(parsed.sql, fn).toMatch(
+        new RegExp(
+          `revoke all on function public\\.${fn}\\(uuid\\) from public, anon, authenticated`,
+        ),
+      );
+    }
   });
 });

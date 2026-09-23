@@ -7,6 +7,7 @@ import {
   eventPassSession,
   proCreditSession,
   resolveSubscriptionUpdate,
+  subscriptionQuantityWarning,
 } from "@/lib/stripe/provision";
 
 // Minimal fixture builders — resolveSubscriptionUpdate only reads a few fields.
@@ -17,8 +18,18 @@ function subEvent(
     customer?: string;
     status?: string;
     priceId?: string | null;
+    /** Per item; omitted = the one item at quantity 1. */
+    quantities?: (number | undefined)[];
   },
 ): Stripe.Event {
+  const priceId = sub.priceId ?? "price_pro_500";
+  const items =
+    sub.priceId === null
+      ? []
+      : (sub.quantities ?? [1]).map((quantity) => ({
+          price: { id: priceId },
+          quantity,
+        }));
   return {
     type,
     data: {
@@ -26,12 +37,7 @@ function subEvent(
         id: sub.id ?? "sub_123",
         customer: sub.customer ?? "cus_123",
         status: sub.status ?? "active",
-        items: {
-          data:
-            sub.priceId === null
-              ? []
-              : [{ price: { id: sub.priceId ?? "price_pro_500" } }],
-        },
+        items: { data: items },
       },
     },
   } as unknown as Stripe.Event;
@@ -108,6 +114,154 @@ describe("resolveSubscriptionUpdate", () => {
       resolve,
     );
     expect(patch).toBeNull();
+  });
+});
+
+/**
+ * ★ A PAYING HOST NEVER LANDS ON FREE BECAUSE THEIR FIRST PAYMENT WAS STILL IN FLIGHT.
+ * Checkout's subscription is created `incomplete` and turns `active` a moment later;
+ * the recency guard admits same-second deliveries in either order, so an `incomplete`
+ * that downgraded could land after the `active` that granted. Every status, both
+ * lifecycle events, and the deletion that ends it all.
+ */
+describe("resolveSubscriptionUpdate: every status", () => {
+  const PRO_500 = planById("pro_500").storageBytes;
+  const grant = {
+    tier: "pro",
+    storageCapBytes: PRO_500,
+    subscriptionId: "sub_123",
+  };
+  const downgrade = {
+    tier: "free",
+    storageCapBytes: null,
+    subscriptionId: null,
+  };
+
+  const cases: [
+    status: string,
+    expected: typeof grant | typeof downgrade | null,
+  ][] = [
+    ["active", grant],
+    ["trialing", grant],
+    // Dunning keeps access; the terminal states below take it away.
+    ["past_due", grant],
+    // ★ The first payment is in flight: neither a grant nor a revocation.
+    ["incomplete", null],
+    ["incomplete_expired", downgrade],
+    ["canceled", downgrade],
+    ["unpaid", downgrade],
+    ["paused", downgrade],
+  ];
+
+  for (const type of [
+    "customer.subscription.created",
+    "customer.subscription.updated",
+  ]) {
+    for (const [status, expected] of cases) {
+      it(`${type.split(".").pop()} + ${status} → ${expected ? expected.tier : "no change"}`, () => {
+        const patch = resolveSubscriptionUpdate(
+          subEvent(type, { status, priceId: "price_pro_500" }),
+          resolve,
+        );
+        expect(patch).toEqual(
+          expected ? { customerId: "cus_123", ...expected } : null,
+        );
+      });
+    }
+  }
+
+  it("a deletion downgrades whatever status it carries, incomplete included", () => {
+    for (const [status] of cases) {
+      expect(
+        resolveSubscriptionUpdate(
+          subEvent("customer.subscription.deleted", {
+            status,
+            priceId: "price_pro_500",
+          }),
+          resolve,
+        ),
+        status,
+      ).toEqual({ customerId: "cus_123", ...downgrade });
+    }
+  });
+
+  it("★ the race it closes: `active` then a same-second `incomplete` leaves the host on the plan they paid for", () => {
+    const granted = resolveSubscriptionUpdate(
+      subEvent("customer.subscription.updated", { status: "active" }),
+      resolve,
+    );
+    const late = resolveSubscriptionUpdate(
+      subEvent("customer.subscription.created", { status: "incomplete" }),
+      resolve,
+    );
+    expect(granted?.tier).toBe("pro");
+    // The late delivery writes nothing, so nothing overwrites the grant.
+    expect(late).toBeNull();
+  });
+});
+
+describe("subscriptionQuantityWarning (the old portal stepper's multiples)", () => {
+  it("names the subscription, its customer and the quantity when an item is billed more than once", () => {
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.updated", {
+          id: "sub_x",
+          customer: "cus_x",
+          quantities: [2],
+        }),
+      ),
+    ).toEqual({ subscriptionId: "sub_x", customerId: "cus_x", quantity: 2 });
+  });
+
+  it("fires on a created subscription too, and reports the largest item's quantity", () => {
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.created", { quantities: [1, 3] }),
+      ),
+    ).toEqual({
+      subscriptionId: "sub_123",
+      customerId: "cus_123",
+      quantity: 3,
+    });
+  });
+
+  it("is quiet at quantity 1, for a metered item with no quantity, and for an empty subscription", () => {
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.updated", { quantities: [1] }),
+      ),
+    ).toBeNull();
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.updated", { quantities: [undefined] }),
+      ),
+    ).toBeNull();
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.updated", { priceId: null }),
+      ),
+    ).toBeNull();
+  });
+
+  it("is quiet on a deletion and on anything that is not a subscription", () => {
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("customer.subscription.deleted", { quantities: [2] }),
+      ),
+    ).toBeNull();
+    expect(
+      subscriptionQuantityWarning(
+        subEvent("invoice.paid", { quantities: [2] }),
+      ),
+    ).toBeNull();
+  });
+
+  it("★ leaves the entitlement exactly as one plan's cap: provisioning never multiplies", () => {
+    const patch = resolveSubscriptionUpdate(
+      subEvent("customer.subscription.updated", { quantities: [3] }),
+      resolve,
+    );
+    expect(patch?.storageCapBytes).toBe(planById("pro_500").storageBytes);
   });
 });
 
