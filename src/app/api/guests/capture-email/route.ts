@@ -16,14 +16,17 @@ import { createClient } from "@/lib/supabase/server";
 // the opt-in to the guest row. Signed-in-only by design (the opt-in lives in the account-first save flow).
 //
 // ★ THE CRACK THIS CLOSES (the guest identity round, 2026-09-22). `capture_guest_email` writes into
-// `guests.email`, the column whose single invariant is "CONFIRMED, copied from auth.users at the
-// mint" — the host's column-scoped SELECT grant, the forensic row and the uploader resolver all read
-// it as proof. A session with `user.email` set and `email_confirmed_at` NULL is an UNCONFIRMED
-// sign-up: a perfectly real user id, an address nobody has proved, and until this gate it could walk
-// an unproved address straight into the proved column through this route. `email_confirmed_at` is
-// the ONLY thing that means verified anywhere in this reshape, so it is the test here too. An
-// unproved address has its own home now (`guests.pending_email`, set through /api/guests/email) and
-// reaches `guests.email` only by a claim that proves it.
+// `guests.email`, the column whose single invariant is "CONFIRMED, the row's own account's address":
+// the forensic row and the uploader resolver read it as proof, and the host's credit prints it beside
+// a verified guest's name. A session with `user.email` set and `email_confirmed_at` NULL is an
+// UNCONFIRMED sign-up: a perfectly real user id, an address nobody has proved, and until this gate it
+// could walk an unproved address straight into the proved column through this route.
+// `email_confirmed_at` is the ONLY thing that means verified anywhere in this reshape, so it is the
+// test here too. The function holds the same line on its own side (the guests grant tidy,
+// 20260922213000): it writes only on a row whose own account is the confirmed owner of the address,
+// so on a shared phone, where the token names whoever joined last, this session's address can no
+// longer land on that person's row. An unproved address has its own home now (`guests.pending_email`,
+// set through /api/guests/email) and reaches `guests.email` only by a claim that proves it.
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
