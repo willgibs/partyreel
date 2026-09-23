@@ -467,7 +467,13 @@ through flags in the sheet. No step counter to desync.
   that must stay true: `anon` never gets EXECUTE on `remove_my_upload_by_session` (service-role only, reached
   through `/api/guests/remove` behind the join limiter); a session token never travels in a URL; and a guest
   row with `user_id` set is untouchable by the session path, so a shared phone's stale token can never delete
-  a signed-in person's photograph. A withdrawal is final for the host (`removed_by_uploader`).
+  a signed-in person's photograph. ★ **A withdrawal is final for the host** (`removed_by_uploader`; Will,
+  2026-09-23: "I want it gone everywhere, not still visible to the host as well"): no host surface shows or
+  restores it (the album and its viewer, Review, Deleted and `restore_media`, the home's pulse and the events
+  list's counts and covers, the exports, the reel's timeline), `host_storage_summary`'s Deleted figure counts
+  it in neither number, and the confirm says so with no window ("It's deleted from the event right away and
+  can't be recovered."), because a number of days reads as a hold the host can still reach.
+  [`media.test.ts`](../../src/lib/db/queries/media.test.ts) pins the host reads against a withdrawn row.
 - ★ **UPLOADS ARE HELD TO THE SAME OWNER: a guest row with `user_id` set writes only for that signed-in
   account.** Presign AND complete (a presign outlives a sign-out), rename and attach-address ask
   `checkSessionOwner` ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's
@@ -693,8 +699,12 @@ the field before they confirm.
   what this visit removed, on EITHER identity (the completion and the removal are themselves server answers), so
   a signed-in guest's new photograph has its Trash and mark at once and a removed one stops counting. The ids
   reach the grid as `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so
-  the host's bin never shows it and `restore_media` refuses it; the purge cron reclaims the bytes after
-  `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm names. The post-upload card counts this visit's
+  the host's bin never shows it and `restore_media` refuses it (the Invariants above); the purge cron reclaims the
+  bytes after `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm deliberately never names. The personal
+  Uploads on a profile share that confirm and hold one other kind: an upload to an event the viewer HOSTS is
+  `remove_my_upload`'s host arm, restorable from that event's Deleted, so the owner mode marks it `isHost`
+  ([`owner-sections.tsx`](<../../src/app/(guest)/u/[slug]/owner-sections.tsx>), an event the viewer hosts) and
+  the lightbox gives it the host's words (Deleted, and the window). The post-upload card counts this visit's
   uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
   Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
   deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second

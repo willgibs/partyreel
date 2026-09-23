@@ -44,6 +44,13 @@ export type MediaRow = Omit<
   | "status_before_removed"
 >;
 
+/**
+ * The host's LIVE album: the read behind the event page's grid and its viewer, the Review room's
+ * queue (its pending subset) and the host's Download all. `status <> 'removed'` is what keeps a
+ * guest's own withdrawal off every one of them, so a pending upload the guest deletes leaves Review
+ * on the next render, and a stale Review tap cannot bring it back (the moderation writes refuse a
+ * removed row).
+ */
 export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
@@ -66,12 +73,14 @@ export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
  * (media_host_all) scopes to media in the host's own events.
  *
  * ★ `removed_by_uploader = false` is a PRODUCT rule, not an optimisation: a guest deleting their
- * own upload from someone else's event is private to that host (lifecycle-recovery.md), which is
- * why `restore_media` carries `and m.removed_by_uploader = false` and refuses those rows. The bin
- * had no such filter, so it listed items with a Restore button the RPC would always refuse, and
- * showed the host a guest's change of mind. media_host_all does NOT filter it either (checked
- * against the live policy, 2026-09-02), so this query is the only place the rule can hold. The
- * rows still auto-purge on the same clock and still count in the standby meter.
+ * own upload from someone else's event is final, for the host too (Will, 2026-09-23: "I want it
+ * gone everywhere"), which is why `restore_media` carries `and m.removed_by_uploader = false` and
+ * refuses those rows. The bin had no such filter, so it listed items with a Restore button the RPC
+ * would always refuse, and showed the host a guest's change of mind. media_host_all does NOT filter
+ * it either (checked against the live policy, 2026-09-02), so this query is the only place the rule
+ * can hold for the list. The rows still auto-purge on the same clock, and they count in neither of
+ * the storage meter's numbers: `host_storage_summary`'s Deleted figure is only what this bin can
+ * restore (20260923160000). media.test.ts pins both reads here against a withdrawn row.
  */
 /** A soft-removed media row for the event-detail bin, with the days-until-purge countdown. */
 export type RemovedMediaRow = MediaRow & { countdownDays: number };

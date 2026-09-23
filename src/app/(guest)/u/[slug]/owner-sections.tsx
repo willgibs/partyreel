@@ -5,6 +5,7 @@ import { FeedSection } from "@/components/app/dashboard/feed-section";
 import { MyLikesGallery } from "@/components/app/my-likes-gallery";
 import { MyUploadsGallery } from "@/components/app/my-uploads-gallery";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { listEvents } from "@/lib/db/queries/events";
 import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getMyFollowing } from "@/lib/db/queries/social";
@@ -35,13 +36,33 @@ import { withAvatarUrls } from "@/lib/social/cards";
  * exactly as the dashboard's Following section meant. The graph is
  * owner-private by ruling (profiles-social.md) and there is still no public
  * count anywhere; this section is the owner reading their own half of it.
+ *
+ * ★ YOUR UPLOADS SAY WHICH DELETES YOU CAN TAKE BACK (delete-final, Will
+ * 2026-09-23: a guest's own delete is final, and says so). The feed holds two
+ * kinds of upload that one Trash removes differently: one you added to
+ * SOMEBODY ELSE's event is gone for good (`remove_my_upload`'s guest arm marks
+ * it `removed_by_uploader`, which no host surface shows or restores), while one
+ * you added to an event you HOST lands in that event's Deleted, restorable
+ * (the host arm). The lightbox's confirm says which off `isHost`, so the host
+ * arm's items carry it: an upload is the host arm exactly when its event is one
+ * of yours, because get_my_uploads splits its two arms on the event's host.
+ * `listEvents()` is an owner-RLS read (`events_host_all`), so like every read
+ * above it answers for the caller alone, and the gate stays one you can only
+ * fail safely.
  */
 export async function OwnerSections() {
-  const [uploads, likes, following] = await Promise.all([
+  const [uploads, likes, following, hostedEvents] = await Promise.all([
     getMyUploadCards(),
     getMyLikeCards(),
     getMyFollowing(),
+    listEvents(),
   ]);
+  const hostedTokens = new Set(hostedEvents.map((event) => event.qr_token));
+  const uploadItems = uploads.items.map((item) =>
+    item.eventQrToken != null && hostedTokens.has(item.eventQrToken)
+      ? { ...item, isHost: true }
+      : item,
+  );
   const followingItems = await withAvatarUrls(following);
 
   return (
@@ -53,7 +74,7 @@ export async function OwnerSections() {
         Only you can see the sections below.
       </p>
 
-      {uploads.items.length === 0 ? (
+      {uploadItems.length === 0 ? (
         <EmptySectionTeaser
           heading="Your uploads"
           blurb="Photos and videos you add to any event, yours or a friend's, collect here."
@@ -61,7 +82,7 @@ export async function OwnerSections() {
       ) : (
         <FeedSection heading="Your uploads">
           <MyUploadsGallery
-            items={uploads.items}
+            items={uploadItems}
             truncated={uploads.truncated}
           />
         </FeedSection>
