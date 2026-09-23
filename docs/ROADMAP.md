@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
 - Host (Will's call): the Guests room draws a confirmed guest's verified badge without the address the host's viewer shows under the same name; his reason for keeping the address (a badge without it implies more safety than it gives, 2026-09-22) reaches the room too, but the room would list every address at once.
 - Dashboard: an account a guest just made through the capture lands first on the host tour ("Create my first event", `welcome-flow.tsx`) before the Guest card the capture promised it; a guest-made account's first visit could lead with that card.
 - The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place (Will, 2026-09-22: "nail our voice in the lab, across all main and micro copy").
