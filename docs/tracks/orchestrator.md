@@ -32,6 +32,10 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `lab-scene-kit` | `Fit` and `Measured` into the kit; voice-guest's save comments | building (agent ac5faac774ea3eb21) | Sonnet, :3133 | merge FIRST; announce here so `event-safety` imports the two |
+| `guest-followons` | the partial-save defect; the identity contract (SQL merged UNAPPLIED); the round's guest lines; the demo's guests | building (agent a220407f82bff7c48) | Opus, :3131 | apply nothing; run the demo seed's guest mode after the merge |
+| `host-followons` | the Guests room's addresses; the email-safety pins; `getProfileCards` chunks; `host_storage_summary` wired; the quantity warning; `incomplete` never downgrades; a guest-made account's first visit | building (agent a002c953105fd2a97) | Opus, :3132 | nothing to apply (the summary function is live) |
+| `event-safety` | the new board: block a bad actor, keep an event closed (his three answers) | building (agent a3c116928ebb5e396) | Opus, :3134 | DESK_ORDER after `host-storage`; the touchpoint |
 
 ## Next, in order
 
