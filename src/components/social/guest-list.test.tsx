@@ -156,3 +156,123 @@ describe("GuestList: unverified guests", () => {
     expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
   });
 });
+
+/**
+ * THE HOST'S ADDRESSES (Will, 2026-09-23: "Guests should not see other
+ * confirmed guests' emails, making them more comfortable knowing only the host
+ * sees it"). Function, not look: that a confirmed guest's address reaches the
+ * page only through `emails` (which only the Guests room passes), that it
+ * reaches it in the opened names panel as well as the chips, and that a name
+ * nobody proved never wears one.
+ */
+describe("GuestList: the host's addresses", () => {
+  const maya = {
+    ...guests(1)[0],
+    id: "u-maya",
+    displayName: "Maya",
+    slug: "maya",
+  };
+  const priya = {
+    ...guests(1)[0],
+    id: "u-priya",
+    displayName: "Priya",
+    slug: null,
+  };
+  const unverified = {
+    kind: "unverified" as const,
+    id: "g-sam",
+    displayName: "Sam",
+  };
+
+  it("shows a confirmed guest's address with the name when the host passes it", () => {
+    render(
+      <GuestList
+        items={[maya, priya]}
+        emails={
+          new Map([
+            ["u-maya", "maya@example.com"],
+            ["u-priya", "priya@example.com"],
+          ])
+        }
+      />,
+    );
+    expect(screen.getByRole("link", { name: /maya/i })).toHaveTextContent(
+      "maya@example.com",
+    );
+    expect(screen.getByText("priya@example.com")).toBeInTheDocument();
+  });
+
+  it("★ shows no address at all without the prop (every guest-facing caller)", () => {
+    render(<GuestList items={[maya, priya, unverified]} viewerId="me" />);
+    expect(document.body.textContent).not.toMatch(/@/);
+  });
+
+  it("★ never puts an address under a name nobody proved, even one keyed to its row", () => {
+    render(
+      <GuestList
+        items={[unverified]}
+        emails={new Map([["g-sam", "sam@example.com"]])}
+      />,
+    );
+    expect(screen.getByText("Sam")).toBeInTheDocument();
+    expect(screen.queryByText("sam@example.com")).toBeNull();
+  });
+
+  it("carries the address into the opened names panel, not only the chips", () => {
+    const party = guests(GUEST_LIST_FACES_THRESHOLD + 5);
+    render(
+      <GuestList
+        items={party}
+        emails={new Map([[party[0].id, "first@example.com"]])}
+      />,
+    );
+    // Condensed: nobody is named, so nobody's address shows.
+    expect(screen.queryByText("first@example.com")).toBeNull();
+    fireEvent.click(screen.getByRole("button"));
+    expect(screen.getByText("first@example.com")).toBeInTheDocument();
+  });
+});
+
+/**
+ * A LONG ADDRESS KEEPS ITS DOMAIN. The domain is what tells a host whether an
+ * address is real, so the eye's copy gives up the middle, never the domain, and
+ * a screen reader still hears the whole address.
+ */
+describe("GuestList: a long address", () => {
+  const maya = { ...guests(1)[0], id: "u-maya", displayName: "Maya", slug: "maya" };
+
+  it("shortens from the middle and keeps the domain whole", () => {
+    render(
+      <GuestList
+        items={[maya]}
+        emails={new Map([["u-maya", "priya.raman.1987.personal.inbox@outlook.com"]])}
+      />,
+    );
+    expect(
+      screen.getByText("priya.raman.1987…@outlook.com"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("priya.raman.1987.personal.inbox@outlook.com"),
+    ).toBeInTheDocument();
+  });
+
+  it("gives up a very long domain's end last, never the part before the @ it has room for", () => {
+    render(
+      <GuestList
+        items={[maya]}
+        emails={new Map([["u-maya", "alex@students.university-of-somewhere-far.edu"]])}
+      />,
+    );
+    expect(screen.getByText("alex@students.universit…")).toBeInTheDocument();
+  });
+
+  it("draws an ordinary address whole, once", () => {
+    render(
+      <GuestList
+        items={[maya]}
+        emails={new Map([["u-maya", "fakeemail@domain.com"]])}
+      />,
+    );
+    expect(screen.getAllByText("fakeemail@domain.com")).toHaveLength(1);
+  });
+});

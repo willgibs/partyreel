@@ -18,11 +18,15 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
 
 - **`host_active_bytes()`** is SECURITY DEFINER, REVOKED from anon/authenticated (internal-only — must
   NEVER appear in the 0028/0029 advisor lists), and is the one SQL definition every cap check reads (the
-  upload fns, `get_upload_gate`, the restore RPCs). The over-cap sweep and the dashboard meter
-  (`getHostStorageSummary`) compute the same definition in TypeScript. ★ The meter's read is RLS-scoped
-  and pages past PostgREST's `max_rows` (1000): keyset pages by id, an exact count on the first page, so a
-  large album is counted whole; the storage guard reads this number, and an undercount sells a plan the
-  host does not fit.
+  upload fns, `get_upload_gate`, the restore RPCs). The over-cap sweep computes the same definition in
+  TypeScript. ★ The dashboard meter, the account page, the plan sheet's facts and the storage guard read
+  **`host_storage_summary(uuid)`** (`getHostStorageSummary` → `readHostStorageSummary`,
+  [`queries/storage.ts`](../../src/lib/db/queries/storage.ts)): one SUM each for active and Deleted bytes, whatever
+  the album's size, SECURITY DEFINER and service-role only like its sibling, called on the admin client with the
+  `getUser()` id (the admin's account view passes the account it shows, and counts its items with a HEAD count).
+  Its active filter is `host_active_bytes`' own and its Deleted filter the exact negation, which
+  [`storage-summary.test.ts`](../../src/lib/billing/storage-summary.test.ts) reads off both migrations; a failed
+  read throws, because the guard would read a swallowed failure as an empty account and sell any size.
 - **`storage_used_bytes` is the PHYSICAL meter ONLY** (++ on create, −− only in `purge_media_rows`); it
   never gates uploads, so deleting frees cap room immediately (the "Recently deleted" model).
 - **The monthly meter is INGRESS BYTES, not counts**, and `cumulative_bytes` **never decrements** — it is
@@ -137,6 +141,11 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   live passes (0 rows on replay) → clear `tier_expires_at`/`event_slots`. Customer balance auto-applies
   to upcoming invoices and is EXCLUDED from Checkout's own first invoice — the reason it beats an
   `amount_off` coupon, which silently eats any credit above one invoice's total.
+- **A subscription billed more than once for one cap is a warning, never a bigger cap.** A created or updated
+  subscription with any item's quantity above 1 (the old portal stepper's multiples) raises a Sentry warning
+  (`billing`, `stripe_subscription_quantity_above_1`, with the subscription, customer and quantity:
+  `subscriptionQuantityWarning` in `provision.ts`), and provisioning writes one plan's cap exactly as it would at a
+  quantity of 1; the operator settles the extra billing in Stripe.
 - **Every entitlement write asserts EXACTLY ONE matched row** (`applyEntitlement` in the webhook route) and
   throws otherwise, so a paid-but-unprovisioned host 5xxs into a Stripe retry instead of a silent 200.
   Nothing reconciles Stripe against `profiles` after the retry window, so the assertion plus its Sentry
@@ -194,8 +203,13 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   (`free|pro|event_pass`); coerce a DB `profiles.tier` with `toBillingTier()` (`max`→`pro`, unknown→`free`)
   before indexing the `tiers.ts` records. Don't try to drop the enum value (risky).
 - **Provisioning is a PURE fn** (`resolveSubscriptionUpdate`) — unit-tested, returns ABSOLUTE values so
-  re-delivered events are idempotent. `customer.subscription.deleted`/non-active → downgrade (`tier=free`,
-  `storage_cap_bytes=null` → the Free default). `plans.ts` is `server-only` (reads env) → don't import it in
+  re-delivered events are idempotent. `customer.subscription.deleted` (whatever its status) and the non-active
+  states (`incomplete_expired`, `canceled`, `unpaid`, `paused`) → downgrade (`tier=free`,
+  `storage_cap_bytes=null` → the Free default); `active`, `trialing` and `past_due` grant. ★ **`incomplete`
+  changes nothing** (null: no write, no recency stamp): Checkout's subscription is created `incomplete` and turns
+  `active` once its first invoice is paid, the recency guard admits same-second deliveries in either order, and two
+  TEST endpoints (the alias's and partyreel.com's) write the one database, so an `incomplete` that downgraded could
+  land after the `active` and leave a paying host on Free. `plans.ts` is `server-only` (reads env) → don't import it in
   Vitest; test `provision.ts`. Pin `apiVersion` to the installed SDK's bundled version (`stripe@22.2.0` →
   `"2026-05-27.dahlia"`); bump deliberately on SDK upgrade.
 - **Event Pass is a ONE-TIME payment on a LEDGER** — checkout uses `mode:"payment"` (from

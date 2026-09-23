@@ -10,7 +10,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 import { sharedBitmapCache } from "@/lib/reel/engine/asset-cache";
 import { loadReelAssets, type ReelAssets } from "@/lib/reel/engine/assets";
@@ -76,38 +76,9 @@ export const DESK = {
 
 /* ── fit, pause and the reader's own eye ─────────────────────────────────── */
 
-/**
- * A 1920 canvas in a lab column is ALWAYS scaled or scrolled, so the box says
- * which (`data-stage-fit`) and the step reads the zoom off it, exactly as a
- * `Stage` reports its own.
- */
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
+/** `Fit` is the kit's (`@/components/lab`): a 1920 canvas in a lab column is
+ *  ALWAYS scaled or scrolled, so the box says which (`data-stage-fit`) and the
+ *  step reads the zoom off it, exactly as a `Stage` reports its own. */
 
 /**
  * ★ AN OPTION OFF THE STAGE IS PAUSED, AND IT CANNOT READ THAT FOR ITSELF. The
@@ -148,49 +119,10 @@ export function usePrefersReduced(): boolean {
   );
 }
 
-/** A number read off the frame's own document, never computed from the source. */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  /** `null` means "not settled yet": the read is skipped rather than
-   *  overwriting the caption with a lie. */
-  probe: (root: HTMLElement) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    const timers = [200, 900, 2200].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref} className="size-full">{children}</div>;
-}
+/** `Measured` is the kit's too. ★ 2200, not the kit's 1800, at the tail: this
+ *  board's own original schedule, carried forward as an override rather than
+ *  trimmed to match. */
+const WALL_TIMERS = [200, 900, 2200];
 
 /* ── the wall itself ─────────────────────────────────────────────────────── */
 
@@ -217,7 +149,13 @@ export function Wall({
   const paused = usePausedAbove(host);
   const [measured, setMeasured] = useState("measuring");
   const body = measure ? (
-    <Measured probe={measure} deps={[screen, id]} onMeasure={setMeasured}>
+    <Measured
+      probe={measure}
+      deps={[screen, id]}
+      onMeasure={setMeasured}
+      timers={WALL_TIMERS}
+      className="size-full"
+    >
       {children}
     </Measured>
   ) : (
@@ -273,7 +211,13 @@ export function Desk({
   const { w, h } = DESK[screen];
   const [measured, setMeasured] = useState("measuring");
   const body = measure ? (
-    <Measured probe={measure} deps={[screen, id]} onMeasure={setMeasured}>
+    <Measured
+      probe={measure}
+      deps={[screen, id]}
+      onMeasure={setMeasured}
+      timers={WALL_TIMERS}
+      className="size-full"
+    >
       {children}
     </Measured>
   ) : (

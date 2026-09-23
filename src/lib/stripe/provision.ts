@@ -29,8 +29,21 @@ const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
 
 /**
  * Resolve a `customer.subscription.*` event into a profile patch, using `resolvePlan`
- * to map the subscription's price → Plan. Returns null for unrelated events or an
- * unknown price (so we never blindly change entitlements).
+ * to map the subscription's price → Plan. Returns null for unrelated events, an
+ * unknown price, or a first payment still in flight (so we never blindly change
+ * entitlements).
+ *
+ * ★ `incomplete` IS NO CHANGE AT ALL: neither a grant nor a revocation. A Checkout
+ * subscription is created `incomplete` and turns `active` a moment later, once its
+ * first invoice is paid; the two deliveries share a second often enough, and the
+ * recency guard admits same-second events in either order (it must: two distinct
+ * events in one second are real), and two TEST endpoints (the alias's and
+ * partyreel.com's) write the one database. So an `incomplete` that downgraded could
+ * land AFTER the `active` that granted and leave a paying host on Free. Nothing is
+ * owed or lost while the first payment is in flight: a host who was on Free stays
+ * on Free until `active` arrives, and a pass holder keeps their pass. The terminal
+ * states still downgrade: `incomplete_expired` (the first payment never came),
+ * `canceled`, `unpaid`, `paused`, and any `deleted` event, whatever its status.
  */
 export function resolveSubscriptionUpdate(
   event: Stripe.Event,
@@ -48,9 +61,19 @@ export function resolveSubscriptionUpdate(
   const customerId =
     typeof sub.customer === "string" ? sub.customer : sub.customer.id;
 
-  // Cancellation (or any non-active state) → downgrade to Free. cap null → the
-  // 2 GB Free default applies in create_media; existing media stays, new uploads
-  // are blocked once over cap (minimal over-capacity; full grace is a fast-follow).
+  // The first payment is in flight: write nothing (see the ★ above). A deletion
+  // is terminal whatever status it carries, so it is checked first.
+  if (
+    event.type !== "customer.subscription.deleted" &&
+    sub.status === "incomplete"
+  ) {
+    return null;
+  }
+
+  // Cancellation (or any other non-active state) → downgrade to Free. cap null →
+  // the 2 GB Free default applies in create_media; existing media stays, new
+  // uploads are blocked once over cap (minimal over-capacity; full grace is a
+  // fast-follow).
   if (
     event.type === "customer.subscription.deleted" ||
     !ACTIVE_STATUSES.has(sub.status)
@@ -73,6 +96,44 @@ export function resolveSubscriptionUpdate(
     storageCapBytes: plan.storageBytes,
     subscriptionId: sub.id,
   };
+}
+
+export type SubscriptionQuantityWarning = {
+  subscriptionId: string;
+  customerId: string;
+  /** The largest quantity on any of the subscription's items (always above 1). */
+  quantity: number;
+};
+
+/**
+ * A SUBSCRIPTION BILLED MORE THAN ONCE FOR ONE CAP. The general portal's quantity
+ * stepper (switched off; billing-caps.md) had no maximum, so a host could buy two
+ * or three of one Pro plan, and provisioning reads a plan as ONE cap whatever the
+ * quantity: the host pays for more than they get. The entitlement stays exactly
+ * as provisioned (one plan, one cap, never multiplied); this only tells the
+ * operator, who settles it in Stripe. Returns the subscription, its customer and
+ * its largest item quantity for a created or updated subscription with any item
+ * above 1, else null (a deletion ends the billing, so there is nothing to warn).
+ */
+export function subscriptionQuantityWarning(
+  event: Stripe.Event,
+): SubscriptionQuantityWarning | null {
+  if (
+    event.type !== "customer.subscription.created" &&
+    event.type !== "customer.subscription.updated"
+  ) {
+    return null;
+  }
+  const sub = event.data.object as Stripe.Subscription;
+  // Stripe omits `quantity` only on metered prices, which bill by usage: one.
+  const quantity = Math.max(
+    0,
+    ...(sub.items?.data ?? []).map((item) => item.quantity ?? 1),
+  );
+  if (quantity <= 1) return null;
+  const customerId =
+    typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+  return { subscriptionId: sub.id, customerId, quantity };
 }
 
 export type EventPassCheckoutRef = {

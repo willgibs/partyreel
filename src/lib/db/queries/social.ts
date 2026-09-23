@@ -19,9 +19,13 @@
  *     proved no email is listed as a plain name with the mark, never as a profile card.
  *   - ★ NO ADDRESS EVER LEAVES THIS MODULE (the guest identity round, 2026-09-22). `guests` reads
  *     here name their columns, and `pending_email` is never one of them: the unproved address a
- *     guest types at the door is inert, and the host sees a badge, never an address. The column is
- *     outside the host's PostgREST grant as a belt, and social.guest-identity.test.ts pins the
- *     SELECT so an admin-client read here can never widen past it.
+ *     guest types at the door is inert, and the host sees the unverified mark, never it. A
+ *     CONFIRMED address reaches the host alone, in the Guests room, through
+ *     queries/guest-addresses.ts and never through here, because these reads feed the guest album
+ *     and public profiles too (Will, 2026-09-23: "only the host sees it"). The column is outside
+ *     the host's PostgREST grant as a belt, and social.guest-identity.test.ts pins the SELECTs,
+ *     the outputs and the source (no `email`, `uploaderEmail` or `pending_email` outside a comment)
+ *     so an admin-client read here can never widen past them.
  *   - A public profile publishes NOTHING until its owner chooses (his "Nothing until chosen"):
  *     `profile_shown_events` is an opt-IN, and the empty set is the default rather than a failure.
  */
@@ -123,6 +127,13 @@ export type FollowEntry = SocialProfileCard & { followedAt: string };
 export type BlockEntry = SocialProfileCard & { blockedAt: string };
 
 /**
+ * At most this many ids ride one `.in()`. The list travels in the request URL (a uuid is 36 characters plus its
+ * comma), so 150 keeps a read near 5.5 KB, well inside every proxy's URL limit, and far below PostgREST's 1,000-row
+ * cap, which would otherwise answer a long list short without a word.
+ */
+const PROFILE_CARD_BATCH = 150;
+
+/**
  * Hydrate profile cards for an id list via the ADMIN client. WHY admin:
  * profiles RLS is deliberately own-row (`profiles_select_own`), and these card
  * fields (name/slug/avatar marker) are public by existence per profiles-social.md, so
@@ -131,33 +142,51 @@ export type BlockEntry = SocialProfileCard & { blockedAt: string };
  * nothing new. Never pass ids that did not come from such a scoped read.
  * Explicit id-list join (not a PostgREST embed): user_follows/user_blocks carry
  * TWO profiles FKs, so a bare embed would be PGRST201-ambiguous anyway.
+ *
+ * ★ IN BATCHES, IN PARALLEL: a wedding with four hundred confirmed guests is four hundred ids, so the list is deduped
+ * and read `PROFILE_CARD_BATCH` at a time, every batch at once, into the one map. ★ AND THE COLUMN LIST IS THE
+ * ALLOW-LIST: `profiles` carries the account's email, tier and storage beside these four, and
+ * social.guest-identity.test.ts pins the SELECT to exactly them.
  */
 async function getProfileCards(
   ids: string[],
 ): Promise<Map<string, SocialProfileCard>> {
-  if (ids.length === 0) return new Map();
-  const { data, error } = await createAdminClient()
-    .from("profiles")
-    .select("id, display_name, slug, avatar_updated_at")
-    .in("id", ids);
-  if (error) throw error;
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return new Map();
+  const batches: string[][] = [];
+  for (let i = 0; i < unique.length; i += PROFILE_CARD_BATCH) {
+    batches.push(unique.slice(i, i + PROFILE_CARD_BATCH));
+  }
+  const admin = createAdminClient();
+  const pages = await Promise.all(
+    batches.map(async (batch) => {
+      const { data, error } = await admin
+        .from("profiles")
+        .select("id, display_name, slug, avatar_updated_at")
+        .in("id", batch);
+      if (error) throw error;
+      return data ?? [];
+    }),
+  );
   return new Map(
-    (data ?? []).map(
-      (p: {
-        id: string;
-        display_name: string | null;
-        slug: string | null;
-        avatar_updated_at: string | null;
-      }) => [
-        p.id,
-        {
-          id: p.id,
-          displayName: p.display_name,
-          slug: p.slug,
-          avatarMarker: p.avatar_updated_at,
-        },
-      ],
-    ),
+    pages
+      .flat()
+      .map(
+        (p: {
+          id: string;
+          display_name: string | null;
+          slug: string | null;
+          avatar_updated_at: string | null;
+        }) => [
+          p.id,
+          {
+            id: p.id,
+            displayName: p.display_name,
+            slug: p.slug,
+            avatarMarker: p.avatar_updated_at,
+          },
+        ],
+      ),
   );
 }
 
