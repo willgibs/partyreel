@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1280 contracts on 168 components · 24 standing boards.**
+**22 laws · 18 policies · 1280 contracts on 168 components · 25 standing boards.**
 
 ## What binds you
 
@@ -492,6 +492,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `identity-profile` | guest | Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor |
 | `reel-screen` | guest | Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub |
 | `guest-capture` | guest | Four decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, and whether the name she typed at the door gets one look before it becomes her account's |
+| `voice-guest` | guest | Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside three registers (plain and warm, bright and playful, quiet and exact), so the lines he picks build the voice |
 | `reel-front` | guest | Seven decisions on the album's own head, at Maya and Jay's wedding, every reel frame drawn by the real engine over fixture clips: what the living tile is, its verbs, its states before three items, the beat after a guest's first approved photo, the door's backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card |
 | `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
 | `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |

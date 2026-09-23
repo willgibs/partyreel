@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `Scene`, `Fit` and `Measured` are copied verbatim in three boards (`guest-capture`, `identity-door`, `voice-guest`); lift them into `src/components/lab`.
 - Billing follow-ons: a SECURITY DEFINER `host_storage_summary()` returning active and Deleted bytes in one aggregate, to replace the paged row read behind the storage meter and the storage guard for very large albums.
 - Billing follow-ons: the webhook warns (Sentry) on a subscription item with quantity above 1 (the old portal stepper's multiples, which provisioning reads as one cap).
 - Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
