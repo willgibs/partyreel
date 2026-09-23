@@ -56,14 +56,25 @@ face any of those issues here"); work inside this round is fixed near-term, larg
    rolled-back check; nothing persisted; no `types.ts` change (same signature). ★ `guest-flow.md`: `upload-owner`'s new
    invariant bullet ("UPLOADS ARE HELD TO THE SAME OWNER") sits directly under the guest-removal invariant that
    `delete-final` refines, so that doc may need a hand merge.
-2. **The 1,000-row audit** (an Explore agent, `a9e94f7ba6bac6df4`, read-only; its report arrives as a notification):
-   read it, then cut the fix lane or lanes (Opus) from it: one shared keyset helper under `src/lib/db/`, a policy test
-   that refuses a new unbounded read, and every CRITICAL and HIGH site fixed; MEDIUM ones fixed or filed. Known sites
-   before the report: `get_event_media_by_qr_token` and `getApprovedMediaForUnlock` read an album unpaged (past 1,000
-   approved items the guest album holds only the newest 1,000); the purge cron's over-cap sweep and
-   `sweepStandbyBudget`'s `removedHosts` read unpaged; `adminCoverUrls` one capped read; `.in()` id lists past about
-   150 ids (QA #39). ★ The purge-cron lane also carries `delete-final`'s rule for the BIN BUDGET: a guest-withdrawn row
-   (`removed_by_uploader`) never counts in the host's Recently deleted budget and purges on its own 30-day schedule.
+2. **The 1,000-row fixes.** The audit is DONE and saved in full (every site, file:line, severity, fix code, the helper
+   and the policy test designs): `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/row-cap-audit.md`.
+   15 CRITICAL (a 1,500-photo wedding: the host's album, Review queue, counts, reel studio, host export and live poll
+   see only the newest 1,000; the guest album, its header count, the guest reel and the guest export likewise; like
+   counts, the dashboard cards and the pulse wrong), 17 HIGH (the Deleted bin, event covers, admin metrics, moderation,
+   reports, the operator queue, every purge sweep incl. a possible legal-hold breach past 1,000 held rows, MRR), 18
+   MEDIUM. The plan, in two stages, cut from that file:
+   - **`rowcap-foundation`** (Opus) first: `src/lib/db/read-all.ts` (`MAX_ROWS` pinned to `supabase/config.toml`, a
+     keyset `readAllPages` that stops only on an empty page, 150-id chunks, a budget for sweeps) with tests; the policy
+     test `src/lib/db/row-cap-policy.test.ts` with today's offenders as a baseline that may only shrink; and every SQL
+     file the fixes need (a paged guest-album RPC, like counts as one jsonb, per-event card stats, one cover per event
+     for the host and for a uuid[] of events, distinct held event ids, the standby host discovery aggregate,
+     `purge_media_rows` as a scalar sum, `list_guest_rows_by_email` paging, the admin metrics aggregates), each with a
+     rolled-back check. At its merge: apply each file by the protocol and regenerate `types.ts`, so the next lanes
+     compile against the new functions.
+   - **Then three TS lanes on disjoint owns**, each shrinking the baseline: the album (C1 to C11, C14, H1, M8, M9, M12,
+     M13, M18), the host and admin reads (C12, C13, C15, H2 to H7, H16, M1 to M7, M10, M11), and the cron and lifecycle
+     sweeps (H8 to H15, H17, M14 to M17, plus `delete-final`'s bin-budget rule: a guest-withdrawn row never counts in
+     the host's Recently deleted budget and purges on its own 30-day schedule).
 3. **Alias build 4** once 1 and 2 are merged (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the
    red-team in Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
    - `upload-owner`, on ONE browser: account A uploads to a names-mode event (`guest-view-menu QA`,
