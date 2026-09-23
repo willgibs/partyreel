@@ -18,9 +18,6 @@ New lines land at the head of this list (`usher/kit/record.py`); the cross-cutti
 below hold the rest by surface.
 
 - Profiles (Will's call): should a profile's attended event also follow Require an upload to view? The album holds a viewer who has not uploaded at the teaser (no Guests list) while uploads are open, yet `get_public_profile`'s attended arm shows that viewer the line; recommended: on such an event admit only the host or a signed-in viewer whose own guest row there has a completed upload.
-- `capture_guest_email` fills an EMPTY `guests.email` on whatever row the session token names, so on a shared device a confirmed account's address can land on another person's row (the host never sees it, but `upload_forensics.guest_email` records it): write only the row's own account's confirmed address, or drop the write now that the claims carry the address.
-- The host's remaining guests SELECT `(id, event_id, user_id, created_at)` and its `guests_host_select` policy have no reader on either codebase (every guests read is service-role): revoke the SELECT and drop the policy.
-- Housekeeping: `api/guests/capture-email/route.ts:18-26` and its `route.test.ts:4-6` count the host's column-scoped SELECT grant among `guests.email`'s readers; the grant no longer carries the column.
 - The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
 - The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
 - The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
@@ -267,7 +264,7 @@ The app:
 - **Billing follow-ons:**
   - Grandfathering at the first price change: the policy is ruled in [`PRICING.md`](PRICING.md) "Grandfathering"; the build maps several historical Price IDs per plan in `planForPriceId`, the newest being the public offer.
   - Per-pass dashboard management: which stacked pass a renewal extends, per-pass expiry rows in the storage meter (today the soonest-expiring one renews, billing-caps.md).
-  - Revoke the `authenticated` role's latent table-level TRUNCATE grant on `profiles` (unreachable through PostgREST) in the next security pass.
+  - Revoke the latent table-level TRUNCATE, REFERENCES and TRIGGER grants `anon` and `authenticated` hold on all 22 public tables (Supabase's default grant; PostgREST issues none of them, so none is reachable) in the next security pass.
 - **Share studio (QR and share-content configurator):** an in-app generator for polished share outputs, so hosts never build their own; it builds on the QR designer in the share sheet and doubles as a growth lever (every output carries the QR).
   - A gallery of printable QR designs to pick from (the print stock ships in one design).
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).

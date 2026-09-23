@@ -2,8 +2,9 @@
  * THE NEWSLETTER CAPTURE, AND THE CRACK IT USED TO BE (the guest identity round, Will 2026-09-22).
  *
  * `capture_guest_email` writes into `guests.email`, the column whose single invariant is "CONFIRMED,
- * copied from auth.users at the mint". Three readers treat it as proof: the host's column-scoped
- * SELECT grant, `upload_forensics.guest_email`, and the uploader resolver. This route derived the
+ * the row's own account's address". Two readers treat it as proof: `upload_forensics.guest_email`,
+ * and the uploader resolver, whose verified case the host's credit prints (no client role reads
+ * `guests` at all since the guests grant tidy, 20260922213000). This route derived the
  * address from the session rather than the body, which closed the victim-poisoning surface — but it
  * tested `user.email` and NOT `email_confirmed_at`, and an UNCONFIRMED sign-up carries a perfectly
  * real `user.email`. Anyone could sign up as someone else's address, decline to confirm it, and walk

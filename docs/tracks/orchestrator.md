@@ -32,6 +32,8 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `defects-copy` | the published words made true: bible 20's refused promises, the free host page sold as paid, one word for the bin, the no-expiry lines, four help-content fixes, stale comments | cut `da64829f`, committed `cca9f7b7`; running (agent `ace4577df6c7171df`) | Sonnet, :3133 | integrate (`none`); retire the ROADMAP lines its Handoff names |
+| `defects-app` | the app's named defects: the storage step's exit to /pricing, the skeleton's tile size, the masonry gap read, the slug on a path with no route, the two confirm paths that never save the event, the app's word for the bin | cut `da64829f`, committed `cca9f7b7`; running (agent `a5cf839daa2f016dd`) | Opus, :3134 | integrate (`none`); retire the ROADMAP lines its Handoff names |
 
 ## Next, in order
 
@@ -44,7 +46,9 @@ model Will seats (Fable or Opus); nothing here depends on which.
    `recheck-help-press`, `recheck-guest-identity`, `recheck-viewer-curation` at `c6c79885`, gate 124), each reached
    question judged by his decision-outcomes rule; the overtaken mechanism retired. Every standing board is current
    with the identity and reel rounds; one alias build carries them for his desk review.
-3. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
+3. **A defects round** (the Orchestrator's, from the ROADMAP's Now list while Will reviews): three lanes (In flight
+   above) fixing defects against rules already on record; no product decisions.
+4. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team). The sweep lane also takes the reel's lines in
    `PRD.md`, `PRICING.md` and the two content authoring guides (the Studio and panel house terms, the reel bullet).

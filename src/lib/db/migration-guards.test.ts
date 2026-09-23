@@ -30,9 +30,13 @@
  *      five claim/attach RPCs sit exactly where database-security.md puts them, nothing expires, and
  *      a profile publishes no attended event until its owner chooses it.
  *   8. The identity SQL gaps (2026-09-22, migration 20260922200000): `guests.email` is written by
- *      create_guest only beside a confirmation, the host's guests SELECT grant (latest-wins) no
- *      longer carries `email`, and get_public_profile's attended arm applies the album's own
- *      confirmed-email gate, pinned against the album code it mirrors.
+ *      create_guest only beside a confirmation, the host's guests SELECT never carries `email`
+ *      again, and get_public_profile's attended arm applies the album's own confirmed-email gate,
+ *      pinned against the album code it mirrors.
+ *   9. The guests grant tidy (2026-09-22, migration 20260922213000): no client role reads `guests`
+ *      at all (the SELECT and `guests_host_select` are gone, replayed statement by statement across
+ *      the set), and capture_guest_email fills `guests.email` only on a row whose own account is the
+ *      confirmed owner of that address.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -91,37 +95,100 @@ function latestDefinition(name: string): { body: string; file: string } {
 }
 
 /**
- * The host's column-scoped SELECT on `guests` as it stands on the live DB: the LAST
- * `grant select (...) on public.guests to authenticated;` across the migration set, with the
- * whole FILE that holds it (the table-level revoke that must precede it lives there too). Grants
- * are resolved latest-wins exactly like bodies, because a later migration re-granting the list is
- * what changes the host's view, and an older grant still sitting in its file proves nothing.
+ * Every migration's EXECUTABLE SQL, one entry per file in timestamp order: line comments stripped
+ * first (a grant or a policy quoted in prose is not a grant or a policy), then whitespace collapsed.
  */
-function latestGuestsSelectGrant(): { columns: string[]; file: string } {
-  const files = readdirSync(MIGRATIONS_DIR)
+function executableMigrations(): { file: string; sql: string }[] {
+  return readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))
-    .sort();
-  let latest: { columns: string[]; file: string } | null = null;
-  for (const file of files) {
-    // Comments stripped first: a grant quoted in prose is not a grant.
-    const sql = collapse(
-      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
-    );
-    const grants = [
-      ...sql.matchAll(
-        /grant select \(([^)]*)\) on public\.guests to authenticated;/g,
+    .sort()
+    .map((file) => ({
+      file,
+      sql: collapse(
+        readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
+          /--[^\n]*/g,
+          "",
+        ),
       ),
-    ];
-    const last = grants.at(-1);
-    if (last) {
-      latest = {
-        columns: last[1].split(",").map((c) => c.trim()),
-        file: sql,
-      };
+    }));
+}
+
+/** Does a GRANT/REVOKE object list name the guests table (alone, in a list, or schema-wide)? */
+function namesGuests(objects: string): boolean {
+  return (
+    /(?:^|[\s,])public\.guests(?=$|[\s,])/.test(objects) ||
+    /\ball tables in schema public\b/.test(objects)
+  );
+}
+
+/**
+ * The columns `authenticated` can SELECT on `guests` as the live DB holds them, REPLAYED statement
+ * by statement across the whole set rather than read off the last grant, because two Postgres rules
+ * decide it (database-security.md's gotchas): a TABLE-level revoke cascades to every column grant,
+ * so it empties the set, and a column-level revoke removes only its own columns. A table-level
+ * grant, which another guard forbids, replays as "*": every column at once.
+ */
+function hostGuestsSelect(): string[] {
+  let columns = new Set<string>();
+  const statement =
+    /\b(grant|revoke) ([a-z_, ]+?)(?: \(([^)]*)\))? on (?:table )?([^;]*?) (?:to|from) ([^;]*);/g;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb, privileges, named, objects, grantees] of sql.matchAll(
+      statement,
+    )) {
+      if (!namesGuests(objects)) continue;
+      if (!grantees.split(",").some((g) => g.trim() === "authenticated"))
+        continue;
+      const privs = privileges.split(",").map((p) => p.trim());
+      if (!privs.some((p) => ["select", "all", "all privileges"].includes(p)))
+        continue;
+      const cols = named?.split(",").map((c) => c.trim());
+      if (verb === "revoke") {
+        if (cols) cols.forEach((c) => columns.delete(c));
+        else columns = new Set();
+      } else {
+        (cols ?? ["*"]).forEach((c) => columns.add(c));
+      }
     }
   }
-  expect(latest, "no guests SELECT grant anywhere").not.toBeNull();
-  return latest!;
+  return [...columns];
+}
+
+/** Can the host (any `authenticated` session) read this guests column over PostgREST? */
+function hostSelects(column: string): boolean {
+  const columns = hostGuestsSelect();
+  return columns.includes("*") || columns.includes(column);
+}
+
+/** The policies standing on `guests` after the whole set, create / drop / rename replayed in order. */
+function guestsPolicies(): string[] {
+  const names = new Set<string>();
+  const statement =
+    /\b(create|drop|alter) policy (?:if exists )?([a-z0-9_"]+) on (?:only )?public\.guests\b(?: rename to ([a-z0-9_"]+))?/g;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb, name, renamed] of sql.matchAll(statement)) {
+      if (verb === "create") names.add(name);
+      else if (verb === "drop") names.delete(name);
+      else if (renamed) {
+        names.delete(name);
+        names.add(renamed);
+      }
+    }
+  }
+  return [...names];
+}
+
+/** The last word on guests' row level security across the set: "enable" or "disable". */
+function guestsRowSecurity(): string | null {
+  let state: string | null = null;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb] of sql.matchAll(
+      /alter table (?:only )?public\.guests (enable|disable) row level security/g,
+    )) {
+      state = verb;
+    }
+  }
+  return state;
 }
 
 describe("QA #17 — the cap row locks survive body replacement", () => {
@@ -514,7 +581,7 @@ describe("the guest identity round, wave 0 — the unproved address", () => {
     // until a grant names it. The host sees a badge, never the address — that IS the ruling
     // ("there's no impersonation risk if the host can't see the attributed email"), and one
     // `grant select (…, pending_email, …)` anywhere in the set would undo it silently.
-    expect(latestGuestsSelectGrant().columns).not.toContain("pending_email");
+    expect(hostSelects("pending_email")).toBe(false);
     expect(collapse(allMigrations())).not.toMatch(
       /grant select \([^)]*pending_email/,
     );
@@ -757,23 +824,32 @@ describe("the identity SQL gaps — only a confirmed address reaches guests.emai
     );
   });
 
-  it("★ the host's guests SELECT grant (latest-wins) no longer carries email", () => {
+  it("★ the host's guests SELECT (replayed across the set) never carries email again", () => {
     // Every guests read on both deployed codebases runs on the service-role admin client, so the
-    // host's PostgREST view narrows to what nothing sensitive rides on.
-    const { columns, file } = latestGuestsSelectGrant();
-    expect(columns).toEqual(["id", "event_id", "user_id", "created_at"]);
+    // host's PostgREST view narrowed to what nothing sensitive rides on (and, since the grant
+    // tidy, to nothing at all).
+    expect(hostSelects("email")).toBe(false);
+  });
+
+  it("every column-scoped guests SELECT grant follows the TABLE-level revoke in its own file (QA #41)", () => {
     // The QA #41 shape: the TABLE-level revoke first (it cascades to every column grant), then the
     // whole allowlist in the same file. A bare column revoke is a silent no-op beside a table
     // grant; a table revoke without the full re-grant takes the other columns with it.
-    const revoke = file.indexOf(
-      "revoke select on public.guests from public, anon, authenticated;",
-    );
-    expect(revoke).toBeGreaterThan(-1);
-    expect(revoke).toBeLessThan(
-      file.indexOf(
-        "grant select (id, event_id, user_id, created_at) on public.guests to authenticated;",
-      ),
-    );
+    const grant = /grant select \([^)]*\) on public\.guests to authenticated;/;
+    const files = executableMigrations().filter(({ sql }) => grant.test(sql));
+    expect(files.length).toBeGreaterThan(0);
+    for (const { file, sql } of files) {
+      const revoke = sql.indexOf(
+        "revoke select on public.guests from public, anon, authenticated;",
+      );
+      expect(
+        revoke,
+        `${file}: a guests grant with no table-level revoke`,
+      ).toBeGreaterThan(-1);
+      expect(revoke, `${file}: the revoke comes after the grant`).toBeLessThan(
+        sql.search(grant),
+      );
+    }
   });
 
   it("no migration hands a client role a table-wide SELECT on guests", () => {
@@ -832,5 +908,70 @@ describe("the identity SQL gaps — the attended arm applies the album's own gat
       "utf8",
     );
     expect(page).toContain("isAuthed = Boolean(user.email_confirmed_at);");
+  });
+});
+
+describe("the guests grant tidy: no client reads guests, and a capture lands only on its own account's row", () => {
+  // Migration 20260922213000. The host's last PostgREST view of `guests`, `(id, event_id, user_id,
+  // created_at)`, had no reader on either deployed codebase (every read is the service-role client
+  // or a SECURITY DEFINER function), so the SELECT and its row filter went. And capture_guest_email,
+  // which filled an EMPTY `guests.email` on whatever row the session token named, now fills it only
+  // on a row whose own account is the confirmed owner of that address: on a shared phone the token
+  // names the last joiner's row, and a VERIFIED row with no address printed the stranger's address
+  // in the host's credit (uploader-identity.ts case 2 returns `guests.email`).
+
+  it("★ authenticated holds no SELECT on any guests column, replayed across the whole set", () => {
+    // The table-level revoke cascades to every column grant, and nothing re-grants: a new column
+    // stays fail-closed, and now so does every old one.
+    expect(hostGuestsSelect()).toEqual([]);
+  });
+
+  it("no policy on guests stands, and RLS stays on, so even a returning grant reads no row", () => {
+    // Kept, `guests_host_select` would be a latent row filter waiting for a grant. With no policy
+    // and RLS enabled, a stray future `grant select` still answers zero rows to every client role.
+    expect(guestsPolicies()).toEqual([]);
+    expect(guestsRowSecurity()).toBe("enable");
+  });
+
+  const capture = collapse(
+    latestDefinition("capture_guest_email").body.replace(/--[^\n]*/g, ""),
+  );
+
+  it("keeps the signature both deployed routes call by argument name", () => {
+    // PostgREST resolves an RPC by its argument NAMES, and main's route calls it as it is today.
+    expect(capture).toContain(
+      "create or replace function public.capture_guest_email( p_session_token text, p_email text, p_newsletter_opt_in boolean default false ) returns jsonb",
+    );
+  });
+
+  it("★ writes guests.email only when the row's own account is the confirmed owner of the address", () => {
+    expect(capture).toContain(
+      "update public.guests g set email = v_email where g.id = v_guest.id and g.email is null and exists ( select 1 from auth.users u where u.id = g.user_id and u.email_confirmed_at is not null and lower(btrim(u.email)) = v_email );",
+    );
+    // The ONE write to the table: a second, unguarded update would reopen the crack.
+    expect(capture.match(/update public\.guests\b/g)).toHaveLength(1);
+    // The equality with `lower(btrim(u.email))` is exact only because the parameter is normalised
+    // the same way before it is compared.
+    expect(capture).toContain(
+      "v_email := lower(nullif(trim(coalesce(p_email, '')), ''));",
+    );
+  });
+
+  it("keeps the opt-in: the caller's own address, whichever row the token names", () => {
+    // A person's consent to the list is theirs and says nothing about the row.
+    expect(capture).toContain(
+      "insert into public.newsletter_signups (email, source, event_id) values (v_email, 'guest_upload', v_guest.event_id) on conflict (email) do nothing;",
+    );
+  });
+
+  it("stays SECURITY DEFINER with a pinned search_path, and service-role-only in its defining migration", () => {
+    expect(capture).toContain("security definer set search_path = ''");
+    const { file } = latestDefinition("capture_guest_email");
+    expect(file).toContain(
+      "revoke execute on function public.capture_guest_email(text, text, boolean) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.capture_guest_email(text, text, boolean) to service_role;",
+    );
   });
 });
