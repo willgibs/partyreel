@@ -105,65 +105,50 @@ const CHIPS: { key: ExportTypeFilter; label: string; Icon: typeof Layers }[] = [
   { key: "video", label: "Videos", Icon: Video },
 ];
 
-export type ChipMode = "three" | "two" | "why";
-
+/**
+ * ★ `ChipMode`/the locked "why" row LEFT WITH `chips` (the identity/reel
+ * recheck, 2026-09-22): the one guest who could ever see a chip with nothing
+ * in it was a teaser viewer, and the door no longer lets one reach this sheet
+ * at all. Every caller now gets the plain three-chip row.
+ */
 export function ChipRow({
   summary,
   types,
   includeHidden = false,
-  mode = "three",
 }: {
   summary: ExportSummary;
   types: ExportTypeFilter;
   includeHidden?: boolean;
-  mode?: ChipMode;
 }) {
-  const chips = mode === "two" ? CHIPS.slice(0, 2) : CHIPS;
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        {chips.map(({ key, label, Icon }) => {
-          const active = types === key;
-          const count = totalFor(summary, key, includeHidden).count;
-          const inert = mode === "why" && key === "video";
-          return (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={inert ? undefined : active}
-              disabled={inert}
-              data-xf-chip={key}
-              data-xf-inert={inert ? "" : undefined}
+    <div className="flex gap-2">
+      {CHIPS.map(({ key, label, Icon }) => {
+        const active = types === key;
+        const count = totalFor(summary, key, includeHidden).count;
+        return (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={active}
+            data-xf-chip={key}
+            className={cn(
+              "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-3 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
+              active ? "border-primary bg-accent" : "border-border hover:bg-accent/50",
+            )}
+          >
+            <Icon
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-3 text-center transition-[transform,border-color,background-color] duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
-                active && !inert
-                  ? "border-primary bg-accent"
-                  : "border-border hover:bg-accent/50",
-                inert && "pointer-events-none opacity-45",
+                "size-5",
+                active ? "text-foreground" : "text-muted-foreground",
               )}
-            >
-              <Icon
-                className={cn(
-                  "size-5",
-                  active && !inert ? "text-foreground" : "text-muted-foreground",
-                )}
-              />
-              <span className="text-sm font-medium">{label}</span>
-              <span className="text-xs tabular-nums text-muted-foreground">
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      {mode === "why" && (
-        <p className="text-xs text-muted-foreground" data-xf-said>
-          Videos come with the rest of the album.{" "}
-          <span className="font-medium text-foreground underline underline-offset-2">
-            See all
-          </span>
-        </p>
-      )}
+            />
+            <span className="text-sm font-medium">{label}</span>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {count}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

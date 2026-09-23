@@ -42,7 +42,7 @@ const summary = (
   },
 });
 
-export type AlbumId = "wedding" | "small" | "over" | "teaser";
+export type AlbumId = "wedding" | "small" | "over";
 
 export type Album = {
   readonly id: AlbumId;
@@ -56,10 +56,15 @@ export type Album = {
 };
 
 /**
- * FOUR ALBUMS, BECAUSE THE DIALOG IS FOUR DIFFERENT OBJECTS IN THEM. A wedding
- * is the ordinary case; twelve photographs is the case the cap copy never
- * applies to; 2,440 items is where the refusal fires; nine photographs and no
- * video at all is the teaser, whose third chip cannot answer.
+ * THREE ALBUMS, BECAUSE THE DIALOG IS THREE DIFFERENT OBJECTS IN THEM. A
+ * wedding is the ordinary case; twelve photographs is the case the cap copy
+ * never applies to; 2,440 items is where the refusal fires.
+ *
+ * ★ THE TEASER LEFT WITH `chips` (the identity/reel recheck, 2026-09-22). It
+ * drew a signed-out visitor reaching this sheet at all, which the door no
+ * longer lets happen: a teaser viewer is held at an inert backdrop the whole
+ * way (docs/systems/guest-flow.md, "no exit"), so she never sees Download,
+ * let alone a chip on it.
  */
 export const ALBUMS: Record<AlbumId, Album> = {
   wedding: {
@@ -83,19 +88,10 @@ export const ALBUMS: Record<AlbumId, Album> = {
     mine: summary(31, 4),
     tiles: 18,
   },
-  teaser: {
-    id: "teaser",
-    label: "A teaser, 9 photographs",
-    summary: summary(9, 0),
-    // Two of their own: anonymous uploads are open on this event, so a visitor
-    // who has not signed in can still have added something.
-    mine: summary(2, 0),
-    tiles: 9,
-  },
 };
 
 export const albumOf = (v: string | undefined): Album =>
-  v === "small" || v === "over" || v === "teaser" ? ALBUMS[v] : ALBUMS.wedding;
+  v === "small" || v === "over" ? ALBUMS[v] : ALBUMS.wedding;
 
 /* ── the dialog's own arithmetic, copied from the shipped component ──────── */
 

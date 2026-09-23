@@ -192,7 +192,7 @@ const DRAFT = defineExploration({
       question:
         "How should an operator reach the hold, now the preserve panel is a sheet of its own?",
       context:
-        "Admin r1 already sizes the preserve panel as a destructive sheet, so it exists regardless of the answer here. What's open is the distance from a report to it: nothing on the card, ids copyable, or a control opening it directly.",
+        "Admin r1 sizes the preserve panel as a destructive sheet. What's open is the distance from a report to it: nothing on the card, ids copyable, or a control opening it. \"Their other album\" already crosses events by an unconfirmed address.",
       options: [
         {
           id: "retype",
@@ -215,7 +215,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "door",
       because:
-        "The worst step of the runbook happens under the most pressure, and admin r1 already gives it a sheet sized to the damage; a report with no way to open that sheet leaves the worst step exactly as far away as it is today.",
+        "The worst step of the runbook happens under the most pressure, and admin r1 already gives it a sheet sized to the damage; a report with no way to open that sheet leaves the worst step exactly as far away as it is today. A legal hold is forensics' one exemption from that invisibility, not a hole.",
       overrule:
         "If the hold must stay a deliberate, separate act so it is never pressed casually, showing the ids is the whole improvement.",
       lands:
@@ -292,9 +292,9 @@ const DRAFT = defineExploration({
       id: "notice",
       label: "Who is told",
       question:
-        "Should the portal tell anyone, now a host already lives with one silent gap?",
+        "Should the portal tell anyone, now a host already lives with two silent gaps?",
       context:
-        "A guest may delete any upload for good; a host meets that gap in the album (guest-shape r1). Guest-upload r1 refuses any gap a person notices themselves. The two leans: stay silent, by doctrine, or tell the host one line.",
+        "A guest may delete any upload for good, and an unclaimed event's uploads are now removed at the claim ticket's own Finish; a host meets both gaps with nothing said first. Stay silent, by doctrine, or tell the host one line.",
       options: [
         {
           id: "silence",
@@ -312,12 +312,12 @@ const DRAFT = defineExploration({
           id: "both",
           label: "A line to the host and to the reporter",
           means:
-            "That, and a closing note to whoever reported it. It needs an address, so the anonymous dialog grows an optional email field.",
+            "That, and a closing note to whoever reported it. Only reaches a confirmed reporter now; an Unverified one's address, typed or not, is never mailed.",
         },
       ],
       recommended: "host",
       because:
-        "Two rulings now argue against a second silent gap: a host already absorbs one when a guest deletes their own upload, and guest-upload r1 states the case against a gap nobody is told about. One line keeps a hold indistinguishable from an ordinary removal.",
+        "A host already absorbs two silent gaps before this one: a guest's own deletion, and now an unclaimed event's uploads vanishing at someone else's Finish. A third this portal could simply not add is the cheaper position, and one line keeps a hold indistinguishable from an ordinary removal.",
       overrule:
         "If telling a hold apart from an ordinary removal is the greater risk, the doctrine's silence is the only shape that guarantees it.",
       lands:

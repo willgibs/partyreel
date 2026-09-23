@@ -203,26 +203,28 @@ const DRAFT = defineExploration({
       id: "code",
       label: "The code",
       question:
-        "What should the sign-in mail show first, now the code is the product's one door?",
+        "Now the verified-required gate itself promises \"One tap and you're in,\" what should the mail's own button say?",
       context:
-        "App-door r1 makes the code the way in for everybody, so a mail with a button and no code is no longer real. First-event r1 gives the code its own house treatment too, typeset to be read off a printed object.",
+        "App-door r1 makes the code the way in for everybody, and a tapped link still strands an iPhone PWA, so digits lead with a button beneath. What's open is only the button's word, now the gate has already promised \"one tap.\"",
       options: [
         {
-          id: "digits",
-          label: "Six digits, alone",
-          means: "Large digits, nothing else to tap.",
+          id: "continue",
+          label: "\"Continue\", as drawn",
+          means: "The digits lead; a plain Continue button sits under them for the link path.",
         },
         {
-          id: "digits-button",
-          label: "Digits, and a button beneath",
-          means: "The digits lead; a Continue button sits under them for the link path.",
+          id: "promise",
+          label: "The gate's own words",
+          means:
+            "The same button, reading \"One tap, you're in\" instead, echoing the line she just read on the gate.",
         },
       ],
-      recommended: "digits-button",
+      recommended: "continue",
       because:
-        "The product deliberately keeps both paths alive (an iPhone PWA strands a tapped link outside the app), so the digits have to lead; the only live question is whether a Continue button still rides beneath them.",
-      overrule: "If the dashboard editor can't style a button, the digits alone are the honest ceiling.",
-      lands: "What the dashboard template's HTML could hold, if it's ever redrawn; nothing here is wired.",
+        "\"Continue\" is honest about what the tap actually does (it still has to land her back in the browser); the gate's own line already told her how it will feel, and repeating it here turns a promise into a claim the button has to live up to a second time.",
+      overrule:
+        "If the mail should carry the same voice the gate just used, echoing it here is one word away and costs nothing the layout doesn't already have room for.",
+      lands: "What the dashboard template's button could say, if it's ever redrawn; nothing here is wired.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -232,14 +234,14 @@ const DRAFT = defineExploration({
       id: "moments",
       label: "The moments",
       question:
-        "Which moments should really send a mail now: the four as drawn, nothing yet, or the set the new door implies?",
+        "Which moments should really send a mail now: the three as drawn, nothing yet, or the set the new door implies?",
       context:
-        "A dead switch is ruled absent, never drawn empty (app-shape r2), so the four dormant rows leave either way. What's open is what gets built for real; identity adds a candidate the four never saw: an email that makes the account.",
+        "A dead switch is ruled absent, never drawn empty (app-shape r2): the reel's own is impossible now, not unbuilt. What's open is what gets built for real; identity adds a candidate the three never saw.",
       options: [
         {
           id: "shipped",
-          label: "The four as drawn",
-          means: "The four switches gain real sends, drawn here as labelled subjects.",
+          label: "The three as drawn",
+          means: "The three switches gain real sends, drawn here as labelled subjects.",
         },
         {
           id: "retired",
@@ -249,14 +251,14 @@ const DRAFT = defineExploration({
         {
           id: "identity",
           label: "The set the new door implies",
-          means: "Retire the four as drawn; wire the moment the identity reshape's capture flow creates instead, an email confirmed into an account.",
+          means: "Retire the three as drawn; wire the moment the identity reshape's capture flow creates instead, an email confirmed into an account.",
         },
       ],
       recommended: "identity",
       because:
-        "The four as drawn were written before an email could ever make an account; the identity reshape's own door is the moment most worth a real send right now, and it costs no more than one of the four it replaces.",
+        "The three as drawn were written before an email could ever make an account; the identity reshape's own door is the moment most worth a real send right now, and it costs no more than one of the three it replaces.",
       overrule:
-        "If guest-capture's own board draws the offer differently once it runs, wire whatever moment that board settles on instead, or fall back to the four as drawn.",
+        "If identity-claims settles on a bell or banner, wire this mail as its echo; if guest-capture's own offer differs, follow that instead of the three as drawn.",
       lands: "Whether notification-prefs-form.tsx keeps any dormant rows, and which template templates.ts gains next.",
       tile: "phone",
       configs: [SCREEN],
@@ -279,7 +281,7 @@ const DRAFT = defineExploration({
         {
           id: "link",
           label: "The album link, once",
-          means: "One mail when a guest leaves an address, carrying their album's link.",
+          means: "One mail on their first completed upload, once an address is on file, carrying their album's link.",
         },
         {
           id: "both",

@@ -152,7 +152,7 @@ export const PRESS_PAGE = defineExploration({
       label: "How checkable the facts are",
       question: "How checkable should the fact sheet be?",
       context:
-        "PRESS_FACTS renders twelve rows today, prices derived live from tiers.ts. The same array already feeds /llms.txt and /llms-full.txt's table, a machine-readable copy one route away with no link from the page a person reads.",
+        "PRESS_FACTS renders twelve rows, prices from tiers.ts. It already feeds /llms.txt and /llms-full.txt with no link from the page. The reel round retells two rows in place, \"Hosts get\" and \"Not this\" (press.ts:61, :80).",
       options: [
         {
           id: "rendered-rows",
