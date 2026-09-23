@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: `src/lib/db/queries/storage.ts`'s `tallyStorageRows` and its header (lines 8, 39, 47, 51) still define standby as "everything not active" with no `removed_by_uploader` and no caller: retire it, or carry the marker.
+- Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
+- Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
 - Guest: the next person on a shared phone skips the welcome, and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop); decide whether it goes with the tickets.
 - The lab and the kit: promote `upload-owner`'s plain pins to contract lines (the queue's recovery, both sign-outs, the name step's and the add-email dialog's `session_other_account`) in a lane that may regenerate `rules.generated.json` and `docs/design/library.md`.
 - Lifecycle: the over-cap sweep (`api/cron/purge/route.ts:750-764`) sums active bytes from an unpaged media read that PostgREST caps at 1,000 rows, so a lapsed account past a thousand items reads short (it can clear its own grace while still over the cap) and its auto-reduce chooses from the first thousand; read `host_storage_summary` there and page the reduce's candidates.

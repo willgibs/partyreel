@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `delete-final` | a guest's own delete is final and says so ("deleted from the event right away and can't be recovered"); no host surface shows it; the host's Recently deleted figure counts only what the host can restore | building (agent a202582d56c89a266) | Opus, :3132 | apply `20260923160000_withdrawn_out_of_standby.sql` at the merge |
 
 ## Next, in order
 
@@ -49,13 +48,10 @@ own delete: final, gone for the host everywhere, the guest copy "deleted immedia
 recovered" (backups may keep their copy). His ask: no silent 1,000-row clipping anywhere ("Let's ensure we will not
 face any of those issues here"); work inside this round is fixed near-term, larger work goes to the ROADMAP.
 
-1. **`delete-final` hands off** (agent `a202582d56c89a266`): integrate; then apply
-   `supabase/migrations/20260923160000_withdrawn_out_of_standby.sql` by the protocol: the drift md5 of the live
-   `host_storage_summary` must read `69da923b75dc57e3b7720e2eb25e5af8` first; apply verbatim; after-md5 against the
-   file's body; grants service-role only (anon and authenticated none); advisors still 15 / 5 / 32; its foot's
-   rolled-back check; nothing persisted; no `types.ts` change (same signature). ★ `guest-flow.md`: `upload-owner`'s new
-   invariant bullet ("UPLOADS ARE HELD TO THE SAME OWNER") sits directly under the guest-removal invariant that
-   `delete-final` refines, so that doc may need a hand merge.
+1. **Done:** `delete-final` merged at `e36776ee` (gate 139); `20260923160000_withdrawn_out_of_standby.sql` applied
+   (no drift; the live body md5 `027f9b30ac11e31b60c7f1153239cd60` equals the file's; its rolled-back check held on
+   two hosts; grants service-role only; no type change); the bell's nudge leak fixed and its tripwire made a plain
+   test; the album FAQ says a guest's delete is gone for good.
 2. **The 1,000-row fixes.** The audit is DONE and saved in full (every site, file:line, severity, fix code, the helper
    and the policy test designs): `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/row-cap-audit.md`.
    15 CRITICAL (a 1,500-photo wedding: the host's album, Review queue, counts, reel studio, host export and live poll

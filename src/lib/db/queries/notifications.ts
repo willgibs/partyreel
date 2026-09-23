@@ -55,6 +55,9 @@ export async function getNotificationData(): Promise<NotificationData> {
       .from("media")
       .select("purge_at")
       .eq("status", "removed")
+      // A guest's own withdrawal is not the host's to clear or restore (delete-final): it never
+      // drives the host's "about to be cleared" nudge.
+      .eq("removed_by_uploader", false)
       .not("purge_at", "is", null)
       .gte("removed_at", windowStart)
       .order("purge_at", { ascending: true })

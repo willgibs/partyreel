@@ -298,14 +298,12 @@ describe("a guest's own withdrawal never reaches a host read", () => {
   });
 
   /*
-   * ★ KNOWN LEAK, OUTSIDE THIS LANE'S FILES (delete-final's Handoff names the line). The bell's "Items
-   * in Deleted are about to be cleared" nudge reads the SOONEST purge among the host's removed media
-   * (src/lib/db/queries/notifications.ts) without `.eq("removed_by_uploader", false)`, so a guest's
-   * withdrawal from weeks ago fires it, pointing the host at a Deleted that does not show it. This is
-   * `it.fails` on purpose: it passes while the leak stands, and FAILS the day that one filter lands,
-   * which is the moment to turn it into a plain `it`.
+   * The bell's "Items in Deleted are about to be cleared" nudge reads the SOONEST purge among the host's
+   * removed media and skips a guest's withdrawal (`.eq("removed_by_uploader", false)` in
+   * src/lib/db/queries/notifications.ts), so a withdrawal never points the host at a Deleted that does
+   * not show it.
    */
-  it.fails("the bell's about-to-be-cleared nudge never counts it", async () => {
+  it("the bell's about-to-be-cleared nudge never counts it", async () => {
     const signals = await getNotificationData();
     expect(signals.recoverySoonestPurgeAt).toBe(HOST_REMOVED.purge_at);
   });
