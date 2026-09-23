@@ -72,6 +72,8 @@ below hold the rest by surface.
 - Design: a mark over media, if one ships (the shimmer is banked as a delight moment), needs from the glow engine a play-once sweep, a `runId` re-key for every shape (only a one-shot has one), an additive blend over a photograph, and `[data-glw-edge-rest]` under its travelling ring; `SectionLight` ships without a dither until the grain tile lands (ASSETS row 15).
 
 The lab and the kit:
+- `Several` (an option drawn as several screens: phones side by side on equal columns, laptops stacked and cut short) and `ScrollHere` (scroll a frame's sheet or page to the card a decision is about) are local to `event-safety`; `voice-guest`'s `Pair` is the same idea as `Several`: kit candidates.
+- `lab:demo` compares only an option's FIRST frame, so a composite option whose first frame matches another's prints "same picture" (`event-safety.entry`), and on a stage taller than about three screens a `--save-shots` capture lands misaligned (the lab's sticky bar inside it); compare every frame, each scrolled into view before its clip.
 - The kit's `Frame` exposes its pixel height to children (a CSS variable): a percentage `min-h-full` inside a frame collapses to 0 px, so a full-bleed child reaches for `fixed` or a hard-coded screen height today.
 - A bare `Frame` ignores the lab's Fit, so a 1920 frame stays 1:1 and the stage head's scale control seems dead.
 - A `Frame` seeds its state from the parent's first render, before `useBoardState` reads the URL, and the correcting `lab:set` lands before the frame has hydrated (a board opened at `?ground=cinema` painted every card on the app's dark).
@@ -147,6 +149,7 @@ Marketing:
 - `/features/album`'s h1 is the one of six that wraps to three lines at 1440 (44 characters in `max-w-3xl` at 80 px); shorter copy is Will's call.
 
 The app:
+- Host: at 375 the hub's cards row runs past the phone's edge, so the third card (Guests) sits half off screen at rest (measured by the `event-safety` board's `queue` step, where a waiting count would live).
 - Host: the hidden-media dim never renders: `shared/masonry.tsx` appends `opacity-30` to `active:scale-[0.98]` with no space, so Tailwind never emits it and a hidden photograph sits in the host album at full brightness (`host-app.md` describes a 30 percent dim; no test covers it).
 - Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
 - Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
