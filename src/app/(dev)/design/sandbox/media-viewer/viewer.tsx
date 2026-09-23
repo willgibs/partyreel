@@ -22,9 +22,10 @@ import {
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { PlayBadge } from "@/components/shared/play-badge";
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { GLASS_BEHIND } from "@/lib/glass";
+import { GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +34,10 @@ import {
   BEFORE,
   CLIP_SRC,
   CURRENT,
+  hasPage,
   isUnproven,
   positionOf,
+  REEL_MOMENT_SEC,
   seedOf,
   sentAt,
   STRIP,
@@ -77,9 +80,15 @@ export type ZoomShape = "browser" | "double" | "pinch";
 export type VideoShape = "controls" | "auto" | "badge";
 export type WayOutShape = "three" | "down" | "x";
 export type LinkShape = "none" | "query" | "file";
+/** Where the photograph was opened FROM: a tile in the album, or the live reel. */
+export type Origin = "tile" | "reel";
 
 const pick = <T extends string>(all: readonly T[], v: string | undefined) =>
   all.includes(v as T) ? (v as T) : all[0];
+
+export const originOf = (v?: string) => pick(["tile", "reel"] as const, v);
+export const creditOf = (v?: string) =>
+  pick(["typed", "confirmed"] as const, v);
 
 export const openingOf = (v?: string) =>
   pick(["fade", "grow", "sheet"] as const, v);
@@ -150,6 +159,23 @@ function Actions({ host }: { host?: boolean }) {
 
 /* ── who took it, in the three places it can be said ─────────────────────── */
 
+/**
+ * ★ THE ADDRESS IS A SECOND LINE, AND ONLY A PROVED ONE. The shipped host viewer
+ * prints `uploaderEmail` under the name, and the one precedence rule hands it
+ * over for a confirmed account alone (src/lib/media/uploader-identity.ts): a
+ * typed name reaches the host as a name and the Unverified mark, never an
+ * address. So the line reads the fixture's own field, which carries exactly
+ * that, and is never made up from a name.
+ */
+function Address({ item, host }: { item: GridMedia; host?: boolean }) {
+  if (!host || !item.uploaderEmail) return null;
+  return (
+    <span data-mv-address className="truncate text-[10px] text-white/55">
+      {item.uploaderEmail}
+    </span>
+  );
+}
+
 function Attribution({
   item,
   who,
@@ -163,7 +189,9 @@ function Attribution({
   counter?: boolean;
 }) {
   const position = positionOf(item);
-  const name = item.uploaderName ?? "Guest";
+  // "A guest" is the shipped label for a nameless row minted before names were
+  // asked; nothing in this album is one, so it never draws.
+  const name = item.uploaderName ?? "A guest";
   // ★ THE FACE-LED CREDIT IS NOT DRAWN IN THE CHROME. `face` puts the credit at
   // the top edge, opposite the close circle (`FaceCredit` below), so all the
   // chrome still owes under that answer is the position, and only where a
@@ -177,38 +205,36 @@ function Attribution({
   return (
     <span
       data-mv-said
-      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90"
+      className={cn(
+        "inline-flex min-w-0 flex-col gap-0.5",
+        who === "pill" ? "items-center" : "items-start",
+      )}
     >
-      <span data-mv-name>{name}</span>
-      {isUnproven(item) && <UnprovenMark />}
-      {item.isHost && (
-        <Badge
-          variant="secondary"
-          className="bg-white/15 text-white hover:bg-white/15"
-        >
-          Host
-        </Badge>
-      )}
-      {who === "foot" && (
-        <>
-          <span className="text-white/40">·</span>
-          <span className="text-white/70">{sentAt(item)}</span>
-        </>
-      )}
-      {counter && (
-        <>
-          <span className="text-white/40">·</span>
-          <span className="text-white/70 tabular-nums">{position}</span>
-        </>
-      )}
-      {host && (
-        <>
-          <span className="text-white/40">·</span>
-          <span className="text-white/55">
-            {(item.uploaderName ?? "guest").toLowerCase()}@example.com
-          </span>
-        </>
-      )}
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90">
+        <span data-mv-name>{name}</span>
+        {isUnproven(item) && <UnverifiedDot />}
+        {item.isHost && (
+          <Badge
+            variant="secondary"
+            className="bg-white/15 text-white hover:bg-white/15"
+          >
+            Host
+          </Badge>
+        )}
+        {who === "foot" && (
+          <>
+            <span className="text-white/40">·</span>
+            <span className="text-white/70">{sentAt(item)}</span>
+          </>
+        )}
+        {counter && (
+          <>
+            <span className="text-white/40">·</span>
+            <span className="text-white/70 tabular-nums">{position}</span>
+          </>
+        )}
+      </span>
+      <Address item={item} host={host} />
     </span>
   );
 }
@@ -216,78 +242,96 @@ function Attribution({
 /* ── the mark, and the credit the face leads ─────────────────────────────── */
 
 /**
- * THE DOT THAT SAYS AN ADDRESS IS UNPROVEN, quoted from `guest-verify`'s board
- * so the product has one mark and not two. Will on `badge=mark`: "Rather than a
- * warning icon, this could be more subtle." So it is a dot at the corner of the
- * face, or a dot beside the name where there is no face to sit on, and never a
- * triangle. Its ring is the ground's own black here rather than `bg-background`,
- * because everything on this surface floats over a photograph.
+ * THE MARK ON A NAME NOBODY PROVED, as it ships: `UnverifiedMark`'s `lit` tone,
+ * class for class (a glass disc at the marks' blur, a white dot carrying its own
+ * halo), and its one public word, "Unverified", for a screen reader and a
+ * pointer alike. The word is imported rather than typed, because it is the same
+ * for a typed name and for a name with an address nobody proved: a mark that
+ * changed would announce that an address exists.
+ *
+ * ★ QUOTED, NOT MOUNTED. The real mark is a Popover trigger, and a radix Popover
+ * portals to the document that owns the React tree, which for a portalled frame
+ * is the lab page: pressed here, its explanation would open outside the picture.
  */
-function UnprovenMark({ onFace }: { onFace?: boolean }) {
+function UnverifiedDot() {
   return (
     <span
       data-mv-mark
-      aria-label="Email not confirmed"
+      role="img"
+      aria-label={UNVERIFIED_LABEL}
+      title={UNVERIFIED_LABEL}
       className={cn(
-        "flex size-2.5 items-center justify-center rounded-full bg-black/80",
-        onFace && "absolute -right-0.5 -bottom-0.5",
+        "inline-flex size-4 shrink-0 items-center justify-center rounded-full align-middle",
+        GLASS_MARK,
       )}
     >
-      <span className="size-1.5 rounded-full bg-warning/80" />
+      <span
+        aria-hidden
+        className={cn("size-1 rounded-full bg-white", GLASS_MARK_LIT)}
+      />
     </span>
   );
 }
 
 /**
- * ★ A CONCEPT TWO RULINGS MADE POSSIBLE (the overtaken audit, 2026-09-21).
- * `seed-avatar` r1 and r2 gave every account a face of its own, and the
- * identity reshape gave every upload a name that is verified or MARKED, so a
- * credit is three facts now rather than one word. The shipped attribution
- * capsule already says in its own comment that it is waiting to become a door
- * to a person's page ("the day it becomes a door to a profile it changes
- * behaviour and not appearance"); this is that day, drawn: the face leading, at
- * the top edge opposite the close circle, where the eye lands first and where
- * it costs the foot nothing.
+ * ★ THE CREDIT SPEAKS THE GUEST LIST'S GRAMMAR (the identity model; the shipped
+ * `guest-list.tsx`). A confirmed account leads with its seeded face and, where
+ * it has a page, the whole credit is a door to it; a typed name wears the plain
+ * disc and the Unverified mark beside the name and opens nothing, because there
+ * is no page behind a name nobody proved. The shipped attribution capsule says
+ * in its own comment that it is waiting to become that door ("the day it becomes
+ * a door to a profile it changes behaviour and not appearance"): this is that
+ * day, drawn at the top edge opposite the close circle, where the eye lands
+ * first and where it costs the foot nothing. The host is owed the same facts
+ * the shipped viewer gives them, so a proved address rides under the name.
  *
  * ★ AND IT WEARS THE SAME MATERIAL AS THE TWO OPTIONS BESIDE IT, which is the
  * board's hand-copied `bg-black/55 backdrop-blur-sm` rather than the shipped
  * Crystal. Three options of one question have to be comparable before any of
- * them is faithful; that the whole board's chrome is now a grade behind
- * production is a finding in this lane's handoff, not a thing to fix inside one
- * option and nowhere else.
+ * them is faithful; that the whole board's chrome is a grade behind production
+ * is a finding for its wiring round, not a thing to fix inside one option and
+ * nowhere else.
  */
-function FaceCredit({ item }: { item: GridMedia }) {
-  const name = item.uploaderName ?? "Guest";
+function FaceCredit({ item, host }: { item: GridMedia; host?: boolean }) {
+  const name = item.uploaderName ?? "A guest";
+  const door = hasPage(item);
   return (
     <span
       data-mv-said
+      data-mv-door={door ? "yes" : "no"}
       className={cn(
         "absolute top-[calc(0.625rem+env(safe-area-inset-top))] left-2.5 z-30 inline-flex max-w-[66%] items-center gap-2 rounded-full bg-black/55 py-1 pr-3 pl-1 backdrop-blur-sm",
-        "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
+        // Press feedback only where a press goes somewhere: a typed name's
+        // credit is not a control, and a squeeze that leads nowhere is a lie.
+        door &&
+          "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
       )}
     >
-      <span className="relative inline-flex shrink-0">
-        <Avatar size="sm" seed={seedOf(item)}>
-          <AvatarFallback className="text-[10px]">
-            {name.slice(0, 1)}
-          </AvatarFallback>
-        </Avatar>
-        {isUnproven(item) && <UnprovenMark onFace />}
+      <Avatar size="sm" seed={seedOf(item)} className="shrink-0">
+        <AvatarFallback className="text-[10px]">
+          {name.slice(0, 1).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <span className="flex min-w-0 flex-col">
+        <span className="inline-flex min-w-0 items-center gap-1.5">
+          <span
+            data-mv-name
+            className="truncate text-working font-medium text-white"
+          >
+            {name}
+          </span>
+          {isUnproven(item) && <UnverifiedDot />}
+          {item.isHost && (
+            <Badge
+              variant="secondary"
+              className="bg-white/15 text-white hover:bg-white/15"
+            >
+              Host
+            </Badge>
+          )}
+        </span>
+        <Address item={item} host={host} />
       </span>
-      <span
-        data-mv-name
-        className="truncate text-working font-medium text-white"
-      >
-        {name}
-      </span>
-      {item.isHost && (
-        <Badge
-          variant="secondary"
-          className="bg-white/15 text-white hover:bg-white/15"
-        >
-          Host
-        </Badge>
-      )}
     </span>
   );
 }
@@ -582,12 +626,22 @@ function useStill() {
 export function VideoMedia({
   shape,
   radius,
+  origin = "tile",
 }: {
   shape: VideoShape;
   radius: string;
+  /** Opened from the reel, the clip was already moving there. */
+  origin?: Origin;
 }) {
   const [probe, still] = useStill();
-  const src = videoPosterSrc(CLIP_SRC);
+  // ★ WHERE THE CLIP PICKS UP IS THE OPTION'S OWN ANSWER. The live reel plays a
+  // muted window of a video, so a tap on the reel can open this one mid-clip.
+  // Only the option that keeps it moving carries on from the reel's moment; the
+  // other two start over at the first frame, which is the moment they lose.
+  const src =
+    origin === "reel" && shape === "auto"
+      ? `${CLIP_SRC}#t=${REEL_MOMENT_SEC}`
+      : videoPosterSrc(CLIP_SRC);
   if (shape === "controls")
     return (
       <span ref={probe} className="flex h-full max-h-full items-center">
@@ -624,7 +678,17 @@ export function VideoMedia({
                 radius,
               )}
             />
-            <span aria-hidden className="mv-played" />
+            {/* The line says where the held frame is: the reel's moment, or
+                the clip's first breath. */}
+            <span
+              aria-hidden
+              className="mv-played"
+              style={
+                {
+                  "--mv-played": origin === "reel" ? "38%" : "3%",
+                } as CSSProperties
+              }
+            />
           </span>
         ) : (
           <video
@@ -682,15 +746,17 @@ function TapZones() {
   );
 }
 
-/* ── the growing photograph, measured out of its own tile ────────────────── */
+/* ── the growing photograph, measured out of where it was tapped ─────────── */
 
 /**
  * ★ THE FLIGHT IS MEASURED, NEVER GUESSED. `grow` says the photograph comes out
- * of the tile that was tapped, so the picture has to start at THAT tile's box:
- * this reads `[data-mv-lit]` in the frame's own document and places the flying
- * picture between that rect and the full screen. A hard-coded box would be a
- * drawing of the answer rather than the answer, and it would be wrong the first
- * time the album's scroll or the column rule moved.
+ * of where it was tapped, so the picture has to start at THAT box: the tile on
+ * the album page, or the photograph's own rect inside the reel's composition on
+ * the reel page (`reel.tsx`). Both pages mark it `[data-mv-lit]`; this reads it
+ * in the frame's own document and places the flying picture between that rect
+ * and the full screen. A hard-coded box would be a drawing of the answer rather
+ * than the answer, and it would be wrong the first time the album's scroll, the
+ * column rule or the reel's framing moved.
  *
  * It is drawn at 62 percent of the way, at rest, because the END of this
  * entrance is a full-screen photograph and so is today's: a reader comparing
@@ -771,6 +837,7 @@ export function Viewer({
   wayOut,
   host,
   summoned,
+  settled,
   media,
   onTop,
 }: {
@@ -784,6 +851,12 @@ export function Viewer({
   wayOut?: WayOutShape;
   host?: boolean;
   summoned?: boolean;
+  /**
+   * The opening at REST rather than caught arriving. `grow` is drawn mid-flight
+   * where the arrival is the question; a question asked of the viewer once it is
+   * open (who took it, the way out) is asked of the photograph where it settled.
+   */
+  settled?: boolean;
   /** The video options hand their own element in. */
   media?: ReactNode;
   /** The share sheet, which stands over everything. */
@@ -796,11 +869,13 @@ export function Viewer({
    * that was chosen: a grown photograph that dropped the chrome would have made
    * all three of `holds`'s options draw the same empty screen. What an opening
    * decides is the ground, the margin around the picture, whether the picture
-   * is flying out of a tile, and whether the whole thing sits on a sheet.
+   * is flying out of where it was tapped, and whether the whole thing sits on a
+   * sheet.
    */
   const slot = opening === "fade" ? (phone ? "px-2 pb-6" : "px-6 pb-6") : "p-0";
   const radius = opening === "fade" ? "rounded-md" : "rounded-none";
   const peek = next === "peek";
+  const flying = opening === "grow" && !settled;
 
   const body = (
     <>
@@ -817,18 +892,18 @@ export function Viewer({
       >
         {/* The neighbours, shown only by the option that argues for showing
             them: the real edge of each, at its own fit height. */}
-        {peek && opening !== "grow" && (
+        {peek && !flying && (
           <>
             <Peek item={BEFORE} side="left" screen={screen} />
             <Peek item={AFTER} side="right" screen={screen} />
           </>
         )}
-        {opening === "grow" ? (
+        {flying ? (
           <Flight item={item} screen={screen} />
         ) : (
           <Picture item={item} zoom={zoom} radius={radius} media={media} />
         )}
-        {next === "swipe" && opening !== "grow" && <Chevrons />}
+        {next === "swipe" && !flying && <Chevrons />}
         {wayOut === "three" && <TapZones />}
       </div>
       <Chrome
@@ -843,7 +918,7 @@ export function Viewer({
       {/* The credit at the top edge, under the answer that puts it there, and
           never while the chrome it belongs to is away. */}
       {who === "face" && !(holds === "quiet" && !summoned) && (
-        <FaceCredit item={item} />
+        <FaceCredit item={item} host={host} />
       )}
       <CloseCircle />
       {onTop}
@@ -884,14 +959,13 @@ export function Viewer({
       data-mv-ground
       className={cn(
         "mv-open fixed inset-0 z-50 flex flex-col",
-        // ★ THE GROUND IS RULED, AND IT IS THE SAME UNDER EVERY OPENING (the
-        // overtaken audit, 2026-09-21). `glass` r1 `behind=album` shipped: what
-        // stands behind a photograph is the album itself, blurred at half
-        // brightness. The old `bg-black/90` was the pre-ruling dark room and
-        // `bg-black/60` was that room at 62 percent of a flight into it, so
-        // both were drawings of a dead option. The PRODUCTION utility rather
-        // than a copy of its numbers, so a retune of `--glass-behind-*` reaches
-        // this board without an edit here.
+        // ★ THE GROUND IS RULED, AND IT IS THE SAME UNDER EVERY OPENING AND
+        // FROM EITHER ORIGIN. `glass` r1 `behind=album` shipped: what stands
+        // behind a photograph is the page it opened out of, blurred at half
+        // brightness, which is the album for a tile and the paused reel for a
+        // tap on the reel. The PRODUCTION utility rather than a copy of its
+        // numbers, so a retune of `--glass-behind-*` reaches this board
+        // without an edit here.
         GLASS_BEHIND,
         wayOut === "down" && "mv-dismissing",
       )}

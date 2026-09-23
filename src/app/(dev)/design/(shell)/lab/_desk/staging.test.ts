@@ -40,7 +40,6 @@ const openAsks = (): AskState[] =>
     answer: null,
     staged: Boolean(ask.after),
     moot: false,
-    outcome: "open" as const,
   }));
 
 /** The steps, with whatever the ledger is said to hold for this board. */

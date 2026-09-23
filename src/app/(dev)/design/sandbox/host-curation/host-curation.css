@@ -77,17 +77,19 @@
   }
 }
 
-/* The media viewer's backdrop, drawn still. The shipped lightbox is a radix
-   Dialog: it portals to the OWNING document's body, which for a portalled
-   frame is the lab page, so it can only be quoted here. The numbers are its
-   own (bg-black/95 on the peek, the floating pill at black/55). */
+/* The peek's full bleed, drawn still. The shipped peek is private state inside
+   the grid, so it can only be quoted here: FIXED, exactly as the product has
+   it, because the frame IS the viewport (an absolute box inside a min-h-full
+   column stops at the foot of the CONTENT, and the photograph ran out of it).
+   The ground is the lightbox's ruled one, `GLASS_BEHIND` on the element, so
+   this rule carries no background of its own: an unlayered background here
+   would outrank the utility and paint the dark room back in. */
 .hc-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgb(0 0 0 / 0.95);
 }

@@ -261,22 +261,6 @@
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
           "line": 376
-        },
-        {
-          "title": "composes as any other answer does, with its reason",
-          "suite": [
-            "an answer that stands by an earlier ruling"
-          ],
-          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 418
-        },
-        {
-          "title": "is dropped once the ledger holds it, and rides again when overridden",
-          "suite": [
-            "an answer that stands by an earlier ruling"
-          ],
-          "file": "src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts",
-          "line": 438
         }
       ]
     },
@@ -285,8 +269,6 @@
       "file": "src/app/(dev)/design/(shell)/lab/_desk/session-step.ts",
       "names": [
         "SESSION_END",
-        "STANDS",
-        "STANDS_NOTE",
         "UNCLEAR"
       ],
       "specimens": [],
@@ -298,7 +280,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 72
+          "line": 71
         },
         {
           "title": "opens once that question is answered THIS WAY in the session",
@@ -306,7 +288,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 78
+          "line": 77
         },
         {
           "title": "is moot once that question went the other way",
@@ -314,7 +296,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 83
+          "line": 82
         },
         {
           "title": "stays staged on 'not clear to me', which is not a decision",
@@ -322,7 +304,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 88
+          "line": 87
         },
         {
           "title": "opens on a ruling from an earlier sitting, with nothing held here",
@@ -330,7 +312,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 99
+          "line": 98
         },
         {
           "title": "is moot on a ruling from an earlier sitting that went the other way",
@@ -338,7 +320,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 107
+          "line": 106
         },
         {
           "title": "lets this sitting's answer overrule the ledger's",
@@ -346,7 +328,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 114
+          "line": 113
         },
         {
           "title": "keeps a staged step out of the walk and the rest of it in",
@@ -354,7 +336,7 @@
             "a staged ask"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 121
+          "line": 120
         },
         {
           "title": "is staged until the card is ruled, and moot on the other verdict",
@@ -362,121 +344,7 @@
             "a step waiting on a catalog card"
           ],
           "file": "src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts",
-          "line": 138
-        }
-      ]
-    },
-    {
-      "id": "overtaken",
-      "file": "src/app/(dev)/design/sandbox/overtaken.ts",
-      "names": [
-        "ALSO_REACHED",
-        "AS_TODAY_GLOSS",
-        "HELD",
-        "OVERTAKEN",
-        "STANDS",
-        "STANDS_NOTE"
-      ],
-      "specimens": [
-        "/design/lab"
-      ],
-      "indexed": false,
-      "contracts": [
-        {
-          "title": "annotates only questions a standing board still asks",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 140
-        },
-        {
-          "title": "never lets a board overtake its own question",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 158
-        },
-        {
-          "title": "credits a ruled board with every ruling",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 167
-        },
-        {
-          "title": "holds every judgment to one line, in the two words or the hold",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 185
-        },
-        {
-          "title": "weighs nothing against a ruling he may relitigate",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 218
-        },
-        {
-          "title": "appends a later ruling behind the first, named and dated",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 269
-        },
-        {
-          "title": "reads a concession off the line it is written on",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 323
-        },
-        {
-          "title": "speaks the badge in plain words with the date",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 338
-        },
-        {
-          "title": "counts a board's overtaken asks for the desk",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 372
-        },
-        {
-          "title": "finds the options whose 'as today' now means something else",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 402
-        },
-        {
-          "title": "derives what became of an overtaken ask from the ledger alone",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 430
-        },
-        {
-          "title": "names the reserved word and the words that ride with it",
-          "suite": [
-            "the overtaken map"
-          ],
-          "file": "src/app/(dev)/design/sandbox/overtaken.test.ts",
-          "line": 439
+          "line": 137
         }
       ]
     },
@@ -7909,70 +7777,6 @@
           ],
           "file": "src/components/lab/step.test.tsx",
           "line": 720
-        },
-        {
-          "title": "badges it in place and still asks the question",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 794
-        },
-        {
-          "title": "glosses 'as today' only where an option still says it",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 809
-        },
-        {
-          "title": "records 'the ruling stands' as an answer, with its reason",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 817
-        },
-        {
-          "title": "clears on a second press, like every other answer",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 836
-        },
-        {
-          "title": "primes the button where the lane conceded",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 847
-        },
-        {
-          "title": "fills Next once the ruling is said to stand",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 855
-        },
-        {
-          "title": "offers nothing to stand by on an ordinary question",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 867
-        },
-        {
-          "title": "answers with s, and only where there is a ruling",
-          "suite": [
-            "a step an earlier ruling reached"
-          ],
-          "file": "src/components/lab/step.test.tsx",
-          "line": 874
         }
       ]
     },

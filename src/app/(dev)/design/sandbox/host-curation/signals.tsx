@@ -149,6 +149,12 @@ export const arrivalOf = (v: string | undefined): ArrivalOption =>
  * seconds in, so the picture is the queue BEFORE and then whatever the option
  * does about them; today's page is not polling at all, which is why `silence`
  * has to say in a note what the other two say on the screen.
+ *
+ * ★ AND WHAT WAITS IS OFF THE REEL AND THE WALL. The live reel and the venue
+ * wall play only what is approved, so an arrival the queue never shows is one
+ * the room never sees either: the cost of silence is a thin reel, and the note
+ * says so. Whether Review's own header explains that is `reel-host.review`'s
+ * question, so no option here writes a line into the header.
  */
 export function ArrivalsShowcase({
   option,
@@ -176,7 +182,8 @@ export function ArrivalsShowcase({
       {option === "silence" && (
         <Note>
           Three more landed a moment ago. The host&rsquo;s page never polls, so
-          they are not here, and finishing this queue still says all caught up.
+          they are not here, finishing this queue still says all caught up, and
+          none of the three reaches the reel or the wall.
         </Note>
       )}
 
@@ -233,7 +240,21 @@ export const countOf = (v: string | undefined): CountOption =>
  * guess; the panel is the real `DropdownMenuHeader` on the real floating-layer
  * contract, because the shipped bell opens a dropdown whose `onOpenChange`
  * runs a Server Function and a board may not.
+ *
+ * ★ TWO MORE MAY SAY IT, AND THEY ARE NOT DRAWN HERE. A corner count on the
+ * venue wall is `reel-screen.review`'s question and a line in the host's reel
+ * view is `reel-host.review`'s, so this picture never draws either; one line
+ * says what each answer here would mean for them, which is all this
+ * question owns of them. It is said first, above the three, because a sentence
+ * under a grid that fills the frame is a sentence nobody sees.
  */
+const OTHER_VOICES: Record<CountOption, string> = {
+  three:
+    "Whatever the wall or the reel view says would be a fourth and a fifth count, each reading the queue its own way.",
+  deeplink:
+    "The wall and the reel view, wherever they say it, read this same number and lead to this queue.",
+  one: "Nothing else counts: the wall and the reel view would carry no number either.",
+};
 export function CountShowcase({
   option,
   screen,
@@ -246,6 +267,11 @@ export function CountShowcase({
 
   return (
     <div className="space-y-6">
+      {/* The two voices this question does not draw, said first so they are
+          on the screen at both widths rather than under the fold. */}
+      <p data-hc-voices className="text-xs text-muted-foreground">
+        {OTHER_VOICES[option]}
+      </p>
       <div className="space-y-2">
         <Note>The header bell, open</Note>
         <div className={cn("w-80 max-w-full p-1", floatingPanel)}>
@@ -335,9 +361,15 @@ export const toldOf = (v: string | undefined): ToldOption =>
 
 /**
  * THE GUEST'S OWN UPLOADS FEED, hours later, on the real `MasonryColumns`.
- * One of their photographs was refused by the host. Today it is simply not
- * here and nothing anywhere says a word, which the marketing FAQ states in
- * public as "Never".
+ * One of her photographs was refused by the host. Today it is simply not here
+ * and nothing anywhere says a word, which the marketing FAQ states in public as
+ * "Never", while her own waiting tile in the album kept saying the host had not
+ * decided for the rest of her visit.
+ *
+ * ★ HER OWN, AND NOBODY ELSE'S. A typed name has no profile and a confirmed
+ * account's shows only the events its owner chose, so the only place a refusal
+ * could ever be said is her own copy: her tiles, and this feed. A message can
+ * reach only a confirmed address; a typed one is never mailed on its own.
  *
  * ★ THE GRID IS INERT: a tap opens the shipped lightbox, which is a portal-
  * bound Dialog and would land outside the frame.
@@ -376,29 +408,37 @@ export function ToldShowcase({
       <div className="space-y-2">
         <Note>
           {option === "never"
-            ? "Their feed, with the refused photograph simply absent."
+            ? "Her uploads, with the refused photograph simply absent."
             : option === "line"
-              ? "Their feed, with the refused photograph still theirs."
-              : "Their feed, unchanged. The notice above does the telling."}
+              ? "Her uploads, with the refused photograph still hers, and seen by nobody else."
+              : "Her uploads, unchanged. The notice above, to a confirmed address, does the telling."}
         </Note>
         <div className="pointer-events-none">
           <MasonryColumns
             items={shown}
             clampAspect
-            // Deliberately NO dimItem: `masonry.tsx` concatenates that class
-            // without a separator, so the 30 percent dim it promises has never
-            // rendered anywhere (the manifest's ROADMAP line). The label is the
-            // whole treatment, and it is the treatment being judged.
+            // ★ NO dimItem, AND THE DIM DRAWN HERE INSTEAD. `masonry.tsx`
+            // concatenates that class without a separator, so the 30 percent
+            // dim it promises never renders; the option says "dimmed", so the
+            // overlay draws the dim itself (the page's own ground at 70
+            // percent over the tile, which is what 30 percent opacity shows)
+            // under the label, and the picture says what the words say.
             renderOverlay={
               option === "line"
                 ? (m) =>
                     m.status === "hidden" ? (
-                      <span
-                        data-hc-told
-                        className="absolute inset-x-1.5 bottom-1.5 z-10 rounded-full bg-black/60 px-2 py-1 text-center text-[11px] text-white backdrop-blur-sm"
-                      >
-                        Not in the album
-                      </span>
+                      <>
+                        <span
+                          aria-hidden
+                          className="absolute inset-0 z-[5] bg-background/70"
+                        />
+                        <span
+                          data-hc-told
+                          className="absolute inset-x-1.5 bottom-1.5 z-10 rounded-full bg-black/60 px-2 py-1 text-center text-[11px] text-white backdrop-blur-sm"
+                        >
+                          Not in the album
+                        </span>
+                      </>
                     ) : null
                 : undefined
             }
@@ -409,7 +449,7 @@ export function ToldShowcase({
       {option === "never" && refused && (
         <p className="flex items-start gap-2 text-xs text-muted-foreground">
           <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          They sent {MY_UPLOADS.length}. They can see {items.length}. Nothing on
+          She sent {MY_UPLOADS.length}. She can see {items.length}. Nothing on
           this page, in any email, or in the album accounts for the other one.
         </p>
       )}

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1237 contracts on 163 components · 23 standing boards.**
+**22 laws · 18 policies · 1215 contracts on 162 components · 23 standing boards.**
 
 ## What binds you
 
@@ -345,9 +345,8 @@ Contracted but outside the library's directories:
 
 - `src/app/(app)/account/page.tsx` (6 guards)
 - `src/app/(app)/name-gate.ts` (5 guards)
-- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (20 guards)
+- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (18 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
-- `src/app/(dev)/design/sandbox/overtaken.ts` (12 guards)
 - `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
 - `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
 - `src/app/(print)/dashboard/[eventId]/print/page.tsx` (17 guards)
@@ -419,7 +418,7 @@ Contracted but outside the library's directories:
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
-- `src/components/lab/step.tsx` (44 guards)
+- `src/components/lab/step.tsx` (36 guards)
 - `src/components/marketing/chrome/header-shell.tsx` (11 guards)
 - `src/components/marketing/chrome/marketing-footer.tsx` (9 guards)
 - `src/components/marketing/chrome/session-hint.tsx` (6 guards)
