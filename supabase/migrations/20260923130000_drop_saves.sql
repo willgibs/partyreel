@@ -1,0 +1,88 @@
+-- Guest by upload, the CONTRACT file (Will, 2026-09-22 evening). Save is gone: "we should kill the
+-- event 'save' feature ... uploading to an event is now effectively saving." The events a person
+-- added to reach their dashboard as Guest cards through their uploads (an admin-client read in
+-- src/lib/db/queries/social.ts), so the save objects have no reader left, and neither has the opt-out
+-- table the profile's attended line stopped reading at the guest identity round (20260922122000).
+-- His reminder, which is why nothing here waits for production: "we have no real users on Partyreel,
+-- so everything is test data right now. Don't have to dance around anything like save tables in the
+-- database before launch" (docs/PROGRAM.md, "Before launch").
+--
+-- ★ APPLIED ONLY AFTER ALIAS BUILD 2's RED-TEAM, never with the expand file
+-- (20260923120000_guest_by_upload.sql): alias build 1 still calls `get_saved_events` on every
+-- dashboard load, so dropping it sooner would break a rollback to that build. By then the alias
+-- serves code that calls none of these four objects.
+--
+-- ★ WHAT partyreel.com's OLDER BUILD (main, milestone-26) LOSES until a milestone ships this tree:
+--   * its dashboard THROWS on every load: it calls `get_saved_events()` and rethrows the error;
+--   * its profile hide toggle errors: the Account page's per-event switch writes and reads
+--     `profile_hidden_events`;
+--   * its Save buttons fail: `save_event(p_qr_token)` is gone, so every save answers an error toast.
+--   No cron, Worker or job on either build touches these objects.
+--
+-- Drop order: the two functions first (neither is referenced by anything else; `get_saved_events`
+-- reads `saved_events`), then the two tables, whose indexes and RLS policies go with them. Every
+-- statement is `if exists`, so a re-run is a no-op. Measured read-only on 2026-09-23: both tables
+-- hold 0 rows, no foreign key points at either, no trigger, view or publication involves them, and no
+-- function body names either table outside the two functions dropped here.
+--
+-- APPLY PROTOCOL (database-security.md → Workflow): (1) confirm the alias's build no longer calls
+-- `get_saved_events` / `save_event` / `profile_hidden_events` (alias build 2 is live and red-teamed);
+-- (2) apply verbatim; (3) get_advisors; (4) run the rolled-back contract check at the foot;
+-- (5) regenerate src/lib/db/types.ts (the two functions and the two tables leave it).
+--
+-- EXPECTED ADVISOR DELTA: lint 0029 (authenticated-only SECURITY DEFINER) loses exactly two,
+-- `save_event` and `get_saved_events` (34 -> 32 as measured on 2026-09-23). 0028 stays the same five.
+-- `rls_enabled_no_policy` is unchanged (both tables carried policies, so neither was on it).
+
+drop function if exists public.save_event(text);
+drop function if exists public.get_saved_events();
+drop table if exists public.saved_events;
+drop table if exists public.profile_hidden_events;
+
+-- =============================================================================================
+-- ROLLED-BACK CONTRACT CHECK (run via execute_sql AFTER the apply; nothing persists: the block ends
+-- in a deliberate RAISE). Expect the last line to be `ROLLED BACK — every drop-saves contract held`.
+-- =============================================================================================
+-- do $$
+-- declare
+--   v_n integer;
+--   v_payload jsonb;
+-- begin
+--   -- ── 1. the four objects are gone ───────────────────────────────────────────────────────────
+--   if to_regprocedure('public.save_event(text)') is not null
+--      or to_regprocedure('public.get_saved_events()') is not null then
+--     raise exception 'FAIL: a save function survived';
+--   end if;
+--   if to_regclass('public.saved_events') is not null
+--      or to_regclass('public.profile_hidden_events') is not null then
+--     raise exception 'FAIL: a dropped table survived';
+--   end if;
+--   raise notice 'OK: save_event, get_saved_events, saved_events and profile_hidden_events are gone';
+--
+--   -- ── 2. nothing left behind names them ─────────────────────────────────────────────────────
+--   select count(*) into v_n
+--     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--    where n.nspname = 'public'
+--      and (p.prosrc ilike '%saved_events%' or p.prosrc ilike '%profile_hidden_events%');
+--   if v_n <> 0 then raise exception 'FAIL: % function bodies still name a dropped table', v_n; end if;
+--   raise notice 'OK: no function body names a dropped table';
+--
+--   -- ── 3. what replaced them still stands ───────────────────────────────────────────────────
+--   if to_regclass('public.profile_shown_events') is null then
+--     raise exception 'FAIL: the opt-in table went with the opt-out one';
+--   end if;
+--   select count(*) into v_n from pg_policies
+--    where schemaname = 'public' and tablename = 'profile_shown_events';
+--   if v_n <> 3 then raise exception 'FAIL: profile_shown_events has % policies (want 3)', v_n; end if;
+--   perform set_config('request.jwt.claims', '', true);
+--   v_payload := public.get_public_profile('no-such-handle-' || substr(md5(random()::text), 1, 8));
+--   if v_payload is not null then raise exception 'FAIL: an unknown handle returned a payload'; end if;
+--   select public.get_public_profile(p.slug) into v_payload
+--     from public.profiles p where p.slug is not null limit 1;
+--   if v_payload is not null and not (v_payload ? 'attended_events') then
+--     raise exception 'FAIL: get_public_profile lost its attended arm';
+--   end if;
+--   raise notice 'OK: profile_shown_events and get_public_profile stand';
+--
+--   raise exception 'ROLLED BACK — every drop-saves contract held';
+-- end $$;
