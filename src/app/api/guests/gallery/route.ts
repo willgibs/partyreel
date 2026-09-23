@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { getGuestCount } from "@/lib/db/queries/guest-events-admin";
 import { isDemoToken } from "@/lib/demo";
 import type { GalleryDecision } from "@/lib/events/gallery-access";
 import {
@@ -59,6 +60,13 @@ export const dynamic = "force-dynamic";
  * response per device per sixty days, with nothing left for the edge to match — and only a
  * validator match with NO heal pending still 304s (nothing to heal, so nothing is lost if the
  * edge rewrites it).
+ *
+ * ★ THE GUEST COUNT RIDES A 200, NEVER THE VALIDATOR. The header's "from M guests" is the server's
+ * number (guest-flow.md, "Stats"), and a guest's own first upload is what moves it: only the server
+ * can say whether that upload made a NEW guest. It is read AFTER the 304 check, so the steady poll
+ * pays nothing for it; the change that moves it (an approved upload, a removal, a name, a
+ * confirmation) changes the payload the ETag hashes, so it arrives on the same 200. Never on a
+ * locked page (`none`), which reveals the name and the count of photographs only.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -171,7 +179,12 @@ export async function POST(request: Request) {
     return new Response(null, { status: 304, headers });
   }
 
-  const items = await presignGalleryRows(event.data, gallery);
+  const [items, guestCount] = await Promise.all([
+    presignGalleryRows(event.data, gallery),
+    access === "none" || isDemo
+      ? Promise.resolve(undefined)
+      : getGuestCount(event.data),
+  ]);
   return NextResponse.json(
     {
       ok: true,
@@ -179,6 +192,7 @@ export async function POST(request: Request) {
       access,
       gate: decision.gate,
       teaserTotal: gallery.teaserTotal,
+      ...(guestCount === undefined ? {} : { guestCount }),
     },
     { headers },
   );

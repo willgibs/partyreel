@@ -22,8 +22,12 @@ import {
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
-import * as social from "@/lib/db/queries/social";
-import { withAvatarUrls } from "@/lib/social/cards";
+import {
+  getEventGuestList,
+  getHostCard,
+  getMyFollowing,
+} from "@/lib/db/queries/social";
+import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
 import {
   isEventOwner,
@@ -40,41 +44,6 @@ import { needsDisplayName } from "@/lib/welcome";
 
 // Event state + gallery are read per request via the qr_token RPCs.
 export const dynamic = "force-dynamic";
-
-/* ──────────────────────────────────────────────────────────────────────────
-   THE WAVE SEAM, IN ONE PLACE (the identity reshape, wave 1, 2026-09-21).
-
-   `lib/db/queries/social.ts` belongs to `verified-email-server`, the lane
-   building the route and the queries beside this one. It lands two things this
-   page wants: `getEventGuestList`'s second argument (`{ includeUnverified }`,
-   which appends the name-only guests Will asked to see listed) and
-   `getHostCard(eventId)` (the host as a public card, for the capture flow's
-   follow moment).
-
-   Read through ONE narrow cast so this page is CORRECT on both sides of that
-   merge rather than green on only one of them: before it, the guest list is the
-   profile cards alone and the follow moment simply has no host row (both already
-   handled downstream, neither a stub); after it, every line below is live with no
-   edit here at all. Collapse this block to plain named imports once the server
-   lane is on the tree.
-   ────────────────────────────────────────────────────────────────────────── */
-type HostCard = {
-  id: string;
-  slug: string | null;
-  displayName: string | null;
-  avatarUrl: string | null;
-};
-const socialSeam = social as unknown as {
-  getEventGuestList: (
-    eventId: string,
-    opts?: { includeUnverified?: boolean },
-  ) => Promise<
-    | ({ id: string; displayName: string | null } & Record<string, unknown>)[]
-    | null
-  >;
-  getHostCard?: (eventId: string) => Promise<HostCard | null>;
-  getMyFollowing: () => Promise<{ id: string }[]>;
-};
 
 // The qr_token is an opaque capability — noindex (don't index join links), but emit OG
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
@@ -244,15 +213,21 @@ export default async function GuestEventPage({
   const cookieSessionToken = isDemo
     ? null
     : await readGuestSessionCookie(event.id);
+  // `withAlbumFull`: the page is the one reader of the album's fullness (the
+  // lightbox's last-removal line), so it alone pays the gate's second read.
   const decision = isDemo
-    ? { access: "full" as const, gate: null }
-    : await resolveViewerDecision(event, {
-        isOwner,
-        isAuthed,
-        isUnlocked: unlocked,
-        userId,
-        sessionToken: cookieSessionToken,
-      });
+    ? { access: "full" as const, gate: null, albumFull: false }
+    : await resolveViewerDecision(
+        event,
+        {
+          isOwner,
+          isAuthed,
+          isUnlocked: unlocked,
+          userId,
+          sessionToken: cookieSessionToken,
+        },
+        { withAlbumFull: true },
+      );
   const access = decision.access;
   // Deliberately NOT awaited (Phase 3 streaming): the gallery load presigns
   // 2 URLs per item, the slowest part of this page. The shell streams first;
@@ -336,22 +311,15 @@ export default async function GuestEventPage({
     // "Listed, with the mark"). They arrive after the profile cards as
     // `{ kind: "unverified" }` entries, which `withAvatarUrls` must not touch:
     // there is no avatar and no seed to resolve for a name nobody proved.
-    const guestList = await socialSeam.getEventGuestList(event.id, {
+    const guestList = await getEventGuestList(event.id, {
       includeUnverified: true,
     });
     if (guestList && guestList.length > 0) {
-      const unverified = guestList.filter((g) => g.kind === "unverified");
-      const cards = guestList.filter((g) => g.kind !== "unverified");
-      const items = [
-        ...(await withAvatarUrls(
-          cards as unknown as Parameters<typeof withAvatarUrls>[0],
-        )),
-        ...(unverified as unknown as {
-          kind: "unverified";
-          id: string;
-          displayName: string | null;
-        }[]),
-      ];
+      // The union splits before hydration (lib/social/cards.ts owns why): only a
+      // profile card has an avatar to resolve, and the unverified half rejoins
+      // as-is, after it, in the query's own order.
+      const { cards, unverified } = splitGuestList(guestList);
+      const items = [...(await withAvatarUrls(cards)), ...unverified];
       // Above the threshold the list condenses to a row of faces that says
       // "N guests added photos" itself, so the heading drops its pill: the
       // number renders once (Will, `list=faces`, 2026-09-19).
@@ -359,9 +327,7 @@ export default async function GuestEventPage({
       // A Follow on somebody else's chip, only where it is not a no-op: one
       // owner-scoped read, and only for a signed-in viewer.
       const followingIds = userId
-        ? new Set(
-            (await socialSeam.getMyFollowing()).map((f: { id: string }) => f.id),
-          )
+        ? new Set((await getMyFollowing()).map((f) => f.id))
         : undefined;
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
@@ -388,9 +354,7 @@ export default async function GuestEventPage({
   // The host as a public card, for the capture flow's follow moment. Only where
   // it can be acted on: a full-access, non-demo album with a host to follow.
   const hostCard =
-    access === "full" && !isDemo && socialSeam.getHostCard
-      ? await socialSeam.getHostCard(event.id)
-      : null;
+    access === "full" && !isDemo ? await getHostCard(event.id) : null;
 
   // Display-name nudge: a SIGNED-IN viewer without a public display name is asked for one at the
   // DOOR now, as its name step in `profile` mode (the door as three steps, 2026-09-21), rather
@@ -440,6 +404,7 @@ export default async function GuestEventPage({
             : null
         }
         initialTileSize={tileSize}
+        albumFull={decision.albumFull}
       />
     </div>
   );

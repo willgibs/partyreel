@@ -19,3 +19,26 @@ import type { GridMedia } from "@/components/app/media-grid";
 export const DeleteConsequence = createContext<
   ((item: GridMedia) => string | null) | null
 >(null);
+
+/**
+ * WHETHER A GUEST'S OWN LAST REMOVAL CLOSES THIS ALBUM, which decides both the confirm's line and
+ * the page's refresh after the removal lands: only on a Require-an-upload-to-view album whose
+ * uploads are open, and never on a FULL one (the gate fails open there: a guest is never held at a
+ * step they cannot pass, so their last removal closes nothing and the confirm must not say it
+ * does). Never for the host, who never meets the gate, and never in the demo, where nothing is real.
+ */
+export function closesOnLastRemoval(input: {
+  isDemo: boolean;
+  isOwner: boolean;
+  requireUpload: boolean;
+  acceptingUploads: boolean;
+  albumFull: boolean;
+}): boolean {
+  return (
+    !input.isDemo &&
+    !input.isOwner &&
+    input.requireUpload &&
+    input.acceptingUploads &&
+    !input.albumFull
+  );
+}

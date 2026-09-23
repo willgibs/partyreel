@@ -4,6 +4,7 @@ import { Clapperboard, Download, Eye, EyeOff, Heart, ListChecks, Trash2 } from "
 
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { Button } from "@/components/ui/button";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { BulkBar, type BulkBarAction } from "./bulk-bar";
 
 // The GALLERY album bulk-select controls (the analog of review-actions.tsx). Two pieces, both reading
@@ -82,8 +83,8 @@ export function GalleryBulkBar() {
       onRun: () => run("delete"),
       confirm: {
         title: removeTitle,
-        description:
-          "They disappear from the album right away and are permanently deleted after a short grace period. Guests won’t see them.",
+        // A host's removal waits in Deleted for the window (read off the constant), restorable.
+        description: `They disappear from the album right away and move to Deleted, where you can restore them for ${RECENTLY_DELETED_WINDOW_DAYS} days. Guests won’t see them.`,
         confirmLabel: "Remove",
       },
     },

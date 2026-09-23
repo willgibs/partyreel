@@ -186,6 +186,7 @@ export function LiveGallery({
   approvedTotal,
   closesOnLastRemoval = false,
   onOwnRemoved,
+  onGuestCountChange,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -249,11 +250,19 @@ export function LiveGallery({
    */
   closesOnLastRemoval?: boolean;
   /**
-   * A removal of the guest's own landed; `remaining` is how many live uploads of theirs this device
-   * still knows of (their own photographs here, and any held file still waiting for the host). The
-   * page refreshes onto the server's answer when it reaches zero on such an album.
+   * A removal of the guest's own landed: `removedId` is the upload that went, and `remaining` is how
+   * many live uploads of theirs this device still knows of (their own photographs here, and any held
+   * file still waiting for the host). The page keeps the id (the post-upload card counts what is
+   * still in the album, not what this visit sent) and refreshes onto the server's answer when
+   * `remaining` reaches zero on a Require-an-upload-to-view album.
    */
-  onOwnRemoved?: (remaining: number) => void;
+  onOwnRemoved?: (removedId: string, remaining: number) => void;
+  /**
+   * The album's guest count, from a poll that changed something (guest-flow.md, "Stats"): the
+   * header's "from M guests" moves when a guest's first upload makes them one, which only the
+   * server can say. Absent on a 304 and on a locked page.
+   */
+  onGuestCountChange?: (count: number) => void;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -307,8 +316,14 @@ export function LiveGallery({
         items?: GridMedia[];
         access?: GalleryAccess;
         gate?: string | null;
+        guestCount?: number;
       };
       if (!body.ok || !body.items) return;
+      // The server's count of guests, carried only on a poll that changed something and never on a
+      // locked page: the header's "from M guests" is the server's number, never this tab's guess.
+      if (typeof body.guestCount === "number") {
+        onGuestCountChange?.(body.guestCount);
+      }
       // The decision the SERVER just made, against the one this gallery was mounted with. Reported
       // once per change (the ref, not the render), because a poll every few seconds would
       // otherwise report the same drift forever.
@@ -382,7 +397,7 @@ export function LiveGallery({
     // `access` never actually changes within one mounted instance (any real change remounts under
     // the shell's key={access}), so this cannot restart the poll interval the way a per-item value
     // would — it is here for the stricter check above and for exhaustive-deps honesty.
-  }, [qrToken, onAccessDrift, access]);
+  }, [qrToken, onAccessDrift, onGuestCountChange, access]);
 
   // The doorbell: a contentless Realtime ping per gallery change, coalesced
   // inside the hook (immediate refresh, bursts collapse into one trailing
@@ -434,6 +449,19 @@ export function LiveGallery({
   const [sessionMine, setSessionMine] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  /* ★ AND WHAT THIS VISIT CHANGED, ON EITHER IDENTITY. The server lists arrive once (the RSC's
+     `canDeleteIds` for an account, `/api/guests/mine` for a session), so between those reads this
+     device knows two things the lists cannot: an upload it just added (the completion is the
+     server's own answer, `create_media` wrote the row under this identity) and one it just removed
+     (the removal RPC said yes). Kept for BOTH identities: a signed-in guest's list is baked into a
+     render and `removeMyUploadGuestAction` revalidates nothing, so without these their new photograph
+     had no Trash and no mark, and a removed one still counted toward "your last upload". */
+  const [addedMine, setAddedMine] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const [removedMine, setRemovedMine] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const canRemove = !isDemo && access !== "none";
   useEffect(() => {
     // Only the anonymous arm asks: a signed-in viewer's list came with the page,
@@ -467,8 +495,10 @@ export function LiveGallery({
   const ownIds = useMemo(() => {
     const ids = new Set(canDeleteIds);
     for (const id of sessionMine) ids.add(id);
+    for (const id of addedMine) ids.add(id);
+    for (const id of removedMine) ids.delete(id);
     return ids;
-  }, [canDeleteIds, sessionMine]);
+  }, [canDeleteIds, sessionMine, addedMine, removedMine]);
 
   /**
    * How many LIVE uploads of this guest's the device knows of, leaving one out
@@ -486,10 +516,11 @@ export function LiveGallery({
       for (const item of pendingUploads) {
         if (item.status === "done" && item.mediaId) ids.add(item.mediaId);
       }
+      for (const id of removedMine) ids.delete(id);
       if (leavingOut) ids.delete(leavingOut);
       return ids.size;
     },
-    [ownIds, pendingUploads],
+    [ownIds, pendingUploads, removedMine],
   );
 
   // What the lightbox's delete confirm adds on such an album, for the one item
@@ -548,14 +579,10 @@ export function LiveGallery({
 
       if (ok) {
         // It is gone for good: the host cannot restore it (removed_by_uploader),
-        // so drop it from the owned set too rather than leaving a stale id.
-        setSessionMine((prev) => {
-          if (!prev.has(id)) return prev;
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-        onOwnRemoved?.(liveOwnCount(id));
+        // so it leaves the owned set on either identity rather than lingering as a
+        // stale id the RSC's list still carries until the next render.
+        setRemovedMine((prev) => new Set(prev).add(id));
+        onOwnRemoved?.(id, liveOwnCount(id));
         return;
       }
       toast.error("Couldn't remove that photo.", {
@@ -589,14 +616,13 @@ export function LiveGallery({
         // Will banked the shimmer to avoid.
         setOwnLandings((prev) => [u.mediaId, ...prev]);
       }
-      // An ANONYMOUS guest's own new photograph is removable the instant it
-      // lands, without waiting for the next /api/guests/mine round trip (there
-      // is none: the list is fetched once per mount). The server list stays the
-      // authority — this only closes the gap between "it is in the album" and
-      // "the album knows it is yours". A signed-in viewer's list came from the
-      // RSC and is refreshed by navigation, so it needs nothing here.
-      if (!isAuthed && sessionToken && u.status === "approved") {
-        setSessionMine((prev) => new Set(prev).add(u.mediaId));
+      // A guest's own new photograph is removable (and marked) the instant it
+      // lands, on either identity, without waiting for a list the server reads
+      // once per mount or render. The server stays the authority on every
+      // removal; this only closes the gap between "it is in the album" and
+      // "the album knows it is yours".
+      if (!isDemo && u.status === "approved") {
+        setAddedMine((prev) => new Set(prev).add(u.mediaId));
       }
       if (!isDemo) void refresh();
     },

@@ -47,7 +47,9 @@ vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
 // Out of scope for these pins (own state machine + supabase); doneCount>0
 // gating is pinned via the stub's presence.
 vi.mock("@/components/guest/save-account-prompt", () => ({
-  SaveAccountPrompt: () => <div data-testid="save-account-prompt" />,
+  SaveAccountPrompt: ({ count }: { count?: number }) => (
+    <div data-testid="save-account-prompt" data-count={count} />
+  ),
 }));
 // The claim prompt OWNS the post-upload slot since the profile wiring
 // (2026-09-19): it resolves the viewer and decides which single card stands,
@@ -105,6 +107,7 @@ function Harness({
   event?: GuestEvent;
   suppressFailures?: boolean;
   moment?: boolean;
+  removedIds?: ReadonlySet<string>;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, addFiles, retry, dismiss } = useUploadQueue({
@@ -144,6 +147,7 @@ function Harness({
       }}
       isDemo={isDemo}
       moment={rest.moment}
+      removedIds={rest.removedIds}
     />
   );
 }
@@ -900,6 +904,61 @@ describe("GuestUpload: the slot on a confirmation's return", () => {
 
   it("never stands in the demo, moment or not", () => {
     mount({ moment: true, isDemo: true, sessionToken: null });
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+  });
+});
+
+/**
+ * THE CARD COUNTS WHAT IS STILL IN THE ALBUM (guest-followons, 2026-09-23). The post-upload
+ * slot's number is "your N photos are on this album", so a finished upload the guest removed again
+ * leaves it: the page hands down the ids this visit's removals took back out, and the slot leaves
+ * once none of this visit's uploads is left.
+ */
+describe("GuestUpload: the post-upload card counts what is still in the album", () => {
+  it("drops a removed upload from the count, and unmounts once none is left", async () => {
+    mockUploadFile
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-1",
+        kind: "photo",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: "approved",
+        mediaId: "med-2",
+        kind: "photo",
+      });
+    const onSession = vi.fn();
+    const onUploaded = vi.fn();
+    const handleRef = createRef<GuestUploadHandle>();
+    const harness = (removedIds?: ReadonlySet<string>) => (
+      <Harness
+        handleRef={handleRef}
+        onSession={onSession}
+        onUploaded={onUploaded}
+        removedIds={removedIds}
+      />
+    );
+    const { rerender } = render(harness());
+    act(() => handleRef.current!.openAdd());
+    fireEvent.change(
+      document.querySelector('input[type="file"][multiple]') as HTMLInputElement,
+      { target: { files: [makeFile("a.jpg"), makeFile("b.jpg")] } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Send 2" }));
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+      ).toBe("2"),
+    );
+
+    rerender(harness(new Set(["med-1"])));
+    expect(
+      screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+    ).toBe("1");
+
+    rerender(harness(new Set(["med-1", "med-2"])));
     expect(screen.queryByTestId("save-account-prompt")).toBeNull();
   });
 });

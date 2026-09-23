@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
 import { DeleteConsequence } from "@/lib/guest/delete-consequence";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -820,8 +821,12 @@ export function MediaLightbox({
                         </button>
                       </ActionTooltip>
                     )}
-                    {/* Personal Uploads delete (unchanged) — never co-occurs with the
-                        host curate group (the host grid sets onRemove, not this). */}
+                    {/* The uploader's OWN delete (the guest album and the personal
+                        Uploads) — never co-occurs with the host curate group (the host
+                        grid sets onRemove, not this). ★ It is final for the host too
+                        (`removed_by_uploader`: never in Deleted, never restorable), so
+                        its words say the window the bytes are held, read off the
+                        constant, and promise no way back. */}
                     {onDeleteCurrent &&
                       (canDelete ? canDelete(current) : true) && (
                         <Dialog>
@@ -844,8 +849,8 @@ export function MediaLightbox({
                               <DialogTitle>Delete this upload?</DialogTitle>
                               <DialogDescription>
                                 It will be removed from the event right away,
-                                and permanently deleted after a short grace
-                                period.
+                                and permanently deleted after{" "}
+                                {RECENTLY_DELETED_WINDOW_DAYS} days.
                                 {deleteConsequence && ` ${deleteConsequence}`}
                               </DialogDescription>
                             </DialogHeader>
@@ -949,9 +954,13 @@ export function MediaLightbox({
                               <DialogHeader>
                                 <DialogTitle>Remove this item?</DialogTitle>
                                 <DialogDescription>
-                                  It disappears from the album right away and is
-                                  permanently deleted after a short grace
-                                  period. Guests won&rsquo;t see it.
+                                  {/* A host's removal is restorable: it waits in
+                                      Deleted (the app's one word for the place)
+                                      for the window, read off the constant. */}
+                                  It disappears from the album right away and
+                                  moves to Deleted, where you can restore it for{" "}
+                                  {RECENTLY_DELETED_WINDOW_DAYS} days. Guests
+                                  won&rsquo;t see it.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>

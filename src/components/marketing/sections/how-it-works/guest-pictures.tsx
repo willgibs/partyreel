@@ -172,7 +172,7 @@ export function DoorPicture() {
           <div className="rounded-xl border bg-card p-3 ring-1 ring-foreground/5">
             <p className="text-[11px] font-semibold">Add your photos</p>
             <p className="mt-1 text-[10px] text-muted-foreground">
-              Add one now and the album opens.
+              Add one now, or look around first.
             </p>
             <MockPrimary className="mt-2 flex h-8 w-full items-center justify-center gap-1.5 text-[11px]">
               <Camera className="size-3" />

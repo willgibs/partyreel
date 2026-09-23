@@ -16,7 +16,7 @@ export type GuestEvent = {
   id: string;
   // The CANONICAL permanent capability (database-security.md). This page may be reached via a custom
   // slug alias (host-app.md), so every downstream qr_token-keyed call — the gallery poll,
-  // create_guest, save_event, create_report, verify_event_password — MUST use this, NOT
+  // create_guest, create_report, verify_event_password — MUST use this, NOT
   // the route param (those RPCs match qr_token only; a slug would resolve to nothing).
   qr_token: string;
   name: string;

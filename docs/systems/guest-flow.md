@@ -96,8 +96,11 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   → `{approvedTotal, guestCount}`: a head count of approved media, and THE ONE COUNT of guests (`getEventGuests`,
   the same function the host's hub reads, so the album and the hub never say two numbers for one party; never the
   host). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
-  `onCountChange`; M is static per load (a guest's own first upload shows in M on the next load). Threaded from the
-  page RSC, NOT the poll route (ETag semantics untouched).
+  `onCountChange`; M is seeded by the page RSC and kept current by the gallery poll, which carries `guestCount` on
+  a 200 only (read after its 304 check, so the steady poll pays nothing, and never on a locked page) and hands it up
+  through `onGuestCountChange`: a guest's own first upload moves M without a reload, and only the server can tell a
+  first upload from a returning contributor's. It stays outside the ETag: whatever moves M changes the payload the
+  ETag already hashes.
 - **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED
   column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
   never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
@@ -369,7 +372,9 @@ through flags in the sheet. No step counter to desync.
   adding", which refreshes and trusts the decision that comes back, never a local skip (the server would
   still answer `upload`: a loop). The ON line reads "The host has asked everyone to add a photo before the
   album opens." (an empty album: "Nothing here yet. Add the first photo and the album opens.") and names no
-  host, since a long name breaks it. The OFF-state ghost "Skip for now" ("Look around" in the demo) is once
+  host, since a long name breaks it. ★ "The album opens" is the ON door's alone: OFF, the album is already
+  open, so the step says "Add one now, or look around first." (empty: "Nothing here yet. Add the first
+  photo."), and its failure line asks for another file without promising the album. The OFF-state ghost "Skip for now" ("Look around" in the demo) is once
   per pass and never on the failure view; ON there is none, and `computeDoor` ignores `skipped` and
   `returning` so a stale flag cannot open an album.
 - **THE FLIP AND THE DRIFT.** The completion route writes the session cookie on its own response, every
@@ -410,7 +415,10 @@ through flags in the sheet. No step counter to desync.
   intended sharing model: whoever holds the link acts within whatever the configs allow, and a password
   handed round a party is as shared as the party. So a surface may never leak one (no token in an OG tag,
   a log line, a referrer or an analytics row), and the defenses that matter are the ones that survive a
-  leaked link: the config gates, the per-request re-checks, and a host's ability to rotate.
+  leaked link: the config gates (a password, Require verified emails, Require an upload to view, private,
+  uploads closed), the per-request re-checks, and the host's own switches, which shut a leaked link's door
+  without moving it. The link itself never rotates: the `qr_token` is printed on every QR, so it is
+  permanent by design (a custom slug is a mutable alias to it, never a replacement).
 - **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
   admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock cookie) after `/api/guests/unlock`
@@ -651,11 +659,17 @@ the field before they confirm.
   the anonymous list is `POST /api/guests/mine` (`listSessionMediaIds`, the token in the BODY, fetched once
   per mount); both live in [`mutations/guest-media.ts`](../../src/lib/db/mutations/guest-media.ts). It is
   deliberately NOT in the gallery payload or its ETag: that fingerprint is per ACCESS and shared between
-  viewers, this list is per person. The ids reach the grid as `canDelete`, gating the lightbox's Trash per
-  item. A removal marks `removed_by_uploader`, so the host's bin never shows it and `restore_media` refuses
-  it; the purge cron reclaims the bytes on the usual 30-day path. ★ **On a Require-an-upload-to-view album with
-  uploads open, removing your LAST live upload closes the album again** (Own deletes close it), and the confirm
-  says so first: `LiveGallery` hands the lightbox the line through the `DeleteConsequence` context
+  viewers, this list is per person. Between those reads `LiveGallery` adds what this visit completed and drops
+  what this visit removed, on EITHER identity (the completion and the removal are themselves server answers), so
+  a signed-in guest's new photograph has its Trash and mark at once and a removed one stops counting. The ids
+  reach the grid as `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so
+  the host's bin never shows it and `restore_media` refuses it; the purge cron reclaims the bytes after
+  `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm names. The post-upload card counts this visit's
+  uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
+  Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
+  deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second
+  identity-less gate read for a guest who has contributed, and the line stays silent), and the confirm says so
+  first: `LiveGallery` hands the lightbox the line through the `DeleteConsequence` context
   ([`delete-consequence.ts`](../../src/lib/guest/delete-consequence.ts); the lightbox sits under a grid other
   surfaces own, so a prop cannot reach it), counting the guest's own ids plus any held file still waiting. When
   that removal lands, the page refreshes onto the server's answer at once rather than holding the album until the

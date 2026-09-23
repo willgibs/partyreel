@@ -22,6 +22,10 @@ const getEventByQrToken = vi.fn();
 vi.mock("@/lib/db/queries/guest-events", () => ({
   getEventByQrToken: (...a: unknown[]) => getEventByQrToken(...a),
 }));
+const getGuestCount = vi.fn();
+vi.mock("@/lib/db/queries/guest-events-admin", () => ({
+  getGuestCount: (...a: unknown[]) => getGuestCount(...a),
+}));
 const resolveViewerDecision = vi.fn();
 vi.mock("@/lib/events/gallery-access.server", () => ({
   resolveViewerDecision: (...a: unknown[]) => resolveViewerDecision(...a),
@@ -67,6 +71,7 @@ beforeEach(() => {
     data: { id: "evt-1", visibility: "open", qr_token: QR },
   });
   resolveViewerDecision.mockResolvedValue({ access: "teaser", gate: "upload" });
+  getGuestCount.mockResolvedValue(4);
 });
 
 describe("the decision it answers", () => {
@@ -160,6 +165,42 @@ describe("the identity, and the heal", () => {
     const res = await post({ qr_token: QR }, { "If-None-Match": '"g3-stub"' });
     expect(res.status).toBe(304);
     expect(res.headers.get("set-cookie")).toBeNull();
+  });
+});
+
+describe("the guest count (the header's 'from M guests')", () => {
+  it("rides a 200, read from the server's one count", async () => {
+    const res = await post({ qr_token: QR });
+    expect(await res.json()).toMatchObject({ ok: true, guestCount: 4 });
+    expect(getGuestCount).toHaveBeenCalledTimes(1);
+  });
+
+  it("costs the steady poll nothing: a 304 never reads it", async () => {
+    const res = await post({ qr_token: QR }, { "If-None-Match": '"g3-stub"' });
+    expect(res.status).toBe(304);
+    expect(getGuestCount).not.toHaveBeenCalled();
+  });
+
+  it("never reaches a locked page", async () => {
+    resolveViewerDecision.mockResolvedValue({
+      access: "none",
+      gate: "password",
+    });
+    const res = await post({ qr_token: QR });
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.access).toBe("none");
+    expect(body).not.toHaveProperty("guestCount");
+    expect(getGuestCount).not.toHaveBeenCalled();
+  });
+
+  it("never reaches a private or missing event", async () => {
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    const body = (await (await post({ qr_token: QR })).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(body).not.toHaveProperty("guestCount");
+    expect(getGuestCount).not.toHaveBeenCalled();
   });
 });
 

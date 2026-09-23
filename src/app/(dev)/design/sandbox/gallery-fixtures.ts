@@ -128,16 +128,26 @@ export const GALLERY_ITEMS: GridMedia[] = Array.from({ length: 18 }, (_, i) =>
   media(i, { id: `gallery-${i}` }),
 );
 
+/** The guests alone: a host's own upload lands approved and never waits in
+ *  Review, so the queue below draws only these. */
+const GUESTS = UPLOADERS.filter((u) => !u.isHost);
+
 /** The Review queue: pending, a couple flagged as video so the peek/select
- *  grammar has something worth judging before it approves. */
-export const REVIEW_ITEMS: GridMedia[] = Array.from({ length: 7 }, (_, i) =>
-  media(i + 3, {
+ *  grammar has something worth judging before it approves. Every item is a
+ *  GUEST's: the host's own uploads skip moderation, so Review never holds one. */
+export const REVIEW_ITEMS: GridMedia[] = Array.from({ length: 7 }, (_, i) => {
+  const guest = GUESTS[i % GUESTS.length];
+  return media(i + 3, {
     id: `review-${i}`,
     status: "pending",
     type: i === 2 ? "video" : "photo",
     likeCount: undefined,
-  }),
-);
+    uploaderName: guest.name,
+    isHost: false,
+    isVerified: guest.isVerified,
+    uploaderKey: guest.key,
+  });
+});
 
 /** The "Recently deleted" bin: a countdown per item, no downloadUrl (the bin
  *  never offers the original file). */
