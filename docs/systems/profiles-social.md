@@ -54,7 +54,7 @@ gallery and appears on no profile.
 
 ## Where it lives
 
-- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen), the `verified_at` belt, and the newest `get_public_profile`. `profile_hidden_events` stays on disk: this tree neither reads nor writes it, but the deployed `main` build still reads it and writes it through the Account hide toggle, so `migration-guards.test.ts` refuses a migration that drops it until a milestone ships this tree.
+- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen) and the `verified_at` belt. [`20260922200000_identity_sql_gaps.sql`](../../supabase/migrations/20260922200000_identity_sql_gaps.sql) — the newest `get_public_profile` (the attended arm's confirmed-viewer gate). `profile_hidden_events` stays on disk: this tree neither reads nor writes it, but the deployed `main` build still reads it and writes it through the Account hide toggle, so `migration-guards.test.ts` refuses a migration that drops it until a milestone ships this tree.
 - Data layer: [`src/lib/db/queries/social.ts`](../../src/lib/db/queries/social.ts) + [`src/lib/db/mutations/social.ts`](../../src/lib/db/mutations/social.ts); pure logic in [`src/lib/social/`](../../src/lib/social) (notification-pref defaults/resolve, profile cards) + [`src/lib/validation/profile.ts`](../../src/lib/validation/profile.ts) (slug schema + reserved words).
 - UI: [`src/components/social/`](../../src/components/social) (guest list, follow button, report/block menu, slug control, bio form, visibility switches, connections) + [`profile-social-card.tsx`](../../src/components/app/event-settings/profile-social-card.tsx); routes `src/app/(guest)/u/[slug]/` and the Account/event-settings/Guests-room integrations.
 
@@ -77,9 +77,12 @@ gallery and appears on no profile.
 - **Attendance is not a capability grant.** The attended arm returns NO `qr_token`/`custom_slug`, and is
   gated on `show_guest_list` + `profile_shown_events` (the guest's own opt-in) + **`visibility = 'open'`**
   + a **PROVED identity** (`guests.verified_at is not null`: a name-only or pending-email row publishes
-  nothing, chosen or not) + an approved upload. An anonymous viewer also gets no account-required album,
-  which withholds its own list from them; that clause reads the legacy `allow_anonymous_uploads` (kept in
-  sync by the `events_sync_verified_email_flags` trigger), so dropping the column means re-pointing it.
+  nothing, chosen or not) + an approved upload + **the album's own viewer gate**: on a Require verified
+  emails event only the event's host or a viewer with a CONFIRMED email (`auth.users.email_confirmed_at`,
+  the page's `isAuthed`) sees the line, because the album holds anyone else, anonymous or an unconfirmed
+  sign-up, at the teaser, which never renders its Guests list. The anonymous-viewer clause beside it
+  still reads the legacy `allow_anonymous_uploads` (kept in sync by the `events_sync_verified_email_flags`
+  trigger); the gate implies it, so dropping the column deletes that clause.
   The open-only gate is the consent scope (the album-side list renders only to viewers who can OPEN the
   album, preserving "locked pages leak name + count only"). A migration-text Vitest guard
   ([public-profile-visibility.test.ts](../../src/lib/social/public-profile-visibility.test.ts)) pins it.
@@ -104,7 +107,8 @@ gallery and appears on no profile.
 - **The attended arm's covers re-prove their own scope.** `getPublicProfileAttendedCoverUrls` takes
   ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's own
   opt-in (`profile_shown_events`) again before presigning: a presign turns an id into someone else's
-  photograph, so it proves the scope rather than inheriting it from a payload.
+  photograph, so it proves the scope rather than inheriting it from a payload. The VIEWER's gate is the
+  RPC's alone (the cover read takes no viewer), so the covers inherit it through the ids it returned.
 - **A person can be reported** (`reports.profile_id`; `event_id` is nullable under a CHECK that one
   subject is set). The menu on `/u/[slug]` holds Report this person and Block; the route arm is SIGNED IN
   (`getUser()`, no capability token exists for a profile) and rate-limited per profile, the write is
