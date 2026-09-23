@@ -131,7 +131,7 @@ The newsletter opt-in is a switch in the account-first save flow of the post-upl
 email is CONFIRMED (`email_confirmed_at`; an unconfirmed sign-up gets 401), derives the address from that
 session (never the request body: no victim-address poisoning), applies a per-IP abuse limit (fail-open),
 and calls the service-role-only **`capture_guest_email`** RPC through the admin client: it sets
-`guests.email` only if null, and upserts the durable **`newsletter_signups`** table (RLS deny-all).
+`guests.email` only if null and only on a row whose own account is the confirmed owner of that address, and upserts the durable **`newsletter_signups`** table (RLS deny-all).
 `newsletter_signups` is standalone (NOT a `guests` column) so the marketing list survives event/guest
 deletion (`event_id` is `on delete set null`). A TYPED address never reaches `guests.email`: it lives
 in `guests.pending_email` (written only by the join's `create_guest` and by `set_guest_pending_email`
