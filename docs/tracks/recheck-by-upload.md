@@ -1,6 +1,6 @@
 ---
 track: recheck-by-upload
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8d1f66fd"            # the launch-prep SHA the branch was cut from
 board: identity-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -58,24 +58,38 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: every reached question resolved inside the brief's own discretion; nothing rose to a genuinely new one-way-door decision.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: `owns` names no `docs/systems/` file, and nothing here changed production behaviour.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- "Now": line 29 ("Profiles (Will's call): should a profile's attended event also follow Require an upload to view?") is answered by tonight's ruling verbatim (only the host or a signed-in viewer who has passed that event's door sees the line) — resolve/remove rather than leave open.
+- "Now": line 173's "Save (`SaveEventButton`)" half (guest dialogs that should ride the responsive Sheet) goes moot once `guest-by-upload` retires the button; "Download all" (`ExportDialog`) is the only half still live.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `f746dbbe` ("recheck: five identity boards made current with tonight's rulings"); synced with `origin/launch-prep` (one commit ahead, `docs/tracks/orchestrator.md` only) at merge commit `a8937fe1`, no conflicts. This manifest's own commit is the head; its sha is the chat line.
+- Every claim below names its artifact.
+- Gates on the synced tree (`a8937fe1`), each its own exit code: `pnpm design:rules` 0 (no diff), `collect-specimens.mjs` 0 (no diff), `pnpm typecheck` 0, `pnpm lint` 0 (9 pre-existing warnings, none in a file this lane touched), `pnpm test` 0 (353 files, 3893 passed, 1 pre-existing skip), `pnpm build` 0. `pnpm lab:smoke --base http://localhost:3131`: 486 checks, 0 failing. `pnpm lab:demo --board <board> --base http://localhost:3131`: identity-door 5/5, guest-capture 4/4, identity-profile 4/4, identity-claims 5/5, media-viewer 8/8, every step 0 failing and drawing its options.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly the 10 files under the five owned board dirs (`guest-capture/parts.tsx`; `identity-claims/{board,fixtures,parts,spec}`; `identity-door/{parts,spec}`; `identity-profile/{fixtures,parts,spec}`) plus this manifest's own commit. Nothing else; `media-viewer/` untouched (see its line below).
+- The items, one line each:
+  - `identity-door.field` / `.nudge` / `.menu` / `.remove`: no drawn save act in any of the four; left standing.
+  - `identity-door.gate`: adapted. The `list` option's two benefits ("save the event to your profile" / "come back anytime") are down to one true forward promise now that save is dead; redrew it to one line and reweighed the recommendation from `list` to `line`, since a single leftover benefit no longer earns the extra element over the ruled sentence.
+  - `guest-capture`: adapted (narrowly). The offer's own words stand, per the brief; only the drawn save act moved — the Bookmark glyph in `OfferCard`'s circle became Mail (the actual act is confirming an email, not a separate save), and the doc comment's `SaveEventButton` mention is dropped. `moment` / `shape` / `follow` / `name` untouched.
+  - `identity-profile.attended`: adapted (wording). "Joined" became "added photos to" throughout (the ask's context, the `guest-menu` option, and every card/label in `parts.tsx`), matching production's own `attended-events-visibility.tsx` empty-state copy ("Events you add photos to"), read but not edited.
+  - `identity-profile.page`: adapted. The recommended `count` option's "3 events, kept private" would leak that Priya is a guest of a Require-upload-to-view album (The Block Party) to a stranger who never passed its door. Gave `ATTENDED` a `requireUpload` flag, made the count viewer-scoped (2 of 3, computed live, never hardcoded), and reweighed the recommendation (kept `count`: the fix is the same door-first discipline the attended arm's own covers already use, not new complexity).
+  - `identity-claims.after`: adapted. "The dashboard is unchanged" after Finish is no longer true: a claimed event now joins Your events as a Guest card. Redrew `toast` and `profile` so both show the claim settling in as an ordinary Guest card (`DashboardScene` gained an `extraCard` slot); kept `strip` as a genuinely distinct "just-claimed" highlight (its own section above Your events, never a duplicate card) rather than removing it as solved, since the highlight-vs-quiet contrast is real value the baseline fix does not reach.
+  - `identity-claims` background art: `SavedEventCard` and `ClaimedStrip`'s `EventCard variant="saved"` replaced by `variant="hosted"` plus a local `GuestMark` overlay ("Guest", the same glass-pill corner treatment the bookmark used). No board imports `variant="saved"` after this commit (checked all five boards; only these two call sites existed).
+  - `media-viewer.who`: verified, no change. Read `Attribution`, `FaceCredit` and `Chrome` in `viewer.tsx` end to end: the host's confirmed-address line (`Address`, `viewer.tsx:170-177`) already renders for all three shapes (`pill`/`foot` through `Attribution`'s shared return branch, `face` through `FaceCredit`, mounted independently of `holds`). Confirmed live: Role=host + Credit=confirmed shows "Leah · leah@example.com" under all three `who` picks, at both screens. The board's other seven asks untouched.
+  - Touchpoints: `touchpoints.ts:224` (`identity-profile`'s `board.note`) still reads "verified with three events joined and none shown"; wants "added photos to three events" to match the board.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `identity-door.gate`: moved the recommendation from `list` to `line` (one surviving benefit felt thin against the ruled sentence); overrule keeps `list` if even one true benefit is worth the extra line.
+  - `identity-profile.page`: kept `count` (viewer-scoped) as recommended rather than folding to `nothing`; overrule is `nothing` if a count that must change with who is asking is one gate too many to keep right forever.
+  - `identity-claims.after`: kept `strip` as a live third option rather than removing it as solved; overrule removes it if a highlight beyond a plain Guest card is not wanted at all.
+  - `identity-claims` background art: chose `EventCard variant="hosted"` plus a local marker over a fully custom card (the brief's other named option), since it reuses the real component's chrome; overrule draws a bespoke card if the "Guest" pill reads too close to the hosted look.
+- Look at first: `identity-claims.after` (two Guest cards in Your events under `toast`/`profile`, `strip` kept as the contrasting highlight), then `identity-door.gate` (the redrawn single-benefit line).
