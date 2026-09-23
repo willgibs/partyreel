@@ -51,9 +51,12 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## Waiting on Will
 
-- **His desk review** on the alias (`c65d6ec1`, `/design/lab?key=`): the six reel boards (view, front, screen, cut,
-  host, story, directly below `media-viewer`), the harnesses `/design/lab/tools/reel-live` and
-  `/design/lab/tools/reel-video`, the three identity boards and the older standing boards.
+- **His desk review** on the alias (`98cfa62f`, `/design/lab?key=`, Start the review): `media-viewer`, the six reel
+  boards, the three identity boards, then the rechecked standing boards; the harnesses `/design/lab/tools/reel-live`
+  and `/design/lab/tools/reel-video`.
+- **Two bible questions** (crisp media motion into bible 1; "every ask is a benefit" as a copy rule), **three product
+  calls** (may a plan change shrink a cap; does the host's credit keep a confirmed guest's proved address; does a
+  profile's attended event follow Require an upload to view): each with its recommendation in STATUS or the ROADMAP.
 - **The preview key's rotation**: a local dev log printed `DESIGN_PREVIEW_KEY` into the Orchestrator's transcript on
   2026-09-22 (in no commit; every scratchpad copy scrubbed); rotating it breaks his saved `?key=` links until he takes
   the new one from `.env.local`, so it waits for his word, ideally after his review.

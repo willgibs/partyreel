@@ -87,7 +87,8 @@ silent on good work. Many refusals would mean the design upstream of the scripts
 ## Rules each learned once
 
 - One script per merge, `set -e`, every step on its own exit code; never a record chained behind an integration; a
-  test's result is read from its exit code, never through a pipe to `grep` (grep's exit hides the failure).
+  test's result is read from its exit code, never through a pipe to `grep` (grep's exit hides the failure). A record's
+  edits and its commit run under ONE `set -e`: a newline after a failed edit still reaches the commit.
 - A migration that replaces a function starts from its newest definition in `supabase/migrations/`.
 - A manifest never reads another lane's manifest (it is deleted at that lane's merge); point it at the board's
   `spec.ts`.
