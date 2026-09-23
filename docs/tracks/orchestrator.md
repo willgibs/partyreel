@@ -32,7 +32,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `identity-sql-gaps` | two identity leaks closed in SQL: an unconfirmed sign-up's address out of `guests.email` and the host's grant; `get_public_profile`'s attended arm behind the album's gate | cut `ceaee403`, committed `92421d85`; running (agent `ad831a8ca1313dc19`) | Opus, :3132 | integrate (`none`); then APPLY its migration in the order its Handoff names, `get_advisors`, regenerate `types.ts` if a signature moved |
 
 ## Next, in order
 
