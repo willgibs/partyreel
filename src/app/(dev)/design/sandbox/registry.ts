@@ -8,6 +8,7 @@ import { IDENTITY_CLAIMS } from "./identity-claims/spec";
 import { IDENTITY_PROFILE } from "./identity-profile/spec";
 import { REEL_SCREEN } from "./reel-screen/spec";
 import { GUEST_CAPTURE } from "./guest-capture/spec";
+import { VOICE_GUEST } from "./voice-guest/spec";
 import { REEL_FRONT } from "./reel-front/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -64,6 +65,7 @@ const REGISTERED: readonly BoardSpec[] = [
   IDENTITY_PROFILE,
   REEL_SCREEN,
   GUEST_CAPTURE,
+  VOICE_GUEST,
   REEL_FRONT,
 
   MEDIA_VIEWER,
