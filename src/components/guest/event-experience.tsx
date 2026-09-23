@@ -307,6 +307,13 @@ export function EventExperience({
       }
       router.refresh();
     },
+    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN (the
+       upload-owner lane, 2026-09-23). The queue has already put the ticket down (token, name,
+       address flag, cookie) and kept the files waiting; the refresh re-resolves who is here from
+       the server's side, so a sign-out in another tab is seen as one, and the door opens on the
+       step that names them (the name, or the email step on a verified event). Nothing is failed, so
+       there is no failure sheet to wait for, unlike the flip above. */
+    onDoorNeeded: () => router.refresh(),
   });
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */

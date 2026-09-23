@@ -31,6 +31,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { forgetGuestTickets } from "@/lib/guest/use-stored-session";
 
 type UserMenuProps = {
   email: string | null;
@@ -259,9 +260,17 @@ export function UserMenu({
             without typing a password again, so it gets a ground of its own
             rather than a hairline. Sign-out is a server action; a form submit
             clears cookies on the response, then signOutAction redirects to
-            /login. */}
+            /login.
+
+            ★ AND IT PUTS DOWN EVERY GUEST TICKET ON THE DEVICE (the
+            upload-owner lane, 2026-09-23): a confirmed guest's ticket outlived
+            this sign-out and credited the next person's photograph to them.
+            The upload routes now refuse that (the guarantee); this is the
+            courtesy. `onSubmit` runs before React dispatches the form's
+            action, so the localStorage half is gone before the request
+            leaves, and the action expires the cookie half on its response. */}
         <DropdownMenuFooter>
-          <form action={signOutAction}>
+          <form action={signOutAction} onSubmit={() => forgetGuestTickets()}>
             <DropdownMenuItem asChild>
               <button type="submit" className="w-full">
                 <LogOut /> Sign out

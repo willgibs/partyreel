@@ -1,13 +1,28 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { expireGuestSessionCookies } from "@/lib/guest/session-cookie-family";
 import { createClient } from "@/lib/supabase/server";
 
 // Sign-out runs server-side so the auth cookies are cleared on the response
 // before we navigate. redirect() throws NEXT_REDIRECT, so it must be the last
 // statement and outside any try/catch.
+//
+// ★ AND EVERY GUEST TICKET THE BROWSER CARRIES GOES DOWN WITH THE ACCOUNT (the
+// upload-owner lane, 2026-09-23). A confirmed guest's ticket outlived their
+// sign-out and credited the next person's photograph to them; the upload routes
+// now refuse that (lib/guest/session-owner.ts, the guarantee), and this is the
+// courtesy beside it: the server-readable half of every ticket (`pr_guest_*`,
+// HttpOnly, so only a response can expire it) is expired here, and the account
+// menu's form clears the localStorage half on submit (`forgetGuestTickets`), so
+// the next person on a shared phone starts clean. (The family module, not
+// `session-cookie.ts`: the account menu, a client component, imports this file,
+// and every component test that mounts it loads this module for real, where
+// `server-only` does not resolve.)
 export async function signOutAction() {
+  expireGuestSessionCookies(await cookies());
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");

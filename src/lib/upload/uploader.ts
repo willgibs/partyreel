@@ -52,12 +52,16 @@ type CompleteResponse =
 export type UploadOutcome =
   | { ok: true; status: string; mediaId: string; kind: "photo" | "video" }
   // `code` is the SERVER's own refusal code when the refusal came from one of
-  // the two routes (absent for a local validation or a transport failure). The
-  // guest queue reads exactly one of them, `verification_required` (the identity
-  // reshape, 2026-09-21): a host who turns Require verified emails ON mid-party
-  // invalidates every name-only session mid-run, and the difference between "this
-  // file did not go" and "your session is worth nothing now" is the difference
-  // between a Retry that works and one that cannot.
+  // the two routes (absent for a local validation or a transport failure),
+  // passed through verbatim from presign OR complete, since either can refuse.
+  // The guest queue reads exactly two of them by name, both the SESSION's
+  // rather than the file's: `verification_required` (the identity reshape,
+  // 2026-09-21: a host who turns Require verified emails ON mid-party
+  // invalidates every name-only session mid-run) and `session_other_account`
+  // (the upload-owner lane, 2026-09-23: the ticket this device kept belongs to
+  // an account the viewer is not). The difference between "this file did not
+  // go" and "your session is worth nothing now" is the difference between a
+  // Retry that works and one that cannot.
   | { ok: false; code?: string; message: string };
 
 function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {

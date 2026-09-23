@@ -2,6 +2,8 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
+
 /**
  * THE NAME THIS BROWSER TYPED, beside the session token it belongs to (the
  * identity reshape, 2026-09-21).
@@ -122,6 +124,50 @@ export function setStoredEmailAttached(qrToken: string, value: boolean) {
     // Storage unavailable: the menu falls back to the name-only rows, which is
     // the harmless direction (a guest is offered "Add your email" again rather
     // than being told an address is on a row they cannot see).
+  }
+  emit();
+}
+
+/**
+ * FORGET WHO THIS DEVICE WAS AT ONE EVENT (the upload-owner lane, 2026-09-23): the name and the
+ * address flag that belonged to a ticket the device is putting down because it was not the
+ * viewer's (`dropGuestTicket` in use-stored-session.ts, which clears the ticket itself beside it).
+ *
+ * ★ AND THE PREFILL, WHEN IT IS THAT SAME NAME. `pr_guest_name_last` is a kindness for the next
+ * party one person scans; here the device has just been shown to be in different hands, so a
+ * prefill that is the last owner's name would hand it to the person at the door, one tap from
+ * crediting their photographs to it. A different last name (typed at some other event) is left
+ * alone: nothing says it is not this person's.
+ */
+export function forgetStoredGuest(qrToken: string) {
+  try {
+    const name = localStorage.getItem(nameKey(qrToken));
+    localStorage.removeItem(nameKey(qrToken));
+    localStorage.removeItem(emailAttachedKey(qrToken));
+    if (name && localStorage.getItem(GUEST_NAME_LAST_KEY) === name) {
+      localStorage.removeItem(GUEST_NAME_LAST_KEY);
+    }
+  } catch {
+    // Storage unavailable: nothing was stored to forget.
+  }
+  emit();
+}
+
+/**
+ * FORGET EVERY NAME AND ADDRESS FLAG ON THE DEVICE, the prefill included (the account sign-out's
+ * half of "the next person on a shared phone starts clean", 2026-09-23). The prefill goes too: it
+ * is the last name typed on this phone, and after a sign-out the next hand on it is anybody's.
+ */
+export function forgetAllStoredGuests() {
+  try {
+    for (const key of storedKeysWithPrefixes([
+      GUEST_NAME_PREFIX,
+      GUEST_EMAIL_ATTACHED_PREFIX,
+    ])) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage unavailable: nothing was stored to forget.
   }
   emit();
 }

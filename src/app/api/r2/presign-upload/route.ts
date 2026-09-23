@@ -1,5 +1,6 @@
 import { getUploadContext } from "@/lib/db/mutations/guest";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
+import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   runPresignPipeline,
@@ -10,10 +11,11 @@ import { presignUploadSchema } from "@/lib/validation/upload";
 
 // Issues presigned URLs for a guest's browser → R2 DIRECT upload. The pipeline
 // engine (lib/upload/server-pipeline.ts) owns the shared spine; this strategy
-// owns the GUEST gates: the capability session, event state, video gating,
-// caps, and the host-configurable per-event size cap (which binds GUESTS ONLY
-// — the host route has no equivalent check). create_media (at complete)
-// remains authoritative for everything re-checked here.
+// owns the GUEST gates: the capability session, whose ticket it is (an
+// account's row uploads only for that signed-in account), event state, video
+// gating, caps, and the host-configurable per-event size cap (which binds
+// GUESTS ONLY — the host route has no equivalent check). create_media (at
+// complete) remains authoritative for everything re-checked here.
 const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
   schema: presignUploadSchema,
   async resolveEvent(parsed, kind) {
@@ -70,6 +72,21 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
           code: "uploads_closed",
           message: "This event isn't accepting uploads right now.",
         },
+      };
+    }
+    // ★ WHOSE TICKET IS THIS (the upload-owner lane, 2026-09-23; lib/guest/session-owner.ts). A row
+    // that carries an account writes only for that signed-in account, so a browser that kept a
+    // confirmed guest's ticket can no longer credit the next person's photograph to them (another
+    // account, or anyone signed out, past Require verified emails). Under the lock and the closed
+    // switch, which are the truer sentences when they hold for everybody; ABOVE the identity gate,
+    // because a ticket that is not yours says nothing about whether YOU have confirmed an email.
+    // The client reads the code by name, puts the ticket down and joins as whoever is holding the
+    // phone, so this sentence is almost never seen.
+    const owner = await checkSessionOwner(parsed.session_token);
+    if (!owner.ok) {
+      return {
+        ok: false,
+        refusal: { status: 403, code: owner.code, message: owner.message },
       };
     }
     // ★ THE IDENTITY GATE, RE-CHECKED PER REQUEST (the identity reshape, 2026-09-21). A session

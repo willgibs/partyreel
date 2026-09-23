@@ -1,6 +1,8 @@
 import { createMedia, getUploadContext } from "@/lib/db/mutations/guest";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { guestSessionCookieIfChanged } from "@/lib/guest/session-cookie";
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
+import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   runCompletePipeline,
@@ -41,6 +43,16 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
           code: "unlock_required",
           message: "This event is locked. Enter the event password to upload.",
         };
+      }
+      // ★ WHOSE TICKET IS THIS, re-asked at COMPLETION (the upload-owner lane, 2026-09-23;
+      // lib/guest/session-owner.ts): a presign outlives a sign-out by up to 2h, and this is the
+      // write that credits the photograph to a row. Same place in the ladder as presign's: under the
+      // lock, above the identity gate. The bytes the earlier presign let through become a swept
+      // orphan, never album content, and the client uploads the file again as whoever is holding
+      // the phone now.
+      const owner = await checkSessionOwner(parsed.session_token);
+      if (!owner.ok) {
+        return { ok: false as const, code: owner.code, message: owner.message };
       }
       // The identity gate, re-checked at COMPLETION too (the identity reshape, 2026-09-21): a
       // presigned URL outlives a switch flip by up to 2h, and this is the write that counts. The
@@ -97,6 +109,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof completeUploadSchema> = {
       : code === "uploads_closed" ||
           code === "unlock_required" ||
           code === "unauthorized" ||
+          code === SESSION_OTHER_ACCOUNT ||
           code === "verification_required"
         ? 403
         : code === "cap_reached"
