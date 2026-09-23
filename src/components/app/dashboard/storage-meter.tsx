@@ -106,7 +106,11 @@ export function StorageMeter({
             {capacity.videoMinutes.toLocaleString()} min of video.{" "}
             {/* "Need more?" used to LEAVE the app for a static, tier-blind
                 page. It opens the sheet on `room` now (`first=trigger`), which
-                is the one door here that already knows how full the host is. */}
+                is the one door here that already knows how full the host is.
+                For a Pro host the same sheet is the six prices with theirs
+                marked, smaller sizes included, so the door says what it does
+                (the storage guard, billing-caps.md): every switch there is
+                checked against what they store. */}
             <PricingSheet
               trigger={{ kind: "room", needed: storageUsed }}
               plan={{ tier: billingTier, hasBilling, passExpiry }}
@@ -116,7 +120,7 @@ export function StorageMeter({
                 type="button"
                 className="font-medium text-foreground underline underline-offset-4"
               >
-                Need more?
+                {billingTier === "pro" ? "Change plan" : "Need more?"}
               </button>
             </PricingSheet>
           </p>

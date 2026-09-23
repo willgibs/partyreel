@@ -256,7 +256,9 @@ export const TERMS_SECTIONS: LegalSection[] = [
           billed monthly or yearly, that adds video, more storage and more
           events. It renews automatically at the end of each billing period
           until you cancel. You can hold one Pro subscription at a time and
-          change its size through the billing portal.
+          change its size or billing interval from your account. You can buy or
+          move to a Pro size only if it holds what you already store; to choose
+          a smaller size, first remove enough to fit.
         </>,
         <>
           <strong className="text-foreground">Event Pass</strong> is a one-time

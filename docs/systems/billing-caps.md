@@ -1,7 +1,7 @@
 # Billing, tiers & storage caps
 
 > ROLE: the entitlement engine — how a tier maps to limits, how uploads are gated against them, and how Stripe provisions tiers.
-> BELONGS HERE: the cap model (`host_active_bytes`, monthly ingress, the `tiers.ts`↔SQL parity), video gating, the Stripe checkout/portal/webhook + provisioning, the in-app pricing surface and its return path, the Stripe-MCP runbook gotchas. · NOT HERE: the tier *numbers* + the human setup/cutover runbook (→ [`../PRICING.md`](../PRICING.md)), the upload pipeline itself (→ [uploads-and-r2.md](uploads-and-r2.md)), lapsed-pass/over-cap sweeps (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
+> BELONGS HERE: the cap model (`host_active_bytes`, monthly ingress, the `tiers.ts`↔SQL parity), the storage guard on plan changes, video gating, the Stripe checkout/change-plan/portal/webhook + provisioning, the in-app pricing surface and its return path, the Stripe-MCP runbook gotchas. · NOT HERE: the tier *numbers* + the human setup/cutover runbook (→ [`../PRICING.md`](../PRICING.md)), the upload pipeline itself (→ [uploads-and-r2.md](uploads-and-r2.md)), lapsed-pass/over-cap sweeps (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
 > GROWS BY: integrate-in-place.
 
 ## The cap model (account-level bytes, not item counts)
@@ -19,7 +19,10 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
 - **`host_active_bytes()`** is SECURITY DEFINER, REVOKED from anon/authenticated (internal-only — must
   NEVER appear in the 0028/0029 advisor lists), and is the one SQL definition every cap check reads (the
   upload fns, `get_upload_gate`, the restore RPCs). The over-cap sweep and the dashboard meter
-  (`getHostStorageSummary`) compute the same definition in TypeScript.
+  (`getHostStorageSummary`) compute the same definition in TypeScript. ★ The meter's read is RLS-scoped
+  and pages past PostgREST's `max_rows` (1000): keyset pages by id, an exact count on the first page, so a
+  large album is counted whole; the storage guard reads this number, and an undercount sells a plan the
+  host does not fit.
 - **`storage_used_bytes` is the PHYSICAL meter ONLY** (++ on create, −− only in `purge_media_rows`); it
   never gates uploads, so deleting frees cap room immediately (the "Recently deleted" model).
 - **The monthly meter is INGRESS BYTES, not counts**, and `cumulative_bytes` **never decrements** — it is
@@ -38,17 +41,27 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   [`db/queries/event-passes.ts`](../../src/lib/db/queries/event-passes.ts) +
   [`db/mutations/event-passes.ts`](../../src/lib/db/mutations/event-passes.ts)
   (`insertPassPurchase` / `consumeLivePassesForProCredit` / `recomputePassEntitlement`).
+- The STORAGE GUARD: pure [`billing/storage-guard.ts`](../../src/lib/billing/storage-guard.ts)
+  (`replacesCap` / `checkPlanChange` / `fittingProPlans` / `refusalSentence`, client-safe, so the sheet and
+  both routes share one rule) and [`billing/plan-facts.ts`](../../src/lib/billing/plan-facts.ts) (the
+  sheet's facts shape and parser).
 - Stripe (server-only): [`stripe/provision.ts`](../../src/lib/stripe/provision.ts) (pure
   `resolveSubscriptionUpdate` / `eventPassSession` / `proCreditSession` / `deliveryCreatedAt`),
   [`stripe/entitlement.ts`](../../src/lib/stripe/entitlement.ts) (pure `resolveEntitlement` — the
   Pro one-at-a-time gate; client-safe, but only ever called server-side),
+  [`stripe/change-plan.ts`](../../src/lib/stripe/change-plan.ts) (pure `assessSubscription` /
+  `changePlanSessionParams` / `pickChangePlanConfiguration`, and the refusal sentences),
+  [`stripe/portal-config.ts`](../../src/lib/stripe/portal-config.ts) (the tagged configuration, cached),
   [`stripe/plans.ts`](../../src/lib/stripe/plans.ts) (Price-ID↔plan map),
   [`stripe/dashboard.ts`](../../src/lib/stripe/dashboard.ts), [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts);
-  routes [`/api/stripe/`](../../src/app/api/stripe) `checkout` / `portal` / `webhook`.
+  routes [`/api/stripe/`](../../src/app/api/stripe) `checkout` / `change-plan` / `plan-facts` / `portal` / `webhook`.
 - The IN-APP surface: [`components/app/pricing/`](../../src/components/app/pricing) —
-  `pricing-sheet.tsx` (the one responsive Sheet every pricing click opens), `lock-chip.tsx` (the one component
-  behind every gated control), `welcome-to-pro.tsx` (the post-Checkout receipt), `triggers.ts` (why it opened,
-  the gated-feature record, the three Pro benefit lines) and `return-path.ts` (the `success_url` allow-list).
+  `pricing-sheet.tsx` (the one responsive Sheet every pricing click opens), `pro-price-list.tsx` (a Pro
+  host's six prices), `change-plan-button.tsx` + `change-plan-request.ts` (the one client for
+  `/api/stripe/change-plan`), `use-plan-facts.ts` (the sheet's read when it opens), `lock-chip.tsx` (the one
+  component behind every gated control), `welcome-to-pro.tsx` (the post-Checkout receipt), `triggers.ts` (why
+  it opened, the opening size, the gated-feature record, the three Pro benefit lines) and `return-path.ts`
+  (the `success_url` allow-list).
 - Env: `assertStripeEnv()` in [`env.ts`](../../src/lib/env.ts); the memoized `getStripe()` in
   [`stripe/client.ts`](../../src/lib/stripe/client.ts).
 
@@ -72,19 +85,53 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
 - **`tiers.ts` is client-import-safe — keep it secret-free** (no env, no Stripe Price IDs). The Price-ID↔plan
   mapping lives in `stripe/plans.ts` (reads env via `assertStripeEnv()`), NEVER in `tiers.ts`.
 - **ONE PLAN AT A TIME FOR PRO; PASSES STACK.** `/api/stripe/checkout` refuses everything, a pass included,
-  for an active Pro (a second subscription double-bills one cap; the portal owns upgrades, downgrades and
-  cancellation), resolved server-side by `resolveEntitlement()` from `profiles`, never the request body.
-  Another pass is a normal checkout minting another ledger row (+1 event slot and another pass's storage,
-  for its own year), and a pass holder may start Pro (the prorated credit consumes their passes; checkout
-  does not compare sizes, so stacked passes above the chosen Pro cap shrink into over-cap grace). A pass
+  for an active Pro (a second subscription double-bills one cap; a size or cadence change is the
+  change-plan route's, cancelling the portal's), resolved server-side by `resolveEntitlement()` from
+  `profiles`, never the request body. Another pass is a normal checkout minting another ledger row (+1 event
+  slot and another pass's storage, for its own year), and a pass holder may start Pro (the prorated credit
+  consumes their passes) at a size that holds what the passes store (the storage guard, below). A pass
   write never flattens a Pro cap: pass state recomputes from the ledger with `.neq("tier","pro")` in the
   WHERE clause. Never stack Pro caps (as the max or the sum): provisioning would resolve two live
   entitlements on every webhook, and "whose media survives when one plan ends?" has no honest answer.
-- **A plan SWITCH routes to the Stripe billing portal, and that is deliberate.** `/pricing` is static and
-  tier-blind, so a Pro host tapping a different Pro size is refused at checkout; the button acts on the
-  `already_subscribed` code by opening the portal, where Stripe prorates correctly. Keep the page static
-  rather than make it dynamic to relabel one button; the portal's plan switcher is therefore load-bearing
-  (the runbook below).
+- ★ **NO PLAN CHANGE LEAVES A HOST STORING MORE THAN THE NEW CAP** (Will, 2026-09-22: "we should show them
+  their total storage used now and ask them to delete media to get under the storage cap of their selected
+  pro plan before being able to switch ... This eliminates our need to remove any of their media or cover
+  excess storage costs ourselves." And: "Downgrading pro plan should follow event pass with checking the
+  storage and ensuring it fits. Cancellation as normal."). ONE check, `checkPlanChange`, for every purchase
+  that REPLACES the cap: any Pro checkout (a pass holder's included) and any Pro-to-Pro size or cadence
+  change. An Event Pass is never refused (passes stack, so a pass only adds room). It compares ACTIVE bytes
+  (`getHostStorageSummary`, never re-derived) with the target plan's PLAIN cap from `tiers.ts`, never
+  `capWithWriteHeadroom` (the 10% is a courtesy at upload time, not room to buy into), and it is tier-blind,
+  so a Free host in the over-cap grace meets the same line. A refusal is a 409 `over_new_cap` carrying
+  `storedBytes`, `capBytes`, `gapBytes`, `fits` (the plan ids that hold it, at the target's cadence) and a
+  `message` naming the smallest size that fits; the stored figure and the gap round UP so doing exactly
+  what it says is enough. Checkout runs it after `resolveEntitlement` and `planById` and before a Stripe
+  customer exists; change-plan runs it after the subscription checks and before any session. A Pro Checkout
+  session closes 31 minutes out (Stripe's floor is 30 from ITS clock; the default is a day), so the check
+  it passed stays true. **The backstops stay:** the webhook remains the sole writer and does no usage
+  check, and the 45-day over-cap grace ([lifecycle-recovery.md](lifecycle-recovery.md)) catches what the
+  rule cannot reach: a cancellation, a pass running out, a change made in the Stripe dashboard, storage that
+  grew between the check and Stripe's confirm.
+- **A plan SWITCH goes through `/api/stripe/change-plan`, never the general portal.** `/pricing` is static
+  and tier-blind, so a Pro host tapping a Pro size is refused at checkout with `already_subscribed`; the
+  button acts on that code by posting the SAME plan id to change-plan (a pass click keeps checkout's
+  sentence). The plan sheet's price list, the account page's Plan card and the storage meter's popover all
+  reach the same route. It takes a zod enum of the six Pro ids; verifies `getUser()`, that the profile's
+  subscription is the profile's customer's, `active` or `trialing`, not set to end, single-item and on one
+  of our Pro prices (`past_due` fixes the card first; a hand-set Pro with no subscription is referred to
+  the contact page); refuses the plan the host is on (unless the old stepper left quantity above 1); runs
+  the storage check; then creates a portal session on the TAGGED configuration with `flow_data.type =
+  "subscription_update_confirm"` for exactly one item (the target price, `quantity: 1`) and
+  `after_completion: { type: "redirect" }`, so the host lands on Stripe's confirm page and then back on the
+  allow-listed app path (`safeReturnPath`, no welcome marker), never on that configuration's home page and
+  its switcher. Proration, payment and 3DS stay Stripe's; the route writes nothing to the profile and the
+  webhook applies the new cap. The configuration carries metadata `partyreel_purpose=change_plan` and NO
+  env value names it: `changePlanConfigurationId()` lists the account's active configurations once per warm
+  instance, caches the id in module scope, fails CLOSED (503 plus a Sentry capture, never the default
+  configuration) when none carries the tag, and forgets a stale id and looks once more when Stripe rejects
+  it. The general portal keeps the card, the invoices and cancelling; its `subscription_update` (the
+  switcher, and a quantity stepper with no maximum that could bill two or three times for one cap) is
+  switched off once this path is live.
 - **The prorated Pass→Pro credit is honored in the webhook, idempotently**: balance grant
   keyed `pass-credit-<sessionId>` (a Stripe idempotency key, so retries never double-grant) → consume all
   live passes (0 rows on replay) → clear `tier_expires_at`/`event_slots`. Customer balance auto-applies
@@ -104,8 +151,12 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   derived-absolute recompute.
 - ★ **Nothing in the app's pricing surface may DECIDE an entitlement, and the split is deliberate.** The sheet, the
   chip and the receipt modal take a server-derived `tier` (the RLS-scoped `profiles` row) only as CONTEXT for
-  which sentence to render; the checkout route re-resolves the entitlement from `profiles` before it opens a
-  session, and the RPCs enforce the gate again. So a forged prop or a hand-typed `?welcome=pro` changes a
+  which sentence to render; the checkout and change-plan routes re-resolve everything from `profiles` and
+  Stripe before they open a session, and the RPCs enforce the gate again. The sheet's own read when it opens
+  (`GET /api/stripe/plan-facts`: tier, active and Deleted bytes, the cap in force and, for Pro, the current
+  price and whether a switch can open) is context too: it picks the smallest size that fits and marks rows,
+  and it replaces the door's facts only because it is fresher. A failed read keeps the door's facts; a Stripe
+  read failure inside it degrades with a Sentry warning, never an error. So a forged prop or a hand-typed `?welcome=pro` changes a
   headline and never a permission. The receipt's `applied` flag is `tier !== "free"` read
   at RENDER time, never the URL marker, because Stripe redirects the instant payment succeeds and routinely beats
   the webhook by a second or two; the modal re-reads a BOUNDED number of times and flips to the real receipt when
@@ -165,11 +216,23 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
 - **The agent (via Stripe MCP) creates products + prices in TEST mode. ALWAYS verify the mode FIRST**:
   `list_available_accounts_or_orgs` → `livemode`, and pass that same mode on every call, because a
   wrong-mode write lands in the other account's catalog.
-- **The human creates the webhook endpoint + the Billing Portal config in the Stripe dashboard** and
+- **The human creates the webhook endpoint + the default Billing Portal config in the Stripe dashboard** and
   supplies the env values: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, the eight `STRIPE_PRICE_*` IDs —
-  into `.env.local` + Vercel, then redeploy. **The portal's plan switcher must list all SIX Pro prices**
-  (monthly + yearly on each of the three products): it is the only route between the intervals, since
-  checkout refuses a second subscription for an active Pro.
+  into `.env.local` + Vercel, then redeploy. **Two portal configurations, two jobs:** the DEFAULT one keeps
+  the card, invoice history, customer details and cancellation, with `subscription_update` OFF (no
+  switcher, no quantity stepper); the CHANGE-PLAN one is API-only (the dashboard edits only the default),
+  tagged `metadata.partyreel_purpose=change_plan`, with `subscription_update` on over all SIX Pro prices,
+  `default_allowed_updates: ["price"]`, quantity adjustment off, `proration_behavior: always_invoice`,
+  `billing_cycle_anchor: unchanged`, no period-end scheduling, cancellation, invoice history and customer
+  update off, and payment-method update on (Stripe requires it beside subscription updates). The app finds
+  it by the tag, so it needs no env value; read one back with
+  `GET /v1/billing_portal/configurations/<id>?expand[]=features.subscription_update.products`, since the
+  list omits the products.
+- **Verify a change-plan session through the API, not a browser** (the Chrome MCP cannot drive Stripe's
+  pages): create one for a TEST customer with a live subscription and read back `configuration` (the tagged
+  id), `flow.type` (`subscription_update_confirm`), `flow.subscription_update_confirm.items` (one item, the
+  target price, quantity 1) and `flow.after_completion.type` (`redirect`). Stripe documents that a flow hides
+  the portal's navigation; a session URL expires 5 minutes after creation if unused.
 - **Checkout/webhook can't run on localhost** — verify on the launch-prep alias (allow-listed like prod)
   with test card `4242 4242 4242 4242`. The Chrome MCP BLOCKS interaction on Stripe-hosted pages, so the
   card entry / Subscribe click is human-driven; verify the result via the Supabase MCP (read

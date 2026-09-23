@@ -2548,7 +2548,7 @@
             "it opens on the reason it opened"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 69
+          "line": 113
         },
         {
           "title": "opens on the SMALLEST Pro plan that clears the bytes, never a bigger one",
@@ -2556,7 +2556,7 @@
             "it opens on the reason it opened"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 81
+          "line": 125
         },
         {
           "title": "falls back to the smallest Pro when the refusal was events, not bytes",
@@ -2564,15 +2564,63 @@
             "it opens on the reason it opened"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 90
+          "line": 134
         },
         {
-          "title": "tells a subscriber she subscribes, and sells her nothing",
+          "title": "tells a subscriber she subscribes, and never offers a second subscription",
           "suite": [
             "it opens on the reason it opened"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 95
+          "line": 139
+        },
+        {
+          "title": "skips a size the host has outgrown, whatever door opened it",
+          "suite": [
+            "it opens on the smallest size that fits what the host stores"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 170
+        },
+        {
+          "title": "keeps the smallest size, and says nothing, for a host it fits",
+          "suite": [
+            "it opens on the smallest size that fits what the host stores"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "warns before a move that shrinks Deleted, and only then",
+          "suite": [
+            "it opens on the smallest size that fits what the host stores"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 189
+        },
+        {
+          "title": "keeps the door's facts when the read fails (the Library, a dropped request)",
+          "suite": [
+            "it opens on the smallest size that fits what the host stores"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 202
+        },
+        {
+          "title": "marks the sizes that cannot hold what she stores, and offers no switch to them",
+          "suite": [
+            "a Pro host's six prices"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 210
+        },
+        {
+          "title": "offers no switch at all when the subscription cannot change, and says why",
+          "suite": [
+            "a Pro host's six prices"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 233
         },
         {
           "title": "draws exactly Free and one Pro size",
@@ -2580,7 +2628,7 @@
             "it carries two cards and a price, and not the marketing page"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 112
+          "line": 251
         },
         {
           "title": "offers no storage selector and no cadence toggle (his `carry` overrule)",
@@ -2588,7 +2636,7 @@
             "it carries two cards and a price, and not the marketing page"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 119
+          "line": 258
         },
         {
           "title": "carries three benefit lines on the Pro card, derived from tiers.ts",
@@ -2596,7 +2644,7 @@
             "it carries two cards and a price, and not the marketing page"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 128
+          "line": 279
         },
         {
           "title": "prices every card from tiers.ts",
@@ -2604,7 +2652,15 @@
             "it carries two cards and a price, and not the marketing page"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 138
+          "line": 289
+        },
+        {
+          "title": "prices every one of a Pro host's rows from tiers.ts",
+          "suite": [
+            "it carries two cards and a price, and not the marketing page"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 295
         },
         {
           "title": "offers a first pass to a Free host",
@@ -2612,7 +2668,7 @@
             "the Event Pass is one line and a button, at every tier that may buy one"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 146
+          "line": 307
         },
         {
           "title": "offers a STACKING second pass to a holder, never a refusal",
@@ -2620,7 +2676,7 @@
             "the Event Pass is one line and a button, at every tier that may buy one"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 153
+          "line": 314
         },
         {
           "title": "links /pricing in a new tab so the host keeps their place",
@@ -2628,7 +2684,7 @@
             "the second layer stays one click away, and leaves on purpose"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 163
+          "line": 324
         },
         {
           "title": "opens from a trigger child without the caller owning any state",
@@ -2636,7 +2692,15 @@
             "a door that is a button opens it itself"
           ],
           "file": "src/components/app/pricing/pricing-sheet.test.tsx",
-          "line": 173
+          "line": 334
+        },
+        {
+          "title": "asks the server what the host stores only once it is open",
+          "suite": [
+            "a door that is a button opens it itself"
+          ],
+          "file": "src/components/app/pricing/pricing-sheet.test.tsx",
+          "line": 345
         }
       ]
     },
