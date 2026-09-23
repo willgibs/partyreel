@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
+import { PasskeysCard } from "./passkeys-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
@@ -12,8 +13,10 @@ import {
   UnfollowButton,
 } from "@/components/social/connection-buttons";
 import { AttendedEventsVisibility } from "@/components/social/attended-events-visibility";
+import { ProfileBioForm } from "@/components/social/profile-bio-form";
 import { ProfileSlugControl } from "@/components/social/profile-slug-control";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,13 +24,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import { CheckoutButton } from "@/components/app/checkout-button";
+import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
+import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
+import { PRO_LINE } from "@/lib/constants/marketing-voice";
+import {
+  DEFAULT_TIER,
+  MAX_EVENTS,
+  TIER_NAMES,
+  planById,
+  effectiveStorageCap,
+  formatLimit,
+  friendlyCapacity,
+  toBillingTier,
+  withinLimit,
+} from "@/lib/constants/tiers";
 import {
   countMyLiveEvents,
   isOnNewsletterList,
 } from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { formatBytes } from "@/lib/utils";
 import {
   getMyAttendedEvents,
   getMyBlocks,
@@ -38,6 +59,7 @@ import {
 } from "@/lib/db/queries/social";
 import { withAvatarUrls, type ProfileCardItem } from "@/lib/social/cards";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
+import { seedFor } from "@/lib/avatar/seed";
 import { getSiteUrl } from "@/lib/site-url";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -54,7 +76,7 @@ function PersonRow({
 }) {
   const identity = (
     <>
-      <Avatar size="sm">
+      <Avatar size="sm" seed={item.seed}>
         <AvatarImage src={item.avatarUrl ?? undefined} alt="" />
         <AvatarFallback className="text-[10px]">
           {(item.displayName ?? "?").slice(0, 1).toUpperCase()}
@@ -85,16 +107,21 @@ function PersonRow({
 // Account settings (auth-accounts.md + the profiles-social.md profile surface). Renders under the
 // (app) gate, so getUser() already ran; getProfile re-checks defensively. Next
 // 16: searchParams is a Promise. ?reset=1 arrives from the forgot-password flow
-// (after a fresh OTP verify) and forces the Security form into "set" mode.
+// (after a fresh OTP verify) and forces the Security form into "set" mode;
+// ?welcome=pro is where Stripe lands a buyer who started here (`back=finish`).
+//
+// ★ NEITHER PARAM MAY EVER DECIDE A PLAN. They open a form mode and a modal;
+// every entitlement on this page is read from the RLS-scoped profile row below,
+// and plan-card.test.ts pins the searchParams type for exactly that reason.
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string; welcome?: string }>;
 }) {
   const [
     profile,
     passwordSet,
-    { reset },
+    { reset, welcome },
     slug,
     attendedEvents,
     following,
@@ -104,6 +131,7 @@ export default async function AccountPage({
     notificationPrefs,
     onNewsletterList,
     liveEventCount,
+    storage,
   ] = await Promise.all([
     getProfile(),
     hasPassword(),
@@ -119,26 +147,174 @@ export default async function AccountPage({
     getNotificationPrefs(),
     isOnNewsletterList(),
     countMyLiveEvents(),
+    getHostStorageSummary(),
   ]);
   if (!profile) redirect("/login");
 
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
+  // Server-side SHA-256 of the account id (the sixth batch, `seed=account`):
+  // one colour per person everywhere, never the raw id itself
+  // (src/lib/avatar/seed.ts).
+  const seed = seedFor(profile.id);
   const [followingItems, blockItems] = await Promise.all([
     withAvatarUrls(following),
     withAvatarUrls(blocks),
   ]);
-  // Same lock rule as setProfileSlug (locked = free; paid tiers all claim).
   const tier = toBillingTier(profile.tier ?? DEFAULT_TIER);
-  const slugLocked = tier === "free";
+  const bio = profile.bio ?? null;
+
+  /* ── The Plan card's facts, every one of them SERVER-DERIVED ────────────────
+     ★ THE CLIENT IS NEVER ASKED WHAT PLAN SOMEBODY IS ON. `profiles.tier`,
+     `storage_cap_bytes`, `tier_expires_at` and `event_slots` are written ONLY
+     by the Stripe webhook through the service-role client (billing-caps.md),
+     read here through RLS-scoped `getProfile()`, and rendered. Nothing on this
+     page takes an entitlement from a prop, a search param or a cookie, and the
+     buttons below only ever ASK the server to start a session — the route
+     re-resolves the entitlement from `profiles` itself and refuses if it
+     disagrees. A Plan card is exactly the surface where trusting the client
+     would be cheapest and worst. */
+  const planName = TIER_NAMES[tier];
+  const planCap = effectiveStorageCap(tier, profile.storage_cap_bytes ?? null);
+  const planUsed = storage.activeBytes;
+  // Stacked Event Passes override the static tier limit, exactly as
+  // enforce_event_limit does in SQL.
+  const planMaxEvents = profile.event_slots ?? MAX_EVENTS[tier];
+  const planAtCap = !withinLimit(liveEventCount, planMaxEvents);
+  const planCapacity = planCap ? friendlyCapacity(planCap) : null;
+  const passExpiry =
+    tier === "event_pass" && profile.tier_expires_at
+      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : null;
+  const hasBilling = Boolean(profile.stripe_customer_id);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {welcome === WELCOME_VALUE && (
+        <WelcomeToPro
+          // The webhook is the sole writer of profiles.tier and Stripe can land
+          // the buyer before it fires, so the claim is scoped to what THIS
+          // render can see (`tier` is derived from the profile row above).
+          applied={tier !== "free"}
+          planName={planName}
+          capBytes={planCap}
+          nextUrl="/account"
+          door={{ label: "Go to your dashboard", href: "/dashboard" }}
+        />
+      )}
       <div>
         <PageHeading>Account</PageHeading>
         <p className="text-sm text-muted-foreground">
           Manage your profile and how you sign in.
         </p>
       </div>
+
+      {/* BILLING'S HOME (`doors=menu`, Will 2026-09-20, and his note: "If we're
+          going to have a dedicated 'Billing' page (better name), we need to
+          ensure the page has enough settings to justify it. Else we can drop it
+          back into the account page."). There is no dedicated page: this card is
+          it, and the user menu's Plan and storage row is the door to this anchor.
+          First on the page because it is the one card a host arrives here looking
+          for; the profile they came to edit is one scroll down and always was. */}
+      <Card id="plan" className="scroll-mt-6">
+        <CardHeader>
+          <CardTitle>Plan</CardTitle>
+          <CardDescription>
+            {planCap
+              ? `${planName} · ${formatBytes(planUsed)} of ${formatBytes(planCap)} used`
+              : `${planName} · ${formatBytes(planUsed)} used`}
+            {passExpiry ? ` · expires ${passExpiry}` : ""}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-muted-foreground">
+                Events
+              </dt>
+              {/* THE UPGRADE TRIGGER. "3 of 3 used" is the sentence that makes
+                  a host understand why the New event button went grey, and it
+                  has to be readable BEFORE they go looking for it. */}
+              <dd className="text-sm">
+                <span className={planAtCap ? "font-medium text-warning" : ""}>
+                  {liveEventCount} of {formatLimit(planMaxEvents)} used
+                </span>
+              </dd>
+            </div>
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-muted-foreground">
+                Storage
+              </dt>
+              <dd className="text-sm">
+                {planCapacity
+                  ? `About ${planCapacity.photos.toLocaleString()} photos or ${planCapacity.videoMinutes.toLocaleString()} min of video`
+                  : `${formatBytes(planUsed)} used`}
+              </dd>
+            </div>
+          </dl>
+
+          {tier === "free" && (
+            <p className="text-sm text-muted-foreground">
+              {/* The ruled Pro line (`pro-line=video`, his words: "For videos
+                  and unlimited events."), from its one home now that
+                  voice-wiring has landed it there. */}
+              <strong className="font-medium text-foreground">
+                {PRO_LINE}
+              </strong>{" "}
+              Everything paid adds is in the sheet below, and the full
+              comparison is on the pricing page.
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {/* UPGRADE OPENS THE SHEET, not the marketing page (`object=sheet`):
+                this card is where a host looks at what they pay, so the buying
+                decision happens in the same breath rather than a tab away. A
+                Pro host's Change plan opens the same sheet on the six prices
+                with theirs marked, and each switch runs the storage check
+                before Stripe's confirm page (billing-caps.md). The portal
+                button beside it keeps the card, invoices and cancelling. */}
+            <PricingSheet
+              trigger={{ kind: "plan" }}
+              plan={{ tier, hasBilling, passExpiry }}
+              returnTo="/account"
+            >
+              <Button size="sm">
+                {tier === "free" ? "Upgrade" : "Change plan"}
+              </Button>
+            </PricingSheet>
+            {hasBilling && <ManageBillingButton />}
+            {tier === "event_pass" && (
+              <CheckoutButton
+                planId="event_pass"
+                renewal
+                next="/account"
+                variant="outline"
+              >
+                Renew {planById("event_pass").name}
+              </CheckoutButton>
+            )}
+          </div>
+
+          {/* THE PASS ON ONE LINE (`pass=line`), on the card as well as in the
+              sheet: a host reading their plan should see the cheaper door to
+              the same gates without being sold two billing models at equal
+              weight. A second purchase STACKS (billing-caps.md). */}
+          {tier !== "pro" && (
+            <p className="border-t border-border/60 pt-4 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {planById("event_pass").name}
+              </span>{" "}
+              covers one event, paid once:{" "}
+              {planById("event_pass").priceLabel.replace(" one-time", "")} for{" "}
+              {formatBytes(planById("event_pass").storageBytes)}.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -152,6 +328,7 @@ export default async function AccountPage({
             avatarUrl={avatarUrl}
             displayName={profile.display_name}
             email={profile.email}
+            seed={seed}
           />
           <DisplayNameForm displayName={profile.display_name} />
           <div className="space-y-1.5">
@@ -163,28 +340,31 @@ export default async function AccountPage({
         </CardContent>
       </Card>
 
-      <Card>
+      {/* The id is the after-upload prompt's door: a guest who just added
+          photographs to somebody's wedding arrives here wanting one box, not a
+          five-card page to scroll (Will, `claim=after`, 2026-09-19). */}
+      <Card id="public-profile" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Public profile</CardTitle>
           <CardDescription>
             Your page on Partyreel: the events you host and choose to share,
-            plus events you joined. Follower counts stay private to you.
+            plus events you added photos to. Follower counts stay private to you.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <ProfileSlugControl
-            siteUrl={siteUrl}
-            slug={slug}
-            locked={slugLocked}
-          />
+          <ProfileSlugControl siteUrl={siteUrl} slug={slug} />
+          {/* The bio lives beside the handle rather than in the Profile card
+              above: it exists at exactly one address, and only once a handle
+              does. */}
+          <ProfileBioForm bio={bio} />
           <div className="space-y-2 border-t border-border/60 pt-5">
             <p className="text-xs font-medium text-muted-foreground">
-              Events you joined
+              Events you added photos to
             </p>
             <p className="text-xs text-muted-foreground">
-              Choose which show on your profile. Turning one off here
-              doesn&rsquo;t remove you from that event&rsquo;s own guest list
-              (the host controls that).
+              Events you added photos to are private until you turn one on here.
+              Turning one off never removes you from that event&rsquo;s own
+              guest list (the host controls that).
             </p>
             <AttendedEventsVisibility events={attendedEvents} />
           </div>
@@ -272,6 +452,8 @@ export default async function AccountPage({
           />
         </CardContent>
       </Card>
+      {/* door-wiring's one line (2026-09-20), placed by the Orchestrator once avatar-wiring, which owned this page, had landed: the passkey row under the Password card. */}
+      <PasskeysCard />
 
       <Card>
         <CardHeader>

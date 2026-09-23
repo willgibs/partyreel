@@ -36,6 +36,10 @@ import { MAX_UPLOAD_BYTES, extForMime } from "@/lib/media/limits";
 import type { MediaKind } from "@/lib/media/limits";
 import { MAX_PREVIEW_BYTES } from "@/lib/media/preview-size";
 import { classifyMime, validateUpload } from "@/lib/media/validators";
+import {
+  applyGuestCookies,
+  type GuestCookieWrite,
+} from "@/lib/guest/session-cookie";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import {
   isValidMediaKey,
@@ -251,6 +255,15 @@ type CreateRecordOutcome =
   | {
       ok: true;
       data: { media_id: string; status: string } | { idempotent: true };
+      /**
+       * ★ COOKIES THE STRATEGY WANTS ON THE SUCCESS RESPONSE (the door as three steps,
+       * 2026-09-21). The guest route heals `pr_guest_<eventId>` here, because a completed upload
+       * is the LAST moment before the album is supposed to open and the one act that proves the
+       * token is real. Optional, and the host strategy never sets it: a host has an account and
+       * no guest session. The engine applies them verbatim to the 200 and to nothing else, so a
+       * refused upload never writes one.
+       */
+      setCookies?: readonly (GuestCookieWrite | null | undefined)[];
     }
   | { ok: false; code: string; message: string };
 
@@ -459,5 +472,7 @@ export async function runCompletePipeline<
 
   // {media_id, status} on a fresh insert; {idempotent:true} on a retry.
   const status = "idempotent" in result.data ? "recorded" : result.data.status;
-  return NextResponse.json({ ok: true, status });
+  const response = NextResponse.json({ ok: true, status });
+  if (result.setCookies?.length) applyGuestCookies(response, result.setCookies);
+  return response;
 }

@@ -1,10 +1,6 @@
-// ★ PENDING, NOT ABANDONED: strip "-pending" to publish these contracts on the
-// library page. The collector indexes every file a @contract-for names, and an
-// indexed file owes a `for` line in rules/component-notes.ts (gallery.test.ts
-// fails without one). That file and the collector's COMPONENT_DIRS are the
-// lab-library and lab-rules lanes, so the nine lines are asked for in this
-// track's Handoff with the exact patch. The tests below RUN either way: the
-// marker publishes a contract, it does not create one.
+// Published contracts: the collector indexes every file a live @contract-for names, and each owes a
+// `for` line in rules/component-notes.ts (gallery.test.ts holds them). The marker publishes a contract,
+// it does not create one: the tests below run either way.
 // @contract-for: src/app/(dev)/design/sandbox/registry.ts
 // @contract-for: src/components/lab/board-spec.ts
 // @contract-for: src/components/lab/board-page.tsx
@@ -25,6 +21,7 @@ import { RESERVED_PARAMS } from "@/components/lab/board-state";
 import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import { BOARDS, boardSpec } from "./registry";
+import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 /**
  * THE BOARD REGISTRY'S CONTRACT.
@@ -131,6 +128,16 @@ describe("the board registry", () => {
           c.lands,
           LIMITS.candidateLands,
         );
+      }
+      for (const c of b.carried ?? []) {
+        under(`${b.id}.call ${c.id}`, c.question, LIMITS.carriedQuestion);
+        under(`${b.id}.call ${c.id}.taken`, c.taken, LIMITS.carriedTaken);
+        under(
+          `${b.id}.call ${c.id}.overrule`,
+          c.overrule,
+          LIMITS.carriedOverrule,
+        );
+        expect(c.id).toMatch(/^[a-z][a-z0-9-]*$/);
       }
       for (const d of [
         ...b.departures,
@@ -599,4 +606,20 @@ describe("the asks, in plain words", () => {
       }
     });
   }
+});
+
+/**
+ * THE DESK'S ORDER NAMES EVERY STANDING BOARD ONCE AND NOTHING ELSE (Will,
+ * 2026-09-19: the earlier influence first). `DESK_ORDER` in touchpoints.ts is
+ * the order's one home; a board registered without a place there would sort to
+ * the foot in silence, and a retired board left in the list would name nothing.
+ */
+describe("the desk's order", () => {
+  it("names every standing board exactly once", () => {
+    expect([...DESK_ORDER].sort()).toEqual(BOARDS.map((b) => b.id).sort());
+    expect(new Set(DESK_ORDER).size).toBe(DESK_ORDER.length);
+  });
+  it("is the order BOARDS exports", () => {
+    expect(BOARDS.map((b) => b.id)).toEqual([...DESK_ORDER]);
+  });
 });

@@ -45,7 +45,7 @@ const CLAIMS: { title: string; body: string }[] = [
   },
   {
     title: "30 days to change your mind",
-    body: "Deleted media waits in a recovery bin for 30 days before it is gone for good.",
+    body: "Removed media waits in Deleted for 30 days before it is gone for good.",
   },
   {
     title: "Backed up twice, automatically",

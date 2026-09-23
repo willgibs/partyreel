@@ -109,18 +109,21 @@ export function askStates(board: DeskBoard, status: BoardStatus): AskState[] {
   const spec = status.spec;
   if (!spec) return [];
   const current = status.round !== null && status.round.n === spec.round.n;
-  return status.asks.map((a) => ({
-    board: board.id,
-    boardTitle: board.title,
-    round: spec.round.n,
-    ask: a.ask,
-    answer:
+  return status.asks.map((a) => {
+    const answer =
       current && (a.state === "answered" || a.state === "unclear")
         ? { choice: a.answer.choice, note: a.answer.note }
-        : null,
-    staged: a.state === "staged",
-    moot: a.state === "moot",
-  }));
+        : null;
+    return {
+      board: board.id,
+      boardTitle: board.title,
+      round: spec.round.n,
+      ask: a.ask,
+      answer,
+      staged: a.state === "staged",
+      moot: a.state === "moot",
+    };
+  });
 }
 
 /** The catalog's cards against one status reading, under the same round guard. */

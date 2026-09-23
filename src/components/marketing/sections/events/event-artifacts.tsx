@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 
 import { BrowserFrame } from "@/components/marketing/frames";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -15,17 +16,27 @@ import { ScanPulseRing } from "./scan-pulse-ring";
  * over that, and never let a photo make a promise the vertical can't keep —
  * lead with the PRODUCT instead.
  *
- *  - AttendeeBadge / BadgeFan: the attendee badge (the reviewer-praised
- *    artifact on the site) promoted from a side panel to the conference hero.
- *    A fan of three badges says what the venue photo could not: every attendee
- *    in the room carries the code.
- *  - SharedRoll: the trip's album mid-fill, with four uploads landing from four
- *    different people. The story trips actually sells (everyone's camera in one
+ *  - AttendeeBadge: the attendee badge (the reviewer-praised artifact on the
+ *    site), the cell every conference object is built from. Its `code` slot
+ *    takes the demo's REAL plate, which is what makes the conference hero a
+ *    door rather than a picture of one (`event-object.tsx`).
+ *  - SharedRoll: an album mid-fill, with uploads landing from four different
+ *    people. The story the product actually tells (everyone's camera in one
  *    place) told by the product, not by a borrowed subject.
  *
- * Both render at two scales: "hero" (the /events/[slug] hero) and "card" (the
- * /events hub directory tile), so the hub previews the same artifact its page
- * leads with. Decorative by contract: callers set aria-hidden.
+ * ★ WHAT THE WIRING ROUND CHANGED (2026-09-19). Will ruled the CARDS onto
+ * photographs for all four types ("all events should have a photograph
+ * (weddings, parties) rather than an artifact (conferences, trips)"), so
+ * neither artifact stands in a card any more: the directory and the home row
+ * both take a still from `events.ts`, a named stand-in until ASSETS rows 24 and
+ * 25 land. The artifacts stayed for the two jobs a photograph cannot do: the
+ * badge is the conference's lit object, and the filling pane is what the
+ * statement stands beside on the two types whose visual is the product.
+ * `BadgeFan` went with the hand-rolled hero it was built for, and the roll
+ * stopped naming its own stills: it takes them like every other component here.
+ *
+ * Both render at two scales: "hero" and "card". Decorative except the code:
+ * callers set aria-hidden on the drawn parts, never over a real link.
  */
 
 /* The badge's decorative QR, drawn locally: the shared QrFrame's decorative
@@ -60,6 +71,7 @@ export function AttendeeBadge({
   seed = 0,
   scale = "hero",
   pulse = false,
+  code,
   className,
 }: {
   name?: string;
@@ -68,6 +80,15 @@ export function AttendeeBadge({
   scale?: "hero" | "card";
   /** Ambient "scan me" ring on the QR plate (the front badge only). */
   pulse?: boolean;
+  /**
+   * A REAL code, in place of the drawn cells (the events wiring, 2026-09-19).
+   * Will ruled the object hero because it "conveys more about how we actually
+   * help that event (such as incorporating the QR)", so the conference object's
+   * FRONT badge carries the demo's own scannable plate while the four leaning
+   * behind it keep their decorative ones. The slot brings its own white plate
+   * (the scanner-contrast rule), so the badge stops drawing one under it.
+   */
+  code?: ReactNode;
   className?: string;
 }) {
   const hero = scale === "hero";
@@ -98,24 +119,32 @@ export function AttendeeBadge({
           {role}
         </span>
       </div>
-      <div className="relative mx-auto rounded-lg bg-white p-2">
+      <div
+        className={cn(
+          "relative mx-auto",
+          // A real code arrives on its own plate; the drawn cells need one.
+          !code && "rounded-lg bg-white p-2",
+        )}
+      >
         {pulse && <ScanPulseRing />}
-        <div
-          className={cn("grid gap-px", hero ? "w-28" : "w-16")}
-          style={{
-            gridTemplateColumns: `repeat(${BADGE_QR_SIZE}, minmax(0, 1fr))`,
-          }}
-        >
-          {badgeQrCells(seed).map((dark, index) => (
-            <span
-              key={index}
-              className={cn(
-                "aspect-square rounded-[1px]",
-                dark ? "bg-black" : "bg-white",
-              )}
-            />
-          ))}
-        </div>
+        {code ?? (
+          <div
+            className={cn("grid gap-px", hero ? "w-28" : "w-16")}
+            style={{
+              gridTemplateColumns: `repeat(${BADGE_QR_SIZE}, minmax(0, 1fr))`,
+            }}
+          >
+            {badgeQrCells(seed).map((dark, index) => (
+              <span
+                key={index}
+                className={cn(
+                  "aspect-square rounded-[1px]",
+                  dark ? "bg-black" : "bg-white",
+                )}
+              />
+            ))}
+          </div>
+        )}
       </div>
       <span
         className={cn(
@@ -129,63 +158,73 @@ export function AttendeeBadge({
   );
 }
 
-/** Three badges from the registration desk: the front one crisp and pulsing,
- *  two more fanned behind it. Below `sm` the fan collapses to the single front
- *  badge (A21: hero visuals must not shrink into stamps on a phone). */
-export function BadgeFan() {
-  return (
-    <div className="flex items-center justify-center">
-      <AttendeeBadge
-        name="Priya Shah"
-        role="Speaker"
-        seed={4}
-        className="hidden origin-bottom-right scale-[0.9] -rotate-[7deg] opacity-80 sm:-mr-12 sm:flex"
-      />
-      {/* The front badge really overlaps the two behind it: the lift. */}
-      <AttendeeBadge pulse seed={0} className="z-10 shadow-lift" />
-      <AttendeeBadge
-        name="Marcus Lee"
-        role="Crew"
-        seed={9}
-        className="hidden origin-bottom-left scale-[0.9] rotate-[7deg] opacity-80 sm:-ml-12 sm:flex"
-      />
-    </div>
-  );
-}
-
-/* The roll, tile by tile. Only TWO stills, INTERLEAVED rather than blocked
-   together: the manifest has no vacation subjects, so the least-wrong frames
-   are festival ones, and two of them side by side would rebuild the "this is a
-   concert" read A9 came here to kill. The rest are uploads in flight (initials
-   + how far along, the phone frame's progress vocabulary) — four people adding
-   at once IS the trip pitch, where four blank plates were just a hole. */
+/**
+ * THE ALBUM FILLING, AS THE PRODUCT ITSELF.
+ *
+ * ★ IT IS NEVER IDLE, and that is the whole design. A wide frame of empty
+ * plates reads as a BROKEN album rather than a filling one (the first R4 cut of
+ * this artifact did exactly that), so a pane is always six tiles: whatever
+ * honest stills the type owns, INTERLEAVED with uploads in flight, never
+ * blocked together. Interleaving is not decoration either: the manifest's only
+ * "away" frames are festival ones, and two of those side by side rebuild the
+ * "this is a concert" read A9 came here to kill.
+ *
+ * ★ AND IT TAKES ITS PHOTOGRAPHS RATHER THAN NAMING THEM (the events wiring,
+ * 2026-09-19). It used to hard-code two trip stills and one album name, which
+ * made it the trip page's artifact and nothing else; `events.ts` now owns every
+ * still per type, so the SAME pane is the conference statement's visual, the
+ * trip statement's visual, and whatever the next type needs.
+ */
 type RollTile =
   | { kind: "still"; id: string }
   | { kind: "arriving"; initials: string; percent: number };
 
-const ROLL_TILES: RollTile[] = [
-  { kind: "still", id: "festival-crowd" },
-  { kind: "arriving", initials: "AR", percent: 70 },
-  { kind: "still", id: "concert-confetti" },
-  { kind: "arriving", initials: "BN", percent: 35 },
-  { kind: "arriving", initials: "CD", percent: 55 },
-  { kind: "arriving", initials: "MK", percent: 20 },
+/** The people adding while a reader looks at it. Four, with their own progress,
+ *  because four people uploading at once IS the pitch these panes make. */
+const ARRIVING: { initials: string; percent: number }[] = [
+  { initials: "AR", percent: 70 },
+  { initials: "BN", percent: 35 },
+  { initials: "CD", percent: 55 },
+  { initials: "MK", percent: 20 },
 ];
 
-/**
- * The trip's shared roll: who is adding, and the album filling as they do.
- *
- * The grid is deliberately SMALL and never idle. A wide frame of empty plates
- * reads as a broken album, not a filling one (the first R4 cut of this artifact
- * did exactly that), so the six tiles are two landed photos and four uploads in
- * flight: every cell says something.
- */
-export function SharedRoll({ scale = "hero" }: { scale?: "hero" | "card" }) {
+const ROLL_TILE_COUNT = 6;
+
+/** Stills first into the odd slots, uploads into the rest, so no two
+ *  photographs ever land beside each other whatever the type owns. */
+function rollTiles(stills: readonly string[]): RollTile[] {
+  const tiles: RollTile[] = [];
+  let next = 0;
+  for (let i = 0; i < ROLL_TILE_COUNT; i++) {
+    const still = i % 2 === 0 ? stills[i / 2] : undefined;
+    if (still) tiles.push({ kind: "still", id: still });
+    else if (next < ARRIVING.length)
+      tiles.push({ kind: "arriving", ...ARRIVING[next++] });
+    else tiles.push({ kind: "still", id: stills[stills.length - 1] });
+  }
+  return tiles;
+}
+
+export function SharedRoll({
+  scale = "hero",
+  title = "Desert weekend",
+  slug = "desert-weekend",
+  stills = ["festival-crowd", "concert-confetti"],
+}: {
+  scale?: "hero" | "card";
+  /** The album's name in its own header row. */
+  title?: string;
+  /** What the frame's address bar reads. */
+  slug?: string;
+  /** The type's honest stills, strongest first. */
+  stills?: readonly string[];
+}) {
   const hero = scale === "hero";
+  const tiles = rollTiles(stills);
   return (
     <BrowserFrame
       className={cn("mx-auto", hero ? "max-w-lg" : "rounded-xl p-2")}
-      label={hero ? <>partyreel.com/a/desert-weekend</> : undefined}
+      label={hero ? <>partyreel.com/a/{slug}</> : undefined}
     >
       <div
         className={cn(
@@ -194,7 +233,7 @@ export function SharedRoll({ scale = "hero" }: { scale?: "hero" | "card" }) {
         )}
       >
         <span className={cn("font-medium", hero ? "text-sm" : "text-[11px]")}>
-          Desert weekend
+          {title}
         </span>
         {/* No avatar comb up here: the tiles below already carry the initials,
             and two rows of the same four people read as a bug. */}
@@ -204,15 +243,15 @@ export function SharedRoll({ scale = "hero" }: { scale?: "hero" | "card" }) {
             hero ? "text-[11px]" : "text-[9px]",
           )}
         >
-          6 adding
+          {ARRIVING.length} adding
         </span>
       </div>
 
       <div className={cn("grid grid-cols-3", hero ? "gap-2" : "gap-1")}>
-        {ROLL_TILES.map((tile) =>
+        {tiles.map((tile, i) =>
           tile.kind === "still" ? (
             <div
-              key={tile.id}
+              key={`${tile.id}-${i}`}
               className={cn(
                 "relative aspect-square overflow-hidden",
                 hero ? "rounded-lg" : "rounded-md",

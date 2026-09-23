@@ -479,7 +479,7 @@ function TagRail({
       // 375px viewport (a body-level horizontal scrollbar on every phone).
       className="min-w-0 lg:sticky lg:top-[var(--mkt-rail-top)] lg:self-start"
     >
-      <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+      <p className="text-label font-medium text-muted-foreground uppercase">
         Browse
       </p>
       <div className="mt-3 flex [scrollbar-width:none] gap-x-4 overflow-x-auto pb-1 lg:flex-col lg:gap-x-0 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
@@ -543,7 +543,7 @@ function RailRow({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "relative flex shrink-0 snap-start items-baseline justify-between gap-3 py-1.5 text-left text-[13px] whitespace-nowrap",
+        "relative flex shrink-0 snap-start items-baseline justify-between gap-3 py-1.5 text-left text-working whitespace-nowrap",
         "transition-colors duration-150 lg:w-full lg:border-t lg:pl-3 lg:first:border-t-0",
         active
           ? "font-medium text-foreground"
@@ -558,7 +558,7 @@ function RailRow({
         )}
       />
       {label}
-      <span className="text-[11px] text-faint tabular-nums">{count}</span>
+      <span className="text-micro text-faint tabular-nums">{count}</span>
     </button>
   );
 }
@@ -604,7 +604,7 @@ function FeaturedCard({ post }: { post: BlogListItem }) {
         className="absolute inset-0 bg-linear-to-t from-black/90 via-black/45 to-black/10 transition-opacity duration-[180ms] ease-emphasis group-hover:opacity-85 motion-reduce:transition-none"
       />
       <span className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:p-8 md:p-10">
-        <span className="text-[11px] font-medium tracking-[0.14em] text-white/70 uppercase">
+        <span className="text-label font-medium text-white/70 uppercase">
           Latest
         </span>
         <h2 className="line-clamp-3 max-w-3xl font-heading text-chapter text-balance text-white">

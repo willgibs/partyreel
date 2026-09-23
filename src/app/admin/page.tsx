@@ -1,138 +1,90 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  BarChart3,
-  Download,
-  Flag,
-  Images,
-  LifeBuoy,
-  Megaphone,
-  ShieldCheck,
-  Users,
-  Wallet,
-} from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { requireAdmin } from "@/lib/auth/admin-context";
-import { countApplicationsByStatus } from "@/lib/db/queries/applications";
-import { countOpenReports } from "@/lib/db/queries/reports";
-import { countContactByStatus } from "@/lib/db/queries/support";
+import { MetricCard } from "@/components/admin/metric-card";
+import { QueueList } from "@/components/admin/queue-list";
+import { Sparkline } from "@/components/admin/sparkline";
 import { PageHeading } from "@/components/shared/page-heading";
+import { buildAdminKpis, FORTNIGHT_DAYS } from "@/lib/admin/kpi";
+import { readOperatorQueue } from "@/lib/admin/queue-data";
+import { requireAdmin } from "@/lib/auth/admin-context";
+import { getPlatformDbMetrics } from "@/lib/db/queries/metrics";
+import { buildSignupTrend } from "@/lib/metrics/aggregate";
 
 export const dynamic = "force-dynamic";
 
-// Portal landing. Re-checks authz as its own entry point. The card grid is the nav home; the
-// badge on each card is the pending-work count (new submissions/applications, open reports).
+/**
+ * THE OPERATOR'S HOME (`home=kpi`, Will 2026-09-20: "The numbers first, the
+ * queue beneath").
+ *
+ * Four figures with a fortnight's change, one line of signups under the first,
+ * and everything waiting on the operator beneath them, worst first. The nine
+ * badged cards this replaces answered "where do I click", which is what the
+ * rail and the palette now answer twice over, and they drew the same page
+ * whether the platform was calm or on fire: the only difference the day made
+ * was a small number on three of them.
+ *
+ * ★ IT READS THE DATABASE HALF ONLY. `getPlatformDbMetrics()` is the split
+ * /admin/metrics also reads; the live Stripe call stays on that page. The
+ * landing page of a console must not wait on a third party that is allowed to
+ * be slow and allowed to fail, and revenue is not one of the four figures.
+ */
 export default async function AdminHomePage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const [newSupport, newApplicants, openReports] = await Promise.all([
-    countContactByStatus("new"),
-    countApplicationsByStatus("new"),
-    countOpenReports(),
+  const [metrics, queue] = await Promise.all([
+    getPlatformDbMetrics(),
+    readOperatorQueue(),
   ]);
 
-  const surfaces = [
-    {
-      href: "/admin/metrics",
-      icon: BarChart3,
-      title: "Metrics",
-      description: "Platform-wide signups, storage, engagement, and revenue.",
-      count: 0,
-    },
-    {
-      href: "/admin/support",
-      icon: LifeBuoy,
-      title: "Support",
-      description: "Contact form submissions to triage.",
-      count: newSupport,
-    },
-    {
-      href: "/admin/applicants",
-      icon: Users,
-      title: "Applicants",
-      description: "Job applications to review.",
-      count: newApplicants,
-    },
-    {
-      href: "/admin/accounts",
-      icon: Wallet,
-      title: "Accounts",
-      description: "Look up host accounts, billing, and storage.",
-      count: 0,
-    },
-    {
-      href: "/admin/reports",
-      icon: Flag,
-      title: "Reports",
-      description: "Review guest-reported content and act on it.",
-      count: openReports,
-    },
-    {
-      href: "/admin/albums",
-      icon: Images,
-      title: "Albums",
-      description: "Browse recent uploads and remove unsafe media.",
-      count: 0,
-    },
-    {
-      href: "/admin/announcements",
-      icon: Megaphone,
-      title: "Announcements",
-      description: "Publish messages to every host's notification bell.",
-      count: 0,
-    },
-    {
-      href: "/admin/exports",
-      icon: Download,
-      title: "Exports",
-      description: "Recent album downloads and the download kill-switch.",
-      count: 0,
-    },
-    {
-      href: "/admin/security",
-      icon: ShieldCheck,
-      title: "Security",
-      description: "Two-factor and portal-access protections.",
-      count: 0,
-    },
-  ];
+  const kpis = buildAdminKpis(metrics.profileRows, metrics.uploads);
+  // The same reducer /admin/metrics uses over thirty days, asked for fourteen,
+  // so the line under the figure covers the span the figure's delta does.
+  const trend = buildSignupTrend(
+    metrics.profileRows,
+    new Date(),
+    FORTNIGHT_DAYS,
+  );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <PageHeading>Operations</PageHeading>
-        <p className="text-sm text-muted-foreground">
-          Internal tools for running Partyreel. Content and announcements land
-          in an upcoming round.
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <PageHeading>Operations</PageHeading>
+          <p className="text-working text-muted-foreground">
+            Where the platform stands, and what is waiting on you.
+          </p>
+        </div>
+        <Link
+          href="/admin/metrics"
+          className="text-caption font-medium underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
+        >
+          All metrics
+        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {surfaces.map(({ href, icon: Icon, title, description, count }) => (
-          <Link key={href} href={href} className="group">
-            <Card className="h-full transition-colors group-hover:border-foreground/20">
-              <CardHeader>
-                <div className="mb-1 flex items-center justify-between">
-                  <Icon className="size-5 text-muted-foreground" />
-                  <ArrowRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                </div>
-                <CardTitle className="flex items-center gap-2">
-                  {title}
-                  {count > 0 ? <Badge>{count}</Badge> : null}
-                </CardTitle>
-                <CardDescription>{description}</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((kpi) => (
+          <MetricCard
+            key={kpi.id}
+            label={kpi.label}
+            value={kpi.value}
+            sub={kpi.sub}
+            delta={kpi.delta}
+          >
+            {kpi.id === "accounts" ? (
+              <Sparkline
+                counts={trend.map((day) => day.count)}
+                label="New accounts"
+              />
+            ) : null}
+          </MetricCard>
         ))}
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-working font-medium">Waiting on you</h2>
+        <QueueList items={queue} />
       </div>
     </div>
   );

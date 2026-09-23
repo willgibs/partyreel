@@ -4,6 +4,14 @@ import { Fingerprint, ShieldAlert } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -74,8 +82,11 @@ export default async function ForensicsPage() {
           </div>
           <CardDescription>
             Every completed upload should write one forensic record (IP, agent,
-            geo, device). A gap means the capture seam is failing; check Sentry
-            for forensic_capture_failed.
+            geo, device, and the uploader identity as it stood: a confirmed
+            account and its address, or the name a guest typed at the door plus
+            any address they typed beside it, unconfirmed). Download Record on a
+            held item to read the whole row. A gap means the capture seam is
+            failing; check Sentry for forensic_capture_failed.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,7 +113,9 @@ export default async function ForensicsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      {/* The palette jumps here rather than preserving anything itself
+          (lib/admin/palette.ts), so the id is part of that contract. */}
+      <Card id="preserve" className="scroll-mt-20">
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-foreground" />
@@ -130,70 +143,77 @@ export default async function ForensicsPage() {
         </CardHeader>
         <CardContent>
           {holds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active holds.</p>
+            <p className="text-working text-muted-foreground">
+              No active holds.
+            </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">Media</th>
-                    <th className="py-2 pr-3 font-medium">Event</th>
-                    <th className="py-2 pr-3 font-medium">Held since</th>
-                    <th className="py-2 pr-3 font-medium">Preserved</th>
-                    <th className="py-2 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {holds.map((h) => (
-                    <tr key={h.id} className="border-b border-border/50">
-                      <td
-                        className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums"
-                        title={h.holdReason ?? ""}
-                      >
-                        {h.id.slice(0, 8)}…
-                      </td>
-                      <td className="py-2 pr-3">
-                        {h.eventName ?? `${h.eventId.slice(0, 8)}…`}
-                      </td>
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
-                        {new Date(h.heldAt).toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Media</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Held since</TableHead>
+                  <TableHead>Preserved</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {holds.map((h) => (
+                  <TableRow key={h.id}>
+                    <TableCell
+                      className="text-caption whitespace-nowrap tabular-nums"
+                      title={h.holdReason ?? ""}
+                    >
+                      {h.id.slice(0, 8)}\u2026
+                    </TableCell>
+                    <TableCell>
+                      {h.eventName ?? `${h.eventId.slice(0, 8)}\u2026`}
+                    </TableCell>
+                    {/* A locale render is the server's timezone during SSR and
+                        the browser's on hydration: React #418 without this. */}
+                    <TableCell
+                      suppressHydrationWarning
+                      className="whitespace-nowrap text-muted-foreground"
+                    >
+                      {new Date(h.heldAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {h.preservedAt ? (
+                        <Badge variant="success">yes</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">hold only</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-2">
                         {h.preservedAt ? (
-                          <Badge variant="secondary">yes</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            hold only
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {h.preservedAt ? (
-                            <>
-                              {/* Server-mediated, audit-logged downloads (the export route). */}
-                              <a
-                                className="text-xs underline underline-offset-2 hover:text-foreground"
-                                href={`/admin/forensics/export?media=${h.id}&what=evidence`}
-                              >
-                                Evidence
-                              </a>
-                              <a
-                                className="text-xs underline underline-offset-2 hover:text-foreground"
-                                href={`/admin/forensics/export?media=${h.id}&what=record`}
-                              >
-                                Record
-                              </a>
-                            </>
-                          ) : null}
-                          <ReleaseHoldButton mediaId={h.id} />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <>
+                            {/* Server-mediated, audit-logged downloads (the export route). */}
+                            <a
+                              className="text-caption underline underline-offset-2 hover:text-foreground"
+                              href={`/admin/forensics/export?media=${h.id}&what=evidence`}
+                            >
+                              Evidence
+                            </a>
+                            <a
+                              className="text-caption underline underline-offset-2 hover:text-foreground"
+                              href={`/admin/forensics/export?media=${h.id}&what=record`}
+                            >
+                              Record
+                            </a>
+                          </>
+                        ) : null}
+                        <ReleaseHoldButton
+                          mediaId={h.id}
+                          eventName={h.eventName ?? h.eventId.slice(0, 8)}
+                          preserved={Boolean(h.preservedAt)}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -208,47 +228,48 @@ export default async function ForensicsPage() {
         </CardHeader>
         <CardContent>
           {audit.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No actions yet.</p>
+            <p className="text-working text-muted-foreground">
+              No actions yet.
+            </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">When</th>
-                    <th className="py-2 pr-3 font-medium">Action</th>
-                    <th className="py-2 pr-3 font-medium">Media</th>
-                    <th className="py-2 font-medium">Outcome</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {audit.map((a) => (
-                    <tr key={a.id} className="border-b border-border/50">
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
-                        {new Date(a.createdAt).toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3">
-                        {ACTION_LABEL[a.action] ?? a.action}
-                      </td>
-                      <td className="py-2 pr-3 text-xs whitespace-nowrap tabular-nums">
-                        {a.mediaId ? `${a.mediaId.slice(0, 8)}…` : ""}
-                      </td>
-                      <td className="py-2">
-                        {a.outcome === "ok" ? (
-                          <span className="text-foreground">ok</span>
-                        ) : (
-                          <span
-                            className="text-destructive"
-                            title={a.error ?? ""}
-                          >
-                            error
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>When</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Media</TableHead>
+                  <TableHead>Outcome</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {audit.map((a) => (
+                  <TableRow
+                    key={a.id}
+                    tone={a.outcome === "ok" ? undefined : "destructive"}
+                  >
+                    <TableCell
+                      suppressHydrationWarning
+                      className="whitespace-nowrap text-muted-foreground"
+                    >
+                      {new Date(a.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{ACTION_LABEL[a.action] ?? a.action}</TableCell>
+                    <TableCell className="text-caption whitespace-nowrap tabular-nums">
+                      {a.mediaId ? `${a.mediaId.slice(0, 8)}\u2026` : ""}
+                    </TableCell>
+                    <TableCell>
+                      {a.outcome === "ok" ? (
+                        <Badge variant="success">ok</Badge>
+                      ) : (
+                        <Badge variant="destructive" title={a.error ?? ""}>
+                          error
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

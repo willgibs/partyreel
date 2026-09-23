@@ -16,8 +16,14 @@ import {
   getApprovedPhotoTeaser,
   getUploaderIdentities,
 } from "@/lib/db/queries/guest-events-admin";
+import { getUploadGate } from "@/lib/db/queries/guest-gate";
 import { isDemoToken } from "@/lib/demo";
-import { TEASER_LIMIT, type GalleryAccess } from "@/lib/events/gallery-access";
+import {
+  resolveGalleryDecision,
+  TEASER_LIMIT,
+  type GalleryAccess,
+  type GalleryDecision,
+} from "@/lib/events/gallery-access";
 import { galleryEtag } from "@/lib/events/gallery-fingerprint";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { toGridItems } from "@/lib/r2/grid-items";
@@ -54,6 +60,93 @@ export async function isEventOwner(
     .eq("host_id", userId)
     .maybeSingle();
   return Boolean(data);
+}
+
+/**
+ * The decision, plus one fact only the upload gate knows: the album cannot take another upload
+ * (the presign's own two caps, `get_upload_gate`'s `album_full`). The gate FAILS OPEN on it, which
+ * is why a guest's own last removal does not close a full album; the page reads it so the
+ * lightbox never warns of a closing that will not happen. False whenever it was not read.
+ */
+export type ViewerDecision = GalleryDecision & { albumFull: boolean };
+
+/**
+ * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET" (the door as three steps, 2026-09-21).
+ *
+ * The page RSC and the gallery poll used to carry the same eight lines of resolution each; the
+ * upload gate would have made it eleven, in two places, with a service-role read in the middle. So
+ * the block lives here once and both callers ask this.
+ *
+ * ★ IT RESOLVES TWICE, AND THE FIRST PASS IS THE CHEAP ONE. Assuming a contribution short-circuits
+ * the upload clause, so the password and account gates answer with NO extra read at all: a locked
+ * event, and an unconfirmed viewer of a verified-emails event, never touch `get_upload_gate`. Only
+ * a viewer who would otherwise see the full album, on an event whose switch is ON and whose uploads
+ * are open, costs the round trip -- and that is exactly the population the gate is about.
+ *
+ * ★ THE DEMO NEVER REACHES HERE (both callers short-circuit it to full), and the host is the owner,
+ * whom the resolver answers first.
+ *
+ * ★ `albumFull` COSTS A SECOND READ FOR A GUEST WHO HAS CONTRIBUTED, AND ONLY ON REQUEST. The gate
+ * reads the caps only for a viewer who has NOT contributed (the only one its fail-open decides for),
+ * so for a contributor its `album_full` is always false. The page asks (`withAlbumFull`), because
+ * that viewer is the one whose own last removal the lightbox warns about: an identity-less gate read
+ * is exactly the album's fullness (guest-gate.ts: no identity is an answer). The poll never asks, so
+ * the steady poll pays nothing new.
+ */
+export async function resolveViewerDecision(
+  event: GuestEvent,
+  ctx: {
+    isOwner: boolean;
+    isAuthed: boolean;
+    isUnlocked: boolean;
+    userId: string | null;
+    sessionToken: string | null;
+  },
+  opts: { withAlbumFull?: boolean } = {},
+): Promise<ViewerDecision> {
+  const optimistic = resolveGalleryDecision(event, {
+    isOwner: ctx.isOwner,
+    isAuthed: ctx.isAuthed,
+    isUnlocked: ctx.isUnlocked,
+    hasContributed: true,
+    canContribute: true,
+  });
+
+  if (
+    optimistic.access !== "full" ||
+    !event.require_upload_to_view ||
+    !event.accepting_uploads
+  ) {
+    return { ...optimistic, albumFull: false };
+  }
+
+  const gate = await getUploadGate({
+    eventId: event.id,
+    sessionToken: ctx.sessionToken,
+    userId: ctx.userId,
+  });
+
+  const decision = resolveGalleryDecision(event, {
+    isOwner: ctx.isOwner,
+    isAuthed: ctx.isAuthed,
+    isUnlocked: ctx.isUnlocked,
+    hasContributed: gate.contributed,
+    // The fail-open, spelled out: uploads are open (checked above), so the only thing that can
+    // make a contribution impossible is a full album -- including the read having failed.
+    canContribute: !gate.albumFull,
+  });
+
+  let albumFull = gate.albumFull;
+  if (gate.contributed && opts.withAlbumFull) {
+    albumFull = (
+      await getUploadGate({
+        eventId: event.id,
+        sessionToken: null,
+        userId: null,
+      })
+    ).albumFull;
+  }
+  return { ...decision, albumFull };
 }
 
 /** The un-presigned gallery for one viewer: rows + attribution + the teaser count. */
@@ -100,17 +193,23 @@ export async function loadGalleryRowsForAccess(
 
 /**
  * The conditional-request validator for a loaded gallery: hashes the viewer-visible content
- * (ids in order + attribution exactly as toGridItems would emit it) + the access level +
+ * (ids in order + attribution exactly as toGridItems would emit it) + the whole DECISION +
  * the current presign bucket. MUST mirror toGridItems' identity fallbacks (`?? null/false`)
  * or a 304 could hide an attribution change. Dimensions/duration are deliberately NOT
  * hashed (write-once per id - see gallery-fingerprint.ts).
+ *
+ * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL (the door as three steps, 2026-09-21). `teaser`
+ * has two causes now, and the poll carries the gate to the client's step machine: two decisions
+ * that differ only in WHY must never validate each other, or a guest whose gate moved from
+ * `account` to `upload` would 304 onto the wrong step.
  */
 export function galleryEtagFor(
-  access: GalleryAccess,
+  decision: GalleryDecision,
   gallery: GalleryRows,
 ): string {
   return galleryEtag({
-    access,
+    access: decision.access,
+    gate: decision.gate,
     teaserTotal: gallery.teaserTotal,
     bucketId: presignBucketId(Date.now()),
     items: gallery.rows.map((r) => {
@@ -120,7 +219,7 @@ export function galleryEtagFor(
         type: r.type,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
+        isVerified: who?.isVerified ?? false,
       };
     }),
   });
@@ -137,14 +236,15 @@ export async function presignGalleryRows(
 /**
  * The RSC composition: rows -> etag -> presigned items in one call, so the page and the poll
  * route share one source for "what media does THIS viewer get" (the route uses the split
- * phases directly to answer 304 before presigning).
+ * phases directly to answer 304 before presigning). Takes the whole DECISION because the ETag
+ * does: the first poll after the page must be able to 304 against what the page baked in.
  */
 export async function loadGalleryForAccess(
   event: GuestEvent,
-  access: GalleryAccess,
+  decision: GalleryDecision,
 ): Promise<{ items: GridMedia[]; teaserTotal: number | null; etag: string }> {
-  const gallery = await loadGalleryRowsForAccess(event, access);
-  const etag = galleryEtagFor(access, gallery);
+  const gallery = await loadGalleryRowsForAccess(event, decision.access);
+  const etag = galleryEtagFor(decision, gallery);
   return {
     items: await presignGalleryRows(event, gallery),
     teaserTotal: gallery.teaserTotal,

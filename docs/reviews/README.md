@@ -5,11 +5,11 @@
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
-> ids, never the text), the rulings once they land (the bible, `docs/design/rulings.md`).
+> ids, never the text), the rulings once they land (the rule each made: the bible, the Library, a system doc).
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
-> lab never writes this directory itself (Will's decision, 2026-09-15). Never owned by a track.
+> lab never writes this directory itself. Never owned by a track.
 
 ## The shape
 
@@ -34,7 +34,7 @@
 One answer per ask per round; answering again in the same round overwrites (git keeps the first).
 A `choice` of `null` is Will's "this question is not clear to me" (`<ask>=? "why"` in the grammar;
 the note is required): the ask stays open on the desk, flagged as waiting on a clearer question,
-and the board rewrites it before he is asked again (the clarity round, 2026-09-15).
+and the board rewrites it before he is asked again.
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
 standing board with no answer in its latest round; a board whose asks are all answered shows its
@@ -64,12 +64,23 @@ lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 
-`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog (the revamp, 2026-09-16), where
+`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
 declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
 ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
 `items: [{ item, verdict, note?, by, at }]` beside its `answers`.
+
+`call:<id>=yes|no "a note"` -- a call the lane CARRIED, answered. A lane that meets a question its goal left open
+takes its own recommendation and builds on it rather than stopping; the board then draws those calls above its
+sections ("Calls the lane carried, yours to overrule"), each with an id. `yes` keeps what the lane took, `no`
+overrules it and the note says what to do instead; a call nobody answers stays taken. It rides an ordinary board
+line beside the answers, in any order:
+
+    review site-chrome r2: hero=lit; call:footer-close=no "keep the CTA above the footer"
+
+In the ledger the round grows a `calls` array beside `answers`, `items` and `notes`: one entry per call per round,
+`{ call, answer, note?, by, at }`, replaced when the same call is answered again, exactly as an ask is.
 
 `review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
 lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no

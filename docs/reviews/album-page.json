@@ -1,0 +1,41 @@
+{
+  "board": "album-page",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "visual",
+          "choice": "live",
+          "note": "We will replace the album media before launch, likely with Higgsfield generations.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "motion",
+          "choice": "stream",
+          "note": "I like the direction, but this animation can definitely be improved.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "light",
+          "choice": "halo",
+          "note": "This is gorgeous and a beautiful delight to make the photos falling into the album feel more infused.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        },
+        {
+          "ask": "second",
+          "choice": "floor",
+          "note": "This selection is better than combining with a visual in the 'Everywhere' section, but the paper chapter directly beneath and the brightness from his white overwhelms the aurora here and makes it less noticeable. Would work much better with a full image background section beneath so it feels like it's glowing from that, with a less harsh contrast at the transition that will make the aurora more visible as well.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

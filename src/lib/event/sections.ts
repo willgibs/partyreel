@@ -83,3 +83,88 @@ export function orderedSections(opts: {
     ? ["review", "gallery", "reel", "guests"]
     : ["gallery", "reel", "guests", "review"];
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   THE HUB'S ROOMS AND SHEETS (`event=hub` + `nav=crumbs` + `settings=sheet`,
+   Will 2026-09-20). The section model above is NOT retired: `event-filter-pills`,
+   `review-section` and `use-review-triage` are drawn by the lab and keep
+   reading it. What follows is the hub's own vocabulary, added beside it.
+
+   ★ PURE AND NODE-SAFE, like everything above, so the RSC resolves the sheet
+   from `?room=` without a Supabase call and hands it to the island as initial
+   state. No lucide import lives here on purpose: a room's ICON is a rendering
+   decision and belongs to the component, while its id, label and segment are
+   facts two routes, one island and the crumbs all have to agree on.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The cards row under the hub's header. Review, Reel and Guests are ROOMS
+ * (routes with a crumb, Will's `nav=crumbs`); Settings is the fourth card and
+ * opens a SHEET, which is why it carries no segment — his `settings` note
+ * overrode `share=room` for both surfaces that used to be pages.
+ *
+ * ★ SETTINGS IS LAST, and that is his sentence rather than a layout taste:
+ * "we could switch the current 'Album' card to be 'Settings' and move it to
+ * last in the row". The Album card it replaced is not a door any more — the
+ * album is the page under the row.
+ */
+export type EventRoomId = "review" | "reel" | "guests" | "settings";
+
+export const EVENT_ROOMS: readonly {
+  id: EventRoomId;
+  label: string;
+  /** The room's path segment, or null when the card opens a sheet instead. */
+  segment: string | null;
+}[] = [
+  { id: "review", label: "Review", segment: "review" },
+  { id: "reel", label: "Reel", segment: "reel" },
+  { id: "guests", label: "Guests", segment: "guests" },
+  { id: "settings", label: "Settings", segment: null },
+];
+
+/** The crumb's third step, by route segment. The hub itself has no third step:
+ *  the album IS the event, so its trail stops at the event's name. */
+export const EVENT_ROOM_CRUMB: Record<string, string> = {
+  review: "Review",
+  reel: "Reel",
+  guests: "Guests",
+};
+
+/**
+ * The two surfaces that ride the URL as a SHEET rather than a route. They are
+ * a query parameter and not a segment because the album has to stay mounted
+ * AND scrolled behind them (his "the album stays behind it"), which a route
+ * change cannot promise.
+ */
+export type EventSheet = "share" | "settings";
+
+/** The query key the hub's island owns. One name, read by the page and the island. */
+export const EVENT_SHEET_PARAM = "room";
+
+const SHEETS: readonly EventSheet[] = ["share", "settings"];
+
+/** `?room=` → the sheet to open, or null. Anything unknown opens nothing. */
+export function resolveEventSheet(room: string | undefined): EventSheet | null {
+  return room && (SHEETS as readonly string[]).includes(room)
+    ? (room as EventSheet)
+    : null;
+}
+
+/**
+ * A legacy `?section=` deep link → the room segment that now holds it, or null
+ * when that section became the hub page itself (`gallery`, and `all`).
+ *
+ * The retired pills wrote `?section=` into the URL with `replaceState` for
+ * months, so these links sit in browser histories and in one shipped redirect
+ * (the Studio's pre-birth bounce). They resolve to the ROOM instead of landing
+ * on a filter that no longer exists.
+ */
+export function legacySectionRoom(
+  section: string | undefined,
+  eventTab: string | undefined,
+): string | null {
+  const resolved = resolveInitialEventSection(section, eventTab);
+  return resolved === "review" || resolved === "reel" || resolved === "guests"
+    ? resolved
+    : null;
+}

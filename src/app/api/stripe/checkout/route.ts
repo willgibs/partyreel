@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 
+import {
+  safeReturnPath,
+  withWelcomeMarker,
+} from "@/components/app/pricing/return-path";
 import { activeNowPasses, passProCreditCents } from "@/lib/billing/passes";
+import { checkPlanChange, replacesCap } from "@/lib/billing/storage-guard";
 import { planById } from "@/lib/constants/tiers";
 import { mustQuery } from "@/lib/db/must-query";
 import { getLivePasses } from "@/lib/db/queries/event-passes";
+import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { eventPassRenewalPriceId, priceIdForPlan } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/client";
 import { resolveEntitlement } from "@/lib/stripe/entitlement";
@@ -17,6 +23,16 @@ import { checkoutSchema } from "@/lib/validation/checkout";
 // this route never writes profiles.tier. We DO create + persist the Stripe customer
 // here (one per host) so subscription webhooks map back to the profile.
 export const runtime = "nodejs";
+
+/**
+ * How long a Pro Checkout session stays payable. Stripe's default is 24 hours, and
+ * the storage check below runs when the session is CREATED: a day-old tab could
+ * still be paid after the host uploaded far past the plan it approved. Thirty
+ * minutes is Stripe's floor, and Stripe measures it from ITS creation instant,
+ * which lands after this server's clock by the request's flight time, so exactly
+ * 30:00 from here can be refused as too short. The extra minute is that margin.
+ */
+const PRO_CHECKOUT_WINDOW_SECONDS = 31 * 60;
 
 /** A refusal the CheckoutButton surfaces verbatim as the toast description. */
 function refuse(code: string, message: string, status = 409) {
@@ -80,21 +96,26 @@ export async function POST(request: Request) {
   }
 
   // ── billing-caps.md (supersedes billing-caps.md ruling 1's pass arm) ──────────────────────────────────────
-  // Pro stays ONE AT A TIME: a second subscription would double-bill against one cap, and plan
-  // switches belong to the billing portal (correct proration). Derived server-side from
-  // `profiles` (the webhook is its sole writer), never from the request body.
+  // Pro stays ONE AT A TIME: a second subscription would double-bill against one cap, and a
+  // size or cadence change belongs to /api/stripe/change-plan (the storage check, then Stripe's
+  // confirm page with correct proration). Derived server-side from `profiles` (the webhook is
+  // its sole writer), never from the request body. The CheckoutButton acts on this code by
+  // posting the clicked Pro plan to change-plan, so the words below are what a host reads only
+  // when that hop fails, or when a Pro host tries to buy a pass.
   //
   // Event Passes STACK (Will, 2026-08-27): each purchase is its own ledger row granting +1 event
   // slot and +75 GB for its own year, so "already holds a pass" is no longer a refusal. The old
   // cap-collapse hazard (a pass write flattening a Pro cap) is gone structurally: pass state is
   // recomputed from the ledger and never touches a Pro profile. Pro holders still cannot buy a
-  // pass (nothing to stack ONTO under a bigger live cap; the portal owns their billing moves).
+  // pass (nothing to stack ONTO under a bigger live cap).
   const entitlement = resolveEntitlement(profile, new Date());
 
   if (entitlement.held === "pro") {
     return refuse(
       "already_subscribed",
-      "You're already on Pro. Open the billing portal from your dashboard to change your storage size or cancel.",
+      planId === "event_pass"
+        ? "You're on Pro, which already includes everything a pass adds."
+        : "You're already on Pro. Change your size or switch between monthly and yearly from your plan instead.",
     );
   }
 
@@ -116,6 +137,23 @@ export async function POST(request: Request) {
   }
 
   const plan = planById(planId);
+
+  // ── THE STORAGE GUARD (Will, 2026-09-22; billing-caps.md) ─────────────────────────────────
+  // A Pro checkout REPLACES the cap (every live pass becomes credit), so a host must fit the
+  // plan they buy: stacked passes holding 140 GB cannot buy Pro 100 GB and shrink into the
+  // over-cap grace. Active bytes against the plan's PLAIN cap, refused with the numbers
+  // BEFORE a Stripe customer exists. An Event Pass is never checked: it stacks, so it can
+  // only ever add room. A Free host in the grace meets the same line (the check is tier-blind).
+  if (replacesCap(plan)) {
+    const { activeBytes } = await getHostStorageSummary();
+    const check = checkPlanChange(activeBytes, plan);
+    if (!check.ok) {
+      return NextResponse.json(
+        { ok: false, ...check.refusal },
+        { status: 409 },
+      );
+    }
+  }
 
   // ── The prorated Pass → Pro credit (billing-caps.md) ───────────────────────────────────────────────
   // "I only pay for what I've used, and everything else goes toward what I get moving forward."
@@ -163,6 +201,16 @@ export async function POST(request: Request) {
   // metadata.renewal to chain the window, and metadata.pass_credit_cents to honor
   // the prorated credit.
   const siteUrl = await getSiteUrl();
+  // ── WHERE THE BUYER LANDS (`back=finish`, Will 2026-09-20) ──────────────────
+  // "Checkout returns to the exact control that was locked, now open and
+  // waiting." The caller names that control's page in `next`; `safeReturnPath`
+  // answers with the dashboard for ANYTHING it does not recognise, so this line
+  // can never become an open redirect no matter what a client POSTs. Parsed off
+  // the raw body rather than through `checkoutSchema`, which is the shared shape
+  // of a PLAN and has no business knowing about return paths.
+  const returnPath = withWelcomeMarker(
+    safeReturnPath((body as { next?: unknown })?.next),
+  );
   const session = await stripe.checkout.sessions.create({
     mode: plan.billing === "one_time" ? "payment" : "subscription",
     customer: customerId,
@@ -172,8 +220,15 @@ export async function POST(request: Request) {
     // client_reference_id is a belt-and-suspenders link the webhook can use to bind
     // the customer to the host (we also already persisted stripe_customer_id above).
     client_reference_id: user.id,
-    success_url: `${siteUrl}/dashboard?upgraded=1`,
+    success_url: `${siteUrl}${returnPath}`,
     cancel_url: `${siteUrl}/pricing`,
+    // The storage check above is only as fresh as the session is short.
+    ...(replacesCap(plan)
+      ? {
+          expires_at:
+            Math.floor(Date.now() / 1000) + PRO_CHECKOUT_WINDOW_SECONDS,
+        }
+      : {}),
   });
 
   return NextResponse.json({ ok: true, url: session.url });

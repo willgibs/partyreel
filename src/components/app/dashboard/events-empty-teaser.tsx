@@ -37,12 +37,21 @@ export function EventsEmptyTeaser() {
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
         <div className="space-y-1.5">
+          {/* ★ RULED (Will, 2026-09-19, voice r1 `host-empty=album`): "Your
+              events land here" described the VOID and waited in it. His pick
+              names the thing about to exist and puts the host at the start of
+              it, and it is deliberately the same voice the guest's empty album
+              took ("The album starts with you"): the album as the noun, "starts"
+              as the verb. "The only goal of empty state is to get to feel
+              polished while getting the user to having one event, and this feels
+              like the cleanest action language to prompt the creation wizard."
+              The body dropped "No app, no account" with the rest of the site. */}
           <h2 className="font-heading text-subsection text-balance">
-            Your events land here
+            Your first album starts here
           </h2>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            Create an event and your guests add photos and videos in seconds. No
-            app, no account, just a QR code.
+            Create an event and your guests add photos and videos in seconds,
+            straight from their phones. No app required.
           </p>
         </div>
         <Button asChild size="lg">

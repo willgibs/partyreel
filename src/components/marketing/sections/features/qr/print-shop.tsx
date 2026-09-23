@@ -94,7 +94,7 @@ function PrintMocks() {
           Add your photos
         </p>
         <p className="mt-1.5 text-xs text-neutral-500">
-          Scan the code. No app, no account.
+          Scan the code. No app required.
         </p>
         <div className="mx-auto mt-4 w-fit rounded-md bg-white">
           <StyledQr

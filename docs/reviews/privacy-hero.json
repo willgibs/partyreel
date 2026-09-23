@@ -1,0 +1,34 @@
+{
+  "board": "privacy-hero",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-18",
+      "answers": [],
+      "notes": [
+        {
+          "on": null,
+          "text": "I just started my review with the new privacy and trust hero. None feel right. I think the density needs to increase as well as the speed. Also, when I said decaying trail, I meant of the trailing images, not an actual separate trail effect.",
+          "by": "Will",
+          "at": "2026-09-18T23:10:30Z"
+        }
+      ],
+      "items": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "pace",
+          "choice": null,
+          "note": "Question is clear, but I don't really like this arrival animation as part of the spiral/orbit.",
+          "by": "Will",
+          "at": "2026-09-19T02:22:22Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

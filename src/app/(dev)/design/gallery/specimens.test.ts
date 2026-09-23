@@ -28,6 +28,21 @@ describe("the specimen source artifact", () => {
     expect(artifact.version).toBe(SPECIMENS_VERSION);
   });
 
+  /**
+   * ★ AND AN ENTRY THE COLLECTOR COULD NOT READ AT ALL (lab-tides,
+   * 2026-09-19). The test below walks the artifact's OWN keys, so an entry that
+   * never reached the artifact was invisible to it: hoist a list into
+   * `specimens: FORM_SPECIMENS` and the whole entry ships with no code panel
+   * and nothing goes red. The collector now records what it met and could not
+   * lift, and this is the guard that was owed.
+   */
+  it("could read every entry and every specimen it met", () => {
+    expect(
+      collectSpecimenCode(process.cwd()).unread,
+      "write the specimen inline in gallery-demos.tsx: the collector reads source, not imports",
+    ).toEqual([]);
+  });
+
   // The entries themselves are TSX that pulls in the whole component library,
   // so this node-project test reads the artifact rather than the registry
   // (gallery.test.ts holds the entry declarations against the components).

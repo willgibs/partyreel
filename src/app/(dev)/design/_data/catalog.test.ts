@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BIBLE, BIBLE_GROUP_LABEL, BIBLE_GROUPS } from "../rules/bible";
 import { FAMILY_LABEL } from "../gallery/entry";
-import { SANDBOX } from "../touchpoints";
+import { RULED, SANDBOX } from "../touchpoints";
 import {
   activeItem,
   areaOf,
@@ -15,6 +15,7 @@ import {
   neighbours,
   RESERVED,
 } from "./catalog";
+import { listSpecs } from "./docs";
 import { GLOSSARY } from "./glossary";
 import { LAB_REDIRECTS } from "./legacy-routes";
 import { KIND_ORDER, type SearchEntry, scoreEntry, searchLab } from "./search";
@@ -105,7 +106,14 @@ describe("the nav", () => {
       expect(hrefs.has(`/design/lab/${r.id}`), r.id).toBe(true);
     for (const family of Object.keys(FAMILY_LABEL))
       expect(hrefs.has(`/design/library/${family}`), family).toBe(true);
-    for (const tool of ["motion", "reel-parity", "stream-probe", "boom"])
+    for (const tool of [
+      "motion",
+      "reel-parity",
+      "reel-live",
+      "reel-video",
+      "stream-probe",
+      "boom",
+    ])
       expect(hrefs.has(`/design/lab/tools/${tool}`), tool).toBe(true);
     expect(hrefs.has("/design/lab")).toBe(true);
     expect(hrefs.has("/design/library/rules")).toBe(true);
@@ -166,11 +174,11 @@ describe("the helpers", () => {
   });
 
   it("build crumbs area > section > item", () => {
-    const crumbs = breadcrumbs(nav, "/design/library/rulings");
+    const crumbs = breadcrumbs(nav, "/design/library/guidance");
     expect(crumbs.map((c) => c.label)).toEqual([
       "Library",
       "Rules",
-      "Will's rulings",
+      "Guidance",
     ]);
     expect(breadcrumbs(nav, "/design/lab")[0]?.label).toBe("Lab");
   });
@@ -333,7 +341,21 @@ const index = buildSearchIndex(nav);
 describe("the search index", () => {
   it("carries every kind the palette groups by", () => {
     const kinds = new Set(index.map((e) => e.kind));
-    for (const kind of KIND_ORDER) expect(kinds.has(kind), kind).toBe(true);
+    // A proposal is indexed only while docs/specs holds a document (a board's
+    // argument lives in its own spec.ts), so an empty directory is not a
+    // kind gone silent.
+    const optional = new Set(listSpecs().length === 0 ? ["proposal"] : []);
+    for (const kind of KIND_ORDER)
+      if (!optional.has(kind)) expect(kinds.has(kind), kind).toBe(true);
+  });
+
+  it("indexes every ruled component or page as a ruling on the rules page", () => {
+    const rulings = index.filter((e) => e.kind === "ruling");
+    expect(rulings.map((e) => e.id).sort()).toEqual(
+      RULED.map((r) => r.id).sort(),
+    );
+    for (const e of rulings)
+      expect(e.href).toBe(`/design/library/rules#ruling-${e.id}`);
   });
 
   it("points every entry at a lab route", () => {

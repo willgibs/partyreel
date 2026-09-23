@@ -58,11 +58,18 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
     features: [
       {
         icon: Smartphone,
-        title: "No app, no account",
+        // ★ ALL THREE STRINGS PROMISED "no account" (Will, 2026-09-19, voice r1
+        // `absence=named`). Require accounts to upload defaults ON, so the old
+        // longBody ("no account to create") was false on most events and the
+        // body's "nothing to sign up for" was the same promise in prose. The
+        // benefit that survives is the APP, and the friction claim now rests on
+        // what is actually true of every event: no download, no password, no
+        // ecosystem, and at most one tap on an email.
+        title: "No app required",
         featured: true,
-        body: "Guests scan the QR and upload straight from their phone browser. Nothing to install, nothing to sign up for.",
+        body: "Guests scan the QR and upload straight from their phone browser. Nothing to install, and nothing to learn.",
         longBody:
-          "There's no app to download and no account to create, the single biggest reason photos never get shared. A guest scans your code, types a display name, and they're uploading. That's the whole flow.",
+          "There's no app to download and no password to invent, the single biggest reason photos never get shared. A guest scans your code, confirms an email if you asked for one, types a display name, and they're uploading. That's the whole flow.",
       },
       {
         icon: QrCode,
@@ -221,9 +228,9 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         // T2.5 IA's missing-features batch.
         icon: Undo2,
         title: "30 days to change your mind",
-        body: "Deleted photos wait in a recovery bin for 30 days before they're gone for good.",
+        body: "Removed photos wait in Deleted for 30 days before they're gone for good.",
         longBody:
-          "A slip of the thumb shouldn't erase a memory. Anything you delete moves to a recovery bin and waits 30 days before it's gone for good, so an accidental swipe is always reversible.",
+          "A slip of the thumb shouldn't erase a memory. Anything you delete moves to Deleted and waits 30 days before it's gone for good, so an accidental swipe is always reversible.",
       },
       {
         icon: Wallet,

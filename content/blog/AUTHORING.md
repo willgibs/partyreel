@@ -2,9 +2,9 @@
 
 > The content agent's brief for `content/blog/*.mdx`. Its sibling is
 > [`../help/AUTHORING.md`](../help/AUTHORING.md), which covers the help center; the two collections
-> share one pipeline (ADR-0006) but not one voice. Help answers a question. The blog has a point of
-> view. This file never renders (the loader reads only `.mdx`), but the content-policy tests scan
-> it, so it obeys the rules it teaches.
+> share one pipeline (`src/lib/content/collection.ts`) but not one voice. Help answers a question.
+> The blog has a point of view. This file never renders (the loader reads only `.mdx`), but the
+> content-policy tests scan it, so it obeys the rules it teaches.
 
 ## What a post is
 
@@ -27,7 +27,7 @@ A bad value fails `pnpm build`; nothing degrades at runtime.
 
 ```yaml
 ---
-title: QR code for wedding photos: the complete guest photo sharing guide
+title: "QR code for wedding photos: the complete guest photo sharing guide"
 description: One code on every table gets you the whole day. Here is how to set it up so guests actually use it.
 date: "2026-08-28"
 cover: wedding-golden
@@ -43,13 +43,13 @@ faq:
 | Field | Required | Notes |
 | --- | --- | --- |
 | `title` | yes | **45-60 characters; hard cap 80** (the build fails past it). A layout contract: a library card holds TWO lines at the three-column width (280px, about 60 characters of ordinary words; a long word costs more), and anything longer ships with an ellipsis. The featured card holds three lines. Measure a borderline title on the wall before merging. Front-load the words a searcher types; the card gives you no subtitle. |
-| `description` | yes | Max 160 characters. It renders as the **visible standfirst** under the title, as the card blurb, as the meta description, and in the feed. The primary query phrase appears once in its first hundred characters, and it never repeats a clause from the title. Same voice as the body. |
-| `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. The newest post is the staged hero on `/blog`. |
+| `description` | yes | Max 160 characters. It renders as the **visible standfirst** under the title, as the featured card's blurb, as the meta description, and in the feed. The primary query phrase appears once in its first hundred characters, and it never repeats a clause from the title. Same voice as the body. |
+| `date` | yes | `YYYY-MM-DD`, quoted. Drives sort order, the byline, and RSS `pubDate`. The newest post is the staged hero of the unfiltered `/blog`. |
 | `cover` | **no, but always set it** | A media id from `MARKETING_IMAGES` (`src/lib/constants/marketing-media.ts`). See Covers. |
-| `tags` | yes | One or two ids from the **registry** below: at most one audience, paired with a purpose. Anything else fails the build. |
+| `tags` | yes | One or two ids from the **registry** below, at most one of them an audience; anything else fails the build. Pair an audience with a purpose. |
 | `faq` | no | One to eight `{ q, a }` items. Plain text only (no `<Component />`, it ships verbatim into FAQPage JSON-LD) and **number-free**: a FAQ answer is the one place a product figure could only be typed, so answers point at `/pricing` or the help center instead of quoting a cap. Test-enforced. |
-| `author` | no | Leave it out. `partyreel-team` is the universal byline (Will's ruling, 2026-08-28) and the only registered id. |
-| `updated` | no | `YYYY-MM-DD`. Sets `dateModified` in the Article JSON-LD and the sitemap. Nobody sets it at launch; a comparison post takes it when a named product's behaviour changes, a hub on its yearly refresh. |
+| `author` | no | Leave it out. `partyreel-team` is the universal byline and the only registered id. |
+| `updated` | no | `YYYY-MM-DD`. Sets `dateModified` in the Article JSON-LD and the sitemap. Set it only with a substantive edit: a comparison post when a named product's behaviour changes, a hub on its yearly refresh. |
 | `draft` | no | `true` keeps the post out of the listing, the sitemap, and the feed. |
 
 ## The tag registry
@@ -69,13 +69,15 @@ guide). A group-trip guide carries `how-to` alone.
 | `product` | purpose | Product | How Partyreel works under the hood, and why it works that way. |
 
 The rail prints these labels in this order. Adding a tag is a registry change plus its first post
-in the same commit (a registered tag with no posts is a test failure), never a frontmatter choice.
+in the same commit (a tag with no posts never reaches the rail), never a frontmatter choice.
 
 ## Covers
 
-`/blog` is media-forward: the cover IS the card, and the newest post's cover fills a 21:9 letterbox
-hero. Set `cover` on every post from the manifest (`grep 'id:' src/lib/constants/marketing-media.ts`)
-and pick a subject that matches the piece. Two rules the tests enforce:
+`/blog` is media-forward: the cover IS the card, and the newest post's cover fills the hero (a 21:9
+letterbox from a small screen up, 4:5 on a phone). Set `cover` on every post from the manifest's
+`MARKETING_IMAGES` ids (`src/lib/constants/marketing-media.ts`; the `hero-candidate-*` ids below
+them are reels and fail the build) and pick a subject that matches the piece. Two rules the tests
+enforce:
 
 - **No photograph repeats beside itself.** Not in the row, not one row down at two columns, not
   one row down at three, in the unfiltered library on any page or under any tag filter. Publishing
@@ -83,8 +85,9 @@ and pick a subject that matches the piece. Two rules the tests enforce:
 - **The hero is landscape.** `wedding-petals` is the manifest's only portrait and crops to a band
   in the featured card, the article plate and the share card. Do not use it.
 
-The crop is derived from the slug, so the same photograph on two posts is at least two different
-plates. Will replaces the whole media set before launch; the ids stay.
+The crop is derived from the slug (one of six positions), so two posts on one photograph usually get
+different plates, though nothing guarantees it. The photographs are stand-ins until the launch set
+replaces them by id.
 
 ## Writing rules
 
@@ -96,16 +99,16 @@ plates. Will replaces the whole media set before launch; the ids stay.
    two sentences. Test-enforced over all of `content/`.
 3. **Numbers come from components, never keyboards.** Every marketed figure reaches a post through
    a spec component reading the real constant, so nothing can drift. The family is listed below.
-   A test scans bodies for typed sizes and prices; if you need a number that has no component,
-   add one to `src/components/marketing/mdx/spec-blog.tsx` (the blog lane's file) reading the
-   constant, and never type it; if the help center needs it too, the Orchestrator promotes it to
-   `mdx/spec-shared.tsx` at integration.
+   A test scans the body, the title and the description for typed sizes and prices; if you need a
+   number that has no component, add one to `src/components/marketing/mdx/spec-blog.tsx` (the
+   blog lane's file) reading the constant, and never type it; if the help center needs it too, the
+   Orchestrator promotes it to `mdx/spec-shared.tsx` at integration.
 4. **How-tos track shipped reality.** Only marketing pages present the product as-if-complete. If
    a post describes a flow, the flow has to exist today. Do not write about anything unshipped:
    there is no slideshow or projector mode (say "put the album on a screen"), no co-hosts, no
    custom branding, no comments, no native app, no email-the-album, no upload-time scanning.
 5. **Quote the app exactly.** A control is named by its shipped string inside `<UiLabel>`:
-   "Require accounts to upload", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
+   "Require verified emails", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
    and `src/app/(app)`; never invent UI.
 6. **Commit to outcomes, never to who or what delivers them** (the promise-neutralization doctrine,
    `docs/systems/marketing-content.md`). A report gets reviewed; a note gets a reply; the host
@@ -122,9 +125,10 @@ plates. Will replaces the whole media set before launch; the ids stay.
    "reduced-size copies", "around", and only what their public documentation says. No dollar
    figures for booths or disposables.
 10. **Reuse the ratified lines byte-for-byte.** "every guest is a second shooter". "a thousand
-    guests cost the same as ten". The metadata line: "EXIF and GPS metadata are stripped in the
-    browser before a photo ever uploads." The failure-mode clause: "compression ruins quality,
-    media scatters across threads, and nothing is collected". Vary nothing.
+    guests cost the same as ten". The metadata line: "Location data is stripped in the browser
+    before a photo ever uploads, for the common formats." The failure-mode clause: "compression
+    ruins quality, media scatters across threads, and nothing is collected" (`FAILURE_MODE_LINE`).
+    Vary nothing.
 11. **"night" is never identity language.** Not in a title, a standfirst, or a tag line.
 12. **Link the ladder.** At least two inline links to other posts, one to a help article, and one
     to a marketing rung (`/events/<type>`, `/features/<page>`, `/reel`, `/pricing`,
@@ -135,25 +139,31 @@ plates. Will replaces the whole media set before launch; the ids stay.
     but stays out of the table of contents.
 14. **The FAQ block** goes on hubs, on `compared` posts, and on a product explainer whose queries
     are question-shaped: three to five questions the post itself did not fully answer, none of
-    them already on a marketing page (`faq-data.ts`, `events.ts`), all number-free.
+    them already on a marketing page (`faq-data.ts`, `events.ts`, the feature pages' `*-faq.ts`
+    files, `pricing-faq-data.ts`), all number-free.
 
 ## The component vocabulary
 
 Available inside every post. The shared vocabulary lives in
 `src/components/marketing/mdx/spec-shared.tsx` (Orchestrator-owned); blog-only additions go in
-`src/components/marketing/mdx/spec-blog.tsx`, the blog lane's own file (`docs/tracks/README.md`):
+`src/components/marketing/mdx/spec-blog.tsx`, the blog lane's own file (each file's header says
+whose it is):
 
 - `<Callout type="info | tip | warning" title="...">` for the one aside that earns it.
 - `<Steps>` / `<Step title="...">` for a numbered procedure with bodies.
 - `<Kbd>` for literal keys, `<UiLabel>` for quoted app strings.
-- `<AlbumShowcase label="..." caption="...">` for a product-shaped illustration (decorative,
-  token-drawn, never a screenshot of invented UI).
+- `<AlbumShowcase label="..." caption="...">` for a decorative album moment (eight manifest
+  photographs in a browser frame, never a screenshot of invented UI).
 - **Tables**: a GFM table renders with a scrolling wrapper and a nowrap label column. Use
   `<Yes />` and `<No />` for a plain yes or no (the same marks as the pricing matrix); write
   anything else as words ("By default", "Paid plans", "Apple only").
 
-The spec inlines, all reading `tiers.ts`, `limits.ts` or the lifecycle constants. A name ending
-in a unit renders the bare number and you write the unit; a name for a thing renders its label.
+The spec inlines, each reading a real constant (`tiers.ts`, `limits.ts`, the lifecycle constants,
+the gallery's teaser limit, the reel's style registry). A `…Days`, `…Seconds` or `…Count` name
+renders the bare number and you write the unit; a size, a price or a name renders whole
+(`<UploadSize />` is the size with its unit). The help center's own components (`<Path>`,
+`<PlanBadge>`, `<Checklist>` and the help-named spec aliases such as `<RecoveryDays />`) render
+here too; `../help/AUTHORING.md` lists them.
 
 | Component | Renders |
 | --- | --- |
@@ -167,7 +177,7 @@ in a unit renders the bare number and you write the unit; a name for a thing ren
 | `<ReelStyleCount />` | how many reel styles ship |
 | `<CapacityEstimate plan="event_pass" />` | "19,200 photos or 9 hours of video" (photos only where the tier has no video, so `plan="free"` renders the photo count alone) |
 | `<PhotoAverageSize />`, `<VideoMinuteSize />` | the rule-of-thumb sizes behind the estimates |
-| `<RecoveryWindowDays />` | the Trash window |
+| `<RecoveryWindowDays />` | the recovery window a deleted item waits in |
 | `<InactiveDays />`, `<InactiveWarningDays />` | the free-tier inactivity clock and its warning |
 | `<OverCapGraceDays />` | the over-capacity grace for a lapsed paid account |
 | `<RenewalNudgeDays />` | how far ahead the Event Pass renewal nudge goes out |
@@ -176,43 +186,54 @@ in a unit renders the bare number and you write the unit; a name for a thing ren
 ## The product, in one place (write from this, verify against the source)
 
 - **The loop.** A host creates an event and gets one QR code and one link. Guests scan with the
-  phone camera and upload from the browser: no app, no account, no password. By default guests
-  confirm their email with a one-tap code (the "Require accounts to upload" setting, free on
-  every plan, on by default); the host can allow fully anonymous uploads per event. The album
-  fills live. The host approves, hides or removes anything, in review mode (uploads wait for
-  approval) or live mode. The same link is the shared album afterwards, and the event can end as
-  a highlight reel.
-- **Quality.** Originals are stored byte-for-byte. Tiles show a small preview for speed; the
-  lightbox, the per-item save, and the zip all serve the original. Accepted: JPEG, PNG, WebP,
-  HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file size ceiling, no duration cap. No watermark on
+  phone camera, give a name, and upload from the browser: no app required (a password-locked
+  album asks for its password first). NEVER write "no account", and never call a guest or an
+  upload "anonymous" (reporting an event is anonymous, and saying so is fine): a host may require
+  a verified email and the setting is ON by default; every upload carries a name either way,
+  verified or marked. By default guests confirm their email with a six-digit code from their inbox
+  (the same email carries a sign-in link; the "Require verified emails" setting, free on every
+  plan, on by default); the host can allow a typed display name instead, shown with a small
+  unverified mark, per event. The album fills live. The host approves, hides or removes
+  anything, in review mode (uploads wait for approval) or live mode. The same link is the shared
+  album afterwards, and the event can end as a highlight reel.
+- **Quality.** Originals are stored as uploaded and never recompressed (the in-browser metadata
+  strip aside). Tiles show a small preview for speed; the lightbox, the per-item save, and the zip
+  all serve the original. Accepted: JPEG, PNG, WebP, HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file
+  size ceiling (a host may set a lower one per event), no duration cap. No watermark on
   photos or the album on any plan; only the free tier's reel carries a small mark.
-- **Privacy.** EXIF and GPS metadata are stripped in the browser before a photo ever uploads.
-  Albums are open, password-locked (paid) or private; a locked album shows the name and the
-  count and no media; teaser access shows the newest few photos with a count. The host controls
-  whether a guest list shows. View and scan counts are aggregate with no personal data. No ads;
-  event media is never used to train models or sold.
+- **Privacy.** Location data is stripped in the browser before a photo ever uploads, for the
+  common formats (JPEG, PNG and WebP photos, MP4 and MOV video; HEIC, HEIF, AVIF and WebM are
+  stored as the phone sends them). Albums are open, password-locked (paid) or private (the app's
+  labels: Public, Password, Private); a locked album shows the name and the count and no media;
+  teaser access shows the newest few photos with a count. The host controls whether a guest list
+  shows. View and scan counts are aggregate with no personal data. No ads; event media is never
+  used to train models or sold.
 - **Plans.** Free: one event, photos only, the album, a short marked reel. Event Pass: one-time,
   one event with video and every paid control for about a year, renewable, and passes stack.
   Pro: monthly or yearly (two months free), unlimited events, video, the longer unmarked reel,
-  password locks, custom links, a public host page. No guest limit and no per-guest fee on any
-  plan: pricing is by storage. Moving from a pass to Pro converts the unused part to credit.
+  password locks, custom links. No guest limit and no per-guest fee on any plan: pricing is by
+  storage. Moving from a pass to Pro converts the unused part to credit. A handle and a public
+  profile page (the events a host chooses to list on it included) are free on every plan.
 - **Lifecycle.** An event has no end date; deleting it is the only exit (the anti-abuse reason:
-  otherwise fill, end, repeat would be free storage). Deleted events and media wait in a Trash
-  window before purge. A free event with no host activity for about six months gets a warning
-  email, then removal. An Event Pass covers about a year; a nudge goes out before it lapses, a
-  renewal extends it, and a lapsed pass drops the event to Free with a grace window before
-  anything is reduced.
+  otherwise fill, end, repeat would be free storage). Deleted events and media wait in Deleted
+  (one word everywhere: the app, the marketing pages and the posts; never "trash" or "bin") for
+  the recovery window, then are purged. A free event with no activity (the host's, an edit, a new
+  upload) for about six months gets a warning email, then removal. An Event Pass covers about a
+  year; a nudge goes out before it lapses, a renewal extends it, and a lapsed pass drops the event
+  to Free with a grace window before anything is reduced.
 - **Sharing and download.** One link per event. Per-item originals; a full-quality zip for hosts
-  and guests, with type filters and the host's "include hidden" option. Likes from anyone; the
-  per-event like count is host-only. Saved events and profiles are free.
+  and guests, with type filters and the host's "include hidden" option. Likes from anyone with an
+  account (a signed-out tap asks for an email first); the per-event like count is host-only.
+  Profiles are free, and a guest's events reach their dashboard through their own uploads
+  (there is no separate save).
 - **The reel.** Curated by the host from the album, in a catalog of styles, portrait or
   landscape, rendered on the host's own device (no queue, no fee), shared to guests only once
   the host publishes it. Videos contribute their poster frame.
 
 Truth sources when in doubt: `src/lib/constants/tiers.ts`, `src/lib/media/limits.ts`,
 `src/lib/constants/features.ts`, `src/lib/constants/events.ts`, `src/lib/content/llms.ts`,
-and `docs/systems/{guest-flow,host-app,uploads-and-r2,lifecycle-recovery}.md`. `docs/PRD.md` is
-stale; the code wins.
+and `docs/systems/{guest-flow,host-app,uploads-and-r2,lifecycle-recovery}.md`. Where a doc and
+the code disagree, the code wins.
 
 ## The help center, for linking
 
@@ -223,7 +244,7 @@ stale; the code wins.
 · `/help/who-can-see-your-event` · `/help/how-long-media-is-kept` · `/help/reporting-and-safety`
 · `/help/your-data-and-deleting-your-account` · `/help/the-email-code-didnt-arrive`.
 
-The help map in `../help/AUTHORING.md` lists the planned articles too. A blog post never
+The help map in `../help/AUTHORING.md` lists every article. A blog post never
 duplicates one of those (print sizes, screen setups, review-versus-live mechanics, upload caps,
 metadata mechanics, password mechanics); it links the concept and keeps its point of view.
 

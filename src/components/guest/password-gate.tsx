@@ -99,7 +99,7 @@ export function PasswordGate({
       <div className="flex flex-col">
         <p
           className={cn(
-            "flex items-center justify-center gap-1.5 text-xs font-medium tracking-[0.14em] uppercase",
+            "flex items-center justify-center gap-1.5 text-label font-medium uppercase",
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
@@ -198,15 +198,17 @@ export function PasswordGate({
           <Button
             type="button"
             onClick={onRetry}
-            className="h-12 w-full text-[15px]"
+            size="cta"
+            className="w-full"
           >
             Open the album
           </Button>
         ) : (
           <Button
             type="submit"
+            size="cta"
             className={cn(
-              "h-12 w-full text-[15px] transition-colors duration-200",
+              "w-full transition-colors duration-200",
               done &&
                 "bg-success text-success-foreground hover:bg-success disabled:opacity-100",
             )}

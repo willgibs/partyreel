@@ -15,9 +15,15 @@ import { TextsReveal } from "../shared/texts-reveal";
  * mark (photos and the album are unmarked on every tier, and upgrading clears
  * the reel's mark). The claim is now scoped to photos in the copy itself, so
  * the strip can stay short without over-promising.
+ *
+ * ★ THE SAME TRAP CAUGHT THE FIRST CLAIM (Will, 2026-09-19, voice r1). It read
+ * "No app, no account": four words at the top of the page promising something
+ * Require verified emails switches off by default. Four SHORT claims is the
+ * strip's whole form, so there is nowhere to hedge in place and the claim had
+ * to become one that is true of every event. Never restore the second half.
  */
 const CLAIMS = [
-  "No app, no account",
+  "No app required",
   "Private by default",
   "Yours until you delete it",
   "No photo watermarks",

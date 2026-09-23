@@ -6,8 +6,8 @@
  * against `pnpm dev`, and before a merge against the production build, where
  * the gate is real:
  *
- *   pnpm lab:smoke [--key <key>]       # dev is open; a key proves it travels
- *   pnpm build && pnpm start && pnpm lab:smoke --production --key "$DESIGN_PREVIEW_KEY"
+ *   pnpm lab:smoke --base http://localhost:3131   # dev is open; a key proves it travels
+ *   pnpm build && pnpm start && pnpm lab:smoke --base http://localhost:3131 --production
  *
  * IT ALSO MEASURES THE READING (the revamp, 2026-09-16). Will's note on the
  * palette board's fifth round was that it read like "a PhD on color theory",
@@ -47,13 +47,31 @@ const SCENES = [];
 // Whether that surfaces as a 500 or inside a 200 depends on where the shell's
 // Suspense boundary sits, so both pass; only the gate's 404 or no answer fails.
 const EXPECT = { "/design/lab/tools/boom": [200, 500] };
-const MAX_PAGES = 400;
+const MAX_PAGES = 800; // 400 ran out on 2026-09-19 with 24 boards on the desk (every step of every board is a page)
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
   argv.includes(name) ? (argv[argv.indexOf(name) + 1] ?? fallback) : fallback;
-const base = opt("--base", "http://localhost:3000").replace(/\/+$/, "");
-const key = opt("--key", "");
+/**
+ * ★ NO DEFAULT BASE (lab-tides, 2026-09-19). `http://localhost:3000` is the
+ * ORCHESTRATOR's port: a lane that forgets the flag crawls a tree that is not
+ * its own and reads the answer as its own board's. `lab:demo` was caught doing
+ * it twice in one day and this script had the same default. Pass `--base`, or
+ * set `LAB_BASE` once in the shell.
+ */
+const rawBase = opt("--base", process.env.LAB_BASE ?? "");
+if (!rawBase) {
+  console.error(
+    "lab:smoke needs the server to crawl: --base http://localhost:<your port>\n" +
+      "  (or export LAB_BASE). There is no default on purpose: :3000 is the\n" +
+      "  Orchestrator's tree.",
+  );
+  process.exit(2);
+}
+const base = rawBase.replace(/\/+$/, "");
+// The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
+// so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
+const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");
 const timeout = Number(opt("--timeout", 20_000));
 const production = argv.includes("--production");
 const dry = argv.includes("--dry");

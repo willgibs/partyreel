@@ -132,7 +132,11 @@ describe("composeSoFar", () => {
         notes: {},
       },
       roundOf,
-      { answers: { [key]: { choice: "eleven", note: "" } }, items: {}, notes: {} },
+      {
+        answers: { [key]: { choice: "eleven", note: "" } },
+        items: {},
+        notes: {},
+      },
     );
     expect(out.message).toBe(
       'review light r6: cadence=eleven "on second thoughts"',
@@ -248,9 +252,17 @@ describe("composeSoFar", () => {
 
   it("sends a note again the moment its words change", () => {
     const out = composeSoFar(
-      { answers: {}, items: {}, notes: { light: "the footer keeps its seam, slower" } },
+      {
+        answers: {},
+        items: {},
+        notes: { light: "the footer keeps its seam, slower" },
+      },
       roundOf,
-      { answers: {}, items: {}, notes: { light: ["the footer keeps its seam"] } },
+      {
+        answers: {},
+        items: {},
+        notes: { light: ["the footer keeps its seam"] },
+      },
     );
     expect(out.message).toBe(
       'review light r6: note: "the footer keeps its seam, slower"',
@@ -288,5 +300,94 @@ describe("composeSoFar", () => {
     expect(out.message).toBe(
       'review light r6: note: "the footer keeps its seam"',
     );
+  });
+
+  /**
+   * THE SENT MARK (lab-tides, 2026-09-19). `transcribed` is only as fresh as
+   * the build he is reading, so on a stale alias it says nothing about the
+   * batch he pasted an hour ago and the next paste carries it again (his
+   * question, 2026-09-19). The browser's own mark is what closes that, and the
+   * message says exactly which keys it took so the Copy button can set it.
+   */
+  const sat = { build: "abc1234", at: "2026-09-19T10:00:00Z" };
+
+  it("names every hold id the message carries, and nothing else", () => {
+    const out = composeSoFar(
+      {
+        answers: {
+          "light.r6.cadence": { choice: "eleven", note: "" },
+          "light.r5.gone": { choice: "old", note: "" },
+        },
+        items: { "palette.r6.item.ember": { verdict: "keep", note: "" } },
+        notes: { light: "one remark" },
+      },
+      roundOf,
+      nothing,
+    );
+    expect(out.included.sort()).toEqual(
+      [
+        holdId("light", 6, "cadence"),
+        itemHoldId("palette", 6, "ember"),
+        "note:light",
+      ].sort(),
+    );
+  });
+
+  it("leaves out what a previous paste already took", () => {
+    const store = {
+      answers: { "light.r6.cadence": { choice: "eleven", note: "" } },
+      items: { "palette.r6.item.ember": { verdict: "keep", note: "" } },
+      notes: { light: "one remark" },
+      sent: {
+        [holdId("light", 6, "cadence")]: sat,
+        [itemHoldId("palette", 6, "ember")]: sat,
+        "note:light": sat,
+      },
+    };
+    expect(composeSoFar(store, roundOf, nothing).message).toBe("");
+    // And "Copy everything" is the way back for a paste that went missing.
+    const all = composeSoFar(store, roundOf, nothing, null, {
+      ignoreSent: true,
+    });
+    expect(all.answers).toBe(1);
+    expect(all.items).toBe(1);
+    expect(all.notes).toBe(1);
+  });
+
+  it("carries a marked entry again once it changes", () => {
+    // The store clears the mark on the write; this is the composer's half.
+    const out = composeSoFar(
+      {
+        answers: {
+          "light.r6.cadence": { choice: "twelve", note: "" },
+          "light.r6.paper": { choice: "warm", note: "" },
+        },
+        items: {},
+        notes: {},
+        sent: { [holdId("light", 6, "paper")]: sat },
+      },
+      roundOf,
+      nothing,
+    );
+    expect(out.message).toBe("review light r6: cadence=twelve");
+    expect(out.included).toEqual([holdId("light", 6, "cadence")]);
+  });
+
+  it("marks a cleared choice's surviving note under the answer's own key", () => {
+    const store = {
+      answers: { "light.r6.paper": { choice: "", note: "it never worked" } },
+      items: {},
+      notes: {},
+    };
+    const out = composeSoFar(store, roundOf, nothing);
+    expect(out.included).toEqual([holdId("light", 6, "paper")]);
+    // Marked, the words stop riding: the note has no key of its own.
+    expect(
+      composeSoFar(
+        { ...store, sent: { [holdId("light", 6, "paper")]: sat } },
+        roundOf,
+        nothing,
+      ).message,
+    ).toBe("");
   });
 });

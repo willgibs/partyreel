@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { QrCode } from "lucide-react";
 
-import { Logo } from "@/components/shared/logo";
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { GuestBar } from "@/components/guest/guest-bar";
+import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 
@@ -15,7 +15,9 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 // slug are the only three ways a link stops resolving. The help article
 // content/help/the-qr-wont-scan-or-the-link-wont-open.mdx quotes this sentence. Renders in
 // (guest)/layout.tsx (narrow mobile column); GuestHeader needs a real qrToken/eventId,
-// which a 404 has none of, so we show a minimal Logo header linking home instead.
+// which a 404 has none of, so the session-less GuestBar stands in — lifted OUT of this
+// file in the errors wiring so the guest CRASH could wear the same row (Will,
+// `surround=shell`, 2026-09-19).
 export const metadata: Metadata = {
   title: "Event not found",
   robots: { index: false, follow: false },
@@ -24,11 +26,7 @@ export const metadata: Metadata = {
 export default function GuestNotFound() {
   return (
     <>
-      <header className="flex items-center border-b border-border/60 px-5 py-3">
-        <Link href="/" aria-label="Partyreel home">
-          <Logo />
-        </Link>
-      </header>
+      <GuestBar />
       <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
         <NotFoundScreen
           icon={QrCode}
@@ -40,6 +38,10 @@ export default function GuestNotFound() {
               <Link href="/">What is Partyreel?</Link>
             </Button>
           }
+          // Will, `ways-out=guided` (2026-09-19). A guest holding a link that
+          // will not open is the reader most likely to want a person, and the
+          // help center's QR article is written for exactly this screen.
+          help={<HelpLine href="/help">Visit the help center</HelpLine>}
           footnote={
             DEMO_EVENT_URL ? (
               <Link
@@ -50,7 +52,7 @@ export default function GuestNotFound() {
               </Link>
             ) : (
               <span className="text-muted-foreground">
-                Hosting your own? It is free to start. No app, no account.
+                Hosting your own? It is free to start. No app required.
               </span>
             )
           }

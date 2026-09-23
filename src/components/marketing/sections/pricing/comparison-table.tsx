@@ -36,6 +36,14 @@ import { formatBytes } from "@/lib/utils";
  * inline (the reel tier-section pattern). Divider grammar (Will's note 7):
  * dashed hairlines between rows inside a group, solid rules around group
  * headers, which sit on the whisper-gray band (note 8).
+ *
+ * ★ THE TABLE IS DARK NOW (Will, 2026-09-20, his own answer on `sheet`: "Let's
+ * make the table dark so there's not a harsh back-to-back chapter transition on
+ * the table between the Find Your Plan and FAQ section now following the
+ * table"). It lost its PaperChapter wrapper on the page rather than a line in
+ * here: every surface in this file is a token, so the matrix simply renders in
+ * whatever room it is dropped into. The one thing a token could not follow is
+ * the tooltip, which PORTALS out of the page and has to carry the skin itself.
  */
 
 type CellValue = boolean | string;
@@ -78,7 +86,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Events",
-          tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in the trash.",
+          tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in Deleted.",
           values: [
             `${MAX_EVENTS.free}`,
             "1 per pass",
@@ -114,7 +122,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Idle cleanup",
-          tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to the 30-day trash.",
+          tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to Deleted for 30 days.",
           values: [
             "After ~6 months idle",
             "Not while the pass is live",
@@ -139,7 +147,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Verified-email guests",
-          tip: "On by default: guests confirm a one-tap email code before uploading. You can allow anonymous uploads per event.",
+          tip: "On by default: guests confirm a one-tap email code before uploading. You can allow unverified display names per event instead.",
           values: [true, true, true],
         },
       ],
@@ -179,8 +187,8 @@ function buildGroups(): MatrixGroup[] {
         { label: "Custom link name", values: [false, true, true] },
         {
           label: "Public host page",
-          tip: "Claim /u/you and list the events you host. Guests never need one.",
-          values: [false, true, true],
+          tip: "Claim /u/you and list the events you host, free on every plan. Guests never need one.",
+          values: [true, true, true],
         },
       ],
     },
@@ -188,7 +196,7 @@ function buildGroups(): MatrixGroup[] {
       title: "Safety net",
       rows: [
         {
-          label: "30-day trash",
+          label: "30 days in Deleted",
           tip: "Anything you delete can be restored, exactly as it was, for 30 days.",
           values: [true, true, true],
         },
@@ -239,8 +247,10 @@ function LabelCell({ row }: { row: MatrixRow }) {
         <TooltipTrigger className="cursor-help text-left font-medium underline decoration-muted-foreground/40 decoration-dotted underline-offset-4">
           {row.label}
         </TooltipTrigger>
-        {/* Portaled → carries the paper skin itself (THE PORTAL RULE). */}
-        <TooltipContent {...portalSkinProps("paper")} side="top">
+        {/* Portaled → carries the skin itself (THE PORTAL RULE). "cinema"
+            since the table's chapter went dark: a portaled surface cannot read
+            the room it was opened from. */}
+        <TooltipContent {...portalSkinProps("cinema")} side="top">
           <span className="max-w-60 text-pretty">{row.tip}</span>
         </TooltipContent>
       </Tooltip>
@@ -321,7 +331,7 @@ export function ComparisonTable() {
                   <th
                     colSpan={4}
                     scope="colgroup"
-                    className="bg-muted/40 px-4 py-2 text-left text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase max-sm:block"
+                    className="bg-muted/40 px-4 py-2 text-left text-label font-medium text-muted-foreground uppercase max-sm:block"
                   >
                     {group.title}
                   </th>

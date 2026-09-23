@@ -1,6 +1,29 @@
 {
-  "version": 1,
+  "version": 2,
   "code": {
+    "table": [
+      "<AdminRunsTable />"
+    ],
+    "command-palette": [
+      "<CommandPaletteDemo />"
+    ],
+    "destructive-sheet": [
+      "<DestructiveSheetDemo />"
+    ],
+    "album-stream": [
+      "<CinemaGround>{<LiveAlbumStage />}</CinemaGround>",
+      "<div className=\"max-w-full overflow-x-auto\">\n  <CinemaGround>\n    <div\n      className=\"relative isolate overflow-x-clip\"\n      style={{ width: 1280 }}\n    >\n      <AlbumStream />\n      <div style={{ height: 520 }} />\n      <LiveAlbumStage />\n      <div style={{ height: 150 }} />\n    </div>\n  </CinemaGround>\n</div>"
+    ],
+    "trail": [
+      "<div className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\">\n  <Trail\n    source=\"pointer\"\n    className=\"flex min-h-[26rem] flex-col items-center justify-center px-6 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",
+      "<div\n  className=\"surface-paper overflow-hidden rounded-lg border bg-background text-foreground\"\n  style={{ width: 375 }}\n>\n  <Trail\n    source=\"path\"\n    className=\"flex min-h-[32rem] flex-col items-center justify-center px-5 py-12\"\n  >\n    <TrailWords />\n  </Trail>\n</div>",
+      "<div className=\"overflow-hidden rounded-lg border\">\n  <Trail source=\"pointer\" className=\"min-h-[22rem]\" />\n</div>"
+    ],
+    "qr-plate": [
+      "<QrDoorPicture width={331} />",
+      "<QrDoorPicture width={343} />",
+      "<div\n  className=\"relative aspect-4/5 overflow-hidden rounded-xl bg-[oklch(0.13_0_0)]\"\n  style={{ width: 331 }}\n>\n  <QrRiverPlate ratio={5 / 4} value=\"https://partyreel.com/demo\" />\n</div>"
+    ],
     "button": [
       "<Row>\n  <Button>\n    <ImageUp /> Add photos\n  </Button>\n  <Button variant=\"outline\">\n    <Share2 /> Share\n  </Button>\n</Row>",
       "<Row>\n  <Button disabled>Default</Button>\n  <Button variant=\"outline\" disabled>\n    Outline\n  </Button>\n</Row>"
@@ -20,6 +43,9 @@
     ],
     "switch": [
       "<Row>\n  <Switch defaultChecked aria-label=\"On\" />\n  <Switch aria-label=\"Off\" />\n</Row>"
+    ],
+    "confirm-switch": [
+      "<ConfirmSwitchDemo />"
     ],
     "select": [
       "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
@@ -45,6 +71,11 @@
       "<EmptyAlbumDemo width={632} />",
       "<div style={{ width: 335 }}>\n  <GalleryEmptyState />\n</div>",
       "<div style={{ width: 335 }}>\n  <River frames={GUEST_GHOST_FRAMES} />\n</div>"
+    ],
+    "photo-section": [
+      "<PhotoSection source=\"pointer\">\n  <PlateCopy />\n</PhotoSection>",
+      "<div style={{ width: 375 }}>\n  <PhotoSection source=\"scroll\">\n    <PlateCopy />\n  </PhotoSection>\n</div>",
+      "<PhotoSection className=\"min-h-56\" />"
     ],
     "tabs": [
       "<Tabs defaultValue=\"all\">\n  <TabsList>\n    <TabsTrigger value=\"all\">All</TabsTrigger>\n    <TabsTrigger value=\"photos\">Photos</TabsTrigger>\n    <TabsTrigger value=\"videos\">Videos</TabsTrigger>\n  </TabsList>\n  <TabsContent\n    value=\"all\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Everything, interleaved.\n  </TabsContent>\n  <TabsContent\n    value=\"photos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Photos only.\n  </TabsContent>\n  <TabsContent\n    value=\"videos\"\n    className=\"pt-3 text-sm text-muted-foreground\"\n  >\n    Videos only.\n  </TabsContent>\n</Tabs>"
@@ -125,10 +156,21 @@
     "floating-add-button": [
       "<FloatingAddDemo />"
     ],
+    "route-skeleton": [
+      "<RouteSkeletonDemo />"
+    ],
+    "tile-size-control": [
+      "<TileSizeControlDemo />"
+    ],
+    "admin-shell": [
+      "<AdminRailDemo />",
+      "<AdminHealthBandDemo />",
+      "<AdminQueueDemo />"
+    ],
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
-      "<EventCard\n  variant=\"saved\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n  statusLabel=\"Password\"\n/>",
+      "<EventCard\n  variant=\"guest\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n/>",
       "<EventCard\n  variant=\"trash\"\n  href={null}\n  name=\"Old Test Event\"\n  coverUrl={SAMPLE.cover3}\n  dateLabel=\"Mar 11\"\n  statusLabel=\"6 days left\"\n/>"
     ],
     "storage-meter": [
@@ -138,7 +180,7 @@
       "<FilterChipsDemo />"
     ],
     "event-card-qr": [
-      "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share dialog\n  </span>\n</div>"
+      "<div className=\"flex items-center gap-3\">\n  {qrSlot}\n  <span className=\"text-sm text-muted-foreground\">\n    Opens the share sheet\n  </span>\n</div>"
     ],
     "qr-preset-picker": [
       "<QrPresetPickerDemo />"
@@ -299,5 +341,6 @@
     "bulk-select-mock": [
       "<div className=\"space-y-4\">\n  <div className=\"grid max-w-sm grid-cols-4 gap-1\">\n    {LIBRARY_SELECT_TILES.map((tile) => (\n      <SelectTile\n        key={tile.id}\n        id={tile.id}\n        selected={tile.selected}\n        sizes=\"96px\"\n      />\n    ))}\n  </div>\n  <BulkBarMock count={3} />\n</div>"
     ]
-  }
+  },
+  "unread": []
 }

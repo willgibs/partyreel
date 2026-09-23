@@ -69,7 +69,11 @@ export async function createEvent(
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
-    allow_anonymous_uploads: values.allow_anonymous_uploads,
+    // The host's identity switch; its default (true, the schema's and the column's) is what a host
+    // who never touched it gets.
+    require_verified_email: values.require_verified_email,
+    // The door's third step (off by default; the door as three steps, Will 2026-09-21).
+    require_upload_to_view: values.require_upload_to_view,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
   };
@@ -107,8 +111,9 @@ export async function updateEvent(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Only patch keys that were provided (updateEventSchema is partial). Nullable
-  // text columns take null when cleared.
+  // Only patch keys that were provided: updateEventSchema is partial with NO defaults, so a
+  // defined key here is one the caller sent (validation/event.ts owns why). Nullable text columns
+  // take null when cleared.
   const patch: TablesUpdate<"events"> = {};
   if (values.name !== undefined) patch.name = values.name;
   if (values.description !== undefined)
@@ -144,8 +149,12 @@ export async function updateEvent(
   }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
-  if (values.allow_anonymous_uploads !== undefined)
-    patch.allow_anonymous_uploads = values.allow_anonymous_uploads;
+  // The host's identity switch: a bare granted-column write, free on every tier.
+  if (values.require_verified_email !== undefined)
+    patch.require_verified_email = values.require_verified_email;
+  // The door's third step. No tier gate: a bare granted-column write.
+  if (values.require_upload_to_view !== undefined)
+    patch.require_upload_to_view = values.require_upload_to_view;
   if (values.moderation_mode !== undefined)
     patch.moderation_mode = values.moderation_mode;
   if (values.qr_style !== undefined) patch.qr_style = values.qr_style;

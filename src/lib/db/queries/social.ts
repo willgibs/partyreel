@@ -1,7 +1,13 @@
 /**
  * Social reads (profiles-social.md data layer): the public profile, owner-private
- * follow/block lists + counts, notification prefs, the guest-side hidden-event
- * set, and the host-keyed event guest list.
+ * follow/block lists + counts, notification prefs, the guest-side shown-event
+ * opt-in set, the host-keyed event guest list, and the ONE count of an event's guests.
+ *
+ * ★ A PERSON IS A GUEST OF AN EVENT ONLY THROUGH AN UPLOAD OF THEIRS (guest by upload, Will
+ * 2026-09-22). Every "who is a guest here" read in this module goes through `getEventGuests` (an
+ * APPROVED upload, what other people see), and every "which events has this account added to"
+ * read goes through `myLiveUploads` (any LIVE upload, the account's own view). A `guests` row is
+ * the device's upload ticket and is never read as attendance on its own.
  *
  * Privacy invariants encoded here (do not relax in a refactor):
  *   - Follower/following LISTS AND COUNTS are private to the owner (the VSCO
@@ -9,13 +15,35 @@
  *     there is NO path to anyone else's graph.
  *   - Blocks are private to the blocker; the blocked side can never read them.
  *   - The event guest list renders ONLY when the HOST enabled show_guest_list
- *     (the profiles-social.md host key); anonymous uploads never appear (user_id IS NULL).
+ *     (the profiles-social.md host key); a nameless upload never appears, and a named guest who
+ *     proved no email is listed as a plain name with the mark, never as a profile card.
+ *   - ★ NO ADDRESS EVER LEAVES THIS MODULE (the guest identity round, 2026-09-22). `guests` reads
+ *     here name their columns, and `pending_email` is never one of them: the unproved address a
+ *     guest types at the door is inert, and the host sees the unverified mark, never it. A
+ *     CONFIRMED address reaches the host alone, in the Guests room, through
+ *     queries/guest-addresses.ts and never through here, because these reads feed the guest album
+ *     and public profiles too (Will, 2026-09-23: "only the host sees it"). The column is outside
+ *     the host's PostgREST grant as a belt, and social.guest-identity.test.ts pins the SELECTs,
+ *     the outputs and the source (no `email`, `uploaderEmail` or `pending_email` outside a comment)
+ *     so an admin-client read here can never widen past them.
+ *   - A public profile publishes NOTHING until its owner chooses (his "Nothing until chosen"):
+ *     `profile_shown_events` is an opt-IN, and the empty set is the default rather than a failure.
  */
 import "server-only";
 
 import { cache } from "react";
 
+import {
+  guestEventCardProps,
+  sortGuestEventCards,
+  type GuestEventCardData,
+} from "@/lib/dashboard/guest-events";
 import type { Database } from "@/lib/db/types";
+import {
+  resolveEventGuests,
+  type EventGuests,
+  type GuestRowFacts,
+} from "@/lib/events/event-guests";
 import {
   resolveNotificationPrefs,
   type NotificationPrefs,
@@ -24,6 +52,7 @@ import {
 import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -56,6 +85,35 @@ export function isSocialSchemaMissing(error: unknown): boolean {
   return missing;
 }
 
+/**
+ * PostgREST clamps every response to `max_rows` (1000 on this project), so a list that can outgrow
+ * one page is read to exhaustion. The first page asks for an exact count, which makes the common
+ * case (everything fits) a single round trip; a longer set pages on by what actually came back, in
+ * a stable order the caller's query sets.
+ */
+const PAGE = 1000;
+type Page<T> = PromiseLike<{
+  data: T[] | null;
+  count?: number | null;
+  error: unknown;
+}>;
+async function readAll<T>(
+  page: (from: number, to: number) => Page<T>,
+): Promise<T[]> {
+  const first = await page(0, PAGE - 1);
+  if (first.error) throw first.error;
+  const rows = [...(first.data ?? [])];
+  const total = first.count ?? rows.length;
+  while (rows.length < total) {
+    const next = await page(rows.length, rows.length + PAGE - 1);
+    if (next.error) throw next.error;
+    const batch = next.data ?? [];
+    if (batch.length === 0) break;
+    rows.push(...batch);
+  }
+  return rows;
+}
+
 /** The public-by-existence card fields (profiles-social.md point 3). */
 export type SocialProfileCard = {
   id: string;
@@ -69,6 +127,13 @@ export type FollowEntry = SocialProfileCard & { followedAt: string };
 export type BlockEntry = SocialProfileCard & { blockedAt: string };
 
 /**
+ * At most this many ids ride one `.in()`. The list travels in the request URL (a uuid is 36 characters plus its
+ * comma), so 150 keeps a read near 5.5 KB, well inside every proxy's URL limit, and far below PostgREST's 1,000-row
+ * cap, which would otherwise answer a long list short without a word.
+ */
+const PROFILE_CARD_BATCH = 150;
+
+/**
  * Hydrate profile cards for an id list via the ADMIN client. WHY admin:
  * profiles RLS is deliberately own-row (`profiles_select_own`), and these card
  * fields (name/slug/avatar marker) are public by existence per profiles-social.md, so
@@ -77,33 +142,51 @@ export type BlockEntry = SocialProfileCard & { blockedAt: string };
  * nothing new. Never pass ids that did not come from such a scoped read.
  * Explicit id-list join (not a PostgREST embed): user_follows/user_blocks carry
  * TWO profiles FKs, so a bare embed would be PGRST201-ambiguous anyway.
+ *
+ * ★ IN BATCHES, IN PARALLEL: a wedding with four hundred confirmed guests is four hundred ids, so the list is deduped
+ * and read `PROFILE_CARD_BATCH` at a time, every batch at once, into the one map. ★ AND THE COLUMN LIST IS THE
+ * ALLOW-LIST: `profiles` carries the account's email, tier and storage beside these four, and
+ * social.guest-identity.test.ts pins the SELECT to exactly them.
  */
 async function getProfileCards(
   ids: string[],
 ): Promise<Map<string, SocialProfileCard>> {
-  if (ids.length === 0) return new Map();
-  const { data, error } = await createAdminClient()
-    .from("profiles")
-    .select("id, display_name, slug, avatar_updated_at")
-    .in("id", ids);
-  if (error) throw error;
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return new Map();
+  const batches: string[][] = [];
+  for (let i = 0; i < unique.length; i += PROFILE_CARD_BATCH) {
+    batches.push(unique.slice(i, i + PROFILE_CARD_BATCH));
+  }
+  const admin = createAdminClient();
+  const pages = await Promise.all(
+    batches.map(async (batch) => {
+      const { data, error } = await admin
+        .from("profiles")
+        .select("id, display_name, slug, avatar_updated_at")
+        .in("id", batch);
+      if (error) throw error;
+      return data ?? [];
+    }),
+  );
   return new Map(
-    (data ?? []).map(
-      (p: {
-        id: string;
-        display_name: string | null;
-        slug: string | null;
-        avatar_updated_at: string | null;
-      }) => [
-        p.id,
-        {
-          id: p.id,
-          displayName: p.display_name,
-          slug: p.slug,
-          avatarMarker: p.avatar_updated_at,
-        },
-      ],
-    ),
+    pages
+      .flat()
+      .map(
+        (p: {
+          id: string;
+          display_name: string | null;
+          slug: string | null;
+          avatar_updated_at: string | null;
+        }) => [
+          p.id,
+          {
+            id: p.id,
+            displayName: p.display_name,
+            slug: p.slug,
+            avatarMarker: p.avatar_updated_at,
+          },
+        ],
+      ),
   );
 }
 
@@ -252,13 +335,19 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   return resolveNotificationPrefs(data as NotificationPrefsRow | null);
 }
 
-/** Event ids I hid from my own public profile (profiles-social.md point 2). */
-export async function getMyHiddenEventIds(): Promise<string[]> {
+/**
+ * Event ids I have CHOSEN to publish on my own public profile.
+ *
+ * ★ AN OPT-IN, NEVER AN OPT-OUT (the guest identity round, Will 2026-09-22: "Nothing until chosen").
+ * An opt-out publishes people who never asked to be published, so `profile_shown_events` holds only
+ * what its owner turned on, and the empty set is the DEFAULT rather than a failure to act.
+ */
+export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
   const { data, error } = await supabase
-    .from("profile_hidden_events")
+    .from("profile_shown_events")
     .select("event_id")
     .eq("user_id", user.id);
   if (error) {
@@ -288,13 +377,17 @@ export type PublicProfileAttendedEvent = {
   name: string;
   event_date: string | null;
   // Deliberately NO qr_token: attendance is not a capability grant (the RPC
-  // never hands out an album link the host didn't publish).
+  // never hands out an album link the host didn't publish). The id IS returned
+  // and is safe to hold: it opens nothing on its own, and the cover presign
+  // below re-proves every gate before it turns one into a picture.
 };
 
 export type PublicProfile = {
   id: string;
   slug: string;
   display_name: string | null;
+  /** The one line a person writes about themselves (migration 20260919120000). */
+  bio: string | null;
   avatar_updated_at: string | null;
   created_at: string;
   hosted_events: PublicProfileHostedEvent[];
@@ -306,8 +399,9 @@ export type PublicProfile = {
  * the 4th member of the accepted anon-read set). null = no such handle; we
  * never distinguish "no user" from "user without a slug" (don't leak existence).
  * Composition lives IN the RPC per the ADR: hosted events the host displays +
- * attended events (show_guest_list on, approved upload) minus the owner's
- * profile_hidden_events.
+ * attended events (show_guest_list on, an approved upload, the guest VERIFIED)
+ * intersected with the owner's own profile_shown_events opt-in — so a profile
+ * publishes nothing at all until its owner chooses (the guest identity round).
  */
 const getPublicProfileCached = cache(
   async (slug: string): Promise<PublicProfile | null> => {
@@ -334,7 +428,7 @@ export async function getPublicProfile(
 
 /**
  * Cover URLs for a public profile's HOSTED events, keyed by event id — the /u/
- * page's grid art. OPEN events only (the saved-events masking rule: password
+ * page's grid art. OPEN events only (the album's own masking rule: password
  * media is entry-gated, private is locked), so a presign happens only where a
  * public thumbnail is already allowed on the album itself. Admin read because
  * the viewer may be anonymous; the id list came from the display_in_profile-
@@ -348,6 +442,94 @@ export async function getPublicProfileCoverUrls(
     .filter((e) => e.visibility === "open")
     .map((e) => e.id);
   return adminCoverUrls(openIds);
+}
+
+/**
+ * Cover URLs for the events this person ATTENDED — the other half of the /u/
+ * grid since Will's `made-of=covers` (2026-09-19): "rather than a separate
+ * 'also at' section, maybe we could just have host/guest UI on each event card
+ * to denote within a single group".
+ *
+ * ★ IT RE-PROVES THE OWNER'S FOUR GATES BEFORE IT PRESIGNS, and that is the
+ * whole function. get_public_profile already applied them (the host's
+ * show_guest_list key, visibility = 'open', the guest's own profile_shown_events,
+ * and an APPROVED upload of the owner's on a PROVED row: guest by upload,
+ * 2026-09-22, where a person is a guest only through an upload) and a caller that
+ * passed its payload straight through would be correct today — but this turns an
+ * event id into a PHOTOGRAPH from someone else's album, so it proves the scope
+ * itself rather than inheriting it from whoever called. A presign is the wrong
+ * place to be clever. The VIEWER's gates (the album's confirmed-email and upload
+ * doors) are the RPC's alone: this read takes no viewer, so the covers inherit
+ * them through the ids the RPC returned.
+ *
+ * Cheap by construction: every read is an id-scoped lookup on the set the RPC
+ * already narrowed, and an empty set short-circuits before the next.
+ * Admin client because the viewer may be anonymous (events RLS is host-only).
+ */
+export async function getPublicProfileAttendedCoverUrls(
+  profileId: string,
+  events: PublicProfileAttendedEvent[],
+): Promise<Map<string, string>> {
+  const ids = events.map((e) => e.id);
+  if (ids.length === 0) return new Map();
+
+  const admin = createAdminClient();
+  try {
+    // Gates 1 and 2: the host's key is still on and the album is still open.
+    const { data: open, error } = await admin
+      .from("events")
+      .select("id")
+      .in("id", ids)
+      .eq("show_guest_list", true)
+      .eq("visibility", "open")
+      .is("deleted_at", null);
+    if (error) throw error;
+    const allowed = new Set((open ?? []).map((e) => e.id));
+    if (allowed.size === 0) return new Map();
+
+    // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
+    // is published because its owner put a row in `profile_shown_events`, never because they failed
+    // to hide it, so the set that survives is the INTERSECTION and an empty answer is the correct
+    // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
+    // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
+    // profile_shown_events RLS is owner-only.
+    const { data: shown, error: shownError } = await admin
+      .from("profile_shown_events")
+      .select("event_id")
+      .eq("user_id", profileId)
+      .in("event_id", [...allowed]);
+    if (shownError) throw shownError;
+    const chosen = new Set((shown ?? []).map((row) => row.event_id));
+    for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
+    if (allowed.size === 0) return new Map();
+
+    // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
+    // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
+    // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
+    const attended = await readAll<{ event_id: string }>(
+      (from, to) =>
+        admin
+          .from("media")
+          .select(
+            "event_id, guests!media_guest_id_fkey!inner(user_id, verified_at)",
+            { count: "exact" },
+          )
+          .in("event_id", [...allowed])
+          .eq("status", "approved")
+          .eq("guests.user_id", profileId)
+          .not("guests.verified_at", "is", null)
+          .order("id", { ascending: true })
+          .range(from, to) as unknown as Page<{ event_id: string }>,
+    );
+    const proved = new Set(attended.map((row) => row.event_id));
+    for (const id of [...allowed]) if (!proved.has(id)) allowed.delete(id);
+    if (allowed.size === 0) return new Map();
+
+    return adminCoverUrls([...allowed]);
+  } catch (error) {
+    if (isSocialSchemaMissing(error)) return new Map();
+    throw error;
+  }
 }
 
 async function adminCoverUrls(
@@ -440,24 +622,81 @@ export async function getMyProfileSlug(): Promise<string | null> {
   return (data as { slug: string | null } | null)?.slug ?? null;
 }
 
-// ── The account surface (settings reads) ─────────────────────────────────────
+// ── The events you added to (guest by upload) ───────────────────────────────
+
+type MediaStatus = Database["public"]["Enums"]["media_status"];
+
+/** One live upload of mine, with the facts of the guest row it rides on. */
+type MyLiveUpload = {
+  eventId: string;
+  status: MediaStatus;
+  createdAt: string;
+  /** The row is a PROVED identity (`verified_at`), which is what may attend in public. */
+  verified: boolean;
+};
+
+/**
+ * EVERY LIVE UPLOAD OF MINE, the one read behind "the events you added to" (guest by upload, Will
+ * 2026-09-22: "Uploaded 1 photo? You're a guest."). A LIVE upload is any status but `removed`:
+ * pending, approved or hidden. Both of this module's account lists are views of it, so they can
+ * never disagree about which events a person has put something into:
+ *   - the dashboard's Guest cards take ANY live upload (it is the person's own list);
+ *   - the Account page's "show on my profile" switches take an APPROVED upload on a PROVED row,
+ *     because those switches decide what other people see, and the public line needs exactly that.
+ *
+ * One read: media inner-joined to its guest row (the single FK `media_guest_id_fkey`, the embed
+ * `getUploaderIdentities` already rides) and filtered on the row's owner, so only the account's own
+ * rows are ever read and no id list travels in the URL. Admin client: `guests` has no client grant
+ * at all, and `media` is host-scoped RLS. The caller passes the id `getUser()` verified.
+ */
+async function myLiveUploads(userId: string): Promise<MyLiveUpload[]> {
+  const rows = await readAll<{
+    event_id: string;
+    status: MediaStatus;
+    created_at: string;
+    guests: { verified_at: string | null } | null;
+  }>((from, to) =>
+    createAdminClient()
+      .from("media")
+      .select(
+        "event_id, status, created_at, guests!media_guest_id_fkey!inner(user_id, verified_at)",
+        { count: "exact" },
+      )
+      .eq("guests.user_id", userId)
+      .neq("status", "removed")
+      .order("id", { ascending: true })
+      .range(from, to) as unknown as Page<{
+      event_id: string;
+      status: MediaStatus;
+      created_at: string;
+      guests: { verified_at: string | null } | null;
+    }>,
+  );
+  return rows.map((r) => ({
+    eventId: r.event_id,
+    status: r.status,
+    createdAt: r.created_at,
+    verified: Boolean(r.guests?.verified_at),
+  }));
+}
 
 export type AttendedEventSetting = {
   id: string;
   name: string;
   event_date: string | null;
-  /** In my profile_hidden_events set (the per-event hide toggle is OFF). */
-  hiddenFromProfile: boolean;
+  /** In my profile_shown_events set: I have chosen to publish this one. Default FALSE. */
+  shownOnProfile: boolean;
 };
 
 /**
- * Events I ATTENDED (signed-in guest rows with >= 1 approved upload, host
- * differs), for the /account per-event hide-from-my-profile toggles. Mirrors the
- * RPC's attended arm MINUS the show_guest_list filter, deliberately: the hide
- * toggle is MY key and must stay settable even while the host's key is off (so
- * flipping show_guest_list on later never surprises a guest who already hid the
- * event). Admin read: events RLS is host-only and guests has no authenticated
- * read; scoped hard to the caller's own guest rows.
+ * The events I ADDED PHOTOS TO that my profile could show, for the per-event "show this on my
+ * profile" switches: an APPROVED upload on a PROVED row (`verified_at`), at an event I do not host.
+ * That is exactly what the RPC's attended arm requires of the page's owner, MINUS the host-side
+ * gates (show_guest_list, visibility, the album's viewer gates), deliberately: the choice is MY key
+ * and must stay settable whatever the host does, so flipping show_guest_list on later never
+ * surprises a guest who chose to publish, or one who never did. A switch for an event whose line
+ * could never show (a typed name, nothing approved) would be a switch that does nothing, so it is
+ * not offered. Admin read (see `myLiveUploads`), scoped hard to the caller's own rows.
  */
 export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   const { user } = await getRequestAuth();
@@ -465,27 +704,12 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
 
   const admin = createAdminClient();
   try {
-    const { data: guests, error: guestsError } = await admin
-      .from("guests")
-      .select("id, event_id")
-      .eq("user_id", user.id);
-    if (guestsError) throw guestsError;
-    if (!guests || guests.length === 0) return [];
-
-    const { data: approved, error: mediaError } = await admin
-      .from("media")
-      .select("guest_id")
-      .in(
-        "guest_id",
-        guests.map((g) => g.id),
-      )
-      .eq("status", "approved");
-    if (mediaError) throw mediaError;
-
-    const approvedGuestIds = new Set((approved ?? []).map((m) => m.guest_id));
+    const uploads = await myLiveUploads(user.id);
     const eventIds = [
       ...new Set(
-        guests.filter((g) => approvedGuestIds.has(g.id)).map((g) => g.event_id),
+        uploads
+          .filter((u) => u.verified && u.status === "approved")
+          .map((u) => u.eventId),
       ),
     ];
     if (eventIds.length === 0) return [];
@@ -498,12 +722,12 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (eventsRes.error) throw eventsRes.error;
-    const hidden = new Set(await getMyHiddenEventIds());
+    const shown = new Set(await getMyShownEventIds());
     return (eventsRes.data ?? []).map((e) => ({
       id: e.id,
       name: e.name,
       event_date: e.event_date,
-      hiddenFromProfile: hidden.has(e.id),
+      shownOnProfile: shown.has(e.id),
     }));
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
@@ -511,33 +735,195 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   }
 }
 
-// ── The event guest list (the profiles-social.md host key) ─────────────────────────────
+/**
+ * THE EVENTS YOU ADDED TO, as the dashboard's Guest cards (guest by upload, Will 2026-09-22:
+ * "uploading to an event is now effectively saving"). Every event where this account holds a live
+ * upload, excluding deleted events and events it hosts (those are its own cards), newest first by
+ * its own latest live upload. A card leaves the moment its last live upload does, because this list
+ * is read from the uploads themselves.
+ *
+ * Masked by the album's own rules (`guestEventCardProps`, lib/dashboard/guest-events.ts): a private
+ * album blank and locked, a password album linked with no cover, and covers only for OPEN albums,
+ * through `adminCoverUrls` (the newest approved photograph, the same rule every other card uses).
+ * Admin reads, scoped hard to the caller's own rows.
+ */
+export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
+  const { user } = await getRequestAuth();
+  if (!user) return [];
+
+  const admin = createAdminClient();
+  try {
+    const uploads = await myLiveUploads(user.id);
+    const latest = new Map<string, string>();
+    for (const u of uploads) {
+      const seen = latest.get(u.eventId);
+      if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
+    }
+    if (latest.size === 0) return [];
+
+    const eventsRes = await admin
+      .from("events")
+      .select("id, name, event_date, visibility, qr_token, host_id")
+      .in("id", [...latest.keys()])
+      .neq("host_id", user.id)
+      .is("deleted_at", null);
+    if (eventsRes.error) throw eventsRes.error;
+    const events = eventsRes.data ?? [];
+    if (events.length === 0) return [];
+
+    const hostIds = [...new Set(events.map((e) => e.host_id))];
+    const [hostsRes, covers] = await Promise.all([
+      admin.from("profiles").select("id, display_name").in("id", hostIds),
+      adminCoverUrls(
+        events.filter((e) => e.visibility === "open").map((e) => e.id),
+      ),
+    ]);
+    if (hostsRes.error) throw hostsRes.error;
+    const hostNames = new Map(
+      (hostsRes.data ?? []).map((h) => [h.id, h.display_name] as const),
+    );
+
+    return sortGuestEventCards(
+      events.map((e) =>
+        guestEventCardProps(
+          {
+            eventId: e.id,
+            name: e.name,
+            eventDate: e.event_date,
+            visibility: e.visibility,
+            qrToken: e.qr_token,
+            hostName: hostNames.get(e.host_id) ?? null,
+            lastUploadAt: latest.get(e.id) as string,
+          },
+          covers.get(e.id) ?? null,
+        ),
+      ),
+    );
+  } catch (error) {
+    if (isSocialSchemaMissing(error)) return [];
+    throw error;
+  }
+}
+
+// ── Who is a guest here: the one count, and the list built on it ─────────────────────
+
+/**
+ * THE ONE COUNT (guest by upload, Will 2026-09-22: "Uploaded 1 photo? You're a guest."). Every
+ * surface that says how many guests an event has, or lists them, reads this and nothing else: the
+ * hub's Guests card and header (host), the album's "N photos & videos from M guests" (guest), and
+ * the guest list itself. A guest is somebody with an APPROVED upload here (what other people see is
+ * what the album shows); a confirmed guest counts once per person, a named unconfirmed one once per
+ * row, never the host and never a nameless row (`resolveEventGuests`, lib/events/event-guests.ts).
+ *
+ * ★ TWO QUERIES KEYED ON `event_id`, NEVER AN `.in()` OF GUEST IDS: a party's row count is
+ * unbounded, and an id list rides the URL, so the old shape (rows first, then their media by id)
+ * grew its request with the party. Both sets are read to exhaustion past PostgREST's row cap.
+ * Admin client: `guests` has no client grant and `media` is host-scoped RLS; every caller runs this
+ * AFTER its own access gate (the hub's ownership, the album's resolved access), and only numbers or
+ * names the album already shows ever leave it. An event that is missing or deleted has no guests.
+ */
+export const getEventGuests = cache(async function getEventGuests(
+  eventId: string,
+): Promise<EventGuests> {
+  // cache(): request-scoped, because the album page asks twice in one render (its header's count
+  // and its guest list), and the answer cannot change between them.
+  const admin = createAdminClient();
+  const [eventRes, approved, rows] = await Promise.all([
+    admin
+      .from("events")
+      .select("host_id")
+      .eq("id", eventId)
+      .is("deleted_at", null)
+      .maybeSingle(),
+    readAll<{ guest_id: string | null }>(
+      (from, to) =>
+        admin
+          .from("media")
+          .select("guest_id", { count: "exact" })
+          .eq("event_id", eventId)
+          .eq("status", "approved")
+          .not("guest_id", "is", null)
+          .order("id", { ascending: true })
+          .range(from, to) as unknown as Page<{ guest_id: string | null }>,
+    ),
+    // ★ `verified_at` and `display_name` are NOT granted to `authenticated` (guests has no client
+    // grant at all), which is why this read is on the admin client; and the SELECT names its four
+    // columns and no address (social.guest-identity.test.ts pins it).
+    readAll<GuestRowFacts>(
+      (from, to) =>
+        admin
+          .from("guests")
+          .select("id, user_id, display_name, verified_at", { count: "exact" })
+          .eq("event_id", eventId)
+          .order("id", { ascending: true })
+          .range(from, to) as unknown as Page<GuestRowFacts>,
+    ),
+  ]);
+  if (eventRes.error) throw eventRes.error;
+  if (!eventRes.data) return { verifiedUserIds: [], unverifiedRows: [] };
+
+  return resolveEventGuests({
+    hostId: eventRes.data.host_id,
+    approvedGuestIds: new Set(
+      approved.flatMap((m) => (m.guest_id ? [m.guest_id] : [])),
+    ),
+    rows,
+  });
+});
 
 export type GuestListEntry = SocialProfileCard;
 
 /**
- * The named "Guests (N)" list for an event: ALL signed-in uploaders with at
- * least one APPROVED media (approved = what the album shows; mirrors the
- * attended-events arm of get_public_profile, so the two surfaces always agree).
- * Anonymous uploads (guests.user_id IS NULL) never appear.
+ * A NAMED GUEST WHO NEVER PROVED AN EMAIL (Will, `unproven=shown-marked` + "Listed, with the
+ * mark", 2026-09-21). There is no profile behind them, so there is no card, no handle and no
+ * avatar to hydrate — only the name they typed at the door, and the `id` is their GUEST ROW's,
+ * never a user id. The `kind` tag is what lets a caller split the union; a profile entry carries
+ * no tag, so `"kind" in entry` is the discriminator and the two existing callers are untouched.
+ */
+export type UnverifiedGuestListEntry = {
+  kind: "unverified";
+  id: string;
+  displayName: string;
+};
+
+export type GuestListItem = GuestListEntry | UnverifiedGuestListEntry;
+
+/**
+ * The named "Guests (N)" list for an event, built on the one count (`getEventGuests`), so the list
+ * and every number beside it are the same people: every guest with an APPROVED upload, confirmed
+ * ones as profile cards (keyed on `verified_at`, never on a bare `user_id`, so an unconfirmed
+ * sign-up never passes as a proven person), and never the host.
  *
- * Returns null when the host has NOT enabled show_guest_list, so callers can't
- * accidentally render a list the host key doesn't authorize; [] means "on, but
- * no signed-in uploaders yet".
+ * ★ `includeUnverified` (the identity reshape, 2026-09-21) appends the guests who typed a name at
+ * the door and never proved an email, AFTER the profile cards, one entry per GUEST ROW. One per
+ * row and not per person on purpose: without an account there is nothing to de-duplicate BY, and
+ * two people who both typed "Sam" are two people (Will's to overrule). It is OFF by default so
+ * every `withAvatarUrls` caller keeps the narrow type it already has; the guest album and the
+ * Guests room opt in, and split the union before hydration (lib/social/cards.ts).
  *
- * WHY the admin client: this is server-side composition for BOTH surfaces (the
- * host event page after getUser() ownership, and the guest /e/ page after the
- * qr_token capability + password gate). Neither anon nor authenticated has (or
- * should get) table reads across guests/profiles, and the show_guest_list
- * re-check HERE is the authorization: the host key gates the data, not the
- * caller's row access. Callers MUST have already passed their surface's access
- * gate; never call this with an unvalidated event id.
- * No block filtering: the guest list is an event surface keyed by the host,
+ * Returns null when the host has NOT enabled show_guest_list, so callers can't accidentally render
+ * a list the host key doesn't authorize; [] means "on, but no named guests yet".
+ *
+ * WHY the admin client: this is server-side composition for BOTH surfaces (the host event page
+ * after getUser() ownership, and the guest /e/ page after the qr_token capability + password gate).
+ * Neither anon nor authenticated has (or should get) table reads across guests/profiles, and the
+ * show_guest_list re-check HERE is the authorization: the host key gates the data, not the caller's
+ * row access. Callers MUST have already passed their surface's access gate; never call this with an
+ * unvalidated event id. No block filtering: the guest list is an event surface keyed by the host,
  * not a social graph surface (blocks shape follows only, profiles-social.md).
  */
 export async function getEventGuestList(
   eventId: string,
-): Promise<GuestListEntry[] | null> {
+): Promise<GuestListEntry[] | null>;
+export async function getEventGuestList(
+  eventId: string,
+  options: { includeUnverified: true },
+): Promise<GuestListItem[] | null>;
+export async function getEventGuestList(
+  eventId: string,
+  options?: { includeUnverified?: boolean },
+): Promise<GuestListItem[] | null> {
+  const includeUnverified = options?.includeUnverified ?? false;
   const admin = createAdminClient();
 
   const { data: event, error: eventError } = await admin
@@ -552,40 +938,12 @@ export async function getEventGuestList(
     return null;
   }
 
-  // Explicit id-list joins (no embeds): signed-in guest rows -> approved media
-  // presence -> profile cards. media stays admin-read with explicit columns
-  // (never select("*") on media: the hold columns are host-invisible, trust-safety-forensics.md).
-  const { data: guests, error: guestsError } = await admin
-    .from("guests")
-    .select("id, user_id")
-    .eq("event_id", eventId)
-    .not("user_id", "is", null);
-  if (guestsError) throw guestsError;
-  if (!guests || guests.length === 0) return [];
+  const guests = await getEventGuests(eventId);
 
-  const { data: approved, error: mediaError } = await admin
-    .from("media")
-    .select("guest_id")
-    .in(
-      "guest_id",
-      guests.map((g) => g.id),
-    )
-    .eq("status", "approved");
-  if (mediaError) throw mediaError;
-
-  const approvedGuestIds = new Set((approved ?? []).map((m) => m.guest_id));
-  // De-dupe by user: the same account can hold several guest rows (per-device
-  // sessions); the list names PEOPLE, not sessions.
-  const userIds = [
-    ...new Set(
-      guests
-        .filter((g) => approvedGuestIds.has(g.id))
-        .map((g) => g.user_id as string),
-    ),
-  ];
-
-  const cards = await getProfileCards(userIds);
-  return userIds
+  // Explicit id-list hydration of the PEOPLE (never a PostgREST embed: the PGRST201 landmine),
+  // sorted by the name a viewer reads.
+  const cards = await getProfileCards(guests.verifiedUserIds);
+  const profiles: GuestListItem[] = guests.verifiedUserIds
     .flatMap((id) => {
       const card = cards.get(id);
       return card ? [card] : [];
@@ -595,6 +953,75 @@ export async function getEventGuestList(
         sensitivity: "base",
       }),
     );
+
+  if (!includeUnverified) return profiles;
+
+  // Appended AFTER the cards, sorted among themselves: the people with a profile lead the list,
+  // and the named-but-unproven follow, each carrying the mark their entry renders. A nameless row
+  // (minted before the reshape) has nothing to list and never appears (the one count drops it).
+  const unverified: UnverifiedGuestListEntry[] = guests.unverifiedRows
+    .map((row) => ({
+      kind: "unverified" as const,
+      id: row.id,
+      displayName: row.displayName,
+    }))
+    .sort((a, b) =>
+      a.displayName.localeCompare(b.displayName, undefined, {
+        sensitivity: "base",
+      }),
+    );
+
+  return [...profiles, ...unverified];
+}
+
+// ── The host's card (the follow moment after a guest's first upload) ───────────────────
+
+export type HostCard = {
+  id: string;
+  slug: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
+/**
+ * The host of an event, as a card a GUEST may see: id, handle, name, avatar, and nothing else.
+ *
+ * It backs the capture flow's follow moment (Will, `collision=offer`, 2026-09-21: keep the photos
+ * and the event on a profile, then follow the host and the guests). The field list IS the
+ * allow-list — the host's email, tier, storage and counts are all one `select("*")` away on this
+ * same row, so it names its four columns and returns a hand-built object rather than a DB row.
+ * Every field here is already public on /u/[slug] and on the "Hosted by" byline.
+ *
+ * Admin-read for the same reason getEventGuestList is: `profiles` is own-row RLS, so a guest's
+ * client cannot read the host's card, and the event id the caller passes must already have cleared
+ * that surface's access gate. Returns null for a deleted event or a host with no row.
+ */
+export async function getHostCard(eventId: string): Promise<HostCard | null> {
+  const admin = createAdminClient();
+
+  const { data: event, error: eventError } = await admin
+    .from("events")
+    .select("host_id")
+    .eq("id", eventId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (eventError) throw eventError;
+  if (!event?.host_id) return null;
+
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("id, slug, display_name, avatar_updated_at")
+    .eq("id", event.host_id)
+    .maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile) return null;
+
+  return {
+    id: profile.id,
+    slug: profile.slug,
+    displayName: profile.display_name,
+    avatarUrl: await getAvatarUrl(profile.id, profile.avatar_updated_at),
+  };
 }
 
 /** The host's own view of the two social keys, for the event settings card.

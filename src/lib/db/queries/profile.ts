@@ -45,10 +45,21 @@ export const getProfile = cache(
  * The menu reads `profiles.display_name` (the name the host edits in /account, Phase 2) — NOT
  * `user_metadata` — so the account menu, the /account editor, and the guest "Hosted by" byline all
  * show the SAME name. Either field may be null (no name set / no avatar); the UI falls back.
+ *
+ * It also reads the SLUG, because the menu grew a second door this round
+ * (`you=?`, Will 2026-09-20): "Your profile" goes to /u/<slug> for a host who
+ * has claimed a handle and to the claim card on /account for one who has not.
+ * Three narrow columns on the hot layout path is still one round-trip, and the
+ * alternative — the layout guessing and the menu discovering it was wrong — is
+ * a door that 404s the first time a handle-less host taps it.
  */
-export async function getProfileMenu(
-  userId: string,
-): Promise<{ displayName: string | null; avatarMarker: string | null }> {
+export async function getProfileMenu(userId: string): Promise<{
+  displayName: string | null;
+  avatarMarker: string | null;
+  slug: string | null;
+  /** The raw `tier_type`; coerce with toBillingTier() before indexing tiers.ts. */
+  tier: string | null;
+}> {
   const supabase = await getRequestClient();
   // A swallowed error here reads as "this host has no name", which the guest
   // page renders as a missing byline and the display-name nudge reads as
@@ -56,7 +67,7 @@ export async function getProfileMenu(
   const data = await mustQuery(
     supabase
       .from("profiles")
-      .select("display_name, avatar_updated_at")
+      .select("display_name, avatar_updated_at, slug, tier")
       .eq("id", userId)
       .maybeSingle(),
     "profile menu",
@@ -64,5 +75,11 @@ export async function getProfileMenu(
   return {
     displayName: data?.display_name ?? null,
     avatarMarker: data?.avatar_updated_at ?? null,
+    slug: data?.slug ?? null,
+    // app-pricing-wiring's one column (`doors=menu`): the account menu's Plan
+    // and storage row carries the plan's NAME, and this is the narrow read the
+    // whole host app already makes on every page. Server-side and RLS-scoped;
+    // the webhook remains its sole writer (billing-caps.md).
+    tier: data?.tier ?? null,
   };
 }

@@ -26,9 +26,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      {/* skipDelayDuration: once one tooltip has shown, siblings within 300ms
-          open instantly - scanning a toolbar doesn't re-pay the delay. */}
-      <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+      {/* delayDuration 0 (`bulk-toolbar=icon`, Will, 2026-09-20: "Tooltip should
+          appear immediately on hover rather than delayed" - said of the bulk
+          bar, but the root provider is the one dial every tooltip site-wide
+          reads, so the ask is site-wide too; the lightbox's ActionTooltip
+          opens at once now as well). skipDelayDuration: once one tooltip has
+          shown, siblings within 300ms open instantly - scanning a toolbar
+          doesn't re-pay the delay, which matters more than ever now that
+          "the delay" itself is zero for the FIRST tooltip in a group (it is
+          what keeps a fast mouse pass from flashing one open per pixel). */}
+      <TooltipProvider delayDuration={0} skipDelayDuration={300}>
         {children}
       </TooltipProvider>
     </ThemeProvider>

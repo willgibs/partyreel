@@ -34,3 +34,13 @@ export function itemsStepId(board: string): string {
 export function itemHoldId(scope: string, round: number, item: string): string {
   return `${scope}.r${round}.item.${item}`;
 }
+
+/**
+ * The key a BOARD NOTE is marked sent under (lab-tides, 2026-09-19). A board
+ * note is held under the bare board id in the store's `notes` map, which would
+ * collide with a board id in the `sent` map the moment an ask were called after
+ * its board, so the mark carries the namespace the note itself never needed.
+ */
+export function boardNoteHoldId(board: string): string {
+  return `note:${board}`;
+}

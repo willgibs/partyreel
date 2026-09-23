@@ -111,18 +111,18 @@ function Welcome() {
       <div className="mt-4 flex flex-col gap-2.5">
         <p className="flex items-start gap-2 text-[11px] leading-snug">
           <Camera className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-          Add your photos and videos in seconds. No app, no account.
+          Add your photos and videos in seconds. No app required.
         </p>
         <p className="flex items-start gap-2 text-[11px] leading-snug">
           <Images className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
           Everyone&rsquo;s shots land in one album. 18 are already inside.
         </p>
       </div>
+      {/* ★ THE GHOST ROW IS GONE (Will, 2026-09-21, "the door as three steps": "No exit").
+          Continue is the only way on out of the welcome now. `ENTRY_SCREENS` still counts three
+          screens: what changed is what this one offers, not how many there are. */}
       <span className="mt-auto flex h-8 items-center justify-center rounded-md bg-primary text-xs font-medium text-primary-foreground">
         Continue
-      </span>
-      <span className="mt-1 flex h-6 items-center justify-center text-[11px] text-muted-foreground">
-        Just browsing
       </span>
     </div>
   );

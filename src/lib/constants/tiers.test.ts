@@ -198,9 +198,12 @@ describe("toBillingTier (DB tier_type → billing Tier)", () => {
 });
 
 describe("isSettingLocked (tier-gated event settings)", () => {
-  it("does NOT gate allow_anonymous_uploads (free + default-on, opt-in anon)", () => {
-    // Require-accounts is no longer a Pro feature, so it isn't in GATED_EVENT_SETTINGS.
-    expect([...GATED_EVENT_SETTINGS]).not.toContain("allow_anonymous_uploads");
+  it("does NOT gate the door's safety switches (free on every tier)", () => {
+    // Require verified emails (on by default) and Require an upload to view are safety, and
+    // gating either would put safety behind a paywall, so neither belongs in
+    // GATED_EVENT_SETTINGS.
+    expect([...GATED_EVENT_SETTINGS]).not.toContain("require_verified_email");
+    expect([...GATED_EVENT_SETTINGS]).not.toContain("require_upload_to_view");
   });
   it("locks password on Free, unlocks on paid tiers", () => {
     expect(isSettingLocked("password", "free")).toBe(true);

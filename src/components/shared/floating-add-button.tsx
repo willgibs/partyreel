@@ -1,6 +1,17 @@
 "use client";
 
 /**
+ * ★ RETIRED FROM THE PRODUCT (`chrome=both`, Will 2026-09-20), AND STILL DRAWN.
+ * Nothing in the app mounts this any more: the guest album's deep-scroll chrome
+ * is `guest/guest-action-dock.tsx`, which carries Invite beside Add because a
+ * pill that carried Add alone left the second action unreachable past the first
+ * screen of a long album ("always accessible, no matter how deep into the album
+ * you get", his own words on round one). The file stays on disk with its props
+ * intact because three surfaces still draw it — the `guest-upload` and `toasts`
+ * boards, both open on the desk, and the Library's interactive demo — and a
+ * board is a picture of the tree it was drawn on. Delete it when they retire,
+ * never before.
+ *
  * The floating "Add photos" pill (Phase 4, the ratified upload combo): appears
  * only while the header's Add button is scrolled out of view (never both),
  * carries a live "N uploading" chip while the queue runs, and sits above the
@@ -34,7 +45,7 @@ export function FloatingAddButton({
         <ImageUp className="size-4" />
         Add photos
         {uploadingCount > 0 && (
-          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px] tabular-nums">
+          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-micro tabular-nums">
             {uploadingCount} uploading
           </span>
         )}

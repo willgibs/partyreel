@@ -13,7 +13,7 @@ const UPLOADING_IDS = ["wedding-toast", "party-balloons", "reception-table"];
  * /features/qr dark close, part 1: THE ENTRY FLOW. Three mini frames of what a
  * guest actually sees after the scan, quoting the shipped entry modal's exact
  * strings ("You're invited to" / "Add your photos and videos in seconds. No
- * app, no account." / the album line) and the uploader's "Add photos &
+ * app required." / the album line) and the uploader's "Add photos &
  * videos" control, stylized to marketing. Fixture family: Maya & Jay.
  */
 
@@ -40,9 +40,13 @@ export function EntryFlow() {
       <Reveal className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3">
         {/* 01 · The welcome. R4 / review B10: this card used to stop a third of
             the way down and leave the rest empty. It carries the modal's whole
-            resting state now — byline avatar, the default primary label ("View
-            the album") and the browse-out ("Just browsing") — all strings the
-            shipped entry modal actually renders. */}
+            resting state — byline avatar and the primary — all strings the
+            shipped entry modal actually renders.
+
+            ★ ONE PRIMARY, AND IT SAYS "Continue" (Will, 2026-09-21, "the door as three steps":
+            "No exit"). The card used to draw two exits the sheet no longer has: "View the album"
+            as the primary and a ghost "Just browsing" under it. There is always a step behind the
+            welcome now. */}
         <div {...cut(0)} className="flex flex-col gap-3">
           <StepLabel n="01" label="The welcome" />
           <div className="flex flex-1 flex-col rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
@@ -60,10 +64,7 @@ export function EntryFlow() {
               <span className="font-medium text-foreground">Maya</span>
             </p>
             <span className="mt-auto flex h-9 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground">
-              View the album
-            </span>
-            <span className="mt-1.5 flex h-8 items-center justify-center text-xs text-muted-foreground">
-              Just browsing
+              Continue
             </span>
           </div>
         </div>
@@ -74,7 +75,7 @@ export function EntryFlow() {
           <div className="flex flex-1 flex-col gap-3.5 rounded-2xl border bg-card p-5 ring-1 ring-foreground/5">
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
               <Camera className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              Add your photos and videos in seconds. No app, no account.
+              Add your photos and videos in seconds. No app required.
             </p>
             <p className="flex items-start gap-2.5 text-sm leading-relaxed">
               <Images className="mt-0.5 size-4 shrink-0 text-muted-foreground" />

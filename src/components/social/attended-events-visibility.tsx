@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import {
   hideEventFromProfileAction,
-  unhideEventFromProfileAction,
+  showEventOnProfileAction,
 } from "@/app/(app)/account/social-actions";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,18 @@ import type { AttendedEventSetting } from "@/lib/db/queries/social";
 import { formatEventDate } from "@/lib/utils";
 
 /**
- * The guest-side profile key (profiles-social.md point 2): per attended event, "show this
- * on my public profile". ON by default (hidden only when a hide row exists).
- * Hiding here NEVER removes you from the event's own guest list — that list is
- * the HOST's key — and the card copy says so once, above the rows. Optimistic
- * switches (a high-frequency toggle: instant), reverted with a toast on failure.
+ * The guest-side profile key (profiles-social.md point 2; "nothing until
+ * chosen", the guest identity round, 2026-09-22): per event this person ADDED
+ * PHOTOS TO (guest by upload, 2026-09-22: a person is a guest only through an
+ * upload of theirs; the list is an approved upload on a confirmed identity,
+ * exactly what their public line needs), "show this on my public profile" —
+ * OFF by default, on only once the guest turns it on here (a
+ * `profile_shown_events` row). Turning one off here NEVER removes you from the
+ * event's own guest list — that list is the HOST's key, never this one. A
+ * choice outlives the guest's last removal: the event leaves this list and the
+ * profile meanwhile, and a later upload brings it back already chosen.
+ * Optimistic switches (a high-frequency toggle: instant), reverted with a
+ * toast on failure.
  */
 export function AttendedEventsVisibility({
   events,
@@ -25,24 +32,24 @@ export function AttendedEventsVisibility({
   events: AttendedEventSetting[];
 }) {
   const [, startTransition] = useTransition();
-  // event id -> hidden. Optimistic over the server-provided initial state.
-  const [hiddenById, setHidden] = useOptimistic(
-    new Map(events.map((e) => [e.id, e.hiddenFromProfile])),
-    (state, next: { id: string; hidden: boolean }) => {
+  // event id -> shown. Optimistic over the server-provided initial state.
+  const [shownById, setShown] = useOptimistic(
+    new Map(events.map((e) => [e.id, e.shownOnProfile])),
+    (state, next: { id: string; shown: boolean }) => {
       const copy = new Map(state);
-      copy.set(next.id, next.hidden);
+      copy.set(next.id, next.shown);
       return copy;
     },
   );
 
   function toggle(id: string, show: boolean) {
     startTransition(async () => {
-      setHidden({ id, hidden: !show });
+      setShown({ id, shown: show });
       const result = show
-        ? await unhideEventFromProfileAction(id)
+        ? await showEventOnProfileAction(id)
         : await hideEventFromProfileAction(id);
       if (!result.ok) {
-        setHidden({ id, hidden: show }); // revert
+        setShown({ id, shown: !show }); // revert
         toast.error(result.message);
       }
     });
@@ -51,7 +58,7 @@ export function AttendedEventsVisibility({
   if (events.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Events you add photos to (signed in) can show on your profile. None yet.
+        Events you add photos to with a confirmed email can show on your profile. None yet.
       </p>
     );
   }
@@ -59,7 +66,7 @@ export function AttendedEventsVisibility({
   return (
     <ul className="divide-y divide-border/60">
       {events.map((event) => {
-        const hidden = hiddenById.get(event.id) ?? event.hiddenFromProfile;
+        const shown = shownById.get(event.id) ?? event.shownOnProfile;
         const switchId = `attended-${event.id}`;
         return (
           <li
@@ -81,7 +88,7 @@ export function AttendedEventsVisibility({
             </Label>
             <Switch
               id={switchId}
-              checked={!hidden}
+              checked={shown}
               onCheckedChange={(checked) => toggle(event.id, checked)}
               aria-label={`Show ${event.name} on my profile`}
             />

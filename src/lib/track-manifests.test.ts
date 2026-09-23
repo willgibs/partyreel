@@ -20,19 +20,18 @@ import { describe, expect, it } from "vitest";
 const DIR = join(process.cwd(), "docs", "tracks");
 const STATUSES = ["open", "handed-off", "integrated"];
 // Nobody claims these: the Orchestrator alone edits them (CLAUDE.md "Git").
+// The Orchestrator's records and the generated types: no track claims them (one is released to a lane only
+// when that doc is the lane's whole job, and returns here at its merge).
 const NEVER_OWNED = [
-  "docs/CHANGELOG.md",
   "docs/STATUS.md",
   "docs/ROADMAP.md",
+  "docs/ASSETS.md",
   "docs/PROGRAM.md",
   "CLAUDE.md",
   "AGENTS.md",
   "src/lib/db/types.ts",
   "docs/tracks/",
-  "docs/ASSETS.md",
-  // Will's verbatim rulings and the review ledgers (the Library x Lab round):
-  // the Orchestrator writes both from his messages; no track claims them.
-  "docs/design/rulings.md",
+  // The review ledgers: the Orchestrator writes them from Will's verdicts.
   "docs/reviews/",
 ];
 

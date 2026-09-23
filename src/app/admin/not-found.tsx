@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileQuestion } from "lucide-react";
 
-import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
 import { Button } from "@/components/ui/button";
 
 // Operations-portal 404 — primarily a missing account/album record (notFound() in
@@ -28,6 +28,13 @@ export default function AdminNotFound() {
             <Link href="/admin">Back to overview</Link>
           </Button>
         }
+        // Will, `ways-out=guided` (2026-09-19), UNLINKED here and nowhere else.
+        // His overrule note on that step named the operator as the one reader
+        // who may not want a pointer at all, and there is no runbook page to
+        // point at yet: a link that 404s on a host serving only the portal
+        // would be worse than the line it replaced. The words stand until a
+        // runbook ships (ROADMAP), and then this gains an href and nothing else.
+        help={<HelpLine>Check the runbook</HelpLine>}
       />
     </div>
   );

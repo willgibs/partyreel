@@ -29,15 +29,15 @@ export const metadata: Metadata = {
 const FAQ_ITEMS: FaqItem[] = [
   {
     q: "Do guests have to make a profile?",
-    a: "No. Profiles are optional and opt-in. A guest can upload with just a display name (or anonymously, where the host allows it) and never have a public page at all.",
+    a: "No. Profiles are optional and opt-in. A guest can upload with just a display name, verified or not, and never have a public page at all.",
   },
   {
     q: "Who sees the guest list?",
-    a: "You do, on your event page. It appears on the shared album only if you switch that on; otherwise guests just see the names on the photos. Anonymous uploaders are never listed either way.",
+    a: "You do, on your event page. It appears on the shared album only if you switch that on; otherwise guests just see the names on the photos. A name with no verified email behind it wears a small mark, on the list and on the photo alike.",
   },
   {
-    q: "Can guests stay anonymous?",
-    a: 'Yes, when the host allows anonymous uploads. Those shots show as "Anonymous" in the album, and they never appear on the guest list or on any profile.',
+    q: "Do guests have to verify their email?",
+    a: "Only if you turn on Require verified emails, which is the default. Off, guests type a display name instead, and their photos carry a small unverified mark until they confirm one.",
   },
 ];
 

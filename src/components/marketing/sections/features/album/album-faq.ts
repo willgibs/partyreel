@@ -21,15 +21,15 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "Do I need an account to host?",
-    a: "Yes. A free one, with an email or Google. Guests need nothing unless you require accounts.",
+    a: "Yes. A free one, with an email or Google. Guests need nothing unless you require verified emails.",
   },
   {
     q: "Do uploads go public before I see them?",
     a: "Only in Live mode. Turn on Review and every upload waits for your approval before anyone sees it.",
   },
   {
-    q: "Can a guest add a name without an account?",
-    a: "No. Names come from a free account. Without one, uploads show as Anonymous until the guest signs in and claims them.",
+    q: "Can a guest add a name without verifying their email?",
+    a: "Yes, if you allow it. They type a display name at the door and their photos carry a small unverified mark until they confirm it.",
   },
   {
     q: "Can a guest delete their own upload?",

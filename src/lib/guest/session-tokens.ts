@@ -8,8 +8,11 @@ export const SESSION_PREFIX = "pr_session_";
 type StorageLike = Pick<Storage, "length" | "key" | "getItem">;
 
 // Pure + Node-testable (inject a fake StorageLike). Returns every distinct, non-empty session_token the
-// browser holds, scanning by SESSION_PREFIX. Other pr_* keys (pr_pending_save_*, pr_save_prompt_*) and the
-// theme / supabase keys have distinct prefixes, so they're never picked up.
+// browser holds, scanning by SESSION_PREFIX. Other pr_* keys (pr_pending_offer_*, pr_save_prompt_*,
+// pr_guest_name_*, pr_guest_email_attached_*) and the theme / supabase keys have distinct prefixes, so
+// they're never picked up — which matters most for the two `pr_guest_` families, whose values are a
+// LABEL and a FLAG: handing either to `claim_anonymous_uploads` would post a name where a secret is
+// expected. `session-tokens.test.ts` pins that rather than leaving it to a reading of the code.
 export function collectStoredSessionTokens(
   storage: StorageLike = window.localStorage,
 ): string[] {

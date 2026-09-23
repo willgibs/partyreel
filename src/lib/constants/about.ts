@@ -72,7 +72,7 @@ export const ABOUT_STORY = {
   paragraphs: [
     "Look around at your next event. Everyone is holding a camera, and every one of them is pointed somewhere you are not. Between all those phones is a better record of the whole thing than you could ever get on your own.",
     "Then you try to collect it, and it falls apart somewhere new every time. The shared album opens for half the room. The group chat drips photos out one at a time. The cloud folder wants an account, so the people whose photos you want most never bother. Everyone quits somewhere in the middle, and the rest is never seen.",
-    "We ran into this at our own events, over and over, and kept thinking there has to be a better way to do this. So we built it: one code, any phone, nothing to install and no account to make, and every photo and video lands in the same album at the size it was taken.",
+    "We ran into this at our own events, over and over, and kept thinking there has to be a better way to do this. So we built it: one code, any phone, nothing to install and no password to invent, and every photo and video lands in the same album at the size it was taken.",
   ],
 } as const;
 
@@ -119,7 +119,7 @@ export const ABOUT_CONVICTIONS: readonly {
   },
   {
     title: "Built to keep.",
-    body: "Albums do not expire, deletes stay reversible for 30 days, and every file lives in two regions.",
+    body: "No album has an expiry date, though an abandoned free event is eventually swept, reversible for 30 days like any delete. Every file lives in two regions.",
     linkLabel: "How long media is kept",
     href: "/help/how-long-media-is-kept",
   },

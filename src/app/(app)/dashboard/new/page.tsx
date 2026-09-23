@@ -4,32 +4,50 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { CreateEventWizard } from "@/components/app/create-event-wizard";
-import { DEFAULT_TIER, TIER_NAMES, toBillingTier } from "@/lib/constants/tiers";
+import {
+  DEFAULT_TIER,
+  MAX_EVENTS,
+  TIER_NAMES,
+  toBillingTier,
+  withinLimit,
+} from "@/lib/constants/tiers";
+import { listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSiteUrl } from "@/lib/site-url";
 import { needsDisplayName } from "@/lib/welcome";
 
 export const metadata: Metadata = { title: "New event" };
 
-// The create wizard (Phase 6 cut #2). The (app) layout already gated on
-// getUser(), so reads here are the signed-in host's.
+// The create route (the `first-event` board's wiring, 2026-09-21). The (app)
+// layout already gated on getUser(), so reads here are the signed-in host's.
 //
-// DELIBERATELY NO at-cap redirect here. Creating an event puts a Free host AT
-// their cap, and a Server Action refreshes the route it was called from — so an
-// at-cap `redirect("/dashboard")` would fire on that post-create refresh and
-// bounce the host away BEFORE the wizard's client-side Share step could render
-// (this actually shipped + was caught in live testing). The cap is still guarded
-// two ways: the dashboard "New event" button is disabled at cap, and
-// `createEvent`'s `enforce_event_limit` trigger returns `limit_reached` (the
-// wizard toasts + redirects). So this route just renders the wizard.
+// ★ STILL NO at-cap REDIRECT HERE — AND NOW A DOOR INSTEAD. Creating an event
+// puts a Free host AT their cap, and a Server Action refreshes the route it was
+// called from, so an at-cap `redirect("/dashboard")` fires on that POST-CREATE
+// refresh and bounces the host away BEFORE the wizard's beat can render (this
+// actually shipped and was caught in live testing). Will's `limit=door` asks for
+// the refusal to arrive up front rather than after the work, which is a
+// RENDERING decision rather than a redirect: the cap facts go to the island,
+// which SNAPSHOTS them at mount so that same post-create refresh cannot swap the
+// beat for the door. The server's `enforce_event_limit` trigger stays the guard
+// behind both (the wizard toasts and returns on `limit_reached`).
 export default async function NewEventPage() {
-  const [profile, siteUrl] = await Promise.all([getProfile(), getSiteUrl()]);
+  const [profile, siteUrl, events] = await Promise.all([
+    getProfile(),
+    getSiteUrl(),
+    listEvents(),
+  ]);
 
   // A host's name shows publicly on their own uploads + the "Hosted by" byline, so require it
   // before they can create an event (deep-link guard; the dashboard gate covers the normal path).
   if (needsDisplayName(profile?.display_name)) redirect("/welcome");
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
+  // THE DASHBOARD'S OWN CAP MATH, never a second opinion about it: event_slots
+  // is the webhook-derived concurrent-pass count and overrides the static tier
+  // limit, exactly as enforce_event_limit does in SQL (billing-caps.md).
+  const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
+  const atCap = !withinLimit(events.length, maxEvents);
 
   return (
     <div className="space-y-6">
@@ -39,7 +57,16 @@ export default async function NewEventPage() {
       >
         <ArrowLeft className="size-4" /> Back to events
       </Link>
-      <CreateEventWizard siteUrl={siteUrl} planName={TIER_NAMES[tier]} tier={tier} />
+      <CreateEventWizard
+        siteUrl={siteUrl}
+        planName={TIER_NAMES[tier]}
+        tier={tier}
+        atCap={atCap}
+        maxEvents={maxEvents}
+        // Only what the door says out loud. The row carries the password hash
+        // and every setting; a client island gets a name and an id.
+        cappedEvents={events.map((e) => ({ id: e.id, name: e.name }))}
+      />
     </div>
   );
 }

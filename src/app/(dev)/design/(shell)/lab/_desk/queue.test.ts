@@ -299,13 +299,19 @@ describe("what the ledger already holds", () => {
       ...s,
       round: s.round && {
         ...s.round,
-        notes: [{ on: null, text: "no light ground for now", by: "Will", at: AT }],
+        notes: [
+          { on: null, text: "no light ground for now", by: "Will", at: AT },
+        ],
       },
     };
   };
 
   it("hands over the notes of the board's open round, by board", () => {
-    const rows = deskRows([BOARD], () => withNote(SAMPLE_BOARD.round.n), () => []);
+    const rows = deskRows(
+      [BOARD],
+      () => withNote(SAMPLE_BOARD.round.n),
+      () => [],
+    );
     expect(transcribedFrom(rows).notes).toEqual({
       [SAMPLE_BOARD.id]: ["no light ground for now"],
     });

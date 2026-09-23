@@ -50,11 +50,11 @@ const ENTRIES: ParityEntry[] = [
     literal: "Max size per upload",
   },
   {
-    label: "album cap refusal toast title",
+    label: "album cap refusal sheet heading",
     marketingFile:
       "src/components/marketing/sections/features/album/how-much-fits.tsx",
-    appFile: "src/components/guest/guest-upload.tsx",
-    literal: "add that photo",
+    appFile: "src/components/guest/upload/failure-sheet.tsx",
+    literal: "1 file did not go",
   },
   {
     label: "album accounts-required teaser button",
@@ -69,14 +69,7 @@ const ENTRIES: ParityEntry[] = [
     marketingFile:
       "src/components/marketing/sections/features/album/entry-phone.tsx",
     appFile: "src/components/guest/entry-modal.tsx",
-    literal: "No app, no account.",
-  },
-  {
-    label: "album entry phone browse-out",
-    marketingFile:
-      "src/components/marketing/sections/features/album/entry-phone.tsx",
-    appFile: "src/components/guest/entry-modal.tsx",
-    literal: "Just browsing",
+    literal: "No app required.",
   },
   // ★ THE NOUN (Will, 2026-09-17: `noun=album`). These three quote the guest's
   // entry sheet, and all three said "gallery" for as long as the sheet did.
@@ -97,19 +90,24 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "shots land in one album",
   },
+  // ★ "Continue" REPLACED "View the album" HERE (Will, 2026-09-21, "the door as three steps"):
+  // the welcome's two exits are one primary now, and the browse-out row this file used to pin
+  // ("Just browsing") does not exist on either side any more, so its pair was deleted rather than
+  // retargeted. Deleting a pin is the honest move when the string it guarded is gone from BOTH
+  // files; retargeting it to a string that never disagreed would guard nothing.
   {
-    label: "qr entry flow browse-in button",
+    label: "qr entry flow welcome primary",
     marketingFile:
       "src/components/marketing/sections/features/qr/entry-flow.tsx",
     appFile: "src/components/guest/entry-modal.tsx",
-    literal: "View the album",
+    literal: "Continue",
   },
   {
-    label: "album review switch guest toast",
+    label: "album review switch guest waiting tile",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
-    appFile: "src/components/guest/guest-upload.tsx",
-    literal: "Sent, waiting for host approval",
+    appFile: "src/components/guest/upload/stack-tile.tsx",
+    literal: "Waiting for the host",
   },
   {
     label: "album review switch bulk-approve button",
@@ -226,21 +224,24 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-qr.tsx",
     literal: "PNG (best for screens)",
   },
-  // How-it-works guest-entry frame <-> the real email OTP sign-in form.
+  // How-it-works guest door <-> the real email OTP sign-in form. The drawing
+  // moved from step-frames.tsx to the guest's own picture set when the
+  // walkthrough split into two perspectives (2026-09-19); the literal is what
+  // this entry is for, and it follows wherever the door is drawn.
   {
     label: "guest entry email-code request button",
     marketingFile:
-      "src/components/marketing/sections/how-it-works/step-frames.tsx",
+      "src/components/marketing/sections/how-it-works/guest-pictures.tsx",
     appFile: "src/components/auth/email-sign-in.tsx",
     literal: "Email me a code",
   },
   // Privacy page (/features/privacy) <-> the host's real upload settings.
   {
-    label: "privacy page require-accounts toggle label",
+    label: "privacy page require-verified-emails toggle label",
     marketingFile:
       "src/components/marketing/sections/features/privacy/never-rides-along.tsx",
     appFile: "src/components/app/event-settings/uploads-section.tsx",
-    literal: "Require accounts to upload",
+    literal: "Require verified emails",
   },
 ];
 

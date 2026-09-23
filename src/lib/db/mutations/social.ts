@@ -8,11 +8,13 @@
  *     block; block_user severs follows both ways atomically.
  *   - unfollow/unblock/hides are plain owner-RLS writes (no side effects, no
  *     cross-tenant reads), so an RPC would be ceremony.
- *   - the profile slug is service-role-only (profiles writes are column-locked
- *     and slug is deliberately NOT in the authenticated grant), written here
- *     after the app-side checks. Pro gate lives HERE, app-side, per the pricing
- *     house pattern: the DB stores a slug for ANY tier so grandfathering /
- *     downgrades never strand a stored handle.
+ *   - the profile slug and the bio are service-role-only (profiles writes are
+ *     column-locked and neither is in the authenticated grant), written here
+ *     after the app-side checks. The handle is FREE for everyone since Will's
+ *     2026-09-19 ruling; custom EVENT slugs stay Pro.
+ *   - a person report is a plain service-role INSERT over a deny-all table: the
+ *     reporter is established by getUser(), so there is no capability token for
+ *     an RPC to validate.
  */
 import "server-only";
 
@@ -222,10 +224,44 @@ export async function setNotificationPrefs(
 }
 
 /**
- * Hide an attended event from MY public profile (profiles-social.md point 2). I stay on
- * the event's guest list (that list is the HOST's key, not mine). Idempotent:
- * a duplicate hide is success. Owner-RLS insert; hiding an event I never
- * attended is a harmless no-op row the profile read never reaches.
+ * PUBLISH an attended event on MY public profile (the guest identity round, Will 2026-09-22:
+ * "Nothing until chosen"). The INSERT is the whole change of model: the pair of functions here used
+ * to be hide/unhide over `profile_hidden_events`, an opt-OUT where every event you attended was
+ * public until you went and hid it. Now nothing is published until a row exists, so a person who
+ * never visits this surface publishes nothing at all.
+ *
+ * Turning one ON never adds me to anything else: the event's own guest list is the HOST's key, not
+ * mine, and turning it back off never removes me from it. Idempotent (a duplicate choice is
+ * success). Owner-RLS insert; choosing an event I never attended is a harmless no-op row the profile
+ * read never reaches.
+ */
+export async function showEventOnProfile(
+  eventId: string,
+): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { error } = await supabase
+    .from("profile_shown_events")
+    .insert({ user_id: user.id, event_id: eventId });
+  if (error && error.code !== UNIQUE_VIOLATION) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't show this event. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: eventId } };
+}
+
+/**
+ * Take it back off my profile: the DELETE that mirrors the insert above. Idempotent, and the
+ * privacy-safe direction, so a failure here is the one worth a message. The name is the OLD one on
+ * purpose — it still means exactly what it says, and the surface that calls it did not have to
+ * learn a new word for "off".
  */
 export async function hideEventFromProfile(
   eventId: string,
@@ -237,30 +273,7 @@ export async function hideEventFromProfile(
   if (!user) return UNAUTHORIZED;
 
   const { error } = await supabase
-    .from("profile_hidden_events")
-    .insert({ user_id: user.id, event_id: eventId });
-  if (error && error.code !== UNIQUE_VIOLATION) {
-    return {
-      ok: false,
-      code: "unknown",
-      message: "Couldn't hide this event. Please try again.",
-    };
-  }
-  return { ok: true, data: { id: eventId } };
-}
-
-/** Un-hide (the event shows on my profile again). Idempotent. */
-export async function unhideEventFromProfile(
-  eventId: string,
-): Promise<MutationResult<{ id: string }>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return UNAUTHORIZED;
-
-  const { error } = await supabase
-    .from("profile_hidden_events")
+    .from("profile_shown_events")
     .delete()
     .eq("user_id", user.id)
     .eq("event_id", eventId);
@@ -322,13 +335,21 @@ export async function setEventSocialSettings(
 /**
  * Claim/change my public profile handle (/u/[slug]).
  *
- * Order of checks: getUser() -> app-side Pro gate (tier read via own-row RLS;
- * "locked" = free, matching isSettingLocked) -> profileSlugSchema (format +
- * reserved words) -> service-role write (slug is outside the authenticated
- * column grant BY DESIGN; this function is its only writer). The DB backstops
- * with the format CHECK + the partial unique index; 23505 maps to "taken"
- * (there is no pre-check, the index IS the availability check: one write, no
- * race window).
+ * Order of checks: getUser() -> profileSlugSchema (format + reserved words) ->
+ * service-role write (slug is outside the authenticated column grant BY DESIGN;
+ * this function is its only writer). The DB backstops with the format CHECK +
+ * the partial unique index; 23505 maps to "taken" (there is no pre-check, the
+ * index IS the availability check: one write, no race window).
+ *
+ * ★ NO TIER GATE, AND ITS ABSENCE IS THE RULING. Will (2026-09-19, in plan
+ * mode): "Free to claim for everyone... We can keep custom event slugs as a pro
+ * feature, but handles for everyone incentivizes guests to get deeper into our
+ * ecosystem and hopefully upgrade to host one day." The person this field is
+ * for is the guest who just added twelve photographs to someone else's wedding,
+ * and they are on no plan at all. Custom EVENT slugs stay Pro
+ * (GATED_EVENT_SETTINGS, untouched): that one is a host feature on a host's
+ * event. Nothing about the DB changed either way — it has always stored a slug
+ * for any tier so a downgrade never strands a handle.
  */
 export async function setProfileSlug(
   rawSlug: string,
@@ -338,23 +359,6 @@ export async function setProfileSlug(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
-
-  // DELIBERATE SWALLOW (fail CLOSED): an unreadable tier must never grant a paid
-  // entitlement, and the `!profile` branch below already refuses. Never invert
-  // this to a default-allow.
-  // eslint-disable-next-line partyreel/no-swallowed-db-error
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tier")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile || profile.tier === "free") {
-    return {
-      ok: false,
-      code: "limit_reached",
-      message: "Custom handles are a paid feature. Upgrade to claim one.",
-    };
-  }
 
   const parsed = profileSlugSchema.safeParse(rawSlug);
   if (!parsed.success) {
@@ -413,4 +417,98 @@ export async function clearProfileSlug(): Promise<
     };
   }
   return { ok: true, data: { id: user.id } };
+}
+
+/**
+ * Set (or clear) my public bio — the one line on /u/[slug] (Will,
+ * `identity=line`, 2026-09-19).
+ *
+ * Same write path as the handle and the display name, for the same reason: the
+ * column is OUTSIDE the authenticated update allowlist, so this function (via
+ * the account action, which runs the profanity check first) is its only writer
+ * and a direct PostgREST PATCH cannot bypass the rules. `null` clears it; the
+ * caller has already parsed with bioSchema, which is what turns an empty box
+ * into null, collapses the line and refuses links.
+ *
+ * profiles.bio arrived with migration 20260919120000 (applied 2026-09-19; the
+ * generated types carry it), written only through the service role.
+ */
+export async function setProfileBio(
+  bio: string | null,
+): Promise<MutationResult<{ bio: string | null }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const { error } = await createAdminClient()
+    .from("profiles")
+    .update({ bio })
+    .eq("id", user.id);
+  if (error) {
+    if (error.code === CHECK_VIOLATION) {
+      // The DB cap fired, which means a write path skipped bioSchema.
+      return {
+        ok: false,
+        code: "unknown",
+        message: "That bio is too long.",
+      };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't save your bio. Please try again.",
+    };
+  }
+  return { ok: true, data: { bio } };
+}
+
+/**
+ * Report a PERSON (the /u/[slug] menu's first row, Will `block=report`).
+ *
+ * Signed-in only, and self-reports are refused: the menu renders only for a
+ * signed-in non-self viewer, and both are re-checked here because a mutation is
+ * its own entry point. The row lands in the SAME operator queue as a reported
+ * photograph (public.reports, status 'open'), which is the whole point of the
+ * pick: a report nobody reads is a lie told to the person who pressed it.
+ *
+ * Service-role write over a deny-all table, deliberately: unlike create_report
+ * there is no capability token to validate inside an RPC, the reporter's
+ * identity is already established by getUser(), and the reported person must
+ * never be able to read the row. Blocks do NOT gate this (someone who blocked
+ * you is exactly who you may need to report), and reporting is never coupled to
+ * blocking: the menu offers both, each on its own.
+ *
+ * reports.profile_id arrived with migration 20260919130000 (applied 2026-09-19).
+ */
+export async function createProfileReport(input: {
+  profileId: string;
+  reason: string | null;
+}): Promise<MutationResult<{ id: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+  if (user.id === input.profileId) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "You can't report yourself.",
+    };
+  }
+
+  const { error } = await createAdminClient().from("reports").insert({
+    profile_id: input.profileId,
+    reason: input.reason,
+  });
+  if (error) {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't send your report. Please try again.",
+    };
+  }
+  return { ok: true, data: { id: input.profileId } };
 }

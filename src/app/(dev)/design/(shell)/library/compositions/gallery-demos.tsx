@@ -18,6 +18,9 @@ import {
   FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
+  AdminHealthBandDemo,
+  AdminQueueDemo,
+  AdminRailDemo,
 } from "./composition-demos";
 
 /**
@@ -63,6 +66,37 @@ const qrSlot = (
 );
 
 export const COMPOSITION_ENTRIES: GalleryEntry[] = [
+  /* THE OPERATIONS PORTAL'S SHELL (added by lp/admin-wiring at the HEAD of the
+     list, so several lanes in one round land on distinct hunks). The `admin`
+     board retires into this: every /admin route is behind requireAdmin() plus
+     AAL2 on its own host, so nothing automated can open one, and these are the
+     only crawl-reachable rendering of the portal's shape there is. */
+  {
+    id: "admin-shell",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/admin-rail.tsx",
+    title: "The portal's shell",
+    lede: "The rail, the band and the queue the `admin` board ruled (Will, 2026-09-20: a rail with a command palette, a band under the bar that is gone on a good day, the numbers first with the queue beneath). Fed one Tuesday's fixtures, credential-free: the bar is left out because its operator menu holds a real sign-out form, and a gallery page does not get to end somebody's session.",
+    specimens: [
+      {
+        label: "The rail",
+        hint: "232px at lg; counts on Support, Applicants, Reports and Jobs. No row is current here, because the path is the library's",
+        node: <AdminRailDemo />,
+      },
+      {
+        label: "The band, on a bad day and on an unreadable one",
+        hint: "it names the jobs while there are few enough to name; an unreadable heartbeat says so in words and never as a count",
+        node: <AdminHealthBandDemo />,
+      },
+      {
+        label: "What is waiting, worst first",
+        hint: "a failed purge outranks a press enquiry, and the tint reaches only the rows worth finding by scrolling",
+        node: <AdminQueueDemo />,
+      },
+    ],
+  },
   {
     id: "event-card",
     family: "compositions",
@@ -75,8 +109,8 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         prop: "variant",
         source: "prop",
         fallback: "hosted",
-        options: ["hosted", "saved", "trash"],
-        note: "What the chrome carries: hosted takes the QR slot and the amber review chip, saved a bookmark glyph and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
+        options: ["hosted", "guest", "trash"],
+        note: "What the chrome carries: hosted takes the QR slot and the amber review chip, guest (an event you added photos to) the profile's Guest marker and a byline, trash the dim and the countdown. No sample row, because the four specimens below already show all three.",
       },
     ],
     specimens: [
@@ -114,17 +148,16 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         ),
       },
       {
-        label: "Saved",
-        hint: "byline + status",
+        label: "Guest",
+        hint: "an event you added to: marker + byline",
         node: (
           <EventCard
-            variant="saved"
+            variant="guest"
             href="#"
             name="Priya &amp; Sam"
             coverUrl={SAMPLE.cover2}
             dateLabel="May 30"
             byline="Hosted by Priya"
-            statusLabel="Password"
           />
         ),
       },
@@ -197,16 +230,16 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Share suite",
     file: "src/components/app/event-card-qr.tsx",
     title: "EventCardQr",
-    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it opens the share dialog (the styled QR, copy link, customize) and never navigates.",
+    lede: "The card's top-left chip. It is a sibling of the card link, so tapping it goes to the event's share sheet and never to the event itself.",
     specimens: [
       {
         label: "Share chip",
-        hint: "tap to open the dialog",
+        hint: "tap to open the share sheet",
         node: (
           <div className="flex items-center gap-3">
             {qrSlot}
             <span className="text-sm text-muted-foreground">
-              Opens the share dialog
+              Opens the share sheet
             </span>
           </div>
         ),
@@ -217,11 +250,10 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     id: "qr-preset-picker",
     family: "compositions",
     section: "Share suite",
-    file: "src/components/app/qr-preset-picker.tsx",
     title: "QrPresetPicker",
     // No variants axis for the same reason as the filter chips: the four style
     // keys live in src/lib/constants/qr-presets, not in this file.
-    lede: "The styler inside that dialog: every preset previewed on this event's real join URL, controlled by the parent.",
+    lede: "The style step of the create flow, and the styler inside the share sheet's designer: every preset previewed on this event's real join URL, controlled by the parent.",
     specimens: [
       {
         label: "QR preset picker",
@@ -292,7 +324,6 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     id: "host-media-grid",
     family: "compositions",
     section: "Moderation gallery",
-    file: "src/components/app/host-media-grid.tsx",
     title: "HostMediaGrid",
     lede: "The host's moderation grid on the shared masonry (S3·3a): status-aware approve / hide / unhide / remove plus the host like-count, each control riding any tile ratio. Visual only here, since the actions point at a sample id.",
     // The grid's other axis, `selectable`, is left undeclared: bulk select needs

@@ -43,11 +43,13 @@ export async function captureUploadForensics(args: {
       id: string;
       user_id: string | null;
       email: string | null;
+      display_name: string | null;
+      pending_email: string | null;
     } | null = null;
     if (identity.kind === "guest") {
       const { data, error } = await admin
         .from("guests")
-        .select("id, user_id, email")
+        .select("id, user_id, email, display_name, pending_email")
         .eq("session_token", identity.sessionToken)
         .maybeSingle();
       if (error) throw new Error(`guest lookup: ${error.message}`);
@@ -66,6 +68,20 @@ export async function captureUploadForensics(args: {
         guest_id: guest?.id ?? null,
         guest_user_id: guest?.user_id ?? null,
         guest_email: guest?.email ?? null,
+        // ★ THE TYPED NAME IS PART OF THE EVIDENCE NOW (the identity reshape, 2026-09-21). For a
+        // guest who proved no email it is the WHOLE identity of the uploader, so a lawful process
+        // response that omitted it would describe an upload by nobody. Denormalized at capture
+        // like every other field here: a later rename must not rewrite what was true at the time.
+        guest_display_name: guest?.display_name ?? null,
+        // ★ AND THE UNPROVED ADDRESS IS THE OTHER HALF OF IT (the guest identity round, 2026-09-22).
+        // For a guest at level 2 — a typed name plus an address nobody has proved — this is the only
+        // thing in the whole system that can connect the upload to a person, so a lawful-process
+        // response that omitted it would describe an upload by an untraceable stranger. It is
+        // CAPTURE-ONLY, like every field here: deny-all + service-role, never product logic, never a
+        // host or guest surface, denormalized as it stood so a later claim or detach cannot rewrite
+        // what was true at upload time. NULL for a host upload and for a confirmed guest (whose
+        // proved address is already in `guest_email`).
+        guest_pending_email: guest?.pending_email ?? null,
         device_uuid: deviceUuid,
         ip: facts.ip,
         user_agent: facts.userAgent,

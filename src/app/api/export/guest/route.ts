@@ -2,7 +2,7 @@
  * Guest "Download all" — summary + mint for the streaming export Worker.
  *
  * Authz mirrors the gallery RSC + poll EXACTLY (the single source of "what this viewer sees"):
- * getEventByQrToken → resolveGalleryAccess → loadGalleryRowsForAccess. A guest can NEVER export more
+ * getEventByQrToken → resolveViewerDecision → loadGalleryRowsForAccess. A guest can NEVER export more
  * than `gallery.rows` (hidden/pending/removed are never in that set; a teaser caps to the 9; a
  * locked/private/none event is rejected). The guest gallery rows omit file_size_bytes, so we do ONE
  * authoritative admin read keyed by the ALREADY access-gated ids (never client input) to get sizes.
@@ -14,12 +14,13 @@ import { z } from "zod";
 import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { isDemoToken } from "@/lib/demo";
-import { resolveGalleryAccess } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
   loadGalleryRowsForAccess,
+  resolveViewerDecision,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import type { ExportMediaRow } from "@/lib/export/build-manifest";
 import {
   exportSummary,
@@ -63,12 +64,14 @@ export async function POST(request: Request) {
   const isDemo = isDemoToken(qr_token);
   let isAuthed = false;
   let isOwner = false;
+  let userId: string | null = null;
   if (!isDemo) {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
+      userId = user.id;
       isAuthed = Boolean(user.email_confirmed_at);
       isOwner = await isEventOwner(event.data.id, user.id, supabase);
     }
@@ -77,13 +80,20 @@ export async function POST(request: Request) {
     event.data.visibility === "password"
       ? await isUnlocked(event.data.id)
       : true;
-  const access = isDemo
-    ? "full"
-    : resolveGalleryAccess(event.data, {
+  /* ★ THE UPLOAD GATE REACHES THE ZIP (the door as three steps, 2026-09-21). This route hands a
+     viewer the real originals, so it must resolve the SAME decision the album does: a guest held at
+     the upload step is `teaser`, and below gets the teaser's rows alone rather than every original
+     in the album. Its identity comes from the `pr_guest_<eventId>` cookie, like the page's. */
+  const decision = isDemo
+    ? { access: "full" as const, gate: null }
+    : await resolveViewerDecision(event.data, {
         isOwner,
         isAuthed,
         isUnlocked: unlocked,
+        userId,
+        sessionToken: await readGuestSessionCookie(event.data.id),
       });
+  const access = decision.access;
   if (access === "none") {
     return NextResponse.json({ ok: false, code: "forbidden" }, { status: 403 });
   }

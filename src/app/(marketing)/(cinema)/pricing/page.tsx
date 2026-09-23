@@ -3,15 +3,13 @@ import type { CSSProperties } from "react";
 
 import { FaqPageJsonLd, PricingJsonLd } from "@/components/marketing/jsonld";
 import { HomeFaqAccordion } from "@/components/marketing/sections/home/faq-accordion";
-import { Calculator } from "@/components/marketing/sections/pricing/calculator";
 import { ComparisonTable } from "@/components/marketing/sections/pricing/comparison-table";
+import { Configurator } from "@/components/marketing/sections/pricing/configurator";
 import { PassCard } from "@/components/marketing/sections/pricing/pass-card";
 import { PlanPair } from "@/components/marketing/sections/pricing/plan-cards";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
-import { SharedBand } from "@/components/marketing/sections/pricing/shared-band";
 import { UnlockGrid } from "@/components/marketing/sections/pricing/unlock-grid";
 import { CtaBand } from "@/components/marketing/system/cta-band";
-import { PageHero } from "@/components/marketing/system/page-hero";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -25,17 +23,48 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE PRICING PAGE (rebuilt from zero, 2026-08-27; the Biograph-informed IA):
+ * THE PRICING PAGE (the money page: `pricing-page` r1's six answers re-cut by
+ * r2's `fit=split`, Will 2026-09-20):
  *
- *   dark hero → PAPER (the pair + the pass: the honest sheet) → dark unlock
- *   grid → dark calculator → PAPER (the full matrix) → dark shared floor →
- *   dark FAQ → CtaBand.
+ *   PAPER (the words, the pair, the pass, the configurator) -> dark unlock
+ *   tiles -> dark matrix -> dark FAQ -> CtaBand.
  *
- * The chapter alternation is brand rhythm (Will's note 4); light/dark INSIDE
- * the pair is tier identity. Progressive disclosure runs price-forward (cards
- * carry prices, per Will) but commitment-backward: identity pair → one-time
- * option → what upgrading unlocks → find-your-size → the full sheet → the
- * floor every plan shares → questions → the door.
+ * ★ THE CONFIGURATOR CLOSES THE PAPER CHAPTER AND THE TILES OPEN THE DARK ONE
+ * (r2, his note verbatim): "This will override a previous note, but the
+ * configurator section directly beneath the plan cards feels much better. We
+ * should swap the configurator section and the 'Where Free ends and paid
+ * begins.' upgrade section above. The upgrade section can start the next
+ * chapter as an overview, then table next, then FAQ." So the reading is: pick
+ * a plan, size it while the pair is still in your eye, and THEN be shown what
+ * paid unlocks as the overview of the room that proves it. His round-one line
+ * ("Tiles stay above Find your plan size") is superseded by this one, which he
+ * said it would be; the chapter order is pinned in `pricing-page.test.ts`.
+ *
+ * ★ THE PLANS ARE THE OPENING (`opening=plans`, Will overruling `fork`): the
+ * dark hero above the cards is gone and the page opens ON paper, the same
+ * words one step quieter (the chapter step, not the page step) sitting
+ * directly over the pair. His reason is the one to protect: "The chapter
+ * switch from header into the plan was far too harsh, and a paper hero makes
+ * the pro card feel more premium without the dark header just above it."
+ *
+ * ★ THE PAGE STAYS IN THE (cinema) GROUP, and that is bible 16 rather than
+ * inertia: a page cannot flip its header from inside, the group's layout picks
+ * the skin, and the four chapters BELOW the plans are dark by his own answer
+ * on `sheet`. Paper is a chapter here, not the ground. The one visible
+ * consequence is the bar: the header keeps the cinema skin, so a reader meets
+ * a dark bar over the paper chapter rather than the white one the board drew
+ * (the lab renders its own header and could choose). Moving the route to
+ * (paper) would buy that white bar and cost every dark chapter, because
+ * globals.css refuses `.dark` inside `.surface-paper` outright. Named in the
+ * handoff as his to overrule.
+ *
+ * ★ THE BAND IS DEAD AND THE TABLE IS DARK (`sheet`, his own answer, verbatim:
+ * "keep the tiles and the table, kill the band... Let's make the table dark so
+ * there's not a harsh back-to-back chapter transition"). The dark room is now
+ * the tiles, the matrix and the questions with nothing between them turning
+ * the page back to paper, and it is one section shorter than it was because
+ * Find your size moved up into the paper. `shared-band.tsx` stays on disk,
+ * unimported, as the retired file the r1 board used to draw.
  *
  * Every number on this page renders from tiers.ts / limits.ts (the DRY single
  * sources that server-side enforcement also reads). Copy rules: no em-dashes,
@@ -47,39 +76,38 @@ export default function PricingPage() {
       <PricingJsonLd />
       <FaqPageJsonLd items={PRICING_FAQ_ITEMS} />
 
-      {/* Hero: the golden pricing line on PageHero's rise register (the
-          quiet-confident entrance: standard reveals, no cinema cut, no media);
-          the last hand-rolled lockup moved onto the grammar 2026-09-11. */}
-      <PageHero
-        entrance="rise"
-        scale="lg"
-        eyebrow="Pricing"
-        heading={<>{GOLDEN_LINES.pricing}.</>}
-        subhead="No per-guest fees. Plans are sized by storage, so pick the room your event actually needs."
-        className="pt-14 pb-4 sm:pt-20 sm:pb-6"
-      />
-
-      {/* THE PAPER DOCUMENT IN A DARK ROOM (the chapter ruling): the money
-          turns the page to paper. The pair reads tier identity (Free = the
-          sheet, Pro = the sheet in ink); the pass stretches beneath as the
-          one-time ticket. */}
+      {/* The opening chapter. The h1 carries no entrance at all (bible 13,
+          "nothing gates an h1"): it is this page's LCP element and it now sits
+          in the first screen of the document, so a reveal would delay the
+          largest paint for theater. The cards below keep their stagger, which
+          is what a paper opening wants: the words instant, the plans arriving. */}
       <PaperChapter>
-        <SectionShell id="plans">
-          <PlanPair />
-          <PassCard />
+        <SectionShell
+          id="plans"
+          as="h1"
+          scale="lg"
+          reveal="none"
+          eyebrow="Pricing"
+          heading={<>{GOLDEN_LINES.pricing}.</>}
+          subhead="No per-guest fees. Plans are sized by storage, so pick the room your event actually needs."
+        >
+          <div className="mt-12">
+            <PlanPair />
+            <PassCard />
+          </div>
         </SectionShell>
+
+        {/* Directly beneath the plans, and still on paper: the size question
+            belongs beside the cards it answers, not a chapter away. */}
+        <Configurator />
       </PaperChapter>
 
+      {/* The dark chapter, opened by the tiles as its overview (r2: "The
+          upgrade section can start the next chapter as an overview, then table
+          next, then FAQ"). Nothing in it turns the page back to paper. */}
       <UnlockGrid />
 
-      <Calculator />
-
-      {/* Paper again for the full sheet: a matrix wants the receipt register. */}
-      <PaperChapter>
-        <ComparisonTable />
-      </PaperChapter>
-
-      <SharedBand />
+      <ComparisonTable />
 
       <SectionShell
         id="faq"
@@ -87,7 +115,7 @@ export default function PricingPage() {
         eyebrow="Questions"
         heading="The fine print, in plain words."
       >
-        {/* One block at slot 3: a calm list never spends eight stagger slots. */}
+        {/* One block at slot 3: a calm list never spends six stagger slots. */}
         <Reveal className="mt-10">
           <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
             <HomeFaqAccordion items={PRICING_FAQ_ITEMS} />

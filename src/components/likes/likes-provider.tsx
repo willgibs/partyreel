@@ -10,9 +10,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import { EmailSignIn } from "@/components/auth/email-sign-in";
-import { GoogleIcon } from "@/components/auth/google-icon";
-import { Button } from "@/components/ui/button";
+import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import {
   Dialog,
   DialogContent,
@@ -20,18 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 
 // The like controller for a gallery. Rendered ONCE per surface that opts into likes (the guest event
 // page, the Uploads tab, the Likes tab); a surface that doesn't wrap its grid gets no like UI because
-// useLikes() returns null. It generalizes SaveEventButton's state machine to a whole grid:
+// useLikes() returns null. It is one state machine for a whole grid:
 //   * signedIn resolved on mount (getSession, local);
 //   * a `liked` Set seeded from the viewer's OWN media_likes rows (owner-RLS select, anon => empty), so
 //     hearts paint correctly without threading state through SSR / the 12s poll / the feed RPCs;
 //   * toggle() does an optimistic flip + the RPC (like_media) / RLS delete (unlike), reverting on failure;
-//   * the signed-OUT path mirrors Save: stash a pending intent + open ONE shared create-account dialog;
+//   * the signed-OUT path: stash a pending intent + open ONE shared create-account dialog;
 //     the in-page OTP verify replays the like, and a redirect sign-in (Google / magic link) replays any
 //     pending like on the next mount.
 // Counts are NEVER handled here (they're host-only, read server-side via get_event_like_counts).
@@ -160,7 +157,7 @@ export function LikesProvider({
     (id: string) => {
       if (busyRef.current.has(id)) return;
 
-      // Signed out: remember the intent + open the create-account dialog (mirrors Save).
+      // Signed out: remember the intent + open the create-account dialog.
       if (!signedIn) {
         if (typeof window !== "undefined")
           localStorage.setItem(PENDING_PREFIX + id, "1");
@@ -258,8 +255,8 @@ export function LikesProvider({
   const isLiked = useCallback((id: string) => liked.has(id), [liked]);
 
   async function onVerified() {
-    // In-page OTP verify (no reload): claim this browser's anonymous uploads (consistent with Save) +
-    // complete the pending like inline.
+    // In-page OTP verify (no reload): claim this browser's anonymous uploads (every confirm door
+    // does) + complete the pending like inline.
     void claimAnonymousUploads({ silent: true });
     setSignedIn(true);
     const id = pendingIdRef.current;
@@ -280,19 +277,6 @@ export function LikesProvider({
     }
   }
 
-  async function signInWithGoogle() {
-    const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${window.location.pathname}`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-    if (error)
-      toast.error("Couldn't start Google sign-in", {
-        description: error.message,
-      });
-  }
-
   const emailRedirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
@@ -304,27 +288,24 @@ export function LikesProvider({
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
+          {/* The Dialog owns the title and the description for a11y (Radix
+              wires aria-labelledby / -describedby to these), so the words come
+              from the door's own wear table rather than being retyped here. */}
           <DialogHeader>
-            <DialogTitle>Like this</DialogTitle>
-            <DialogDescription>
-              Create a free account to save your favorites and find them on your
-              dashboard. No app, just your email.
-            </DialogDescription>
+            <DialogTitle>{DOOR_WEAR.like.heading}</DialogTitle>
+            <DialogDescription>{DOOR_WEAR.like.reason}</DialogDescription>
           </DialogHeader>
-          <EmailSignIn emailRedirectTo={emailRedirectTo} onVerified={onVerified} />
-          <div className="flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <Separator className="flex-1" />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={signInWithGoogle}
-          >
-            <GoogleIcon /> Continue with Google
-          </Button>
+          {/* ★ THE LIKE WEAR (Will, 2026-09-20, `surfaces=one`): the one
+              account door, in its like wear, so the Terms line and every
+              failure path are the door's own rather than a copy of them. */}
+          <AccountDoor
+            wear="like"
+            methods={{ code: true, google: true }}
+            emailRedirectTo={emailRedirectTo}
+            chrome="none"
+            intent="create"
+            onVerified={onVerified}
+          />
         </DialogContent>
       </Dialog>
     </LikesContext.Provider>

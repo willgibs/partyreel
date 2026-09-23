@@ -6,8 +6,11 @@ import { toast } from "sonner";
 
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { FloatingAddButton } from "@/components/shared/floating-add-button";
+import { RouteSkeleton } from "@/components/shared/route-skeleton";
 import { SetNameStep } from "@/components/shared/set-name-step";
+import { TileSizeControl } from "@/components/shared/tile-size-control";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_TILE_SIZE, type TileSize } from "@/lib/shared/tile-size-cookie";
 
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
@@ -17,6 +20,61 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
  * them at /design/patterns, the page that actually renders them, instead of
  * /design/reference, which is not a route (see components/interactive-demos).
  */
+
+/** TileSizeControl: controlled, so pressing a step here really sets --album-
+ *  column — pair it with `masonry` in the same viewport to see it move a
+ *  live grid (the control does not scope its own effect). */
+export function TileSizeControlDemo() {
+  const [size, setSize] = useState<TileSize>(DEFAULT_TILE_SIZE);
+  return <TileSizeControl value={size} onChange={setSize} />;
+}
+
+/** RouteSkeleton: the pulse and the hub are the bare app-shell content the
+ *  real loading.tsx files return, safe to show inline. The Studio shape is
+ *  the real fixed, full-bleed dark room (reel-studio.tsx's own shape), so —
+ *  same house pattern as FloatingAddButton above — it is shown ON DEMAND
+ *  rather than inline: it appears over the WHOLE viewport, not this frame,
+ *  for a few seconds. */
+export function RouteSkeletonDemo() {
+  const [showStudio, setShowStudio] = useState(false);
+  return (
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-lg border border-border">
+        <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-micro text-muted-foreground">
+          Pulse: the dashboard
+        </p>
+        <div className="p-3">
+          <RouteSkeleton variant="pulse" />
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-lg border border-border">
+        <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-micro text-muted-foreground">
+          Hub: the event page
+        </p>
+        <div className="p-3">
+          <RouteSkeleton variant="hub" />
+        </div>
+      </div>
+      <Row>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setShowStudio(true);
+            window.setTimeout(() => setShowStudio(false), 4000);
+          }}
+        >
+          Show the Studio shape for 4 seconds
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Fixed and full-bleed, always dark, like the real room: it appears
+          over the whole viewport, not this frame.
+        </span>
+      </Row>
+      {showStudio && <RouteSkeleton variant="studio" />}
+    </div>
+  );
+}
 
 /** ActionTooltip: the lightbox-only tooltip around one real action control. */
 export function ActionTooltipDemo() {

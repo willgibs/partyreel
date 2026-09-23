@@ -5,7 +5,6 @@ import {
   planById,
 } from "@/lib/constants/tiers";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
-import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
 /**
@@ -14,11 +13,28 @@ import { formatBytes } from "@/lib/utils";
  * see). Numbers derive from tiers.ts / limits.ts; every answer states shipped
  * behavior only (the truth-ruling ledger), including the billing-caps.md economics
  * that this round made real: stacking and the prorated Pro credit.
+ *
+ * ★ SIX, NOT EIGHT (`close=eight`, Will 2026-09-20: "We can reduce the count
+ * row (5-6 total?), but I think the folded accordion does a good job of
+ * presenting more information in less space"). The accordion and its shape are
+ * ruled; the LIST is what shrank, and it shrank by what this page is for. The
+ * six that stay all settle money or lifecycle: the pass instead of a
+ * subscription, a pass converting to Pro, stacking, the cap, what expires,
+ * cancelling.
+ *
+ * The two that left, and where they went, because a trim MOVES an answer and
+ * never loses one:
+ *   · "Do my guests ever pay or need an account?" -> the page's own subhead
+ *     carries "No per-guest fees", and /help/how-guests-join-and-upload with
+ *     /help/require-verified-emails-explained answer the account half.
+ *   · "How big can uploads be?" -> the unlock tiles print the per-file size on
+ *     this page already, and /help/what-you-can-upload is its article.
+ * Both still reach machines through /llms-full.txt, which inlines the site FAQ
+ * (FAQ_ITEMS, where both questions also live) beside this list.
  */
 
 const free = planById("free");
 const pass = planById("event_pass");
-const uploadSize = formatBytes(MAX_UPLOAD_BYTES);
 
 export const PRICING_FAQ_ITEMS: FaqItem[] = [
   {
@@ -39,18 +55,10 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Do my events expire?",
-    a: `On Free and Pro, never: an album stays until you delete it, and deletions wait 30 days in the trash first. A Free event untouched for about six months gets a 14-day warning email before it is cleaned up. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
-  },
-  {
-    q: "Do my guests ever pay or need an account?",
-    a: "Guests never pay and never install anything. They scan, add their name, and by default confirm their email with a one-tap code so every upload has a real person behind it.",
+    a: `Never by date: an album stays until you delete it, and deletions wait 30 days in Deleted. The one exception is a Free event untouched for about six months, which gets a 14-day warning email before it's removed; any activity resets the clock. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
   },
   {
     q: "Can I cancel Pro anytime?",
-    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward the trash.`,
-  },
-  {
-    q: "How big can uploads be?",
-    a: `Up to ${uploadSize} per file, photos and videos alike, on every plan. There is no per-guest fee and no guest limit.`,
+    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward Deleted.`,
   },
 ];

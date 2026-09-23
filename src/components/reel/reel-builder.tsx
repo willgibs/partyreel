@@ -282,7 +282,7 @@ export function ReelBuilder({
                   gallery tiles. Select mode is the honest pre-Create answer (the Studio's
                   Moments picker is the post-Create one, and the Studio does not exist yet
                   here, so it cannot be the instruction). */}
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-caption text-muted-foreground">
                 {approved.length === 0
                   ? "Add some photos to the gallery first"
                   : "Or use Select in the gallery to add several at once"}
@@ -299,7 +299,7 @@ export function ReelBuilder({
                   ? "1 moment picked"
                   : `${momentCount} moments picked`}
               </p>
-              <p aria-hidden className="text-[11px] text-muted-foreground">
+              <p aria-hidden className="text-caption text-muted-foreground">
                 ready when you are
               </p>
             </div>
@@ -335,7 +335,7 @@ export function ReelBuilder({
             </span>
             {canQuickAdd ? (
               <div className="mt-2.5 flex items-center justify-between gap-2 rounded-[6px] bg-muted/70 p-2">
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   {quickAdd.signals.likes
                     ? "Add more of the crowd favorites"
                     : "Add a few more recent moments"}
@@ -344,7 +344,7 @@ export function ReelBuilder({
                   type="button"
                   onClick={quickFill}
                   disabled={filling}
-                  className="flex h-6 shrink-0 items-center gap-1 rounded-full border border-border px-2 text-[11px] font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
+                  className="flex h-6 shrink-0 items-center gap-1 rounded-full border border-border px-2 text-caption font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100"
                 >
                   {filling ? "Adding…" : "Fill"}
                 </button>

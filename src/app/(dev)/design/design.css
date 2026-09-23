@@ -16,7 +16,22 @@
    section a board mounted at 1440 laid out as its phone version (the light board, round four).
    Rules directly in `utilities` outrank rules in `utilities.lab`, so production's classes win on a
    shared element and a lab-only class still applies where nothing from production competes. A
-   board that must override a production class on the SAME element uses its own sheet or cn(). */
+   board that must override a production class on the SAME element uses its own sheet or cn().
+
+   ★ AND THIS IS WHY A RESPONSIVE VARIANT "NEVER REACHES A FRAME" (measured 2026-09-19, lab-tides).
+   Three lanes filed it as a mystery of the frame; the frame has nothing to do with it. Read off a
+   board's own frame: `.sm\:w-[200px]` IS compiled, inside `@media (min-width: 40rem)`, into
+   `utilities.lab`; `.w-full` exists TWICE, in `utilities` (production's sheet) and in
+   `utilities.lab` (ours). Layer order is decided BEFORE specificity and before source order, so
+   production's `w-full` beats the lab's `sm:w-[200px]` at every width, and the pair reads as "the
+   breakpoint did nothing". An arbitrary value reaches a frame for the same reason in reverse:
+   nothing in production competes for that property on that element. So the rule for a board is:
+   a `<breakpoint>:` utility works in the lab ONLY when production uses that exact class too
+   (`hidden sm:inline` does; `hidden lg:inline` does not); otherwise write the media query in the
+   board's own sheet, which is unlayered and wins. `/design/lab/sample` draws both, side by side,
+   so the rule can be checked rather than believed. The settlement that would end the split (the
+   lab compiling a superset of production's utilities and winning wholesale) changes how every
+   standing board draws and is a round of its own. */
 @import "tailwindcss/utilities.css" layer(utilities.lab) source(none);
 @source "./";
 /* The rules artifact quotes class names inside rule text ("bg-gallery",
@@ -44,9 +59,9 @@
 
   WHAT IS NOT HERE (the library round, 2026-09-02): a board's own CSS lives
   beside the board under sandbox/ (album-hero/hero.css, river-visual/river.css),
-  imported by the board so it leaves with it, and the sheets of ruled rounds went with
-  their boards (git keeps them; docs/design/rulings.md keeps the
-  rulings). This sheet declares NO @keyframes: keyframe names are
+  imported by the board so it leaves with it, and the sheets of ruled rounds went
+  with their boards, rulings and all, since git keeps them. This sheet declares
+  NO @keyframes: keyframe names are
   document-global and the lab once shadowed nine production names for the rest
   of a session on every /design visit; src/app/keyframe-uniqueness.test.ts
   holds that at zero. The production marketing grammar reaches the lab from

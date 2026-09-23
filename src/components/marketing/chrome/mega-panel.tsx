@@ -5,8 +5,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { DemoTicket } from "@/components/marketing/system/demo-ticket";
+import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { NavigationMenuLink } from "@/components/ui/navigation-menu";
+import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
 import { DEMO_EVENT_URL } from "@/lib/demo";
@@ -22,14 +23,31 @@ import { cn } from "@/lib/utils";
  *
  * The FEATURED registry is COMPONENT-SIDE on purpose: marketing-nav.ts stays
  * pure serializable data (its byte-pins toEqual-compare items, and the footer/
- * sitemap consumers must never drag client/env deps). Resources' article card
- * is plain literals for the same reason: lib/content/help.ts reads node:fs and
- * must never be imported client-side (a node-world test pins the slug exists).
+ * sitemap consumers must never drag client/env deps). Every card here is plain
+ * literals for a second reason: nothing in the chrome may import a registry
+ * that reads node:fs (lib/content/help.ts does, which is why the Resources
+ * card pointed at a hard-coded help slug while it pointed at the help center
+ * at all).
  *
  * Every interactive element is a NavigationMenuLink (close-on-select + the
- * roving focus contract) EXCEPT the DemoTicket, whose root is already a Link
- * to the demo event; the controlled root's pathname-close covers in-app
- * navigations, and the demo is a full-page exit anyway.
+ * roving focus contract): the controlled root's pathname-close covers every
+ * in-app navigation here now.
+ *
+ * ★ THE FEATURES PANEL LOST ITS DEMO TICKET (`doors=pile`, the sixth batch,
+ * 2026-09-20: "the nav's ticket goes"; one object skinned per place, and a
+ * ticket labelling a QR was the one door that read as unpolished), THEN GOT
+ * THE FRAME BACK (`door=frame`, round two, 2026-09-20/21,
+ * "the closing sitting's second batch"): the object
+ * every demo door now shares, at the pane's own size, so the one nav group
+ * with no other picture of the product carries a text-free door again rather
+ * than the plain list `stage` (the board's other option) would have left
+ * standing there. With no demo configured `FEATURED.Features` is never
+ * assigned (`DEMO_EVENT_URL &&` below), so `featured` reads `undefined` off
+ * the map exactly as it did while the entry was absent outright, and the
+ * grid falls back to its plain one-column list (the same branch a fourth nav
+ * group with no card would take). `DemoTicket` (`system/demo-ticket.tsx`)
+ * stays on disk for the Library's own specimen; nothing in the shipped site
+ * imports that name any more.
  */
 export function MegaPanel({ group }: { group: NavGroup }) {
   const featured = FEATURED[group.label];
@@ -56,7 +74,7 @@ export function MegaPanel({ group }: { group: NavGroup }) {
         {group.href && (
           <NavigationMenuLink
             asChild
-            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
+            className="mkt-learn group/all flex-row items-center gap-1 px-3 py-2 text-label font-medium text-muted-foreground uppercase transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
           >
             <Link href={group.href}>
               All {group.label.toLowerCase()}
@@ -76,6 +94,12 @@ export function MegaPanel({ group }: { group: NavGroup }) {
             </li>
           ))}
         </ul>
+        {/* The QUIETER of the two doors to the same page (`two-doors=one`, see
+            the Resources card below): a footnote under a hairline, in muted
+            ink at 12px, where the card is a picture with a title. Will kept it
+            deliberately ("more subtle, like a secondary option"), because the
+            reader who needs it most is mid-way through a list of features and
+            has just realised they do not know the shape of the thing yet. */}
         {group.label === "Features" && (
           <NavigationMenuLink
             asChild
@@ -113,13 +137,18 @@ function ItemLink({ link }: { link: NavLink }) {
   );
 }
 
-/** The featured right panes, keyed by group label (see the header comment). */
+/** The featured right panes, keyed by group label (see the header comment).
+ *  `Features` carries none with no demo configured — an absent key here is
+ *  the same as an explicit `null`, both read as "no featured pane", the
+ *  branch a fourth nav group with no card takes too. */
 const FEATURED: Record<string, ReactNode> = {
+  // undefined reads exactly like an absent key (both fall to the plain
+  // one-column list), which is what keeps this a plain object rather than a
+  // conditional spread: DEMO_EVENT_URL's type (string | undefined) cannot be
+  // spread directly without narrowing first.
   Features: DEMO_EVENT_URL ? (
-    <div className="flex flex-col justify-center">
-      <DemoTicket layout="column" />
-    </div>
-  ) : null,
+    <FeaturedDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
+  ) : undefined,
   Events: (
     <FeaturedCard
       href="/events"
@@ -130,9 +159,31 @@ const FEATURED: Record<string, ReactNode> = {
   ),
   Resources: (
     <FeaturedCard
-      href="/help/how-partyreel-works"
-      title="How Partyreel works"
-      blurb="The whole loop in four steps, from the help center."
+      /* ★ ONE IDEA, ONE PAGE, TWO DOORS TO IT (Will, 2026-09-19,
+         `two-doors=one` and his plan-mode answer "Yes, both doors open the
+         page"): "We can continue to point to the 'How it Works' page from the
+         resources dropdown card. The pointer in the 'Features' dropdown menu
+         is more subtle (like a secondary option), so the How It Works page
+         primary nav link can be that Resources dropdown card."
+
+         So this card is the chrome's PRIMARY door to /how-it-works and the
+         Features panel's footnote is the quieter second one. Both open the
+         page; the help ARTICLE is now linked from nowhere in the chrome at
+         all, which is the point of the ruling. It is not lost: it keeps its
+         row under Help center, where a reader with a problem is already
+         looking, plus the walkthrough's own foot link and the help hub's.
+         (`pair=renamed`, an hour earlier, had told this card to name the
+         article instead; that answer solved "two pages, same name" by sending
+         the nav to the wrong one of the two.)
+
+         The title is the PAGE'S OWN NAME, deliberately flat: a primary door
+         must not be clever about where it goes. The blurb still refuses to
+         count steps, which is the standing rule here: the card once said four,
+         the article writes five and the page walks six, and a count in a nav
+         blurb is one more number to keep in step for nothing. */
+      href="/how-it-works"
+      title="How it works"
+      blurb="The whole loop on one page, the host's side and the guest's."
       imageId="reception-table"
     />
   ),
@@ -170,6 +221,35 @@ function FeaturedCard({
           <span className="text-xs leading-snug text-muted-foreground">
             {blurb}
           </span>
+        </span>
+      </Link>
+    </NavigationMenuLink>
+  );
+}
+
+/**
+ * THE FEATURES PANE'S DOOR: the frame every other demo door now wears,
+ * centred on the same card ground `FeaturedCard` sits on rather than that
+ * card's own full-bleed photo anatomy — a nav pane is the one place the
+ * object stands ALONE, no words beside it (the board's own `stage`, drawn as
+ * "nothing stands here: the pane stays a clean column", was the alternative
+ * with no demo configured; this is the alternative with one). No `title` or
+ * `blurb`: the round's own rule (doors.tsx, `spec.ts`) is that none of the
+ * four objects carries words, and a caption here would be the one exception.
+ */
+function FeaturedDemo({ href, value }: { href: string; value: string }) {
+  return (
+    <NavigationMenuLink
+      asChild
+      className="flex-col items-stretch gap-0 overflow-hidden rounded-lg border bg-card p-0"
+    >
+      <Link
+        href={href}
+        aria-label="Explore the live demo"
+        {...trackAttrs("demo_open", { source: "nav-panel" })}
+      >
+        <span className="flex aspect-[16/9] w-full items-center justify-center">
+          <DemoFrame value={value} size="nav" />
         </span>
       </Link>
     </NavigationMenuLink>

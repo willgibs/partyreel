@@ -4,9 +4,11 @@ import { requireDesignKey } from "@/lib/design-gate/server";
 // gate (prod 404s without ?key=), this page throws during server render on
 // purpose so we can verify the error-boundary chain + Sentry render:* tagging
 // against the REAL production build whenever boundaries change. There is no
-// error.tsx in the (dev) group BY DESIGN: the crash escalates past the root
-// layout into global-error.tsx, the hardest boundary to verify any other way
-// (dev mode shows the overlay instead, so only prod exercises it).
+// error.tsx in the (dev) group BY DESIGN: the crash escalates past the group
+// into the ROOT boundary, src/app/error.tsx (since errors-wiring, 2026-09-19;
+// before it there was none and the crash landed on global-error.tsx, which now
+// has no probe: a crash inside the root layout itself is the only way there).
+// Dev mode shows the overlay instead, so only prod exercises it.
 export default async function BoundaryProbe({
   searchParams,
 }: {

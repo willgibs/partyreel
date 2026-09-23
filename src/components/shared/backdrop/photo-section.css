@@ -1,0 +1,229 @@
+/* The photograph section's sheet (the backdrop-wiring lane, 2026-09-18).
+   Class prefix: bkd-. The board's sheet, cut to the one ruled treatment: the
+   plate, the rail and the rest state. Its scrim and half-and-half legibility
+   options lost at the review and left with the board.
+
+   ★ FRAME ZERO IS THE REST STATE, IN CSS (bible 13). Every layer is hidden and
+   the FIRST is shown, so with no JavaScript, in a throttled tab, to a crawler
+   and to a reader who asked for less motion the section stands on one
+   photograph. The loop writes inline styles, which beat these rules, so nothing
+   here has to know the loop exists.
+
+   ★ NO `will-change` ON THE LAYERS, ON PURPOSE. Six full-bleed layers promoted
+   at 1440x720 is about 25 MB of compositor memory for a section that moves one
+   of them at a time. A layer earns its promotion when the loop writes a
+   transform onto it and gives it back when it settles to `none`. */
+
+.bkd {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  contain: paint;
+}
+
+.bkd-stack,
+.bkd-frame {
+  position: absolute;
+  inset: 0;
+}
+
+.bkd-stack {
+  z-index: 0;
+}
+
+.bkd-frame {
+  visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* The rest state: one photograph, no script. */
+.bkd-frame:first-child {
+  visibility: visible;
+}
+
+.bkd-content {
+  position: relative;
+  z-index: 2;
+  padding-block: 3.5rem;
+  padding-inline: clamp(1rem, 4vw, 3.5rem);
+}
+
+/* ★ AT A PHONE THE PLATE GOES EDGE TO EDGE, and that is a composition rather
+   than a breakpoint tweak. At 375 the inline padding leaves a 16 px border of
+   photograph, which reads as a dark card with a coloured rim and not as a room
+   at all. Full width, square sides, and the photograph becomes two bands the
+   plate sits between. */
+@media (width < 640px) {
+  .bkd-content {
+    padding-block: 2.75rem;
+    padding-inline: 0;
+  }
+
+  .bkd-plate {
+    border-radius: 0;
+  }
+}
+
+/* ── the plate ────────────────────────────────────────────────────────────
+
+   Will's `legibility=plate`: the photograph is left alone and the words sit on
+   a pane of the glass material, read through the `--glass-*` tokens so a ruling
+   there moves this with it. Crystal, and its double edge, since the material was
+   ruled (2026-09-20); the TINT stays this section's, measured, for the one
+   reason below. */
+
+.bkd-plate {
+  /* ★ THE MATERIAL'S OWN NUMBERS, FROM THE ONE HOME. Fallbacks are Crystal's, so
+     a sheet that somehow loads without globals.css still draws the ruled pane
+     rather than a clear sheet of nothing. */
+  --bkd-blur: var(--glass-blur, 42px);
+  --bkd-saturate: var(--glass-saturate, 2);
+  --bkd-edge: var(--glass-lip, 0.28);
+  --bkd-hairline: var(--glass-hairline, 0.1);
+
+  /* ★ AND TWO NUMBERS ARE THIS SECTION'S, BECAUSE THEY WERE MEASURED AGAINST
+     THIS POOL. The material's pair (0.68 through 4 percent black) is a PILL's
+     bet: a few hundred square pixels of chrome you glance at. This pane is a
+     whole chapter of reading copy over a full-bleed photograph, and over the
+     brightest one in this pool the copy lands at 4.00:1 through 12 percent and
+     4.88:1 through 22, with the blur buying the rest (a wide blur drops that
+     photograph's worst local spot from a luminance of 1.0 to 0.93). Taking the
+     pill's pair here would put the body under the 4.5:1 floor, which is a
+     failure no material can talk its way out of. Retune these two by MEASURING,
+     never by matching. */
+  --bkd-brightness: 0.55;
+  --bkd-tint: 0.22;
+
+  margin-inline: auto;
+  max-width: 1040px;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background-color: rgb(0 0 0 / var(--bkd-tint));
+  -webkit-backdrop-filter: blur(var(--bkd-blur))
+    brightness(var(--bkd-brightness)) saturate(var(--bkd-saturate));
+  backdrop-filter: blur(var(--bkd-blur)) brightness(var(--bkd-brightness))
+    saturate(var(--bkd-saturate));
+  /* The material's two edges (`edge=double`), as inset shadows rather than a
+     border: a border would change the plate's size, and the bright edge is the
+     light doctrine's own signature. */
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / var(--bkd-edge)),
+    inset 0 0 0 1px rgb(255 255 255 / var(--bkd-hairline));
+}
+
+/* On paper the plate is a bright one: the ink is dark, so the backdrop has to
+   be lifted rather than dropped and the recipe inverts around brightness 1. The
+   white is 0.60 for the same measured reason the dark tint is 0.22: the paper
+   chapter's ink sits at a relative luminance of 0.003, and a photograph with a
+   black region under the words leaves it at 3.7:1 through a 0.42 veil and 7.0:1
+   through a 0.60 one. Kept although the home's instance is on cinema: the
+   device is a page-level one now (Will's chapter-transition ruling) and the
+   next instance may open a paper chapter. */
+.surface-paper .bkd-plate {
+  background-color: rgb(255 255 255 / 0.6);
+  -webkit-backdrop-filter: blur(var(--bkd-blur)) brightness(1.8) saturate(1.2);
+  backdrop-filter: blur(var(--bkd-blur)) brightness(1.8) saturate(1.2);
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.55);
+}
+
+/* ★ AND THIS IS NOT A SECOND MATERIAL, WHICH IS WHY `paper=dark` DOES NOT REACH
+   IT. That ruling is about CHROME over a photograph — a chip, a pill, a control
+   — and it says such chrome stays dark whatever the page is made of. This is a
+   page's own reading surface, carrying dark ink, and dark ink over a darkened
+   photograph is not a legibility argument anyone can win. The material's blur,
+   saturation and edges are still the ones above; only the direction of the
+   brightness inverts. */
+
+/* ★ OVER A PHOTOGRAPH THE BODY COPY LEAVES THE MUTED TIER, and this is the
+   finding the measurement forced rather than a preference. The ladder's muted
+   ink sits at a relative luminance of 0.364 on cinema, and NO treatment short
+   of a nearly opaque scrim gets it past 4.5:1 over the worst photograph in the
+   pool: the plate at its own numbers leaves it at 2.1:1. So a section that
+   stands on a photograph pays for it by spending its one hierarchy step: over
+   media the body is the full foreground, and the hierarchy comes from size and
+   weight instead. It belongs to the PLATE rather than to any section, so a
+   second placement inherits the contract instead of rediscovering it. */
+.bkd-plate .text-muted-foreground {
+  color: var(--foreground);
+}
+
+/* ── the phone's trip wires ───────────────────────────────────────────────
+
+   Weightless by construction: zero height, no paint, no pointer. They exist to
+   cross the viewport's middle line and tell the observer which step a reader
+   has reached (photo-section.tsx). */
+
+.bkd-wires {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bkd-wire {
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+}
+
+/* ── the index rail: the ruled delight ────────────────────────────────────
+
+   The band rule makes the section a thing you SCRUB, and nothing on screen says
+   so. One hairline tick per photograph at the section's own foot, the live one
+   lit, fading in only while a cursor is inside the room: a readout, never a
+   control. It is the smallest thing that teaches the interaction, it costs one
+   opacity transition, and it does not appear at all for a reader who asked for
+   less motion, who has no cursor, or who never points at anything. */
+
+.bkd-rail {
+  position: absolute;
+  z-index: 3;
+  inset-inline: 0;
+  bottom: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ★ THE RAIL IS ACHROMATIC, and that is bible 1 rather than a shortage of
+   ideas: the identity has no brand colour, the media is the colour, so the live
+   tick is told apart by BRIGHTNESS and HEIGHT and not by a hue. Each tick
+   carries a one-pixel dark halo so it survives a photograph that is white
+   exactly where it sits. */
+.bkd-tick {
+  width: 2px;
+  height: 9px;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--foreground) 62%, transparent);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28);
+  opacity: 0.5;
+}
+
+.bkd-tick[data-on] {
+  height: 18px;
+  opacity: 1;
+  background: var(--foreground);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.35),
+    0 0 12px 0 color-mix(in oklab, var(--foreground) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bkd-rail {
+    transition: opacity 240ms var(--ease-emphasis, ease-out);
+  }
+
+  .bkd-tick {
+    transition:
+      height 200ms var(--ease-emphasis, ease-out),
+      opacity 200ms linear,
+      background-color 200ms linear;
+  }
+}
+
+/* The cursor's readout, for the reader who has a cursor and is using it. */
+[data-bkd-source="pointer"][data-bkd-held] .bkd-rail {
+  opacity: 1;
+}

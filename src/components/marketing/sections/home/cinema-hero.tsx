@@ -17,7 +17,7 @@ import {
   useState,
 } from "react";
 
-import { FooterQr } from "@/components/marketing/chrome/footer-qr";
+import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { track } from "@/lib/analytics/web";
@@ -46,7 +46,7 @@ import {
  * THE HOME HERO: THE ALBUM LEAVING THE CODE (the hero's wiring round,
  * 2026-09-17; it replaces the living album wall of 2026-08-25).
  *
- * Will's rulings, in order (`docs/design/rulings.md`): the SOURCE direction,
+ * Will's rulings, in order: the SOURCE direction,
  * the album coming out of the code, the lockup CENTRED rather than left like
  * every other marketing page, the site's one ruled line as the headline and no
  * live count anywhere (round five); the symmetric approach by name over the
@@ -304,9 +304,15 @@ export function CinemaHero() {
         </div>
 
         {/* THE OBJECT, on the axis and at the exact centre of the band, above
-            the frames so they are born behind it. */}
+            the frames so they are born behind it. Positioned entirely by
+            Tailwind utilities and the inline top, never by the retired
+            `hhs-qr` class: that class's one job in cinema-hero.css was
+            sizing a bare QR's own svg to `--hhs-qr`, and DemoFrame's corner
+            code is deliberately a different, smaller size now (its own
+            header note) — carrying the class here would silently force it
+            back to the old bare-QR pixels. */}
         <div
-          className="hhs-qr absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+          className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
           style={{ top: "var(--hhs-axis)" }}
         >
           <DemoQr />
@@ -329,7 +335,7 @@ export function CinemaHero() {
             {SITE_THESIS}
           </h1>
           <p
-            className="mx-auto mt-4 text-[15px] leading-relaxed text-pretty text-white/80 lg:mt-5"
+            className="mx-auto mt-4 text-copy text-pretty text-white/80 lg:mt-5"
             style={{ maxWidth: "var(--hhs-low-max)" }}
           >
             {SITE_SUBHEAD}
@@ -382,21 +388,42 @@ export function CinemaHero() {
 }
 
 /**
- * The real demo event's code, server-rendered and zero-JS (FooterQr's path),
- * on the white plate scanners need. Drawn ONCE at the larger edge and sized by
- * the sheet: an SVG with a viewBox scales without a second copy in the markup,
- * and crispEdges keeps the modules sharp at either size. When no demo is
- * configured it encodes the site and carries no link, so the composition still
- * has its object.
+ * THE OBJECT (`door=frame`, round two, 2026-09-20/21, overriding round one's
+ * `doors=pile`; "the closing sitting's second batch"). His note on the
+ * board's own drawing: "this visual is the same
+ * height as the image banner behind, and isn't as noticeable as it could
+ * be" — the frame below is sized against the REAL corridor rather than the
+ * board's flat mock, measured on this shipped hero (`pnpm dev`, a
+ * `.hhs-card` + object sweep in the browser console, 2026-09-21): at 1440
+ * the visible tiles run 48-253px tall (the busiest cluster 60-204) against
+ * the frame's own 218x258, and at 375 they run 24-137px against 162x191 —
+ * clearly past the cluster at both, and past even the single largest
+ * outlier at 1440. `heroCompact` is the same object at the size the hero's
+ * own measured axis-to-headline clearance allows below `lg` (113px there,
+ * 39px of it left over once the frame stands, against 168px at `lg`, also
+ * 39px left over), swapped by a plain CSS pair rather than a client
+ * breakpoint read, so the server render already carries the right one.
+ * `hhs-qr`, the class that used to force a bare QR's svg to `--hhs-qr`, is
+ * deliberately NOT on this mount's wrapper any more (below): the corner
+ * code here is a smaller, different size on purpose (DemoFrame's own note
+ * on why), and that class would have silently overridden it back to the
+ * old bare-QR pixels.
+ *
+ * Still zero-JS for the code (FooterQr's path, inside DemoFrame): drawn
+ * once per breakpoint, an SVG viewBox scales without a second copy in the
+ * markup, and crispEdges keeps the modules sharp. When no demo is
+ * configured the whole object still stands (DemoFrame reads its `value`
+ * from the caller, not from the env), but nothing links to it.
  */
 function DemoQr() {
-  const plate = (
-    <FooterQr
-      value={DEMO_EVENT_URL ?? "https://partyreel.com"}
-      size={GEO.lg.qr}
-    />
+  const value = DEMO_EVENT_URL ?? "https://partyreel.com";
+  const frame = (
+    <>
+      <DemoFrame value={value} size="heroCompact" className="lg:hidden" />
+      <DemoFrame value={value} size="hero" className="hidden lg:inline-flex" />
+    </>
   );
-  if (!DEMO_EVENT_URL) return plate;
+  if (!DEMO_EVENT_URL) return frame;
   return (
     <Link
       href={DEMO_EVENT_URL}
@@ -404,7 +431,7 @@ function DemoQr() {
       className="inline-flex transition-transform duration-150 active:scale-[0.99]"
       {...trackAttrs("cta_click", { cta: "demo-qr", location: "hero" })}
     >
-      {plate}
+      {frame}
     </Link>
   );
 }

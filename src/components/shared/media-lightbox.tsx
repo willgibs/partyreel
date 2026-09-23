@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -26,8 +27,8 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
 import { ReelButton } from "@/components/reel/reel-button";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
-import { AnonymousInfo } from "@/components/shared/anonymous-info";
 import { PlayBadge } from "@/components/shared/play-badge";
+import { UnverifiedMark } from "@/components/shared/unverified-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,11 +38,13 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
+import { DeleteConsequence } from "@/lib/guest/delete-consequence";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -121,52 +124,86 @@ function prefersReducedMotion() {
 }
 
 // THE ATTRIBUTION PILL (Phase 4): a floating capsule under the action pill —
-// bare name (no "Uploaded by"); host uploads add a "Host" badge; anonymous
-// shows "Anonymous" + a tap (i) explainer; the host-gallery-only email line
-// renders when present. The position COUNTER always renders ("i+1 of N"), so
-// the pill exists even on a bare item (no attribution) and the counter pin
-// stays satisfiable. `pointer-events-none` shell so it never blocks a swipe;
-// the (i), email, and event link re-enable taps.
+// bare name (no "Uploaded by"); host uploads add a "Host" badge; the
+// host-gallery-only email line renders when present. The position COUNTER always
+// renders ("i+1 of N"), so the pill exists even on a bare item (no attribution)
+// and the counter pin stays satisfiable. `pointer-events-none` shell so it never
+// blocks a swipe; the mark, email, and event link re-enable taps.
+//
+// ★ EVERY UPLOAD CARRIES A NAME NOW (the identity reshape, 2026-09-21).
+// "Anonymous" and its (i) explainer are gone with the concept: a guest either
+// confirmed an email (their profile name, plain) or typed one at the door (that
+// name, with `UnverifiedMark` beside it). ★ A ROW WITH NO NAME NAMES NOBODY: a
+// row minted before names were asked (the identity contract refuses a new one)
+// and a deleted account's surviving upload both render no credit at all, the
+// counter alone. Never an invented stand-in for a person nobody can vouch for.
 function AttributionPill({
   item,
   viewerIsHost,
+  isOwn,
   position,
 }: {
   item: GridMedia;
   viewerIsHost: boolean;
+  /** This viewer uploaded it: the mark grows its way out ("Confirm your email"). */
+  isOwn: boolean;
   position: string;
 }) {
   const name = item.uploaderName?.trim() || null;
-  const hasAttribution = item.isAnonymous || item.isHost || name !== null;
+  // Undefined (a surface that passes no identity, a lab fixture) reads as
+  // VERIFIED, so a name is never marked on a guess; only an explicit `false`
+  // beside a real name draws the mark.
+  const unverified = item.isVerified === false && name !== null;
+  const hasAttribution = item.isHost || name !== null;
   const eventName = item.eventName?.trim() || null;
   const eventLabel =
     eventName &&
     (item.eventDateLabel ? `${eventName} · ${item.eventDateLabel}` : eventName);
 
   return (
-    <div className="pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/90">
-        {hasAttribution &&
-          (item.isAnonymous ? (
-            <>
-              Anonymous
+    <div
+      className={cn(
+        // ★ ONE GRADE, AND PRESSABLE (`grades=one`, Will 2026-09-20: "This feels
+        // more consistent across surfaces that are close to each other, else it
+        // looks weird they're different... the bottom uploader credit UI may
+        // become clickable soon too"). The capsule wears the SAME material as
+        // the pill above it rather than a quieter one, and carries the press
+        // feedback of a control, so the day it becomes a door to a profile it
+        // changes behaviour and not appearance.
+        "pointer-events-none flex max-w-[88vw] flex-col items-center gap-1 rounded-full px-3 py-1 text-center",
+        "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
+        GLASS,
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-caption font-medium text-white/90",
+          GLASS_MARK_LIT,
+        )}
+      >
+        {hasAttribution && (
+          <>
+            {name && <span>{name}</span>}
+            {unverified && (
               <span className="pointer-events-auto">
-                <AnonymousInfo viewerIsHost={viewerIsHost} />
+                <UnverifiedMark
+                  name={name}
+                  tone="lit"
+                  own={isOwn}
+                  viewerIsHost={viewerIsHost}
+                />
               </span>
-            </>
-          ) : (
-            <>
-              {name && <span>{name}</span>}
-              {item.isHost && (
-                <Badge
-                  variant="secondary"
-                  className="bg-white/15 text-white hover:bg-white/15"
-                >
-                  Host
-                </Badge>
-              )}
-            </>
-          ))}
+            )}
+            {item.isHost && (
+              <Badge
+                variant="secondary"
+                className="bg-white/20 text-white hover:bg-white/20"
+              >
+                Host
+              </Badge>
+            )}
+          </>
+        )}
         {hasAttribution && <span className="text-white/40">·</span>}
         <span className="text-white/70 tabular-nums">{position}</span>
       </span>
@@ -196,8 +233,7 @@ function AttributionPill({
 // at rest, color on hover/state" rule). Per-action hue appended via cn (twMerge wins).
 // Universal across guest + host (Will, 2026-06-20): the action set differs by role,
 // the color language does not.
-const LIGHTBOX_ACTION =
-  "text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100";
+const LIGHTBOX_ACTION = `text-white/80 outline-none hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100 ${GLASS_MARK_LIT}`;
 
 export function MediaLightbox({
   items,
@@ -206,6 +242,7 @@ export function MediaLightbox({
   onIndexChange,
   viewerIsHost = false,
   onDeleteCurrent,
+  canDelete,
   shareUrl,
   onSetStatus,
   onRemove,
@@ -224,6 +261,11 @@ export function MediaLightbox({
    */
   onDeleteCurrent?: (item: GridMedia) => void;
   /**
+   * THE SEAM (2026-09-20): gates `onDeleteCurrent` per item, so a surface that can delete SOME
+   * photographs (a guest's own) shows the Trash only on those. Omitted = every item, as before.
+   */
+  canDelete?: (item: GridMedia) => boolean;
+  /**
    * Opt-in Share button. The guest event page passes the event JOIN url; the host gallery (3c.2) also
    * passes it (the host can share the album). NEVER a presigned media URL. Native share with a
    * clipboard fallback. Omitted on the personal Uploads + recovery bin, so their pill carries no Share.
@@ -239,6 +281,9 @@ export function MediaLightbox({
   onRemove?: (item: GridMedia) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
+  // The album's line for what deleting THIS item costs (null everywhere else).
+  const consequenceOf = useContext(DeleteConsequence);
+  const deleteConsequence = current && consequenceOf ? consequenceOf(current) : null;
   const prevItem =
     index !== null && index > 0 ? (items[index - 1] ?? null) : null;
   const nextItem =
@@ -614,7 +659,22 @@ export function MediaLightbox({
       }}
     >
       <DialogPortal>
-        <DialogOverlay className="bg-black/90" />
+        {/* ★ THE GROUND IS THE ALBUM, BLURRED (`behind=album`, Will 2026-09-20).
+            A flat bg-black/90 made the viewer a NEW SCREEN; the album at half
+            brightness behind a wide blur makes a photograph read as lifted out
+            of the room it is still in. It is its OWN element, and must stay one:
+            a backdrop filter blurs what is behind the element it sits on, so an
+            ancestor of the media would blur the media. The photograph lives in
+            `Content`, a sibling ABOVE this. Radix's own primitive rather than
+            our wrapped `DialogOverlay`, whose baked `backdrop-blur-xs` would sit
+            in the same utilities layer and race this one. */}
+        <DialogPrimitive.Overlay
+          data-lightbox-ground
+          className={cn(
+            "fixed inset-0 z-50 duration-100 ease-emphasis data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+            GLASS_BEHIND,
+          )}
+        />
         <DialogPrimitive.Content
           aria-describedby={undefined}
           className="fixed inset-0 z-50 flex flex-col duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
@@ -631,9 +691,13 @@ export function MediaLightbox({
                 <button
                   type="button"
                   aria-label="Close"
-                  className="absolute top-[calc(0.625rem+env(safe-area-inset-top))] right-2.5 z-20 flex size-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100"
+                  className={cn(
+                    "absolute top-[calc(0.625rem+env(safe-area-inset-top))] right-2.5 z-20 flex size-8 items-center justify-center rounded-full text-white outline-none",
+                    "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
+                    GLASS,
+                  )}
                 >
-                  <X className="size-4" />
+                  <X className={cn("size-4", GLASS_MARK_LIT)} />
                 </button>
               </DialogPrimitive.Close>
 
@@ -722,9 +786,14 @@ export function MediaLightbox({
                       group (approve-or-hide-or-unhide · remove). Per-action colors;
                       Like LEFTMOST (the ratified B2 layout). The host-only count
                       chip never co-occurs with a guest Like. */}
-                  <div className="pointer-events-auto flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm">
+                  <div
+                    className={cn(
+                      "pointer-events-auto flex items-center gap-4 rounded-full px-5 py-2.5",
+                      GLASS,
+                    )}
+                  >
                     {/* enjoy group (guest + host) */}
-                    <LikeButton item={current} variant="lightbox" />
+                    <LikeButton item={current} />
                     <LikeCountBadge count={current.likeCount} />
                     {/* Save hidden when an item carries no download url (the
                         recovery bin presigns INLINE only). Blue on hover. */}
@@ -752,48 +821,55 @@ export function MediaLightbox({
                         </button>
                       </ActionTooltip>
                     )}
-                    {/* Personal Uploads delete (unchanged) — never co-occurs with the
-                        host curate group (the host grid sets onRemove, not this). */}
-                    {onDeleteCurrent && (
-                      <Dialog>
-                        <ActionTooltip label="Delete">
-                          <DialogTrigger asChild>
-                            <button
-                              type="button"
-                              aria-label="Delete"
-                              className={cn(
-                                LIGHTBOX_ACTION,
-                                "hover:text-destructive",
-                              )}
-                            >
-                              <Trash2 className="size-5" />
-                            </button>
-                          </DialogTrigger>
-                        </ActionTooltip>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Delete this upload?</DialogTitle>
-                            <DialogDescription>
-                              It will be removed from the event right away, and
-                              permanently deleted after a short grace period.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline">Cancel</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="destructive"
-                                onClick={() => onDeleteCurrent(current)}
+                    {/* The uploader's OWN delete (the guest album and the personal
+                        Uploads) — never co-occurs with the host curate group (the host
+                        grid sets onRemove, not this). ★ It is final for the host too
+                        (`removed_by_uploader`: never in Deleted, never restorable), so
+                        its words say the window the bytes are held, read off the
+                        constant, and promise no way back. */}
+                    {onDeleteCurrent &&
+                      (canDelete ? canDelete(current) : true) && (
+                        <Dialog>
+                          <ActionTooltip label="Delete">
+                            <DialogTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label="Delete"
+                                className={cn(
+                                  LIGHTBOX_ACTION,
+                                  "hover:text-destructive",
+                                )}
                               >
-                                Delete
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                                <Trash2 className="size-5" />
+                              </button>
+                            </DialogTrigger>
+                          </ActionTooltip>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete this upload?</DialogTitle>
+                              <DialogDescription>
+                                It will be removed from the event right away,
+                                and permanently deleted after{" "}
+                                {RECENTLY_DELETED_WINDOW_DAYS} days.
+                                {deleteConsequence && ` ${deleteConsequence}`}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                              </DialogClose>
+                              <DialogClose asChild>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => onDeleteCurrent(current)}
+                                >
+                                  Delete
+                                </Button>
+                              </DialogClose>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      )}
 
                     {/* curate group (HOST only) — gated so the guest pill is purely
                         the enjoy group. Reads current.status; approve/hide/unhide are
@@ -878,9 +954,13 @@ export function MediaLightbox({
                               <DialogHeader>
                                 <DialogTitle>Remove this item?</DialogTitle>
                                 <DialogDescription>
-                                  It disappears from the album right away and is
-                                  permanently deleted after a short grace
-                                  period. Guests won&rsquo;t see it.
+                                  {/* A host's removal is restorable: it waits in
+                                      Deleted (the app's one word for the place)
+                                      for the window, read off the constant. */}
+                                  It disappears from the album right away and
+                                  moves to Deleted, where you can restore it for{" "}
+                                  {RECENTLY_DELETED_WINDOW_DAYS} days. Guests
+                                  won&rsquo;t see it.
                                 </DialogDescription>
                               </DialogHeader>
                               <DialogFooter>
@@ -917,6 +997,14 @@ export function MediaLightbox({
                     <AttributionPill
                       item={current}
                       viewerIsHost={viewerIsHost}
+                      // ★ THE "MINE" SEAM, REUSED RATHER THAN A SECOND ONE.
+                      // `canDelete` already answers "this viewer uploaded this
+                      // one" on every surface that can say so (the guest album
+                      // resolves it server-side on both identities), and a
+                      // second prop meaning the same thing is a second thing to
+                      // keep in step. A surface that passes none (the demo, a
+                      // locked album) simply gets the stranger's wording.
+                      isOwn={canDelete?.(current) ?? false}
                       position={`${index! + 1} of ${items.length}`}
                     />
                   </div>

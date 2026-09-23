@@ -212,4 +212,45 @@ describe("content policy", () => {
         `Recast actor-free (reviewed / a reply / host control):\n${found.join("\n")}`,
     ).toEqual([]);
   });
+
+  it('never promises "no account" (bible 20: a host may require one)', () => {
+    // Will's account rule (2026-09-19, `voice` r1 `absence=named`; bible 20 ruled
+    // PERMISSIVE, ruling in marketing-voice.ts's head comment). Require verified
+    // emails defaults ON for a new event, so a line promising "no app" AND "no
+    // account" together is false on most events; "No app required." is the
+    // shipped swap that survives ("no app" alone stays legal as a named benefit).
+    // Block comments are stripped before the scan: marketing-voice.ts,
+    // trust-strip.tsx and ask-ai.ts each quote the retired literal verbatim
+    // ("No app, no account.") in a JSDoc block to document the ruling, which is
+    // history, not shipped copy - a narrow scan should not relitigate its own record.
+    const BANNED = /\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i;
+    const surfaces = [
+      ...new Set([
+        ...mdxFiles,
+        ...CLAIM_FILES,
+        ...collectSource(join(ROOT, "src/app/(marketing)")),
+        ...collectSource(join(ROOT, "src/components/marketing")),
+        ...collectSource(join(ROOT, "src/lib/constants")),
+      ]),
+    ];
+    const found: string[] = [];
+    for (const file of surfaces) {
+      const withoutBlockComments = readFileSync(file, "utf8").replace(
+        /\/\*[\s\S]*?\*\//g,
+        "",
+      );
+      withoutBlockComments.split("\n").forEach((line, i) => {
+        if (BANNED.test(line)) {
+          found.push(
+            `${relative(ROOT, file)}:${i + 1}: "${line.trim().slice(0, 80)}"`,
+          );
+        }
+      });
+    }
+    expect(
+      found,
+      `A line promises "no app" and "no account" together (never: a host may ` +
+        `require one). Say "No app required." instead:\n${found.join("\n")}`,
+    ).toEqual([]);
+  });
 });

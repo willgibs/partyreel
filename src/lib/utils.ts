@@ -10,8 +10,17 @@ import { extendTailwindMerge } from "tailwind-merge";
  * every heading that also names a colour, silently, with nothing to see in the
  * source. The names below are exactly the `--text-*` steps declared in
  * src/app/theme.css; a step added there is added here in the same change (as
- * `subhead` was, 2026-09-18), and the parity is pinned by
- * src/lib/type-ladder-policy.test.ts.
+ * `subhead` was, 2026-09-18, and as the six body steps were, 2026-09-20), and
+ * the parity is pinned by src/lib/type-ladder-policy.test.ts.
+ *
+ * ★ THE LIST IS IN LADDER ORDER, TOP TO BOTTOM, AND THE TWO HALVES MEET AT 16.
+ * Ten heading steps, then six body steps: `copy` (16 -> 18, marketing's ledes
+ * and paragraphs), `reading` (16, every guest-facing sentence), `working` (14,
+ * the app and the admin), `caption` (12), `label` (12 on 0.08em, worn with
+ * `uppercase`) and `micro` (10, the floor). `label` is a STEP rather than an
+ * `@utility` because tailwind-merge cannot see an `@utility` at all — which is
+ * this file's whole subject — and because Tailwind emits one AHEAD of the size
+ * utilities, where a stray `text-sm` on the same element would beat it.
  */
 export const TYPE_STEPS = [
   "display",
@@ -24,6 +33,12 @@ export const TYPE_STEPS = [
   "page",
   "subsection",
   "card-title",
+  "copy",
+  "reading",
+  "working",
+  "caption",
+  "label",
+  "micro",
 ] as const;
 
 /**

@@ -109,6 +109,198 @@
           "text": "Build up from the ground up, shaping along the way rather than just selecting one of these for the sake of it.",
           "by": "Will",
           "at": "2026-09-17T21:00:00Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-vocabulary.loading=asneeded, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by app-vocabulary.bulk-toolbar=icon, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by app-vocabulary.gallery-controls-home=cluster, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by seed-avatar.after-upload=under, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.home=kpi, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.density=hybrid, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by admin.chrome=devtool, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.surfaces=one, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.welcome=tour, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-door.page=beside, 2026-09-20",
+          "by": "Will",
+          "at": "2026-09-20T08:11:04Z"
+        },
+        {
+          "on": "guest-verify",
+          "text": "overridden by seed-avatar.look=mesh, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by app-pricing.object=sheet, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-door",
+          "text": "overridden by app-pricing.first=trigger, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "pricing-page",
+          "text": "overridden by app-pricing.carry=cards, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "pricing-page",
+          "text": "overridden by app-pricing.pass=line, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by app-pricing.doors=menu, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "app-vocabulary",
+          "text": "overridden by app-pricing.words=chip, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T03:17:27Z"
+        },
+        {
+          "on": "VOCABULARY_",
+          "text": "overridden by first-event.asks=one, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by first-event.style=step, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-pricing",
+          "text": "overridden by first-event.limit=door, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by first-event.landing=beat, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by first-event.hand=same, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-shape",
+          "text": "overridden by first-event.empty=list, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "guest-verify",
+          "text": "overridden by first-event.first=live, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by guest-upload.tap=sheet, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by guest-upload.sending=strip, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by guest-upload.batch=one, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by guest-upload.landing=sweep, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "glass",
+          "text": "overridden by guest-upload.held=tile, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "app-door",
+          "text": "overridden by guest-upload.failed=sheet, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by guest-upload.warning=both, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
+        },
+        {
+          "on": "guest-shape",
+          "text": "overridden by guest-upload.words=read, 2026-09-21",
+          "by": "Will",
+          "at": "2026-09-21T06:33:51Z"
         }
       ]
     }

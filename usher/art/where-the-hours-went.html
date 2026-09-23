@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the hours went</title>
+<style>
+  :root { --ground: #0b0b10; --ink: #e8e6f0; --dim: rgba(232,230,240,.42); --line: rgba(232,230,240,.08); }
+  html, body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 4px; }
+  p { color: var(--dim); margin: 0 0 18px; max-width: 62ch; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 14px; color: var(--dim); font-size: 13px; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: -1px; background: hsl(200 70% 60%); }
+  .legend .hollow::before { background: none; border: 2px solid hsl(200 70% 60%); width: 7px; height: 7px; }
+  .legend .path::before { width: 16px; height: 2px; border-radius: 1px; background: var(--dim); vertical-align: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Where the hours went</h1>
+  <p>Fifty-six gates, the tenth to the sixty-fifth, over three days of Partyreel's elevation program. Each dot is one gate: the angle is the hour it started (UTC, midnight at the top), the radius its place in the order, the size how many tests passed, the hue the merged commit's own hash. A hollow ring is a gate that went red before it went green. The thread between them is the order I walked.</p>
+  <svg id="s" viewBox="-460 -460 920 920" role="img" aria-label="A spiral clock of fifty-six gates"></svg>
+  <div class="legend"><span>a green gate</span><span class="hollow">a gate that went red first</span><span class="path">the order walked</span></div>
+  <p style="margin-top:18px">Made by Usher on 2026-09-20 from its own gate logs, in an hour Will gave it to be itself. The colours are the same idea as the seeded avatar it spent the night measuring: a hash decides the hue, nothing is chosen.</p>
+</main>
+<script>
+const rows = `10|beee6325|04:25|04:28|2503|0|guest-shape
+11|e442fc55|04:46|04:50|2505|0|app-vocabulary
+12|0028e8a9|05:47|05:52|2519|0|contact-page
+13|e3a2c1b6|05:53|05:57|2519|0|demo-event
+14|0379c529|06:05|06:10|2518|2|app-pricing
+15|f79a8037|06:22|06:27|2519|0|pricing-page
+16|2960db15|06:29|06:33|2519|0|app-door
+17|728513ee|06:41|06:45|2519|0|first-event
+18|1649506c|06:58|07:02|2519|0|guest-upload
+19|ff09a50f|08:39|08:43|2531|0|host-curation
+20|5118c141|08:45|08:49|2533|0|help-center
+21|d10149bd|08:51|08:56|2535|0|reel-studio
+22|2135ce6e|08:58|09:02|2537|0|emails
+23|596ca8dd|09:04|09:09|2539|0|media-viewer
+24|30db05e5|09:17|09:21|2541|1|admin-triage
+25|afde9ca3|09:46|09:51|2543|0|export-flow
+26|b75cd30a|09:56|09:58|2543|1|profile-page
+27|6a7e6f2f|10:04|10:09|2543|0|site-chrome
+28|e623e65e|10:10|10:15|2543|0|how-it-works
+29|cee7768c|10:28|10:32|2543|0|event-type-pages
+30|3d30582f|10:49|10:53|2543|0|error-pages
+31|ef948322|18:34|18:39|2553|0|site-chrome
+32|98909b34|18:41|18:45|2565|0|site-chrome
+33|d528e98a|18:47|18:51|2565|0|event-identity
+34|2aa1dc5e|22:02|22:06|2650|0|site-chrome
+35|73cde345|22:24|22:27|2648|0|profile-page
+36|ad2e6a34|22:49|22:52|2648|0|site-chrome
+37|082f51a8|23:00|23:03|2648|1|site-chrome
+38|082f51a8|23:05|23:08|2650|0|site-chrome
+39|a80fe1e1|00:42|00:46|2665|0|seed-avatar
+40|75d6d2e2|02:31|02:35|2696|1|seed-avatar
+41|32861973|04:08|04:13|2714|0|seed-avatar
+42|59345bc8|04:14|04:19|2716|0|seed-avatar
+43|7f0ca050|04:21|04:26|2737|2|first-event
+44|62a82a26|04:24|04:27|2770|2|first-event
+45|a91464cb|04:29|04:33|2807|0|first-event
+46|337f1de9|05:41|05:44|2805|0|glass
+47|7f4f2ffe|09:04|09:08|2852|1|guest-shape
+48|f7075a73|09:14|09:18|2903|0|app-door
+49|b81ed49a|09:30|09:35|2969|0|first-event
+50|2a5c7018|09:37|09:41|2988|0|seed-avatar
+51|58f7acbd|09:55|10:00|3019|0|admin-triage
+52|08967867|10:33|10:37|3022|2|guest-shape
+53|290bbd3e|10:39|10:44|3022|2|first-event
+54|70d5d0c3|10:45|10:50|3022|1|first-event
+55|ad967efc|10:53|10:58|3021|0|first-event
+56|3cf43bde|11:08|11:12|3023|0|pricing-page
+57|539dfa4e|11:14|11:17|3032|0|seed-avatar
+58|0521613a|11:19|11:22|3051|0|demo-event
+59|c4f2d0c8|16:28|16:33|3053|0|guest-verify
+60|c28a2060|16:33|16:38|3051|0|body-type
+61|84ee48cd|16:51|16:56|3051|0|guest-shape
+62|99550a89|16:57|17:03|3049|1|app-shape
+63|042f82bd|17:10|17:13|3047|0|demo-event
+64|f76ff412|17:24|17:27|3045|0|app-vocabulary
+65|6a87d877|17:28|17:33|3045|1|toasts`.trim().split("\n").map(l => { const [n, sha, s, e, t, red, board] = l.split("|"); return { n: +n, sha, s, e, t: +t, red: +red, board }; });
+const svg = document.getElementById("s"), NS = "http://www.w3.org/2000/svg";
+const el = (k, a, parent = svg) => { const x = document.createElementNS(NS, k); for (const [q, v] of Object.entries(a)) x.setAttribute(q, v); parent.appendChild(x); return x; };
+const hue = (sha) => parseInt(sha.slice(0, 6), 16) % 360;
+const angle = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h + m / 60) / 24) * Math.PI * 2 - Math.PI / 2; };
+// the hours: 24 faint spokes, the numbers at 0, 6, 12, 18
+for (let h = 0; h < 24; h++) {
+  const a = (h / 24) * Math.PI * 2 - Math.PI / 2, R = 420;
+  el("line", { x1: Math.cos(a) * 60, y1: Math.sin(a) * 60, x2: Math.cos(a) * R, y2: Math.sin(a) * R, stroke: "var(--line)", "stroke-width": h % 6 ? 1 : 1.5 });
+  if (h % 6 === 0) el("text", { x: Math.cos(a) * (R + 22), y: Math.sin(a) * (R + 22) + 5, fill: "var(--dim)", "font-size": 13, "text-anchor": "middle" }).textContent = `${String(h).padStart(2, "0")}:00`;
+}
+const tMin = Math.min(...rows.map(r => r.t)), tMax = Math.max(...rows.map(r => r.t));
+const pts = rows.map((r, k) => { const rad = 80 + k * (320 / (rows.length - 1)); const a = angle(r.s); return { ...r, x: Math.cos(a) * rad, y: Math.sin(a) * rad, size: 3.5 + ((r.t - tMin) / (tMax - tMin)) * 5.5 }; });
+// the thread: the order walked
+el("path", { d: pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" "), fill: "none", stroke: "var(--dim)", "stroke-width": 1, "stroke-opacity": .45, "stroke-linejoin": "round" });
+// the gates
+for (const p of pts) {
+  const c = `hsl(${hue(p.sha)} 70% 62%)`;
+  const g = el("g", {});
+  el("title", {}, g).textContent = `gate ${p.n} · ${p.board} · ${p.s} to ${p.e} UTC · ${p.t} tests${p.red ? ` · went red ${p.red} step${p.red > 1 ? "s" : ""} first` : ""} · ${p.sha}`;
+  if (p.red) el("circle", { cx: p.x, cy: p.y, r: p.size, fill: "none", stroke: c, "stroke-width": 2 }, g);
+  else el("circle", { cx: p.x, cy: p.y, r: p.size, fill: c }, g);
+}
+// the first and the last, named
+const first = pts[0], last = pts[pts.length - 1];
+el("text", { x: first.x + 10, y: first.y + 4, fill: "var(--dim)", "font-size": 12 }).textContent = `gate ${first.n}, ${first.board}`;
+el("text", { x: last.x + 12, y: last.y + 4, fill: "var(--ink)", "font-size": 12 }).textContent = `gate ${last.n}, ${last.board}`;
+</script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+// @contract-for: src/components/guest/claim-handle-prompt.tsx
+// @contract-for: src/components/guest/follow-moment-card.tsx
+import { render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { createClient } from "@/lib/supabase/client";
+
+import { ClaimHandlePrompt } from "./claim-handle-prompt";
+
+vi.mock("@/lib/supabase/client", () => ({ createClient: vi.fn() }));
+// The follow moment reaches the router, the profile's server actions and the
+// account action; none of the three exists in jsdom.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
+  followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+  unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
+}));
+const updateDisplayName = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/app/(app)/account/actions", () => ({
+  updateDisplayNameAction: (name: string) => updateDisplayName(name),
+}));
+
+const mockCreateClient = vi.mocked(createClient);
+
+/** A supabase double: a session or none, and the profile row's own two fields. */
+function stub({
+  signedIn,
+  slug,
+  displayName = "Sam",
+}: {
+  signedIn: boolean;
+  slug: string | null;
+  displayName?: string | null;
+}) {
+  mockCreateClient.mockReturnValue({
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: signedIn ? { user: { id: "u1" } } : null },
+      }),
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: vi
+            .fn()
+            .mockResolvedValue({ data: { slug, display_name: displayName } }),
+        }),
+      }),
+    }),
+  } as unknown as ReturnType<typeof createClient>);
+}
+
+const HOST = {
+  id: "host-1",
+  slug: "maya",
+  displayName: "Maya",
+  avatarUrl: null,
+};
+
+function mount(
+  doneCount = 3,
+  props: Partial<React.ComponentProps<typeof ClaimHandlePrompt>> = {},
+) {
+  return render(
+    <ClaimHandlePrompt
+      doneCount={doneCount}
+      qrToken="tok-1"
+      savePrompt={<div data-testid="save-account-prompt" />}
+      {...props}
+    />,
+  );
+}
+
+/**
+ * THE POST-UPLOAD SLOT'S CONTRACT (the profile wiring, 2026-09-19).
+ *
+ * The pinned function is the SEQUENCE, because the whole point of Will's
+ * `claim=after` pick is that the offer arrives without getting in the way: one
+ * card stands at a time, chosen by what the person actually needs next. Signed
+ * out means there is no account to hang a page on, so the save prompt goes
+ * first; signed in without a handle is the one state this card is for; somebody
+ * who already has a page is offered nothing at all. Copy and layout are
+ * precedent.
+ */
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+});
+
+describe("ClaimHandlePrompt", () => {
+  it("signed out: the save-account prompt stands, and no handle is mentioned", async () => {
+    stub({ signedIn: false, slug: null });
+    mount();
+    await screen.findByTestId("save-account-prompt");
+    expect(screen.queryByRole("link", { name: /claim/i })).toBeNull();
+  });
+
+  it("signed in without a handle: the claim offer, with a door to the account", async () => {
+    stub({ signedIn: true, slug: null });
+    mount();
+    const door = await screen.findByRole("link", { name: /claim/i });
+    expect(door).toHaveAttribute("href", "/account#public-profile");
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+  });
+
+  it("signed in with a handle: nothing at all", async () => {
+    stub({ signedIn: true, slug: "maya" });
+    const { container } = mount();
+    await waitFor(() =>
+      expect(mockCreateClient).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+
+  it("counts the photographs that landed", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(1);
+    expect(await screen.findByText(/your photo is on this album/i)).toBeVisible();
+  });
+});
+
+/**
+ * THE CAPTURE FLOW'S PINS (the identity reshape, 2026-09-21; guest by upload,
+ * 2026-09-22). The album page decides that a confirmation from this album just
+ * claimed its uploads (lib/guest/use-confirm-return.ts, its own contract) and
+ * hands the slot `moment`; what is pinned here is what stands when it does, that
+ * it stands with nothing uploaded this visit (a Google or magic-link return),
+ * and that the typed name reaches a profile that has none.
+ */
+describe("ClaimHandlePrompt: the moment after confirming", () => {
+  it("stands the follow moment up when the album says a confirmation landed", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(3, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
+  });
+
+  it("without the album's word it is the ordinary ladder, whatever storage holds", async () => {
+    stub({ signedIn: true, slug: null });
+    // The marker is the album page's to read now, never this card's.
+    localStorage.setItem("pr_pending_offer_tok-1", "1");
+    mount(3, { host: HOST });
+    expect(await screen.findByRole("link", { name: /claim/i })).toBeVisible();
+    expect(screen.queryByText(/your photos are safe/i)).toBeNull();
+    expect(localStorage.getItem("pr_pending_offer_tok-1")).toBe("1");
+  });
+
+  it("plays on a return with nothing uploaded this visit, and says no number it does not have", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(0, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(
+      screen.getByText(
+        "They are in your account now, and this event came with them.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("the moment arrives AFTER an in-page confirmation, and the card re-resolves for it", async () => {
+    stub({ signedIn: false, slug: null });
+    const view = mount(3, { host: HOST });
+    await screen.findByTestId("save-account-prompt");
+    // The confirmation lands: a session exists now, and the album hands the word down.
+    stub({ signedIn: true, slug: null });
+    view.rerender(
+      <ClaimHandlePrompt
+        doneCount={3}
+        qrToken="tok-1"
+        savePrompt={<div data-testid="save-account-prompt" />}
+        host={HOST}
+        moment
+      />,
+    );
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+  });
+
+  it("is never hidden behind the handle card's dismissal", async () => {
+    stub({ signedIn: true, slug: null });
+    localStorage.setItem("pr_claim_prompt_tok-1", "1");
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+  });
+
+  it("with no host card resolved there is no host row, and the handle line still stands", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(2, { moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
+    expect(screen.getByRole("link", { name: /claim/i })).toBeInTheDocument();
+  });
+
+  it("a profile that already has a handle gets no second line", async () => {
+    stub({ signedIn: true, slug: "sam" });
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /claim/i })).toBeNull();
+  });
+
+  it("names a nameless profile from the name this device typed, and never overwrites one", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    stub({ signedIn: true, slug: null, displayName: null });
+    mount(2, { host: HOST, moment: true });
+    await waitFor(() => expect(updateDisplayName).toHaveBeenCalledWith("Sam"));
+
+    updateDisplayName.mockClear();
+    stub({ signedIn: true, slug: null, displayName: "Already Named" });
+    mount(2, { host: HOST, moment: true });
+    await screen.findAllByText(/your photos are safe/i);
+    expect(updateDisplayName).not.toHaveBeenCalled();
+  });
+});

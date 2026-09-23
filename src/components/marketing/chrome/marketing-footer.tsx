@@ -96,7 +96,7 @@ import { FooterGlow } from "./footer-glow";
 // without changing the visual rhythm; footer links are the most mis-clicked
 // elements on the web.
 const FOOTER_LINK =
-  "block py-1 text-[15px] text-muted-foreground transition-colors duration-150 hover:text-foreground";
+  "block py-1 text-reading text-muted-foreground transition-colors duration-150 hover:text-foreground";
 
 // Quiet inline text for the assistant row, never vendor logos: this footer
 // deliberately carries no social icons (the company has no accounts), so three
@@ -132,13 +132,55 @@ export function MarketingFooter() {
   );
 }
 
-/** Register one: the demo invitation. */
+/**
+ * THE FOOTER'S ONE ACTION, and the only one a (paper) route gets: CtaBand sits
+ * above the footer on cinema pages but nowhere on /about, /press, /careers or
+ * a 404. Deliberately SECONDARY to the demo (a hairline, not a fill) so the
+ * two do not compete, and hand-rolled on purpose: the slab's .surface-ink set
+ * would let a Button paint, but the outline register is the point. It is a
+ * 44px action, so it wears the 44px action's corner (ctaCorner), not the 40px
+ * one.
+ *
+ * ★ AT EVERY WIDTH, IN BOTH STATES (`foot-door=always`, Will 2026-09-19:
+ * "Start free always, the demo when it is set"). It used to be `lg`-only AND
+ * inside the demo branch, so a phone reader reached the end of /about with
+ * nothing to do at all, and an unset demo token took the site's only footer
+ * action down with it on every page. One rule now, not two: a conversion
+ * action is never wired to whether a demo event happens to be configured, and
+ * never to a breakpoint either. At phone width it lands under the invitation,
+ * which reads as a ladder (a quiet link to look, a bordered button to act)
+ * rather than as two competing offers.
+ */
+function StartFree() {
+  return (
+    <Link
+      href={MARKETING_CTA.href}
+      {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
+      className={cn(
+        "mkt-learn inline-flex items-center gap-2 border px-6 py-3 text-working font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97]",
+        ctaCorner,
+      )}
+    >
+      {MARKETING_CTA.label}
+      <LearnChevron />
+    </Link>
+  );
+}
+
+/** Register one: the demo invitation, and the action beside it. */
 function SignOff() {
   // Never a dead CTA (the DemoCtaLink contract): with no demo event configured
   // the QR would encode the marketing site the visitor is already on, so the
-  // whole invitation stands down to the thesis.
+  // INVITATION stands down to the thesis. The ACTION does not go with it (see
+  // StartFree); no Reveal on this branch, because nothing in it carries a cut
+  // and an observer for two static elements is an island for nothing.
   if (!DEMO_EVENT_URL) {
-    return <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>;
+    return (
+      <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+        <p className="max-w-xl font-heading text-chapter">{SITE_THESIS}</p>
+        <StartFree />
+      </div>
+    );
   }
   return (
     <Reveal className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -151,50 +193,39 @@ function SignOff() {
           <FooterDemo href={DEMO_EVENT_URL} value={DEMO_EVENT_URL} />
         </div>
         <div className="flex flex-col items-start gap-4">
-          {/* The `chapter` step, with the sign-off above it: the footer is the
-              page's CLOSER, not one more body section, and the ladder is where
-              that rank is said out loud (2026-09-17). */}
-          <h2 className="font-heading text-chapter">Explore a demo event.</h2>
-          <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
+          {/* The `section` step, one rung DOWN from `chapter` (Will,
+              2026-09-19, ruling the walkthrough's close: "as a separate
+              exploration, the footer 'Explore a demo event.' should be a
+              heading size down from these closing section H2s to create
+              hierarchy, it's far too big right now"). It used to sit a rung
+              ABOVE them on the argument that the footer is the page's closer;
+              read against a real closing H2 a hundred pixels up, the footer
+              out-shouting the page's own last word was the louder mistake.
+              Level with a closing H2 is the hierarchy he asked for. */}
+          <h2 className="font-heading text-section">Explore a demo event.</h2>
+          <p className="max-w-sm text-copy text-pretty text-muted-foreground">
             <span className="hidden sm:inline">
               Scan the code for a real event album on your phone, exactly the
-              way a guest arrives. No app, no account.
+              way a guest arrives. No app required.
             </span>
             <span className="sm:hidden">
-              A real event album, exactly the way a guest arrives. No app, no
-              account.
+              A real event album, exactly the way a guest arrives. No app required.
             </span>
           </p>
           <Link
             href={DEMO_EVENT_URL}
             {...trackAttrs("demo_open", { source: "footer-mobile" })}
-            className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-[15px] font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
+            className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-working font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
           >
             Open the demo album
             <LearnChevron />
           </Link>
         </div>
       </div>
-      {/* The footer's one conversion action, and the only one a (paper) route
-          gets: CtaBand sits above the footer on cinema pages but nowhere on
-          /about, /press, /careers or a 404. Deliberately SECONDARY to the demo
-          (a hairline, not a fill) so the two do not compete, and hand-rolled
-          on purpose: the slab's .surface-ink set would let a Button paint, but
-          the outline register is the point. It also gives the register a
-          right edge; without it the row left ~600px of dead space, the exact
-          wireframe quality this pass exists to remove. It is a 44px action,
-          so it wears the 44px action's corner (ctaCorner), not the 40px one. */}
-      <Link
-        href={MARKETING_CTA.href}
-        {...trackAttrs("cta_click", { cta: "start-free", location: "footer" })}
-        className={cn(
-          "mkt-learn hidden items-center gap-2 border px-6 py-3 text-[15px] font-medium text-foreground transition-[color,border-color,transform,scale] duration-150 ease-emphasis hover:border-foreground/40 active:scale-[0.97] lg:inline-flex",
-          ctaCorner,
-        )}
-      >
-        {MARKETING_CTA.label}
-        <LearnChevron />
-      </Link>
+      {/* It also gives the register a right edge; without it the row left
+          ~600px of dead space, the exact wireframe quality this pass exists to
+          remove. */}
+      <StartFree />
     </Reveal>
   );
 }
@@ -217,13 +248,13 @@ function Index() {
         {/* Imports the ruled thesis rather than duplicating it: the original
             footer carried a byte-identical hardcoded copy, so a thesis rewrite
             would silently have skipped the most-seen surface on the site. */}
-        <p className="max-w-[26ch] text-[15px] text-pretty text-muted-foreground">
+        <p className="max-w-[26ch] text-copy text-pretty text-muted-foreground">
           {SITE_THESIS}
         </p>
         {/* Tucked here on purpose (Will's review): the demo row above should own
             its register, and this belongs with the other "what is Partyreel"
             copy. It is the one human-facing surface of the /llms.txt layer. */}
-        <p className="max-w-[30ch] pt-2 text-[13px] text-pretty text-muted-foreground">
+        <p className="max-w-[30ch] pt-2 text-caption text-pretty text-muted-foreground">
           Using an assistant? Ask{" "}
           {ASK_AI_TARGETS.map((target, i) => (
             <span key={target.label}>
@@ -311,7 +342,7 @@ function FooterLink({ link }: { link: NavLink }) {
       >
         {link.label}
         {hiring && (
-          <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium tracking-[0.1em] whitespace-nowrap text-foreground uppercase">
+          <span className="shrink-0 rounded-full border px-1.5 py-0.5 text-label font-medium whitespace-nowrap text-foreground uppercase">
             We&rsquo;re hiring
           </span>
         )}

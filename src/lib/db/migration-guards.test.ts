@@ -12,15 +12,65 @@
  *   2. create_guest keeps the visibility refusals (private never mints; password requires
  *      p_unlock_proven) and stays service-role-only.
  *   3. get_upload_context keeps its `visibility` output (the presign/complete lock re-check feeds
- *      on it) AND its anon EXECUTE grant — it is one of the FOUR 0028 anon read RPCs; a replaced
+ *      on it) AND its anon EXECUTE grant — it is one of the FIVE 0028 anon read RPCs; a replaced
  *      body must re-assert the grant explicitly (the MCP anon-grant landmine cuts both ways).
+ *   4. The identity reshape (2026-09-21, migration 20260921150000): anonymity left the product, so
+ *      every one of its load-bearing SQL facts is pinned here rather than in the file that happens
+ *      to hold it today — create_guest's verified-email refusal and its nulled name, create_media's
+ *      post-flip refusal AND the wording mapCheckViolation splits on, get_upload_context's two new
+ *      keys, set_guest_display_name's posture, and the display-name cap's parity with
+ *      DISPLAY_NAME_MAX_LENGTH.
+ *   5. get_event_by_qr_token's QA #40 redaction, which until now was pinned to the FILE that added
+ *      it (escalation-guards.test.ts). The reshape drops and recreates that function, which is
+ *      exactly the drift a file-pinned guard cannot see — so it gets a latest-wins guard too.
+ *   6. claim_anonymous_uploads's TWO arms (the guest identity round deliberately inverted the old
+ *      "never writes email" pin — that describe carries the reasoning).
+ *   7. The guest identity round (2026-09-22, migrations 20260922120000 + 20260922122000): the
+ *      unproved address lives in its own fail-closed column with its CHECK and partial index, the
+ *      five claim/attach RPCs sit exactly where database-security.md puts them, nothing expires, and
+ *      a profile publishes no attended event until its owner chooses it.
+ *   8. The identity SQL gaps (2026-09-22, migration 20260922200000): `guests.email` is written by
+ *      create_guest only beside a confirmation, the host's guests SELECT never carries `email`
+ *      again, and get_public_profile's attended arm applies the album's own confirmed-email gate,
+ *      pinned against the album code it mirrors.
+ *   9. The guests grant tidy (2026-09-22, migration 20260922213000): no client role reads `guests`
+ *      at all (the SELECT and `guests_host_select` are gone, replayed statement by statement across
+ *      the set), and capture_guest_email fills `guests.email` only on a row whose own account is the
+ *      confirmed owner of that address.
+ *  10. Guest by upload (Will, 2026-09-22; migrations 20260923120000 + 20260923130000): a person is a
+ *      guest of an event only through an upload of theirs. The upload gate closes again on the
+ *      guest's OWN deletes (never on a host's removal), a profile's attended line follows the album's
+ *      Require an upload to view, the claim card and Claim all skip a row with no live upload, the
+ *      token claim's count is the claimed rows that carry one, and the save objects are dropped.
+ *  11. The identity contract (migration 20260923150000): the legacy `allow_anonymous_uploads` column,
+ *      its twin-keeper trigger and the trigger's function are dropped and never recreated, and no
+ *      executable SQL after the drop names the column; get_event_by_qr_token returns the two door
+ *      switches and no legacy key; create_guest refuses a nameless mint by an unconfirmed caller in
+ *      its own words, which the app maps ahead of its verification fallback.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
+import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
+
+const ROOT = join(__dirname, "..", "..", "..");
+const MIGRATIONS_DIR = join(ROOT, "supabase/migrations");
+
+/** Whitespace-tolerant: the shape is the contract, never the SQL's line breaks. */
+function collapse(sql: string): string {
+  return sql.replace(/\s+/g, " ");
+}
+
+/** Every migration, in timestamp order, as one string — for facts that are not a function body. */
+function allMigrations(): string {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
+    .join("\n");
+}
 
 /**
  * The definition that actually WINS on the live DB: the LAST `create [or replace] function
@@ -52,6 +102,103 @@ function latestDefinition(name: string): { body: string; file: string } {
   }
   expect(latest, `${name} defined nowhere`).not.toBeNull();
   return latest!;
+}
+
+/**
+ * Every migration's EXECUTABLE SQL, one entry per file in timestamp order: line comments stripped
+ * first (a grant or a policy quoted in prose is not a grant or a policy), then whitespace collapsed.
+ */
+function executableMigrations(): { file: string; sql: string }[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((file) => ({
+      file,
+      sql: collapse(
+        readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(
+          /--[^\n]*/g,
+          "",
+        ),
+      ),
+    }));
+}
+
+/** Does a GRANT/REVOKE object list name the guests table (alone, in a list, or schema-wide)? */
+function namesGuests(objects: string): boolean {
+  return (
+    /(?:^|[\s,])public\.guests(?=$|[\s,])/.test(objects) ||
+    /\ball tables in schema public\b/.test(objects)
+  );
+}
+
+/**
+ * The columns `authenticated` can SELECT on `guests` as the live DB holds them, REPLAYED statement
+ * by statement across the whole set rather than read off the last grant, because two Postgres rules
+ * decide it (database-security.md's gotchas): a TABLE-level revoke cascades to every column grant,
+ * so it empties the set, and a column-level revoke removes only its own columns. A table-level
+ * grant, which another guard forbids, replays as "*": every column at once.
+ */
+function hostGuestsSelect(): string[] {
+  let columns = new Set<string>();
+  const statement =
+    /\b(grant|revoke) ([a-z_, ]+?)(?: \(([^)]*)\))? on (?:table )?([^;]*?) (?:to|from) ([^;]*);/g;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb, privileges, named, objects, grantees] of sql.matchAll(
+      statement,
+    )) {
+      if (!namesGuests(objects)) continue;
+      if (!grantees.split(",").some((g) => g.trim() === "authenticated"))
+        continue;
+      const privs = privileges.split(",").map((p) => p.trim());
+      if (!privs.some((p) => ["select", "all", "all privileges"].includes(p)))
+        continue;
+      const cols = named?.split(",").map((c) => c.trim());
+      if (verb === "revoke") {
+        if (cols) cols.forEach((c) => columns.delete(c));
+        else columns = new Set();
+      } else {
+        (cols ?? ["*"]).forEach((c) => columns.add(c));
+      }
+    }
+  }
+  return [...columns];
+}
+
+/** Can the host (any `authenticated` session) read this guests column over PostgREST? */
+function hostSelects(column: string): boolean {
+  const columns = hostGuestsSelect();
+  return columns.includes("*") || columns.includes(column);
+}
+
+/** The policies standing on `guests` after the whole set, create / drop / rename replayed in order. */
+function guestsPolicies(): string[] {
+  const names = new Set<string>();
+  const statement =
+    /\b(create|drop|alter) policy (?:if exists )?([a-z0-9_"]+) on (?:only )?public\.guests\b(?: rename to ([a-z0-9_"]+))?/g;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb, name, renamed] of sql.matchAll(statement)) {
+      if (verb === "create") names.add(name);
+      else if (verb === "drop") names.delete(name);
+      else if (renamed) {
+        names.delete(name);
+        names.add(renamed);
+      }
+    }
+  }
+  return [...names];
+}
+
+/** The last word on guests' row level security across the set: "enable" or "disable". */
+function guestsRowSecurity(): string | null {
+  let state: string | null = null;
+  for (const { sql } of executableMigrations()) {
+    for (const [, verb] of sql.matchAll(
+      /alter table (?:only )?public\.guests (enable|disable) row level security/g,
+    )) {
+      state = verb;
+    }
+  }
+  return state;
 }
 
 describe("QA #17 — the cap row locks survive body replacement", () => {
@@ -123,5 +270,878 @@ describe("QA #18 — get_upload_context feeds the route lock re-check", () => {
     expect(file).toContain(
       "grant execute on function public.get_upload_context(text, public.media_type) to anon, authenticated;",
     );
+  });
+});
+
+describe("the identity contract — the legacy twin is gone and stays gone", () => {
+  // `require_verified_email` is the host's one identity switch. Its legacy twin,
+  // `events.allow_anonymous_uploads`, and the trigger that held the two opposite are dropped by
+  // 20260923150000, functions first (every body that read the column is replaced before the column
+  // goes), trigger before its function. ★ `latestDefinition` finds only `create` statements, so a
+  // dropped object's old pins would stay green while false: what is pinned here is the DROP, and
+  // that nothing later in the set brings any of it back (the save objects' pattern, at the foot).
+  const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+  const drops = [
+    "create or replace function public.get_public_profile(",
+    "drop function public.get_event_by_qr_token(text);",
+    "drop trigger events_sync_verified_email_flags on public.events;",
+    "drop function public.sync_event_verified_email_flags();",
+    "alter table public.events drop column allow_anonymous_uploads;",
+  ].map((statement) => sql.lastIndexOf(statement));
+
+  it("drops the trigger, then its function, then the column, after replacing every reader", () => {
+    expect(drops.every((at) => at > -1)).toBe(true);
+    expect([...drops].sort((a, b) => a - b)).toEqual(drops);
+  });
+
+  it("nothing later in the set recreates the trigger, its function or the column", () => {
+    const after = sql.slice(Math.max(...drops));
+    for (const revival of [
+      /create (or replace )?trigger events_sync_verified_email_flags\b/,
+      /create (or replace )?function public\.sync_event_verified_email_flags\(/,
+      /add column (if not exists )?allow_anonymous_uploads\b/,
+    ]) {
+      expect(after).not.toMatch(revival);
+    }
+  });
+
+  it("no executable SQL after the drop names the legacy column", () => {
+    // A body that still read it would pass every create and fail at its first call.
+    const at = sql.lastIndexOf(
+      "alter table public.events drop column allow_anonymous_uploads;",
+    );
+    const after = sql.slice(
+      at +
+        "alter table public.events drop column allow_anonymous_uploads;".length,
+    );
+    expect(after).not.toContain("allow_anonymous_uploads");
+  });
+
+  it("the winning bodies that read events name only the new switch", () => {
+    for (const name of [
+      "get_public_profile",
+      "get_event_by_qr_token",
+      "create_guest",
+    ]) {
+      expect(
+        latestDefinition(name).body.replace(/--[^\n]*/g, ""),
+        name,
+      ).not.toContain("allow_anonymous_uploads");
+    }
+  });
+});
+
+describe("the identity reshape — create_guest mints an identity", () => {
+  it("refuses a mint without a verified email when the switch is on", () => {
+    expect(collapse(latestDefinition("create_guest").body)).toContain(
+      "if v_event.require_verified_email and (v_uid is null or v_confirmed is null) then",
+    );
+  });
+
+  it("nulls a typed name when a confirmed account already carries the identity", () => {
+    // One identity per row: a profile name and a typed name must never sit side by side and
+    // disagree. Wave 1's precedence rule depends on this being true in the DATA, not in the UI.
+    expect(collapse(latestDefinition("create_guest").body)).toContain(
+      "if v_confirmed is not null then v_name := null; end if;",
+    );
+  });
+
+  it("stamps verified_at from the confirmed session, never from a client value", () => {
+    const body = collapse(latestDefinition("create_guest").body);
+    // The column list grew by the guest identity round's two columns (20260922120000); what this
+    // pins is that `email` and `verified_at` are still written from the SERVER-read auth.users row
+    // and in that order, never from a client value.
+    expect(body).toContain(
+      "insert into public.guests (event_id, user_id, email, session_token, display_name, verified_at, pending_email, pending_email_at)",
+    );
+    expect(body).toContain("v_name, v_confirmed");
+    // v_confirmed comes from auth.users under definer privilege — the whole point.
+    expect(body).toContain(
+      "select email, email_confirmed_at into v_email, v_confirmed from auth.users where id = v_uid;",
+    );
+  });
+
+  it("refuses a nameless mint by an unconfirmed caller, in its own words, before the insert", () => {
+    // The identity contract: every unconfirmed row carries a name. After the name is normalised and
+    // a confirmed caller's is nulled, and before the row is written.
+    const body = collapse(
+      latestDefinition("create_guest").body.replace(/--[^\n]*/g, ""),
+    );
+    const raise = body.indexOf(
+      "if v_name is null and v_confirmed is null then raise exception 'Add your name to upload.' using errcode = 'check_violation'; end if;",
+    );
+    expect(raise).toBeGreaterThan(
+      body.indexOf("if v_confirmed is not null then v_name := null; end if;"),
+    );
+    expect(raise).toBeLessThan(body.indexOf("insert into public.guests"));
+  });
+
+  it("still mints a CONFIRMED caller nameless (the profile's name is its identity)", () => {
+    // Never an unconditional name requirement: a verified row is nameless by design.
+    expect(collapse(latestDefinition("create_guest").body)).not.toContain(
+      "if v_name is null then raise",
+    );
+  });
+
+  it("the app maps the nameless refusal to name_required ahead of its verification fallback", () => {
+    // createGuest's last check_violation arm reads ANY unknown refusal as verification_required,
+    // so a refusal it does not name first would send a nameless guest to the email step.
+    const mutation = collapse(
+      readFileSync(join(ROOT, "src/lib/db/mutations/guest.ts"), "utf8"),
+    );
+    const named = mutation.indexOf(
+      'if (m.includes("add your name")) { return { ok: false, code: "name_required", message: error.message }; }',
+    );
+    expect(named).toBeGreaterThan(-1);
+    expect(named).toBeLessThan(
+      mutation.indexOf('code: "verification_required", message: error.message'),
+    );
+  });
+});
+
+describe("the identity reshape — create_media gates the upload, not only the join", () => {
+  it("refuses an unverified guest after the host flips the switch on", () => {
+    expect(collapse(latestDefinition("create_media").body)).toContain(
+      "if v_event.require_verified_email and v_guest.verified_at is null then",
+    );
+  });
+
+  it("words the two refusals so mapCheckViolation splits them apart", () => {
+    // The coupling is real and invisible: the identity refusal ALSO reads "not accepting", so
+    // mapCheckViolation must test "verified email" ABOVE the general "not accepting" branch or the
+    // identity refusal disappears into uploads_closed. Reword one side and this fails.
+    const body = latestDefinition("create_media").body;
+    expect(body).toContain(
+      "This event is not accepting uploads without a verified email.",
+    );
+    expect(body).toContain("This event is not accepting uploads.");
+    const mutation = collapse(
+      readFileSync(join(ROOT, "src/lib/db/mutations/guest.ts"), "utf8"),
+    );
+    const identity = mutation.indexOf('if (m.includes("verified email"))');
+    const closed = mutation.indexOf(
+      'if (m.includes("not accepting") || m.includes("no longer exists")) { return { ok: false, code: "uploads_closed",',
+    );
+    expect(identity).toBeGreaterThan(-1);
+    expect(closed).toBeGreaterThan(identity);
+  });
+});
+
+describe("the identity reshape — get_upload_context carries the identity gate", () => {
+  it("returns the event's gate and this session's standing", () => {
+    const body = latestDefinition("get_upload_context").body;
+    expect(body).toContain(
+      "'require_verified_email', v_event.require_verified_email",
+    );
+    expect(body).toContain(
+      "'guest_verified', (v_guest.verified_at is not null)",
+    );
+  });
+});
+
+describe("the identity reshape — set_guest_display_name", () => {
+  it("is service-role-only, like every other server-mediated guest write", () => {
+    // Doubly so here: profanity and the reserved-name list CANNOT be checked in SQL (the obscenity
+    // matcher must never ship to a browser), so the route that calls this is load-bearing.
+    const { file } = latestDefinition("set_guest_display_name");
+    expect(file).toContain(
+      "revoke execute on function public.set_guest_display_name(text, text) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.set_guest_display_name(text, text) to service_role;",
+    );
+  });
+
+  it("refuses to give a verified guest a second name", () => {
+    expect(collapse(latestDefinition("set_guest_display_name").body)).toContain(
+      "if v_guest.verified_at is not null then",
+    );
+  });
+});
+
+describe("QA #40 — get_event_by_qr_token's redaction survives a drop + create", () => {
+  // Pinned latest-wins here because the reshape DROPPED and recreated this function; a guard
+  // pinned to 20260729180000 (escalation-guards.test.ts) can no longer see the winning body.
+  it("redacts metadata for a non-owner of a gated event, and the name only for private", () => {
+    const body = collapse(latestDefinition("get_event_by_qr_token").body);
+    expect(body).toContain(
+      "(e.visibility <> 'open' and e.host_id is distinct from (select auth.uid())) as hide_meta",
+    );
+    expect(body).toContain(
+      "(e.visibility = 'private' and e.host_id is distinct from (select auth.uid())) as hide_name",
+    );
+    expect(body).toContain("case when r.hide_name then null else e.name end");
+    for (const field of [
+      "e.description",
+      "e.event_date",
+      "e.custom_slug",
+      "p.display_name",
+    ]) {
+      expect(body).toContain(
+        `case when r.hide_meta then null else ${field} end`,
+      );
+    }
+  });
+
+  it("keeps qr_token unredacted (the locked page hands it to the client by design)", () => {
+    expect(latestDefinition("get_event_by_qr_token").body).toContain(
+      "e.qr_token,",
+    );
+  });
+
+  it("returns both door switches unredacted, and no legacy flag", () => {
+    // The lock screen and the entry sheet must render the right refusal: redacting a switch would
+    // break a page the RPC exists to back. The legacy twin left with its column.
+    const body = collapse(latestDefinition("get_event_by_qr_token").body);
+    expect(body).toContain(
+      "e.accepting_uploads, e.require_verified_email, e.require_upload_to_view,",
+    );
+    expect(body).toContain(
+      "accepting_uploads boolean, require_verified_email boolean, require_upload_to_view boolean,",
+    );
+    expect(body).not.toContain("allow_anonymous_uploads");
+  });
+
+  it("re-asserts the anon EXECUTE grant its drop took away (0028)", () => {
+    expect(latestDefinition("get_event_by_qr_token").file).toContain(
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+    );
+  });
+});
+
+describe("claim_anonymous_uploads writes email ONLY on the confirmed arm", () => {
+  // ★ THIS PIN IS INVERTED ON PURPOSE (the guest identity round, 2026-09-22). It used to read
+  // "never writes email", from the 20260602144343 invariant that a claim proves possession of a
+  // session token and never ownership of an address. That reasoning held while the only address on
+  // a guest row came from its own mint. It no longer does: a CONFIRMED caller presenting the
+  // session token holds the device that made the upload AND has proved an address — strictly more
+  // proof than claim_guest_rows_by_email asks for — so this is the one legitimate path from a typed
+  // address to a confirmed one. What must NOT drift is the split: the unconfirmed arm stamps user_id
+  // and nothing else, so an unconfirmed sign-in never claims an address it has not proved.
+  const body = collapse(latestDefinition("claim_anonymous_uploads").body);
+  const updates = body
+    .split("update public.guests")
+    .slice(1)
+    .map((chunk) => chunk.slice(0, chunk.indexOf(";")));
+
+  it("has exactly two guests updates: the confirmed arm and the unconfirmed one", () => {
+    expect(updates).toHaveLength(2);
+  });
+
+  it("the confirmed arm stamps the row whole and drops the unproved address", () => {
+    const [confirmed] = updates;
+    expect(confirmed).toContain("set user_id = v_uid");
+    expect(confirmed).toContain("verified_at = now()");
+    expect(confirmed).toContain("email = v_email");
+    expect(confirmed).toContain("pending_email = null");
+    expect(confirmed).toContain("pending_email_at = null");
+    // The no-theft guard is what makes this safe to expose to the browser at all.
+    expect(confirmed).toContain("user_id is null");
+  });
+
+  it("the unconfirmed arm stamps user_id and nothing else", () => {
+    const unconfirmed = updates[1];
+    expect(unconfirmed).toContain("set user_id = v_uid");
+    expect(unconfirmed).not.toContain("email");
+    expect(unconfirmed).not.toContain("verified_at");
+    expect(unconfirmed).toContain("user_id is null");
+  });
+
+  it("keeps its authenticated-only grant (0029, never 0028)", () => {
+    const { file } = latestDefinition("claim_anonymous_uploads");
+    expect(file).toContain(
+      "revoke all on function public.claim_anonymous_uploads(text[]) from public, anon;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.claim_anonymous_uploads(text[]) to authenticated;",
+    );
+  });
+});
+
+describe("guests.display_name is capped where the app caps a name", () => {
+  it("the CHECK mirrors DISPLAY_NAME_MAX_LENGTH", () => {
+    // The zod schema is the UX gate; this CHECK is the hard backstop. They drift the moment one
+    // number moves alone, and nothing else in the gate would notice.
+    const sql = collapse(allMigrations());
+    expect(sql).toContain(
+      `add constraint guests_display_name_len check (display_name is null or char_length(display_name) between 1 and ${DISPLAY_NAME_MAX_LENGTH})`,
+    );
+    expect(sql).not.toContain("drop constraint guests_display_name_len");
+  });
+});
+
+describe("the door round, wave 0 — Require an upload to view", () => {
+  // The switch (Will, 2026-09-21, "the door as three steps"): a genuinely new flag with
+  // no legacy twin, off by default, free on every tier; the gate it drives is enforced by the
+  // gallery access resolver through one service-role read.
+  it("the column joins the column-locked host grant by a bare additive grant", () => {
+    const sql = collapse(allMigrations());
+    expect(sql).toContain(
+      "grant insert (require_upload_to_view), update (require_upload_to_view) on public.events to authenticated;",
+    );
+  });
+
+  it("get_event_by_qr_token returns the switch beside its sibling and keeps its client grant", () => {
+    const { body, file } = latestDefinition("get_event_by_qr_token");
+    expect(body).toContain(
+      "require_verified_email boolean, require_upload_to_view boolean,",
+    );
+    expect(body).toContain(
+      "e.require_verified_email, e.require_upload_to_view,",
+    );
+    expect(file).toContain(
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+    );
+  });
+
+  it("get_upload_gate is service-role only, closes again on the guest's own deletes and mirrors the presign's caps", () => {
+    const { body, file } = latestDefinition("get_upload_gate");
+    expect(file).toContain(
+      "revoke all on function public.get_upload_gate(uuid, text, uuid) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.get_upload_gate(uuid, text, uuid) to service_role;",
+    );
+    // The token arm is the delete RPC's guard; the account arm is the server-verified id.
+    expect(body).toContain(
+      "g.session_token = p_session_token and g.user_id is null",
+    );
+    expect(body).toContain("p_user_id is not null and g.user_id = p_user_id");
+    // ★ OWN DELETES CLOSE IT (Will, 2026-09-22, re-ruling his "any completed upload counts"): the
+    // ONE status filter is the guest's own removal. Pending, approved, hidden and a removal by the
+    // host, an admin or the system all still count, because a door that re-closed on the host's
+    // curation would leak it to the guest. So the body names exactly this clause and no other
+    // status test: a `m.status = 'approved'` here would re-close the door on every hide.
+    const code = collapse(body.replace(/--[^\n]*/g, ""));
+    expect(code).toContain(
+      "and not (m.status = 'removed' and m.removed_by_uploader)",
+    );
+    expect(code.match(/m\.status/g)).toHaveLength(1);
+    // ★ The fail-open pair is exactly what the presign refuses `cap_reached` on: both cap
+    // expressions must read the same in both functions, or a guest could be held at a step the
+    // presign would refuse anyway.
+    const ctx = latestDefinition("get_upload_context").body;
+    for (const expr of [
+      "public.host_active_bytes(v_event.host_id) >= v_cap + (v_cap / 10)",
+      "coalesce(v_month_bytes, 0) >= v_ingress_cap",
+    ]) {
+      expect(body).toContain(expr);
+      expect(ctx).toContain(expr);
+    }
+  });
+});
+
+describe("the guest identity round, wave 0 — the unproved address", () => {
+  // Will, 2026-09-22 ("guest identity: name only, unconfirmed email, verified account"):
+  // a typed address nobody has proved, stored in its OWN column, inert — never shown to the host,
+  // never attributed, never mailed on its own, never expiring — and moved into `email` only by a
+  // claim that proves it. Every load-bearing fact of migration 20260922120000 is pinned here rather
+  // than in the file that happens to hold it, because a later `create or replace` is exactly the
+  // drift a file-pinned guard cannot see.
+
+  it("keeps the address in pending_email, shaped by a CHECK that storage can satisfy", () => {
+    const sql = collapse(allMigrations());
+    expect(sql).toContain("add constraint guests_pending_email_shape");
+    // Normalised storage is what makes the claim's `= lower(v_email)` lookup exact.
+    expect(sql).toContain("pending_email = lower(btrim(pending_email))");
+    expect(sql).toContain("char_length(pending_email) between 3 and 254");
+    expect(sql).toContain("position('@' in pending_email) > 1");
+    expect(sql).not.toContain("drop constraint guests_pending_email_shape");
+  });
+
+  it("indexes it partially, which is the claim's only lookup", () => {
+    expect(collapse(allMigrations())).toContain(
+      "create index guests_pending_email_idx on public.guests (pending_email) where pending_email is not null;",
+    );
+  });
+
+  it("★ never names the address in a guests SELECT grant (QA #41 fail-closed)", () => {
+    // SELECT on guests is column-scoped, so a new column is invisible to the host over PostgREST
+    // until a grant names it. The host sees a badge, never the address — that IS the ruling
+    // ("there's no impersonation risk if the host can't see the attributed email"), and one
+    // `grant select (…, pending_email, …)` anywhere in the set would undo it silently.
+    expect(hostSelects("pending_email")).toBe(false);
+    expect(collapse(allMigrations())).not.toMatch(
+      /grant select \([^)]*pending_email/,
+    );
+  });
+
+  it("nothing expires it: no expiry job, no expiry function", () => {
+    // Will, 2026-09-22: "I'd prefer not to expire/detach any uploads from an unconfirmed email's
+    // upload history." A sweep added later would quietly delete a guest's claim ticket.
+    expect(collapse(allMigrations())).not.toMatch(
+      /create (or replace )?function public\.expire_/,
+    );
+  });
+
+  it("denormalizes it on the forensic row, capture-only", () => {
+    expect(collapse(allMigrations())).toContain(
+      "alter table public.upload_forensics add column guest_pending_email text;",
+    );
+  });
+});
+
+describe("the guest identity round — create_guest carries the optional address", () => {
+  it("takes it as a 5th defaulted parameter and stays service-role-only", () => {
+    const { body, file } = latestDefinition("create_guest");
+    expect(collapse(body)).toContain("p_pending_email text default null");
+    expect(file).toContain(
+      "revoke execute on function public.create_guest(text, uuid, boolean, text, text) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.create_guest(text, uuid, boolean, text, text) to service_role;",
+    );
+  });
+
+  it("normalises it, and nulls it beside a confirmed account or a require-verified event", () => {
+    const body = collapse(latestDefinition("create_guest").body);
+    expect(body).toContain(
+      "v_pending := lower(nullif(btrim(coalesce(p_pending_email, '')), ''));",
+    );
+    expect(body).toContain(
+      "if v_confirmed is not null or v_event.require_verified_email then v_pending := null; end if;",
+    );
+  });
+
+  it("belts the WHOLE check, floor included, so nothing reaches it as a raw 23514", () => {
+    // 'a@' passes `position('@') > 1` and would otherwise hit guests_pending_email_shape as an
+    // unmappable constraint error rather than the route's own message.
+    const body = collapse(latestDefinition("create_guest").body);
+    expect(body).toContain("char_length(v_pending) not between 3 and 254");
+    expect(body).toContain("That email address does not look right.");
+  });
+
+  it("reports WHETHER an address is attached, and never echoes it back", () => {
+    const body = collapse(latestDefinition("create_guest").body);
+    expect(body).toContain("'email_attached', (v_pending is not null)");
+    expect(body).not.toContain("'pending_email', v_pending");
+  });
+});
+
+describe("the guest identity round — the four claim and attach RPCs", () => {
+  it("set_guest_pending_email is service-role-only, and refuses a verified row", () => {
+    const { body, file } = latestDefinition("set_guest_pending_email");
+    expect(file).toContain(
+      "revoke execute on function public.set_guest_pending_email(text, text) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.set_guest_pending_email(text, text) to service_role;",
+    );
+    const collapsed = collapse(body);
+    expect(collapsed).toContain("if v_guest.verified_at is not null then");
+    // A blank DETACHES rather than erroring: "clear it" and "set it to nothing" are one intent.
+    expect(collapsed).toContain(
+      "set pending_email = null, pending_email_at = null",
+    );
+  });
+
+  it("★ list_guest_rows_by_email is no oracle: the address is never a parameter", () => {
+    // The one function that reads rows BY ADDRESS. It takes none: the address comes from
+    // auth.users for auth.uid() under definer privilege, and an unconfirmed caller gets nothing
+    // even for their own address. A parameter here would turn the product into "is this address a
+    // Partyreel guest?".
+    const { body, file } = latestDefinition("list_guest_rows_by_email");
+    // The signature is the pin, in either form: guest by upload (20260923120000) replaced the body
+    // with `create or replace` (same signature and RETURNS TABLE, so the ACL is kept), where the
+    // original needed a plain create. What must never appear is a parameter between the parens.
+    expect(body).toMatch(
+      /^create (or replace )?function public\.list_guest_rows_by_email\(\)/,
+    );
+    const collapsed = collapse(body);
+    expect(collapsed).toContain("v_uid uuid := (select auth.uid());");
+    expect(collapsed).toContain(
+      "if v_confirmed is null or v_email is null then return; end if;",
+    );
+    // The album capability must not ride a list.
+    expect(collapsed).not.toContain("qr_token");
+    expect(collapsed).not.toContain("custom_slug");
+    expect(file).toContain(
+      "revoke all on function public.list_guest_rows_by_email() from public, anon;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.list_guest_rows_by_email() to authenticated;",
+    );
+  });
+
+  it("claim_guest_rows_by_email stamps the row whole and names only a NAMELESS profile", () => {
+    const { body, file } = latestDefinition("claim_guest_rows_by_email");
+    const collapsed = collapse(body);
+    expect(collapsed).toContain("verified_at = now(), email = v_email");
+    expect(collapsed).toContain(
+      "pending_email = null, pending_email_at = null",
+    );
+    // His rule: the active unverified name becomes the account's name — but only when the account
+    // has none, and only from a row actually being claimed.
+    expect(collapsed).toContain(
+      "update public.profiles set display_name = v_name where id = v_uid and display_name is null;",
+    );
+    // Bounded, like every other array parameter in this schema.
+    expect(collapsed).toContain("cardinality(p_event_ids) > 200");
+    expect(file).toContain(
+      "revoke all on function public.claim_guest_rows_by_email(uuid[]) from public, anon;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.claim_guest_rows_by_email(uuid[]) to authenticated;",
+    );
+  });
+
+  it("disown_guest_rows_by_email removes through the uploader path and never reads null as ALL", () => {
+    const { body, file } = latestDefinition("disown_guest_rows_by_email");
+    const collapsed = collapse(body);
+    // removed_by_uploader is what keeps a disowned upload out of the host's bin AND out of
+    // restore_media (20260609150000) — the host cannot quietly put it back.
+    expect(collapsed).toContain("removed_by_uploader = true");
+    expect(collapsed).toContain("status = 'removed'");
+    expect(collapsed).toContain("removed_at = coalesce(m.removed_at, now())");
+    // ★ claim_ reads null as "all of mine"; on the destructive twin that shorthand would delete
+    // every upload the caller ever made from an unclaimed row.
+    expect(collapsed).toContain(
+      "if p_event_ids is null or cardinality(p_event_ids) = 0 then",
+    );
+    // The guest ROW survives: the album's guest list and the forensic trail are history.
+    expect(collapsed).not.toContain("delete from public.guests");
+    expect(file).toContain(
+      "revoke all on function public.disown_guest_rows_by_email(uuid[]) from public, anon;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.disown_guest_rows_by_email(uuid[]) to authenticated;",
+    );
+  });
+
+  it("no claim RPC is reachable by anon (the 0028/0029 split IS the security property)", () => {
+    const sql = collapse(allMigrations());
+    for (const signature of [
+      "public.list_guest_rows_by_email()",
+      "public.claim_guest_rows_by_email(uuid[])",
+      "public.disown_guest_rows_by_email(uuid[])",
+      "public.set_guest_pending_email(text, text)",
+    ]) {
+      expect(sql).not.toContain(`on function ${signature} to anon`);
+    }
+  });
+});
+
+describe("the guest identity round — a profile publishes nothing until chosen", () => {
+  it("the attended arm reads the OPT-IN table, not the opt-out one", () => {
+    const { body } = latestDefinition("get_public_profile");
+    const start = body.indexOf("'attended_events'");
+    // Comments stripped: the arm's own comment names the table it stopped reading, and a "must
+    // not contain" assertion has to read code rather than its own documentation.
+    const attended = body
+      .slice(start, body.indexOf("'[]'::jsonb", start))
+      .replace(/--[^\n]*/g, "");
+    expect(attended).toContain("public.profile_shown_events");
+    expect(attended).not.toContain("profile_hidden_events");
+  });
+
+  it("and only a PROVED identity attends in public", () => {
+    // The belt: a level-1 (typed name) or level-2 (typed, unproved address) row publishes nothing,
+    // so an impersonator's uploads can never surface under someone's profile.
+    const { body } = latestDefinition("get_public_profile");
+    const start = body.indexOf("'attended_events'");
+    const attended = collapse(
+      body.slice(start, body.indexOf("'[]'::jsonb", start)),
+    );
+    expect(attended).toContain("g.verified_at is not null");
+  });
+
+  it("ships the table with RLS and the three owner policies, and no backfill", () => {
+    const sql = collapse(allMigrations());
+    expect(sql).toContain(
+      "alter table public.profile_shown_events enable row level security;",
+    );
+    for (const policy of [
+      "profile_shown_events_select_own",
+      "profile_shown_events_insert_own",
+      "profile_shown_events_delete_own",
+    ]) {
+      expect(sql).toContain(`create policy ${policy}`);
+    }
+    expect(sql).toContain(
+      "grant insert (user_id, event_id) on public.profile_shown_events to authenticated;",
+    );
+    // ★ NO BACKFILL. Copying today's attendance in would publish exactly what the ruling says must
+    // stay private until someone turns it on.
+    expect(sql).not.toMatch(
+      /insert into public\.profile_shown_events \(user_id, event_id\) select/,
+    );
+  });
+
+  it("re-states get_public_profile's anon grant (one of the five 0028 reads)", () => {
+    expect(latestDefinition("get_public_profile").file).toContain(
+      "grant execute on function public.get_public_profile(text) to anon, authenticated;",
+    );
+  });
+});
+
+describe("the identity SQL gaps — only a confirmed address reaches guests.email", () => {
+  // Will's guest-identity ruling (guest-flow.md "Joining + identity"): the host sees a badge, never
+  // an unproven address. `guests.email` means "confirmed" to every reader (the uploader resolver,
+  // the forensic `guest_email`), so the mint writes it only beside the confirmation that proves it,
+  // and the host's PostgREST view no longer carries the column at all (migration 20260922200000).
+
+  it("create_guest drops the session's address unless auth.users confirmed it, before the insert", () => {
+    const body = collapse(latestDefinition("create_guest").body);
+    const drop = body.indexOf(
+      "if v_confirmed is null then v_email := null; end if;",
+    );
+    expect(
+      drop,
+      "an unconfirmed session's address reaches the row again",
+    ).toBeGreaterThan(-1);
+    // After the auth.users read that fills the variable, before the insert that writes it.
+    expect(drop).toBeGreaterThan(
+      body.indexOf(
+        "select email, email_confirmed_at into v_email, v_confirmed from auth.users where id = v_uid;",
+      ),
+    );
+    expect(drop).toBeLessThan(body.indexOf("insert into public.guests"));
+    // And `email` is still written from that variable alone, never from a parameter.
+    expect(body).toContain(
+      "v_uid, nullif(trim(coalesce(v_email, '')), ''), v_session_token,",
+    );
+  });
+
+  it("★ the host's guests SELECT (replayed across the set) never carries email again", () => {
+    // Every guests read runs on the service-role admin client or a SECURITY DEFINER function, so
+    // the host's PostgREST view narrowed to what nothing sensitive rides on (and, since the grant
+    // tidy, to nothing at all).
+    expect(hostSelects("email")).toBe(false);
+  });
+
+  it("every column-scoped guests SELECT grant follows the TABLE-level revoke in its own file (QA #41)", () => {
+    // The QA #41 shape: the TABLE-level revoke first (it cascades to every column grant), then the
+    // whole allowlist in the same file. A bare column revoke is a silent no-op beside a table
+    // grant; a table revoke without the full re-grant takes the other columns with it.
+    const grant = /grant select \([^)]*\) on public\.guests to authenticated;/;
+    const files = executableMigrations().filter(({ sql }) => grant.test(sql));
+    expect(files.length).toBeGreaterThan(0);
+    for (const { file, sql } of files) {
+      const revoke = sql.indexOf(
+        "revoke select on public.guests from public, anon, authenticated;",
+      );
+      expect(
+        revoke,
+        `${file}: a guests grant with no table-level revoke`,
+      ).toBeGreaterThan(-1);
+      expect(revoke, `${file}: the revoke comes after the grant`).toBeLessThan(
+        sql.search(grant),
+      );
+    }
+  });
+
+  it("no migration hands a client role a table-wide SELECT on guests", () => {
+    // A table-level grant would re-open every column at once, the plaintext capability token and
+    // both addresses included, past every column-scoped grant above.
+    expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
+      /grant [a-z, ]*\b(?:select|all)\b[a-z, ]* on (?:table )?public\.guests to [^;]*\b(?:authenticated|anon)\b/,
+    );
+  });
+
+  it("the existing rows lose only an address no account ever confirmed", () => {
+    // A one-time rule, pinned so the file cannot drift before it is applied: the address itself is
+    // the test, never the row's flag alone (a confirmed address a newsletter capture wrote onto an
+    // unverified row was still proved by its owner), and a verified row is never touched.
+    expect(collapse(allMigrations())).toContain(
+      "update public.guests g set email = null where g.email is not null and g.verified_at is null and not exists ( select 1 from auth.users u where u.email_confirmed_at is not null and lower(btrim(u.email)) = lower(btrim(g.email)) );",
+    );
+  });
+});
+
+describe("the identity SQL gaps — the attended arm applies the album's own gate", () => {
+  // The album (resolveGalleryDecision) answers its owner `full` first, then holds a viewer without
+  // a CONFIRMED email at the teaser on a Require-verified-emails event, and the teaser never renders
+  // the Guests list. The attended arm of get_public_profile is that list's reverse surface (QA #36's
+  // principle: never disclose membership the album withholds from the same viewer), so it refuses
+  // the same viewer. The QA #36 clause itself is pinned in social/public-profile-visibility.test.ts.
+  const { body } = latestDefinition("get_public_profile");
+  const start = body.indexOf("'attended_events'");
+  const attended = collapse(
+    body
+      .slice(start, body.indexOf("'[]'::jsonb", start))
+      .replace(/--[^\n]*/g, ""),
+  );
+
+  it("admits, on a verified-required event, only the event's host or a confirmed viewer", () => {
+    // Keyed on `require_verified_email`: nothing new keys on the legacy `allow_anonymous_uploads`.
+    expect(attended).toContain(
+      "and ( not e.require_verified_email or e.host_id = (select auth.uid()) or exists ( select 1 from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null ) )",
+    );
+  });
+
+  it("mirrors the album's code: the owner first, then the gate, and `isAuthed` IS email_confirmed_at", () => {
+    // If the album's definition of a confirmed viewer moves, the SQL mirror above must move with
+    // it: this is the coupling that keeps the two surfaces answering the same viewer the same way.
+    const access = collapse(
+      readFileSync(join(ROOT, "src/lib/events/gallery-access.ts"), "utf8"),
+    );
+    expect(access).toContain(
+      'if (ctx.isOwner) return { access: "full", gate: null };',
+    );
+    expect(access).toContain(
+      "if (event.require_verified_email && !ctx.isAuthed) {",
+    );
+    const page = readFileSync(
+      join(ROOT, "src/app/(guest)/e/[token]/page.tsx"),
+      "utf8",
+    );
+    expect(page).toContain("isAuthed = Boolean(user.email_confirmed_at);");
+  });
+});
+
+describe("the guests grant tidy: no client reads guests, and a capture lands only on its own account's row", () => {
+  // Migration 20260922213000. The host's last PostgREST view of `guests`, `(id, event_id, user_id,
+  // created_at)`, had no reader (every read is the service-role client or a SECURITY DEFINER
+  // function), so the SELECT and its row filter went. And capture_guest_email,
+  // which filled an EMPTY `guests.email` on whatever row the session token named, now fills it only
+  // on a row whose own account is the confirmed owner of that address: on a shared phone the token
+  // names the last joiner's row, and a VERIFIED row with no address printed the stranger's address
+  // in the host's credit (uploader-identity.ts case 2 returns `guests.email`).
+
+  it("★ authenticated holds no SELECT on any guests column, replayed across the whole set", () => {
+    // The table-level revoke cascades to every column grant, and nothing re-grants: a new column
+    // stays fail-closed, and now so does every old one.
+    expect(hostGuestsSelect()).toEqual([]);
+  });
+
+  it("no policy on guests stands, and RLS stays on, so even a returning grant reads no row", () => {
+    // Kept, `guests_host_select` would be a latent row filter waiting for a grant. With no policy
+    // and RLS enabled, a stray future `grant select` still answers zero rows to every client role.
+    expect(guestsPolicies()).toEqual([]);
+    expect(guestsRowSecurity()).toBe("enable");
+  });
+
+  const capture = collapse(
+    latestDefinition("capture_guest_email").body.replace(/--[^\n]*/g, ""),
+  );
+
+  it("keeps the signature its route calls by argument name", () => {
+    // PostgREST resolves an RPC by its argument NAMES, and /api/guests/capture-email calls it by
+    // these.
+    expect(capture).toContain(
+      "create or replace function public.capture_guest_email( p_session_token text, p_email text, p_newsletter_opt_in boolean default false ) returns jsonb",
+    );
+  });
+
+  it("★ writes guests.email only when the row's own account is the confirmed owner of the address", () => {
+    expect(capture).toContain(
+      "update public.guests g set email = v_email where g.id = v_guest.id and g.email is null and exists ( select 1 from auth.users u where u.id = g.user_id and u.email_confirmed_at is not null and lower(btrim(u.email)) = v_email );",
+    );
+    // The ONE write to the table: a second, unguarded update would reopen the crack.
+    expect(capture.match(/update public\.guests\b/g)).toHaveLength(1);
+    // The equality with `lower(btrim(u.email))` is exact only because the parameter is normalised
+    // the same way before it is compared.
+    expect(capture).toContain(
+      "v_email := lower(nullif(trim(coalesce(p_email, '')), ''));",
+    );
+  });
+
+  it("keeps the opt-in: the caller's own address, whichever row the token names", () => {
+    // A person's consent to the list is theirs and says nothing about the row.
+    expect(capture).toContain(
+      "insert into public.newsletter_signups (email, source, event_id) values (v_email, 'guest_upload', v_guest.event_id) on conflict (email) do nothing;",
+    );
+  });
+
+  it("stays SECURITY DEFINER with a pinned search_path, and service-role-only in its defining migration", () => {
+    expect(capture).toContain("security definer set search_path = ''");
+    const { file } = latestDefinition("capture_guest_email");
+    expect(file).toContain(
+      "revoke execute on function public.capture_guest_email(text, text, boolean) from public, anon, authenticated;",
+    );
+    expect(file).toContain(
+      "grant execute on function public.capture_guest_email(text, text, boolean) to service_role;",
+    );
+  });
+});
+
+describe("guest by upload: a person is a guest of an event only through an upload of theirs", () => {
+  // Will, 2026-09-22 (docs/systems/guest-flow.md holds the definition as an invariant): "the only way
+  // to be attached to an event as a guest should be via upload ... Delete all of your uploads? Removed
+  // as a guest. Uploaded 1 photo? You're a guest." A LIVE upload is one whose status is not
+  // `removed`; what other people see needs an APPROVED one. Migration 20260923120000 codes the rule
+  // into five bodies and 20260923130000 drops the save objects it retired. Each pin reads CODE
+  // (comments stripped), so a comment that names a clause can never stand in for the clause.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("a profile's attended line follows the album's Require an upload to view", () => {
+    // His "Follow the album": on a require-upload event whose uploads are open, only the host and a
+    // signed-in viewer whose own row carries an upload they did not remove themselves see the line,
+    // exactly the viewers the album lets past its upload door.
+    const { body } = latestDefinition("get_public_profile");
+    const start = body.indexOf("'attended_events'");
+    const attended = collapse(
+      body
+        .slice(start, body.indexOf("'[]'::jsonb", start))
+        .replace(/--[^\n]*/g, ""),
+    );
+    expect(attended).toContain(
+      "and ( not e.require_upload_to_view or not e.accepting_uploads or e.host_id = (select auth.uid()) or exists ( select 1 from public.guests vg join public.media vm on vm.guest_id = vg.id where vg.event_id = e.id and vm.event_id = e.id and vg.user_id = (select auth.uid()) and not (vm.status = 'removed' and vm.removed_by_uploader) ) )",
+    );
+  });
+
+  it("the line's door and the album's door are one rule, mirrored against the album code", () => {
+    // The gate (get_upload_gate) and the attended line must agree on what counts as having passed
+    // the door, or a viewer could read the line of an album that is still holding them.
+    expect(code("get_upload_gate")).toContain(
+      "not (m.status = 'removed' and m.removed_by_uploader)",
+    );
+    const access = collapse(
+      readFileSync(join(ROOT, "src/lib/events/gallery-access.ts"), "utf8"),
+    );
+    expect(access).toContain(
+      "if (event.require_upload_to_view && ctx.canContribute && !ctx.hasContributed) {",
+    );
+  });
+
+  it("the claim card lists only a row with a live upload", () => {
+    // A row with nothing on it makes nobody a guest, so claiming it carries nothing and releasing
+    // it removes nothing: it has no place on the card.
+    expect(code("list_guest_rows_by_email")).toContain(
+      "and g.verified_at is null and m.n > 0 order by",
+    );
+  });
+
+  it("Claim all (null) claims only such a row, and takes its name only from one", () => {
+    const body = code("claim_guest_rows_by_email");
+    const skip =
+      "(p_event_ids is not null or exists ( select 1 from public.media x where x.guest_id = g.id and x.status <> 'removed' ))";
+    // Twice: the naming rule's read and the claim itself.
+    expect(body.split(skip)).toHaveLength(3);
+  });
+
+  it("the token claim stamps every row it can and counts only the ones that carry a live upload", () => {
+    // Every reader of that integer says "uploads" (the (app) layout's toast, the album's follow
+    // moment), so a claim that carried only an empty row is not news.
+    const body = code("claim_anonymous_uploads");
+    const counted =
+      "returning id ) select count(*)::integer into v_count from claimed c where exists ( select 1 from public.media m where m.guest_id = c.id and m.status <> 'removed' );";
+    expect(body.split(counted)).toHaveLength(3);
+    expect(body).not.toContain("get diagnostics");
+  });
+
+  it("the contract file drops the save objects and the dead opt-out table, functions first", () => {
+    // Before launch nothing waits for partyreel.com's older build (PROGRAM.md, "Before launch"); the
+    // file's own header names what that build loses. Functions before the tables they read, and
+    // nothing later in the set brings any of the four back.
+    const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+    const drops = [
+      "drop function if exists public.save_event(text);",
+      "drop function if exists public.get_saved_events();",
+      "drop table if exists public.saved_events;",
+      "drop table if exists public.profile_hidden_events;",
+    ].map((statement) => sql.lastIndexOf(statement));
+    expect(drops.every((at) => at > -1)).toBe(true);
+    expect([...drops].sort((a, b) => a - b)).toEqual(drops);
+    const after = sql.slice(Math.max(...drops));
+    for (const revival of [
+      /create (or replace )?function public\.save_event\(/,
+      /create (or replace )?function public\.get_saved_events\(/,
+      /create table (if not exists )?public\.saved_events\b/,
+      /create table (if not exists )?public\.profile_hidden_events\b/,
+    ]) {
+      expect(after).not.toMatch(revival);
+    }
   });
 });

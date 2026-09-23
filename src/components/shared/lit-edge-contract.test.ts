@@ -28,15 +28,25 @@ import { describe, expect, it } from "vitest";
  * retunes how the edge LOOKS without asking a test. What is held is where the
  * hook may sit, what the rule may be made of, and the one ground it exists on.
  *
- * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL TWELVE. A
+ * THE HEADER NAMES SEVEN HOSTS, THE TABLE BELOW HOLDS ALL THIRTEEN. A
  * `@contract-for` line puts this contract on that component's block in the
  * Library, which is right for the seven that live in the Library's own
- * directories. The other five (the guest masonry, the event card, the reel's
- * poster card, the canvas player, the /features/qr hero) are product files the
- * index does not list:
+ * directories. The other six (the guest's upload tiles, the event card, the
+ * dashboard arrivals strip, the reel's poster card, the canvas player, the
+ * /features/qr hero) are product files the index does not list:
  * naming them would pull each one into it, where each then owes a `for` line
  * and the gallery's event-card entry has to drop its `file`. They are bound by
  * exactly the same assertions; they are just not advertised twice.
+ *
+ * ★ THE GUEST'S IN-FLIGHT TILES ARE IN THE TABLE, AND THE GUEST MASONRY IS NOT
+ * ANY MORE (the `guest-upload` wiring, 2026-09-21). Its landed tiles have come
+ * from `shared/masonry.tsx` since the two albums became one, and `batch=one` +
+ * `held=tile` moved the last two boxes it drew itself into
+ * `guest/upload/stack-tile.tsx` — the stack a pick in flight collapses into, and
+ * the tile a held upload waits on. Both keep the hook, which is the whole reason
+ * they are named here: a photograph must not gain or lose an edge at the moment
+ * it finishes uploading, and the only way to hold that is to bind every one of
+ * those boxes to one rule.
  */
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -52,8 +62,9 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 type Kind = "media" | "screen" | "qr";
 const HOSTS: Record<string, Kind> = {
   "src/components/shared/masonry.tsx": "media",
-  "src/components/guest/guest-masonry.tsx": "media",
+  "src/components/guest/upload/stack-tile.tsx": "media",
   "src/components/app/event-card.tsx": "media",
+  "src/components/app/dashboard/just-arrived.tsx": "media",
   "src/components/reel/poster-card.tsx": "media",
   "src/lib/reel/engine/player.tsx": "media",
   "src/components/marketing/sections/shared/inline-reel-player.tsx": "media",

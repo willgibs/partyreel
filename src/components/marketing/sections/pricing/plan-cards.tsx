@@ -11,13 +11,16 @@ import { Reveal } from "@/components/marketing/system/reveal";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { PRO_LINE } from "@/lib/constants/marketing-voice";
 import {
   annualPlanFor,
   friendlyCapacity,
   GATED_EVENT_SETTINGS,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
+  type Plan,
   planById,
+  type PlanId,
   plansForTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
@@ -42,6 +45,15 @@ import { formatBytes } from "@/lib/utils";
  * Free stacks two, grayscale (your photos, before the color arrives); Pro
  * stacks four, vivid, on the ink. Hovering the card spreads the stack.
  *
+ * THE PAIR SURVIVED ITS OWN BOARD (`pair=pro` with Will's flip, 2026-09-20):
+ * the option that won drew Pro alone across the row, and his note flipped it
+ * back into two columns ("keeping free and pro side-by-side 2col above and the
+ * event pass a 2col width card below helps frame the pro plan benefits more
+ * against free, then make event pass feel more unique as its own option"). So
+ * the ONE thing that changed in this file is the size control: a slider, not a
+ * three-way switch (see SizeSlider), with the cadence toggle staying above the
+ * pair where he wants it.
+ *
  * PRICE REGISTER: money renders in the DISPLAY face (Urbanist via font-heading)
  * with tabular numerals, values in Inter. The old page set money in mono and it
  * read devtool on these cards (Will's sitting flag); the kill-mono sweep took
@@ -61,22 +73,55 @@ const STACK_IDS = {
   ],
 } as const;
 
-/** The ratified V2 stack. aria-hidden: pure identity, the copy carries meaning. */
-function PhotoStack({ ink }: { ink?: boolean }) {
-  const ids = ink ? STACK_IDS.pro : STACK_IDS.free;
-  const n = ids.length;
+/**
+ * The ratified V2 stack. aria-hidden: pure identity, the copy carries meaning.
+ *
+ * EXPORTED for the same reason `StatRow` is: the configurator's result card
+ * answers in this grammar too (`pricing-page` r2, `fit=split`), and a second
+ * copy of a fan of prints is how two decks drift apart one degree at a time.
+ * The three added props all DEFAULT to what the pair has always drawn, so its
+ * two call sites below are untouched by their existence:
+ *
+ *   ids     which prints, head to toe (the pair's own two decks otherwise);
+ *   shown   how many are FANNED OUT. The rest stay folded on the centre at
+ *           zero opacity, which is what makes a deck grow under a slider
+ *           rather than pop a new element in. Keys are the ids, so nothing
+ *           remounts and the transform simply travels;
+ *   faded   Free's grayscale-and-85% treatment. It rides `!ink` by default
+ *           (the pair's own rule: paper is quiet, ink is vivid) and is set
+ *           false by the configurator, where greying the photographs would
+ *           say "Free is lesser" in pictures while the copy says otherwise.
+ */
+export function PhotoStack({
+  ink,
+  ids,
+  shown,
+  faded = !ink,
+}: {
+  ink?: boolean;
+  ids?: readonly string[];
+  shown?: number;
+  faded?: boolean;
+}) {
+  const deck = ids ?? (ink ? STACK_IDS.pro : STACK_IDS.free);
+  const n = deck.length;
+  const out = shown ?? n;
   return (
     <div aria-hidden className="relative h-24">
       <div className="absolute inset-x-0 top-1 flex justify-center">
-        {ids.map((id, i) => {
+        {deck.map((id, i) => {
           const m = marketingImage(id);
           const off = i - (n - 1) / 2;
+          const laid = i < out;
           return (
             <div
               key={id}
-              className="absolute"
+              className="absolute transition-[transform,opacity] duration-300 ease-emphasis motion-reduce:transition-none"
               style={{
-                transform: `rotate(${off * (ink ? 9 : 7)}deg) translateX(${off * 16}px)`,
+                transform: laid
+                  ? `rotate(${off * (ink ? 9 : 7)}deg) translateX(${off * 16}px)`
+                  : "rotate(0deg) translateX(0px) scale(0.92)",
+                opacity: laid ? 1 : 0,
               }}
             >
               <Image
@@ -89,9 +134,8 @@ function PhotoStack({ ink }: { ink?: boolean }) {
                   "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
-                  ink
-                    ? "border-background/90"
-                    : "border-background opacity-85 grayscale",
+                  ink ? "border-background/90" : "border-background",
+                  faded && "opacity-85 grayscale",
                 )}
                 style={
                   {
@@ -141,8 +185,19 @@ function Item({
   );
 }
 
-/** The hairline-divided stat pair (the Biograph proof cluster). */
-function StatRow({
+/**
+ * The hairline-divided stat cluster (the Biograph proof cluster). EXPORTED
+ * because the Event Pass answers its room in the same instrument (pass-card.tsx):
+ * the pass is a different object, not a different grammar, and a second copy of
+ * this markup is how the two drift apart one hairline at a time.
+ *
+ * The labels ride `text-label` (the ladder's uppercase step, 12 on 0.08em).
+ * They used to spell `text-[10px] tracking-[0.14em]`, which is the pair the
+ * body ladder replaced: a hand-set tracking beats the step through
+ * --tw-tracking, silently. (`type-ladder-policy` carried this file as a lane
+ * exception while voice-wiring owned it; that entry goes with this change.)
+ */
+export function StatRow({
   stats,
   ink,
 }: {
@@ -165,7 +220,7 @@ function StatRow({
         >
           <dt
             className={cn(
-              "text-[10px] tracking-[0.14em] uppercase",
+              "text-label uppercase",
               ink ? "text-background/50" : "text-faint",
             )}
           >
@@ -175,6 +230,94 @@ function StatRow({
         </div>
       ))}
     </dl>
+  );
+}
+
+/**
+ * THE SIZE SLIDER (`size=slider`, Will overruling `rows`, 2026-09-20): "This
+ * keeps the monthly/yearly toggle above, which feels more intuitive/natural and
+ * makes the slider more interactive, which is both more enjoyable (incentivizes
+ * exploration) and reduces the height of the card itself."
+ *
+ * ★ IT IS A REAL `input[type=range]`, so the keyboard, the screen reader and a
+ * finger dragging all work without a line of our own: arrows step, Home and End
+ * jump, `aria-valuetext` says the room rather than "1 of 3". The stops ARE
+ * `plansForTier("pro")` (tiers.ts, the source the Stripe webhook and the SQL
+ * enforcement read), indexed, so a fourth Pro size appears on this slider the
+ * day it appears in the table and nobody edits a control.
+ *
+ * ★ NOTHING GLIDES. Dragging is a high-frequency interaction (the motion rule),
+ * so the fill and the price follow the thumb instantly and the one animated
+ * thing is the press: the thumb swells 10 percent while it is held, which is
+ * the feedback a finger needs when it covers the knob it is moving.
+ *
+ * ★ THE FILL IS THE TRACK'S OWN GRADIENT, not an overlay: one element keeps
+ * the native hit target (the whole 24 px row, not the 6 px rule a phone cannot
+ * hit) and leaves the thumb's position to the browser. Firefox paints the same
+ * fill through ::-moz-range-progress, which is why the gradient is webkit-only.
+ * The two percentage stops are the SAME value, so the fill has a hard edge.
+ */
+function SizeSlider({
+  plans,
+  value,
+  onPick,
+}: {
+  plans: Plan[];
+  value: PlanId;
+  onPick: (id: PlanId) => void;
+}) {
+  const i = Math.max(
+    0,
+    plans.findIndex((p) => p.id === value),
+  );
+  const pct = plans.length > 1 ? (i / (plans.length - 1)) * 100 : 0;
+
+  return (
+    <div>
+      <input
+        type="range"
+        min={0}
+        max={plans.length - 1}
+        step={1}
+        value={i}
+        onChange={(e) => onPick(plans[Number(e.target.value)].id)}
+        aria-label="Pro storage size"
+        aria-valuetext={formatBytes(plans[i].storageBytes)}
+        style={{ "--fill": `${pct}%` } as CSSProperties}
+        className={cn(
+          "h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent outline-none",
+          "focus-visible:ring-2 focus-visible:ring-background/70",
+          // The track, and the fill painted into it.
+          "[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full",
+          "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--color-background)_var(--fill),color-mix(in_oklch,var(--color-background)_20%,transparent)_var(--fill))]",
+          "[&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-background/20",
+          "[&::-moz-range-progress]:h-1.5 [&::-moz-range-progress]:rounded-full [&::-moz-range-progress]:bg-background",
+          // The thumb, centred on a 6px track inside a 24px row.
+          "[&::-webkit-slider-thumb]:-mt-[0.4375rem] [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-background",
+          "[&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-background",
+          "[&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:ease-emphasis",
+          "active:[&::-moz-range-thumb]:scale-110 active:[&::-webkit-slider-thumb]:scale-110",
+          "motion-reduce:[&::-webkit-slider-thumb]:transition-none",
+        )}
+      />
+      {/* The stops, named. Not buttons: one control does one job, and a native
+          range already moves to wherever the track is pressed. */}
+      <div
+        aria-hidden
+        className="mt-2 flex justify-between text-micro tabular-nums"
+      >
+        {plans.map((p) => (
+          <span
+            key={p.id}
+            className={
+              p.id === value ? "text-background" : "text-background/45"
+            }
+          >
+            {formatBytes(p.storageBytes)}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -306,15 +449,19 @@ export function PlanPair() {
           style={{ "--i": 2 } as CSSProperties}
           className="group relative flex flex-col rounded-2xl bg-foreground p-6 text-background sm:p-7"
         >
-          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-card px-2.5 py-0.5 text-[10px] font-medium tracking-[0.14em] text-foreground uppercase">
+          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border bg-card px-2.5 py-0.5 text-label font-medium text-foreground uppercase">
             Most popular
           </span>
           <PhotoStack ink />
           <div className="flex flex-col gap-2">
             <h2 className="font-heading text-subsection">Pro</h2>
-            <p className="text-sm text-pretty text-background/75">
-              For hosts who host again.
-            </p>
+            {/* RULED (Will, 2026-09-19, voice r1 `pro-line=video`). It used to
+                read "For hosts who host again.", which describes the buyer
+                rather than what they get; his line names the two things Pro
+                actually unlocks, video first. The one home is marketing-voice.ts
+                (the four sibling statements of the same value share its ORDER,
+                never its bytes). */}
+            <p className="text-sm text-pretty text-background/75">{PRO_LINE}</p>
             <div className="mt-3 font-heading text-section tabular-nums">
               {/* Keyed remount so a size/cadence change swaps the price instantly
                 (high-frequency interaction: no re-pop theater). */}
@@ -337,43 +484,14 @@ export function PlanPair() {
                 : "Locked albums"}{" "}
               and custom links
             </Item>
-            <Item ink>Your public host page at /u/you</Item>
+            <Item ink>Never removed for inactivity</Item>
           </ul>
 
           <div className="mt-6">
-            {/* The size selector: a segmented control, not three CTAs. The track
-              rides the inverted surface (background at low alpha). */}
-            <div
-              role="group"
-              aria-label="Pro storage size"
-              className="relative grid grid-cols-3 gap-1 rounded-lg bg-background/10 p-1 select-none"
-            >
-              <span
-                aria-hidden
-                className="absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-md bg-background/20 transition-transform [transition-duration:var(--mkt-tabs-dur)] ease-emphasis motion-reduce:transition-none"
-                style={{
-                  transform: `translateX(calc(${proPlans.findIndex((p) => p.id === proId)} * (100% + 0.25rem)))`,
-                }}
-              />
-              {proPlans.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  aria-pressed={proId === p.id}
-                  onClick={() => setProId(p.id)}
-                  className={cn(
-                    "relative z-10 rounded-md px-2 py-1.5 text-center text-sm font-medium tabular-nums transition-colors outline-none",
-                    "focus-visible:ring-2 focus-visible:ring-background/60",
-                    "active:scale-[0.98] motion-reduce:active:scale-100",
-                    proId === p.id
-                      ? "text-background"
-                      : "text-background/55 hover:text-background/80",
-                  )}
-                >
-                  {formatBytes(p.storageBytes)}
-                </button>
-              ))}
-            </div>
+            {/* The size, as one slider from the smallest room to the largest
+                (his ruling): the price above, the stats below and the button
+                under them all follow the thumb. */}
+            <SizeSlider plans={proPlans} value={proId} onPick={setProId} />
 
             <div className="mt-4">
               <StatRow
@@ -400,9 +518,12 @@ export function PlanPair() {
               Get Pro at {proDisplay.priceLabel}
             </CheckoutButton>
             <p className="mt-3 text-center text-xs text-background/60">
+              {/* Sizes and cadences change from the account's plan sheet now
+                  (checked against what the host stores), cancelling from the
+                  billing portal it links: "your account" is true of both. */}
               {cadence === "year"
-                ? "One payment a year, two months free. Change or cancel any time in the billing portal."
-                : "Change size or cancel any time in the billing portal."}
+                ? "One payment a year, two months free. Change size or cancel any time from your account."
+                : "Change size or cancel any time from your account."}
             </p>
           </div>
         </div>

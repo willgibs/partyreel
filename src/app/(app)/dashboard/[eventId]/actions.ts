@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
@@ -16,8 +17,15 @@ import {
   setMediaStatusBulk,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
+import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
 import { captureError } from "@/lib/observability/sentry";
+import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
+import {
+  resolveTileSize,
+  TILE_SIZE_COOKIE,
+  TILE_SIZE_COOKIE_MAX_AGE,
+} from "@/lib/shared/tile-size-cookie";
 
 // Allowlist the host-settable statuses HERE, at the action boundary — the
 // client calls these with a raw string and we never trust it. 'removed' is not
@@ -289,4 +297,83 @@ export async function setReelGuestVisibleAction(
   // getReelConfig for the card's Draft/Shared state.
   revalidatePath(`/dashboard/${eventId}`);
   return { ok: true, guestVisible: data.guest_visible ?? visible };
+}
+
+/**
+ * THE BIN, LOADED ONLY WHEN ASKED (his `settings` note: "The photo bin joins
+ * the album as a filter").
+ *
+ * ★ WHY AN ACTION AND NOT A PROP ON THE PAGE. Every bin item needs its own
+ * presigned URL, and presigning is a per-request round trip each. Folding the
+ * bin into the hub's payload would buy N presigns on EVERY render of the event
+ * page — for a drawer most hosts open once, to recover one photograph, weeks
+ * after they deleted it. The filter is the moment to pay for it.
+ *
+ * RLS scopes `listRecentlyDeletedMedia` to the host's own event, and the
+ * presigns are INLINE-only (no download url), so the lightbox hides Save on a
+ * binned item exactly as it does on the retired settings route.
+ */
+export type BinItem = {
+  id: string;
+  type: string;
+  url: string;
+  status: string;
+  countdownDays: number;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
+};
+
+export async function listDeletedMediaAction(
+  eventId: string,
+): Promise<{ ok: true; items: BinItem[] } | { ok: false; message: string }> {
+  // Re-verify the caller here as well as relying on RLS: a Server Function is a
+  // public endpoint, and the query below is only safe because the session it
+  // runs under is the host's (database-security.md).
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Please sign in again." };
+
+  try {
+    const rows = await listRecentlyDeletedMedia(eventId);
+    const items = await Promise.all(
+      rows.map(async (m) => ({
+        id: m.id,
+        type: m.type,
+        url: await presignDownload({ key: m.original_key, stable: true }),
+        status: m.status,
+        countdownDays: m.countdownDays,
+        width: m.width,
+        height: m.height,
+        durationSeconds: m.duration_seconds,
+      })),
+    );
+    return { ok: true, items };
+  } catch (error) {
+    captureError("media", error as Error, {
+      action: "list_deleted_media",
+      eventId,
+    });
+    return { ok: false, message: "Couldn't load deleted items." };
+  }
+}
+
+/**
+ * The gallery's tile-size cookie (`app-vocabulary` r1,
+ * `gallery-controls-persistence`, overruled to a cookie: `tile-size-cookie.ts`
+ * has why). A preference, not a trust boundary — no auth check, same as
+ * `setEventsViewAction` in `dashboard/actions.ts`, whose pattern this mirrors
+ * exactly. `resolveTileSize` narrows whatever arrives to the three wired
+ * steps, so a hand-forged call can only ever set one of them.
+ */
+export async function setTileSizeAction(size: number): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(TILE_SIZE_COOKIE, String(resolveTileSize(String(size))), {
+    maxAge: TILE_SIZE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    path: "/",
+    httpOnly: false,
+  });
 }

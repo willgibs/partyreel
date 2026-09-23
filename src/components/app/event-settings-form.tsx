@@ -60,15 +60,18 @@ export function EventSettingsForm({
   const [isSaving, startSaving] = useTransition();
 
   // Tier-gated settings: locked controls are disabled with an upgrade hint. The
-  // server re-enforces the gate — this is UX, not the boundary. (Require-accounts is
-  // no longer gated; it's free + default-on, with an opt-in-anon confirm in UploadsSection.)
+  // server re-enforces the gate — this is UX, not the boundary. (Require verified emails and
+  // Require an upload to view are both free on every tier, not gated: the first default-on with
+  // an opt-out confirm, the second default-off with an opt-in confirm, both in UploadsSection.)
   const passwordLocked = isSettingLocked("password", tier);
   // Video is a paid feature (Phase 2). This is a read-only STATUS, not a toggle —
   // the gate is tier-driven and enforced at upload (create_media), not a host switch.
   const videosAllowed = videosAllowedForTier(tier);
 
-  // updateEventSchema is createEventSchema.partial(), so every field is optional; we
-  // still prefill from the row so the controls are controlled from the first render.
+  // updateEventSchema carries every field optional and NO defaults, so a save writes exactly the
+  // fields below, prefilled from the row so the controls are controlled from the first render.
+  // ★ `qr_style` is deliberately NOT here: the QR designer owns it (its own one-field save), and a
+  // form that held it would write it back on every save of an unrelated field.
   const form = useForm<UpdateEventInput, unknown, UpdateEventValues>({
     resolver: zodResolver(updateEventSchema),
     defaultValues: {
@@ -77,7 +80,8 @@ export function EventSettingsForm({
       event_date: event.event_date ?? "",
       visibility: event.visibility,
       accepting_uploads: event.accepting_uploads,
-      allow_anonymous_uploads: event.allow_anonymous_uploads,
+      require_verified_email: event.require_verified_email,
+      require_upload_to_view: event.require_upload_to_view,
       moderation_mode: event.moderation_mode,
       max_upload_bytes: event.max_upload_bytes,
     },

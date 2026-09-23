@@ -11,10 +11,10 @@ import { slugify } from "@/lib/content/collection";
 import { readTrackStates } from "./tracks";
 
 /**
- * THE LAB'S DOC READER (the Library x Lab round, 2026-09-15). The shell renders
- * repo markdown at request time: the doctrine the library points at, the
- * program's rulebook, the agent guide, the craft skill, the proposals under
- * docs/specs, Will's rulings. Nothing here writes; the files are the record.
+ * THE LAB'S DOC READER. The shell renders repo markdown at request time: the
+ * doctrine the library points at, the program's rulebook, the agent guide, the
+ * craft skill, the guidance, the track manifests and any proposal under
+ * docs/specs. Nothing here writes; the files are the source.
  * `next.config.ts` traces every readable file into the shell's functions
  * through TRACED_DOC_GLOBS (legacy-routes.ts), so a new path added to DOCS
  * needs a glob there too (docs.test.ts holds the two together).
@@ -359,8 +359,9 @@ export function landminesOf(
 // ── Listings ─────────────────────────────────────────────────────────────────
 
 /**
- * The proposals under docs/specs: the exploration boards' settled documents.
- * README-like files are not proposals.
+ * The proposal documents under docs/specs, when a board writes one (none
+ * does today: a board's argument lives in its own spec.ts). README-like files
+ * are not proposals, and a missing directory is an empty list.
  */
 export function listSpecs(): {
   slug: string;
@@ -403,11 +404,4 @@ export function listTracks(): {
   return [...readTrackStates().values()]
     .map((t) => ({ name: t.track, status: t.status, preview: t.preview }))
     .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/** The `##` headings of Will's rulings record, one per dated ruling. */
-export function listRulings(): DocHeading[] {
-  return headingsOf(readDoc("docs/design/rulings.md").body, 2).filter(
-    (h) => h.depth === 2,
-  );
 }

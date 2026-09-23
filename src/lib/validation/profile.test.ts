@@ -1,6 +1,11 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  BIO_MAX_LENGTH,
+  bioSchema,
   DISPLAY_NAME_MAX_LENGTH,
   displayNameSchema,
   PROFILE_SLUG_MAX_LENGTH,
@@ -95,5 +100,109 @@ describe("profileSlugSchema", () => {
   it("allows a handle that merely contains a reserved token", () => {
     expect(profileSlugSchema.parse("adminah")).toBe("adminah");
     expect(profileSlugSchema.parse("api-fans")).toBe("api-fans");
+  });
+});
+
+describe("bioSchema", () => {
+  it("collapses a bio to ONE line (no walls, no ASCII art)", () => {
+    expect(bioSchema.parse("Weddings,\n\nmostly.   Always late.")).toBe(
+      "Weddings, mostly. Always late.",
+    );
+  });
+
+  it("treats empty and whitespace-only as no bio at all (clearing is emptying)", () => {
+    expect(bioSchema.parse("")).toBeNull();
+    expect(bioSchema.parse("   \n  ")).toBeNull();
+  });
+
+  it("accepts a bio at the cap and refuses one past it", () => {
+    const at = "a".repeat(BIO_MAX_LENGTH);
+    expect(bioSchema.parse(at)).toBe(at);
+    expect(bioSchema.safeParse("a".repeat(BIO_MAX_LENGTH + 1)).success).toBe(
+      false,
+    );
+  });
+
+  it("refuses links, bare domains and email addresses (a free page is a free backlink)", () => {
+    for (const bio of [
+      "https://example.com",
+      "follow me at www.example.com",
+      "maya.com",
+      "t.me/maya",
+      "maya@example.com",
+    ]) {
+      expect(
+        bioSchema.safeParse(bio).success,
+        `expected "${bio}" refused`,
+      ).toBe(false);
+    }
+  });
+
+  it("leaves ordinary prose alone (a full stop is not a domain)", () => {
+    for (const bio of [
+      "Weddings, mostly. Always the one with the camera.",
+      "Mrs. Smith to my students, Ana to everyone else.",
+      "Photographer (e.g. weddings, birthdays, the odd dog).",
+    ]) {
+      expect(
+        bioSchema.safeParse(bio).success,
+        `expected "${bio}" allowed`,
+      ).toBe(true);
+    }
+  });
+});
+
+/**
+ * THE BIO'S OTHER HALF IS SQL, and this guards it as text: the zod cap and the CHECK constraint
+ * drift the moment one number moves alone, and nothing else in the gate would notice.
+ *
+ * ★ WHAT LEFT THIS FILE (the guest identity round, 2026-09-22). This describe used to re-assert
+ * get_public_profile's whole consent scope as well, pinned to migration 20260919120000, because at
+ * the time that file held the body that actually ran while the older guard still parsed
+ * 20260708120000's superseded text. Its own comment called the duplication a finding rather than a
+ * silent edit of another lane's test. Migration 20260922122000 replaces that body again (the
+ * attended arm becomes an opt-in on profile_shown_events, with a verified belt), which would have
+ * left this copy pinned to a file two generations stale and asserting the OLD table by name. The
+ * consent scope now has one home — social/public-profile-visibility.test.ts, which resolves the
+ * winning body LATEST-WINS across the whole migration set — and what stays here is the bio, which
+ * is this file's own fact. Do not re-add the consent assertions; extend that guard instead.
+ */
+describe("the bio's SQL half", () => {
+  const migrations = join(__dirname, "..", "..", "..", "supabase/migrations");
+
+  /** Latest-wins, like the guard in social/: the truth is the migration SET, never one file. */
+  const body = (() => {
+    let latest: string | null = null;
+    for (const file of readdirSync(migrations)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()) {
+      const sql = readFileSync(join(migrations, file), "utf8");
+      const start = sql.indexOf(
+        "create or replace function public.get_public_profile",
+      );
+      if (start === -1) continue;
+      const end = sql.indexOf("$$;", start);
+      expect(
+        end,
+        `${file}: get_public_profile body never closes`,
+      ).toBeGreaterThan(start);
+      latest = sql.slice(start, end);
+    }
+    expect(latest, "get_public_profile defined nowhere").not.toBeNull();
+    return latest!;
+  })();
+
+  it("still returns the bio from the body that actually runs", () => {
+    expect(body).toContain("'bio', p.bio");
+  });
+
+  it("caps the bio in the database too, not only in zod", () => {
+    const all = readdirSync(migrations)
+      .filter((f) => f.endsWith(".sql"))
+      .sort()
+      .map((f) => readFileSync(join(migrations, f), "utf8"))
+      .join("\n");
+    expect(all).toContain("profiles_bio_len");
+    expect(all).toContain(String(BIO_MAX_LENGTH));
   });
 });

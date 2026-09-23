@@ -1,23 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
 
 import { deleteAccountAsOperatorAction } from "@/app/admin/accounts/actions";
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 /**
  * The operator's half of account deletion. Same request path as the host's own
@@ -27,6 +15,12 @@ import { Label } from "@/components/ui/label";
  * The retyped identifier is the wrong-row guard. It is checked SERVER-side
  * against the account being deleted, so this input is the prompt, not the
  * enforcement.
+ *
+ * ★ IT IS THE PORTAL'S ONE SHEET NOW, AND IT IS THE ONE THAT TYPES
+ * (`destructive=sheet`, Will 2026-09-20: "only the permanent one makes you
+ * type"). This surface was already the strictest of the portal's four
+ * grammars, so what it gains is not friction but the panel's "what this
+ * touches" list, which is the same list its dialog carried as loose prose.
  */
 export function DeleteAccountControl({
   userId,
@@ -41,100 +35,37 @@ export function DeleteAccountControl({
   heldEventCount: number;
 }) {
   const [open, setOpen] = useState(false);
-  const [confirmation, setConfirmation] = useState("");
-  const [pending, startPending] = useTransition();
 
-  function onDelete() {
-    startPending(async () => {
-      const result = await deleteAccountAsOperatorAction(userId, confirmation);
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      toast.success("Account queued for deletion.");
-      setOpen(false);
-      setConfirmation("");
-    });
+  const touches = [
+    "Any active subscription is cancelled first. If Stripe refuses, nothing is deleted",
+    `${eventCount === 1 ? "1 event is" : `${eventCount} events are`} binned now and hard-deleted by the next purge run, media and R2 objects included`,
+    "The profile is anonymised immediately and the person can no longer sign in",
+  ];
+  if (heldEventCount > 0) {
+    touches.splice(
+      2,
+      0,
+      `${heldEventCount === 1 ? "1 event is" : `${heldEventCount} events are`} under a legal hold, skipped, and the auth user survives until it is released`,
+    );
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setConfirmation("");
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 /> Delete account
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete this account?</DialogTitle>
-          <DialogDescription>
-            Immediate and permanent, exactly as if the account holder had done
-            it themselves.
-          </DialogDescription>
-        </DialogHeader>
-
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li>
-            Any active subscription is cancelled first. If Stripe refuses,
-            nothing is deleted.
-          </li>
-          <li>
-            {eventCount === 1
-              ? "1 event is binned now"
-              : `${eventCount} events are binned now`}{" "}
-            and hard-deleted by the next purge run, media and R2 objects
-            included.
-          </li>
-          {heldEventCount > 0 && (
-            <li className="text-foreground">
-              {heldEventCount === 1
-                ? "1 event is under a legal hold"
-                : `${heldEventCount} events are under a legal hold`}
-              . Held events are skipped and the auth user survives until the
-              hold is released. The profile is still anonymised now.
-            </li>
-          )}
-          <li>
-            The profile is anonymised immediately and the person can no longer
-            sign in.
-          </li>
-        </ul>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="operator-delete-confirm">
-            Type{" "}
-            <span className="rounded bg-muted px-1.5 py-0.5 font-medium text-foreground tabular-nums">
-              {identifier}
-            </span>{" "}
-            to confirm
-          </Label>
-          <Input
-            id="operator-delete-confirm"
-            autoComplete="off"
-            value={confirmation}
-            onChange={(e) => setConfirmation(e.target.value)}
-          />
-        </div>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button
-            variant="destructive"
-            disabled={pending || confirmation.trim().length === 0}
-            onClick={onDelete}
-          >
-            {pending ? "Deleting…" : "Delete account"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
+        <Trash2 /> Delete account
+      </Button>
+      <DestructiveSheet
+        open={open}
+        onOpenChange={setOpen}
+        title="Delete this account?"
+        lede="Immediate and permanent, exactly as if the account holder had done it themselves."
+        verb="Delete account"
+        touches={touches}
+        severity="permanent"
+        confirmText={identifier}
+        successMessage="Account queued for deletion."
+        onConfirm={(typed) => deleteAccountAsOperatorAction(userId, typed)}
+      />
+    </>
   );
 }

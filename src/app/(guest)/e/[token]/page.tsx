@@ -1,30 +1,43 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
 import { GuestHeader } from "@/components/guest/guest-header";
-import { GuestList } from "@/components/social/guest-list";
+import { NotFoundScreen } from "@/components/shared/not-found-screen";
+import {
+  GuestList,
+  GUEST_LIST_FACES_THRESHOLD,
+} from "@/components/social/guest-list";
+import { Button } from "@/components/ui/button";
 import { isLikelyBot } from "@/lib/analytics/bots";
 import { recordLinkHit } from "@/lib/db/mutations/analytics";
+import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
-  getHostAvatarUrl,
+  getHostAvatarSeed,
 } from "@/lib/db/queries/guest-events-admin";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
-import { getEventGuestList } from "@/lib/db/queries/social";
-import { withAvatarUrls } from "@/lib/social/cards";
+import {
+  getEventGuestList,
+  getHostCard,
+  getMyFollowing,
+} from "@/lib/db/queries/social";
+import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
-import { resolveGalleryAccess } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
   loadGalleryForAccess,
+  resolveViewerDecision,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { getGuestReelContext } from "@/lib/reel/guest-reel";
+import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { needsDisplayName } from "@/lib/welcome";
@@ -35,8 +48,8 @@ export const dynamic = "force-dynamic";
 // The qr_token is an opaque capability — noindex (don't index join links), but emit OG
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
 // nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
-// isn't the secret) but no description; OPEN gets the full unfurl, whose description
-// also depends on the account gate (see allow_anonymous_uploads below).
+// isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
+// every open event whatever its identity switch (below).
 export async function generateMetadata({
   params,
 }: {
@@ -64,15 +77,13 @@ export async function generateMetadata({
 
   const title = `Add photos to ${event.name}`;
   // ★ A PASTED LINK INVITES, IT DOES NOT WARN (Will, 2026-09-17, the `unfurl=join`
-  // pick, overruling the recommendation). This line used to fork on
-  // allow_anonymous_uploads so an account-gated event announced its email step in
-  // the group chat: the ONE warning a guest got before tapping. He chose to drop
-  // the warning WITH ITS COST IN FRONT OF HIM ("More taps, and a share of them
-  // bounce at the email step"), so the fork is gone and every open event unfurls
-  // the same invitation. Do NOT hedge this back toward a warning: an event that
-  // requires a verified email still gates the guest after the tap, and that was
-  // the trade he took, not one he missed. The gate itself is honest where it
-  // happens, at the entry modal's account step.
+  // pick, overruling the recommendation): every open event unfurls the same
+  // invitation, never a line announcing its email step in the group chat. He took
+  // the warning's absence WITH ITS COST IN FRONT OF HIM ("More taps, and a share
+  // of them bounce at the email step"). Do NOT hedge this back toward a warning:
+  // an event that requires a verified email still gates the guest after the tap,
+  // and that was the trade he took, not one he missed. The gate itself is honest
+  // where it happens, at the entry modal's account step.
   const description = "Photos and videos from the day. Add yours.";
   return {
     title,
@@ -107,6 +118,10 @@ export default async function GuestEventPage({
   // Missing / deleted resolves to not_found — a 404 (don't leak existence).
   if (!result.ok) notFound();
   const event = result.data;
+  // Hoisted above the private-event return (Phase 4.5 read it further down,
+  // after the auth block below): a pure check of the qr_token alone, and
+  // GuestHeader now wants it on EVERY branch (the Demo mark, `framing=tag`).
+  const isDemo = isDemoToken(event.qr_token);
 
   // Record-on-view: count this QR/join-link visit (aggregate, no PII). Bot-filtered
   // at ingest and deferred via after() so it never blocks the guest. Success path
@@ -117,23 +132,37 @@ export default async function GuestEventPage({
   }
 
   // Private: master lock — reveal nothing (no name, gallery, or upload).
+  //
+  // ★ IT IS THE NOT-FOUND FAMILY NOW, WEARING A LOCK (Will, `private-event=
+  // family`, 2026-09-19). This was a hand-rolled stack that MIRRORED
+  // NotFoundScreen by eye and shared none of its code — the same icon circle,
+  // the same title step, the same centered column, free to drift. Folding it in
+  // changes nothing a guest sees except the one thing he asked for: "A simple
+  // link to Partyreel homepage here would be nice to capture from an otherwise
+  // dead-end page." So the one action is that link, worded the way the bad-link
+  // 404 next door words it, and outline rather than solid because this screen
+  // is telling a guest to come back later, not to leave.
+  //
+  // It keeps the REAL GuestHeader (not the failure bar): this render holds a
+  // live qr_token and event id, so the header can resolve a session and a
+  // returning host meets their own menu. The two surfaces that wear GuestBar
+  // are the ones that have neither.
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={event.qr_token} eventId={event.id} />
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-3 px-5 py-20 text-center">
-          <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Lock className="size-5" />
-          </div>
-          {/* The dead-end stack NotFoundScreen mirrors, so its title takes the
-              same step the app's dead link does (`page`), in the heading face
-              every other h1 wears. */}
-          <h1 className="font-heading text-page">This event is private</h1>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            The host has this event set to private. Check back later, or ask
-            them to make it public.
-          </p>
-        </div>
+        <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
+        <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
+          <NotFoundScreen
+            icon={Lock}
+            title="This event is private"
+            description="The host has this event set to private. Check back later, or ask them to make it public."
+            actions={
+              <Button asChild size="cta" variant="outline">
+                <Link href="/">What is Partyreel?</Link>
+              </Button>
+            }
+          />
+        </main>
       </div>
     );
   }
@@ -157,7 +186,6 @@ export default async function GuestEventPage({
   // now run getUser() for EVERY non-private event (not just the accepting-uploads path): the gate must
   // know whether the viewer is signed in. For the anonymous majority it's a cheap local null, and the
   // owner select runs ONLY when signed in. Authorize with getUser(), never getSession().
-  const isDemo = isDemoToken(event.qr_token);
   let isAuthed = false;
   let isOwner = false;
   let userId: string | null = null;
@@ -172,13 +200,39 @@ export default async function GuestEventPage({
       isOwner = await isEventOwner(event.id, user.id, supabase);
     }
   }
-  const access = isDemo
-    ? "full"
-    : resolveGalleryAccess(event, { isOwner, isAuthed, isUnlocked: unlocked });
+  /* ──────────────────────────────────────────────────────────────────────
+     THE DECISION, AND THE COOKIE THAT LETS THE SERVER MAKE IT (the door as
+     three steps, 2026-09-21). Require an upload to view is enforced here, not
+     in the browser, so the render has to know WHICH guest is asking: the
+     `pr_guest_<eventId>` cookie carries that session token, because an RSC
+     cannot read the localStorage copy. A guest whose browser holds a token but
+     no cookie yet (every session minted before this round) resolves as
+     uncontributed for exactly one render, and `EventExperience`'s heal POSTs
+     the poll once with the stored token before the arrival beat to true it up.
+     ────────────────────────────────────────────────────────────────────── */
+  const cookieSessionToken = isDemo
+    ? null
+    : await readGuestSessionCookie(event.id);
+  // `withAlbumFull`: the page is the one reader of the album's fullness (the
+  // lightbox's last-removal line), so it alone pays the gate's second read.
+  const decision = isDemo
+    ? { access: "full" as const, gate: null, albumFull: false }
+    : await resolveViewerDecision(
+        event,
+        {
+          isOwner,
+          isAuthed,
+          isUnlocked: unlocked,
+          userId,
+          sessionToken: cookieSessionToken,
+        },
+        { withAlbumFull: true },
+      );
+  const access = decision.access;
   // Deliberately NOT awaited (Phase 3 streaming): the gallery load presigns
   // 2 URLs per item, the slowest part of this page. The shell streams first;
   // LiveGallery resolves this inside its Suspense boundary.
-  const galleryPromise = loadGalleryForAccess(event, access);
+  const galleryPromise = loadGalleryForAccess(event, decision);
 
   // Header stats (Phase 4): cheap awaited read (numbers only — never identities).
   // For a LOCKED password event this still returns counts: the ratified entry
@@ -192,10 +246,30 @@ export default async function GuestEventPage({
   // see a published, non-empty reel" (access, publish state, curation, locks),
   // so the card below needs no further gating. The raw `event` on purpose: it
   // carries the canonical qr_token the RPC matches on.
-  const [stats, guestReel] = await Promise.all([
+  //
+  // A GUEST'S OWN PHOTOGRAPHS ride alongside them (Will, `yours`, 2026-09-20:
+  // "A guest can delete any photo they've personally uploaded, ever"). For a
+  // SIGNED-IN viewer the answer is here: one indexed read of the media ids
+  // whose guest row belongs to this account in this event. Never a client
+  // claim, and deliberately NOT in the gallery payload or its ETag — that
+  // fingerprint is per ACCESS and shared between viewers, while this list is
+  // per person. The ANONYMOUS half cannot be answered here at all: that
+  // identity is a session token in the browser's own storage, so LiveGallery
+  // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
+  // rendered to remove) and in the demo (nothing there is real).
+  const [stats, guestReel, canDeleteIds, cookieJar] = await Promise.all([
     getGalleryStats(event),
     getGuestReelContext(event, access),
+    userId && !isDemo && access !== "none"
+      ? listAccountMediaIds({ eventId: event.id, userId })
+      : Promise.resolve<string[]>([]),
+    cookies(),
   ]);
+  // The album's tile size (`controls-home=view-menu`), painted inline from the
+  // cookie (the host page's `tileSize` precedent, dashboard/[eventId]/page.tsx)
+  // so the first paint is already the size a returning guest picked — never a
+  // client-only read, which would resize the whole album after hydration.
+  const tileSize = resolveTileSize(cookieJar.get(TILE_SIZE_COOKIE)?.value);
 
   // LOCKED REDACTION (Phase 4 hardening of the ratified name-only rule): at
   // access `none` the page must reveal the event NAME + media COUNT only, and
@@ -214,12 +288,16 @@ export default async function GuestEventPage({
         }
       : event;
 
-  // Host avatar for the "Hosted by" byline: a server-side admin read so host_id stays off the client
-  // (only the presigned URL is passed down). Gated on a set name, since the byline hides without one
-  // (Phase 3), so this is a no-op for nameless-host events.
-  const hostAvatarUrl = shellEvent.host_display_name?.trim()
-    ? await getHostAvatarUrl(event.id)
+  // Host avatar + seed for the "Hosted by" byline: a server-side admin read so host_id stays off the
+  // client (only the presigned URL and the one-way hash are passed down — `seedFor`).
+  // Gated on a set name, since the byline hides without one
+  // (Phase 3), so this is a no-op for nameless-host events (an event with no set host name has no
+  // byline to colour either).
+  const hostAvatar = shellEvent.host_display_name?.trim()
+    ? await getHostAvatarSeed(event.id)
     : null;
+  const hostAvatarUrl = hostAvatar?.avatarUrl ?? null;
+  const hostSeed = hostAvatar?.seed ?? null;
 
   // The named Guests section (profiles-social.md): ONLY at full access (a teaser viewer
   // hasn't finished the gate; a locked page reveals name + count only), never in
@@ -229,30 +307,64 @@ export default async function GuestEventPage({
   // receive storage markers, only hydrated public avatar URLs.
   let guestListSlot: React.ReactNode = null;
   if (access === "full" && !isDemo) {
-    const guestList = await getEventGuestList(event.id);
+    // ★ NAME-ONLY GUESTS ARE ON IT (Will, at the identity reshape's approval:
+    // "Listed, with the mark"). They arrive after the profile cards as
+    // `{ kind: "unverified" }` entries, which `withAvatarUrls` must not touch:
+    // there is no avatar and no seed to resolve for a name nobody proved.
+    const guestList = await getEventGuestList(event.id, {
+      includeUnverified: true,
+    });
     if (guestList && guestList.length > 0) {
-      const items = await withAvatarUrls(guestList);
+      // The union splits before hydration (lib/social/cards.ts owns why): only a
+      // profile card has an avatar to resolve, and the unverified half rejoins
+      // as-is, after it, in the query's own order.
+      const { cards, unverified } = splitGuestList(guestList);
+      const items = [...(await withAvatarUrls(cards)), ...unverified];
+      // Above the threshold the list condenses to a row of faces that says
+      // "N guests added photos" itself, so the heading drops its pill: the
+      // number renders once (Will, `list=faces`, 2026-09-19).
+      const listSaysCount = items.length > GUEST_LIST_FACES_THRESHOLD;
+      // A Follow on somebody else's chip, only where it is not a no-op: one
+      // owner-scoped read, and only for a signed-in viewer.
+      const followingIds = userId
+        ? new Set((await getMyFollowing()).map((f) => f.id))
+        : undefined;
       guestListSlot = (
         <section aria-label="Guests" className="mt-10 space-y-3">
           <h2 className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <span className="text-label font-semibold text-muted-foreground uppercase">
               Guests
             </span>
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
-              {items.length}
-            </span>
+            {!listSaysCount && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-semibold text-muted-foreground tabular-nums">
+                {items.length}
+              </span>
+            )}
           </h2>
-          <GuestList items={items} />
+          <GuestList
+            items={items}
+            viewerId={userId}
+            followingIds={followingIds}
+          />
         </section>
       );
     }
   }
 
-  // Display-name nudge: a SIGNED-IN uploader without a public name sets one before uploading (so their
-  // upload is attributed). Only meaningful in the `full` state; an account-required event viewed by an
-  // un-signed-in guest is `teaser`, where the account step (EnterEventPrompt) comes first.
+  // The host as a public card, for the capture flow's follow moment. Only where
+  // it can be acted on: a full-access, non-demo album with a host to follow.
+  const hostCard =
+    access === "full" && !isDemo ? await getHostCard(event.id) : null;
+
+  // Display-name nudge: a SIGNED-IN viewer without a public display name is asked for one at the
+  // DOOR now, as its name step in `profile` mode (the door as three steps, 2026-09-21), rather
+  // than in an inline card halfway down the album.
+  //
+  // ★ COMPUTED AT `teaser` TOO, which `access === "full"` used to exclude. A confirmed account
+  // held at the UPLOAD step resolves `teaser`, and the door still has to know whether to ask them
+  // their name on the way past: the old condition would have answered "they have one" and skipped it.
   let needsName = false;
-  if (isAuthed && userId && event.accepting_uploads && access === "full") {
+  if (isAuthed && userId && event.accepting_uploads && access !== "none") {
     const menu = await getProfileMenu(userId);
     needsName = needsDisplayName(menu.displayName);
   }
@@ -265,7 +377,7 @@ export default async function GuestEventPage({
           qr_token. Mismatched keys meant sign-out on a slug URL removed a key
           that was never written, leaving the previous guest's upload
           capability live on a shared phone. */}
-      <GuestHeader qrToken={event.qr_token} eventId={event.id} />
+      <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
       <EventExperience
         event={shellEvent}
         qrToken={event.qr_token}
@@ -274,11 +386,25 @@ export default async function GuestEventPage({
         stats={stats}
         isDemo={isDemo}
         access={access}
+        gate={decision.gate}
         needsName={needsName}
         hostAvatarUrl={hostAvatarUrl}
+        hostSeed={hostSeed}
         isOwner={isOwner}
         guestListSlot={guestListSlot}
         guestReel={guestReel}
+        canDeleteIds={canDeleteIds}
+        isAuthed={Boolean(userId)}
+        // Identity keys on a CONFIRMED account, never a uid alone (wave 0's
+        // finding): an unconfirmed session still carries a typed name.
+        isVerified={isAuthed}
+        hostCard={
+          hostCard
+            ? { ...hostCard, seed: hostSeed }
+            : null
+        }
+        initialTileSize={tileSize}
+        albumFull={decision.albumFull}
       />
     </div>
   );

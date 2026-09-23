@@ -50,8 +50,28 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
       "What we keep, where it lives, who can see it, and how deletion works.",
     // 1.1 (2026-09-02): account deletion became self-serve and immediate, so
     // the "write to support" choice and the newsletter removal both changed.
-    version: "1.1",
-    lastUpdated: "2026-09-02",
+    // 1.2 (2026-09-20): a guest may now remove their own upload right on the
+    // album, signed in or anonymous by device, final for the host too; it is
+    // no longer "ask the host" for an anonymous upload.
+    // 1.3 (2026-09-21): the identity reshape retired anonymous uploads. A
+    // guest at an event without a verified-email requirement now types a
+    // display name instead, and is listed on the guest list the same as a
+    // confirmed name, wearing a small unverified mark; "upload without
+    // signing in" is no longer a way to stay off that list.
+    // 1.4 (2026-09-21): the door round added a third essential cookie,
+    // `pr_guest_<eventId>`, which remembers which guest you are at one event
+    // so the album can tell what you have already added; it is cleared when
+    // you sign out or leave the event.
+    // 1.5 (2026-09-22): the guest identity round. A names-mode guest may add
+    // an email that stays unconfirmed and inert until claimed; local storage
+    // gained a per-event flag for whether one was added, never the address;
+    // attended-event visibility on a public profile is opt-in now (nothing
+    // shows until its owner turns it on), not opt-out.
+    // 1.6 (2026-09-23): the guest-by-upload round. Saved events are no longer
+    // kept (a person is a guest of an event through their uploads), so the
+    // list of what we keep reads likes, follows and blocks.
+    version: "1.6",
+    lastUpdated: "2026-09-22",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -68,8 +88,24 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // cancels an active plan at that moment rather than at period end.
     // 1.2 (2026-09-18): Disclaimers says we may use generative AI for some of
     // our own images and videos.
-    version: "1.2",
-    lastUpdated: "2026-09-18",
+    // 1.3 (2026-09-20): a guest may delete their own upload directly, signed
+    // in or not, without asking the host; that deletion is final either way.
+    // 1.4 (2026-09-21): the identity reshape retired anonymous uploads. A
+    // guest at an event without a verified-email requirement now types a
+    // display name instead, subject to the same display-name rule as a
+    // host's, and is listed the same as a confirmed name, wearing a small
+    // unverified mark.
+    // 1.5 (2026-09-22): the guest identity round. Uploads made under a typed
+    // name or an unconfirmed email can be claimed to your account once you
+    // confirm it; uploads made under your address by someone else are
+    // removed when you mark that event as not yours. Attended-event
+    // visibility on a public profile is opt-in now, not opt-out.
+    // 1.6 (2026-09-23): the storage guard. A Pro size or billing interval
+    // changes from your account (no longer "through the billing portal"),
+    // and a Pro purchase or change is available only for a size that holds
+    // what you already store.
+    version: "1.6",
+    lastUpdated: "2026-09-23",
     status: "pending-review",
     effectiveDate: null,
   },

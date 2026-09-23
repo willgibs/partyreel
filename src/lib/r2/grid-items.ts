@@ -33,8 +33,9 @@ export async function toGridItems(
   media: MediaRow[],
   eventName: string,
   // Optional uploader attribution (Phase 2), keyed by media id. GUEST callers pass this to show the
-  // name; they pass the WHOLE map but we copy ONLY name/isHost/isAnonymous here, NEVER email -- so a
-  // guest GridMedia can never carry an email (the host gallery builds its items separately, with email).
+  // name; they pass the WHOLE map but we copy ONLY name/isHost/isVerified here, NEVER email -- so a
+  // guest GridMedia can never carry an email (the host gallery builds its items separately, with
+  // email).
   identities?: Map<string, UploaderIdentity>,
 ): Promise<GridMedia[]> {
   return Promise.all(
@@ -71,7 +72,10 @@ export async function toGridItems(
         status: "approved" as const,
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
+        // Unverified is the SAFE default: a surface that passes no identities renders no
+        // attribution at all (uploaderName is null), so `false` can never draw a false claim,
+        // while `true` would be one waiting to happen.
+        isVerified: who?.isVerified ?? false,
         // Masonry geometry + video badge data (Phase 4). Immutable per id, so
         // they ride OUTSIDE the gallery ETag fingerprint (gallery-fingerprint.ts).
         width: m.width ?? null,

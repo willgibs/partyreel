@@ -9,14 +9,13 @@ import {
 } from "../gallery/registry";
 import { COMPONENTS, componentTitle } from "../rules/rules";
 import { boardSpec } from "../sandbox/registry";
-import { SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
+import { RULED, SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
 import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
 import {
   DOCS,
   type DocId,
   headingsOf,
   landminesOf,
-  listRulings,
   listSpecs,
   listTracks,
   readDoc,
@@ -54,7 +53,13 @@ const FAMILY_NOTE: Record<GalleryFamily, string> = {
     "Colour, type, radius, motion, elevation and light as live swatches.",
 };
 
-const SURFACE_ORDER: Surface[] = ["guest", "host", "shared", "marketing", "admin"];
+const SURFACE_ORDER: Surface[] = [
+  "guest",
+  "host",
+  "shared",
+  "marketing",
+  "admin",
+];
 
 const TOOLS: NavItem[] = [
   {
@@ -68,6 +73,18 @@ const TOOLS: NavItem[] = [
     label: "Reel canvas styles",
     badge: "tool",
     note: "Every reel style side by side: play, scrub, export.",
+  },
+  {
+    href: "/design/lab/tools/reel-live",
+    label: "Live reel",
+    badge: "tool",
+    note: "The rolling composer: a take per loop, arrivals spliced in, a drop on the next frame.",
+  },
+  {
+    href: "/design/lab/tools/reel-video",
+    label: "Reel video windows",
+    badge: "tool",
+    note: "A real mov and webm range-read and decoded into the reel, with the budget's knobs.",
   },
   {
     href: "/design/lab/tools/stream-probe",
@@ -159,7 +176,7 @@ export async function buildNav(): Promise<Nav> {
       label: "Library",
       href: "/design/library",
       blurb:
-        "Everything that binds or informs design work: the rules, the policies, the guidance, the rulings, the doctrine, the components with their contracts, the record.",
+        "Everything that binds or informs design work: the rules, the policies, the guidance, the rulings, the doctrine, the components with their contracts.",
       sections: [
         {
           id: "start",
@@ -186,7 +203,7 @@ export async function buildNav(): Promise<Nav> {
             {
               href: "/design/library/rules",
               label: "The bible",
-              note: `${BIBLE.length} rules in ${BIBLE_GROUPS.length} groups, Will's; the whole of the design law.`,
+              note: `${BIBLE.length} rules in ${BIBLE_GROUPS.length} groups: Will's global working rules.`,
               keywords: BIBLE_GROUPS.map((g) => BIBLE_GROUP_LABEL[g]),
             },
             {
@@ -200,9 +217,9 @@ export async function buildNav(): Promise<Nav> {
               note: "The craft stack and the skills: the default you leave on purpose.",
             },
             {
-              href: "/design/library/rulings",
-              label: "Will's rulings",
-              note: "What Will said, verbatim and dated.",
+              href: "/design/library/rules#rulings",
+              label: "Rulings",
+              note: "What Will ruled for each component and page: the rule it holds today, and why.",
             },
             {
               href: "/design/library/doctrine/design-system",
@@ -254,17 +271,24 @@ export async function buildNav(): Promise<Nav> {
           ],
         },
         ...boards,
-        {
-          id: "proposals",
-          label: "Proposals",
-          items: specs.map((s) => ({
-            href: `/design/lab/proposals/${s.slug}`,
-            label: s.title,
-            id: s.slug,
-            badge: "proposal" as const,
-            note: s.status ?? "A board's argument; not law until Will rules.",
-          })),
-        },
+        // A proposal document is rare (a board's argument lives in its own
+        // spec.ts), so the section appears only while docs/specs holds one.
+        ...(specs.length > 0
+          ? [
+              {
+                id: "proposals",
+                label: "Proposals",
+                items: specs.map((s) => ({
+                  href: `/design/lab/proposals/${s.slug}`,
+                  label: s.title,
+                  id: s.slug,
+                  badge: "proposal" as const,
+                  note:
+                    s.status ?? "A board's argument; not law until Will rules.",
+                })),
+              },
+            ]
+          : []),
         {
           id: "tracks",
           label: "Tracks",
@@ -447,14 +471,15 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
       ),
     );
 
-  for (const h of listRulings())
+  for (const r of RULED)
     out.push(
       entry(
         "ruling",
-        h.id,
-        h.text,
-        `/design/library/rulings#${h.id}`,
-        "Will's ruling, verbatim",
+        r.id,
+        r.title,
+        `/design/library/rules#ruling-${r.id}`,
+        r.ruled,
+        [SURFACE_LABEL[r.surface]],
       ),
     );
 

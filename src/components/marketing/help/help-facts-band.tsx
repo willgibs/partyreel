@@ -51,7 +51,7 @@ export function HelpFactsBand({ facts }: { facts: Fact[] }) {
                 <PoppingValue value={fact.value} fired={inView} />
               )}
             </span>
-            <span className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 group-hover:text-foreground sm:text-[11px]">
+            <span className="text-label font-medium text-muted-foreground uppercase transition-colors duration-150 group-hover:text-foreground">
               {fact.label}
             </span>
           </Link>

@@ -13,7 +13,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { joinEvent } from "@/lib/guest/join";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
+
+/**
+ * The one refusal code this queue reads by name (the identity reshape,
+ * 2026-09-21). Everything else is a file's own problem and belongs to the
+ * failure sheet; this one is the SESSION's, and it invalidates every file still
+ * waiting behind it.
+ */
+const VERIFICATION_REQUIRED = "verification_required";
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -26,7 +35,25 @@ export type QueueItem = {
   status: QueueItemStatus;
   progress: number;
   mediaStatus?: string;
+  /**
+   * The row this file became, once it exists. The album needs it for the ONE
+   * case where a finished upload is still drawn on this device and has to stop
+   * being drawn: a HELD file (`mediaStatus === "pending"`) keeps its waiting
+   * tile at the album's head until the host approves it, and the only way to
+   * know that has happened is to see this id arrive in the poll's own list.
+   * Without it the tile would sit beside the real photograph it became.
+   */
+  mediaId?: string;
   error?: string;
+  /**
+   * THE SERVER'S OWN REFUSAL CODE, kept beside its sentence (the door as three steps,
+   * 2026-09-21). The album's failure sheet only ever needed the words, but the door's upload step
+   * has no exit, so what a guest can DO about a refusal has to be derivable: `uploads_closed` and
+   * `cap_reached` open the album (the fail-open), `invalid_session` goes back to the name, and
+   * only the rest may offer a Retry. Absent for a local validation or a transport failure, which
+   * `classifyRefusal` reads as "worth another go".
+   */
+  errorCode?: string;
 };
 
 export type UploadedItem = {
@@ -71,6 +98,8 @@ export function useUploadQueue({
   onSession,
   onUploaded,
   isDemo,
+  isVerified = false,
+  onVerificationRequired,
 }: {
   qrToken: string;
   sessionToken: string | null;
@@ -78,6 +107,23 @@ export function useUploadQueue({
   onUploaded: (item: UploadedItem) => void;
   /** Demo event: simulate uploads client-side, persist nothing. */
   isDemo: boolean;
+  /**
+   * The viewer holds a CONFIRMED account. It decides what a mid-run
+   * `verification_required` costs: a signed-in guest re-joins silently (their
+   * own uid mints a verified row and the run carries on), a name-only guest
+   * cannot, so the run ends and the page re-gates.
+   */
+  isVerified?: boolean;
+  /**
+   * The host turned Require verified emails ON mid-visit; the session is spent.
+   * `hadQueuedFiles` tells the caller whether the failure sheet is about to
+   * open for THIS refusal (a mid-run flip: `true`) or whether nothing was ever
+   * queued (`joinSilently`'s own refusal: `false`, no sheet incoming) — the one
+   * fact a caller cannot infer safely from its own React state at the instant
+   * this fires (DEFECT 1, the alias red-team, 2026-09-21: see
+   * guest-upload.tsx's own comment for why that matters).
+   */
+  onVerificationRequired?: (message: string, hadQueuedFiles: boolean) => void;
 }) {
   const [items, setItems] = useState<QueueItem[]>([]);
   // Ref mirror so the sequential queue runner reads current state synchronously.
@@ -91,6 +137,14 @@ export function useUploadQueue({
   }, [sessionToken]);
   // Files picked before a session exists — uploaded once the session is created.
   const pendingFilesRef = useRef<File[]>([]);
+  // One silent re-join per run at most: a signed-in guest whose row predates the
+  // host's flip gets a fresh, verified row and carries on. Without the guard a
+  // route that keeps refusing would have this loop minting rows forever.
+  const rejoinedRef = useRef(false);
+  const isVerifiedRef = useRef(isVerified);
+  useEffect(() => {
+    isVerifiedRef.current = isVerified;
+  }, [isVerified]);
 
   const sync = useCallback((next: QueueItem[]) => {
     itemsRef.current = next;
@@ -147,6 +201,7 @@ export function useUploadQueue({
             status: "done",
             progress: 100,
             mediaStatus: outcome.status,
+            mediaId: outcome.mediaId,
           });
           onUploaded({
             mediaId: outcome.mediaId,
@@ -155,14 +210,69 @@ export function useUploadQueue({
             kind: outcome.kind,
             status: outcome.status,
           });
-        } else {
-          patch(next.id, { status: "error", error: outcome.message });
+          continue;
         }
+        /* ──────────────────────────────────────────────────────────────────
+           THE FLIP, MID-RUN (the identity reshape, 2026-09-21).
+
+           A host can turn Require verified emails ON while a guest is halfway
+           through twelve files. The route answers 403 `verification_required`,
+           and the difference this branch draws is between one refused FILE and
+           a spent SESSION: if the session is spent, every file still queued
+           behind this one will be refused for the same reason, and letting the
+           loop discover that twelve times over means twelve identical lines in
+           the failure sheet and twelve pointless round trips.
+
+           ★ A SIGNED-IN GUEST SIMPLY RE-JOINS. Their row predates the flip, but
+           their uid is confirmed, so `create_guest` mints a verified one and the
+           run continues on the new token — the guest never learns any of this
+           happened, which is right, because nothing about THEM changed.
+
+           ★ A NAME-ONLY GUEST CANNOT. The session is dropped here (so the next
+           Add meets the gate rather than a token that cannot work) and the rest
+           of the run is failed in place with the server's own sentence, so the
+           failure sheet opens once, lists everything that did not go, and says
+           the same true thing about all of it.
+           ────────────────────────────────────────────────────────────────── */
+        if (outcome.code === VERIFICATION_REQUIRED) {
+          if (isVerifiedRef.current && !rejoinedRef.current) {
+            rejoinedRef.current = true;
+            const rejoined = await joinEvent({ qrToken });
+            if (rejoined.ok) {
+              sessionRef.current = rejoined.guest.sessionToken;
+              onSession(rejoined.guest.sessionToken);
+              // Re-queue the file this refusal cost and go round again.
+              patch(next.id, { status: "queued", progress: 0 });
+              continue;
+            }
+          }
+          sessionRef.current = null;
+          onSession(null);
+          const refused = itemsRef.current.map((it) =>
+            it.id === next.id || it.status === "queued"
+              ? {
+                  ...it,
+                  status: "error" as const,
+                  progress: 0,
+                  error: outcome.message,
+                  errorCode: outcome.code,
+                }
+              : it,
+          );
+          sync(refused);
+          onVerificationRequired?.(outcome.message, true);
+          break;
+        }
+        patch(next.id, {
+          status: "error",
+          error: outcome.message,
+          errorCode: outcome.code,
+        });
       }
     } finally {
       processingRef.current = false;
     }
-  }, [patch, onUploaded, isDemo]);
+  }, [patch, sync, onUploaded, onSession, onVerificationRequired, isDemo, qrToken]);
 
   const enqueue = useCallback(
     (files: File[]) => {
@@ -190,35 +300,43 @@ export function useUploadQueue({
     [onSession, enqueue],
   );
 
-  // Field-less join: no names, no email prompts — create the guest session
-  // silently and go straight to uploading. Demo never touches the network.
+  /**
+   * THE SILENT JOIN, AND IT STAYS NAMELESS (the identity reshape, 2026-09-21).
+   *
+   * This is the path for the two people who never meet the name door: a
+   * SIGNED-IN guest (their profile name is the identity, and `create_guest`
+   * nulls a typed name on a confirmed session anyway) and a guest whose device
+   * already holds a session. A name-only guest reaches `joinEvent` through the
+   * DOOR instead (`guest-name-step.tsx`), which is the only place the name is
+   * typed. So no name is passed here, deliberately, and `joinEvent` exists so
+   * both callers speak to the route through one shape.
+   *
+   * The JOIN's own failure still toasts, and it is now the only upload toast
+   * left: nothing was ever queued, so there is no failure sheet to carry it.
+   */
   const joinSilently = useCallback(async () => {
     if (isDemo) {
       handleJoined("demo");
       return;
     }
-    try {
-      const res = await fetch("/api/guests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qr_token: qrToken }),
-      });
-      const body = (await res.json()) as
-        | { ok: true; session_token: string }
-        | { ok: false; message: string };
-      if (!body.ok) {
-        pendingFilesRef.current = [];
-        toast.error("Couldn't start uploading", { description: body.message });
+    const joined = await joinEvent({ qrToken });
+    if (!joined.ok) {
+      pendingFilesRef.current = [];
+      if (joined.refusal.kind === "verification_required") {
+        // The host requires a confirmed email and this device cannot satisfy
+        // it. The gate says that far better than a toast can. Nothing was ever
+        // queued, so there is no failure sheet standing between here and the
+        // gate: the refresh this raises is honest right away.
+        onVerificationRequired?.(joined.refusal.message, false);
         return;
       }
-      handleJoined(body.session_token);
-    } catch {
-      pendingFilesRef.current = [];
       toast.error("Couldn't start uploading", {
-        description: "Check your connection and try again.",
+        description: joined.refusal.message,
       });
+      return;
     }
-  }, [isDemo, qrToken, handleJoined]);
+    handleJoined(joined.guest.sessionToken);
+  }, [isDemo, qrToken, handleJoined, onVerificationRequired]);
 
   const addFiles = useCallback(
     (files: File[]) => {
@@ -236,11 +354,44 @@ export function useUploadQueue({
   /** Reset an errored item and re-run the queue (identical to the old list Retry). */
   const retry = useCallback(
     (id: string) => {
-      patch(id, { status: "queued", progress: 0, error: undefined });
+      patch(id, {
+        status: "queued",
+        progress: 0,
+        error: undefined,
+        errorCode: undefined,
+      });
       void runQueue();
     },
     [patch, runQueue],
   );
 
-  return { items, addFiles, retry };
+  /**
+   * Drop the named ERRORED items from the queue for good (the failure sheet's
+   * "Not now" and its own close, `failed=sheet` follow-up). Without this a
+   * dismissed failure just sat in `items` forever: the sheet's own list is a
+   * live filter over `items`, so the NEXT run's end saw the same old error
+   * still there and reopened on it (reproduced: refuse `notes.txt`, Not now,
+   * a clean twelve-file run still ended on "1 file did not go - notes.txt").
+   * ★ Status-gated, not id-alone: `retryAll` re-queues each listed id (flips
+   * it to "queued" via `patch`, synchronously through the `itemsRef` mirror)
+   * and THEN closes the sheet, which is the same `dismiss` call reaching the
+   * very ids it just retried. Checking the LIVE status here (not the status
+   * implied by the id being on the list) means a retried item already reads
+   * "queued" by the time this runs and survives; only an id still sitting at
+   * "error" is actually dropped.
+   */
+  const dismiss = useCallback(
+    (ids: readonly string[]) => {
+      if (ids.length === 0) return;
+      const dismissed = new Set(ids);
+      sync(
+        itemsRef.current.filter(
+          (it) => !(dismissed.has(it.id) && it.status === "error"),
+        ),
+      );
+    },
+    [sync],
+  );
+
+  return { items, addFiles, retry, dismiss };
 }

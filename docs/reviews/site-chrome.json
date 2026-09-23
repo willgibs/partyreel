@@ -1,0 +1,68 @@
+{
+  "board": "site-chrome",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-19",
+      "answers": [
+        {
+          "ask": "shape",
+          "choice": "panels",
+          "note": "This makes the site feel far more full, established, and trustworthy. Also, opening the panel and seeing the pages introduces a lot of the product itself (what features it has, what events we're great for, site resources, etc). We'd feel far less reputable, appearing to only have 3 or 0 additional pages to explore",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "holds",
+          "choice": "four",
+          "note": "Resources adds a ton of additional content and trust value beyond features and events.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "returning",
+          "choice": "dashboard",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "phone",
+          "choice": "sheet",
+          "note": "Making visitors route through a hub every time they want to explore a new page is horrible UX/UI design, especially for mobile.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "on-scroll",
+          "choice": "hide",
+          "note": "I would entertain options 1 or 2, but with our alternating dark/light chapters and generally dark navs, it appears kind of grey over paper sections and doesn't feel very visually pleasant. If we could correct that, so when nav is visible over any chapter it looks beautiful, I'd like to circle back to this again. If we return, I'd like the 2 rail version to continue to include the dropdown menus at center.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "foot-job",
+          "choice": "three",
+          "note": "The reason I like this one over 3 (the closing invitation) is because most of our pages close with a CTA section in the same rough shape as your '3' design. Having those back to back would feel very repetitive, would rather them work together. Knowing this now, would love to see a couple additional explorations of footers that work well with that closing CTA pattern above.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "foot-door",
+          "choice": "always",
+          "note": "However, we should always have a demo event set and ready.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        },
+        {
+          "ask": "two-doors",
+          "choice": "one",
+          "note": "We can continue to point to the 'How it Works' page from the resources dropdown card. The pointer in the 'Features' dropdown menu is more subtle (like a secondary option), so the How It Works page primary nav link can be that Resources dropdown card. Just in case my selection ws wrong and doesn't match what I'm describing, the article version would only live under the help center, we'd be pointing to the HIW page version from two separate nav instances. Feel free to clarify with me.",
+          "by": "Will",
+          "at": "2026-09-19T20:53:25Z"
+        }
+      ],
+      "notes": [],
+      "items": []
+    }
+  ]
+}

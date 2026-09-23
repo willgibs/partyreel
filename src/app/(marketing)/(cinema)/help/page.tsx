@@ -94,7 +94,7 @@ export default function HelpIndexPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
+                className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-working text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -113,7 +113,7 @@ export default function HelpIndexPage() {
             </LearnMoreLink>
           </p>
 
-          {/* THE EMBLEM STRIP: the nine categories as a paper instrument
+          {/* THE EMBLEM STRIP: the ten categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
                 the cinema→paper cut — the negative bottom margin ends the
                 dark stage halfway up the strip, so the index arrives out of
@@ -143,7 +143,7 @@ export default function HelpIndexPage() {
                     )}
                   >
                     <CategoryEmblem slug={category.slug} className="scale-90" />
-                    <span className="text-[11px] leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
+                    <span className="text-micro leading-tight whitespace-nowrap text-muted-foreground transition-colors duration-150 group-hover:text-foreground">
                       {category.stripLabel}
                     </span>
                   </a>
@@ -290,7 +290,7 @@ export default function HelpIndexPage() {
                     <div className="flex items-center gap-4">
                       <CategoryEmblem slug={category.slug} size="lg" />
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                        <p className="text-label font-medium text-muted-foreground uppercase">
                           {articles.length}{" "}
                           {articles.length === 1 ? "guide" : "guides"}
                         </p>
@@ -322,7 +322,7 @@ export default function HelpIndexPage() {
                             prefetch={false}
                             className="group/row flex items-center gap-3 py-2.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
                           >
-                            <span className="w-5 shrink-0 text-[11px] text-faint tabular-nums transition-colors duration-150 group-hover/row:text-success">
+                            <span className="w-5 shrink-0 text-micro text-faint tabular-nums transition-colors duration-150 group-hover/row:text-success">
                               {String(articleIndex + 1).padStart(2, "0")}
                             </span>
                             <span className="min-w-0 flex-1">
@@ -369,7 +369,7 @@ export default function HelpIndexPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t pt-6 text-sm">
             <span className="text-muted-foreground">Keep exploring:</span>
             <LearnMoreLink href="/how-it-works" className="text-foreground">
-              How Partyreel works
+              See the loop, start to finish
             </LearnMoreLink>
             <LearnMoreLink href="/pricing" className="text-foreground">
               Pricing

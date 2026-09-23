@@ -1,0 +1,95 @@
+/* THE TWO SURFACES THAT CANNOT BE THE REAL ONE, QUOTED RATHER THAN INVENTED.
+
+   A sonner toast portals to document.body and needs a mounted <Toaster>, so a
+   real one fired inside a frame would land on the lab page instead of in the
+   picture being judged. This is its box on the app's own tokens, at sonner's
+   own 13px, drawn STILL: a toast a reader cannot catch is a toast they cannot
+   judge. The state colours are globals.css's ruled ones (hide = warning, not
+   success), so what is drawn is the copy and the tone the shipped hook passes.
+
+   Positioned FIXED, exactly as sonner has it: the frame IS the viewport (the
+   subtree is portalled into an iframe document), so it lands where a host sees
+   it. An absolute box inside a min-h-full column pins to the bottom of the
+   CONTENT instead, which put it off the bottom of the picture. */
+.hc-toast {
+  position: fixed;
+  z-index: 60;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  max-width: 22rem;
+  border-radius: var(--radius-float);
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0.875rem 1rem;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-layer);
+}
+/* At a phone sonner runs the full width less its 16px offsets. */
+.hc-toast[data-screen="375"] {
+  left: 1rem;
+  right: 1rem;
+  max-width: none;
+}
+.hc-toast[data-tone="success"] > .hc-toast-icon {
+  color: var(--success);
+}
+.hc-toast[data-tone="warning"] > .hc-toast-icon {
+  color: var(--warning);
+}
+.hc-toast-icon {
+  flex-shrink: 0;
+}
+.hc-toast-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The five-second hold's own hairline, on the toast's foot: the time left
+   before the act commits, at the ruled easing and nothing else. */
+.hc-hold {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  transform-origin: left;
+  border-bottom-left-radius: var(--radius-float);
+  border-bottom-right-radius: var(--radius-float);
+  background: var(--warning);
+  animation: hc-drain 5s linear forwards;
+}
+@keyframes hc-drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hc-hold {
+    animation: none;
+    transform: scaleX(0.45);
+  }
+}
+
+/* The peek's full bleed, drawn still. The shipped peek is private state inside
+   the grid, so it can only be quoted here: FIXED, exactly as the product has
+   it, because the frame IS the viewport (an absolute box inside a min-h-full
+   column stops at the foot of the CONTENT, and the photograph ran out of it).
+   The ground is the lightbox's ruled one, `GLASS_BEHIND` on the element, so
+   this rule carries no background of its own: an unlayered background here
+   would outrank the utility and paint the dark room back in. */
+.hc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}

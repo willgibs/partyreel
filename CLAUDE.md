@@ -7,7 +7,7 @@
 > **Next.js 16**, with breaking changes from older Next.
 
 Partyreel is a guest-powered event media platform: a host creates an event and shares a **QR code**; guests scan it
-and upload photos and videos from their phones with no app and no account (a verified email when the host requires
+and upload photos and videos from their phones with no app required (an account, and a confirmed email, when the host asks for
 one); the host curates; the link doubles as the shareable album; every QR exposes Partyreel to future hosts. One
 domain carries the marketing site, the host app, the guest links and the admin portal. The product is built and
 live at partyreel.com with zero real users (Stripe TEST mode; the launch switches deliberately unspent) under the
@@ -24,11 +24,11 @@ the lab, Will's verdicts, then the wiring. Vision and pricing: [`docs/PRD.md`](d
 | What is every open track doing? | [`docs/tracks/`](docs/tracks): one manifest per open `lp/<track>` branch, deleted at its merge |
 | What program is running: roles, the round, the rules? | [`docs/PROGRAM.md`](docs/PROGRAM.md) |
 | What might be next? (provisional) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
-| What shipped in the last two rounds? | [`docs/CHANGELOG.md`](docs/CHANGELOG.md); `git log` for anything older |
-| What binds design work? | the Library at `/design/library` (the bible, every component's contracts, the policies), levelled in [`docs/design/README.md`](docs/design/README.md); Will's rulings in [`docs/design/rulings.md`](docs/design/rulings.md) |
+| What shipped? | `git log`: each merge commit carries its lane's summary |
+| What guides design work? | the Library at `/design/library` (the bible, every component's contracts, the policies: working rules), levelled in [`docs/design/README.md`](docs/design/README.md) |
 | What assets has Will been asked for? | [`docs/ASSETS.md`](docs/ASSETS.md) |
 
-The system docs (what exists and don't-revert) win over the ROADMAP (provisional); the old decision records are folded into them.
+The system docs (what exists and don't-revert) win over the ROADMAP (provisional). Every doc states current rules, never history.
 
 ## Sessions & roles
 
@@ -44,16 +44,16 @@ at boot from `origin/launch-prep` ([`docs/PROGRAM.md`](docs/PROGRAM.md) "Agent b
 3. **Plan, asking hard**: surface every open product, UX or scope decision before building (an agent writes them in
    its manifest under "Questions" with a recommended answer; the Orchestrator asks Will). The expensive failure is
    a confident agent executing the wrong strategy.
-4. **Build** from the Library (`/design/library`: what binds you; the kit at `src/components/lab` for a board;
+4. **Build** from the Library (`/design/library`: the working rules; the kit at `src/components/lab` for a board;
    `src/components/ui` and `src/components/shared` for the product). The bible (22 rules, Will's), a component's
-   contracts and the policies bind; everything else is precedent you may break, judged from the ground up (bible
-   22), in the lab first. An exploration is a catalog to select from, and a favourite lands in the Library as a working version rather than another exploration; every ask carries its
+   contracts and the policies are followed by default and reshaped deliberately when a better solution needs them
+   (say which in your Handoff; the bible only by Will's word); everything else is precedent you may break (bible 22), in the lab first. An exploration is a catalog to select from, and a favourite lands in the Library as a working version rather than another exploration; every ask carries its
    context; ask for the exact asset in your Handoff. Propose a creative delight (`/emil-design-eng`). Leave WHY-comments.
 5. **Test**: Vitest for pure logic; a rolled-back Supabase-MCP RPC check for new SQL; the four-step gate; `get_advisors` after any DDL.
 6. **Verify antagonistically**: force the error cases, the cross-tenant and abuse paths, malformed input; local
    first, then live for the allow-list-gated flows. A lab-only round verifies light: the board at 1440 and 375.
 7. **Commit and hand off** on your own `lp/<track>` the moment the gate is green.
-8. **Record subtractively**: the owning `docs/systems/` doc refined in place (a fact inside your lane, listed in the manifest); the manifest's Record and Deferred lines; nothing else.
+8. **Record subtractively**: the owning `docs/systems/` doc refined in place (a fact inside your lane, listed in the manifest); the manifest's Deferred lines; nothing else.
 
 Clarify hard up front, then execute boldly without re-litigating the plan; stop only for a genuinely new decision.
 The human is a targeted instrument for what you cannot drive (a file upload, a password, a logged-out flow): stage
@@ -143,8 +143,8 @@ signal in the same change (zero silent failures).
 ## Keeping the docs healthy
 
 Two rules: **every fact has one home** (the doc whose question it answers) and **edit in place, never append**
-(refine the line; stale → delete; a shipped narrative → the round's CHANGELOG entry; a deferred task → one line under
-its ROADMAP bucket). **Nothing under `docs/` is history: the current round and the one before; git holds the rest.**
+(refine the line; stale → delete; a shipped narrative → the merge commit's message; a deferred task → one line under
+its ROADMAP bucket). **Nothing under `docs/` is history: a doc states the current rule, fact or state; git holds the rest.**
 A new gotcha goes in its `docs/systems/` doc, never here. The design law is the bible plus each component's contract
 (a test opening with `// @contract-for: <path>`); a contract guards function, never look; never pin copy or a look
 with a test; a rule that blocks better work is a finding for your manifest, not a wall. Markdown is `.prettierignore`d.

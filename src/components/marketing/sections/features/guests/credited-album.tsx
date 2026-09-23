@@ -54,7 +54,7 @@ export function CreditedAlbum() {
                   like the wall chips above it. */}
               <div className="absolute bottom-3 left-3">
                 <div className="flex flex-col gap-0.5 rounded-2xl bg-black/55 px-3 py-1.5 backdrop-blur-sm">
-                  <span className="text-[11px] leading-4 font-medium text-white/90">
+                  <span className="text-caption font-medium text-white/90">
                     Maya
                   </span>
                   <span className="text-[10px] leading-3 text-white/60">
@@ -68,22 +68,19 @@ export function CreditedAlbum() {
       >
         <Reveal className="flex flex-col gap-4">
           <Eyebrow {...rise(0)}>Every shot credited</Eyebrow>
-          <h2
-            {...rise(1)}
-            className="font-heading text-section text-balance"
-          >
+          <h2 {...rise(1)} className="font-heading text-section text-balance">
             Names ride with the photos.
           </h2>
           <p {...rise(2)} className="text-pretty text-muted-foreground">
-            Signed-in guests pick a display name once, and it travels with
-            everything they add: on the tiles, in the lightbox, all through the
-            album. No more mystery folders of somebody&rsquo;s cousin&rsquo;s
-            shots.
+            Every guest picks a display name once, confirmed or typed at the
+            door, and it travels with everything they add: on the tiles, in
+            the lightbox, all through the album. No more mystery folders of
+            somebody&rsquo;s cousin&rsquo;s shots.
           </p>
           <p {...rise(3)} className="text-pretty text-muted-foreground">
-            With accounts required (the default for new events), every upload
-            traces back to a verified guest email. The name is what the room
-            sees; the email stays with you, the host.
+            With verified emails required (the default for new events), every
+            upload traces back to a confirmed guest email. The name is what
+            the room sees; the email stays with you, the host.
           </p>
         </Reveal>
       </MediaSplit>

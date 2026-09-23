@@ -75,6 +75,48 @@ export const commonInit = {
   beforeSend: scrubEvent,
 };
 
+/**
+ * VERCEL FREEZES THE FUNCTION THE INSTANT ITS RESPONSE IS SENT (DEFECT 3, the
+ * alias red-team, 2026-09-21). A bare `captureException`/`captureMessage` only
+ * ENQUEUES an envelope; the SDK's own network write can lose the race against
+ * the serverless runtime being frozen mid-flight. `onRequestError`'s crash path
+ * already awaits `Sentry.flush` (instrumentation.ts), which is exactly why
+ * crashes arrive and thirteen swallowed-error callers' warnings did not (three
+ * presign 403s on the alias, zero `upload_refused_unverified` events; 30 days,
+ * zero warning-level events from `vercel-preview`/`production` at all).
+ *
+ * `after()` (`next/server`) ties the flush to the REQUEST's own lifetime via
+ * Vercel's `waitUntil`, which is the fix. ★ NEVER ON THE CLIENT: four "use
+ * client" boundaries (app/error.tsx -> route-error.tsx, app/global-error.tsx,
+ * marketing-route-error.tsx) import this module for `captureError` alone, so
+ * `next/server` is reached only behind `typeof window` AND a DYNAMIC import —
+ * a static one would hand a browser bundle a module it has no business
+ * resolving. (Verified against the installed `next` package: `after()`'s own
+ * chain — work-async-storage.external -> async-local-storage.js — never hard-
+ * `require`s `async_hooks`; it reads `globalThis.AsyncLocalStorage` with a
+ * fallback, which is why Next allows it on the edge runtime too and why this
+ * dynamic import is safe to bundle, even though it never executes, into the
+ * client files above.) A capture with no request scope behind it (a script, a
+ * test) meets `after()`'s own synchronous throw and flushes directly rather
+ * than losing the event for want of one.
+ */
+function scheduleServerFlush(): void {
+  if (typeof window !== "undefined") return;
+  void import("next/server")
+    .then(({ after }) => {
+      try {
+        after(() => {
+          void Sentry.flush(2000);
+        });
+      } catch {
+        void Sentry.flush(2000);
+      }
+    })
+    .catch(() => {
+      void Sentry.flush(2000);
+    });
+}
+
 /** Record a handled/swallowed error with a consistent `area` tag. Best-effort (Sentry no-ops if off). */
 export function captureError(
   area: SentryArea,
@@ -82,6 +124,7 @@ export function captureError(
   extra?: Record<string, unknown>,
 ): void {
   Sentry.captureException(error, { tags: { area }, extra });
+  scheduleServerFlush();
 }
 
 /** Record a noteworthy non-exception condition (level=warning) with an `area` tag. */
@@ -91,4 +134,5 @@ export function captureWarning(
   extra?: Record<string, unknown>,
 ): void {
   Sentry.captureMessage(message, { level: "warning", tags: { area }, extra });
+  scheduleServerFlush();
 }

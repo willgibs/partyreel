@@ -54,16 +54,17 @@ const LIKES_SIGNAL_MIN = 3;
 const SALT_LIKE_TIE = 11;
 const SALT_SCORE_JITTER = 23;
 
-/** Uploaders we can't name share ONE bucket, so anonymous uploads can't crowd out named guests.
- *  Cannot collide with a real key: an uploaderKey is either a uuid guest_id or the literal "host". */
-const ANONYMOUS_BUCKET = "__anonymous__";
+/** Nameless legacy uploads (from before every upload carried a name, verified or marked) share ONE
+ *  bucket, so they can't crowd out named guests. Cannot collide with a real key: an uploaderKey is
+ *  either a uuid guest_id or the literal "host". */
+const LEGACY_BUCKET = "__legacy__";
 
 export type QuickAddCandidate = {
   id: string;
   type: "photo" | "video";
   /** media.created_at (ISO). Missing/unparseable is treated as the oldest, never as "now". */
   createdAt?: string | null;
-  /** guest_id, "host", or null (the shared anonymous bucket). Drives per-uploader coverage. */
+  /** guest_id, "host", or null (the shared bucket for nameless legacy uploads). Drives per-uploader coverage. */
   uploaderKey?: string | null;
   /** Host-only like count; absent or 0 = unliked. */
   likeCount?: number;
@@ -137,7 +138,7 @@ export function pickQuickAdd(
   // guarantee: uploader A's second-best moment never beats uploader B's best.
   const buckets = new Map<string, Entry[]>();
   for (const entry of byScore) {
-    const key = entry.item.uploaderKey ?? ANONYMOUS_BUCKET;
+    const key = entry.item.uploaderKey ?? LEGACY_BUCKET;
     const bucket = buckets.get(key);
     if (bucket) bucket.push(entry);
     else buckets.set(key, [entry]);

@@ -101,8 +101,8 @@ function SettingsMock() {
           helper="Hold new photos for your approval instead of showing them live."
         />
         <MockSwitchRow
-          label="Require accounts to upload"
-          helper="On (recommended): guests verify a free account to see the full gallery and add photos (a few previews show first), so every upload is tied to an email."
+          label="Require verified emails"
+          helper="On (recommended): guests confirm their email to see the full gallery and add photos (a few previews show first). Off, guests choose a display name before adding photos, shown with a small unverified mark."
         />
       </div>
     </div>

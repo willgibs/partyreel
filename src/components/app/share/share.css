@@ -1,0 +1,105 @@
+/* ── THE CODE'S MORPH. The header's small code and the mini-modal's big code
+   are one object continuing across a state change, so opening the modal tweens
+   between the two boxes instead of cutting (Will, `share=room` note: "clicking
+   it opens a view transition animation-style mini-modal").
+
+   ★ NAME-SCOPED, AND THAT IS THE CONTAINMENT CONTRACT, NOT FUSSINESS.
+   `::view-transition-*` are DOCUMENT-GLOBAL pseudo-elements, exactly like
+   @keyframes: a `::view-transition-group(*)` rule here would silently own every
+   future view transition anywhere in the product, including the two the
+   marketing morphs already run. Targeting only the name we create cannot reach
+   anything else. The binding between `pr-event-code` here and the
+   `viewTransitionName` the door sets is asserted by the mini-modal's contract
+   test, because a rename touching only one side drops the timing with no
+   visible error — the lesson `marketing-css-policy.test.ts` was written from.
+
+   ★ WHY THIS FILE AND NOT globals.css. A component-local sheet imported by the
+   component that needs it is the shipped pattern (shared/river/river.css,
+   shared/trail/trail.css, marketing/sections/home/cinema-hero.css), and it is
+   the only home available this round: theme.css and globals.css belong to the
+   type-ladder lane.
+
+   240ms on --ease-emphasis: inside bible 12's 300ms ceiling, because this is a
+   workflow control a host opens at the door of a party, not a marketing reveal.
+   No reduced-motion block is needed and that is deliberate — the door never
+   STARTS a transition under reduced motion, which is a stronger guarantee than
+   animating at 0.01ms. ── */
+::view-transition-group(pr-event-code) {
+  animation-duration: 240ms;
+  animation-timing-function: var(--ease-emphasis);
+}
+
+/* ── THE COPY POP. Will's `share` note puts a third, subtler event link under
+   the metadata with a direct copy button; the confirmation is the check and the
+   word "Copied" IN PLACE, never a toast — a toast for a copy is a notification
+   about something the reader is already looking at, and the host app fires
+   enough of them.
+
+   90ms is the press's own beat rather than an entrance: the control acknowledges
+   the tap and is done before a reader could describe it. Reduced motion keeps
+   the word and drops the movement, which is the whole content of the signal. ── */
+@keyframes pr-copy-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+[data-copy-pop="on"] {
+  animation: pr-copy-pop 90ms var(--ease-emphasis);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-copy-pop="on"] {
+    animation: none;
+  }
+}
+
+/* ── THE MINI-MODAL'S CODE SIZES ITSELF IN CSS, NOT IN JS. `StyledQr` renders a
+   fixed-pixel SVG from its `size` prop, which a modal that must be 80vw wide in
+   a hand and 260px at a desk cannot express without measuring the viewport and
+   re-rendering the code. One rule does it with no layout effect, no resize
+   listener and no second render: the module stays the quiet-zone authority and
+   the sheet only scales what it already drew.
+
+   `height: auto` with a square viewBox keeps the code square at every width,
+   and a QR that is not square does not scan. ── */
+.pr-code-modal-qr svg {
+  width: min(80vw, 260px);
+  height: auto;
+}
+
+@media (min-width: 40rem) {
+  .pr-code-modal-qr svg {
+    width: 260px;
+  }
+}
+
+/* ── THE SHARE SHEET'S CODE FILLS THE SHEET (`hand=same`, Will 2026-09-21: the
+   surface he kept, with "could be improved a lot" beside it).
+
+   Same mechanism as the mini-modal above, and for the same reason: `StyledQr`
+   renders a fixed-pixel SVG from its `size` prop, and the sheet is a full-width
+   bottom sheet at 375 and a ~448px side panel at a desk. Measuring the sheet
+   and re-rendering the code would cost a layout effect, a resize listener and a
+   second render of the generator; one rule costs none of them, and the module
+   stays the quiet-zone authority.
+
+   ★ THE SIZE PROP IS THE RESOLUTION, THE RULE IS THE SIZE. The component draws
+   at 360 so the downloaded PNG is a usable file and the baked quiet zone is
+   proportional to something real; this scales that drawing to the box. Scaling
+   UP from a small render would be the one direction that costs scannability, so
+   360 is the cap rather than a starting point.
+
+   `height: auto` with a square viewBox keeps the code square at every width,
+   and a QR that is not square does not scan. ── */
+.pr-share-code svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

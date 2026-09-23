@@ -142,15 +142,28 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         </>,
         <>
           If you sign in as a guest, the display-name rule for hosts applies to
-          you. Uploads made without signing in, where a host allows them, carry
-          no name and are attributed to &ldquo;Anonymous&rdquo;.
+          you. Where a host turns off the verified-email requirement, a guest
+          instead provides a typed display name; uploads are attributed to
+          that name, shown with a small unverified mark rather than a
+          confirmed one.
+        </>,
+        <>
+          <strong className="text-foreground">
+            An email address you choose to add
+          </strong>{" "}
+          at an event that does not require one. It is stored unconfirmed and
+          used only so you can claim your uploads from any device if you
+          confirm it later. It is never shown to the host or to other guests.
+          It stays until you confirm it and finish claiming: if someone used
+          your address without you, confirm it and mark those events as not
+          yours, and their uploads are removed and the address detached.
         </>,
       ),
       sub("events", "Events and media"),
       ul(
         "The event name, date, description, cover and settings a host chooses.",
         "The photos and videos you upload, and the smaller preview image we generate from each one for browsing.",
-        "Likes, saved events, follows and blocks, if you use those features, and any reports you file. Reports are stored without your identity.",
+        "Likes, follows and blocks, if you use those features, and any reports you file. Reports are stored without your identity.",
       ),
       sub("upload-records", "Upload records"),
       // trust-safety-forensics.md (A3-lite capture): the one-paragraph disclosure the ADR
@@ -285,17 +298,18 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         "Event links are excluded from search engines by our site settings and by instructions on every event page, and media files are never served from public addresses: the album hands out short-lived signed links as you browse, and a guest's access reaches only the event they joined.",
       ),
       p(
-        "Inside an album, your uploads are attributed to your display name, or to Anonymous. The host of an event can see the email address of each signed-in uploader; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
+        "Inside an album, your uploads are attributed to your confirmed display name, or to a typed display name wearing a small unverified mark. The host of an event can see the email address of each guest who verified one; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
       ),
       // profiles-social.md: host-controlled guest list, no per-guest opt-in; the escape
       // hatches are the ones the ADR names.
       p(
-        "Hosts can turn on a guest list for an event. When it is on, every signed-in uploader is listed by display name to everyone who can see the album. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, upload without signing in where the host allows it, or do not upload to that event. You can also hide any event from your own public profile.",
+        "Hosts can turn on a guest list for an event. When it is on, every guest who added photos is listed by display name to everyone who can see the album, a confirmed name or one wearing a small unverified mark. There is no per-guest opt-in, because uploads are already attributed by name on the same page. If you would rather not appear, do not upload to that event. An event you attended never appears on your own public profile until you turn it on there.",
       ),
       // profiles-social.md: public by existence, indexable, no emails, no
-      // follower counts; blocks filtered server-side.
+      // follower counts; blocks filtered server-side. "Nothing until chosen"
+      // (2026-09-22): attendance is opt-IN now, never opt-out.
       p(
-        "If you claim a public profile, it is visible to anyone at its address, may be indexed by search engines, and lists the events you host and choose to show, and the open events you have contributed to where their hosts show a guest list and you have not hidden them. Profiles never show your email address or your follower counts. Blocking a person removes each of you from the other's social surfaces.",
+        "If you claim a public profile, it is visible to anyone at its address, may be indexed by search engines, and lists the events you host and choose to show, and the open events you attended and chosen to show, where their hosts also show a guest list. Nothing you attend appears there until you turn it on. Profiles never show your email address or your follower counts. Blocking a person removes each of you from the other's social surfaces.",
       ),
     ],
   },
@@ -369,13 +383,14 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     id: "cookies",
     title: "Cookies and browser storage",
     summary:
-      "Two cookies, both essential. No advertising cookies, so no cookie banner.",
+      "Three cookies, all essential. No advertising cookies, so no cookie banner.",
     blocks: [
       p(
         "We use cookies and similar browser storage only to run the Service. We set no advertising or cross-site tracking cookies, which is why you see no cookie banner.",
       ),
       // @supabase/ssr auth cookies (host-only, no .partyreel.com domain);
-      // pr_unlock_<eventId>, 12h TTL (unlock-token.ts).
+      // pr_unlock_<eventId>, 12h TTL (unlock-token.ts);
+      // pr_guest_<eventId>, 60 days (lib/guest/session-cookie.ts) — the door round, 2026-09-21.
       table(
         [
           { header: "Cookie" },
@@ -393,12 +408,17 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
             "Remembers that you entered a password-protected event's password",
             "12 hours",
           ],
+          [
+            "Event guest",
+            "Remembers which guest you are at one event, so the album knows what you have already added. Cleared when you sign out or leave the event",
+            "60 days",
+          ],
         ],
       ),
       // localStorage inventory: pr_session_*, pr_device_id, theme, pr_welcome_*,
       // pr_save_prompt_*, pr_pending_*, pr-no-track.
       p(
-        "Your browser's local storage also holds a few values set by our pages: the session token for each event you joined as a guest, the device identifier described under upload records, your theme choice, small flags such as whether you have seen an event's welcome screen, and an analytics opt-out flag. These are not cookies and are never sent to other sites; clearing your site data for partyreel.com removes them.",
+        "Your browser's local storage also holds a few values set by our pages: the session token for each event you joined as a guest, the device identifier described under upload records, your theme choice, small flags such as whether you have seen an event's welcome screen or added an email at one (never the address itself), and an analytics opt-out flag. These are not cookies and are never sent to other sites; clearing your site data for partyreel.com removes them.",
       ),
       p(
         <>
@@ -496,7 +516,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         ],
       ),
       p(
-        "When something is permanently deleted, it is removed from primary storage first and then from our database. An upload that a signed-in guest removes from someone else's event cannot be restored by that event's host.",
+        "When something is permanently deleted, it is removed from primary storage first and then from our database. An upload that a guest removes themselves, signed in or not, cannot be restored by that event's host.",
       ),
     ],
   },
@@ -512,12 +532,15 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           uploaded comes back out at the quality it went in, one item at a time
           or the whole album at once.
         </>,
-        // remove_my_upload: dashboard Uploads tab; anonymous uploaders ask the host.
+        // remove_my_upload (signed in, the album or the dashboard's Uploads tab) and
+        // remove_my_upload_by_session (unverified, the same device and browser only).
         <>
-          <strong className="text-foreground">Delete your uploads.</strong> If
-          you signed in, you can delete your own uploads from the Uploads tab of
-          your dashboard, in any event, at any time. If you uploaded without
-          signing in, ask the host, who can remove the item instantly.
+          <strong className="text-foreground">Delete your uploads.</strong> Open
+          any photo or video you added and remove it, right on the album,
+          whether or not you signed in; without signing in, this works only
+          from the same phone and browser you uploaded from. A signed-in
+          upload is also reachable from the Uploads tab of your dashboard.
+          Either way the removal is final, for the host too.
         </>,
         <>
           <strong className="text-foreground">Delete your events.</strong> Hosts
@@ -525,9 +548,12 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           recovery bin for 30 days, where they can be restored or purged sooner.
         </>,
         <>
-          <strong className="text-foreground">Stay out of view.</strong> Hide
-          any event from your public profile, and stay off an event’s guest list
-          by not uploading to it while signed in.
+          <strong className="text-foreground">Stay out of view.</strong>{" "}
+          Nothing you attend shows on your public profile until you choose to
+          show it there, and you can turn any event back off at any time.
+          Stay off an event’s guest list by not uploading to it at all: every
+          upload is listed, a confirmed name or one wearing the small
+          unverified mark.
         </>,
         // Self-serve since 2026-09-02: the /account danger zone (request path in
         // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).

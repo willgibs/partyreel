@@ -17,20 +17,37 @@ import { GoDeeper } from "@/components/marketing/sections/features/shared/go-dee
 import { RelatedFeatures } from "@/components/marketing/sections/features/shared/related-features";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { PaperChapter } from "@/components/marketing/system/paper-chapter";
+import { PhotoSection } from "@/components/shared/backdrop/photo-section";
 import { featurePage } from "@/lib/constants/feature-pages";
 
 // THE LIVE ALBUM page, designed from the host's questions outward (its own
 // round, 2026-09-02). Three attention arcs (design-system.md "Chapters"):
-//   1 · cinema, while it happens: the hero (the album filling from the top,
-//       the page's lamp) → getting in (the scan, the welcome, the first
-//       upload; the QR page's story from the album's side) → land once, show
-//       up everywhere (the doorbell as a benefit) → the quiet numbers;
+//   1 · cinema, while it happens: the hero (the live album under the words,
+//       with photographs falling into it) → getting in (the scan, the welcome,
+//       the first upload; the QR page's story from the album's side) → land
+//       once, show up everywhere (the doorbell as a benefit) → the quiet
+//       numbers, lit from their floor → a room, full-bleed, that carries the
+//       chapter across;
 //   2 · paper, the host's desk: your call (Live or Review, the opener, a tier
 //       up on the cut) → names → who can open it → taking it home → how much
 //       fits → it stays (the desk winds down on plans and keeping);
 //   3 · cinema, the close: the doors, nine questions, the band.
 // Every claim traces to the guest and host surfaces; every number derives
 // from limits.ts, tiers.ts and the lifecycle constants inside the sections.
+//
+// ★ THE CHAPTER TURNS THROUGH A PHOTOGRAPH (Will, 2026-09-18: "full image
+// backgrounds sections should commonly serve as chapter transitions, so we go
+// straight from dark to light or vice versa less often... They can close a
+// chapter, open a chapter, or exist individually to separate two chapters", and
+// 2026-09-19 on this page's floor light: "Would work much better with a full
+// image background section beneath so it feels like it's glowing from that,
+// with a less harsh contrast at the transition"). So a bare `PhotoSection`
+// stands BETWEEN the two chapters here: no copy, no plate, the instance of the
+// device that exists to separate two chapters. The quality section's Aurora
+// rises off its floor into the photograph rather than into the paper chapter's
+// white, and the reader crosses the cut through a room instead of over a
+// hairline. It is the album page's own device, not a copy of the home's: there
+// the same section CLOSES chapter one with the copy on its plate.
 const page = featurePage("album");
 
 export const metadata: Metadata = {
@@ -53,6 +70,13 @@ export default function AlbumFeaturePage() {
       <GettingInSection />
       <EverywhereSection />
       <QualitySection />
+      {/* THREE STEPS, NOT FIVE, and the last one is the point. A band this
+          short passes under a thumb in about one screen, so the pool's default
+          five would flicker through it; three lands a reader on frames 0, 3 and
+          5, and `room-frames.ts` keeps the last one the BRIGHTEST on purpose,
+          so the photograph they leave on is the one nearest the paper they are
+          about to meet. */}
+      <PhotoSection steps={3} className="min-h-72 sm:min-h-[26rem]" />
       <PaperChapter>
         <YourCallSection />
         <AttributionSection />

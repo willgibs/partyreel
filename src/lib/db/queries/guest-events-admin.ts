@@ -15,8 +15,11 @@
  */
 import "server-only";
 
+import { seedFor } from "@/lib/avatar/seed";
 import { mustQuery } from "@/lib/db/must-query";
 import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
+import { getEventGuests } from "@/lib/db/queries/social";
+import { guestCount } from "@/lib/events/event-guests";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -94,55 +97,73 @@ export async function getApprovedPhotoTeaser(
 }
 
 /**
- * Header stats for the guest page (Phase 4): the approved media count + how many
- * distinct people contributed (distinct uploader guests, +1 if the host uploaded
- * anything). One admin select of guest_id over approved rows — NUMBERS ONLY ever
- * leave this function (no identities; the contributor count is as benign as the
- * media count).
+ * Header stats for the guest page: the approved media count and how many GUESTS it came from
+ * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (guest by upload, Will 2026-09-22:
+ * "Uploaded 1 photo? You're a guest."), `getEventGuests` in queries/social.ts, the same function the
+ * host's hub reads, so the album and the hub can never say two numbers for one party: a confirmed
+ * guest once per person, a named unconfirmed one once per row, never the host and never a nameless
+ * row. The host is no longer "one of the guests" here, which the old per-row count made them.
+ * NUMBERS ONLY ever leave this function (no identities).
  *
- * Visibility posture: open events are public; a LOCKED password event still gets
- * counts — that's the ratified entry tease ("N photos are waiting" over the ghost
- * grid; cardinality only, zero media URLs pre-unlock). Private never reaches here
- * (the page early-returns), but returns zeros defensively.
+ * The total is a HEAD count (`count: "exact"`), so an album past PostgREST's row cap still says its
+ * real size.
+ *
+ * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
+ * the ratified entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
+ * media URLs pre-unlock). Private never reaches here (the page early-returns), but returns zeros
+ * defensively.
  */
 export async function getGalleryStats(
   event: Pick<GuestEvent, "id" | "visibility">,
-): Promise<{ approvedTotal: number; contributorCount: number }> {
-  if (event.visibility !== "open" && event.visibility !== "password") {
-    return { approvedTotal: 0, contributorCount: 0 };
-  }
-  const { data, error } = await createAdminClient()
-    .from("media")
-    .select("guest_id")
-    .eq("event_id", event.id)
-    .eq("status", "approved");
-  if (error) throw error;
-  const rows = data ?? [];
-  const guests = new Set<string>();
-  let hostUploaded = false;
-  for (const r of rows) {
-    if (r.guest_id) guests.add(r.guest_id);
-    else hostUploaded = true;
-  }
-  return {
-    approvedTotal: rows.length,
-    contributorCount: guests.size + (hostUploaded ? 1 : 0),
-  };
+): Promise<{ approvedTotal: number; guestCount: number }> {
+  if (!countsVisible(event)) return { approvedTotal: 0, guestCount: 0 };
+  const [total, guests] = await Promise.all([
+    createAdminClient()
+      .from("media")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", event.id)
+      .eq("status", "approved"),
+    getGuestCount(event),
+  ]);
+  if (total.error) throw total.error;
+  return { approvedTotal: total.count ?? 0, guestCount: guests };
 }
 
 /**
- * The host's avatar URL for an event's "Hosted by" byline, or null if the host has no avatar.
- * Server-only admin read (the guest page has no JWT): resolve events.host_id, then the host's
- * profiles.avatar_updated_at, then build the URL (reuses getAvatarUrl; a null marker → null).
- * The anon get_event_by_qr_token RPC stays UNCHANGED (no contract change): host_id is never
- * returned as a separate field. It appears only inside the avatar's stable public Storage URL PATH
- * (avatars/<host_id>/avatar.webp) — a non-PII UUID embedded in a URL like any object id, and only
- * for hosts who set BOTH a name + avatar. Callers gate this on a set host name (the byline hides
- * without one), so it's a no-op for nameless hosts.
+ * M alone, for the gallery poll (guest-flow.md, "Stats"): the header's guest count moves when a
+ * guest's first upload lands, and only the server can say whether that upload made a NEW guest (a
+ * returning contributor would be counted twice by any client arithmetic). The poll asks for it
+ * after its 304 check, so the steady poll never pays for it. Same visibility posture and the same
+ * ONE COUNT as the header's stats above.
  */
-export async function getHostAvatarUrl(
+export async function getGuestCount(
+  event: Pick<GuestEvent, "id" | "visibility">,
+): Promise<number> {
+  if (!countsVisible(event)) return 0;
+  return guestCount(await getEventGuests(event.id));
+}
+
+/** Counts are for an open or a password event (the entry tease); never a private one. */
+function countsVisible(event: Pick<GuestEvent, "visibility">): boolean {
+  return event.visibility === "open" || event.visibility === "password";
+}
+
+/**
+ * The host's avatar URL + seeded colour for an event's "Hosted by" byline, or null if the event has
+ * no host. Server-only admin read (the guest page has no JWT): resolve events.host_id once, then the
+ * host's profiles.avatar_updated_at (→ getAvatarUrl; a null marker → no photo) alongside `seedFor`
+ * (→ the Avatar the byline now folds onto, the sixth batch, `seed=account`:
+ * demo-wiring, "never the raw host id on the client"). The anon get_event_by_qr_token RPC stays
+ * UNCHANGED (no contract change): host_id is never returned as a separate field, and never reaches
+ * the browser itself — it appears only inside the avatar's stable public Storage URL PATH
+ * (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and hashed,
+ * one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides without one),
+ * but the seed/avatar pair is resolved whenever a host exists, matching `the-crowd=full`: an unnamed
+ * event never shows the byline, but a NAMED one always gets its host's colour, photo or not.
+ */
+export async function getHostAvatarSeed(
   eventId: string,
-): Promise<string | null> {
+): Promise<{ avatarUrl: string | null; seed: string } | null> {
   const admin = createAdminClient();
   const ev = await mustQuery(
     admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
@@ -158,16 +179,29 @@ export async function getHostAvatarUrl(
       .maybeSingle(),
     "guest page: host avatar marker",
   );
-  return getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null);
+  return {
+    avatarUrl: await getAvatarUrl(ev.host_id, prof?.avatar_updated_at ?? null),
+    seed: seedFor(ev.host_id),
+  };
 }
+
+/**
+ * PostgREST answers at most `max_rows` rows per request (1000 on this project), silently, so a read
+ * that can outgrow one page walks KEYSET pages ordered by id (storage.ts's shape): an offset would
+ * skip a row whenever one is removed mid-read, and the first page asks for the exact count so the
+ * common album (under a thousand items) is ONE round trip. Exported for the paging test.
+ */
+export const IDENTITY_PAGE = 1000;
 
 /**
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
- * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarUrl). Returns the
- * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isAnonymous onto
- * the client (never email). Two batched reads: the host's name (for host uploads), then all media
- * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().
+ * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
+ * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
+ * client (never email). The host's name (for host uploads), then every media row with the
+ * uploader's guest + profile, read to exhaustion in keyset pages (an album past a thousand items
+ * would otherwise lose the identities of everything past the first page). The CASE logic is the
+ * pure resolveUploaderIdentity().
  */
 export async function getUploaderIdentities(
   eventId: string,
@@ -194,17 +228,36 @@ export async function getUploaderIdentities(
     hostName = hp?.display_name ?? null;
   }
 
-  // All media for the event with the uploader's guest + linked profile, one batched read.
-  const { data, error } = await admin
-    .from("media")
-    .select(
-      "id, guest_id, guests!media_guest_id_fkey(user_id, email, profiles!guests_user_id_fkey(display_name))",
-    )
-    .eq("event_id", eventId);
-  if (error) throw error;
-
-  const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
+  // Every media row for the event with the uploader's guest + linked profile, in keyset pages. The
+  // loop never trusts a page's length against the page size (PostgREST clamps to its own max_rows,
+  // so a short page is not proof of the last one): it stops at the first page's count or at an
+  // empty page, whichever comes first.
   const map = new Map<string, UploaderIdentity>();
-  for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+  let total: number | null = null;
+  let lastId: string | null = null;
+  for (;;) {
+    let query = admin
+      .from("media")
+      .select(
+        // The identity reshape (20260921150000): display_name + verified_at are what the one
+        // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
+        // column-scoped, QA #41), which is exactly why this read is on the admin client.
+        "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
+        lastId === null ? { count: "exact" } : undefined,
+      )
+      .eq("event_id", eventId)
+      .order("id", { ascending: true })
+      .limit(IDENTITY_PAGE);
+    if (lastId !== null) query = query.gt("id", lastId);
+    const { data, error, count } = await query;
+    if (error) throw error;
+    if (lastId === null) total = count ?? null;
+
+    const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
+    if (rows.length === 0) break;
+    for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
+    lastId = rows[rows.length - 1].id;
+    if (total !== null && map.size >= total) break;
+  }
   return map;
 }

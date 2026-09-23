@@ -1,48 +1,53 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  Eye,
-  Globe,
-  Images,
-  Lock,
-  Shield,
-  Users,
-} from "lucide-react";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { Eye, Images, Users } from "lucide-react";
 
-import { EventFeed } from "@/components/app/event-feed/event-feed";
-import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
+import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
+import { EventGallery, EventLive } from "@/components/app/event-feed/event-gallery";
+import {
+  LaunchList,
+  launchItems,
+} from "@/components/app/event-feed/launch-list";
 import { EventUploads } from "@/components/app/event-uploads";
-import { GuestList } from "@/components/social/guest-list";
-import { Button } from "@/components/ui/button";
 import { HostAddProvider } from "@/components/app/host-add-provider";
-import { HostCommandStrip } from "@/components/app/host-command-strip";
 import { HostSelectionProvider } from "@/components/app/host-selection-provider";
-import { ReelPanel } from "@/components/app/reel-panel";
-import { ReelProvider } from "@/components/reel/reel-provider";
-import { ReelStageProvider } from "@/components/reel/reel-stage-provider";
+import { EventCodeDoor } from "@/components/app/share/event-code-door";
+import { EventLinkRow } from "@/components/app/share/event-link-row";
+import { EventShareProvider } from "@/components/app/share/event-share-provider";
+import { EventSheets } from "@/components/app/share/event-sheets";
+import { PageHeading } from "@/components/shared/page-heading";
+import { SetCrumbs } from "@/components/shared/crumbs";
+import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
+import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import {
   DEFAULT_TIER,
+  TIER_NAMES,
+  effectiveStorageCap,
+  isSettingLocked,
   toBillingTier,
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
-import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
-import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
-import { getEventGuestList } from "@/lib/db/queries/social";
 import { listEventMedia } from "@/lib/db/queries/media";
-import { withAvatarUrls } from "@/lib/social/cards";
-import { toHostGalleryItems } from "@/lib/event/gallery-items";
-import { resolveInitialEventSection } from "@/lib/event/sections";
 import { getProfile } from "@/lib/db/queries/profile";
+import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
+import {
+  getEventGuests,
+  getEventSocialSettings,
+  getMyProfileSlug,
+} from "@/lib/db/queries/social";
+import { guestCount } from "@/lib/events/event-guests";
+import { toHostGalleryItems } from "@/lib/event/gallery-items";
+import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
+import { preferredEventUrl } from "@/lib/events/share-urls";
+import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
 import { VISIBILITY_LABELS } from "@/lib/events/visibility-labels";
-import { PageHeading } from "@/components/shared/page-heading";
 
 // Presigned gallery URLs are per-request + short-lived, so this page must never
 // be statically cached.
@@ -51,8 +56,15 @@ export const dynamic = "force-dynamic";
 // Next 16: params is a Promise — await it.
 type PageProps = {
   params: Promise<{ eventId: string }>;
-  // `?section=` is the new feed filter; `?eventTab=` is the legacy tab alias (still honored).
-  searchParams: Promise<{ section?: string; eventTab?: string }>;
+  searchParams: Promise<{
+    /** The sheet to open: share | settings. */
+    room?: string;
+    /** The retired feed filter, kept alive as a redirect into the rooms. */
+    section?: string;
+    eventTab?: string;
+    /** `pro` after Checkout returns a buyer to the control that refused them. */
+    welcome?: string;
+  }>;
 };
 
 export async function generateMetadata({
@@ -63,36 +75,59 @@ export async function generateMetadata({
   return { title: event ? event.name : "Event" };
 }
 
-// The host event page, media-forward feed: a minimal header + a Share-primary command strip, then
-// a dashboard-style STACKED, PILL-FILTERED feed (the tabs are retired) — "All" stacks Review +
-// Gallery + Reel in urgency order, pills narrow to one, the review pop-up is inlined, and a
-// contextual floating action bar follows the scroll. Settings + the Deleted bin live on the
-// /settings route; the QR designer rides with the Share dialog.
+/**
+ * THE EVENT AS A HUB (Will, `event=hub`, 2026-09-20: "I love this view. The
+ * additional controls (review, reel, guests, etc) feel much more beautiful,
+ * actionable, and intuitive to hosts than the album-heavy page").
+ *
+ * Top to bottom: a live, scannable CODE at the left of the title + metadata
+ * stack with the subtle link under it; a row of CARDS into the event's rooms;
+ * and the ALBUM beneath them in most-recent order, which is the page's subject
+ * and the reason the host opened it. The retired pieces — the Share-primary
+ * command strip, the five filter pills, the stacked Review / Reel / Guests
+ * sections — became those cards and those rooms.
+ *
+ * ★ THE STRUCTURE IS THE SHARING (his `event` note: "Get the QR and sharing
+ * more infusion to the album UI visually"). The code is not a button that opens
+ * a dialog containing a code; it is the header's left column, always there,
+ * always scannable, and pressing it grows it. That is what carries his remark
+ * on the neighbouring question — "On the event itself, always there ... I did
+ * like your option 3 a lot" — without spending the header on a sharing block.
+ */
 export default async function EventDetailPage({
   params,
   searchParams,
 }: PageProps) {
   const { eventId } = await params;
-  const { section, eventTab } = await searchParams;
+  const { room, section, eventTab, welcome } = await searchParams;
+
+  // A `?section=` deep link predates the rooms. Send it to the room that holds
+  // that section now, rather than to a filter that no longer exists. Gallery
+  // and "all" ARE this page, so they fall through.
+  const legacyRoom = legacySectionRoom(section, eventTab);
+  if (legacyRoom) redirect(`/dashboard/${eventId}/${legacyRoom}`);
+
   const [event, profile] = await Promise.all([getEvent(eventId), getProfile()]);
   // getEvent is RLS-scoped and filters deleted_at — a missing/foreign/deleted
   // event resolves to null, which we treat as a 404 (no leaking existence).
   if (!event) notFound();
 
-  // Tier gates uploads (videos are paid-only). The (app) layout already gated on
-  // getUser(), so profile is the signed-in host's.
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
-  // The guest-facing absolute URL — the qr_token IS the capability (database-security.md),
-  // straight from the row. One link per event (guest-flow.md): the command strip's
-  // Share encodes it.
+  // The guest-facing absolute URL — the qr_token IS the capability
+  // (database-security.md), straight from the row. One link per event
+  // (guest-flow.md): the code, the link row and every copy control encode it.
   const siteUrl = await getSiteUrl();
   const eventLink = `${siteUrl}/e/${event.qr_token}`;
+  // ★ What a host READS is the slug when they have claimed one; what anything
+  // COPIES is still the permanent link above. A slug can be released; a code on
+  // a table card cannot be reprinted. Built by the one builder, so the readable
+  // form is a link that opens: a slug lives at `/e/<slug>`, never at the root.
+  const prettyUrl = preferredEventUrl(siteUrl, {
+    qrToken: event.qr_token,
+    customSlug: event.custom_slug,
+  });
 
-  // Live gallery — presign each object key server-side (never expose raw keys).
-  // Link analytics (aggregate counts) ride along, RLS-scoped to this host's event.
-  // likeCounts is HOST-ONLY (get_event_like_counts is gated to this host) — a
-  // curation signal shown as a subtle per-tile badge; never on a guest surface.
   const [
     media,
     linkStats,
@@ -100,25 +135,26 @@ export default async function EventDetailPage({
     likeCounts,
     reelIds,
     reelConfig,
-    guestListEntries,
+    guests,
+    socialSettings,
+    myProfileSlug,
+    jar,
   ] = await Promise.all([
     listEventMedia(event.id),
     getLinkStats(event.id),
     getUploaderIdentities(event.id),
     getEventLikeCounts(event.id),
     listReelItems(event.id),
-    // The composer config (theme/seed/length/cover); null until the host first composes.
     getReelConfig(event.id),
-    // profiles-social.md Guests section: null = show_guest_list off (or the pre-apply
-    // seam) -> the section renders its turn-it-on teaser instead of a list.
-    getEventGuestList(event.id),
+    getEventGuests(event.id),
+    getEventSocialSettings(event.id),
+    getMyProfileSlug(),
+    cookies(),
   ]);
-  const guestListItems = guestListEntries
-    ? await withAvatarUrls(guestListEntries)
-    : null;
-  // The presign + attribution + quick-add-signal mapping lives in ONE place
-  // (lib/event/gallery-items) because the Studio route needs the identical items;
-  // two pages hand-building "the same" shape is how a field goes missing on one.
+  // The gallery's tile size, painted inline from the cookie (`app-vocabulary`
+  // r1, `gallery-controls-persistence`; events-view.ts's own precedent).
+  const tileSize = resolveTileSize(jar.get(TILE_SIZE_COOKIE)?.value);
+
   const galleryItems = await toHostGalleryItems({
     media,
     eventName: event.name,
@@ -126,212 +162,197 @@ export default async function EventDetailPage({
     likeCounts,
   });
 
-  // Partition for the host view: hold_for_approval uploads arrive as 'pending'
-  // and get their own review queue above the main grid; approved + hidden make
-  // up the rest (the host still sees hidden items so they can unhide). 'removed'
-  // never reaches here — listEventMedia filters it out.
+  // hold_for_approval uploads arrive as 'pending' and live in the Review ROOM;
+  // approved + hidden are the album. 'removed' never reaches here (listEventMedia
+  // filters it) and lives in the bin, which is the album's Deleted filter.
   const pendingItems = galleryItems.filter((m) => m.status === "pending");
   const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
-  // The Review section is always present under moderation (urgency-ordered: top while a queue
-  // waits, bottom when caught up); a moderation-off teaser offers to turn it on. The initial filter
-  // is "all" by default (the review-first behavior is now SPATIAL — the top of the stack — not a
-  // landing tab); a legacy ?eventTab= deep link still resolves (reviews -> the review section).
   const isModerationOn = event.moderation_mode === "hold_for_approval";
-  const initialSection = resolveInitialEventSection(section, eventTab);
-
-  // One "views" metric now (the album/join split is gone); sum keeps historical counts.
   const views = linkStats.qrScans + linkStats.albumViews;
-  // Config-aware: what a guest experiences with the link (visibility + accounts +
-  // uploads). Shares the single-source helper with the settings form's live
-  // preview, so the two never drift. (B folds this into the editorial header.)
-  const accessLine = guestExperienceSummary({
-    visibility: event.visibility,
-    accountRequired: !event.allow_anonymous_uploads,
-    acceptingUploads: event.accepting_uploads,
-  });
 
-  // Header sub-stats (S3·3b·B). contributorCount is computed HERE, not via
-  // getGalleryStats (which zeroes counts for password/private events as a GUEST
-  // privacy guard) so the host always sees real numbers on their OWN event:
-  // distinct guest_id across the visible album + 1 if the host uploaded (a null
-  // guest_id). itemCount mirrors the gallery's "N items" (approved + hidden;
-  // pending lives in the review queue, not the album count).
+  // ★ THE ONE COUNT (guest by upload, Will 2026-09-22: "Uploaded 1 photo?
+  // You're a guest."): the header's number and the Guests card's are the same
+  // guests the album's own header counts (`getEventGuests`), a confirmed guest
+  // once per person and a named unconfirmed one once per row, never the host.
+  // It is read for the host directly, not through getGalleryStats (which zeroes
+  // a private event's counts as a GUEST privacy guard), so a host always sees
+  // the real number on their OWN event, whatever its visibility.
   const visibleMedia = media.filter((m) => m.status !== "pending");
   const itemCount = visibleMedia.length;
-  const guestContributors = new Set<string>();
-  let hostContributed = false;
-  for (const m of visibleMedia) {
-    if (m.guest_id) guestContributors.add(m.guest_id);
-    else hostContributed = true;
-  }
-  const contributorCount = guestContributors.size + (hostContributed ? 1 : 0);
-  // Visibility chip glyph + label (Public / Password / Private).
-  // ★ The word for `visibility = 'open'` is "Public", never "Open" (Will's ruling,
-  // 2026-09-02: "Public sounds much clearer than open"). "Open" belongs to the
-  // ACCEPTING-UPLOADS state alone, which is the chip rendered right beside this one, and
-  // this label read "Open" while the settings selector called the same row "Public".
-  // The word comes from the server-safe record in lib/events/visibility-labels.ts,
-  // the same module the client selector and the marketing access switch read (it used
-  // to be re-typed here because an RSC cannot dot into a "use client" module).
-  const VisibilityIcon =
-    event.visibility === "open"
-      ? Globe
-      : event.visibility === "password"
-        ? Lock
-        : Shield;
-  const visibilityLabel = VISIBILITY_LABELS[event.visibility];
+  const guestsCount = guestCount(guests);
+
+  // ★ Visibility left the header's chip row for the Settings card's value line
+  // (the header's two chips are gone: "accepting uploads" became the code's own
+  // state). The word for `visibility = 'open'` is "Public", never "Open" (Will,
+  // 2026-09-02), and it comes from the one server-safe record.
+  // The launch list's outstanding items (`empty=list`), derived from the event's
+  // own nulls by the same pure function the list renders from — so the section
+  // header's count and the list can never disagree.
+  const launch = launchItems({
+    eventId: event.id,
+    eventDate: event.event_date,
+    description: event.description,
+  });
+
+  const cards = [
+    {
+      id: "review" as const,
+      value: isModerationOn
+        ? pendingItems.length > 0
+          ? `${pendingItems.length} waiting`
+          : "All caught up"
+        : "Off",
+      amber: isModerationOn && pendingItems.length > 0,
+      count: isModerationOn && pendingItems.length > 0 ? pendingItems.length : undefined,
+    },
+    {
+      id: "reel" as const,
+      // The card reads "Create reel" until one exists; the room holds the
+      // builder before birth and the studio after it.
+      value: reelConfig
+        ? `${reelIds.length} ${reelIds.length === 1 ? "clip" : "clips"}`
+        : "Create reel",
+    },
+    {
+      id: "guests" as const,
+      // The room behind this card lists the guests only while the host's list
+      // is on, so the card says the count when it can be opened onto, and the
+      // one step it needs when it cannot.
+      value: socialSettings?.showGuestList
+        ? `${guestsCount} ${guestsCount === 1 ? "guest" : "guests"}`
+        : "Turn on the list",
+    },
+    {
+      id: "settings" as const,
+      value: VISIBILITY_LABELS[event.visibility],
+    },
+  ];
 
   return (
-    <div data-route-fade className="space-y-8">
-      <div className="space-y-4">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" /> Back to events
-        </Link>
-        <div className="space-y-2">
-          {/* No size override: the event name is this page's h1 and wears the
-              ladder's `page` step like every other app title (2026-09-17). */}
-          <PageHeading>{event.name}</PageHeading>
-          {/* Stat line: date + the icon sub-stats (items / contributors / views).
-              Native title only; NO radix Tooltip on these SSR'd elements (the
-              host-hydration regression cause, see architecture.md). */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            {event.event_date && (
-              <span>{formatEventDate(event.event_date)}</span>
-            )}
-            <span
-              className="flex items-center gap-1.5"
-              title="Photos and videos in the album"
-            >
-              <Images className="size-3.5" />
-              {itemCount}
-            </span>
-            <span
-              className="flex items-center gap-1.5"
-              title={
-                contributorCount === 1
-                  ? "1 contributor"
-                  : `${contributorCount} contributors`
-              }
-            >
-              <Users className="size-3.5" />
-              {contributorCount}
-            </span>
-            <span className="flex items-center gap-1.5" title="Views">
-              <Eye className="size-3.5" />
-              {views}
-            </span>
-          </div>
-          {/* Config status: how the link behaves for guests, at a glance. The
-              visibility chip's title carries the full plain-language summary. */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground"
-              title={accessLine}
-            >
-              <VisibilityIcon className="size-3" />
-              {visibilityLabel}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground">
+    // ★ THE ONE WIDE PAGE IN THE HOST APP (Will's `host=same`, 2026-09-19): the
+    // host's album runs to the window's edges. `data-app-wide` is how a page
+    // asks the shell to drop its 1280 cap (app-shell.tsx), so the logo, the
+    // code, the cards row and the album's first column all start on ONE left
+    // line. The words keep the app's measure, pinned left.
+    <div data-route-fade data-app-wide className="space-y-6">
+      {/* app-pricing-wiring's one block on this page (`back=finish`, Will
+          2026-09-20): Checkout returns a buyer to the very control that refused
+          them, with `?room=` already reopening its sheet, and this is the
+          receipt above it. `applied` is the SERVER's tier (the webhook is its
+          sole writer and can lag the redirect by a second), never the marker. */}
+      {welcome === WELCOME_VALUE && (
+        <WelcomeToPro
+          applied={tier !== "free"}
+          planName={TIER_NAMES[tier]}
+          capBytes={effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null)}
+          nextUrl={`/dashboard/${event.id}${room ? `?room=${room}` : ""}`}
+          door={{ label: "Back to what you were doing" }}
+        />
+      )}
+      <SetCrumbs
+        trail={[
+          { label: "Partyreel", href: "/dashboard" },
+          { label: event.name },
+        ]}
+      />
+
+      <EventShareProvider initialSheet={resolveEventSheet(room)}>
+        {/* THE HEADER AS ONE OBJECT: the code's height IS the title + metadata
+            + link stack, so the two columns read as a single block rather than
+            a badge pinned beside a heading. */}
+        <div className="flex max-w-7xl items-center gap-4 sm:gap-5">
+          <EventCodeDoor
+            eventName={event.name}
+            joinUrl={eventLink}
+            qrStyle={event.qr_style}
+            acceptingUploads={event.accepting_uploads}
+          />
+          <div className="min-w-0 flex-1 space-y-1">
+            {/* No size override: the event name is this page's h1 and wears the
+                ladder's `page` step like every other app title. The code beside
+                it is a sibling BUTTON, never a child of the heading. */}
+            <PageHeading className="truncate">{event.name}</PageHeading>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              {event.event_date && (
+                <span>{formatEventDate(event.event_date)}</span>
+              )}
               <span
-                className={`size-1.5 rounded-full ${event.accepting_uploads ? "bg-success" : "bg-muted-foreground/40"}`}
-              />
-              {event.accepting_uploads ? "Accepting uploads" : "Uploads paused"}
-            </span>
+                className="flex items-center gap-1.5"
+                title="Photos and videos in the album"
+              >
+                <Images className="size-3.5" />
+                {itemCount}
+              </span>
+              <span
+                className="flex items-center gap-1.5"
+                title={guestsCount === 1 ? "1 guest" : `${guestsCount} guests`}
+              >
+                <Users className="size-3.5" />
+                {guestsCount}
+              </span>
+              <span className="flex items-center gap-1.5" title="Views">
+                <Eye className="size-3.5" />
+                {views}
+              </span>
+              {/* ★ THE PIP IS THE PAGE'S ONE LIVE ISLAND (`first=live`, Will
+                  2026-09-21). It sits in the metadata row because that is where
+                  a host is already reading the counts it keeps current, and it
+                  renders NOTHING until the Realtime channel is actually
+                  subscribed — a pip claiming "Live" over a dead socket is worse
+                  than no pip. Everything it refreshes is this page's own RSC. */}
+              <EventLive eventId={event.id} qrToken={event.qr_token} />
+            </div>
+            <EventLinkRow prettyUrl={prettyUrl} permanentUrl={eventLink} />
           </div>
         </div>
-      </div>
 
-      {/* HostAddProvider shares the "add photos" state so the feed's contextual floating bar (the
-          Gallery action) opens the SAME upload panel the command strip hosts. ReelProvider wraps the
-          feed (the shared reel-membership source), so adding from the Gallery reflects instantly in
-          the Reel section. The Gallery + Reel sections are pre-rendered SLOTS (client islands fed by
-          RSC-resolved props — presigned, hydration-safe); the Review queue crosses as DATA because
-          its inline triage is interactive (driven by the feed + the floating bar). */}
-      <HostAddProvider>
-        <HostCommandStrip
-          eventId={event.id}
-          eventName={event.name}
-          joinUrl={eventLink}
-          qrStyle={event.qr_style}
-          videosAllowed={videosAllowedForTier(tier)}
-        />
-        <ReelProvider eventId={event.id} initialReelIds={reelIds}>
-          {/* HostSelectionProvider shares the Gallery album bulk-select state so the floating bar's bulk
-              cluster and the gallery grid's tiles + long-press drive one selection; it sits inside
-              ReelProvider (the shared reel membership, which its "Add to reel" bulk action commits).
-              ReelStageProvider wraps the FEED (not just the Reel section) because the reel's
-              lifecycle stage has two readers: the section, which is either the builder or the
-              Marquee, and the floating action bar, which is either Create reel or Open studio.
-              (A ReelReorderProvider used to wrap these two; host-app.md moved reorder into the Studio's
-              dock, so the feed no longer has a reorder MODE to share.) */}
+        <HostAddProvider>
           <HostSelectionProvider>
-            <ReelStageProvider initialCreated={reelConfig != null}>
-              <EventFeed
+            <EventCardsRow eventId={event.id} cards={cards} />
+            <EventGallery
+              eventId={event.id}
+              albumCount={visibleItems.length}
+              launchCount={launch.length}
+              videosAllowed={videosAllowedForTier(tier)}
+              initialTileSize={tileSize}
+            >
+              <EventUploads
                 eventId={event.id}
-                moderationOn={isModerationOn}
-                initialSection={initialSection}
-                pendingItems={pendingItems}
-                galleryCount={visibleItems.length}
-                // ★ The reel count IS listReelItems' length, on purpose. That query already applies
-                // the MEMBERSHIP predicate (media status in approved|hidden, ghosts dropped), so the
-                // pill and the ReelProvider seed agree by construction. Do NOT re-filter here against
-                // visibleItems: a second, differently scoped predicate is exactly how the count and
-                // the grid drifted apart before.
-                reelCount={reelIds.length}
-                guestsCount={guestListItems?.length ?? 0}
-                guestsSection={
-                  guestListItems ? (
-                    <GuestList items={guestListItems} />
-                  ) : (
-                    // The host key is off: the discovery teaser (the review
-                    // moderation-off pattern). The consented flip lives in
-                    // Settings, where the LOUD copy spells out what it does.
-                    <FeedSectionEmpty
-                      icon={Users}
-                      title="Introduce your guests"
-                      desc="Turn on the guest list to name everyone who added photos while signed in, right on the album."
-                      action={
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/dashboard/${event.id}/settings`}>
-                            Guest list settings
-                          </Link>
-                        </Button>
-                      }
-                    />
-                  )
-                }
-                gallerySection={
-                  <EventUploads
+                items={visibleItems}
+                pendingCount={pendingItems.length}
+                shareUrl={eventLink}
+                launchList={
+                  <LaunchList
                     eventId={event.id}
-                    items={visibleItems}
-                    pendingCount={pendingItems.length}
-                    shareUrl={eventLink}
-                  />
-                }
-                reelSection={
-                  <ReelPanel
-                    eventId={event.id}
-                    eventName={event.name}
-                    items={visibleItems}
-                    reelConfig={reelConfig}
-                    // Free reels carry the partyreel.com wordmark (the upgrade nudge); the player
-                    // mirrors it so the host sees what they'll download. The render route re-derives
-                    // this server-side — the client flag is cosmetic only. The tier likewise drives
-                    // the length cap (30s/60s), UX only.
-                    watermark={tier === "free"}
-                    tier={tier}
-                    guestVisible={reelConfig?.guestVisible ?? false}
+                    eventDate={event.event_date}
+                    description={event.description}
                   />
                 }
               />
-            </ReelStageProvider>
+            </EventGallery>
           </HostSelectionProvider>
-        </ReelProvider>
-      </HostAddProvider>
+        </HostAddProvider>
+
+        <EventSheets
+          event={event}
+          tier={tier}
+          pendingCount={pendingItems.length}
+          social={
+            socialSettings
+              ? {
+                  displayInProfile: socialSettings.displayInProfile,
+                  showGuestList: socialSettings.showGuestList,
+                  hostHasSlug: Boolean(myProfileSlug),
+                }
+              : null
+          }
+          joinUrl={eventLink}
+          prettyUrl={prettyUrl}
+          siteUrl={siteUrl}
+          slugLocked={isSettingLocked("custom_slug", tier)}
+        />
+      </EventShareProvider>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Download, Info, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState, type CSSProperties } from "react";
 
@@ -18,18 +18,21 @@ import { NAMES } from "./album-copy";
 
 /**
  * NAMES, as one object: the lightbox with ONE attribution pill cycling its
- * three real states (a display name; the host's own with the Host badge;
- * Anonymous with its info mark), and the index beside it whose active row
- * follows the pill, the same gutter-bar grammar as getting-in so the page's
- * two media-splits rhyme. The pill's anatomy is the app's (src/components/
- * shared/media-lightbox.tsx): name, then "34 of 200" inside the pill in a
- * quieter white, tabular. Reduced motion pins the first state.
+ * three real states (a display name; the host's own with the Host badge; a
+ * typed name wearing the small unverified mark), and the index beside it
+ * whose active row follows the pill, the same gutter-bar grammar as
+ * getting-in so the page's two media-splits rhyme. The pill's anatomy is the
+ * app's (src/components/shared/media-lightbox.tsx): name, then "34 of 200"
+ * inside the pill in a quieter white, tabular. Reduced motion pins the first
+ * state. The third state used to read "Anonymous"; the identity reshape
+ * (2026-09-21) retired that word along with the concept it named — every
+ * upload carries a name now, verified or marked.
  */
 
 const STATES = [
-  { name: "Maya", badge: false, info: false },
-  { name: "Jay", badge: true, info: false },
-  { name: "Anonymous", badge: false, info: true },
+  { name: "Maya", badge: false, unverified: false },
+  { name: "Jay", badge: true, unverified: false },
+  { name: "Theo", badge: false, unverified: true },
 ] as const;
 
 const HOLD_MS = 2800;
@@ -85,7 +88,7 @@ export function AttributionStage() {
                 </span>
                 {/* THE PILL, the app's anatomy: name, badge or mark, the
                     position in a quieter white inside the same capsule. */}
-                <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-[11px] leading-4 font-medium text-white/90">
+                <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-micro font-medium text-white/90">
                   <span className="inline-flex items-center gap-1.5">
                     <TextSwap value={current.name} />
                     {current.badge && (
@@ -93,7 +96,13 @@ export function AttributionStage() {
                         Host
                       </span>
                     )}
-                    {current.info && <Info className="size-3 text-white/60" />}
+                    {current.unverified && (
+                      <span
+                        aria-label="A name with no verified email behind it"
+                        title="A name with no verified email behind it"
+                        className="size-1.5 shrink-0 rounded-full bg-warning"
+                      />
+                    )}
                   </span>
                   <span className="text-white/60 tabular-nums">34 of 200</span>
                 </span>

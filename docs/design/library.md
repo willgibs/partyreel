@@ -9,40 +9,40 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 280 contracts on 45 components · 11 standing boards.**
+**22 laws · 18 policies · 1296 contracts on 168 components · 26 standing boards.**
 
 ## What binds you
 
-In an exploration you obey three things and nothing else: **the bible**, **the contracts of
-every component under a path you own**, and **the policies**. Everything else is precedent,
-guidance, a proposal, a ruling or a landmine: it informs, and an agent that obeys all of it
-builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
+Working rules, not hard rules: an exploration follows **the bible**, **the contracts of every
+component under a path you own** and **the policies** by default, and reshapes one deliberately
+when a better solution needs it (the bible only by Will's word). Everything else informs, and an
+agent that treats all of it as walls builds small. The nine levels, from [`README.md`](README.md#what-binds-you):
 
 | level | binds in an exploration? | what it is |
 | --- | --- | --- |
-| **LAW** law | Always. A rule `under exploration: <your board>` is yours to rewrite; a `retiring` rule is read, not obeyed. | The bible: Will's rules, the whole of the design law. |
-| **CONTRACT** contract | For every component under a path you own. | A component's functional guards (a test opening `// @contract-for`), never its look. |
-| **POLICY** policy | Mechanically; provisional: a policy that blocks better work is a finding. | An agent-written test that holds a line across the tree (a test opening `// @policy:`). |
+| **LAW** law | By default. A better answer against a rule is a question for Will; a rule `under exploration: <your board>` is yours to rewrite; a `retiring` rule is read, not followed. | The bible: Will's global working rules, changed only by his word. |
+| **CONTRACT** contract | For every component under a path you own; change one deliberately with its test, never silently. | A component's functional guards (a test opening `// @contract-for`), never its look. |
+| **POLICY** policy | Mechanically; provisional: one that blocks better work is reshaped in the open. | An agent-written test that holds a line across the tree (a test opening `// @policy:`). |
 | **PROGRAM** program | As process. | How a round works: lanes, light QA, unlimited resources, rising tides, nothing protected. |
 | **GUIDANCE** guidance | No; a departure is flagged on the board. | The craft stack and the skills: the default you depart from on purpose. |
 | **PRECEDENT** precedent | No; rebuild it in a better exploration and say what you broke. | What shipped and why it is shaped so (the system docs' chapters). |
-| **PROPOSAL** proposal | No; read the other boards' before you contradict them. | A board's argument (`docs/specs/<board>.md`); not law until Will rules. |
-| **RULING** ruling | No; history. When a ruling and the bible disagree, the bible is wrong and that is a finding. | What Will said, verbatim and dated (`rulings.md`, the record). |
+| **PROPOSAL** proposal | No; read the other boards' before you contradict them. | A standing board's argument: its asks and recommendations on the desk; not law until Will rules. |
+| **RULING** ruling | No; an exploration may reopen one and says so. When a ruling and the bible disagree, the bible is wrong and that is a finding. | What Will ruled for one component or page: the rule it holds today, and why. |
 | **★** landmine | Know it before you touch its surface. | A silent breakage if reverted; never a design decision. |
 
 ## The law
 
 ### identity
 
-**1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.**
+**1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare. The media is the motion too: photographs travel with weight from a source (out of the code, down through the frame, after a hand), while the words and controls around them stay where they are; the home hero's stream, the river and the image trail are the models.**
 
-The interface stays quiet so the pictures can carry the room, but quiet is not empty: the binary of has-media or is-boring is what the review killed (Will, 2026-09-14). The palette ruling wrote the ramp and kept the accent off (Graphite, 2026-09-17); the light exploration writes the aurora.
+The interface stays quiet so the pictures can carry the room, but quiet is not empty: a page is never forced to choose between having media and being boring. The ramp is Graphite with the accent off, and the Aurora carries the light where there is no picture. Media in motion is the foundation of the visual identity: the pieces that define it move the photographs, each from a source and with a weight, and leave the words and controls in place.
 
 <small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
 
 **2. Marketing and app share one token set. Marketing may be louder in most things (type, motion, color, scale, density); only the tokens are shared by law.**
 
-A visitor who becomes a host should feel no seam between the site and the product, but a marketing site that reads like the app reads bland (Will, 2026-09-14).
+A visitor who becomes a host should feel no seam between the site and the product, but a marketing site that reads like the app reads bland.
 
 <small>enforced by `src/app/css-source-policy.test.ts`, `src/app/globals-theme-contract.test.ts` · `/design/library/rules/one-token-set`</small>
 
@@ -54,7 +54,7 @@ The identity stays achromatic and media-forward; the hues exist so the light in 
 
 **4. A guest surface belongs to the host's event: minimal Partyreel branding, the host's name first.**
 
-Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's. The capture is staged email for the guests who sign up (upload reminders, new-photo notifications), never the event page as a billboard (Will, 2026-09-14).
+Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's. The capture is staged email for the guests who sign up (upload reminders, new-photo notifications), never the event page as a billboard.
 
 <small>held at review · `/design/library/rules/guest-surface-is-the-host`</small>
 
@@ -62,7 +62,7 @@ Guests came for the event, not for us; the QR is the growth loop, and it works b
 
 **5. One heading face on one site ladder. Every heading sits on a step, and the steps keep their order at every width.**
 
-Will, 2026-08-29: normalize the site ladder so the pages read as one site; a page that needs its own scale has not been designed yet. The type ruling wrote the sizes (B, rungs, 2026-09-17), and the ninth batch made the law the ORDER (2026-09-18: "we really shouldn't have any one-off adding instances"): ten steps in theme.css, each with its own leading and tracking, a phone end being the rung that keeps each heading above the one it heads.
+One ladder makes the pages read as one site; a page that needs its own scale has not been designed yet. The law is the ladder's order, never a one-off size: ten steps in theme.css, each with its own leading and tracking, and a phone end on each step that keeps every heading above the one it heads.
 
 <small>enforced by `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/one-site-ladder`</small>
 
@@ -74,7 +74,7 @@ A masthead is the loudest promise on the page, so it must be the word the reader
 
 **7. Two faces, and only two: Inter for everything a person reads, Urbanist for what the page says loudly. There is no mono face in the product; data sits on the body face with tabular figures, and every label, hint and descriptor is the Caption atom.**
 
-Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removed the loader, the atom and every mono class, and redesigned the places where mono did semantic work (a number that is the subject takes the display face; a value that must look like a value takes a muted plate). This rule replaced the retiring mono rule when the sweep landed.
+Mono is gone from the product: where it did semantic work, a number that is the subject takes the display face and a value that must look like a value takes a muted plate.
 
 <small>enforced by `src/app/two-faces-policy.test.ts` · `/design/library/rules/two-faces`</small>
 
@@ -82,7 +82,7 @@ Kill mono entirely (Will, 2026-09-14): the kill-mono sweep removed the loader, t
 
 **8. Sharp surfaces, round actions. Tokens, never literals: surfaces take --radius, floating layers --radius-float, media tiles --radius-tile, every lamp --spill-cadence.**
 
-One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The rounding board ruled the values on 2026-09-18, family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, 3xl and 4xl dropped, a cta size for the 44px action): "This keeps the final pixel calculations much cleaner."
+One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The corners are family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, a cta size for the 44px action), which keeps the pixel arithmetic clean.
 
 <small>enforced by `src/components/marketing/chrome/footer-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/tokens-never-literals`</small>
 
@@ -96,13 +96,13 @@ Nested corners that share a center read as one shape; a ring with a radius of it
 
 **10. In dark, depth is light first, and BOTH shadows are available: the layer under anything the page keeps living behind, the lift where one object really sits on another. A flat surface takes neither, in either mode.**
 
-A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge (Will, 2026-09-14), and the light board ruled both in on 2026-09-17 ("I now see how step, ring, lift, and float work together"), which gave dark and the ink slab the ramp they never had.
+A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge; step, ring, lift and float work together, which gives dark and the ink slab a ramp of their own.
 
 <small>enforced by `src/lib/elevation-policy.test.ts` · `/design/library/rules/depth-in-dark`</small>
 
-**11. A lamp may light a section without media: the footer's seam is the model. The Aurora is the doctrine that replaced the source-and-direction law: one family, never on a light ground, composed for its place rather than repeated.**
+**11. A lamp may light a section without media: the footer's seam is the model. The Aurora is the doctrine: one family, never on a light ground, composed for its place rather than repeated.**
 
-The source-and-direction law kept a monochrome identity from growing a second palette, but it also forbade the lamp Will likes most, the footer's, which emits from nothing (Will, 2026-09-14); the light board wrote the doctrine across eight rounds and retired with it on 2026-09-17.
+A light with a source and a direction keeps a monochrome identity from growing a second palette, yet the lamp that emits from nothing (the footer's seam) is the one Will likes most, so the Aurora allows it and composes each light for its place.
 
 <small>enforced by `src/components/shared/glow-placement.test.ts` · `/design/library/rules/lamps-without-media`</small>
 
@@ -110,7 +110,7 @@ The source-and-direction law kept a monochrome identity from growing a second pa
 
 **12. Animate by frequency: high-frequency instant, occasional standard and under 300 ms, rare delightful. Custom easing and press feedback on every control; no default or linear ease on anything a person touches.**
 
-Theater on a switch a host flips fifty times a night is friction; a first-time moment with no beat is a missed differentiator (the emil craft bar; Will, 2026-06-21).
+Theater on a switch a host flips fifty times a night is friction; a first-time moment with no beat is a missed differentiator (the emil craft bar).
 
 <small>held at review · `/design/library/rules/animate-by-frequency`</small>
 
@@ -128,7 +128,7 @@ A visitor who asked for less motion gets none, and the design still stands at re
 
 **15. Every floating surface rides the floating-layer contract: one corner derived from one token, an entrance chosen by how often the surface opens, and the layer shadow. No surface spells its own.**
 
-Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug (named 2026-08-28, when the nav turned out to be the one menu outside it). The floating-surfaces board wrote it and Will ruled every ask on 2026-09-17: Card's anatomy, submenus at two levels and no more, the corner `nested` (the panel on the floating token, 12px since the corner ladder of 2026-09-18, its rows derived 4px inside it), entrances by frequency.
+Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug. The family is Card's anatomy, submenus at two levels and no more, the corner nested (the panel on the floating token, its rows 4px inside it), and entrances by frequency.
 
 <small>enforced by `src/components/ui/floating-layer.test.ts` · `/design/library/rules/floating-layer-contract`</small>
 
@@ -136,19 +136,19 @@ Menus, dialogs, sheets and popovers are one family, and a stray one reads as a b
 
 **16. Four grounds: cinema, the dark room every dark chapter sits on; paper, the light body; ink, the footer's darker leaf, never a page's chrome; and the muted panel, the set-apart block inside a paper body. A dark hero decides the route group, because the header's skin is chosen by the group's layout and no page can flip it from inside; a utility page runs cinema hero, paper body, ink footer.**
 
-Will, 2026-08-28 and 2026-09-14: the rhythm every marketing page shares is what makes the site one site; the panel is the one thing allowed to break the strict light-dark alternation, and the /about round proved a page cannot fake dark chrome from the paper side.
+The rhythm every marketing page shares is what makes the site one site; the panel is the one thing allowed to break the strict light-dark alternation, and a page cannot fake dark chrome from the paper side.
 
 <small>held at review · `/design/library/rules/four-grounds`</small>
 
 **17. A marketing page is chapters: each opens strong and bespoke, then ramps down through supporting sections until the next opener.**
 
-Will's pacing principle: visual attention is spent at the opener and earned back at the next; a page of equal-weight sections has no rhythm.
+Visual attention is spent at the opener and earned back at the next; a page of equal-weight sections has no rhythm.
 
 <small>held at review · `/design/library/rules/chapters-open-strong`</small>
 
 **18. Every frame is ours: no stock photography on a marketing surface, and a page argues in photographs wherever it can.**
 
-Will pulled the two stock event photos from the first press cut: it feels weird to say here is a real event and show someone else's. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month (2026-09-17). An image we use is one we hold the rights to, so nothing tracks them.
+Saying "here is a real event" over someone else's photograph reads false. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month; an image we use is one we hold the rights to, so nothing tracks them.
 
 <small>enforced by `src/lib/constants/marketing-media.test.ts` · `/design/library/rules/every-frame-is-ours`</small>
 
@@ -160,15 +160,15 @@ It reads as an AI tell; recast with a comma, a colon, parentheses or two sentenc
 
 <small>enforced by `src/lib/no-em-dash-policy.test.ts`, `src/lib/content-policy.test.ts` · `/design/library/rules/no-em-dashes`</small>
 
-**20. Affirmative only: say who we are, never who we are not. The two fences that are product truth stand meanwhile (no human-response or human-moderation promise, no automation absolutes); the `voice` board writes the do's.**
+**20. Say what we are, and name what a guest is spared: an absence a guest is wary of may be named ("No app required."); a sentence shaped as a denial of someone else ("we're not cloud storage") may not. Never promise "no account": a host may require one. The two fences that are product truth stand (no human-response or human-moderation promise, no automation absolutes).**
 
-Will, 2026-08-28: this is about who we are, not who we are not; a fenced use case is a host we told to leave. Reviewed 2026-09-14: a rule of don'ts with no do's is messy, and the voice guide replaces it.
+This is about who we are, not who we are not: a fenced use case is a host we told to leave, and a rule of don'ts with no do's is messy. A real benefit may be named ("No app required."); defining the product by what it is not ("we're not cloud storage") may not, and since many events require an account, "no account" is never promised.
 
-<small>**under exploration: voice** · enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
+<small>enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
 
-**21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the `voice` board establishes the voice one won line at a time, and no copy is pinned by a test meanwhile.**
+**21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the voice is built one won line at a time, in its real place, and no copy is pinned by a test.**
 
-Kill for now (Will, 2026-09-14): all copy is unprotected until the voice exists. The former rule (the thesis and the primary CTA as ruled copy) is retired; marketing-voice.ts stays the one home and no copy is pinned by a test.
+All copy is unprotected: the voice is won one line at a time, judged in its real place. marketing-voice.ts is the one home for the lines that ship, and no copy is pinned by a test.
 
 <small>held at review · `/design/library/rules/copy-is-open`</small>
 
@@ -176,7 +176,7 @@ Kill for now (Will, 2026-09-14): all copy is unprotected until the voice exists.
 
 **22. Rising tides. Nothing is protected: judge every section, component, flow and line from the ground up, asking what the perfect version would be if it did not exist yet, then build that: elevate what already points there, rework what does not, and raise the global system as you go.**
 
-No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak (Will, 2026-09-14).
+No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak.
 
 <small>held at review · `/design/library/rules/rising-tides`</small>
 
@@ -219,10 +219,10 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
 | Bible 15: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
 | Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
-| The record is two rounds deep | a third CHANGELOG entry or one over 160 lines, a STATUS over 120 lines without its two round sections, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
+| The record is a snapshot; git is the history | a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |
 | Every track claims its lane | a malformed track manifest, or two live tracks claiming the same path prefix. | `src/lib/track-manifests.test.ts:1` |
-| One type ladder, and every heading on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a paper stack out of order at either end, and a stock, arbitrary or inline size on a heading. | `src/lib/type-ladder-policy.test.ts:1` |
+| One type ladder, and every heading and sentence on it | a step or radius token theme.css and cn() disagree on, a step name the color namespace already owns, a heading ramp coming back, a stack out of order at either end, a bottom rung under the floor, a stock, arbitrary or inline size on a heading, and an off-step size or a hand-set label tracking on body copy outside the allow-list. | `src/lib/type-ladder-policy.test.ts:1` |
 
 ## Guidance
 
@@ -232,6 +232,7 @@ The default you leave on purpose, never a wall. The whole of it is
 - [The craft stack](guidance.md#the-craft-stack)
 - [Skills](guidance.md#skills)
 - [Inspiration: the Mobbin MCP](guidance.md#inspiration-the-mobbin-mcp)
+- [Standing preferences](guidance.md#standing-preferences)
 - [Boards: the review surface](guidance.md#boards-the-review-surface)
 - [The screenshot gate](guidance.md#the-screenshot-gate)
 - [The departure note](guidance.md#the-departure-note)
@@ -250,7 +251,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/frames/phone-frame.tsx` | the phone bezel (PhoneShell) and the guest-upload mock that fills it | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/frames/qr-frame.tsx` | the scan-to-join card: a drawn QR block, or the live demo code when a URL is passed | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/frames/reel-frame.tsx` | the video-player frame; pass real media and the painted-on transport steps aside | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
-| `src/components/marketing/sections/features/shared/feature-door.tsx` | a feature's door card: the photograph IS the card, plus the chip that surface draws | gives every registry page a photograph, except the QR plate; only ever points at manifest images; keeps the white focus ring, offset inward, on the photographic link |
+| `src/components/marketing/sections/features/shared/feature-door.tsx` | a feature's door card: the photograph IS the card, plus the chip that surface draws | gives every registry page a photograph, except the QR plate; only ever points at manifest images; keeps the white focus ring, offset inward, on the photographic link; never renders a module under the screen-scanning floor; takes the floor from the VALUE, so a longer link makes a bigger plate; carries the floor into the CSS, not only into the arithmetic; draws the quiet zone inside the box, which is what the arithmetic assumes; is decorative, unlinked and unreachable by a keyboard; is one code and one code only; puts the birth point between the plate's edges at every shape; keeps the whole plate inside the door, however short the door is; is manifest photographs, one card each, every one cropped on purpose; paints the code over both scrims, with the flow between them; points the code at the demo rather than at the page it is already on |
 | `src/components/marketing/sections/features/shared/feature-faq.tsx` | the one FAQ band all six feature pages share, and the only place their JSON-LD is emitted | none |
 | `src/components/marketing/sections/features/shared/feature-hero-eyebrow.tsx` | the feature hero's one eyebrow | none |
 | `src/components/marketing/sections/features/shared/ghost-grid.tsx` | the locked-gallery tease: the app's ghost grid, shape and count, zero pixels | none |
@@ -259,6 +260,7 @@ function. A contract never freezes a look.
 | `src/components/marketing/sections/features/shared/text-swap.tsx` | swaps one line of text for another: the old blurs up and out, the new rises in | none |
 | `src/components/marketing/sections/shared/bulk-select-mock.tsx` | the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls | none |
 | `src/components/marketing/sections/shared/confetti-burst.tsx` | the celebratory beat: confetti with real physics, one shot per fire, never an ambient loop | none |
+| `src/components/marketing/sections/shared/how-it-works-stepper.tsx` | the whole six-step loop inside one ordinary section, one step on screen at a time: reads the same single source /how-it-works walks, so a teaser can never be shallower than the page it points at | shows exactly one step, with the count beside it; gives every step a pressed-state button, and pressing one swaps the step; tells the guest's story when asked for it, from the same single source; carries the door into the full walkthrough; gates its entrance on the motion preference, and writes no story of its own |
 | `src/components/marketing/sections/shared/inline-reel-player.tsx` | the poster-first reel surface: no video bytes until someone asks to play | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
 | `src/components/marketing/sections/shared/learn-chevron.tsx` | the bare learn-more chevron, for a row that is already a link and cannot nest another | none |
 | `src/components/marketing/sections/shared/learn-more-link.tsx` | the recurring see-more link: the chevron's arms spread on hover, pure CSS | none |
@@ -269,11 +271,11 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/conveyor.tsx` | the marquee shell: renders its children twice, and owns the loop-pause contract | none |
 | `src/components/marketing/system/cta-band.tsx` | the closing conversion band, with the credit line that ends a page | none |
 | `src/components/marketing/system/demo-cta-link.tsx` | the recurring live-demo link, gated on a configured demo event so it is never dead | none |
-| `src/components/marketing/system/demo-ticket.tsx` | the demo ticket: a scannable QR beside the tap-through, in the hero and the mega-panel | none |
+| `src/components/marketing/system/demo-ticket.tsx` | DemoFrame, the one object every demo door wears (a photograph in a plain mat, the code tucked into its corner: `door=frame`, 2026-09-21, overriding `doors=pile`), presentational for the hero/footer/line/nav mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome sandbox alone | none |
 | `src/components/marketing/system/eyebrow.tsx` | the section eyebrow atom: Inter, uppercase, tracked | none |
 | `src/components/marketing/system/media-split.tsx` | the media-and-copy split; the media half gets the wider run, because media is the color | none |
 | `src/components/marketing/system/morph-delegate.tsx` | one delegated listener grows a clicked card into the page it opens; the cards stay server | none |
-| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; trims by the leading it is cancelling, with the sign that trims MORE at a phone; keeps the display step's descender padding; takes every size from the ladder, never from a number here; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
+| `src/components/marketing/system/page-hero.tsx` | the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions | renders the heading as an h1, never a lesser tag; never puts a reveal-hidden state on the h1 (the LCP rule); keeps one shared gap for every scale; trims the display step's TOP only, never its bottom; trims by the leading it is cancelling, with the sign that trims MORE at a phone; keeps the display step's descender padding; takes every size from the ladder, never from a number here; puts the subhead on the ladder's own step, never a stock size; keeps every scale in the table rather than inline; keeps the side bearing out of the heading class, gated on align; offers three named entrances, and the blur-rise never touches the h1; renders the stage AFTER the lockup, inside the same Container; keeps the tracking squeeze on the display step itself |
 | `src/components/marketing/system/paper-chapter.tsx` | a run of sections forced onto paper inside a cinema page; the flip is a chapter cut | none |
 | `src/components/marketing/system/reveal.tsx` | the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion | none |
 | `src/components/marketing/system/screen-lamp.tsx` | the one underlight: a lit object throws light down, as a SIBLING and never from inside | is a seam that hangs BELOW the object (the one underlight mechanic); renders the lamp AFTER the children, as their sibling; breaks out full-bleed so the field's side edges land off-screen; samples from the DOM it wraps, never from URLs; passes the engine no className (the utilities layer outranks it) |
@@ -283,31 +285,40 @@ function. A contract never freezes a look.
 | `src/components/marketing/system/tilt-card.tsx` | the 3D pointer tilt; mouse only, because a finger on a card must scroll the page | none |
 | `src/components/marketing/system/web-analytics.tsx` | the analytics singleton and the data-track listener | none |
 | `src/components/shared/action-tooltip.tsx` | the lightbox's icon tooltips; never on the SSR'd gallery tiles, which use native title | none |
-| `src/components/shared/anonymous-info.tsx` | the (i) beside an Anonymous credit; tap to open, because guests are on phones | none |
+| `src/components/shared/anonymous-info.tsx` | RETIRED at the identity reshape (2026-09-21) and drawn only by this gallery now: the (i) beside an Anonymous credit, whose concept left the product; a marked name wears unverified-mark.tsx instead | none |
 | `src/components/shared/app-shell.tsx` | the signed-in app frame | none |
 | `src/components/shared/claim-uploads-on-auth.tsx` | claims a guest's uploads onto the account that just signed in | none |
 | `src/components/shared/container.tsx` | the centered page gutter: the single source of horizontal rhythm | none |
+| `src/components/shared/crumbs.tsx` | the one way back in the host app: a trail in the bar that each route declares for itself. A CONTEXT and not a prop, because a page is the (app) layout's grandchild and cannot hand one up; the cost is that the trail lands at hydration, which a fixed-height bar makes invisible | renders nothing at all until a route claims it; is a breadcrumb landmark whose last step is the page itself; makes every step but the last a walkable link; keeps a way UP in reach at a phone's width, where the full trail cannot fit; is declared by every route inside an event, with a walkable parent |
 | `src/components/shared/empty-state.tsx` | the neutral placeholder for an empty gallery, dashboard or list | none |
-| `src/components/shared/floating-add-button.tsx` | the floating Add photos pill, shown only while the header's Add button is off screen | none |
+| `src/components/shared/error-digest.tsx` | a crash's correlation code, with the one sentence saying what it is for and a Copy control; only a render crash passes one, because a 404 throws nothing to correlate | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
+| `src/components/shared/floating-add-button.tsx` | the floating Add photos pill, RETIRED from the product by `chrome=both` (the guest album's deep-scroll chrome is `guest/guest-action-dock.tsx`, which carries Invite beside Add); it stays on disk only because three lab surfaces still draw it, so never mount it in a new surface | none |
 | `src/components/shared/glow-filter.tsx` | the turbulence field every Glow warps through | uses the per-shape pause contract, not one hook for everything; mirrors the pause state onto data-paused for CSS to read; always renders the base beside the band, UNCONDITIONALLY; arms a one-shot by attribute rather than by mounting it; arms a one-shot against the VIEWPORT, not against its own height; accepts no className; never renders the filter host itself; declares the blur on the element, never only in a keyframe; ships the -webkit- pair on every mask declaration; isolates, so the edge layers cannot paint over the lit content; lets an ancestor drive the lamp's position; keeps the scalar drive at the same specificity as the shared mask block; carries the forced-colors, print and no-mask fallbacks; hides the WHOLE lamp where masking is unsupported; keeps every animation inside the no-preference block; namespaces every keyframe it adds under glw-; does not collide with a keyframe name already defined elsewhere; rests the comet where its own animation starts; rests an UNARMED bloom where its own animation starts; has exactly one filter host, and the footer is now on it; declares the filter in exactly one module; mounts it exactly once, in the root layout; has no knob the engine does not read; keeps the host a server component; found the call sites at all; passes theme explicitly, and never 'auto' |
 | `src/components/shared/glow.tsx` | the light primitive; it takes no className, since one utility would erase the warp | uses the per-shape pause contract, not one hook for everything; mirrors the pause state onto data-paused for CSS to read; always renders the base beside the band, UNCONDITIONALLY; arms a one-shot by attribute rather than by mounting it; arms a one-shot against the VIEWPORT, not against its own height; accepts no className; never renders the filter host itself; declares the blur on the element, never only in a keyframe; ships the -webkit- pair on every mask declaration; isolates, so the edge layers cannot paint over the lit content; lets an ancestor drive the lamp's position; keeps the scalar drive at the same specificity as the shared mask block; carries the forced-colors, print and no-mask fallbacks; hides the WHOLE lamp where masking is unsupported; keeps every animation inside the no-preference block; namespaces every keyframe it adds under glw-; does not collide with a keyframe name already defined elsewhere; rests the comet where its own animation starts; rests an UNARMED bloom where its own animation starts; has exactly one filter host, and the footer is now on it; declares the filter in exactly one module; mounts it exactly once, in the root layout; has no knob the engine does not read; keeps the host a server component; found the call sites at all; passes theme explicitly, and never 'auto'; scanned the production lamps; never nests a lamp in TiltCard or Conveyor; never declares the lamp's own wrapper as overflow-hidden; passes a sampled palette wherever media is present; keeps the box the screen's width and ends its sides in a pool |
 | `src/components/shared/kbd.tsx` | the keyboard-key chip; dropped in a tooltip it picks that treatment up by data-slot | none |
 | `src/components/shared/legal-consent-line.tsx` | the one acceptance line tying a sign-in or a guest's entry to Terms and Privacy | links both documents in the same tab by default; opens in a new tab with noopener when asked; both consumers use the component, not a copy |
 | `src/components/shared/logo.tsx` | the brand: the v1 wordmark alone, in the colour of whatever ground it sits on | is the wordmark alone, and names itself; takes the ground's colour rather than carrying a fill of its own; draws the one path, in its own box; keeps the drawing in one home; offers the stand-in mark only when asked, and never beside the wordmark |
-| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark |
+| `src/components/shared/masonry.tsx` | the shared masonry grid: true aspect ratios, space reserved before an image loads | sits on the three kinds of surface, every host named, and nowhere else; sits on the box that owns the radius, never on a wrapper; lands on a bordered surface's own border, which must be 1px and must not clip; pushes the edge out by the border's width, reset on every host; is drawn by a pseudo-element above the image, with the host's own corner, and never takes a tap; makes the host a containing block without taking over its positioning; exists on dark grounds only, through the one definition of dark; renders no control at all when the surface declares no actions; gives a video its play mark and a photograph none; shows the like mark for a count, and nothing at zero; suppresses the like mark where every tile is liked (the Likes feed); draws every action of the set inside a single bar; keeps a control's tap off the lightbox; renders one overlay per tile, as a sibling of the open-lightbox button; renderOverlay is optional — a tile renders without it and still opens; seats the prefix before the first tile (the pending uploads' slot); marks exactly the ids the surface names, and no tile without them; is a MARKER with no tap, and a button only where a filter exists; fires the filter without opening the lightbox underneath it; carries the filter's state, so the mark is never a one-way door; leaves the other three marks exactly as they were; writes data-arrived on exactly the ids the surface names; writes data-landed on exactly the ids the surface names; draws neither when a surface names neither; leaves every existing tile where it was when a newer one is prepended; balances: no column runs away from the shortest; puts a newly landed photograph at the HEAD of the column it joins; lays the rule's count, just past a boundary too; keeps a phone at two, and an unmeasured box unknown |
 | `src/components/shared/media-lightbox.lazy.tsx` | the lazy wrapper around the lightbox | none |
 | `src/components/shared/media-lightbox.tsx` | the media lightbox with its gesture physics | none |
-| `src/components/shared/not-found-screen.tsx` | the shared dead end for the not-found pages; content only, it wraps itself in nothing | none |
+| `src/components/shared/not-found-screen.tsx` | the shared dead end for EVERY failure page, 404 and crash alike; content only, it wraps itself in nothing, and it carries no reporting | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
 | `src/components/shared/page-heading.tsx` | the app's one h1 source: the page tier of the heading scale, above CardTitle | none |
 | `src/components/shared/password-strength-meter.tsx` | soft guidance while a new password is typed; never a gate, the validators enforce | none |
 | `src/components/shared/play-badge.tsx` | the this-is-a-video badge on a poster; pointer-transparent, so it never eats a swipe | none |
-| `src/components/shared/route-error.tsx` | the route error boundary | none |
+| `src/components/shared/route-error.tsx` | the route error boundary: the reporting effect, the digest and the per-surface help line around the shared dead-end screen | renders no code and no Copy without a digest; renders the code, the Copy control and the sentence with one; copies the digest and confirms it in a live region; survives a clipboard that rejects, and still shows the code; survives a missing clipboard API entirely; draws the visual in the icon's place, never both; gives the help line its own stagger slot, below the actions; renders the admin's line without a link, since no runbook exists yet; keeps Sentry out of the shared primitive, so a 404 files nothing; keeps Sentry out of the digest leaf and both failure chromes; reports from every crash boundary; passes a help line, or is one of the three named exceptions; finds the failure files at all; asks no database and mounts no server action; keeps the real guest header off both guest failure screens |
+| `src/components/shared/route-skeleton.tsx` | the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room | marks all three shapes busy for assistive tech; draws the pulse and the hub as bare app-shell content, never a fixed takeover; draws the studio as the room itself: fixed, full-bleed, always dark; never tints the studio's blocks off the theme's --color-foreground; honours reduced motion on every shape; is what all three loading.tsx files delegate to, on their own shape |
 | `src/components/shared/set-name-step.tsx` | the one required add-your-name step, reused at every gate that asks for one | none |
+| `src/components/shared/tile-size-control.tsx` | the gallery's r1 tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Superseded in production by ViewMenu's Tile size group (`app-vocabulary` r2), which is where those two reserved slots actually landed; kept on disk, unmounted, for the lab. Controlled: the caller owns the persistence | accepts exactly the three wired steps; falls back to the wired default on anything else; starts at the server-resolved size and updates optimistically; never persists a no-op pick; draws exactly the three wired steps, the current one pressed; calls onChange with the pressed step; names Sort and Filter as reserved, inert slots |
+| `src/components/shared/tooltip-slide.tsx` | the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide) | none |
+| `src/components/shared/unverified-mark.tsx` | the quiet mark beside a name nobody proved, in MineMark's material, carrying its own explanation and, on your own credit, the way out | renders centered: the track sits at -100% with zero offset; mouse pointers never engage the finger-follow; a sub-10px wiggle stays unlocked (tap territory); a vertical move releases the gesture to the browser; a horizontal lock engages: data-dragging + 1:1 follow; clamps a long pull toward a real neighbor to one slide width; damps the pull past the FIRST item (no prev); slow short drag springs back (200ms settle, no index change); a long slow drag commits by DISTANCE (20% of width); a quick flick commits by VELOCITY regardless of distance; a commit toward a missing neighbor cannot happen at the END of the set; pointercancel snaps back to center; reduced motion: a commit lands INSTANTLY, no transition round-trip; arrow keys step through the set within bounds; arrow keys at the edges do nothing; a CENTER tap on the letterbox closes; the click trailing a drag does NOT; a clean CENTER-third tap on the letterbox closes the viewer; a LEFT-third letterbox tap steps to the previous item (no close); a RIGHT-third letterbox tap steps to the next item (no close); a side tap at an edge is a NO-OP (never an accidental close); the position counter reflects the controlled index (pill format); a drag starting in a PLAYING video's scrubber strip never swipes; the same drag swipes once the video is PAUSED; the GUEST pill carries NO curate controls, even with a status; an APPROVED host item shows Hide + Remove (not Approve/Show); a PENDING host item shows Approve + Hide; Approve sets approved; a HIDDEN host item shows Show (not Hide/Approve); Show sets approved; host Remove is behind a modal confirm (no accidental delete); shows the Trash on the item it allows and never on another; draws the album on its own element, with the media never inside it; wears the ONE material on the pill, the capsule and the close; a confirmed name stands plain, with no mark; a name nobody proved is named AND marked; a row with no name names nobody: no stand-in, no mark, the counter alone; the mark offers the way out on the viewer's OWN upload only; says nothing about proof it was never given: an item with no flag is plain; reads "Unverified", never a claim that a name was checked; names the mark for a screen reader and a pointer alike; about somebody else: anyone can type a name, and they have not confirmed an email; names an unnamed guest without inventing one; about YOURSELF: what you did, what is missing, and the way out; offers no way out on somebody else's credit; tells the HOST about their own switch, and only the host; inside an album: the return marker first, then the claim, then the refresh; outside an album, claims the uploads and leaves no marker it cannot key |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
-| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list | none |
+| `src/components/shared/view-menu.tsx` | the one dropdown every gallery's crowded controls move behind (`app-vocabulary` r2, `controls-home=view-menu`): a caller hands it arbitrary radio `groups` (a label, options, a value, a handler), so the host gallery's tile size/sort/filter and the guest album's tile size/Yours are the same object worn twice. A `disabled` group renders every option inert with a `hint` explaining why, rather than hiding a control he explicitly asked to stop being invisible | renders every group as a radio group named after its own label; calls the picked group's own handler with the chosen value, and no other group's; never fires a disabled group's handler, and says the row is reserved; closes once a real choice lands; names the trigger with the caller's own word |
+| `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets mesh's own backgroundBlendMode on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the fallback the SAME ink on two different avatars; a DIFFERENT seed paints the fallback a different ink; with no seed, the root paints nothing and the fallback stays today's grey |
 | `src/components/ui/badge.tsx` | the small status pill; the admin portal's states are most of its work | none |
-| `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | none |
+| `src/components/ui/button.tsx` | every action in the product: the round family whose radius rides its height | size=%s reads %s with an icon of size-%s; size=%s (%s's height) carries an explicit icon of size-%s; size=%s keeps %s; size=%s keeps its box at %s; size=%s carries its own icon selector, not the base's fallback |
 | `src/components/ui/card.tsx` | the panel the settings, dashboard, admin and auth surfaces are built out of | none |
+| `src/components/ui/command-palette.tsx` | a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees | wires the field to the list it controls; activates the first row before a key is pressed, so Enter always does something; walks the list with the arrows and stops at both ends; reaches both ends with Home and End; opens the row that is highlighted, not the one that was first; moves the highlight with the pointer, so the mouse and the keys agree; hands the query to whoever is filtering, and never filters itself |
+| `src/components/ui/confirm-switch.tsx` | the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently | shows the glyph beside the label, unconditionally; applies at once on the edge confirmWhen refuses; asks on the edge confirmWhen names, and applies nothing until confirmed; applies the pending value on Confirm; leaves the value untouched on Cancel |
 | `src/components/ui/dialog.tsx` | the modal, plus the fullScreen takeover a whole-screen surface asks for | none |
 | `src/components/ui/drawer.tsx` | the vaul bottom sheet; in the kit, and no product surface has claimed it yet | none |
 | `src/components/ui/dropdown-menu.tsx` | the menu behind the user menu, the notification bell and the admin controls | portals the submenu, so a transformed or scrolled parent cannot clip it; refuses a third level, at render, rather than in a review note; wears a title row, labelled groups and a footer rail when a menu has them; renders a two-row overflow with none of them, because Card's cost is real |
@@ -322,22 +333,83 @@ function. A contract never freezes a look.
 | `src/components/ui/separator.tsx` | the hairline rule, and the or divider between the two sign-in paths | none |
 | `src/components/ui/sheet.tsx` | the edge panel; the marketing mobile menu is what it carries today | none |
 | `src/components/ui/skeleton.tsx` | the loading block: a shimmer sweep that goes static under reduced motion | none |
-| `src/components/ui/sonner.tsx` | the themed Toaster | none |
+| `src/components/ui/sonner.tsx` | the themed Toaster (`toasts` r1, 2026-09-20, every ask the board's recommendation): top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, one trailing action/cancel slot every toast reserves (a named door, Undo, Retry) and nothing else changes when it is empty | mounts the band at the top, centered, on both host and guest chrome alike; keeps a toast expanded to its full height with no hover; holds an error open past every finite clock while a success clears on its own; gives a persistent error a close control; a clearing success gets none; reserves the action slot only when a call site fills it; still lets a call site override the forced error defaults |
 | `src/components/ui/switch.tsx` | the settings toggle, from an event's upload rules to the admin kill switches | none |
+| `src/components/ui/table.tsx` |  | writes the tone as data, so a stylesheet and a test can both read it; carries no attribute at all when it has no tone; scopes every tone to its own data value, so one class string serves four; puts the leading edge on the row's first child, not on the row; offers the pressable row as an opt-in |
 | `src/components/ui/tabs.tsx` | the tab group, filled or underlined; only the design lab mounts it today | none |
 | `src/components/ui/textarea.tsx` | the long-form field: an event description, a report, an announcement | none |
+| `src/components/ui/toggle-group.tsx` | the small two-or-three-way switch for how a list is drawn; the dashboard's cover-cards-or-rows toggle is its one call site today | none |
 | `src/components/ui/tooltip.tsx` | the hover and focus label; useless on touch, where a Popover is the honest answer | none |
 
 Contracted but outside the library's directories:
 
-- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (14 guards)
+- `src/app/(app)/account/page.tsx` (6 guards)
+- `src/app/(app)/name-gate.ts` (5 guards)
+- `src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx` (18 guards)
 - `src/app/(dev)/design/(shell)/lab/_desk/session-step.ts` (9 guards)
-- `src/app/(dev)/design/sandbox/registry.ts` (14 guards)
+- `src/app/(dev)/design/sandbox/registry.ts` (16 guards)
+- `src/app/(guest)/u/[slug]/owner-sections.tsx` (4 guards)
+- `src/app/(print)/dashboard/[eventId]/print/page.tsx` (17 guards)
+- `src/app/api/events/[eventId]/live/route.ts` (13 guards)
+- `src/app/globals.css` (6 guards)
+- `src/components/admin/admin-not-found-screen.tsx` (15 guards)
+- `src/components/admin/destructive-sheet.tsx` (7 guards)
+- `src/components/admin/health-band.tsx` (6 guards)
+- `src/components/admin/inbox-pane.tsx` (4 guards)
+- `src/components/app/create-event-wizard.tsx` (17 guards)
+- `src/components/app/dashboard/claims-card.tsx` (10 guards)
+- `src/components/app/dashboard/events-section.tsx` (11 guards)
+- `src/components/app/dashboard/next-step-band.tsx` (7 guards)
+- `src/components/app/event-feed/bulk-bar.tsx` (9 guards)
+- `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
+- `src/components/app/event-feed/event-gallery.tsx` (10 guards)
+- `src/components/app/event-feed/launch-list.tsx` (13 guards)
+- `src/components/app/event-feed/review-room.tsx` (10 guards)
+- `src/components/app/event-qr.tsx` (12 guards)
+- `src/components/app/event-settings/event-settings-sheet.tsx` (10 guards)
+- `src/components/app/event-uploads.tsx` (13 guards)
+- `src/components/app/host-media-grid.tsx` (13 guards)
+- `src/components/app/pricing/lock-chip.tsx` (7 guards)
+- `src/components/app/pricing/pricing-sheet.tsx` (20 guards)
+- `src/components/app/pricing/return-path.ts` (7 guards)
+- `src/components/app/pricing/welcome-to-pro.tsx` (6 guards)
+- `src/components/app/print/print-stock.tsx` (14 guards)
+- `src/components/app/qr-preset-picker.tsx` (17 guards)
+- `src/components/app/share/event-code-door.tsx` (12 guards)
+- `src/components/app/share/event-code-modal.tsx` (12 guards)
+- `src/components/app/share/event-link-row.tsx` (12 guards)
+- `src/components/app/share/event-share-provider.tsx` (12 guards)
+- `src/components/app/share/event-share-sheet.tsx` (12 guards)
+- `src/components/app/share/event-sheets.tsx` (12 guards)
+- `src/components/app/share/use-copy-link.ts` (12 guards)
+- `src/components/app/welcome-flow.tsx` (7 guards)
+- `src/components/auth/account-door.tsx` (17 guards)
+- `src/components/auth/confirm-email-dialog.tsx` (5 guards)
+- `src/components/guest/add-email-dialog.tsx` (6 guards)
+- `src/components/guest/claim-handle-prompt.tsx` (12 guards)
+- `src/components/guest/entry-shell.tsx` (4 guards)
+- `src/components/guest/follow-moment-card.tsx` (12 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
+- `src/components/guest/guest-action-dock.tsx` (7 guards)
+- `src/components/guest/guest-bar.tsx` (15 guards)
+- `src/components/guest/guest-header.tsx` (11 guards)
+- `src/components/guest/guest-masonry.tsx` (5 guards)
+- `src/components/guest/guest-name-menu.tsx` (11 guards)
+- `src/components/guest/guest-name-step.tsx` (43 guards)
+- `src/components/guest/guest-upload.tsx` (32 guards)
+- `src/components/guest/live-gallery.tsx` (27 guards)
+- `src/components/guest/save-account-prompt.tsx` (10 guards)
+- `src/components/guest/upload-step.tsx` (58 guards)
+- `src/components/guest/upload/failure-sheet.tsx` (6 guards)
+- `src/components/guest/upload/intent-sheet.tsx` (9 guards)
+- `src/components/guest/upload/review-step.tsx` (9 guards)
+- `src/components/guest/upload/stack-tile.tsx` (7 guards)
+- `src/components/guest/upload/upload-terms.ts` (4 guards)
+- `src/components/guest/yours-filter.ts` (6 guards)
 - `src/components/lab/apply.tsx` (3 guards)
 - `src/components/lab/before-after.tsx` (12 guards)
-- `src/components/lab/board-page.tsx` (14 guards)
-- `src/components/lab/board-spec.ts` (14 guards)
+- `src/components/lab/board-page.tsx` (16 guards)
+- `src/components/lab/board-spec.ts` (16 guards)
 - `src/components/lab/board-state.tsx` (5 guards)
 - `src/components/lab/catalog.tsx` (12 guards)
 - `src/components/lab/compare-two.tsx` (8 guards)
@@ -347,18 +419,67 @@ Contracted but outside the library's directories:
 - `src/components/lab/item-verdict.tsx` (7 guards)
 - `src/components/lab/lab-chrome.tsx` (6 guards)
 - `src/components/lab/specimen.tsx` (5 guards)
-- `src/components/lab/step.tsx` (30 guards)
-- `src/components/marketing/chrome/marketing-footer.tsx` (5 guards)
+- `src/components/lab/step.tsx` (36 guards)
+- `src/components/marketing/chrome/header-shell.tsx` (11 guards)
+- `src/components/marketing/chrome/marketing-footer.tsx` (9 guards)
+- `src/components/marketing/chrome/session-hint.tsx` (6 guards)
 - `src/components/marketing/legal/legal-document.tsx` (3 guards)
+- `src/components/marketing/sections/events/event-door.tsx` (7 guards)
+- `src/components/marketing/sections/events/event-object.tsx` (12 guards)
+- `src/components/marketing/sections/events/event-type-card.tsx` (6 guards)
 - `src/components/marketing/sections/home/hero-stream.ts` (12 guards)
 - `src/components/marketing/sections/home/pro-card-beam.tsx` (3 guards)
+- `src/components/marketing/sections/pricing/configurator.tsx` (5 guards)
+- `src/components/marketing/sections/pricing/plan-cards.tsx` (3 guards)
 - `src/components/reel/publish-light.tsx` (26 guards)
 - `src/components/reel/reel-share-card.tsx` (26 guards)
 - `src/components/reel/reel-studio.tsx` (26 guards)
+- `src/components/shared/album-stream/album-stream.tsx` (11 guards)
+- `src/components/shared/album-stream/stream-engine.ts` (15 guards)
+- `src/components/shared/backdrop/backdrop-engine.ts` (30 guards)
+- `src/components/shared/backdrop/photo-section.tsx` (19 guards)
+- `src/components/shared/backdrop/room-frames.ts` (30 guards)
+- `src/components/shared/river/qr-door-frames.ts` (11 guards)
+- `src/components/shared/river/qr-plate.tsx` (11 guards)
 - `src/components/shared/river/river-engine.ts` (19 guards)
 - `src/components/shared/river/river.tsx` (8 guards)
+- `src/components/shared/trail/trail-engine.ts` (57 guards)
+- `src/components/shared/trail/trail-frames.ts` (57 guards)
+- `src/components/shared/trail/trail.tsx` (17 guards)
+- `src/components/social/attended-events-visibility.tsx` (6 guards)
+- `src/components/social/guest-list.tsx` (15 guards)
+- `src/components/social/profile-actions-menu.tsx` (4 guards)
+- `src/lib/admin/kpi.ts` (10 guards)
+- `src/lib/admin/palette.ts` (11 guards)
+- `src/lib/admin/queue.ts` (7 guards)
+- `src/lib/admin/tone.ts` (6 guards)
+- `src/lib/auth/door-failure.ts` (13 guards)
+- `src/lib/auth/remembered-email.ts` (9 guards)
+- `src/lib/avatar/gradient.ts` (13 guards)
+- `src/lib/avatar/measure.ts` (3 guards)
+- `src/lib/avatar/seed.ts` (5 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
+- `src/lib/dashboard/arrivals.ts` (6 guards)
+- `src/lib/dashboard/events-view.ts` (10 guards)
+- `src/lib/dashboard/guest-events.ts` (5 guards)
+- `src/lib/dashboard/next-step.ts` (16 guards)
+- `src/lib/db/queries/claims.ts` (12 guards)
+- `src/lib/events/event-guests.ts` (8 guards)
+- `src/lib/events/host-fingerprint.ts` (13 guards)
+- `src/lib/glass.ts` (6 guards)
+- `src/lib/guest/album-return.ts` (8 guards)
+- `src/lib/guest/claim-uploads.ts` (6 guards)
+- `src/lib/guest/join.ts` (23 guards)
+- `src/lib/guest/use-confirm-return.ts` (8 guards)
+- `src/lib/guest/use-upload-queue.ts` (32 guards)
+- `src/lib/observability/sentry.ts` (5 guards)
+- `src/lib/qr/module-floor.ts` (9 guards)
+- `src/lib/qr/stock.ts` (9 guards)
+- `src/lib/shared/arrival.ts` (6 guards)
 - `src/lib/shared/sampled-palette.ts` (10 guards)
+- `src/lib/shared/tile-size-cookie.ts` (7 guards)
+- `src/lib/shared/use-scroll-direction.ts` (8 guards)
+- `src/lib/shared/use-tile-size.ts` (7 guards)
 
 ## The standing boards
 
@@ -366,15 +487,30 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 
 | board | surface | the question |
 | --- | --- | --- |
-| `album-hero` | marketing | Four calm compositions of the album page's hero on one engine (the orbit, the field calmed, the shelf, the arrival), the lockup composed for this page as one block with no gap, the live album centred under each on a 720 / 880 / 1040 step, and the whole shipped route under the pick; the board picks the orbit |
-| `river-visual` | marketing | The river as one stream out of one printed object, every number derived from the box so a 560 column, a 400 card and a 240 thumbnail are one visual at three scales, three origins on one dock switch, three placements composed on production shells, banked with its props and its cost |
+| `identity-door` | guest | Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives |
+| `identity-claims` | host | Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album points to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at |
+| `identity-profile` | guest | Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor |
+| `reel-screen` | guest | Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub |
+| `guest-capture` | guest | Four decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, and whether the name she typed at the door gets one look before it becomes her account's |
+| `voice-guest` | guest | Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside three registers (plain and warm, bright and playful, quiet and exact), so the lines he picks build the voice |
+| `reel-front` | guest | Seven decisions on the album's own head, at Maya and Jay's wedding, every reel frame drawn by the real engine over fixture clips: what the living tile is, its verbs, its states before three items, the beat after a guest's first approved photo, the door's backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card |
+| `site-chrome` | marketing | Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375. |
+| `profile-page` | guest | Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable |
+| `export-flow` | shared | Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone |
+| `reel-host` | host | Six decisions on the real hub, settings sheet, share sheet and dashboard, over Mia and Theo's wedding: where the host's Style control lives, where the Show the reel switch sits, where Play on a screen opens from, how the dashboard says the reel is live, what a host's own cut does to the album, and whether the reel ever explains a waiting queue |
+| `admin-triage` | admin | Eight decisions on presentational forks of the real admin pieces with fixtures, inside the shape the admin board is asking about, at 1440 by 900 with 375 on a knob: what a report looks like in the queue, what a wordless one does, what a verdict costs and records, what a closed report leaves, how a legal hold is reached from the report, what an operator can do from a phone, whether four inboxes speak one language, and who outside the portal is told |
+| `reel-story` | marketing | Seven decisions on the real marketing pieces, at 1440 with 375 on the knob: the one thesis line (drawn on the home's close and the feature door), the /reel page's three-chapter order, what the home's teaser plays, how the pricing rows name the cut, the loop's last step on both sides, the event pages' reel column, and the help category's name |
+| `media-viewer` | shared | Eight decisions on the real viewer's pieces with fixtures, phone first at 375 by 812 and again at 1440, over one open wedding of twenty-six items from nine guests: what a tap opens, what stands beside the photograph, how it says who took it, how the next one comes, whether a guest can get close, how a video meets them, how they get back to where it opened, a tile or the reel, and whether an open photograph has an address |
+| `reel-view` | guest | Eight decisions over the shared wedding album, drawn by the real engine at 1440 with 375 on the knob: the chrome and its fade, the control set's arrangement, the arrival beat, what a tap does, whether the reel follows the device's shape, how fast a photograph holds, how a fresh loop announces itself, and what reduced motion starts on |
+| `emails` | shared | Eight decisions on the real templates.ts functions, drawn inside an inbox mock at a phone's width and a laptop's: one wrapper or two, what it wears, who it's from, whether it carries an unsubscribe, what the sign-in mail could show, which moments deserve a send, whether a guest is ever one of them, and how it reads in a dark inbox |
+| `help-center` | marketing | Seven decisions on the real help pieces (PageHero, the category emblems, the index sheet, the article stage, ChipToc and ArticleToc, Checklist, ArticleFeedback, ReportDialog, the search palette) with hand-authored fixture bodies, at 1440 and 375: who the hub greets first, whether the full index sheet survives below it, whether a how-to leans on prose, a checklist or the real screen, how a guest reaches help from inside the product, whether feedback goes anywhere, what a troubleshooting article does with no bigger picture, and how far search reaches |
+| `host-curation` | host | Eight decisions on the real review surface with fixtures, at 1440 with 375 on the knob: how a waiting photograph is shown, what refusing one is called, what a tap opens, whether the keyboard can clear a queue, what a bulk act offers afterwards, what happens when one lands mid-visit, how many places say the count, and whether the guest ever finds out |
+| `host-storage` | host | Five decisions on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet, over one wedding videographer's account at 110.8 GB across four events: where a host sees each item's size, whether the list reads largest-first or grouped by event, how freeing space reads when a smaller plan is the reason, the pricing sheet's refusal of a size that does not fit, and how a Pro host's six prices sit beside it |
+| `event-safety` | host | Thirteen decisions over Maya and Jay's wedding, where Dom Hale keeps sending a nightclub to a wedding, at 375 with 1440 on the knob: where Block lives and what it says, the door a blocked person meets, the blocked list and what letting back in restores, the Guests room with its list off, how a host chooses who can join, and the doors of approving newcomers, closing to them and an invite list |
+| `reel-cut` | guest | Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode |
+| `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
+| `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
+| `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
-| `album-page` | marketing | Four decisions, no page: the live album or today's filling demo at 896 with its foot faded, three kinds of subtle motion around the words at the home hero's pace, a pool, no light or a halo for the album, and where the page's second light goes |
-| `river-card` | marketing | Four decisions, no page, every option drawn in the real FeatureDoor at its true size in both of its shapes at 1440 and at 375: the code's height, where the photographs end, the link the code encodes (which sets its size), and the short door |
-| `gallery-width` | shared | Four decisions, no page: the tile size (about 180, 240 or 300 px, the columns following the window), how far the album runs (the full window or the app's 1280 column), where the words sit above it, and whether the host's galleries follow; every option the real page at 1280, 1512 and 1920 with its columns measured in the frame |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
-| `glass` | shared | Seven decisions, no page, every option a real app screen in a real viewport over real photographs at 1440 and 375: the recipe itself on the lightbox's action pill (four, named in numbers, each one's contrast and frame cost measured), one grade of glass or two, what sits behind the photograph, the chips over tiles at a phone, the reel's controls, the host's row as three panes or one, and the light ground on its own step |
-| `body-type` | shared | Seven decisions, no page: a guest's reading copy on a real phone, the app's working body on the dashboard and the admin's table, marketing's copy fixed or fluid, the caption step and the floor under it, the label's size-and-tracking pair, the buttons, and the line-height rule; every option is a real surface at a real viewport with its size and leading measured inside the frame |
-| `voice` | shared | Eight decisions, no page: bible 20's open question drawn on the guest sheet's own line, the home hero's sentence, a feature page's headline, the Pro card's line beside the Free card, a host's empty dashboard, the email ask, an empty album and an upload's toast; every candidate set in the shipped surface at 1440 or in a 375 column |
-| `admin` | admin | Seven decisions, no page: the operator's home on one Tuesday's fixtures, the nav for twelve surfaces, the density of a list on the support inbox and the accounts table, how far a state's colour travels on the jobs console, one grammar for three destructive acts, where the backend's health is said, and how much of the product's bar the portal keeps; every option is the real admin components at 1440 by 900, a laptop screen |
 

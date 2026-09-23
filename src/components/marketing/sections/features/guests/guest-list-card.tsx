@@ -8,8 +8,9 @@ import { Switch } from "@/components/ui/switch";
 /**
  * THE GUEST LIST CARD (/features/guests, paper). A calm mock of the host's
  * "Guests" section: the shipped GuestList chip shape (avatar + display name in
- * an h-8 pill) over the setting that governs it, quoting the real settings
- * label ("Show the guest list on the album") verbatim.
+ * an h-8 pill, one wearing the small unverified mark) over the setting that
+ * governs it, quoting the real settings label ("Show the guest list on the
+ * album") verbatim.
  *
  * THE AVATAR COMB (R4's one new delight, recipe 11-avatar-group-hover): the chip
  * row is the most row-like people strip on the page, so hovering one guest lifts
@@ -32,7 +33,9 @@ import { Switch } from "@/components/ui/switch";
 
 const FALLBACK = { lift: -4, falloff: 0.45, scale: 1.05 };
 
-export function GuestListCard({ names }: { names: string[] }) {
+export type GuestListEntry = { name: string; unverified?: boolean };
+
+export function GuestListCard({ names }: { names: GuestListEntry[] }) {
   const rowRef = useRef<HTMLUListElement>(null);
   const [onAlbum, setOnAlbum] = useState(false);
 
@@ -73,11 +76,11 @@ export function GuestListCard({ names }: { names: string[] }) {
     <div className="rounded-2xl border bg-card p-5 shadow-lift sm:p-6">
       <div className="flex items-baseline justify-between">
         {/* "Guests" is the real event-page section label. */}
-        <span className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <span className="text-label font-medium text-muted-foreground uppercase">
           Guests
         </span>
         <span className="text-xs text-muted-foreground tabular-nums">
-          {names.length} signed in
+          {names.length} added photos
         </span>
       </div>
 
@@ -86,22 +89,29 @@ export function GuestListCard({ names }: { names: string[] }) {
         className="mt-4 flex flex-wrap gap-1.5"
         onMouseLeave={() => comb(null, "out")}
       >
-        {names.map((name, i) => (
+        {names.map((guest, i) => (
           <li
-            key={name}
+            key={guest.name}
             className="mkt-avatar flex h-8 items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm"
             onMouseEnter={() => comb(i, "in")}
           >
             <span className="grid size-6 place-items-center rounded-full bg-muted text-[10px] font-medium">
-              {name[0]}
+              {guest.name[0]}
             </span>
-            {name}
+            {guest.name}
+            {guest.unverified && (
+              <span
+                aria-label="A name with no verified email behind it"
+                title="A name with no verified email behind it"
+                className="size-1.5 shrink-0 rounded-full bg-warning"
+              />
+            )}
           </li>
         ))}
       </ul>
 
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-        Guests who uploaded anonymously are never listed.
+        A name with no verified email behind it wears a small mark.
       </p>
 
       {/* The switch the copy beside this card is about, with the settings

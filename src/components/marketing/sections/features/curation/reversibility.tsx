@@ -15,7 +15,7 @@ import {
 
 /**
  * Curation page section 4: the reversibility trio (hide / remove / restore)
- * beside a Trash mock. The countdown chips render from the REAL
+ * beside a Deleted mock. The countdown chips render from the REAL
  * binCountdownLabel + RECENTLY_DELETED_WINDOW_DAYS single sources, and the
  * permanent-delete confirm quotes recently-deleted-grid.tsx verbatim, so the
  * marketing claim can never drift from the shipped lifecycle.
@@ -33,7 +33,7 @@ const TRIO: { icon: LucideIcon; tint: string; title: string; body: string }[] =
       icon: Trash2,
       tint: "text-muted-foreground",
       title: "Remove",
-      body: `Deletes it from the album and into the Trash, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it${"’"}s gone for good.`,
+      body: `Deletes it from the album and into Deleted, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it${"’"}s gone for good.`,
     },
     {
       icon: Undo2,
@@ -43,28 +43,28 @@ const TRIO: { icon: LucideIcon; tint: string; title: string; body: string }[] =
     },
   ];
 
-const TRASH_TILES: { id: string; days: number }[] = [
+const DELETED_TILES: { id: string; days: number }[] = [
   { id: "wedding-arch", days: 0 },
   { id: "wedding-petals", days: 1 },
   { id: "party-balloons", days: 29 },
 ];
 
-function TrashMock() {
+function DeletedMock() {
   return (
     <div
       aria-hidden
       className="rounded-2xl border bg-card p-4 ring-1 ring-foreground/5 sm:p-5"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Trash
+        <p className="text-label font-semibold text-muted-foreground uppercase">
+          Deleted
         </p>
         <Caption className="tabular-nums">
           restore within {RECENTLY_DELETED_WINDOW_DAYS} days
         </Caption>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
-        {TRASH_TILES.map(({ id, days }) => (
+        {DELETED_TILES.map(({ id, days }) => (
           <div
             key={id}
             className="relative aspect-square overflow-hidden rounded-lg"
@@ -90,10 +90,10 @@ function TrashMock() {
           deletes the file for good. It can&rsquo;t be undone.
         </p>
         <div className="mt-3 flex flex-wrap justify-end gap-2">
-          <span className="inline-flex h-7 items-center rounded-lg border bg-background px-2.5 text-[0.8rem] font-medium">
+          <span className="inline-flex h-7 items-center rounded-lg border bg-background px-2.5 text-caption font-medium">
             Cancel
           </span>
-          <span className="inline-flex h-7 items-center rounded-lg bg-destructive px-2.5 text-[0.8rem] font-medium text-white">
+          <span className="inline-flex h-7 items-center rounded-lg bg-destructive px-2.5 text-caption font-medium text-white">
             Delete permanently
           </span>
         </div>
@@ -109,14 +109,14 @@ export function Reversibility() {
       heading="Nothing here has to be final."
       subhead="Curation is a series of small, reversible calls. The only permanent delete is the one you confirm on purpose."
     >
-      {/* One Reveal around the whole split so the Trash mock arrives WITH the
+      {/* One Reveal around the whole split so the Deleted mock arrives WITH the
           trio instead of standing there already-painted; slots continue
           SectionShell's header count (0-2). */}
       <Reveal className="mx-auto mt-12 max-w-5xl">
         <MediaSplit
           media={
             <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-              <TrashMock />
+              <DeletedMock />
             </div>
           }
           mediaSide="end"

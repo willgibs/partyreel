@@ -202,7 +202,7 @@ export function StyleRail({
           {/* The group name is REAL text (not a decorative flourish): a screen
               reader must hear "Looks" / "Layouts" before the 8 or 6 thumbs. */}
           <span className="flex w-4 shrink-0 items-center justify-center">
-            <span className="rotate-180 text-[8px] font-semibold tracking-[0.16em] text-faint uppercase [writing-mode:vertical-rl]">
+            <span className="rotate-180 text-label font-semibold text-faint uppercase [writing-mode:vertical-rl]">
               {STYLE_GROUP_LABEL[kind]}
             </span>
           </span>
@@ -248,7 +248,7 @@ export function StyleWall({
           aria-label={STYLE_GROUP_LABEL[kind]}
           className="mb-2 last:mb-0"
         >
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-white/45 uppercase">
+          <p className="mb-1.5 text-label font-semibold text-white/45 uppercase">
             {STYLE_GROUP_LABEL[kind]}
           </p>
           <div className="grid grid-cols-4 gap-2">

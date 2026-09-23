@@ -25,7 +25,7 @@ Hide is for the blurry duplicate, the one shot someone would rather not see, and
 
 ## Remove
 
-<UiLabel>Remove</UiLabel> in the photo viewer, or <UiLabel>Delete</UiLabel> in Select mode, asks you to confirm: the photo disappears from the album right away and is permanently deleted after a short grace period. Its space comes back to your plan immediately.
+<UiLabel>Remove</UiLabel> in the photo viewer, or <UiLabel>Delete</UiLabel> in Select mode, asks you to confirm: the photo disappears from the album right away and moves to Deleted, permanently gone after <RecoveryDays /> unless you restore it first. Its space comes back to your plan immediately.
 
 ## Deleted, and restoring
 
@@ -39,7 +39,7 @@ Deleted events work the same way, on the dashboard's <UiLabel>Deleted</UiLabel> 
 
 ## Two things in Deleted that won't restore
 
-- **A guest's own deletion.** When a signed-in guest deletes their own upload from their dashboard, it waits out its window in Deleted but <UiLabel>Restore</UiLabel> refuses it. Their choice wins.
+- **A guest's own deletion.** When a guest deletes their own upload, from their dashboard if they confirmed an email or right on the album if they typed a name instead, it waits out its window in Deleted but <UiLabel>Restore</UiLabel> refuses it. Their choice wins.
 - **Anything removed by Partyreel** after a report. Restore answers that the item is no longer available.
 
 ## Deleted has a budget

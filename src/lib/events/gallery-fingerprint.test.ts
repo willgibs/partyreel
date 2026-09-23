@@ -7,22 +7,32 @@ const item = (over: Partial<GalleryFingerprintItem> = {}): GalleryFingerprintIte
   type: "photo",
   uploaderName: "Alice",
   isHost: false,
-  isAnonymous: false,
+  isVerified: true,
   ...over,
 });
 
 const base = {
   access: "full",
+  gate: null as string | null,
   teaserTotal: null,
   bucketId: "991337",
-  items: [item(), item({ id: "m2", uploaderName: null, isAnonymous: true })],
+  items: [
+    item(),
+    item({
+      id: "m2",
+      uploaderName: null,
+      isVerified: false,
+    }),
+  ],
 };
 
 describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    expect(a).toMatch(/^"g1-[A-Za-z0-9_-]{27}"$/);
+    // g4 since the identity contract: the item tuple lost the retired nameless-legacy flag, and a
+    // client holding an older ETag must re-pull rather than 304 past a change it cannot see.
+    expect(a).toMatch(/^"g4-[A-Za-z0-9_-]{27}"$/);
   });
 
   it("changes with item order, membership, and every identity field", () => {
@@ -35,8 +45,10 @@ describe("galleryEtag", () => {
     expect(
       galleryEtag({ ...base, items: [item({ isHost: true }), base.items[1]] }),
     ).not.toBe(a);
+    // The mark is viewer-visible content: a guest who proves an email later must not be served a
+    // 304 that keeps the mark on screen.
     expect(
-      galleryEtag({ ...base, items: [item({ isAnonymous: true }), base.items[1]] }),
+      galleryEtag({ ...base, items: [item({ isVerified: false }), base.items[1]] }),
     ).not.toBe(a);
     expect(
       galleryEtag({ ...base, items: [item({ type: "video" }), base.items[1]] }),
@@ -48,6 +60,22 @@ describe("galleryEtag", () => {
     expect(galleryEtag({ ...base, access: "teaser" })).not.toBe(a);
     expect(galleryEtag({ ...base, teaserTotal: 12 })).not.toBe(a);
     expect(galleryEtag({ ...base, bucketId: "991338" })).not.toBe(a);
+  });
+
+  // THE GATE IS IN THE HASH (the door as three steps, 2026-09-21). `teaser` has two causes now,
+  // and the poll carries the gate to the client's step machine: two decisions that differ only in
+  // WHY must never validate each other, or a guest whose gate moved would 304 onto the step they
+  // already passed. Same items, same level, different door.
+  it("never validates across the GATE behind one access level", () => {
+    const teaser = { ...base, access: "teaser", teaserTotal: 9 };
+    const account = galleryEtag({ ...teaser, gate: "account" });
+    const upload = galleryEtag({ ...teaser, gate: "upload" });
+    const password = galleryEtag({ ...teaser, gate: "password" });
+    expect(account).not.toBe(upload);
+    expect(account).not.toBe(password);
+    expect(upload).not.toBe(password);
+    // And a gate against no gate at the same level.
+    expect(galleryEtag({ ...teaser, gate: null })).not.toBe(upload);
   });
 
   it("null name vs the string 'null' cannot collide (canonical array form)", () => {

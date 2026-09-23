@@ -1,6 +1,8 @@
 /**
- * Consent-scope guard for get_public_profile (migration 20260708120000), parsed
- * as TEXT like the notification-prefs parity guard.
+ * Consent-scope guard for get_public_profile, resolved LATEST-WINS across the whole migration set
+ * (it used to be pinned to 20260919140000, the migration that restored the July anonymous-viewer
+ * gate after 20260919120000 dropped it while adding the bio — a hand-repointed path is exactly how
+ * that drift went unseen the first time). Parsed as TEXT like the notification-prefs parity guard.
  *
  * The ATTENDED arm must stay gated to OPEN events: the album-side guest list
  * renders only to viewers who can OPEN the album, and profiles-social.md preserves
@@ -9,33 +11,72 @@
  * publish the event's name/date + every uploader's attendance to fully
  * anonymous viewers via the anon RPC (the parity-review catch, 2026-07-08).
  *
+ * ★ Since the guest identity round (2026-09-22, migration 20260922122000) that arm is an OPT-IN:
+ * `profile_shown_events` replaced `profile_hidden_events`, so a profile publishes NO attended event
+ * until its owner turns it on (Will: "we don't simply start adding all of their uploads there
+ * publicly until they decide what goes up"), and a `verified_at` belt means only a PROVED identity
+ * attends in public — a typed name or a typed, unproved address publishes nothing even when its
+ * event is chosen. Both are pinned below; reverting either re-publishes by default.
+ *
+ * ★ And since guest by upload (2026-09-23, migration 20260923120000) the arm FOLLOWS THE ALBUM's
+ * Require an upload to view (Will's "Follow the album"): while uploads are open on such an event,
+ * only the host and a signed-in viewer who has passed that event's upload door see the line.
+ *
  * The HOSTED arm deliberately has NO visibility gate: display_in_profile is the
  * host publishing their OWN event link (link-in-bio; discovery decoupled from
  * access), and a gated event still hits its lock at /e/. Don't "fix" that arm.
+ *
+ * ★ QA #36 lives in the album's own gate now. Its first clause ("an account-required album hides
+ * its attendance from an anonymous viewer") was written on the legacy `allow_anonymous_uploads`
+ * flag; the identity contract (20260923150000) dropped that flag and the clause with it, because the
+ * confirmed-viewer gate beside it already says more: on a Require-verified-emails event, only the
+ * host or a CONFIRMED viewer, and an anonymous viewer has no uid to be either. The pins below hold
+ * the gate, and that the legacy flag is named nowhere in the arm.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(
-  join(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "supabase/migrations/20260708120000_profiles_social_foundation.sql",
-  ),
-  "utf8",
-);
+const MIGRATIONS_DIR = join(__dirname, "..", "..", "..", "supabase/migrations");
 
-/** The executable function body (skip the header's commented contract check). */
+function migrationFiles(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+}
+
+/**
+ * The definition that actually WINS on the live DB: the LAST migration in timestamp order that
+ * creates or replaces get_public_profile, sliced to its closing dollar-quote. Same resolver as
+ * db/migration-guards.test.ts — the truth is the migration SET, never one file in it.
+ */
 function functionBody(): string {
-  const start = migration.indexOf("create function public.get_public_profile");
-  expect(start).toBeGreaterThan(-1);
-  const end = migration.indexOf("$$;", start);
-  expect(end).toBeGreaterThan(start);
-  return migration.slice(start, end);
+  let latest: string | null = null;
+  for (const file of migrationFiles()) {
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+    const start = sql.indexOf(
+      "create or replace function public.get_public_profile",
+    );
+    if (start === -1) continue;
+    const end = sql.indexOf("$$;", start);
+    expect(
+      end,
+      `${file}: get_public_profile body never closes`,
+    ).toBeGreaterThan(start);
+    latest = sql.slice(start, end);
+  }
+  expect(latest, "get_public_profile defined nowhere").not.toBeNull();
+  return latest!;
+}
+
+/**
+ * The same SQL with its `--` line comments stripped. A comment may legitimately NAME the thing it
+ * replaced (the attended arm's own comment says which table it stopped reading), so a "must not
+ * contain" assertion has to read CODE, not prose, or it fails on its own documentation.
+ */
+function code(sql: string): string {
+  return sql.replace(/--[^\n]*/g, "");
 }
 
 function arm(body: string, name: "hosted_events" | "attended_events"): string {
@@ -51,17 +92,53 @@ describe("get_public_profile consent scope (migration SQL)", () => {
   const attended = arm(body, "attended_events");
   const hosted = arm(body, "hosted_events");
 
-  it("the attended arm keeps every gate: host key, open-only, hides, approved media", () => {
+  it("the attended arm keeps every gate: host key, open-only, the album's own gate, approved media", () => {
     expect(attended).toContain("e.show_guest_list");
+    // QA #36: an open album that requires a verified email hides its guest list from anyone
+    // without a CONFIRMED email (and so from an anonymous viewer, who has no uid), so the reverse
+    // surface must too. A replacement that drops this gate re-publishes that attendance.
+    expect(code(attended).replace(/\s+/g, " ")).toContain(
+      "and ( not e.require_verified_email or e.host_id = (select auth.uid()) or exists ( select 1 from auth.users u where u.id = (select auth.uid()) and u.email_confirmed_at is not null ) )",
+    );
     expect(attended).toContain("e.visibility = 'open'");
     expect(attended).toContain("e.deleted_at is null");
-    expect(attended).toContain("profile_hidden_events");
     expect(attended).toContain("m.status = 'approved'");
   });
 
+  it("publishes NOTHING until chosen: the opt-in table, never the opt-out one", () => {
+    // The inversion (2026-09-22). The opt-out table is dropped by 20260923130000, so a re-point back
+    // to it would fail at the apply; the pair still reads the arm, because an opt-OUT of any name
+    // would silently republish every attended event by default. That is what it exists to stop.
+    expect(code(attended)).toContain("public.profile_shown_events");
+    expect(code(attended)).not.toContain("profile_hidden_events");
+  });
+
+  it("only a PROVED identity attends in public (the verified belt)", () => {
+    // Level 1 (a typed name) and level 2 (a typed, unproved address) are not identities anyone has
+    // confirmed, so an impersonator's uploads can never surface under someone else's profile.
+    expect(attended.replace(/\s+/g, " ")).toContain(
+      "g.verified_at is not null",
+    );
+  });
+
+  it("the attended arm follows the album's Require an upload to view (a viewer who has not passed the door learns nothing)", () => {
+    // Will's "Follow the album" (2026-09-22): while uploads are open on a require-upload event, the
+    // album holds every viewer at the teaser until an upload of theirs counts, and the teaser never
+    // renders its Guests list. So this reverse surface admits the same people and nobody else: the
+    // host, or a signed-in viewer whose own row there carries an upload they did not remove
+    // themselves. An anonymous viewer has no uid, so the EXISTS can only fail for them.
+    const gate = code(attended).replace(/\s+/g, " ");
+    expect(gate).toContain("not e.require_upload_to_view");
+    expect(gate).toContain("or not e.accepting_uploads");
+    expect(gate).toContain("vg.user_id = (select auth.uid())");
+    expect(gate).toContain(
+      "not (vm.status = 'removed' and vm.removed_by_uploader)",
+    );
+  });
+
   it("the attended arm never hands out the album capability link", () => {
-    expect(attended).not.toContain("qr_token");
-    expect(attended).not.toContain("custom_slug");
+    expect(code(attended)).not.toContain("qr_token");
+    expect(code(attended)).not.toContain("custom_slug");
   });
 
   it("the hosted arm stays UNgated on visibility (host consent; the lock gates at /e/)", () => {
@@ -69,7 +146,36 @@ describe("get_public_profile consent scope (migration SQL)", () => {
     expect(hosted).not.toContain("e.visibility = 'open'");
   });
 
+  it("names no legacy flag: the column and its twin-keeper are gone, and the gate stands alone", () => {
+    // The identity contract dropped `allow_anonymous_uploads` with the trigger that kept it opposite
+    // to `require_verified_email`. A body that still named the column would fail at its first call,
+    // and a clause re-pointed at a dead flag is the 2026-07-08 leak waiting to come back.
+    expect(code(body)).not.toContain("allow_anonymous_uploads");
+    const all = migrationFiles()
+      .map((f) => readFileSync(join(MIGRATIONS_DIR, f), "utf8"))
+      .join("\n")
+      .replace(/--[^\n]*/g, "")
+      .replace(/\s+/g, " ");
+    const dropped = all.lastIndexOf(
+      "drop trigger events_sync_verified_email_flags on public.events;",
+    );
+    expect(dropped).toBeGreaterThan(-1);
+    expect(all.slice(dropped)).not.toMatch(
+      /create (or replace )?trigger events_sync_verified_email_flags\b/,
+    );
+  });
+
   it("the contract check exercises the gated-event negative (the leak repro)", () => {
-    expect(migration).toContain("gated event leaked to the attended arm");
+    // The leak repro is a DO block in the FOUNDING migration (20260708120000), which
+    // ran once at apply time; a later CREATE OR REPLACE of the function does not
+    // carry it, so this assertion reads the founding file, not the newest body.
+    const foundation = readFileSync(
+      join(
+        process.cwd(),
+        "supabase/migrations/20260708120000_profiles_social_foundation.sql",
+      ),
+      "utf8",
+    );
+    expect(foundation).toContain("gated event leaked to the attended arm");
   });
 });

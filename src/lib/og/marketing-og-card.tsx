@@ -16,7 +16,7 @@ import { BRAND_HEX } from "@/lib/constants/site";
  */
 export const OG_SIZE = { width: 1200, height: 630 };
 
-const DEFAULT_KICKER = "Guests scan a QR code and upload. No app, no account.";
+const DEFAULT_KICKER = "Guests scan a QR code and upload. No app required.";
 
 export function marketingOgCard({
   heading,

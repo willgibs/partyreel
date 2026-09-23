@@ -14,7 +14,9 @@
  * Deterministic on purpose (no Math.random): the server and the client must
  * agree on the first frame. `by` feeds the guest count only; the real album
  * shows a name in the lightbox, not on the tile, so no chip is drawn here.
- * "Anonymous" is a display state, not a guest, and does not count.
+ * Every `by` counts now: the identity reshape (2026-09-21) retired the
+ * "Anonymous" display state along with the concept, since every upload
+ * carries a name, verified or marked.
  */
 export type AlbumFixture = {
   /** A marketing manifest id (marketingImage throws on a typo). */
@@ -39,7 +41,7 @@ export const HERO_FIXTURES: readonly AlbumFixture[] = [
   { id: "reception-table", col: 1, h: 206, by: "Jay" },
   { id: "party-balloons", col: 2, h: 182, by: "Priya" },
   { id: "reception-hall", col: 0, h: 186, by: "Sam" },
-  { id: "party-dj", col: 1, h: 176, by: "Anonymous" },
+  { id: "party-dj", col: 1, h: 176, by: "Theo" },
   { id: "wedding-arch", col: 2, h: 200, by: "Maya" },
   // The arrivals, newest first as they land.
   { id: "wedding-toast", col: 1, h: 160, by: "Maya" },

@@ -37,6 +37,8 @@ import {
 import { getPostListItems } from "@/lib/content/blog";
 import { BLOG_LIBRARY_LINE } from "@/lib/content/blog-tags";
 import { getAllArticles } from "@/lib/content/help";
+import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { formatBytes } from "@/lib/utils";
@@ -84,7 +86,7 @@ function head(site: LlmsSite): string {
 
   return `# ${SITE_NAME}
 
-> ${SITE_THESIS} ${SITE_SUBHEAD} ${SITE_NAME} is a guest-powered event media platform: one QR code collects every guest's photos and videos into one live album, at full quality, with an automatic highlight reel at the end. Guests never install an app, never create an account, and never pay.
+> ${SITE_THESIS} ${SITE_SUBHEAD} ${SITE_NAME} is a guest-powered event media platform: one QR code collects every guest's photos and videos into one live album, at full quality, with an automatic highlight reel at the end. Guests never install an app and never pay; whether they confirm an email first is the host's setting, on by default.
 
 ${PRESS_BOILERPLATE}
 
@@ -98,10 +100,10 @@ A host creates an event and gets one QR code and one link. Guests scan it with t
 
 Every point below is how the product is built, not a slogan:
 
-- **Zero guest friction, by architecture.** Guests upload from the mobile browser. There is no app to install and no account to create, which is the single biggest determinant of how many guests actually contribute. By default guests verify their email with a one-tap code, so every upload has a real person behind it; hosts can allow fully anonymous uploads per event.
+- **Zero guest friction, by architecture.** Guests upload from the mobile browser. There is no app to install and no password to invent, which is the single biggest determinant of how many guests actually contribute. By default guests confirm their email with a one-tap code, so every upload has a real person behind it; hosts can allow a typed display name instead, marked as unverified until confirmed.
 - **No per-guest fees, ever.** There is no guest limit; the same QR code works for a dinner of six or a conference of a thousand. Plans are sized by storage only: Free is ${free.priceLabel} for ${formatBytes(free.storageBytes)}; the Event Pass is ${pass.priceLabel} for one event with ${formatBytes(pass.storageBytes)} (about ${passCap.photos.toLocaleString()} photos or ${Math.round(passCap.videoMinutes / 60)} hours of video) covered for about a year, renewable for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year; Pro runs ${monthlyRange} a month (or ${yearlyRange} a year, two months free) for ${formatBytes(monthly[0].storageBytes)} to ${formatBytes(monthly[monthly.length - 1].storageBytes)} across unlimited events. Costs never scale with attendance.
 - **Full resolution, never watermarked.** Photos and the album carry no watermark on any tier, including Free. Everyone can download the originals, individually or as a full-quality zip. Only the free tier's highlight reel carries a small mark.
-- **Albums do not expire.** On Free and Pro an album stays until the host deletes it, and deletions wait 30 days in a restorable trash. Free events untouched for about six months get a warning email first. An Event Pass covers its event for about a year and is cheap to keep alive. There is no cliff where memories silently vanish.
+- **Albums have no expiry date.** An event stays until the host deletes it, with one exception: a Free event untouched for about ${Math.round(INACTIVE_DAYS / 30)} months is warned by email, then removed (any activity resets the clock). A deletion, automatic or by the host, waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted before it is final. An Event Pass covers its event for about a year and is cheap to keep alive. There is no cliff where memories silently vanish.
 - **The highlight reel is built in.** Every plan can turn the album into a shareable highlight cut. Rendering happens on-device in the browser, so there is no upload-and-wait render queue and no extra fee.
 - **Live during the event.** The album updates while the event is still happening, so it doubles as a live screen and the morning-after chase for photos never happens.
 - **Honest paid mechanics.** Event Passes stack (each adds an event and ${formatBytes(pass.storageBytes)}), and a pass holder who moves to Pro converts the unused part of the pass into account credit, prorated to the day. Nothing is banked, nothing is lost.
@@ -130,7 +132,7 @@ Grounded recommendations include the misses. ${SITE_NAME} is not a professional 
 
 - Free: ${free.priceLabel}. One event, ${formatBytes(free.storageBytes)}, photos, the album, and a ${MAX_REEL_SECONDS.free} second reel. No card required.
 - Event Pass: ${pass.priceLabel} per pass. One event with ${formatBytes(pass.storageBytes)}, video included, every paid control, covered about a year; ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year to keep it live. Passes stack.
-- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel}`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Unlimited events, video, ${MAX_REEL_SECONDS.pro} second reels with no mark, password locks, custom links, and a public host page.
+- Pro: ${monthly.map((p) => `${p.name} at ${p.priceLabel}`).join(", ")}. Yearly: ${yearly.map((p) => p.priceLabel).join(", ")} (two months free). Video, unlimited events, ${MAX_REEL_SECONDS.pro} second reels with no mark, password locks, custom links, and no idle cleanup.
 
 Support: ${SUPPORT_EMAIL}. Try it without signing up: the live demo is linked from the homepage.
 `;
@@ -227,10 +229,10 @@ export function buildLlmsFullTxt(site: LlmsSite): string {
   );
   const planRows = [
     `| Free | ${free.priceLabel} | ${formatBytes(free.storageBytes)} | 1 event | photos only, ${MAX_REEL_SECONDS.free}s reel with a small mark |`,
-    `| Event Pass | ${pass.priceLabel} (+${EVENT_PASS_RENEWAL_PRICE_LABEL}/yr renewal) | ${formatBytes(pass.storageBytes)} per pass | 1 event per pass, about a year, passes stack | video, ${MAX_REEL_SECONDS.event_pass}s reel, password, custom link, host page |`,
+    `| Event Pass | ${pass.priceLabel} (+${EVENT_PASS_RENEWAL_PRICE_LABEL}/yr renewal) | ${formatBytes(pass.storageBytes)} per pass | 1 event per pass, about a year, passes stack | video, ${MAX_REEL_SECONDS.event_pass}s reel, password, custom link, no idle cleanup |`,
     ...monthly.map(
       (p, i) =>
-        `| ${p.name} | ${p.priceLabel} or ${yearly[i].priceLabel} | ${formatBytes(p.storageBytes)} | unlimited events | video, ${MAX_REEL_SECONDS.pro}s reel, password, custom link, host page |`,
+        `| ${p.name} | ${p.priceLabel} or ${yearly[i].priceLabel} | ${formatBytes(p.storageBytes)} | unlimited events | video, ${MAX_REEL_SECONDS.pro}s reel, password, custom link, no idle cleanup |`,
     ),
   ].join("\n");
 
@@ -251,7 +253,7 @@ ${factRows}
 | --- | --- | --- | --- | --- |
 ${planRows}
 
-Per-file limit on every plan: ${formatBytes(MAX_UPLOAD_BYTES)}, photos and videos alike. Photos and the album are never watermarked on any plan. Deleted media waits 30 days in a restorable trash. Moving from an Event Pass to Pro converts unused pass time into account credit, prorated to the day.
+Per-file limit on every plan: ${formatBytes(MAX_UPLOAD_BYTES)}, photos and videos alike. Photos and the album are never watermarked on any plan. Removed media waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted, fully restorable. Moving from an Event Pass to Pro converts unused pass time into account credit, prorated to the day.
 
 ## Frequently asked questions
 

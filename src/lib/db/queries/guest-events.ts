@@ -16,7 +16,7 @@ export type GuestEvent = {
   id: string;
   // The CANONICAL permanent capability (database-security.md). This page may be reached via a custom
   // slug alias (host-app.md), so every downstream qr_token-keyed call — the gallery poll,
-  // create_guest, save_event, create_report, verify_event_password — MUST use this, NOT
+  // create_guest, create_report, verify_event_password — MUST use this, NOT
   // the route param (those RPCs match qr_token only; a slug would resolve to nothing).
   qr_token: string;
   name: string;
@@ -27,9 +27,12 @@ export type GuestEvent = {
   visibility: Database["public"]["Enums"]["event_visibility"];
   has_password: boolean;
   accepting_uploads: boolean;
-  // ON by default. When false the host requires an account (a verified session) to upload; the
-  // /e/ page shows the "Enter event" account-or-login flow instead of the anonymous upload panel.
-  allow_anonymous_uploads: boolean;
+  // ★ THE HOST'S SWITCH (the identity reshape, 2026-09-21). ON by default: a guest confirms an
+  // email before the full album and any upload. OFF: a guest types a display name at the door and
+  // uploads under it with an unverified mark. This is the flag every new read keys on.
+  require_verified_email: boolean;
+  /** Require an upload to view (the door as three steps, 2026-09-21): ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
+  require_upload_to_view: boolean;
   event_date: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
   // falls back to 'classic' for null/legacy values.
@@ -132,7 +135,8 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     visibility: row.visibility,
     has_password: row.has_password,
     accepting_uploads: row.accepting_uploads,
-    allow_anonymous_uploads: row.allow_anonymous_uploads,
+    require_verified_email: row.require_verified_email,
+    require_upload_to_view: row.require_upload_to_view,
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,

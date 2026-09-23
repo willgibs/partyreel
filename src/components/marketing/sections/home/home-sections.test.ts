@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   DECOMPOSITION_FACTS,
+  SITE_DESCRIPTION_LINE,
+  SITE_SUBHEAD,
   SITE_THESIS,
 } from "@/lib/constants/marketing-voice";
 
@@ -15,8 +17,9 @@ import {
  * The ratified home order (Will, 2026-08-25: album/curation split, pricing
  * after the reel; 2026-08-26: privacy up beside curation so the paper chapter
  * is contiguous; 2026-09-01: two guest-side sections above the live demo, and
- * the adjacency ruling, which changed layouts, never this order) + the ratified
- * CHAPTER MAP (the mixed-theme ruling). index.ts
+ * the adjacency ruling, which changed layouts, never this order; 2026-09-18:
+ * the chapter-transition ruling, which moved the CUT and again not the order)
+ * + the ratified CHAPTER MAP (the mixed-theme ruling). index.ts
  * renders exactly this array (its Record type pins the pairing), so these
  * byte-pins make any reshuffle or re-chaptering a deliberate act. The test
  * imports section-ids (pure) rather than index because the section tree
@@ -54,6 +57,29 @@ describe("the home section order", () => {
     expect(SITE_THESIS.length).toBeLessThanOrEqual(64);
   });
 
+  it("the subhead stays one paragraph and off the meta description", () => {
+    // Will's own sentence (2026-09-19, voice r1 `hero-sub`) is 144 characters,
+    // which is the whole reason these two are now separate constants. The hero
+    // renders SITE_SUBHEAD verbatim under the thesis, so what matters here is
+    // that it stays ONE flowing paragraph (a newline would break the lockup's
+    // balance) and does not creep toward a fourth sentence.
+    expect(SITE_SUBHEAD).not.toMatch(/\n/);
+    expect(SITE_SUBHEAD.length).toBeLessThanOrEqual(180);
+
+    // ★ THE PIN THAT CAUGHT THIS. SITE_DESCRIPTION used to be built as
+    // `${SITE_THESIS} ${SITE_SUBHEAD}`, so a longer hero line silently pushed
+    // every search result and unfurl past the ~160 characters that get read,
+    // truncating mid-clause exactly where the benefit lived. The meta line is
+    // its own constant now, and this measures the composition site.ts performs
+    // (imported from the voice module, not from site.ts, which reaches env.ts
+    // and throws in the runner without NEXT_PUBLIC_* — the same reason this
+    // file imports section-ids rather than index).
+    expect(`${SITE_THESIS} ${SITE_DESCRIPTION_LINE}`.length).toBeLessThanOrEqual(
+      160,
+    );
+    expect(SITE_DESCRIPTION_LINE).not.toContain(SITE_SUBHEAD);
+  });
+
   it("the decomposition facts stay pop-in parseable", () => {
     // decomposition renders each pinned fact VERBATIM and animates every
     // integer run inside it as its own digit group (splitFact there splits on
@@ -75,15 +101,22 @@ describe("the home section order", () => {
 });
 
 describe("the home chapter map", () => {
-  it("pins the ratified surface per section (7 dark, 3 paper, 5 dark)", () => {
+  it("pins the ratified surface per section (6 dark, 4 paper, 5 dark)", () => {
     expect(HOME_SECTION_SURFACE).toEqual({
       "cinema-hero": "cinema",
       "trust-strip": "cinema",
       decomposition: "cinema",
       "film-strip": "cinema",
       "no-app": "cinema",
+      // ★ THE ONE ID THAT MOVED (Will, 2026-09-18, the chapter-transition
+      // ruling): "we could use this to end the first chapter and combine the
+      // live demo visual currently below into the start of the chapter
+      // after." full-quality wears the switching photograph and ends chapter
+      // 1; the live demo's stage opens the paper chapter. The ORDER above did
+      // not change, which is the point: the page derives its chapters from
+      // this map, so a re-chaptering is one line and a reshuffle is none.
       "full-quality": "cinema",
-      "live-demo": "cinema",
+      "live-demo": "paper",
       album: "paper",
       curation: "paper",
       privacy: "paper",

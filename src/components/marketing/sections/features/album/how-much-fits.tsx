@@ -51,7 +51,7 @@ function Column({
       className="flex flex-col gap-5 px-6 py-6 sm:py-7"
       style={{ "--i": 3 + index } as CSSProperties}
     >
-      <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
+      <p className="text-label font-medium text-muted-foreground uppercase">
         {name}
       </p>
       <div className="flex flex-col gap-2">
@@ -150,6 +150,11 @@ export function HowMuchFits() {
             fill={pro[0].storageBytes / largest}
             price={`from ${pro[0].priceLabel}`}
             rows={[
+              // ★ VIDEO LEADS, and it already did here (Will, 2026-09-19, voice
+              // r1 `pro-line=video`: "Videos and unlimited events is huge").
+              // This column is one of five places Pro's value is stated in a
+              // breath; the plan card, the home teaser, the FAQ and llms.txt all
+              // moved to this order, so keep video above events on any rewrite.
               { text: "Photos and video", included: true },
               { text: "Unlimited events", included: true },
               {
@@ -162,8 +167,11 @@ export function HowMuchFits() {
         </div>
       </Reveal>
 
-      {/* The cap, honestly: the guest's refusal as the toast the app fires,
-          beside two one-line facts. */}
+      {/* The cap, honestly: the guest's refusal in the app's own words, beside
+          two one-line facts. It quoted the upload TOAST until `failed=sheet`
+          retired it (2026-09-21); what a refused file gets now is the failure
+          sheet's own heading and the server's own sentence under it, which is
+          what this card says. mock-parity.test.ts is the proof. */}
       <Reveal className="mx-auto mt-10 grid max-w-5xl items-center gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <div
           data-mkt-toast
@@ -174,9 +182,7 @@ export function HowMuchFits() {
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />
           <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">
-              Couldn&rsquo;t add that photo
-            </span>
+            <span className="text-sm font-medium">1 file did not go</span>
             <span className="text-sm text-muted-foreground">
               This album is full right now. The host needs to free up space.
             </span>

@@ -1,0 +1,73 @@
+/* THE SWEEP MARK, `everywhere-pill`'s `sweep` option (the overtaken audit's
+   reshape, 2026-09-21): the product's own arrival sweep
+   (components/shared/arrival.css, `[data-media-tile][data-landed]::before`),
+   the same gradient recipe, quoted at a small corner badge rather than
+   played across the whole tile.
+
+   ★ WHY A BADGE, NOT A FULL-TILE BAND (unlike this file's own privacy-hero
+   cousin, which owns its grid). `AlbumFillGrid` renders a live, cycling
+   layout this board does not own or measure (a tile's true box is a CSS
+   grid track at a width neither constant nor known here), so `corner` and
+   the option this replaces ("hover") both already draw a small mark at the
+   grid's own top-left corner rather than a tile-sized overlay
+   (everywhere-pill.tsx's own header comment: "the newest arrival lands
+   there by construction"). `sweep` keeps that same proven anchor and puts
+   the real recipe inside it, clipped to the badge's own small box, rather
+   than inventing a new footprint this board cannot size correctly.
+
+   `evp-` is this board's own prefix, never `pr-` (src/app/keyframe-uniqueness
+   .test.ts: a lab sheet never reuses a production keyframe name). Layout
+   (position, size, clip) is Tailwind, in the markup; this sheet owns only
+   what Tailwind cannot declare, the `::before` band and its keyframe. */
+
+.evp-sweep::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  left: 0;
+  width: 55%;
+  translate: -60% 0;
+  rotate: 12deg;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.08) 35%,
+    oklch(1 0 0 / 0.55) 50%,
+    oklch(1 0 0 / 0.08) 65%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .evp-sweep::before {
+    animation: evp-pass 2400ms var(--ease-emphasis) infinite;
+  }
+}
+
+/* The pass itself is 900ms (38% of this 2400ms loop, ARRIVAL_SWEEP_MS in
+ * lib/shared/arrival.ts), then parks off-screen (160%, clear of the badge)
+ * for the rest, echoing the real mark's quiet between arrivals. Production
+ * plays it ONCE, on the one tile a viewer actually just sent; a comparison
+ * tile has no such moment to answer, so this loops instead — the only
+ * change from the real recipe. */
+@keyframes evp-pass {
+  0% {
+    translate: -60% 0;
+  }
+  38% {
+    translate: 160% 0;
+  }
+  100% {
+    translate: 160% 0;
+  }
+}
+
+/* Reduced motion: the band never paints, the same belt
+ * components/shared/arrival.css keeps for the real mark; the badge itself
+ * stays, plain, the way `corner`'s glyph stays too. */
+@media (prefers-reduced-motion: reduce) {
+  .evp-sweep::before {
+    content: none;
+  }
+}

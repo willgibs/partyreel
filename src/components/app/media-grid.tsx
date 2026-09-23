@@ -27,14 +27,17 @@ export type GridMedia = {
   status?: "pending" | "approved" | "hidden" | "removed";
   /**
    * Uploader attribution (Phase 2), rendered as a subtle caption in the lightbox (never on tiles).
-   * Resolved server-side. `uploaderName` is the public display name (null = anonymous OR, defensively,
-   * an unresolved name -> caption hides). `isHost` -> a "Host" badge. `isAnonymous` -> "Anonymous" +
-   * the info popover. `uploaderEmail` is HOST-GALLERY-ONLY: it is populated ONLY on the host dashboard
-   * path and NEVER on any guest surface (email-safety by construction).
+   * Resolved server-side by the ONE precedence rule (lib/media/uploader-identity.ts).
+   * `uploaderName` is the public display name (null = nobody named: a row minted before names
+   * were asked, or a deleted account's surviving upload -> the caption shows no name, never an
+   * invented one). `isHost` -> a "Host" badge. `isVerified` false -> the unverified mark beside the
+   * name (the identity reshape, 2026-09-21: a name with no proved email is shown AND marked, never
+   * hidden). `uploaderEmail` is HOST-GALLERY-ONLY: populated ONLY on the host dashboard path and
+   * NEVER on any guest surface (email-safety by construction).
    */
   uploaderName?: string | null;
   isHost?: boolean;
-  isAnonymous?: boolean;
+  isVerified?: boolean;
   uploaderEmail?: string | null;
   /**
    * Cross-event "Uploads" context (Phase 4), rendered as a subtle link in the lightbox (never on tiles).

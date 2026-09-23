@@ -101,7 +101,7 @@ export default async function LibraryHomePage({
     <Column>
       <PageHeader
         title="The library"
-        description="Everything that binds or informs design work on Partyreel, in one place: the rules, the components with their contracts, the tokens, the record. If it influences what an agent builds, it is visible here."
+        description="Everything that binds or informs design work on Partyreel, in one place: the rules, the components with their contracts, the tokens, the rulings. If it influences what an agent builds, it is visible here."
       />
 
       <StatRow
@@ -118,7 +118,7 @@ export default async function LibraryHomePage({
       <Section
         id="binds"
         title="What binds you"
-        blurb="Read this first. The design law is short on purpose, and knowing where its edge is, is what lets you rebuild the rest."
+        blurb="Read this first. The working rules are short on purpose, and knowing where their edge is, is what lets you rebuild the rest."
       >
         {binds ? (
           <Markdown
@@ -138,7 +138,7 @@ export default async function LibraryHomePage({
             title="The bible"
             n={`${BIBLE.length} rules`}
             href="/design/library/rules"
-            blurb="Will's, global, the whole of the design law."
+            blurb="Will's global working rules, changed only by his word."
           />
           <BindCard
             title="Contracts"
@@ -163,8 +163,8 @@ export default async function LibraryHomePage({
           ,{" "}
           <Ref to={{ kind: "doc", doc: "design-system" }}>the system docs</Ref>,{" "}
           and{" "}
-          <Ref to={{ kind: "page", href: "/design/library/rulings" }}>
-            Will&rsquo;s rulings
+          <Ref to={{ kind: "page", href: "/design/library/rules#rulings" }}>
+            the rulings
           </Ref>
           .
         </p>

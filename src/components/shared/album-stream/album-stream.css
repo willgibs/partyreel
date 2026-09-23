@@ -1,0 +1,73 @@
+/* THE ALBUM STREAM'S OWN SHEET (the album-wiring lane, 2026-09-19). Classes
+   under `als-` only, and NO keyframe: the stream is one requestAnimationFrame
+   loop writing inline transforms (src/app/keyframe-uniqueness.test.ts reads
+   every sheet in the repo).
+
+   ★ THE REST STATE IS THE ONLY STATE THE SHEET KNOWS. Each node carries its
+   elapsed-0 transform and opacity as custom properties and this paints them, so
+   the server's HTML, reduced motion, a reader with scripting off and the loop's
+   first frame are ONE picture (Will's `no-script=settled`). Motion begins after
+   the resting frame, never instead of it. */
+
+.als-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Every frame carries its own z-index so a near photograph paints over a far
+     one; this keeps that ordering contained, so the lockup above never has to
+     out-number the stream. */
+  isolation: isolate;
+  /* ★ 50cqw IS HALF THE HERO. Every horizontal in the engine is affine in this
+     one length (`x = a + b * half`), so the composition stretches to whatever
+     window it is given and the scale, the opacity and the arc, which are all
+     functions of distance along the path, do not move at all. */
+  container-type: inline-size;
+  --als-half: 50cqw;
+}
+
+/* ★ THE FRAMES HANG OFF THE LAYER'S FOOT, NOT ITS TOP. The album's top edge is
+   a fixed distance above the hero's bottom (`STAGE.h + STAGE.floor`, the one
+   number the hero and the engine share), while the lockup's height is not: it
+   wraps to another line somewhere between 1024 and 1440. So the origin is the
+   foot and every `y` in the engine is px from the album's edge, which is the
+   one thing the stream is aimed at. */
+.als-card {
+  position: absolute;
+  left: 50%;
+  bottom: var(--als-edge, 0px);
+  transform: var(--als-rest);
+  opacity: var(--als-rest-o);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  /* ★ NO FILTER ON A FRAME: it only ever scales DOWN from the box it was sized
+     to (`solve`, stream-engine.ts), so nothing is re-rasterised above its own
+     raster. That was half of the album hero's "jittery" in round two. */
+}
+
+.als-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: oklch(1 0 0 / 0.05);
+  /* The hairline every media tile on a dark ground wears, inside the frame. */
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
+}
+
+/* ★ TWO COMPOSITIONS, ONE SHOWN. They are different in KIND, not in degree (the
+   component's header says why), so the swap is a media query rather than a
+   stretched table. 1024 is `LG_MIN`, the home hero's own breakpoint, and this
+   is the one place it is written twice: a media query cannot read a module. */
+.als-at-lg {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .als-at-lg {
+    display: block;
+  }
+  .als-at-base {
+    display: none;
+  }
+}

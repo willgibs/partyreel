@@ -106,7 +106,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
         "A host account is a verified email address, a display name, and whichever sign-in method you choose: a password, one-time codes sent to that email, or Google. You are responsible for everything that happens under your account, so keep access to that inbox and to any password secure, use the account for yourself only, and tell us promptly if you believe it has been compromised.",
       ),
       p(
-        "Your display name is required and is shown publicly wherever you appear: on your events, beside your uploads, in guest lists and on your profile. Choose one you are comfortable showing to the people at your events. Names that impersonate others, contain profanity, or use reserved words are not permitted, and we may change a name that breaks this rule. Keep the information on your account accurate.",
+        "Your display name is required and is shown publicly wherever you appear: on your events, beside your uploads, in guest lists and on your profile. The same rule applies to the name a guest types at an event that does not require a verified email: it is shown publicly beside whatever they add, in place of a verified display name. Choose one you are comfortable showing to the people at your events. Names that impersonate others, contain profanity, or use reserved words are not permitted, and we may change a name that breaks this rule. Keep the information on your account accurate.",
       ),
     ],
   },
@@ -117,10 +117,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Guests join through the event link, usually with a verified email, and keep control of what they upload.",
     blocks: [
       p(
-        "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host allows it, guests may also upload without signing in, and those uploads are shown as Anonymous.",
+        "An event's link or QR code is the key to that event. Anyone who holds it can reach the event, subject to the visibility and password settings its host chooses, so treat a link you receive as the host's to share, not yours to publish. By default, a host requires a verified email before a guest can see the full album or upload; where the host turns that requirement off, a guest instead types a display name at the door, and their uploads are shown under that name with a small unverified mark rather than a confirmed one.",
       ),
       p(
-        "Uploads made while signed in are attributed to your display name and, if the host shows a guest list, listed there by name. If you sign in later, uploads you made anonymously from the same browser can be claimed to your account. A signed-in guest can delete their own uploads from their dashboard at any time, in any event; that deletion is final and the host cannot restore it. A guest who uploaded without signing in can ask the host to remove an item.",
+        "Uploads made with a verified email are attributed to your confirmed display name and, if the host shows a guest list, listed there by name; uploads made under a typed name instead carry that name with a small unverified mark, and are listed the same way. Uploads you made under a typed name from the same browser, or under an email you later confirm, can be claimed to your account; uploads someone else made using your address are removed when you mark that event as not yours. You may delete any upload of your own, right on the album, at any time, whether or not you have confirmed an email; without a confirmed email, this works only from the same device and browser you uploaded from. That deletion is final and the host cannot restore it.",
       ),
       p(
         "Guests pay nothing to join, view, upload or download. These Terms apply to guests in full, including the sections on your content, acceptable use and copyright.",
@@ -256,7 +256,9 @@ export const TERMS_SECTIONS: LegalSection[] = [
           billed monthly or yearly, that adds video, more storage and more
           events. It renews automatically at the end of each billing period
           until you cancel. You can hold one Pro subscription at a time and
-          change its size through the billing portal.
+          change its size or billing interval from your account. You can buy or
+          move to a Pro size only if it holds what you already store; to choose
+          a smaller size, first remove enough to fit.
         </>,
         <>
           <strong className="text-foreground">Event Pass</strong> is a one-time
@@ -413,12 +415,16 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "A public profile is public by choice. Guest lists are the host's call. Blocks are honoured everywhere.",
     blocks: [
-      // profiles-social.md + profiles-social.md.
+      // profiles-social.md + profiles-social.md. "Nothing until chosen"
+      // (2026-09-22): attendance is opt-IN, never opt-out.
       p(
-        "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you have contributed to where the host shows a guest list and you have not hidden them. You can hide any event from your profile at any time. Profiles never show email addresses or follower counts.",
+        "Claiming a public profile makes it visible to anyone at its address, including search engines. Your profile shows the events you host and choose to display, and the open events you attended and chosen to show, where the host also shows a guest list. Nothing you attend shows there until you turn it on, and you can turn any event back off at any time. Profiles never show email addresses or follower counts.",
       ),
       p(
-        "Hosts may show a guest list on an event, which names every signed-in uploader to everyone who can see the album; the ways to stay off a guest list are described in the Privacy Policy. Following someone is visible only to you and them. Blocking someone removes each of you from the other's social surfaces across the Service. Do not use profiles or social features to harass anyone or to gather personal information about other users.",
+        "A profile may also carry a short bio you write. Like your display name it is public wherever your profile is, it is limited in length, it may not contain links, and names or wording that impersonate others, contain profanity, or use reserved words are not permitted; we may remove a bio that breaks this rule.",
+      ),
+      p(
+        "Hosts may show a guest list on an event, which names every signed-in uploader to everyone who can see the album; the ways to stay off a guest list are described in the Privacy Policy. Following someone is visible only to you and them. Blocking someone removes each of you from the other's social surfaces across the Service. You can report a person from their profile, as you can report an album or an item; we review reports and the person reported is not told who reported them. Do not use profiles or social features to harass anyone or to gather personal information about other users.",
       ),
     ],
   },

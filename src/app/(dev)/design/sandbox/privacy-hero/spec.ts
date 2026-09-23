@@ -1,162 +1,96 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE PRIVACY PAGE'S HERO: "the field" as two spirals (the heroes lane,
- * 2026-09-18). Round one of a new board, cut from Will's note on the album
- * hero's round three: "I'd love to revamp 'the field' for the 'Privacy &
- * trust' page hero. I love the images popping in spiraling opposite two sides.
- * Increasing the pace, reducing the gap between images and leaving a decaying
- * trail behind the 2 spirals should hopefully be perfect for that page hero."
+ * THE PRIVACY PAGE'S HERO, ROUND THREE: A NEW CONCEPT (2026-09-19); A FOURTH
+ * ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21).
  *
- * ★ FOUR DECISIONS, SHAPED PROGRESSIVELY: the pace first, the gap drawn at the
- * pace he picks, the trail at both, the phone at all three. Every option is the
- * live privacy page's first screen at 1440 and at 375, and every pace is graded
- * against the home hero's, which he called perfect, never against a cap.
+ * Round one (a turning nozzle of photographs) answered none. Round two (two
+ * spiralling arms with a decaying trail) got a `?` on its own arrival: "I
+ * don't really like this arrival animation as part of the spiral/orbit."
+ * Asked what next, Will: "Let's go with a totally different concept... I
+ * think we can say the image trail was a takeaway win from this. The actual
+ * privacy hero can take a different path, maybe more fitting for its theme"
+ * (2026-09-19).
  *
- * ★ THE NUMBERS IN THE WORDS ARE THE ENGINE'S. `spirals.test.ts` holds each
- * option's figures to what `spirals.ts` measures, so a retune turns the test
- * red rather than leaving a tile that says one thing and draws another.
+ * ★ "MORE FITTING FOR ITS THEME" IS THE BRIEF, SO THE MECHANISM CHANGES, NOT
+ * JUST THE FIGURE. Both earlier rounds flew photographs through a shape;
+ * both are the "images fly around" language the home hero, the album hero
+ * and the river already speak. This round's concepts share nothing with
+ * either: no card is ever born, travels or dies. Each sits still, or nearly
+ * still, and the thing that moves is its own VISIBILITY, because privacy is
+ * who can see a thing right now, not how fast a picture moves. `paths.ts`
+ * (the spiral figure) and `paths.test.ts` left with round two; `field.ts`,
+ * `field-layer.tsx` and `field.css` stay only because `album-page` still
+ * imports them for its own margins and motion.
  *
- * Pure data (registry.test.ts): the board route is a server page and reads
- * this for its header.
+ * ★ ONE ASK, BECAUSE THIS IS A CONCEPT PICK, NOT A REFINEMENT. Round two's
+ * five decisions tuned one mechanism's dimensions; this round has no
+ * mechanism yet, so the question is which concept, not how fast or how
+ * close. `concepts.ts` holds every number this ask states, and
+ * `concepts.test.ts` holds this file's prose to it.
+ *
+ * ★ THE FOURTH CONCEPT IS THE RESHAPE ITSELF, NOT DECORATION ON TOP OF IT.
+ * By the time the overtaken audit reopened this board, three things this
+ * round could only imagine had shipped: a named glass material (Crystal,
+ * glass r2), copy running over bespoke pictures in motion (the welcome tour,
+ * app-door r2), and the product's own arrival grammar, one pass of light
+ * across a tile (`landing=sweep`, guest-upload r1). `sweep` builds the
+ * access grid's clearing from that last one instead of a bespoke crossfade,
+ * which is what "more fitting for its theme" now has to mean: not just still
+ * over flying, but the product's own mechanism over an invented one.
  */
 export const PRIVACY_HERO = defineExploration({
   id: "privacy-hero",
   title: "The privacy page's hero",
   round: {
-    n: 1,
-    date: "2026-09-18",
+    n: 3,
+    date: "2026-09-21",
     changed:
-      "The album hero's round-three field, recut as two spirals behind the privacy page's words: its pace, its gap, its trail and its phone, each drawn at 1440 and 375 against the home hero's pace.",
+      "The overtaken audit's reshape adds a fourth concept, sweep: the access grid cleared by the product's own arrival sweep (guest-upload r1) rather than a bespoke crossfade, now recommended over access. The three from 19 Sep stand; none of them flew photographs.",
   },
   bible: [1, 13, 14, 22],
+  context:
+    "Round one (a turning nozzle) answered none; round two (two spiralling arms with a trail) answered a question mark on its arrival. The page ships PageHero with no backdrop on purpose, the site's quietest: a concept has to earn its place against that, so every one here sits still, or nearly still, and the thing that moves is each one's own visibility rather than its position.",
   asks: [
     {
-      id: "pace",
-      label: "The pace",
-      question: "How fast should the spirals travel?",
+      id: "concept",
+      label: "The concept",
+      question: "Which concept should carry the privacy page's hero?",
       context:
-        "The reference is the home hero, which you called perfect: each frame leaves the code at 40 px a second and speeds up. Here each leaves the words on that curve while the source behind them turns. A notch: a quarter slower, a third faster.",
+        "Four mechanisms, none a photograph in flight. Frosted is a named material now (Crystal, glass r2); the tour runs words over bespoke pictures (app-door r2); the product has its own arrival, one pass of light on a tile (guest-upload r1).",
       options: [
         {
-          id: "home",
-          label: "The home hero's speed",
+          id: "aperture",
+          label: "The aperture",
           means:
-            "Each frame leaves the words at 40 px a second on the home hero's own curve, and the source turns once every 13 seconds.",
+            "A blurred photograph breathes behind the words with a hairline ring: 360 to 430px, 12 to 20% opacity, one breath every 10 seconds. The calmest of the four.",
         },
         {
-          id: "under",
-          label: "A notch under it",
+          id: "access",
+          label: "The access grid",
           means:
-            "30 px a second off the words and a turn every 17 seconds: three quarters of the home hero.",
+            "8 small tiles flank the words, frosted at rest. One clears to full colour for 0.64s and fades back over 0.77s, in turn, a circuit every 6.4s. The most literal.",
         },
         {
-          id: "over",
-          label: "A notch over it",
+          id: "sweep",
+          label: "The sweep",
           means:
-            "53 px a second off the words and a turn every 10 seconds: a third faster than the home hero.",
+            "8 small tiles flank the words, frosted at rest. One clears in a single 0.9s pass of light, in turn, a circuit every 6.4s. The product's own arrival, not a fade.",
+        },
+        {
+          id: "seal",
+          label: "The sealed cards",
+          means:
+            "3 photographs rest under a drawn cover at the page's foot. One lifts from 55% to 8% covered for 0.36s, in turn, every 2.4 seconds. The most tactile.",
         },
       ],
-      recommended: "home",
+      recommended: "sweep",
       because:
-        "It is the speed you called perfect, read off the shipped home hero rather than retyped, so the two heroes move as one site.",
+        "It is the one concept built entirely from what the product now ships: Crystal's own frost, and the exact pass of light a real arrival wears (guest-upload r1), rather than a tween invented before that grammar existed. Access said the theme right; sweep says it in the product's own words.",
       overrule:
-        "If the turning makes it busier than the home hero at the same speed, a notch under.",
-      lands: "The tempo of the privacy hero's field: its travel, its turn and its clock together.",
-    },
-    {
-      id: "gap",
-      label: "The gap",
-      question: "How close should the photographs sit along each spiral?",
-      after: { ask: "pace" },
-      context:
-        "The space between neighbours on one arm, in photograph widths. At the home hero's own clock, a pair every 1250 ms, they sit two and a half apart, round three's gap, so a smaller gap is a quicker clock. Drawn at your pace.",
-      options: [
-        {
-          id: "half",
-          label: "Half a photograph apart",
-          means:
-            "1.5 widths centre to centre: at the home hero's speed a pair every 860 ms, 10 frames lit at the busiest instant (the home hero: 12).",
-        },
-        {
-          id: "edge",
-          label: "Edge to edge",
-          means:
-            "1 width, so the frames just touch: a pair every 550 ms, 16 lit.",
-        },
-        {
-          id: "overlap",
-          label: "Overlapping",
-          means:
-            "0.75 of a width, each tucked under the next: a pair every 410 ms, 21 lit.",
-        },
-      ],
-      recommended: "half",
-      because:
-        "Enough dark between neighbours that each photograph reads as one, while the arm still reads as a line, and about as many frames lit as the home hero.",
-      overrule: "If the arms read as scattered frames rather than two lines, edge to edge.",
-      lands: "The launch clock of the privacy hero's field.",
-    },
-    {
-      id: "trail",
-      label: "The trail",
-      question: "What should each spiral leave behind it?",
-      after: { ask: "gap" },
-      context:
-        "The spiral you saw is the point where frames pop in, sweeping round the words; behind it is where the arm just was. A trail fades in real time, so a faster spiral draws a longer one. Drawn at your pace and gap.",
-      options: [
-        {
-          id: "wake",
-          label: "A fading wake",
-          means:
-            "Each arm dims from its newest frame to its oldest, and every photograph leaves a soft smear of its own colours where the arm just was.",
-        },
-        {
-          id: "echoes",
-          label: "Echoes",
-          means:
-            "Each arm dims the same way, and every photograph leaves two fading copies of itself a few degrees back in the turn.",
-        },
-        {
-          id: "none",
-          label: "No trail",
-          means:
-            "The frames stay lit until they leave the screen, as round three drew them.",
-        },
-      ],
-      recommended: "wake",
-      because:
-        "It draws each arm as a comet, bright where the frames pop in and fading behind, which is the trail you described; echoes double the photographs on screen.",
-      overrule: "If the smear reads as blur rather than light, echoes.",
-      lands: "What the privacy hero's frames draw behind them.",
-    },
-    {
-      id: "phone",
-      label: "At a phone",
-      question: "At a phone, should the photographs still spiral?",
-      after: { ask: "trail" },
-      tile: "phone",
-      context:
-        "At 375 the words fill the column, so a frame is only ever seen in the strips above and below them. Drawn at your pace, gap and trail.",
-      options: [
-        {
-          id: "spirals",
-          label: "The two spirals, sized to the column",
-          means:
-            "The same turning source with smaller frames: the strips fill while an arm points up or down, and go quiet while it points sideways.",
-        },
-        {
-          id: "cones",
-          label: "Two cones, up and down",
-          means:
-            "Frames thrown within thirty degrees of straight up and straight down, fanned across the column, so both strips always hold two or three.",
-        },
-      ],
-      recommended: "cones",
-      because:
-        "Drawn at 375, the spirals spend half of every turn pointing into the words' own width, where nothing can be seen, and the strips go dark; the cones keep them full.",
-      overrule: "If the phone should read as the same object as the desktop, the spirals.",
-      lands: "The privacy hero's field below 640 px.",
+        "If eight tiles clearing on their own timing reads calmer than a pass borrowed from a live moment, access is the quieter hold; seal is still the most tactile.",
+      lands:
+        "The privacy page's first screen: what sits behind the words, on a laptop and a phone.",
     },
   ],
 });

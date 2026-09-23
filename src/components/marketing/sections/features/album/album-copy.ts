@@ -42,8 +42,8 @@ export const GETTING_IN = {
       body: "The code opens the album in the browser they already have. Point, tap, add. Nothing to install.",
     },
     {
-      title: "Names, if you want them",
-      body: "Require accounts and guests confirm an email once. Switch it off and anyone with the link can add.",
+      title: "Every upload, a name",
+      body: "Require verified emails and guests confirm one once. Switch it off and guests choose a display name instead.",
     },
     {
       title: "One link, forever",
@@ -84,19 +84,19 @@ export const YOUR_CALL = {
 
 /** Names: one lead, then the pill's three states as an index. */
 export const NAMES = {
-  lead: "Open any photo and the name is right there. Guests pick a display name once, with a free account.",
+  lead: "Open any photo and the name is right there. Every upload carries one, confirmed or chosen.",
   states: [
     {
       title: "A display name",
-      body: "Picked once, it rides on everything they add.",
+      body: "Confirmed once, it rides on everything they add.",
     },
     {
       title: "Host",
       body: "Your own uploads carry the badge, always.",
     },
     {
-      title: "Anonymous",
-      body: "One switch allows it. Sign in later to claim yours.",
+      title: "Unverified",
+      body: "A typed name, no confirmed email. Confirm any time to clear the mark.",
     },
   ] satisfies CopyItem[],
 };
@@ -151,7 +151,7 @@ export const STAYS = {
     { title: "Stays", body: "No end date. Up until you say otherwise." },
     {
       title: "You delete",
-      body: `Waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Trash. Restores as it was.`,
+      body: `Waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted. Restores as it was.`,
     },
     { title: "Gone", body: "After that, the files are deleted for good." },
   ] satisfies CopyItem[],
@@ -166,7 +166,7 @@ export const STAYS = {
     },
     {
       title: "Free albums need a visit",
-      body: `Idle ${Math.round(INACTIVE_DAYS / 30)} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Trash to restore.`,
+      body: `Idle ${Math.round(INACTIVE_DAYS / 30)} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted to restore.`,
     },
   ] satisfies CopyItem[],
   backup:

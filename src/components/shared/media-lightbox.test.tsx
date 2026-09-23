@@ -1,3 +1,4 @@
+// @contract-for: src/components/shared/unverified-mark.tsx
 /**
  * BEHAVIOR PINS for MediaLightbox (program Phase 2, slice 1). Freezes the
  * gesture physics + chrome contracts before Phase 4 splits the file: touch
@@ -11,30 +12,48 @@
  * 600). Velocity needs CONTROLLED timestamps, so gestures are dispatched as
  * hand-built PointerEvents with a defineProperty'd timeStamp.
  */
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
+// The mark's one label constant, read rather than retyped (Will, 2026-09-22
+// re-ruled its word): the pill, the guest list and the menu move together, and
+// a regex copy of the old string here would have been the one thing that did not.
+import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { setReducedMotion } from "../../../vitest.setup";
 import { MediaLightbox } from "./media-lightbox";
 
 const PHOTOS: GridMedia[] = [
-  { id: "p1", type: "photo", url: "https://r2.test/p1.jpg", downloadUrl: "https://r2.test/d1.jpg" },
-  { id: "p2", type: "photo", url: "https://r2.test/p2.jpg", downloadUrl: "https://r2.test/d2.jpg" },
-  { id: "p3", type: "photo", url: "https://r2.test/p3.jpg", downloadUrl: "https://r2.test/d3.jpg" },
+  {
+    id: "p1",
+    type: "photo",
+    url: "https://r2.test/p1.jpg",
+    downloadUrl: "https://r2.test/d1.jpg",
+  },
+  {
+    id: "p2",
+    type: "photo",
+    url: "https://r2.test/p2.jpg",
+    downloadUrl: "https://r2.test/d2.jpg",
+  },
+  {
+    id: "p3",
+    type: "photo",
+    url: "https://r2.test/p3.jpg",
+    downloadUrl: "https://r2.test/d3.jpg",
+  },
 ];
 
 const WITH_VIDEO: GridMedia[] = [
   PHOTOS[0],
-  { id: "v1", type: "video", url: "https://r2.test/v1.mp4", downloadUrl: "https://r2.test/dv1.mp4" },
+  {
+    id: "v1",
+    type: "video",
+    url: "https://r2.test/v1.mp4",
+    downloadUrl: "https://r2.test/dv1.mp4",
+  },
   PHOTOS[2],
 ];
 
@@ -125,7 +144,11 @@ describe("MediaLightbox: gesture gating", () => {
   it("mouse pointers never engage the finger-follow", () => {
     mount();
     firePointer(track(), "pointerdown", { x: 400, t: 0, pointerType: "mouse" });
-    firePointer(track(), "pointermove", { x: 300, t: 50, pointerType: "mouse" });
+    firePointer(track(), "pointermove", {
+      x: 300,
+      t: 50,
+      pointerType: "mouse",
+    });
     expect(track().dataset.dragging).toBeUndefined();
     expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
   });
@@ -419,5 +442,169 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
     const dialog = screen.getByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     expect(onRemove).toHaveBeenCalledWith(items[0]);
+  });
+});
+
+/* THE SEAM (the Orchestrator, 2026-09-20): `canDelete` gates the personal Delete per item, so a
+   surface that may remove SOME photographs (a guest's own) shows the Trash only on those. */
+describe("canDelete gates the personal Delete per item", () => {
+  it("shows the Trash on the item it allows and never on another", () => {
+    const onDeleteCurrent = vi.fn();
+    const allowP2 = (m: GridMedia) => m.id === "p2";
+    const first = render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+          onDeleteCurrent={onDeleteCurrent}
+          canDelete={allowP2}
+        />
+      </TooltipProvider>,
+    );
+    expect(screen.queryByRole("button", { name: /^delete$/i })).toBeNull();
+    first.unmount();
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={1}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+          onDeleteCurrent={onDeleteCurrent}
+          canDelete={allowP2}
+        />
+      </TooltipProvider>,
+    );
+    expect(screen.getByRole("button", { name: /^delete$/i })).toBeTruthy();
+  });
+});
+
+/**
+ * THE GROUND BEHIND A PHOTOGRAPH (`behind=album`, Will 2026-09-20), and the one
+ * way of drawing it that does not defeat itself.
+ *
+ * ★ A BACKDROP FILTER BLURS WHAT IS BEHIND THE ELEMENT IT SITS ON. Put it on an
+ * ancestor of the media and the viewer blurs the photograph it exists to show —
+ * a failure that neither throws nor type-errors and looks plausible in the
+ * source, which is exactly the shape of failure a contract is for. So the pin is
+ * structural: the ground is its OWN element, and the media is not inside it.
+ * Nothing here reads a blur radius or a brightness; those are Will's to retune.
+ */
+describe("the lightbox's ground is separate from the photograph", () => {
+  it("draws the album on its own element, with the media never inside it", () => {
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+        />
+      </TooltipProvider>,
+    );
+    const ground = document.querySelector("[data-lightbox-ground]");
+    expect(ground, "the lightbox must draw a ground of its own").toBeTruthy();
+    expect(ground).toHaveClass("glass-behind");
+
+    // Every photograph in the viewer lives ABOVE the ground, never within it.
+    const media = document.querySelectorAll("[data-lightbox-track] img");
+    expect(media.length).toBeGreaterThan(0);
+    for (const el of media) expect(ground!.contains(el)).toBe(false);
+  });
+
+  it("wears the ONE material on the pill, the capsule and the close", () => {
+    // `grades=one` (Will, 2026-09-20): "This feels more consistent across
+    // surfaces that are close to each other, else it looks weird they're
+    // different." Three surfaces a finger's width apart, one class between them.
+    render(
+      <TooltipProvider>
+        <MediaLightbox
+          items={PHOTOS}
+          index={0}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+        />
+      </TooltipProvider>,
+    );
+    const panes = document.querySelectorAll(".glass");
+    // The action pill, the attribution capsule and the close button.
+    expect(panes.length).toBe(3);
+    for (const pane of panes) {
+      // A second recipe is the drift the round retired: no surface may reach
+      // for its own tint or its own blur on top of the material.
+      expect(pane.className).not.toMatch(/\bbg-(black|white)\/\d+/);
+      expect(pane.className).not.toMatch(/backdrop-blur/);
+    }
+  });
+});
+
+/**
+ * THE CREDIT, AFTER THE IDENTITY RESHAPE (2026-09-21).
+ *
+ * Anonymity left the product, so what is pinned is the three things a credit can
+ * now BE and nothing about how any of them look: a confirmed name stands plain, a
+ * typed one is marked, and a row with no name names nobody (no invented stand-in,
+ * no mark, the counter alone). The mark's own way out is pinned too, because it
+ * is the one Will asked for by name ("want to correct that immediately by
+ * verifying") and it exists only on your own upload.
+ */
+describe("MediaLightbox: the uploader's credit", () => {
+  const credited = (extra: Partial<GridMedia>): GridMedia[] => [
+    { ...PHOTOS[0], ...extra },
+  ];
+
+  it("a confirmed name stands plain, with no mark", () => {
+    mount(credited({ uploaderName: "Priya", isVerified: true }), 0);
+    expect(screen.getByText("Priya")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeNull();
+  });
+
+  it("a name nobody proved is named AND marked", () => {
+    mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
+    expect(screen.getByText("Sam")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeInTheDocument();
+  });
+
+  it("a row with no name names nobody: no stand-in, no mark, the counter alone", () => {
+    mount(credited({ uploaderName: null, isVerified: false }), 0);
+    expect(screen.queryByText(/a guest/i)).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeNull();
+    expect(screen.getByText("1 of 1")).toBeInTheDocument();
+  });
+
+  it("the mark offers the way out on the viewer's OWN upload only", () => {
+    // Somebody else's: the explanation, and no action.
+    const others = mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
+    fireEvent.click(screen.getByRole("button", { name: UNVERIFIED_LABEL }));
+    expect(
+      screen.queryByRole("button", { name: /confirm your email/i }),
+    ).toBeNull();
+    others.unmount();
+
+    // Mine (the `canDelete` seam is the "this is yours" answer every surface
+    // that can say so already carries).
+    mount(credited({ uploaderName: "Sam", isVerified: false }), 0, {
+      canDelete: () => true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: UNVERIFIED_LABEL }));
+    expect(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing about proof it was never given: an item with no flag is plain", () => {
+    mount(credited({ uploaderName: "Priya" }), 0);
+    expect(screen.getByText("Priya")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeNull();
   });
 });

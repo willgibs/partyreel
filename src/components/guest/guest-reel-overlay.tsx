@@ -30,6 +30,7 @@ import type { GalleryPayload } from "@/components/guest/live-gallery";
 import { rvlMs } from "@/components/reel/reveal-constants";
 import { ctaCorner } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { GLASS } from "@/lib/glass";
 import { buildReelProps } from "@/lib/reel/build-reel-props";
 import { downloadReel, saveBlobLocally } from "@/lib/reel/client-save";
 import { shouldClientEncode } from "@/lib/reel/engine/encode-gate";
@@ -302,7 +303,7 @@ export function GuestReelOverlay({
         data-act={act}
         className="absolute inset-0 z-20 flex items-center justify-center bg-[oklch(0.09_0_0)] px-8"
       >
-        <p className="text-center text-[15px] text-white/70">
+        <p className="text-center text-reading text-white/70">
           This reel isn&rsquo;t ready to watch right now. Please try again in a
           moment.
         </p>
@@ -368,7 +369,7 @@ export function GuestReelOverlay({
             data-rxp-gtitle
             className="absolute inset-x-0 top-[68%] px-6 text-center"
           >
-            <p className="text-[9px] font-medium tracking-[0.24em] text-white/70 uppercase">
+            <p className="text-label font-medium text-white/70 uppercase">
               The reel
             </p>
             {/* The title card names the event, so it wears the step every
@@ -399,7 +400,7 @@ export function GuestReelOverlay({
               value={Math.round(download.progress * 100)}
               className="h-1 bg-white/15 [&_[data-slot=progress-indicator]]:bg-white"
             />
-            <p className="mt-1.5 text-center text-[11px] text-white/60">
+            <p className="mt-1.5 text-center text-caption text-white/60">
               Making your copy, {Math.round(download.progress * 100)}%
             </p>
           </div>
@@ -411,7 +412,13 @@ export function GuestReelOverlay({
             type="button"
             onClick={handleShare}
             className={cn(
-              "flex h-11 flex-1 items-center justify-center gap-1.5 bg-white/12 text-sm font-medium text-white backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+              // ★ ONE MATERIAL EVERYWHERE, IN HIS OWN WORDS. Round one picked the
+              // reel's white pane and asked the question round two answered: "I
+              // don't want to have separate glass treatments and would prefer to
+              // find a global that works everywhere." Crystal is that global, so
+              // the white class here is superseded by the ruling that followed it.
+              "flex h-11 flex-1 items-center justify-center gap-1.5 text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+              GLASS,
               ctaCorner,
             )}
           >
@@ -423,7 +430,13 @@ export function GuestReelOverlay({
             onClick={handleDownload}
             disabled={download.phase !== "idle"}
             className={cn(
-              "flex h-11 flex-1 items-center justify-center gap-1.5 bg-white text-sm font-medium text-zinc-900 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100",
+              // ★ AND DOWNLOAD LOSES ITS OPAQUE WHITE. A solid white slab beside a
+              // glass one was two materials in one row, which is the thing the
+              // ruling retired; the pair is now one pane split in two, and the
+              // primary reads as primary through its position and its glyph
+              // rather than through a second treatment.
+              "flex h-11 flex-1 items-center justify-center gap-1.5 text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100",
+              GLASS,
               ctaCorner,
             )}
           >
@@ -433,7 +446,7 @@ export function GuestReelOverlay({
         </div>
         {/* The honest expectation-setter for the ladder: sometimes the host's file, sometimes one made
             right here. Either way the guest gets a video. */}
-        <p className="mt-2 text-center text-[11px] text-white/45">
+        <p className="mt-2 text-center text-caption text-white/45">
           Download uses the host&rsquo;s video when it is ready
         </p>
       </div>
@@ -443,7 +456,10 @@ export function GuestReelOverlay({
         type="button"
         onClick={onClose}
         aria-label="Close the reel"
-        className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-50 flex size-9 items-center justify-center rounded-full bg-white/10 text-white/85 backdrop-blur-sm transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100"
+        className={cn(
+          "absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-50 flex size-9 items-center justify-center rounded-full text-white/85 transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100",
+          GLASS,
+        )}
       >
         <CloseGlyph />
       </button>
