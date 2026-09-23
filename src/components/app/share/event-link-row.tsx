@@ -33,7 +33,7 @@ import "./share.css";
  * the client render the same bytes.
  */
 export function EventLinkRow({
-  /** The readable form: the custom slug's URL when one is set, else the /e/ link. */
+  /** The readable form (`preferredEventUrl`): `/e/<slug>` when a slug is set, else the /e/ link. */
   prettyUrl,
   /** The permanent qr_token URL. Always what is copied. */
   permanentUrl,

@@ -1,11 +1,12 @@
 // @contract-for: src/components/shared/masonry.tsx
 import { Download, EyeOff } from "lucide-react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import {
+  columnsFor,
   distributeColumns,
   MasonryColumns,
   type TileAction,
@@ -375,5 +376,49 @@ describe("distributeColumns keeps an album still when one lands", () => {
     const cols = distributeColumns([arrival, ...album], 4, false);
     const home = cols.find((col) => col.some((m) => m.id === "new"))!;
     expect(home[0].id).toBe("new");
+  });
+});
+
+/**
+ * THE MEASURED COUNT IS THE RULE'S COUNT, so the album never jumps a column as
+ * it hydrates. The rule's gap is `--gap-gallery`, a `max()`, and a custom
+ * property computes to its text: read that way the gap was NaN, counted as
+ * none, and a window just past a boundary got one column more than the CSS box
+ * it replaced. jsdom has no layout, so the box's width and computed style are
+ * stubbed with what Chrome reports for the album box.
+ */
+describe("columnsFor counts on the gap the box resolves", () => {
+  const boxAt = (width: number) => {
+    const el = document.createElement("div");
+    Object.defineProperty(el, "clientWidth", { value: width });
+    return el;
+  };
+  const albumBoxStyle = {
+    getPropertyValue: (name: string) =>
+      name === "--album-column"
+        ? "240px"
+        : name === "--gap-gallery"
+          ? "max(3px, 4px)"
+          : "",
+    columnGap: "4px",
+  } as unknown as CSSStyleDeclaration;
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("lays the rule's count, just past a boundary too", () => {
+    vi.stubGlobal("getComputedStyle", () => albumBoxStyle);
+    // A 1490 window's album is 1450 wide: five 240px columns fit with their
+    // gaps, and six only if the gap is lost.
+    expect(columnsFor(boxAt(1450))).toBe(5);
+    expect(columnsFor(boxAt(1400))).toBe(5);
+    expect(columnsFor(boxAt(1880))).toBe(7);
+  });
+
+  it("keeps a phone at two, and an unmeasured box unknown", () => {
+    vi.stubGlobal("getComputedStyle", () => albumBoxStyle);
+    expect(columnsFor(boxAt(335))).toBe(2);
+    expect(columnsFor(boxAt(0))).toBe(0);
   });
 });

@@ -344,8 +344,18 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* BAND 1 — what needs you. Never empty: it says so calmly instead. */}
-      {used > 0 && <NextStepBand steps={steps} />}
+      {/* BAND 1 — what needs you. Never empty: it says so calmly instead.
+          `plans` is the storage step's door: the same server-derived facts
+          and bytes the storage meter's "Need more?" opens its sheet on. */}
+      {used > 0 && (
+        <NextStepBand
+          steps={steps}
+          plans={{
+            plan: { tier, hasBilling, passExpiry },
+            needed: storageUsed,
+          }}
+        />
+      )}
 
       {/* BAND 2 — the storage line, always. It was gated on having an event;
           the pulse promises it unconditionally, and a host with no events

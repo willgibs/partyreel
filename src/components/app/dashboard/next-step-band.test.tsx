@@ -1,17 +1,24 @@
 // @contract-for: src/components/app/dashboard/next-step-band.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { NextStepBand } from "./next-step-band";
 import type { NextStep } from "@/lib/dashboard/next-step";
+
+// The storage step's plan sheet carries Checkout's buttons, which read the router.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 
 /**
  * THE BAND'S FOLD, PINNED (`busy=collapsed`, app-shape round two, 2026-09-20):
  * a genuinely busy host's band shows the top three by tone and folds the rest
  * behind one "N more" chip that expands in place, `aria-expanded` on the
- * control. Three things are contract and none of them is wording: the band
+ * control. Four things are contract and none of them is wording: the band
  * never renders as a void, three or fewer steps show with no fold control at
- * all, and past three the control both discloses and reverses.
+ * all, past three the control both discloses and reverses, and a step with no
+ * route (the storage step) opens the plan sheet in place, never a link out.
  */
 
 const step = (over: Partial<NextStep>): NextStep => ({
@@ -94,5 +101,46 @@ describe("a busy band, past three", () => {
       "aria-expanded",
       "false",
     );
+  });
+});
+
+/**
+ * A STEP WITH NO ROUTE IS THE STORAGE STEP, AND ITS DOOR IS THE PLAN SHEET,
+ * opened where the host stands, like every other pricing door in the host app
+ * (`gated-sites.test.ts`). It used to leave for the marketing page.
+ */
+describe("a step with no route", () => {
+  const shelf = step({
+    eventId: null,
+    kind: "storage",
+    tone: "warning",
+    label: "92% of your storage used",
+    href: null,
+  });
+
+  it("opens the plan sheet in place and never links out of the app", async () => {
+    render(
+      <NextStepBand
+        steps={[shelf]}
+        plans={{ plan: { tier: "free", hasBilling: false }, needed: 1_000 }}
+      />,
+    );
+    expect(screen.queryByRole("link")).toBeNull();
+    await userEvent.click(
+      screen.getByRole("button", { name: /storage used/i }),
+    );
+    // Opened on the reason it was asked for; what the sheet then says is its
+    // own contract (pricing-sheet.test.tsx).
+    expect(await screen.findByRole("dialog")).toHaveAttribute(
+      "data-pricing-sheet",
+      "room",
+    );
+  });
+
+  it("is said, never offered, when no plan facts were handed down", () => {
+    render(<NextStepBand steps={[shelf]} />);
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.getByText(/storage used/i)).toBeInTheDocument();
   });
 });

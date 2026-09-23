@@ -102,8 +102,8 @@ import { cn } from "@/lib/utils";
  *
  * ★ IT IS STILL A CLASS STRING because the lab, the marketing album stage and
  * the guest skeleton lay their OWN boxes out with it, and because it is this
- * grid's own pre-measure paint. `columnsFor` below reads the same two custom
- * properties, so there is still exactly one rule.
+ * grid's own pre-measure paint. `columnsFor` below reads the same knob and the
+ * gap this rule resolves to, so there is still exactly one rule.
  */
 export const GALLERY_COLUMNS =
   "columns-2 gap-[var(--gap-gallery)] sm:columns-[var(--album-column,220px)]";
@@ -347,9 +347,9 @@ function TileActionBar({ actions }: { actions: readonly TileAction[] }) {
  * THE COLUMN COUNT, FROM THE ONE RULE. Read off the box itself so the
  * `--album-column` knob and the `--gap-gallery` token stay the single sources: a
  * second copy of "220" in JS is exactly the drift `GALLERY_COLUMNS` exists to
- * prevent.
+ * prevent. Exported for its contract, which pins the gap it reads.
  */
-function columnsFor(el: HTMLElement): number {
+export function columnsFor(el: HTMLElement): number {
   const width = el.clientWidth;
   // ★ A ZERO WIDTH IS "I DON'T KNOW", NOT "A PHONE". A `display:none` ancestor,
   // a collapsed tab and jsdom all measure 0, and answering 2 there would collapse
@@ -360,7 +360,16 @@ function columnsFor(el: HTMLElement): number {
   const style = getComputedStyle(el);
   const floor =
     parseFloat(style.getPropertyValue("--album-column")) || COLUMN_FLOOR;
-  const gap = parseFloat(style.getPropertyValue("--gap-gallery")) || 0;
+  // ★ THE GAP IS READ RESOLVED, OFF THE BOX'S OWN `column-gap`, NEVER OFF THE
+  // TOKEN. `--gap-gallery` is `max(3px, var(--radius-tile))`, and a custom
+  // property computes to its text, so reading it handed parseFloat
+  // "max(3px, 4px)", which is NaN and was counted as no gap at all. The count
+  // then ran one column past the CSS box wherever a window sat just over a
+  // boundary (a 1490 window: six 238px columns under a 240 floor, where the
+  // rule, the pre-measure paint and the skeleton all lay five), so the album
+  // jumped a column as it hydrated. Both boxes this grid draws set
+  // `gap: var(--gap-gallery)`, and a real length property computes to pixels.
+  const gap = parseFloat(style.columnGap) || 0;
   return Math.max(PHONE_COLUMNS, Math.floor((width + gap) / (floor + gap)));
 }
 

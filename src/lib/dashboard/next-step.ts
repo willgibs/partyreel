@@ -32,7 +32,14 @@ export type NextStep = {
   label: string;
   /** The row view's phrasing: the same step with the name already in the row. */
   short: string;
-  href: string;
+  /**
+   * Where the chip goes: a path inside the app, or null for the storage step,
+   * which has no route because its door is the plan sheet, opened where the
+   * host stands (`NextStepBand`). Every pricing door in the host app opens
+   * that sheet rather than leaving for the marketing page, whose fuller
+   * comparison is the sheet's own quiet foot (`gated-sites.test.ts`).
+   */
+  href: string | null;
   tone: "waiting" | "quiet" | "warning";
 };
 
@@ -136,7 +143,8 @@ export function resolveNextSteps(input: {
       eventId: null,
       label: `${input.storagePct}% of your storage used`,
       short: "Storage is nearly full",
-      href: "/pricing",
+      // No route: the band opens the plan sheet in place (see `href`).
+      href: null,
       tone: "warning",
     });
   }

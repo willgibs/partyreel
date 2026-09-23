@@ -27,6 +27,7 @@ import {
 } from "@/lib/constants/qr-presets";
 import { type Tier } from "@/lib/constants/tiers";
 import { eventUrl, previewJoinUrl } from "@/lib/events/share-urls";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
   createEventSchema,
   type CreateEventInput,
@@ -529,9 +530,13 @@ function CapDoor({
               </li>
             ))}
           </ul>
+          {/* The place deleted events wait has one name in the app, "Deleted"
+              (the dashboard's filter, the lifecycle emails), and its window
+              is the lifecycle constant, never a typed number. */}
           <p className="text-sm text-muted-foreground">
-            Deleting an event frees its slot. It waits in the bin for 30 days
-            first, so nothing is gone the moment you press it.
+            Deleting an event frees its slot. It waits in Deleted for{" "}
+            {RECENTLY_DELETED_WINDOW_DAYS} days first, so nothing is gone the
+            moment you press it.
           </p>
         </CardContent>
       )}

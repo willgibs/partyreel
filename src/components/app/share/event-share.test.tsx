@@ -127,7 +127,7 @@ describe("what the sharing surfaces encode", () => {
     Object.assign(navigator, { clipboard: { writeText } });
     render(
       <EventLinkRow
-        prettyUrl="https://partyreel.com/sarah-and-tom"
+        prettyUrl="https://partyreel.com/e/sarah-and-tom"
         permanentUrl="https://partyreel.com/e/tok_123"
       />,
     );

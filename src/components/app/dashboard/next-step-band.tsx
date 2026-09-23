@@ -13,6 +13,10 @@ import {
   HardDrive,
 } from "lucide-react";
 
+import {
+  PricingSheet,
+  type PricingPlanFacts,
+} from "@/components/app/pricing/pricing-sheet";
 import { trackAttrs } from "@/lib/analytics/events";
 import {
   foldNextSteps,
@@ -40,8 +44,9 @@ import { cn } from "@/lib/utils";
  * "what needs you" at a glance. So past three steps (`foldNextSteps`, the pure
  * rule this only draws), the rest fold behind one "+N more" chip that expands
  * in place, `aria-expanded` on the control for assistive tech. A CLIENT
- * component for that reason alone — the steps themselves are still resolved on
- * the server, where the state is.
+ * component for that and for the storage step's plan sheet, which opens in
+ * place; the steps themselves are still resolved on the server, where the
+ * state is.
  */
 
 const ICONS: Record<NextStepKind, typeof ListChecks> = {
@@ -62,31 +67,38 @@ const TONES = {
     "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
 } as const;
 
+/**
+ * What the storage step's door needs to open the plan sheet where the host
+ * stands: the server-derived plan facts (the sheet's lead reads them, never
+ * an entitlement) and the bytes in use, so it opens on the smallest plan that
+ * clears them, exactly as the storage meter's own "Need more?" door does.
+ */
+export type NextStepPlans = {
+  plan: PricingPlanFacts;
+  /** Active bytes in use: the `room` trigger's `needed`. */
+  needed?: number;
+};
+
+const CHIP =
+  "group flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none transition-[background-color,transform] duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:active:scale-100";
+
 /** One step's chip. `reveal` rides `data-settings-reveal` (globals.css), the
  *  product's own "a control eases in when it appears" idiom (the visibility
  *  and uploads settings panels, the gallery's Filter panel): opacity + a small
  *  rise on mount, a plain instant swap under reduced motion — never a bespoke
  *  animation for one band. */
-function StepChip({ step, reveal }: { step: NextStep; reveal: boolean }) {
+function StepChip({
+  step,
+  reveal,
+  plans,
+}: {
+  step: NextStep;
+  reveal: boolean;
+  plans?: NextStepPlans;
+}) {
   const Icon = ICONS[step.kind];
-  return (
-    <Link
-      href={step.href}
-      data-settings-reveal={reveal ? "" : undefined}
-      // The doors the chrome carries. They are inert on (app): only
-      // the marketing layout mounts the delegated listener, which
-      // analytics/events.ts states outright. Carried anyway because
-      // the round's ownership rules ask every new door to, and
-      // flagged in the lane's Deferred rather than silently skipped.
-      {...trackAttrs("cta_click", {
-        cta: `pulse-${step.kind}`,
-        location: "dashboard",
-      })}
-      className={cn(
-        "group flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none transition-[background-color,transform] duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:active:scale-100",
-        TONES[step.tone],
-      )}
-    >
+  const body = (
+    <>
       <Icon className="size-4 shrink-0" aria-hidden />
       {step.label}
       {/* The arrow only leans on hover: a row of six static arrows
@@ -95,11 +107,72 @@ function StepChip({ step, reveal }: { step: NextStep; reveal: boolean }) {
         className="size-3.5 shrink-0 opacity-0 transition-[opacity,translate] duration-150 ease-emphasis group-hover:translate-x-0.5 group-hover:opacity-70 group-focus-visible:opacity-70 motion-reduce:transition-none"
         aria-hidden
       />
-    </Link>
+    </>
+  );
+  const shared = {
+    "data-settings-reveal": reveal ? "" : undefined,
+    // The doors the chrome carries. They are inert on (app): only the
+    // marketing layout mounts the delegated listener, which
+    // analytics/events.ts states outright. Carried anyway because the round's
+    // ownership rules ask every new door to, and flagged in the lane's
+    // Deferred rather than silently skipped.
+    ...trackAttrs("cta_click", {
+      cta: `pulse-${step.kind}`,
+      location: "dashboard",
+    }),
+  };
+
+  if (step.href !== null) {
+    return (
+      <Link href={step.href} {...shared} className={cn(CHIP, TONES[step.tone])}>
+        {body}
+      </Link>
+    );
+  }
+
+  // Without the plan facts there is no door to open, so the step is said
+  // rather than offered: a chip that does nothing when pressed is worse than
+  // a line. The dashboard always passes them.
+  if (!plans) {
+    return (
+      <span className={cn(CHIP, TONES[step.tone], "pointer-events-none")}>
+        <Icon className="size-4 shrink-0" aria-hidden />
+        {step.label}
+      </span>
+    );
+  }
+
+  // ★ A STEP WITH NO ROUTE OPENS THE PLAN SHEET WHERE THE HOST STANDS (the
+  // storage step). It used to leave the app for the static, tier-blind
+  // marketing page while every other pricing door in the app opens this
+  // sheet, which already knows how full the host is; the sheet's own quiet
+  // foot is the one way out to the full comparison. The chip keeps its
+  // neighbours' shape, so the band stays one row of doors.
+  return (
+    <PricingSheet
+      trigger={{ kind: "room", needed: plans.needed }}
+      plan={plans.plan}
+      returnTo="/dashboard"
+    >
+      <button
+        type="button"
+        {...shared}
+        className={cn(CHIP, "cursor-pointer", TONES[step.tone])}
+      >
+        {body}
+      </button>
+    </PricingSheet>
   );
 }
 
-export function NextStepBand({ steps }: { steps: NextStep[] }) {
+export function NextStepBand({
+  steps,
+  plans,
+}: {
+  steps: NextStep[];
+  /** The storage step's door (see `NextStepPlans`). */
+  plans?: NextStepPlans;
+}) {
   const [expanded, setExpanded] = useState(false);
   const restId = useId();
 
@@ -123,7 +196,11 @@ export function NextStepBand({ steps }: { steps: NextStep[] }) {
       <ul id={restId} className="flex flex-wrap items-center gap-2">
         {visible.map((step, i) => (
           <li key={`${step.kind}-${step.eventId ?? "account"}`}>
-            <StepChip step={step} reveal={expanded && i >= head.length} />
+            <StepChip
+              step={step}
+              reveal={expanded && i >= head.length}
+              plans={plans}
+            />
           </li>
         ))}
         {rest.length > 0 && (

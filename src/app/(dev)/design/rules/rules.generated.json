@@ -1494,7 +1494,7 @@
             "a settled band"
           ],
           "file": "src/components/app/dashboard/next-step-band.test.tsx",
-          "line": 28
+          "line": 35
         },
         {
           "title": "shows every step with no fold control",
@@ -1502,7 +1502,7 @@
             "a band of three or fewer"
           ],
           "file": "src/components/app/dashboard/next-step-band.test.tsx",
-          "line": 36
+          "line": 43
         },
         {
           "title": "folds to the top three by tone, behind a closed count",
@@ -1510,7 +1510,7 @@
             "a busy band, past three"
           ],
           "file": "src/components/app/dashboard/next-step-band.test.tsx",
-          "line": 62
+          "line": 69
         },
         {
           "title": "expands in place on a click, and the control reflects it",
@@ -1518,7 +1518,7 @@
             "a busy band, past three"
           ],
           "file": "src/components/app/dashboard/next-step-band.test.tsx",
-          "line": 78
+          "line": 85
         },
         {
           "title": "reverses on a second click",
@@ -1526,7 +1526,23 @@
             "a busy band, past three"
           ],
           "file": "src/components/app/dashboard/next-step-band.test.tsx",
-          "line": 86
+          "line": 93
+        },
+        {
+          "title": "opens the plan sheet in place and never links out of the app",
+          "suite": [
+            "a step with no route"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 121
+        },
+        {
+          "title": "is said, never offered, when no plan facts were handed down",
+          "suite": [
+            "a step with no route"
+          ],
+          "file": "src/components/app/dashboard/next-step-band.test.tsx",
+          "line": 140
         }
       ]
     },
@@ -2457,7 +2473,15 @@
             "nothing in the host app leaves for the marketing page"
           ],
           "file": "src/components/app/pricing/gated-sites.test.ts",
-          "line": 74
+          "line": 78
+        },
+        {
+          "title": "the pulse's rule hands the storage step no route out of the app",
+          "suite": [
+            "nothing in the host app leaves for the marketing page"
+          ],
+          "file": "src/components/app/pricing/gated-sites.test.ts",
+          "line": 90
         },
         {
           "title": "%s is a pressable button, never a disabled label",
@@ -4509,7 +4533,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 30
+          "line": 63
         },
         {
           "title": "appears beside the wordmark for the demo",
@@ -4517,7 +4541,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 35
+          "line": 68
         },
         {
           "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
@@ -4525,7 +4549,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 40
+          "line": 73
         },
         {
           "title": "wears the stranger's CTA until this device has typed a name",
@@ -4533,7 +4557,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 59
+          "line": 92
         },
         {
           "title": "names them, marks the name, and offers the three moves",
@@ -4541,7 +4565,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 73
+          "line": 106
         },
         {
           "title": "with no address: 'Unverified', and the row offers to ADD one",
@@ -4549,7 +4573,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 92
+          "line": 125
         },
         {
           "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
@@ -4557,7 +4581,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 106
+          "line": 139
         },
         {
           "title": "never offers 'Add your email' without a row to put one on",
@@ -4565,7 +4589,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 126
+          "line": 159
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4573,7 +4597,23 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 136
+          "line": 169
+        },
+        {
+          "title": "Confirm your email: the intent first, then the claim, then the save",
+          "suite": [
+            "GuestNameMenu: confirming keeps the event"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "Sign in: the photographs claimed, and no save it never promised",
+          "suite": [
+            "GuestNameMenu: confirming keeps the event"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 218
         }
       ]
     },
@@ -4643,7 +4683,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 30
+          "line": 63
         },
         {
           "title": "appears beside the wordmark for the demo",
@@ -4651,7 +4691,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 35
+          "line": 68
         },
         {
           "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
@@ -4659,7 +4699,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 40
+          "line": 73
         },
         {
           "title": "wears the stranger's CTA until this device has typed a name",
@@ -4667,7 +4707,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 59
+          "line": 92
         },
         {
           "title": "names them, marks the name, and offers the three moves",
@@ -4675,7 +4715,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 73
+          "line": 106
         },
         {
           "title": "with no address: 'Unverified', and the row offers to ADD one",
@@ -4683,7 +4723,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 92
+          "line": 125
         },
         {
           "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
@@ -4691,7 +4731,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 106
+          "line": 139
         },
         {
           "title": "never offers 'Add your email' without a row to put one on",
@@ -4699,7 +4739,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 126
+          "line": 159
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4707,7 +4747,23 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 136
+          "line": 169
+        },
+        {
+          "title": "Confirm your email: the intent first, then the claim, then the save",
+          "suite": [
+            "GuestNameMenu: confirming keeps the event"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 203
+        },
+        {
+          "title": "Sign in: the photographs claimed, and no save it never promised",
+          "suite": [
+            "GuestNameMenu: confirming keeps the event"
+          ],
+          "file": "src/components/guest/guest-header.test.tsx",
+          "line": 218
         }
       ]
     },
@@ -12256,7 +12312,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 55
+          "line": 56
         },
         {
           "title": "gives a video its play mark and a photograph none",
@@ -12264,7 +12320,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 62
+          "line": 63
         },
         {
           "title": "shows the like mark for a count, and nothing at zero",
@@ -12272,7 +12328,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 70
+          "line": 71
         },
         {
           "title": "suppresses the like mark where every tile is liked (the Likes feed)",
@@ -12280,7 +12336,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 78
+          "line": 79
         },
         {
           "title": "draws every action of the set inside a single bar",
@@ -12288,7 +12344,7 @@
             "the desk's hover set is ONE pane, declared per surface"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 94
+          "line": 95
         },
         {
           "title": "keeps a control's tap off the lightbox",
@@ -12296,7 +12352,7 @@
             "the desk's hover set is ONE pane, declared per surface"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 115
+          "line": 116
         },
         {
           "title": "renders one overlay per tile, as a sibling of the open-lightbox button",
@@ -12304,7 +12360,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 130
+          "line": 131
         },
         {
           "title": "renderOverlay is optional — a tile renders without it and still opens",
@@ -12312,7 +12368,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 156
+          "line": 157
         },
         {
           "title": "seats the prefix before the first tile (the pending uploads' slot)",
@@ -12320,7 +12376,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 162
+          "line": 163
         },
         {
           "title": "marks exactly the ids the surface names, and no tile without them",
@@ -12328,7 +12384,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 183
+          "line": 184
         },
         {
           "title": "is a MARKER with no tap, and a button only where a filter exists",
@@ -12336,7 +12392,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 200
+          "line": 201
         },
         {
           "title": "fires the filter without opening the lightbox underneath it",
@@ -12344,7 +12400,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 220
+          "line": 221
         },
         {
           "title": "carries the filter's state, so the mark is never a one-way door",
@@ -12352,7 +12408,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 239
+          "line": 240
         },
         {
           "title": "leaves the other three marks exactly as they were",
@@ -12360,7 +12416,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 264
+          "line": 265
         },
         {
           "title": "writes data-arrived on exactly the ids the surface names",
@@ -12368,7 +12424,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 291
+          "line": 292
         },
         {
           "title": "writes data-landed on exactly the ids the surface names",
@@ -12376,7 +12432,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 300
+          "line": 301
         },
         {
           "title": "draws neither when a surface names neither",
@@ -12384,7 +12440,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 309
+          "line": 310
         },
         {
           "title": "leaves every existing tile where it was when a newer one is prepended",
@@ -12392,7 +12448,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 339
+          "line": 340
         },
         {
           "title": "balances: no column runs away from the shortest",
@@ -12400,7 +12456,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 358
+          "line": 359
         },
         {
           "title": "puts a newly landed photograph at the HEAD of the column it joins",
@@ -12408,7 +12464,23 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 367
+          "line": 368
+        },
+        {
+          "title": "lays the rule's count, just past a boundary too",
+          "suite": [
+            "columnsFor counts on the gap the box resolves"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 410
+        },
+        {
+          "title": "keeps a phone at two, and an unmeasured box unknown",
+          "suite": [
+            "columnsFor counts on the gap the box resolves"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 419
         }
       ]
     },
@@ -14430,7 +14502,8 @@
       "file": "src/components/shared/unverified-mark.tsx",
       "names": [
         "UNVERIFIED_LABEL",
-        "UnverifiedMark"
+        "UnverifiedMark",
+        "UnverifiedMarkEvent"
       ],
       "specimens": [],
       "indexed": true,
@@ -14729,7 +14802,7 @@
             "the mark's word"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 42
+          "line": 79
         },
         {
           "title": "names the mark for a screen reader and a pointer alike",
@@ -14737,7 +14810,7 @@
             "the mark's word"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 47
+          "line": 84
         },
         {
           "title": "about somebody else: anyone can type a name, and they have not confirmed an email",
@@ -14745,7 +14818,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 55
+          "line": 92
         },
         {
           "title": "names an unnamed guest without inventing one",
@@ -14753,7 +14826,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 65
+          "line": 102
         },
         {
           "title": "about YOURSELF: what you did, what is missing, and the way out",
@@ -14761,7 +14834,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 73
+          "line": 110
         },
         {
           "title": "offers no way out on somebody else's credit",
@@ -14769,7 +14842,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 86
+          "line": 123
         },
         {
           "title": "tells the HOST about their own switch, and only the host",
@@ -14777,7 +14850,23 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 94
+          "line": 131
+        },
+        {
+          "title": "keeps the album's event: the intent first, then the claim, then the save",
+          "suite": [
+            "confirming from your own credit"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 167
+        },
+        {
+          "title": "outside an album, claims the uploads and saves nothing it cannot name",
+          "suite": [
+            "confirming from your own credit"
+          ],
+          "file": "src/components/shared/unverified-mark.test.tsx",
+          "line": 180
         }
       ]
     },
@@ -16804,6 +16893,14 @@
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
           "line": 199
+        },
+        {
+          "title": "names no route, so the band opens the plan sheet in place rather than leaving the app",
+          "suite": [
+            "the storage step's door"
+          ],
+          "file": "src/lib/dashboard/next-step.test.ts",
+          "line": 205
         }
       ]
     },
