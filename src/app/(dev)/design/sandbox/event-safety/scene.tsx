@@ -3,7 +3,7 @@
 import { type ReactNode, useState } from "react";
 import { Bell, ChevronLeft } from "lucide-react";
 
-import { Frame } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,10 +12,6 @@ import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import { HOST } from "./fixtures";
-import {
-  PendingFit as Fit,
-  PendingMeasured as Measured,
-} from "./pending-kit";
 
 /**
  * THE ONE FRAME EVERY DECISION DRAWS IN, AND THE GROUNDS UNDER IT.
