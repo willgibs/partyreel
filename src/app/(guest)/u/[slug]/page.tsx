@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sparkles } from "lucide-react";
 
-import { EventCard } from "@/components/app/event-card";
+import { EventCard, RoleMarker } from "@/components/app/event-card";
 import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
@@ -23,10 +23,9 @@ import {
   isFollowing,
   type PublicProfile,
 } from "@/lib/db/queries/social";
-import { GLASS_MARK } from "@/lib/glass";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { createClient } from "@/lib/supabase/server";
-import { cn, formatEventDate } from "@/lib/utils";
+import { formatEventDate } from "@/lib/utils";
 
 // Covers are presigned per request; the follow state is viewer-specific.
 export const dynamic = "force-dynamic";
@@ -55,36 +54,6 @@ export async function generateMetadata({
       type: "profile",
     },
   };
-}
-
-/** The marker on every card (Will, `made-of=covers`, 2026-09-19: "rather than a
- *  separate 'also at' section, maybe we could just have host/guest UI on each
- *  event card to denote within a single group"). It rides EventCard's top-right
- *  slot in the card's own chrome language (the same pill as the date and the
- *  lock below), so the group reads as one grid with a mark on it rather than
- *  two grids sharing a heading. No new prop on EventCard: that card is shared
- *  with the dashboard, and the marker is this page's idea.
- *
- *  ★ ONE MATERIAL (glass round two, Crystal, landed 2026-09-20): this was its
- *  own hand-rolled `bg-black/25 backdrop-blur-sm` pane, the exact duplicate
- *  `event-card.tsx`'s own top-right pill retired when it moved onto
- *  `GLASS_MARK` (round two's "one material everywhere" ruling, his own
- *  words). Landing second past glass-wiring's merge is this lane's cue to
- *  make the swap rather than leave a second recipe standing. */
-function Marker({ role }: { role: "host" | "guest" }) {
-  return (
-    <span
-      className={cn(
-        "flex h-5 items-center rounded-full px-2 text-[10px] font-medium text-white",
-        GLASS_MARK,
-      )}
-    >
-      {role === "host" ? "Host" : "Guest"}
-      <span className="sr-only">
-        {role === "host" ? ": hosted this event" : ": added photos here"}
-      </span>
-    </span>
-  );
 }
 
 /** The card grid, and the two presign rounds behind it, BELOW A SUSPENSE
@@ -157,7 +126,10 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
               party.eventDate ? formatEventDate(party.eventDate) : "No date set"
             }
             statusLabel={party.statusLabel}
-            action={<Marker role={party.role} />}
+            // The marker on every card (Will, `made-of=covers`, 2026-09-19): one grid with a
+            // mark on it, not two grids sharing a heading. The dashboard's Guest cards wear the
+            // same object (event-card.tsx owns it).
+            action={<RoleMarker role={party.role} />}
           />
         </li>
       ))}
@@ -202,9 +174,10 @@ function GridSkeleton({ count }: { count: number }) {
  * is the address, and claiming it was the consent act). Logged-out visible via
  * the anon get_public_profile RPC. What renders is exactly the RPC's ruled
  * composition: hosted events the host PUBLISHED (display_in_profile, with the
- * album link) + attended events surfaced by their hosts' guest lists, minus the
- * owner's own hides. Never any counts (follower counts are owner-private) and
- * never an email.
+ * album link) + the events this person added photos to that their hosts' guest
+ * lists surface and that the owner CHOSE to show (nothing until chosen), each
+ * following its album's own doors for THIS viewer. Never any counts (follower
+ * counts are owner-private) and never an email.
  *
  * ★ ONE GRID, TWO KINDS OF CARD (Will, `made-of=covers`, 2026-09-19): "This
  * makes profile pages feel much more full and incentivizes guests to upload to
@@ -216,8 +189,8 @@ function GridSkeleton({ count }: { count: number }) {
  * difference a viewer can act on is the one that matters: a hosted card opens
  * the album the host published, and an ATTENDED CARD CARRIES NO LINK, because
  * being on a guest list is not a capability grant. The covers behind the
- * attended half are presigned only through the same three gates the RPC
- * applied, re-proved inside the query rather than inherited from its payload.
+ * attended half are presigned only through the owner's gates the RPC applied,
+ * re-proved inside the query rather than inherited from its payload.
  *
  * This is a growth surface (the /e/ page's "who made this?" answer), so the
  * chrome stays quiet: the person and their events are the page.

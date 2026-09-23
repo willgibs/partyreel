@@ -37,6 +37,11 @@
  *      at all (the SELECT and `guests_host_select` are gone, replayed statement by statement across
  *      the set), and capture_guest_email fills `guests.email` only on a row whose own account is the
  *      confirmed owner of that address.
+ *  10. Guest by upload (Will, 2026-09-22; migrations 20260923120000 + 20260923130000): a person is a
+ *      guest of an event only through an upload of theirs. The upload gate closes again on the
+ *      guest's OWN deletes (never on a host's removal), a profile's attended line follows the album's
+ *      Require an upload to view, the claim card and Claim all skip a row with no live upload, the
+ *      token claim's count is the claimed rows that carry one, and the save objects are dropped.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -523,7 +528,7 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     );
   });
 
-  it("get_upload_gate is service-role only, punches the ticket once and mirrors the presign's caps", () => {
+  it("get_upload_gate is service-role only, closes again on the guest's own deletes and mirrors the presign's caps", () => {
     const { body, file } = latestDefinition("get_upload_gate");
     expect(file).toContain(
       "revoke all on function public.get_upload_gate(uuid, text, uuid) from public, anon, authenticated;",
@@ -536,8 +541,16 @@ describe("the door round, wave 0 — Require an upload to view", () => {
       "g.session_token = p_session_token and g.user_id is null",
     );
     expect(body).toContain("p_user_id is not null and g.user_id = p_user_id");
-    // ★ Punched once: no status filter, so neither a hide nor a removal re-closes the gate.
-    expect(body).not.toContain("m.status");
+    // ★ OWN DELETES CLOSE IT (Will, 2026-09-22, re-ruling his "any completed upload counts"): the
+    // ONE status filter is the guest's own removal. Pending, approved, hidden and a removal by the
+    // host, an admin or the system all still count, because a door that re-closed on the host's
+    // curation would leak it to the guest. So the body names exactly this clause and no other
+    // status test: a `m.status = 'approved'` here would re-close the door on every hide.
+    const code = collapse(body.replace(/--[^\n]*/g, ""));
+    expect(code).toContain(
+      "and not (m.status = 'removed' and m.removed_by_uploader)",
+    );
+    expect(code.match(/m\.status/g)).toHaveLength(1);
     // ★ The fail-open pair is exactly what the presign refuses `cap_reached` on: both cap
     // expressions must read the same in both functions, or a guest could be held at a step the
     // presign would refuse anyway.
@@ -662,7 +675,12 @@ describe("the guest identity round — the four claim and attach RPCs", () => {
     // even for their own address. A parameter here would turn the product into "is this address a
     // Partyreel guest?".
     const { body, file } = latestDefinition("list_guest_rows_by_email");
-    expect(body).toContain("create function public.list_guest_rows_by_email()");
+    // The signature is the pin, in either form: guest by upload (20260923120000) replaced the body
+    // with `create or replace` (same signature and RETURNS TABLE, so the ACL is kept), where the
+    // original needed a plain create. What must never appear is a parameter between the parens.
+    expect(body).toMatch(
+      /^create (or replace )?function public\.list_guest_rows_by_email\(\)/,
+    );
     const collapsed = collapse(body);
     expect(collapsed).toContain("v_uid uuid := (select auth.uid());");
     expect(collapsed).toContain(
@@ -780,12 +798,6 @@ describe("the guest identity round — a profile publishes nothing until chosen"
     // stay private until someone turns it on.
     expect(sql).not.toMatch(
       /insert into public\.profile_shown_events \(user_id, event_id\) select/,
-    );
-  });
-
-  it("does NOT drop profile_hidden_events while the deployed build still writes it", () => {
-    expect(collapse(allMigrations())).not.toContain(
-      "drop table public.profile_hidden_events",
     );
   });
 
@@ -973,5 +985,96 @@ describe("the guests grant tidy: no client reads guests, and a capture lands onl
     expect(file).toContain(
       "grant execute on function public.capture_guest_email(text, text, boolean) to service_role;",
     );
+  });
+});
+
+describe("guest by upload: a person is a guest of an event only through an upload of theirs", () => {
+  // Will, 2026-09-22 (docs/systems/guest-flow.md holds the definition as an invariant): "the only way
+  // to be attached to an event as a guest should be via upload ... Delete all of your uploads? Removed
+  // as a guest. Uploaded 1 photo? You're a guest." A LIVE upload is one whose status is not
+  // `removed`; what other people see needs an APPROVED one. Migration 20260923120000 codes the rule
+  // into five bodies and 20260923130000 drops the save objects it retired. Each pin reads CODE
+  // (comments stripped), so a comment that names a clause can never stand in for the clause.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("a profile's attended line follows the album's Require an upload to view", () => {
+    // His "Follow the album": on a require-upload event whose uploads are open, only the host and a
+    // signed-in viewer whose own row carries an upload they did not remove themselves see the line,
+    // exactly the viewers the album lets past its upload door.
+    const { body } = latestDefinition("get_public_profile");
+    const start = body.indexOf("'attended_events'");
+    const attended = collapse(
+      body
+        .slice(start, body.indexOf("'[]'::jsonb", start))
+        .replace(/--[^\n]*/g, ""),
+    );
+    expect(attended).toContain(
+      "and ( not e.require_upload_to_view or not e.accepting_uploads or e.host_id = (select auth.uid()) or exists ( select 1 from public.guests vg join public.media vm on vm.guest_id = vg.id where vg.event_id = e.id and vm.event_id = e.id and vg.user_id = (select auth.uid()) and not (vm.status = 'removed' and vm.removed_by_uploader) ) )",
+    );
+  });
+
+  it("the line's door and the album's door are one rule, mirrored against the album code", () => {
+    // The gate (get_upload_gate) and the attended line must agree on what counts as having passed
+    // the door, or a viewer could read the line of an album that is still holding them.
+    expect(code("get_upload_gate")).toContain(
+      "not (m.status = 'removed' and m.removed_by_uploader)",
+    );
+    const access = collapse(
+      readFileSync(join(ROOT, "src/lib/events/gallery-access.ts"), "utf8"),
+    );
+    expect(access).toContain(
+      "if (event.require_upload_to_view && ctx.canContribute && !ctx.hasContributed) {",
+    );
+  });
+
+  it("the claim card lists only a row with a live upload", () => {
+    // A row with nothing on it makes nobody a guest, so claiming it carries nothing and releasing
+    // it removes nothing: it has no place on the card.
+    expect(code("list_guest_rows_by_email")).toContain(
+      "and g.verified_at is null and m.n > 0 order by",
+    );
+  });
+
+  it("Claim all (null) claims only such a row, and takes its name only from one", () => {
+    const body = code("claim_guest_rows_by_email");
+    const skip =
+      "(p_event_ids is not null or exists ( select 1 from public.media x where x.guest_id = g.id and x.status <> 'removed' ))";
+    // Twice: the naming rule's read and the claim itself.
+    expect(body.split(skip)).toHaveLength(3);
+  });
+
+  it("the token claim stamps every row it can and counts only the ones that carry a live upload", () => {
+    // Every reader of that integer says "uploads" (the (app) layout's toast, the album's follow
+    // moment), so a claim that carried only an empty row is not news.
+    const body = code("claim_anonymous_uploads");
+    const counted =
+      "returning id ) select count(*)::integer into v_count from claimed c where exists ( select 1 from public.media m where m.guest_id = c.id and m.status <> 'removed' );";
+    expect(body.split(counted)).toHaveLength(3);
+    expect(body).not.toContain("get diagnostics");
+  });
+
+  it("the contract file drops the save objects and the dead opt-out table, functions first", () => {
+    // Before launch nothing waits for partyreel.com's older build (PROGRAM.md, "Before launch"); the
+    // file's own header names what that build loses. Functions before the tables they read, and
+    // nothing later in the set brings any of the four back.
+    const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+    const drops = [
+      "drop function if exists public.save_event(text);",
+      "drop function if exists public.get_saved_events();",
+      "drop table if exists public.saved_events;",
+      "drop table if exists public.profile_hidden_events;",
+    ].map((statement) => sql.lastIndexOf(statement));
+    expect(drops.every((at) => at > -1)).toBe(true);
+    expect([...drops].sort((a, b) => a - b)).toEqual(drops);
+    const after = sql.slice(Math.max(...drops));
+    for (const revival of [
+      /create (or replace )?function public\.save_event\(/,
+      /create (or replace )?function public\.get_saved_events\(/,
+      /create table (if not exists )?public\.saved_events\b/,
+      /create table (if not exists )?public\.profile_hidden_events\b/,
+    ]) {
+      expect(after).not.toMatch(revival);
+    }
   });
 });

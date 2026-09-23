@@ -160,6 +160,38 @@ describe("several events", () => {
   });
 });
 
+/**
+ * GUEST BY UPLOAD (Will, 2026-09-22): a person is a guest of an event only through an upload of
+ * theirs, so a row with nothing live on it has no place on the claim card. The RPC skips such rows
+ * (migration 20260923120000); the query layer drops an event whose group sums to nothing as the
+ * belt, so the card is right against a database that has not taken that file yet.
+ */
+describe("an event with nothing to claim", () => {
+  it("is never offered: an empty row alone carries no event onto the card", async () => {
+    rows = [
+      row({ event_id: "e-live", guest_id: "g1", upload_count: 2 }),
+      row({
+        event_id: "e-empty",
+        guest_id: "g2",
+        upload_count: 0,
+        last_upload_at: null,
+      }),
+    ];
+    const result = await getMyClaimableGuestRows();
+    expect(result.map((r) => r.eventId)).toEqual(["e-live"]);
+  });
+
+  it("keeps an event whose second row is empty, counted by what is live", async () => {
+    rows = [
+      row({ guest_id: "g1", upload_count: 3 }),
+      row({ guest_id: "g2", upload_count: 0, last_upload_at: null }),
+    ];
+    const result = await getMyClaimableGuestRows();
+    expect(result).toHaveLength(1);
+    expect(result[0].uploadCount).toBe(3);
+  });
+});
+
 describe("a real error", () => {
   it("throws rather than swallowing it", async () => {
     rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });

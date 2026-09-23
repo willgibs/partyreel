@@ -46,9 +46,12 @@ The expected, accepted set:
   description, date, custom slug and host name (plus the NAME for `private`) from a non-owner of a gated
   event, matching the locked `/e/` payload; an UNLOCKED viewer's fields come back through a self-guarded
   admin re-read inside `getEventByQrToken`. `get_public_profile`'s attended arm applies the album's own
-  gate, mirroring `resolveGalleryDecision`: on a `require_verified_email` event only the event's host or a
+  gates, mirroring `resolveGalleryDecision`: on a `require_verified_email` event only the event's host or a
   viewer whose `auth.users.email_confirmed_at` is set passes (the page's `isAuthed`), because the album holds
-  anyone else at the teaser, which never renders its Guests list. The QA #36 clause beside it
+  anyone else at the teaser, which never renders its Guests list; and on a `require_upload_to_view` event with
+  uploads open, only the host or a signed-in viewer whose own row there carries an upload they did not remove
+  themselves (deliberately stricter than the album where the album fails open on a full album, and blind to a
+  cookie-only name: it sees `auth.uid()`, never a session token). The QA #36 clause beside it
   (`allow_anonymous_uploads OR a signed-in viewer`) is implied by that gate while the twin trigger holds.
   Both keep their anon grant: the fix is the payload, not the grant.
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** an anon
@@ -59,8 +62,8 @@ The expected, accepted set:
   admin client** with **server-derived trusted values** (the R2-HEAD size, the `getUser()` ids, the
   verified email from `auth.users`; never the client): `create_media`, `create_media_as_host`,
   `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`; `get_upload_gate` (the
-  upload-to-view gate's one READ: has this session token or account completed an upload on this event,
-  and is the album full by the presign's own two caps; reached only through `resolveViewerDecision`, which
+  upload-to-view gate's one READ: does this session token or account hold an upload on this event that still
+  counts, any status but one the guest removed themselves, and is the album full by the presign's own two caps; reached only through `resolveViewerDecision`, which
   answers the guest page's render, the gallery poll, `/api/export/guest` and `/api/reel/download`, so a
   token can never be probed through it); `remove_my_upload_by_session` (a guest-without-an-account's
   own-photo removal, the token validated against the media's guest row, a claimed row never touched; only
@@ -72,7 +75,7 @@ The expected, accepted set:
   row is refused, a blank address detaches).
 - **Authenticated-only RPCs (lint `0029`):** `get_host_upload_context`,
   `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`, `check_slug_available`,
-  `has_password`/`verify_current_password`/`mark_password_set`, `save_event`/`get_saved_events`,
+  `has_password`/`verify_current_password`/`mark_password_set`,
   `get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`,
   `list_guest_rows_by_email`/`claim_guest_rows_by_email`/`disown_guest_rows_by_email`,
   `restore_media`/`restore_event`/`purge_media_now`, `like_media`/`get_my_likes`/`get_event_like_counts`,
@@ -88,16 +91,18 @@ The expected, accepted set:
   `claim_anonymous_uploads(text[])` stamps `guests.user_id = auth.uid()` onto a browser's still-unclaimed
   anonymous uploads, authorized by the held `session_token` capabilities + the `user_id IS NULL` no-theft
   guard (no client-spoofable value, so it stays browser-callable); for a CONFIRMED caller it also stamps
-  `verified_at` and `email` and clears `pending_email` (→ [guest-flow.md](guest-flow.md)).
+  `verified_at` and `email` and clears `pending_email`, and the count it returns is the claimed rows that carry a
+  LIVE upload (→ [guest-flow.md](guest-flow.md)).
   **The claim by address** (`list_guest_rows_by_email()`, `claim_guest_rows_by_email(uuid[])`,
   `disown_guest_rows_by_email(uuid[])`) is keyed on the CALLER'S OWN CONFIRMED address, read from
   `auth.users` under definer privilege. ★ The address is never a parameter, which is the whole oracle gate:
   nothing can answer "is this address a Partyreel guest?", and an UNCONFIRMED caller gets an empty set even
-  for their own address, because confirming it IS the authorization. The claim stamps `user_id`,
-  `verified_at` and `email` and clears `pending_email`; the disown removes the rows' media through the
-  uploader path and detaches the address. `get_my_uploads(integer)` returns the caller's OWN media across
-  events (host + guest; the app reads 200), reading the name/date of events they don't own, like
-  `get_saved_events` (→ [profiles-social.md](profiles-social.md)'s owner mode, [notifications-analytics-growth.md](notifications-analytics-growth.md)); `remove_my_upload(uuid)` re-checks the SAME ownership and marks
+  for their own address, because confirming it IS the authorization. Only a row carrying a LIVE upload is
+  listed, and Claim all (a null set) claims only such rows, because a row with nothing on it makes nobody a
+  guest. The claim stamps `user_id`, `verified_at` and `email` and clears `pending_email`; the disown removes the
+  rows' media through the uploader path and detaches the address. `get_my_uploads(integer)` returns the caller's
+  OWN media across events (host + guest; the app reads 200), reading the name/date of events they don't own
+  (→ [profiles-social.md](profiles-social.md)'s owner mode); `remove_my_upload(uuid)` re-checks the SAME ownership and marks
   a guest's self-deletion `removed_by_uploader=true`, private to the host (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
   **Likes:** `like_media(uuid)` favorites media the caller can SEE (host of its event, a guest of it, or
   an OPEN album; a password/private PURE viewer who never joined cannot like, by design);
@@ -153,7 +158,7 @@ The expected, accepted set:
   - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`; every other column is service-role-only (a new one is fail-closed). Never grant: `email` (the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive), `display_name` and `bio` (public text, written by `updateDisplayNameAction` / `setProfileBioAction` on the admin client after the validation + profanity checks; the claim RPCs also copy an already-filtered typed name onto a NAMELESS profile, and account deletion nulls it), `deletion_requested_at` (a client write would be an un-request path), `slug`, `tier`, `tier_expires_at`, `event_slots`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
   - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`): never grant `update(purge_at)`. Also write-ungranted: `removed_by_uploader` (owner-context `remove_my_upload`: a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, trigger/service-role-written). **SELECT is column-scoped too**: `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host (who may BE the investigated uploader) can't detect a legal hold via PostgREST, and neither are `removed_by_system`, `removed_by_admin`, `status_before_removed`. So an authenticated `select("*")` on media ERRORS: the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant and `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
   - **`guests`** — NO client role reads it: `authenticated` and `anon` hold no SELECT on any column, and the table has no policy (RLS stays ENABLED, so it rides the deny-all set and a grant that ever came back would still read no row). Every reader on both codebases is the service-role client or a SECURITY DEFINER function, and a new one joins them, never a grant: the table holds `session_token`, the PLAINTEXT guest upload capability, and both addresses. ★ **THE TOKEN ALSO RIDES A COOKIE**: `pr_guest_<eventId>` carries it raw, beside the signed `pr_unlock_<eventId>`, because Require an upload to view is resolved in an RSC and localStorage is invisible there. HttpOnly (LESS reachable than the localStorage copy), Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded `/^[0-9a-f]{64}$/` on read, and UNSIGNED on purpose: the database checks it against this column's unique index, so a forged value resolves to no row. Written only by `POST /api/guests` (a mint), `POST /api/guests/name`, `POST /api/guests/email`, `POST /api/r2/complete-upload` (a created row) and the gallery poll's heal; expired by `POST /api/guests/leave`, which the guest sign-out calls so a shared phone does not open the full album on the last contributor's ticket. ★ **It is a READ capability only**: every WRITE route takes the token from the request BODY (pinned in `session-cookie.test.ts`), so the cookie adds no CSRF surface. → [guest-flow.md](guest-flow.md). Writes are fully revoked (RPC-only); the guest list and the credit are built on the admin client. ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a CONFIRMED address of the row's own account: `create_guest` copies the minting session's `auth.users` address only beside its `email_confirmed_at`, the value it stamps as `verified_at` (an unconfirmed sign-up's row keeps its `user_id` and typed name and carries no address), the two claims write the caller's confirmed address as they stamp the caller's `user_id`, and `capture_guest_email` fills an EMPTY one only when the row's own `user_id` is the confirmed account that owns the address (it reads `auth.users` itself rather than trusting its route: a session token names a row, and on a shared phone that is whoever joined last). That last one can land on an unverified row (one minted before its account confirmed), so nothing attributes an address without `verified_at`. `guests.pending_email` is ONLY EVER an address a guest TYPED and nobody proved: outside every grant, never shown to the host or another guest, never attributed to an account, never mailed on its own, never expiring. The ONLY path from the second to the first is a claim that PROVES it (`claim_guest_rows_by_email`, or `claim_anonymous_uploads` under a confirmed session), and the code holds the same line: `resolveUploaderIdentity` case 3 returns no address at all, `getEventGuestList` selects neither column, and `POST /api/guests/capture-email` requires `email_confirmed_at` before it writes `guests.email` (a bare `user.email` is satisfied by an unconfirmed sign-up). The one exception, `upload_forensics.guest_pending_email`, is deny-all + service-role: capture-only, lawful process, never rendered.
-  - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE REVOKED, so the ONLY write path is the access-checking `like_media` RPC (a raw insert would let a user like, then via `get_my_likes` presign, media they can't see). `saved_events` follows the same rule.
+  - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE REVOKED, so the ONLY write path is the access-checking `like_media` RPC (a raw insert would let a user like, then via `get_my_likes` presign, media they can't see).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE on the host's own event); INSERT/UPDATE REVOKED, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed) and the ONLY position-update path is `reorder_reel(p_event_id, p_media_ids)` (host-owns + a set-equality guard: the ids must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser.
   - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; never write it and its legacy twin in one statement expecting both to stand: the trigger resolves a contradiction, on an update in the new column's favour), `require_upload_to_view` (default off), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
 - ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers.**

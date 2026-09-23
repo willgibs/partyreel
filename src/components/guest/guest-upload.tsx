@@ -68,6 +68,7 @@ export function GuestUpload({
   isDemo,
   host,
   hintEmail,
+  moment = false,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
@@ -99,6 +100,13 @@ export function GuestUpload({
    * later visit: the door asks again rather than a shared phone remembering.
    */
   hintEmail?: string | null;
+  /**
+   * A confirmation from this album just claimed its uploads (the page's
+   * `useConfirmReturn`): the slot stands up the follow moment even when
+   * nothing was uploaded this visit, which is exactly a Google or magic-link
+   * return (guest by upload, 2026-09-22).
+   */
+  moment?: boolean;
 }) {
   const items = queue;
   const [addOpen, setAddOpen] = useState(false);
@@ -195,15 +203,16 @@ export function GuestUpload({
           out gets the offer card counting what just landed, a guest who has just
           CONFIRMED gets the follow moment, signed in without a handle gets the
           claim line, and somebody who already has a page gets none of them.
-          Shown once a guest has contributed, never in the demo. */}
-      {doneCount > 0 && !isDemo && (
+          Shown once a guest has contributed this visit, or the moment a
+          confirmation from this album claimed their uploads; never in the demo. */}
+      {(doneCount > 0 || moment) && !isDemo && (
         <ClaimHandlePrompt
           doneCount={doneCount}
           qrToken={qrToken}
           host={host}
+          moment={moment}
           savePrompt={
             <SaveAccountPrompt
-              eventId={event.id}
               qrToken={qrToken}
               sessionToken={sessionToken ?? ""}
               count={doneCount}

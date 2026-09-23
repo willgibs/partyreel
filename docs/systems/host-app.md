@@ -20,8 +20,8 @@ bands, in this order (notices and storage, the most global, sit above the events
   place; a band that fits is never re-ranked.
 - **The storage line** — the ambient `StorageMeter`, UNCONDITIONAL: a host with no events still has a plan and a
   shelf. The over-cap grace banner is its own red top alert, never inside the meter.
-- **Your events** — hosted and saved events by recency, in two views (the events-list bullet under "Events & the
-  create flow").
+- **Your events** — the events you host and the events you added photos to (Guest cards), by recency, in two views
+  (the events-list bullet under "Events & the create flow").
 - **Just arrived** — the newest approved uploads in a window that WIDENS until it holds twelve (the last hour, then
   today, then the newest across events), captioned with the window it settled on
   ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)); with nothing approved it renders nothing. ★ These tiles are
@@ -105,16 +105,27 @@ stays the guard behind the door (the wizard toasts on `limit_reached`).
   (`confirmWhen: (next) => next`): asking a guest to contribute first is THIS switch's consequential direction, which
   the primitive's predicate allows per caller. **FREE for any tier**, no legacy twin (`GATED_EVENT_SETTINGS` stays
   password + custom_slug only). The gate FAILS OPEN while the event isn't accepting uploads or the album has hit its
-  storage/ingress cap, so a guest is never held at a step they cannot pass; the ticket is punched once (whatever the
-  upload's status after), and a claimed row keeps its punch through the account. ENFORCEMENT is the same gated gallery
+  storage/ingress cap, so a guest is never held at a step they cannot pass. ★ An upload keeps the door open whatever
+  the HOST does to it (hidden, removed), and stops keeping it open once the guest removes it themselves (Will,
+  2026-09-22, "Own deletes close it"); a claimed row counts through the account. ENFORCEMENT is the same gated gallery
   (→ [guest-flow.md](guest-flow.md) "Gallery access") plus a SERVICE-ROLE-ONLY read,
   `get_upload_gate(event_id, session_token, user_id)` ("has this viewer contributed, and is the album full"), never
   client-callable. `guestExperienceSummary()` COMPOSES a fresh sentence for this branch rather than appending a clause.
 - Only `name` is required; everything else is minimal + editable later (lowest-friction).
 - **The events list draws two ways, and the choice is a COOKIE.** Cover cards by default; a row view (the cover behind
   at 12%, the counts in columns, the newest few beside the name) behind a toggle opposite "Your events", with a sort
-  menu (Newest · Most waiting · Name) that rides with the rows. The bin and the saved events are FILTERS of this one
-  list, never a chip row, and the filter shows in BOTH views: it is the only door to the bin.
+  menu (Newest · Most waiting · Name) that rides with the rows. The bin and the events you added to are FILTERS of this
+  one list (the Show menu: All events · Guest · Deleted; any other value resolves to All events), never a
+  chip row, and the filter shows in BOTH views: it is the only door to the bin.
+  ★ **The events you added to are Guest cards** (guest by upload, Will 2026-09-22: "uploading to an event is now
+  effectively saving"): every event where the account holds a LIVE upload (pending, approved or hidden) and is not
+  the host, read from the uploads themselves (`getMyGuestEventCards`, admin client, the account's own rows only), so
+  a card leaves the moment its last live upload does, and nothing else puts another host's event on a dashboard.
+  `EventCard`'s `guest` variant wears the profile's own Guest marker (`RoleMarker`, shared with `/u/[slug]`) and a
+  "Hosted by" byline, with no per-row action. Masked by the album's rules
+  ([`guest-events.ts`](../../src/lib/dashboard/guest-events.ts)): a private album blank and locked, a password album
+  linked with no cover, a cover (the newest approved photograph, `adminCoverUrls`) only for an open one; newest first
+  by the account's own latest upload there.
   ★ **The view is a cookie set by a Server Action, not localStorage, and that is load-bearing**: the
   server has to know the view before the first byte or every cold load paints cards and swaps to rows
   after hydration. Setting a cookie in a Server Function also re-renders the page, so the toggle needs no
@@ -239,7 +250,10 @@ link row ([`share/event-link-row.tsx`](../../src/components/app/share/event-link
 `aria-live` line), never a toast.
 
 **The cards row** ([`event-feed/event-cards-row.tsx`](../../src/components/app/event-feed/event-cards-row.tsx)):
-Review · Reel · Guests · **Settings LAST**. A `role="group"` of **LINKS, never tabs**: three rooms and a sheet, and
+Review · Reel · Guests · **Settings LAST**. ★ The Guests card ("N guests" while the host's list is on, "Turn on the
+list" while it is off) and the header's people count read THE ONE COUNT (`getEventGuests`, the album header's own
+function: a confirmed guest once per person, a named unconfirmed one once per row, never the host), so the hub, the
+Guests room and the album say one number for one party, in one word. A `role="group"` of **LINKS, never tabs**: three rooms and a sheet, and
 nothing switches a panel in place. Sticky at `top-14`, condensing **in place** on an IntersectionObserver (a remount
 would drop the QR pill's `view-transition-name` mid-morph and restart the ticking count). The Review count ticks down on
 return (a rAF even under reduced motion, so no setState lands in an effect body); the edge fades show only while

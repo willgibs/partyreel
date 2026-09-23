@@ -8,7 +8,6 @@ import { EventCardQr } from "@/components/app/event-card-qr";
 import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
-import { UnsaveButton } from "@/components/app/unsave-button";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -43,10 +42,10 @@ import type { PulseTile } from "@/lib/db/queries/pulse";
  * more events, I'd expect the table to be more popular with sorting/filtering."
  *
  * So: cover cards by DEFAULT, a toggle on the right of the heading, and the
- * sort and the lens beside it. The bin and the saved events are FILTERS of this
- * one list rather than a chip row of their own — the five-chip inbox is what
- * the pulse replaced, and re-growing it here under another name would undo the
- * decision.
+ * sort and the lens beside it. The bin and the events you added to (the Guest
+ * lens: guest by upload, 2026-09-22) are FILTERS of this one list rather than
+ * a chip row of their own — the five-chip inbox is what the pulse replaced, and
+ * re-growing it here under another name would undo the decision.
  *
  * ★ WHY THIS IS A CLIENT COMPONENT WHEN THE OLD SECTION WAS NOT. The sort and
  * the lens must be INSTANT: this is a management tool, and a filter that costs
@@ -67,7 +66,7 @@ export function EventsSection({
   initialView,
   siteUrl,
 }: {
-  /** Hosted, saved and deleted together; the lens decides which show. */
+  /** Hosted, guest and deleted together; the lens decides which show. */
   rows: EventListRow[];
   newestByEvent: Map<string, PulseTile[]>;
   /** Read from the cookie on the server, so the first paint is already right. */
@@ -80,8 +79,8 @@ export function EventsSection({
 
   // A host with nothing at all: the create-first hero (voice-wiring's teaser,
   // composed untouched). Checked against the RAW rows, never the filtered
-  // ones, or emptying the "Saved" lens would offer to create a first event to
-  // a host who has three.
+  // ones, or an empty "Guest" lens would offer to create a first event to a
+  // host who has three.
   if (rows.length === 0) return <EventsEmptyTeaser />;
 
   const shown = sortEventRows(filterEventRows(rows, filter), sort);
@@ -97,11 +96,12 @@ export function EventsSection({
     void setEventsViewAction(next);
   }
 
+  // The bin's Restore is the list's one per-row action. A Guest card has none:
+  // it stays while the account holds a live upload there and leaves with the
+  // last one, so there is nothing to undo from here.
   const actions = new Map<string, React.ReactNode>();
   for (const row of shown) {
-    if (row.kind === "saved") {
-      actions.set(`saved-${row.id}`, <UnsaveButton eventId={row.id} />);
-    } else if (row.kind === "deleted") {
+    if (row.kind === "deleted") {
       actions.set(`deleted-${row.id}`, <RestoreEventButton eventId={row.id} />);
     }
   }
@@ -203,7 +203,7 @@ export function EventsSection({
         <p className="rounded-xl border border-dashed border-border bg-muted/20 px-6 py-10 text-center text-sm text-muted-foreground">
           {filter === "deleted"
             ? "Nothing deleted. Deleted events stay recoverable for 30 days, then they clear automatically."
-            : "Nothing saved yet. Save an event from any album you are a guest at and it collects here."}
+            : "Nothing here yet. Add a photo to someone else's album and it shows up here."}
         </p>
       ) : view === "rows" ? (
         <EventsRowList

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeDoor } from "@/lib/guest/entry-steps";
+import { computeDoor, contributionAnswered } from "@/lib/guest/entry-steps";
 
 /**
  * THE DOOR AS AN ITINERARY (Will, 2026-09-21, "the door as three steps"). Every permutation of his
@@ -257,5 +257,77 @@ describe("computeDoor", () => {
       computeDoor({ ...base, welcomeSeen: true, hasName: true, returning: true })
         .autoOpen,
     ).toBe(false);
+  });
+});
+
+/**
+ * UPLOADED, THEN REMOVED (guest by upload, Will 2026-09-22: "Own deletes close it"). On a
+ * Require-an-upload-to-view event a guest's own delete takes their contribution back, and the page
+ * must hand them the door WITH its upload step, never a teaser with no way through. The browser's
+ * own half (`contributed`, true all visit) closes the step only until the server has answered since
+ * it; the sequence below is the renders one visit actually meets.
+ */
+describe("contributionAnswered: the door comes back after your own last delete", () => {
+  // A named, welcomed guest on a require-upload event whose uploads are open.
+  const gated = { ...base, welcomeSeen: true, hasName: true, requireUpload: true };
+
+  /** One render: the bit carried from the last render, and the door `computeDoor` draws. */
+  function render(
+    answered: boolean,
+    frame: { contributed: boolean; gate: "upload" | null },
+  ) {
+    const next = contributionAnswered({
+      answered,
+      contributed: frame.contributed,
+      gate: frame.gate,
+      requireUpload: true,
+    });
+    const door = computeDoor({
+      ...gated,
+      gate: frame.gate,
+      access: frame.gate === "upload" ? "teaser" : "full",
+      hasContributed: frame.gate !== "upload",
+      contributed: frame.contributed && !next,
+    });
+    return { answered: next, steps: door.steps };
+  }
+
+  it("uploaded, then removed: the upload step returns once the server takes it back", () => {
+    // 1. Arrival: the server holds the guest at the upload step.
+    let r = render(false, { contributed: false, gate: "upload" });
+    expect(r.steps).toEqual(["upload"]);
+    // 2. Their first photograph completes, BEFORE any refresh: the stale gate still says upload,
+    //    and the browser's own half drops the step at once.
+    r = render(r.answered, { contributed: true, gate: "upload" });
+    expect(r.steps).toEqual([]);
+    // 3. The refresh lands: the server counted it.
+    r = render(r.answered, { contributed: true, gate: null });
+    expect(r.steps).toEqual([]);
+    expect(r.answered).toBe(true);
+    // 4. They remove it themselves; the refresh says upload again, and the door has its step.
+    r = render(r.answered, { contributed: true, gate: "upload" });
+    expect(r.steps).toEqual(["upload"]);
+  });
+
+  it("never retires the browser's half while the switch is off (the soft step must not come back)", () => {
+    expect(
+      contributionAnswered({
+        answered: false,
+        contributed: true,
+        gate: null,
+        requireUpload: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("is sticky: once answered, it stays answered", () => {
+    expect(
+      contributionAnswered({
+        answered: true,
+        contributed: true,
+        gate: "upload",
+        requireUpload: true,
+      }),
+    ).toBe(true);
   });
 });

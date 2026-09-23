@@ -52,6 +52,7 @@ import {
   arrivalMarks,
   useArrivalMarks,
 } from "@/lib/shared/arrival";
+import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { mergeGalleryItems } from "@/lib/guest/merge-gallery-items";
 import {
   newArrivalIds,
@@ -183,6 +184,8 @@ export function LiveGallery({
   sessionToken = null,
   initialTileSize,
   approvedTotal,
+  closesOnLastRemoval = false,
+  onOwnRemoved,
 }: {
   ref?: Ref<LiveGalleryHandle>;
   /** The RSC's gallery load — resolved via use(), so this component suspends
@@ -239,6 +242,18 @@ export function LiveGallery({
    * back to the photo-only `teaserTotal` exactly as before.
    */
   approvedTotal?: number;
+  /**
+   * A Require-an-upload-to-view album with uploads open (guest by upload, Will 2026-09-22, "Own
+   * deletes close it"): a guest's own removal no longer opens the door, so removing their LAST
+   * upload closes the album until they add another. The lightbox's confirm says so first.
+   */
+  closesOnLastRemoval?: boolean;
+  /**
+   * A removal of the guest's own landed; `remaining` is how many live uploads of theirs this device
+   * still knows of (their own photographs here, and any held file still waiting for the host). The
+   * page refreshes onto the server's answer when it reaches zero on such an album.
+   */
+  onOwnRemoved?: (remaining: number) => void;
 }) {
   const seed = use(galleryPromise);
   const [serverItems, setServerItems] = useState<GridMedia[]>(seed.items);
@@ -456,6 +471,41 @@ export function LiveGallery({
   }, [canDeleteIds, sessionMine]);
 
   /**
+   * How many LIVE uploads of this guest's the device knows of, leaving one out
+   * (the one being removed): their own photographs here (the server's list,
+   * plus what they added this visit), and any held file still waiting for the
+   * host, which counts toward the door just the same. Guest by upload, Will
+   * 2026-09-22: on a Require-an-upload-to-view album the LAST of them is the
+   * one whose removal closes the album again. The server has the final word
+   * (the page refreshes onto it); this only decides what the confirm says and
+   * whether that refresh is worth asking for.
+   */
+  const liveOwnCount = useCallback(
+    (leavingOut: string | null) => {
+      const ids = new Set(ownIds);
+      for (const item of pendingUploads) {
+        if (item.status === "done" && item.mediaId) ids.add(item.mediaId);
+      }
+      if (leavingOut) ids.delete(leavingOut);
+      return ids.size;
+    },
+    [ownIds, pendingUploads],
+  );
+
+  // What the lightbox's delete confirm adds on such an album, for the one item
+  // whose removal closes it (the context's own note in media-lightbox.tsx).
+  const deleteConsequence = useMemo(
+    () =>
+      closesOnLastRemoval
+        ? (item: GridMedia) =>
+            ownIds.has(item.id) && liveOwnCount(null) === 1
+              ? "This is your last upload here, so the album closes until you add another."
+              : null
+        : null,
+    [closesOnLastRemoval, ownIds, liveOwnCount],
+  );
+
+  /**
    * Take the tile off the screen now, then tell the server. The optimistic drop
    * is not decoration: a guest removing their own photograph from a party album
    * is a moment where the app has to look certain, and both writes are
@@ -505,6 +555,7 @@ export function LiveGallery({
           next.delete(id);
           return next;
         });
+        onOwnRemoved?.(liveOwnCount(id));
         return;
       }
       toast.error("Couldn't remove that photo.", {
@@ -513,7 +564,7 @@ export function LiveGallery({
       etagRef.current = null;
       void refresh();
     },
-    [isAuthed, sessionToken, qrToken, refresh],
+    [isAuthed, sessionToken, qrToken, refresh, onOwnRemoved, liveOwnCount],
   );
 
   useImperativeHandle(ref, () => ({
@@ -774,6 +825,7 @@ export function LiveGallery({
               the ancestor wrapping the grid, never on the grid component itself —
               exactly as event-gallery.tsx does for the host. */}
           <div style={{ "--album-column": `${tileSize}px` } as CSSProperties}>
+            <DeleteConsequence.Provider value={deleteConsequence}>
             <GuestMasonry
               items={yours.items}
               pending={pendingTiles}
@@ -798,6 +850,7 @@ export function LiveGallery({
               onSelectMine={() => setShowMine((on) => !on)}
               mineSelected={yours.on}
             />
+            </DeleteConsequence.Provider>
           </div>
         </LikesProvider>
       ) : (

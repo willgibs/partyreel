@@ -53,8 +53,8 @@ vi.mock("@/components/guest/save-account-prompt", () => ({
 // (2026-09-19): it resolves the viewer and decides which single card stands,
 // which is its own contract (claim-handle-prompt.test.tsx) and its own supabase
 // call. Stubbed to render the card it was handed, so what stays pinned HERE is
-// the thing this file is about: the slot mounts on doneCount > 0 and never in
-// the demo.
+// the thing this file is about: the slot mounts on doneCount > 0, or on a
+// confirmation's return (`moment`, guest by upload), and never in the demo.
 vi.mock("@/components/guest/claim-handle-prompt", () => ({
   ClaimHandlePrompt: ({ savePrompt }: { savePrompt: React.ReactNode }) => (
     <>{savePrompt}</>
@@ -104,6 +104,7 @@ function Harness({
   sessionToken?: string | null;
   event?: GuestEvent;
   suppressFailures?: boolean;
+  moment?: boolean;
 }) {
   const pendingRef = useRef<string | null>(null);
   const { items, addFiles, retry, dismiss } = useUploadQueue({
@@ -142,6 +143,7 @@ function Harness({
         onVerificationRequired?.(message);
       }}
       isDemo={isDemo}
+      moment={rest.moment}
     />
   );
 }
@@ -876,5 +878,28 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
     );
+  });
+});
+
+/**
+ * THE SLOT ON A CONFIRMATION'S RETURN (guest by upload, 2026-09-22). A guest who
+ * confirmed through Google or a magic link comes back to a fresh page with
+ * nothing uploaded this visit; when the album says a confirmation from here just
+ * claimed their uploads, the slot stands anyway, so the follow moment can play.
+ */
+describe("GuestUpload: the slot on a confirmation's return", () => {
+  it("stands with nothing uploaded this visit when the album says the moment is due", async () => {
+    mount({ moment: true });
+    expect(await screen.findByTestId("save-account-prompt")).toBeInTheDocument();
+  });
+
+  it("stays empty without it until something is uploaded", () => {
+    mount();
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+  });
+
+  it("never stands in the demo, moment or not", () => {
+    mount({ moment: true, isDemo: true, sessionToken: null });
+    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
   });
 });

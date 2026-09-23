@@ -1411,7 +1411,7 @@
             "the view the server chose"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 105
+          "line": 117
         },
         {
           "title": "paints rows when the cookie said rows, without being told twice",
@@ -1419,7 +1419,7 @@
             "the view the server chose"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 110
+          "line": 122
         },
         {
           "title": "persists the choice through the Server Action",
@@ -1427,7 +1427,7 @@
             "flipping the view"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 117
+          "line": 129
         },
         {
           "title": "persists the way back too",
@@ -1435,7 +1435,7 @@
             "flipping the view"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 124
+          "line": 136
         },
         {
           "title": "reorders the list by what is waiting",
@@ -1443,7 +1443,7 @@
             "the order"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 132
+          "line": 144
         },
         {
           "title": "offers the order with the rows, where he expects it",
@@ -1451,7 +1451,7 @@
             "the order"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 148
+          "line": 160
         },
         {
           "title": "keeps the bin out of the live list",
@@ -1459,7 +1459,7 @@
             "the lens"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 155
+          "line": 167
         },
         {
           "title": "reaches the bin from the DEFAULT view, not only from the rows",
@@ -1467,7 +1467,23 @@
             "the lens"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 161
+          "line": 173
+        },
+        {
+          "title": "keeps the events you added to in the live list, and the Guest lens shows them alone",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 181
+        },
+        {
+          "title": "gives a Guest card no action of its own: it leaves with your last upload",
+          "suite": [
+            "the lens"
+          ],
+          "file": "src/components/app/dashboard/events-section.test.tsx",
+          "line": 191
         },
         {
           "title": "offers the create hero only to a host with nothing at all",
@@ -1475,7 +1491,7 @@
             "the lens"
           ],
           "file": "src/components/app/dashboard/events-section.test.tsx",
-          "line": 169
+          "line": 207
         }
       ]
     },
@@ -4054,6 +4070,57 @@
       ]
     },
     {
+      "id": "confirm-email-dialog",
+      "file": "src/components/auth/confirm-email-dialog.tsx",
+      "names": [
+        "ConfirmEmailDialog"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "claims first, awaited, then hands over to the opener",
+          "suite": [
+            "ConfirmEmailDialog"
+          ],
+          "file": "src/components/auth/confirm-email-dialog.test.tsx",
+          "line": 51
+        },
+        {
+          "title": "wears keep by default: its heading and reason, a create intent and no password",
+          "suite": [
+            "ConfirmEmailDialog"
+          ],
+          "file": "src/components/auth/confirm-email-dialog.test.tsx",
+          "line": 62
+        },
+        {
+          "title": "as Sign in: a sign-in intent, and the password link for someone who has one",
+          "suite": [
+            "ConfirmEmailDialog"
+          ],
+          "file": "src/components/auth/confirm-email-dialog.test.tsx",
+          "line": 73
+        },
+        {
+          "title": "lets an opener replace the reason with a fact only it knows, and carries its extra control",
+          "suite": [
+            "ConfirmEmailDialog"
+          ],
+          "file": "src/components/auth/confirm-email-dialog.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "hands the door the typed address as a hint, and no hint at all rather than an empty one",
+          "suite": [
+            "ConfirmEmailDialog"
+          ],
+          "file": "src/components/auth/confirm-email-dialog.test.tsx",
+          "line": 99
+        }
+      ]
+    },
+    {
       "id": "add-email-dialog",
       "file": "src/components/guest/add-email-dialog.tsx",
       "names": [
@@ -4154,12 +4221,44 @@
           "line": 117
         },
         {
-          "title": "consumes the pending-offer marker and stands the follow moment up, once",
+          "title": "stands the follow moment up when the album says a confirmation landed",
           "suite": [
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 131
+          "line": 133
+        },
+        {
+          "title": "without the album's word it is the ordinary ladder, whatever storage holds",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "plays on a return with nothing uploaded this visit, and says no number it does not have",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 150
+        },
+        {
+          "title": "the moment arrives AFTER an in-page confirmation, and the card re-resolves for it",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "is never hidden behind the handle card's dismissal",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 180
         },
         {
           "title": "with no host card resolved there is no host row, and the handle line still stands",
@@ -4167,7 +4266,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 147
+          "line": 187
         },
         {
           "title": "a profile that already has a handle gets no second line",
@@ -4175,7 +4274,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 156
+          "line": 195
         },
         {
           "title": "names a nameless profile from the name this device typed, and never overwrites one",
@@ -4183,7 +4282,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 164
+          "line": 202
         }
       ]
     },
@@ -4272,12 +4371,44 @@
           "line": 117
         },
         {
-          "title": "consumes the pending-offer marker and stands the follow moment up, once",
+          "title": "stands the follow moment up when the album says a confirmation landed",
           "suite": [
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 131
+          "line": 133
+        },
+        {
+          "title": "without the album's word it is the ordinary ladder, whatever storage holds",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 140
+        },
+        {
+          "title": "plays on a return with nothing uploaded this visit, and says no number it does not have",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 150
+        },
+        {
+          "title": "the moment arrives AFTER an in-page confirmation, and the card re-resolves for it",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 161
+        },
+        {
+          "title": "is never hidden behind the handle card's dismissal",
+          "suite": [
+            "ClaimHandlePrompt: the moment after confirming"
+          ],
+          "file": "src/components/guest/claim-handle-prompt.test.tsx",
+          "line": 180
         },
         {
           "title": "with no host card resolved there is no host row, and the handle line still stands",
@@ -4285,7 +4416,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 147
+          "line": 187
         },
         {
           "title": "a profile that already has a handle gets no second line",
@@ -4293,7 +4424,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 156
+          "line": 195
         },
         {
           "title": "names a nameless profile from the name this device typed, and never overwrites one",
@@ -4301,7 +4432,7 @@
             "ClaimHandlePrompt: the moment after confirming"
           ],
           "file": "src/components/guest/claim-handle-prompt.test.tsx",
-          "line": 164
+          "line": 202
         }
       ]
     },
@@ -4597,7 +4728,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 63
+          "line": 51
         },
         {
           "title": "appears beside the wordmark for the demo",
@@ -4605,7 +4736,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 68
+          "line": 56
         },
         {
           "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
@@ -4613,7 +4744,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 73
+          "line": 61
         },
         {
           "title": "wears the stranger's CTA until this device has typed a name",
@@ -4621,7 +4752,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 92
+          "line": 80
         },
         {
           "title": "names them, marks the name, and offers the three moves",
@@ -4629,7 +4760,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 106
+          "line": 94
         },
         {
           "title": "with no address: 'Unverified', and the row offers to ADD one",
@@ -4637,7 +4768,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 125
+          "line": 113
         },
         {
           "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
@@ -4645,7 +4776,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 139
+          "line": 127
         },
         {
           "title": "never offers 'Add your email' without a row to put one on",
@@ -4653,7 +4784,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 159
+          "line": 147
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4661,23 +4792,23 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 169
+          "line": 157
         },
         {
-          "title": "Confirm your email: the intent first, then the claim, then the save",
+          "title": "Confirm your email: the marker first, then the claim, then the refresh",
           "suite": [
-            "GuestNameMenu: confirming keeps the event"
+            "GuestNameMenu: every door claims, and leaves the way back"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 203
+          "line": 188
         },
         {
-          "title": "Sign in: the photographs claimed, and no save it never promised",
+          "title": "Sign in: the same marker and the same claim",
           "suite": [
-            "GuestNameMenu: confirming keeps the event"
+            "GuestNameMenu: every door claims, and leaves the way back"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 218
+          "line": 198
         }
       ]
     },
@@ -4747,7 +4878,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 63
+          "line": 51
         },
         {
           "title": "appears beside the wordmark for the demo",
@@ -4755,7 +4886,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 68
+          "line": 56
         },
         {
           "title": "the event-less profile header (/u/[slug]) stays plain (isDemo defaults false)",
@@ -4763,7 +4894,7 @@
             "GuestHeader: the Demo mark"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 73
+          "line": 61
         },
         {
           "title": "wears the stranger's CTA until this device has typed a name",
@@ -4771,7 +4902,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 92
+          "line": 80
         },
         {
           "title": "names them, marks the name, and offers the three moves",
@@ -4779,7 +4910,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 106
+          "line": 94
         },
         {
           "title": "with no address: 'Unverified', and the row offers to ADD one",
@@ -4787,7 +4918,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 125
+          "line": 113
         },
         {
           "title": "with one attached: 'Email not confirmed', and the row offers to CONFIRM it",
@@ -4795,7 +4926,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 139
+          "line": 127
         },
         {
           "title": "never offers 'Add your email' without a row to put one on",
@@ -4803,7 +4934,7 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 159
+          "line": 147
         },
         {
           "title": "never claims a name on a page with no event behind it (/u/[slug])",
@@ -4811,23 +4942,23 @@
             "GuestHeader: a guest with a name and no account"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 169
+          "line": 157
         },
         {
-          "title": "Confirm your email: the intent first, then the claim, then the save",
+          "title": "Confirm your email: the marker first, then the claim, then the refresh",
           "suite": [
-            "GuestNameMenu: confirming keeps the event"
+            "GuestNameMenu: every door claims, and leaves the way back"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 203
+          "line": 188
         },
         {
-          "title": "Sign in: the photographs claimed, and no save it never promised",
+          "title": "Sign in: the same marker and the same claim",
           "suite": [
-            "GuestNameMenu: confirming keeps the event"
+            "GuestNameMenu: every door claims, and leaves the way back"
           ],
           "file": "src/components/guest/guest-header.test.tsx",
-          "line": 218
+          "line": 198
         }
       ]
     },
@@ -5203,7 +5334,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 185
+          "line": 187
         },
         {
           "title": "runs ONE file at a time: the second starts only after the first resolves",
@@ -5211,7 +5342,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 207
+          "line": 209
         },
         {
           "title": "patches per-file progress through the onProgress callback",
@@ -5219,7 +5350,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 240
+          "line": 242
         },
         {
           "title": "approved outcome: reports onUploaded and mounts the growth prompt",
@@ -5227,7 +5358,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 261
+          "line": 263
         },
         {
           "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
@@ -5235,7 +5366,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 289
+          "line": 291
         },
         {
           "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
@@ -5243,7 +5374,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 315
+          "line": 317
         },
         {
           "title": "join rejection: toasts and clears the stash, nothing uploads",
@@ -5251,7 +5382,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 350
+          "line": 352
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -5259,7 +5390,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 370
+          "line": 372
         },
         {
           "title": "a stored session never joins again: the name was answered once",
@@ -5267,7 +5398,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 390
+          "line": 392
         },
         {
           "title": "the silent join carries NO name: the door is the only place one is typed",
@@ -5275,7 +5406,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 403
+          "line": 405
         },
         {
           "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
@@ -5283,7 +5414,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 424
+          "line": 426
         },
         {
           "title": "does not call onVerificationRequired while the mid-run sheet is open",
@@ -5291,7 +5422,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 464
+          "line": 466
         },
         {
           "title": "closing the sheet with Not now calls it exactly once",
@@ -5299,7 +5430,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 481
+          "line": 483
         },
         {
           "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
@@ -5307,7 +5438,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 499
+          "line": 501
         },
         {
           "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
@@ -5315,7 +5446,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 519
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -5323,7 +5454,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 546
+          "line": 548
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -5331,7 +5462,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 570
+          "line": 572
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -5339,7 +5470,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 591
+          "line": 593
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -5347,7 +5478,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 614
+          "line": 616
         },
         {
           "title": "stays shut when the run is clean",
@@ -5355,7 +5486,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 635
+          "line": 637
         },
         {
           "title": "its Retry re-queues the file",
@@ -5363,7 +5494,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 650
+          "line": 652
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -5371,7 +5502,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 680
+          "line": 682
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -5379,7 +5510,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 706
+          "line": 708
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -5387,7 +5518,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 759
+          "line": 761
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -5395,7 +5526,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 794
+          "line": 796
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -5403,7 +5534,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 822
+          "line": 824
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -5411,7 +5542,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 835
+          "line": 837
         },
         {
           "title": "a rejected upload is still retryable",
@@ -5419,7 +5550,31 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 860
+          "line": 862
+        },
+        {
+          "title": "stands with nothing uploaded this visit when the album says the moment is due",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 891
+        },
+        {
+          "title": "stays empty without it until something is uploaded",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 896
+        },
+        {
+          "title": "never stands in the demo, moment or not",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 901
         }
       ]
     },
@@ -5633,7 +5788,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 54
+          "line": 60
         },
         {
           "title": "the heading counts too: singular for exactly one, plural otherwise",
@@ -5641,7 +5796,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 65
+          "line": 71
         },
         {
           "title": "asks for a confirmed email, which is what the door behind it does",
@@ -5649,7 +5804,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 74
+          "line": 80
         },
         {
           "title": "Maybe later is final for this event",
@@ -5657,7 +5812,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 81
+          "line": 87
         },
         {
           "title": "opens its door on the address typed at the door",
@@ -5665,7 +5820,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 97
+          "line": 103
         },
         {
           "title": "opens on an empty field for a guest who skipped it",
@@ -5673,7 +5828,7 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 106
+          "line": 112
         },
         {
           "title": "marks the door's opening, so a redirect sign-in lands the same beat",
@@ -5681,7 +5836,31 @@
             "SaveAccountPrompt"
           ],
           "file": "src/components/guest/save-account-prompt.test.tsx",
-          "line": 113
+          "line": 119
+        },
+        {
+          "title": "carries the newsletter switch in its door, off until the guest turns it on",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 128
+        },
+        {
+          "title": "stands aside for somebody who already has an account (the belt under the slot's own rule)",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 137
+        },
+        {
+          "title": "never claims before a code is verified: opening the door only marks it",
+          "suite": [
+            "SaveAccountPrompt"
+          ],
+          "file": "src/components/guest/save-account-prompt.test.tsx",
+          "line": 143
         }
       ]
     },
@@ -14566,8 +14745,7 @@
       "file": "src/components/shared/unverified-mark.tsx",
       "names": [
         "UNVERIFIED_LABEL",
-        "UnverifiedMark",
-        "UnverifiedMarkEvent"
+        "UnverifiedMark"
       ],
       "specimens": [],
       "indexed": true,
@@ -14866,7 +15044,7 @@
             "the mark's word"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 79
+          "line": 68
         },
         {
           "title": "names the mark for a screen reader and a pointer alike",
@@ -14874,7 +15052,7 @@
             "the mark's word"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 84
+          "line": 73
         },
         {
           "title": "about somebody else: anyone can type a name, and they have not confirmed an email",
@@ -14882,7 +15060,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 92
+          "line": 81
         },
         {
           "title": "names an unnamed guest without inventing one",
@@ -14890,7 +15068,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 102
+          "line": 91
         },
         {
           "title": "about YOURSELF: what you did, what is missing, and the way out",
@@ -14898,7 +15076,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 110
+          "line": 99
         },
         {
           "title": "offers no way out on somebody else's credit",
@@ -14906,7 +15084,7 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 123
+          "line": 112
         },
         {
           "title": "tells the HOST about their own switch, and only the host",
@@ -14914,23 +15092,23 @@
             "what the popover says"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 131
+          "line": 120
         },
         {
-          "title": "keeps the album's event: the intent first, then the claim, then the save",
+          "title": "inside an album: the return marker first, then the claim, then the refresh",
           "suite": [
             "confirming from your own credit"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 167
+          "line": 153
         },
         {
-          "title": "outside an album, claims the uploads and saves nothing it cannot name",
+          "title": "outside an album, claims the uploads and leaves no marker it cannot key",
           "suite": [
             "confirming from your own credit"
           ],
           "file": "src/components/shared/unverified-mark.test.tsx",
-          "line": 180
+          "line": 164
         }
       ]
     },
@@ -16760,7 +16938,7 @@
             "which view paints first"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 50
+          "line": 51
         },
         {
           "title": "honours a stored choice and refuses anything else",
@@ -16768,7 +16946,7 @@
             "which view paints first"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 57
+          "line": 58
         },
         {
           "title": "narrows the order and the lens the same way",
@@ -16776,15 +16954,23 @@
             "which view paints first"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 66
+          "line": 67
         },
         {
-          "title": "keeps the bin out of the live list",
+          "title": "resolves the retired Saved lens to All events",
+          "suite": [
+            "which view paints first"
+          ],
+          "file": "src/lib/dashboard/events-view.test.ts",
+          "line": 77
+        },
+        {
+          "title": "keeps the bin out of the live list, and the events you added to in it",
           "suite": [
             "the lens"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 83
+          "line": 91
         },
         {
           "title": "shows exactly one kind when asked for one",
@@ -16792,7 +16978,7 @@
             "the lens"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 87
+          "line": 95
         },
         {
           "title": "sorts newest first by the row's own recency key",
@@ -16800,7 +16986,7 @@
             "the order"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 94
+          "line": 102
         },
         {
           "title": "sorts by what is waiting, and stays stable where nothing is",
@@ -16808,7 +16994,7 @@
             "the order"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 105
+          "line": 113
         },
         {
           "title": "sorts names the way a person reads them, accents included",
@@ -16816,7 +17002,7 @@
             "the order"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 118
+          "line": 126
         },
         {
           "title": "never mutates the list it was handed",
@@ -16824,7 +17010,56 @@
             "the order"
           ],
           "file": "src/lib/dashboard/events-view.test.ts",
-          "line": 126
+          "line": 134
+        }
+      ]
+    },
+    {
+      "id": "guest-events",
+      "file": "src/lib/dashboard/guest-events.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "open album: links to it, pictures it, names its host",
+          "suite": [
+            "guestEventCardProps"
+          ],
+          "file": "src/lib/dashboard/guest-events.test.ts",
+          "line": 30
+        },
+        {
+          "title": "password album: named and linked, never pictured, even if a cover is passed",
+          "suite": [
+            "guestEventCardProps"
+          ],
+          "file": "src/lib/dashboard/guest-events.test.ts",
+          "line": 41
+        },
+        {
+          "title": "private album: blank and locked, whatever the row carries",
+          "suite": [
+            "guestEventCardProps"
+          ],
+          "file": "src/lib/dashboard/guest-events.test.ts",
+          "line": 52
+        },
+        {
+          "title": "an unnamed host leaves no byline, and an undated event says so",
+          "suite": [
+            "guestEventCardProps"
+          ],
+          "file": "src/lib/dashboard/guest-events.test.ts",
+          "line": 65
+        },
+        {
+          "title": "puts the album you added to most recently first",
+          "suite": [
+            "sortGuestEventCards"
+          ],
+          "file": "src/lib/dashboard/guest-events.test.ts",
+          "line": 76
         }
       ]
     },
@@ -17048,12 +17283,101 @@
           "line": 150
         },
         {
+          "title": "is never offered: an empty row alone carries no event onto the card",
+          "suite": [
+            "an event with nothing to claim"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 170
+        },
+        {
+          "title": "keeps an event whose second row is empty, counted by what is live",
+          "suite": [
+            "an event with nothing to claim"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 184
+        },
+        {
           "title": "throws rather than swallowing it",
           "suite": [
             "a real error"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 164
+          "line": 196
+        }
+      ]
+    },
+    {
+      "id": "event-guests",
+      "file": "src/lib/events/event-guests.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "counts a row only when it carries an approved upload",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 33
+        },
+        {
+          "title": "counts a confirmed guest once per PERSON, however many rows they minted",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 45
+        },
+        {
+          "title": "counts a named unconfirmed guest once per ROW: two people can both type Sam",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 58
+        },
+        {
+          "title": "keys confirmed on verified_at, never on a bare user id (an unconfirmed sign-up keeps its typed name)",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 69
+        },
+        {
+          "title": "never counts a nameless row, which has nothing to show",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 78
+        },
+        {
+          "title": "never counts the host, even through a row of their own",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 86
+        },
+        {
+          "title": "drops a guest whose every upload is gone, and a restore brings them back",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 99
+        },
+        {
+          "title": "trims the typed name it hands on",
+          "suite": [
+            "who is a guest"
+          ],
+          "file": "src/lib/events/event-guests.test.ts",
+          "line": 105
         }
       ]
     },
@@ -17231,6 +17555,138 @@
           ],
           "file": "src/lib/glass.test.ts",
           "line": 114
+        }
+      ]
+    },
+    {
+      "id": "album-return",
+      "file": "src/lib/guest/album-return.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "claims at mount and holds the album on screen while it is mounted",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 50
+        },
+        {
+          "title": "★ a door opened here, then a claim that moved this album's uploads: the moment plays, once",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "no door opened here (a sign-in from somewhere else): no moment",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "a claim that moved nothing here plays nothing, and spends the marker all the same",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "says the toast only when the claim reached other events too",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "ignores a claim made for another album",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "does nothing at all when disabled (the demo, the host)",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "a door outside any album writes nothing it cannot key",
+          "suite": [
+            "album-return: the marker"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "id": "claim-uploads",
+      "file": "src/lib/guest/claim-uploads.ts",
+      "names": [
+        "CLAIMED_TOAST"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "on an album: its own token first, the rest after, and the result says which was which",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 32
+        },
+        {
+          "title": "off an album: one call, and the loud toast when it carried uploads",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 52
+        },
+        {
+          "title": "says nothing when the claim carried nothing (an empty row is not news)",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 64
+        },
+        {
+          "title": "hands every claim to whoever listens, whichever caller started it",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 72
+        },
+        {
+          "title": "signed out, or holding nothing: nothing runs and nothing is heard",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 83
+        },
+        {
+          "title": "claims once per load: a repeat after a landed claim is a no-op",
+          "suite": [
+            "claimAnonymousUploads"
+          ],
+          "file": "src/lib/guest/claim-uploads.test.tsx",
+          "line": 95
         }
       ]
     },
@@ -17428,6 +17884,79 @@
       ]
     },
     {
+      "id": "use-confirm-return",
+      "file": "src/lib/guest/use-confirm-return.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "claims at mount and holds the album on screen while it is mounted",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 50
+        },
+        {
+          "title": "★ a door opened here, then a claim that moved this album's uploads: the moment plays, once",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 58
+        },
+        {
+          "title": "no door opened here (a sign-in from somewhere else): no moment",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 68
+        },
+        {
+          "title": "a claim that moved nothing here plays nothing, and spends the marker all the same",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 74
+        },
+        {
+          "title": "says the toast only when the claim reached other events too",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 82
+        },
+        {
+          "title": "ignores a claim made for another album",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 92
+        },
+        {
+          "title": "does nothing at all when disabled (the demo, the host)",
+          "suite": [
+            "useConfirmReturn"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 101
+        },
+        {
+          "title": "a door outside any album writes nothing it cannot key",
+          "suite": [
+            "album-return: the marker"
+          ],
+          "file": "src/lib/guest/use-confirm-return.test.tsx",
+          "line": 110
+        }
+      ]
+    },
+    {
       "id": "use-upload-queue",
       "file": "src/lib/guest/use-upload-queue.ts",
       "names": [],
@@ -17440,7 +17969,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 185
+          "line": 187
         },
         {
           "title": "runs ONE file at a time: the second starts only after the first resolves",
@@ -17448,7 +17977,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 207
+          "line": 209
         },
         {
           "title": "patches per-file progress through the onProgress callback",
@@ -17456,7 +17985,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 240
+          "line": 242
         },
         {
           "title": "approved outcome: reports onUploaded and mounts the growth prompt",
@@ -17464,7 +17993,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 261
+          "line": 263
         },
         {
           "title": "a HELD outcome says nothing here: the waiting TILE is the whole answer",
@@ -17472,7 +18001,7 @@
             "GuestUpload: queue"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 289
+          "line": 291
         },
         {
           "title": "no session: POSTs /api/guests with the qr_token, then uploads the stash",
@@ -17480,7 +18009,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 315
+          "line": 317
         },
         {
           "title": "join rejection: toasts and clears the stash, nothing uploads",
@@ -17488,7 +18017,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 350
+          "line": 352
         },
         {
           "title": "join network failure: the connection toast, stash cleared",
@@ -17496,7 +18025,7 @@
             "GuestUpload: just-in-time join"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 370
+          "line": 372
         },
         {
           "title": "a stored session never joins again: the name was answered once",
@@ -17504,7 +18033,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 390
+          "line": 392
         },
         {
           "title": "the silent join carries NO name: the door is the only place one is typed",
@@ -17512,7 +18041,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 403
+          "line": 405
         },
         {
           "title": "a mid-run verification_required drops the session, refuses the rest, and the sheet says the server's own line",
@@ -17520,7 +18049,7 @@
             "GuestUpload: the identity reshape"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 424
+          "line": 426
         },
         {
           "title": "does not call onVerificationRequired while the mid-run sheet is open",
@@ -17528,7 +18057,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 464
+          "line": 466
         },
         {
           "title": "closing the sheet with Not now calls it exactly once",
@@ -17536,7 +18065,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 481
+          "line": 483
         },
         {
           "title": "Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall",
@@ -17544,7 +18073,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 499
+          "line": 501
         },
         {
           "title": "a join-time refusal (nothing queued) calls onVerificationRequired at once, no sheet ever opens",
@@ -17552,7 +18081,7 @@
             "GuestUpload: the refresh waits for the failure sheet (DEFECT 1)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 517
+          "line": 519
         },
         {
           "title": "simulates the upload: no network, synthetic approved outcome",
@@ -17560,7 +18089,7 @@
             "GuestUpload: demo mode"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 546
+          "line": 548
         },
         {
           "title": "hold_for_approval shows the review notice; auto_approve does not",
@@ -17568,7 +18097,7 @@
             "GuestUpload: moderation copy"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 570
+          "line": 572
         },
         {
           "title": "openAdd opens the sheet, and nothing is queued until Send",
@@ -17576,7 +18105,7 @@
             "GuestUpload: the add sheet is the only door in"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 591
+          "line": 593
         },
         {
           "title": "lists every refusal with the server's own sentence, and no toast fires",
@@ -17584,7 +18113,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 614
+          "line": 616
         },
         {
           "title": "stays shut when the run is clean",
@@ -17592,7 +18121,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 635
+          "line": 637
         },
         {
           "title": "its Retry re-queues the file",
@@ -17600,7 +18129,7 @@
             "GuestUpload: a run that ends badly opens the failure sheet"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 650
+          "line": 652
         },
         {
           "title": "Not now drops it: a later clean run never resurrects it",
@@ -17608,7 +18137,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 680
+          "line": 682
         },
         {
           "title": "Retry all still re-queues every listed file (the close behind it never eats them)",
@@ -17616,7 +18145,7 @@
             "GuestUpload: dismissing a failure retires it for good"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 706
+          "line": 708
         },
         {
           "title": "onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done",
@@ -17624,7 +18153,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 759
+          "line": 761
         },
         {
           "title": "handle.retry(id) resets an errored item and re-runs the queue",
@@ -17632,7 +18161,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 794
+          "line": 796
         },
         {
           "title": "a REJECTED upload errors only its own tile, never wedges it at uploading",
@@ -17640,7 +18169,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 822
+          "line": 824
         },
         {
           "title": "a REJECTED upload does not stop the rest of the batch",
@@ -17648,7 +18177,7 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 835
+          "line": 837
         },
         {
           "title": "a rejected upload is still retryable",
@@ -17656,7 +18185,31 @@
             "GuestUpload: the lifted queue contract (Phase 4)"
           ],
           "file": "src/components/guest/guest-upload.test.tsx",
-          "line": 860
+          "line": 862
+        },
+        {
+          "title": "stands with nothing uploaded this visit when the album says the moment is due",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 891
+        },
+        {
+          "title": "stays empty without it until something is uploaded",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 896
+        },
+        {
+          "title": "never stands in the demo, moment or not",
+          "suite": [
+            "GuestUpload: the slot on a confirmation's return"
+          ],
+          "file": "src/components/guest/guest-upload.test.tsx",
+          "line": 901
         }
       ]
     },

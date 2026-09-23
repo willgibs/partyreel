@@ -38,7 +38,7 @@ import {
 } from "@/lib/db/queries/events";
 import { getEventsWithReels, getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
-import { getSavedEventCards } from "@/lib/db/queries/saved-events";
+import { getMyGuestEventCards } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
@@ -93,11 +93,15 @@ export default async function DashboardPage({
   // All reads are RLS-scoped to the signed-in host; the (app) layout already
   // gated on getUser(), so an unauthenticated request never reaches here. Kept
   // BLOCKING (no Suspense) - dashboard streaming is deferred post-launch (S1).
-  const [events, profile, savedCards, deletedEvents, storage, siteUrl, jar] =
+  // `guestCards` are THE EVENTS YOU ADDED TO (guest by upload, Will
+  // 2026-09-22: "uploading to an event is now effectively saving"): every event
+  // where this account holds a live upload and does not host, read from the
+  // uploads themselves, so a card leaves when its last live upload does.
+  const [events, profile, guestCards, deletedEvents, storage, siteUrl, jar] =
     await Promise.all([
       listEvents(),
       getProfile(),
-      getSavedEventCards(),
+      getMyGuestEventCards(),
       listRecentlyDeletedEvents(),
       getHostStorageSummary(),
       getSiteUrl(),
@@ -229,15 +233,15 @@ export default async function DashboardPage({
         qr: { token: event.qr_token, style: event.qr_style },
       };
     }),
-    ...savedCards.map(
+    ...guestCards.map(
       (card): EventListRow => ({
         id: card.eventId,
-        kind: "saved",
+        kind: "guest",
         name: card.name,
         href: card.href,
         coverUrl: card.coverUrl,
         dateLabel: card.dateLabel,
-        sortDate: card.savedAt,
+        sortDate: card.lastUploadAt,
         items: 0,
         guests: null,
         pending: 0,

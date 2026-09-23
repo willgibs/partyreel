@@ -36,10 +36,11 @@ import { listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
 import {
-  getEventGuestList,
+  getEventGuests,
   getEventSocialSettings,
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
+import { guestCount } from "@/lib/events/event-guests";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
 import { preferredEventUrl } from "@/lib/events/share-urls";
@@ -134,7 +135,7 @@ export default async function EventDetailPage({
     likeCounts,
     reelIds,
     reelConfig,
-    guestListEntries,
+    guests,
     socialSettings,
     myProfileSlug,
     jar,
@@ -145,7 +146,7 @@ export default async function EventDetailPage({
     getEventLikeCounts(event.id),
     listReelItems(event.id),
     getReelConfig(event.id),
-    getEventGuestList(event.id),
+    getEventGuests(event.id),
     getEventSocialSettings(event.id),
     getMyProfileSlug(),
     cookies(),
@@ -170,19 +171,16 @@ export default async function EventDetailPage({
   const isModerationOn = event.moderation_mode === "hold_for_approval";
   const views = linkStats.qrScans + linkStats.albumViews;
 
-  // contributorCount is computed HERE, not via getGalleryStats (which zeroes
-  // counts for password/private events as a GUEST privacy guard), so the host
-  // always sees real numbers on their OWN event.
+  // ★ THE ONE COUNT (guest by upload, Will 2026-09-22: "Uploaded 1 photo?
+  // You're a guest."): the header's number and the Guests card's are the same
+  // guests the album's own header counts (`getEventGuests`), a confirmed guest
+  // once per person and a named unconfirmed one once per row, never the host.
+  // It is read for the host directly, not through getGalleryStats (which zeroes
+  // a private event's counts as a GUEST privacy guard), so a host always sees
+  // the real number on their OWN event, whatever its visibility.
   const visibleMedia = media.filter((m) => m.status !== "pending");
   const itemCount = visibleMedia.length;
-  const guestContributors = new Set<string>();
-  let hostContributed = false;
-  for (const m of visibleMedia) {
-    if (m.guest_id) guestContributors.add(m.guest_id);
-    else hostContributed = true;
-  }
-  const contributorCount = guestContributors.size + (hostContributed ? 1 : 0);
-  const guestsCount = guestListEntries?.length ?? 0;
+  const guestsCount = guestCount(guests);
 
   // ★ Visibility left the header's chip row for the Settings card's value line
   // (the header's two chips are gone: "accepting uploads" became the code's own
@@ -218,8 +216,11 @@ export default async function EventDetailPage({
     },
     {
       id: "guests" as const,
-      value: guestListEntries
-        ? `${guestsCount} ${guestsCount === 1 ? "contributor" : "contributors"}`
+      // The room behind this card lists the guests only while the host's list
+      // is on, so the card says the count when it can be opened onto, and the
+      // one step it needs when it cannot.
+      value: socialSettings?.showGuestList
+        ? `${guestsCount} ${guestsCount === 1 ? "guest" : "guests"}`
         : "Turn on the list",
     },
     {
@@ -285,14 +286,10 @@ export default async function EventDetailPage({
               </span>
               <span
                 className="flex items-center gap-1.5"
-                title={
-                  contributorCount === 1
-                    ? "1 contributor"
-                    : `${contributorCount} contributors`
-                }
+                title={guestsCount === 1 ? "1 guest" : `${guestsCount} guests`}
               >
                 <Users className="size-3.5" />
-                {contributorCount}
+                {guestsCount}
               </span>
               <span className="flex items-center gap-1.5" title="Views">
                 <Eye className="size-3.5" />

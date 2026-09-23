@@ -63,7 +63,7 @@ import { cn } from "@/lib/utils";
  * last guest's address to the next one (lib/auth/remembered-email.ts).
  */
 
-export type DoorWear = "login" | "gate" | "save" | "like" | "signin";
+export type DoorWear = "login" | "gate" | "keep" | "like" | "signin";
 
 /**
  * THE WEARS' WORDS, in one table, so a place's heading and its reason line
@@ -83,7 +83,7 @@ export type DoorWear = "login" | "gate" | "save" | "like" | "signin";
  *
  * ★ AND `signin` IS THE FIFTH, for the one person the other four do not fit: a
  * name-only guest at a party who ALREADY has an account. Nothing is being
- * created and nothing is being kept, so neither `save`'s promise nor `login`'s
+ * created and nothing is being kept, so neither `keep`'s promise nor `login`'s
  * host framing is true for them; what they want is their own photographs to end
  * up in the one place they keep everything.
  */
@@ -113,15 +113,22 @@ export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = 
   // publishes nothing until its owner turns it on (profiles-social.md), and
   // every door wearing this line (the offer card, the mark, the name menu)
   // claims the photographs into the account, so the account is where they are.
-  save: {
+  // ★ AND IT HOLDS BEFORE AN UPLOAD (guest by upload, 2026-09-22). The name
+  // menu offers this door the moment a name is typed, and save is gone: an
+  // event reaches the account only through the photos added to it, so the line
+  // promises the photos first and the event with them, never an event alone.
+  keep: {
     heading: "Keep your photos",
     reason:
-      "Confirm your email and this event stays in your account, with every photo you added. Confirming makes a free account.",
+      "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account.",
   },
+  // ★ NO PROMISE OF A PLACE (guest by upload, 2026-09-22). Likes live in the
+  // profile's owner mode, which needs a handle, so "find them again on your
+  // dashboard" was false; what is true for everyone is that they are kept.
   like: {
     heading: "Like this",
     reason:
-      "Confirm your email to keep your favorites and find them again on your dashboard. Confirming makes a free account.",
+      "Confirm your email and your likes stay in your account. Confirming makes a free account.",
   },
   signin: {
     heading: "Sign in",
@@ -198,9 +205,9 @@ export function AccountDoor({
   buttonClassName?: string;
   className?: string;
   /**
-   * One extra control, under the field and above the divider. The Save dialog's
-   * newsletter switch is the only user: it belongs to Save's own moment, not to
-   * the door, so it rides as a slot rather than becoming a fifth wear's prop.
+   * One extra control, under the field and above the divider. The offer card's
+   * newsletter switch is the only user: it belongs to that card's own moment,
+   * not to the door, so it rides as a slot rather than becoming a wear's prop.
    */
   children?: React.ReactNode;
 }) {

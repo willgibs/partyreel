@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { Bookmark } from "lucide-react";
+import { MailCheck } from "lucide-react";
 
-import { SaveEventButton } from "@/components/guest/save-event-button";
+import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { markPendingOffer } from "@/lib/guest/album-return";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -18,23 +22,31 @@ import { createClient } from "@/lib/supabase/client";
  * growth card and an offer: "Keep your 7 photos" is about the thing in front of
  * them, "create a free account" was about us.
  *
- * ★ IT MARKS THE DOOR'S OPENING (`pr_pending_offer_<qr_token>`) so the beat
- * AFTER a confirmation is the same on every path. The in-page code returns to
- * this very component tree; a Google round trip or a tapped magic link leaves
- * the page entirely and comes back on a fresh mount with no memory of what the
- * guest was doing. The marker is that memory, and `claim-handle-prompt.tsx` (the
- * slot's owner) consumes it on the next mount and stands the follow moment up.
- * Written on OPEN rather than on success for the same reason `pr_pending_save_`
- * is: by the time the redirect happens there is no code of ours running.
+ * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP (guest by upload, Will
+ * 2026-09-22: "The new email capture after upload should incentivize the email
+ * to save the event under the account for the future, but uploading to an event
+ * is now effectively saving"). There is no save step behind this door any more:
+ * the claim puts the photographs in the account, and the event comes with them
+ * as a Guest card on the dashboard, which is exactly what the card promises.
+ *
+ * ★ IT MARKS THE DOOR'S OPENING (`pr_pending_offer_<qr_token>`, through
+ * `markPendingOffer`) so the beat AFTER a confirmation is the same on every
+ * path: the album page's claim consumes the marker and stands the follow moment
+ * up, whether the guest typed the code here or left for Google or a magic link
+ * and came back. Written on OPEN rather than on success, because by the time a
+ * redirect happens there is no code of ours running.
+ *
+ * ★ AND THE NEWSLETTER SWITCH LIVES IN THIS CARD'S DOOR, its one place in the
+ * product: "Send me occasional Partyreel updates", written only on an in-page
+ * confirmation, through `/api/guests/capture-email`, which derives the address
+ * from the confirmed session (never from this page).
+ *
+ * The file keeps its name (the lab's touchpoints list it, and the links test
+ * checks it exists), though the thing it offers is a confirmation now.
  */
 
 function promptKey(qrToken: string) {
   return `pr_save_prompt_${qrToken}`;
-}
-
-/** The capture flow's own marker: the door was opened from this offer. */
-export function pendingOfferKey(qrToken: string) {
-  return `pr_pending_offer_${qrToken}`;
 }
 
 // Same-tab subscribers — the native `storage` event only fires in OTHER tabs. Mirrors
@@ -70,13 +82,11 @@ function useDismissed(key: string): [boolean, () => void] {
 }
 
 export function SaveAccountPrompt({
-  eventId,
   qrToken,
   sessionToken,
   count = 0,
   hintEmail,
 }: {
-  eventId: string;
   qrToken: string;
   sessionToken: string;
   /** Photographs this guest added in this session (the sentence's number). */
@@ -91,35 +101,49 @@ export function SaveAccountPrompt({
   hintEmail?: string | null;
 }) {
   const [dismissed, dismiss] = useDismissed(promptKey(qrToken));
-  // Already signed in AND already saved → no prompt (resolved client-side).
-  const [hide, setHide] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [optIn, setOptIn] = useState(false);
+  // ★ The belt: this card is for somebody WITHOUT an account. The slot's owner
+  // (`claim-handle-prompt.tsx`) already renders it only for a signed-out guest;
+  // a card that finds a session anyway hides itself rather than asking an
+  // account holder to confirm an email they have. Checked once, at mount, so a
+  // confirmation made through this very card never pulls it out from under its
+  // own open door.
+  const [hasSession, setHasSession] = useState(false);
 
   useEffect(() => {
     let active = true;
     void (async () => {
-      const supabase = createClient();
       const {
         data: { session },
-      } = await supabase.auth.getSession();
-      if (!session || !active) return;
-      // DELIBERATE swallow: this only decides whether to HIDE an optional prompt.
-      // A failed read leaves `row` undefined, so the prompt shows; the save action
-      // itself is idempotent and reports its own errors. Failing toward "show" is
-      // the harmless direction, and a toast here would be noise on a nudge.
-      // eslint-disable-next-line partyreel/no-swallowed-db-error
-      const { data: row } = await supabase
-        .from("saved_events")
-        .select("event_id")
-        .eq("event_id", eventId)
-        .maybeSingle();
-      if (active && row) setHide(true);
+      } = await createClient().auth.getSession();
+      if (active && session) setHasSession(true);
     })();
     return () => {
       active = false;
     };
-  }, [eventId]);
+  }, []);
 
-  if (dismissed || hide) return null;
+  // Best-effort, never blocking: a newsletter write must never fail the
+  // confirmation it rides on. The route derives the confirmed address from the
+  // session (getUser()), so nothing here can put somebody else's on the list.
+  async function captureNewsletter() {
+    if (!sessionToken) return;
+    try {
+      await fetch("/api/guests/capture-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_token: sessionToken,
+          newsletter_opt_in: true,
+        }),
+      });
+    } catch {
+      // swallowed on purpose (see above)
+    }
+  }
+
+  if (dismissed || hasSession) return null;
 
   return (
     <div
@@ -127,7 +151,7 @@ export function SaveAccountPrompt({
       className="rounded-xl border border-border bg-card p-5 text-center"
     >
       <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Bookmark className="size-5" />
+        <MailCheck className="size-5" />
       </div>
       {/* A prompt tile's title: the app's quiet middle, `subsection`. The
           NUMBER rides the sentence under it, where it belongs: "Keep these
@@ -137,38 +161,32 @@ export function SaveAccountPrompt({
           singular, so a heading that still said "photos" read as a mismatch
           beside its own sentence. Every other count keeps the constant
           plural a help article quotes
-          (content/help/save-an-event-and-find-your-uploads.mdx). */}
+          (content/help/find-your-uploads-and-events.mdx). */}
       <p className="font-heading text-subsection">
         {count === 1 ? "Keep this photo" : "Keep these photos"}
       </p>
-      {/* ★ "In your account", never "on your profile": confirming saves the
-          event and claims the photographs into the account, and a profile
-          shows nothing until its owner chooses it (profiles-social.md). */}
+      {/* ★ "In your account", never "on your profile": confirming claims the
+          photographs into the account and the event arrives with them, while a
+          profile shows nothing until its owner chooses it (profiles-social.md). */}
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
         Confirm your email and{" "}
         {count === 1 ? "it stays" : count > 1 ? `all ${count} stay` : "they stay"}{" "}
         with you: this event in your account, and everything you added to it.
       </p>
       <div className="flex justify-center">
-        <SaveEventButton
-          eventId={eventId}
-          qrToken={qrToken}
-          sessionToken={sessionToken}
-          hintEmail={hintEmail}
-          offerNewsletter
-          triggerLabel="Confirm your email"
-          onSaved={dismiss}
-          onDoorOpen={() => {
-            try {
-              localStorage.setItem(pendingOfferKey(qrToken), "1");
-            } catch {
-              // Blocked storage: the in-page path still lands the moment,
-              // because that one never leaves this tree. Only the redirect
-              // round trip loses it, and a nudge that cannot remember is
-              // better than a crash.
-            }
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="active:scale-[0.98] motion-reduce:active:scale-100"
+          onClick={() => {
+            // BEFORE the door opens: Google and a magic link leave the page.
+            markPendingOffer(qrToken);
+            setOpen(true);
           }}
-        />
+        >
+          <MailCheck /> Confirm your email
+        </Button>
       </div>
       <button
         type="button"
@@ -177,6 +195,34 @@ export function SaveAccountPrompt({
       >
         Maybe later
       </button>
+
+      <ConfirmEmailDialog
+        open={open}
+        onOpenChange={setOpen}
+        hintEmail={hintEmail}
+        onConfirmed={async () => {
+          if (optIn) await captureNewsletter();
+          setOpen(false);
+          // Confirmed: the card's job is done. The slot's owner plays the
+          // follow moment in its place once the album hears the claim land.
+          dismiss();
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <Switch
+            id="pr-offer-newsletter"
+            size="sm"
+            checked={optIn}
+            onCheckedChange={setOptIn}
+          />
+          <Label
+            htmlFor="pr-offer-newsletter"
+            className="text-xs font-normal text-muted-foreground"
+          >
+            Send me occasional Partyreel updates
+          </Label>
+        </div>
+      </ConfirmEmailDialog>
     </div>
   );
 }

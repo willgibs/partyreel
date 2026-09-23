@@ -21,7 +21,12 @@ import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type UploadGate = {
-  /** One upload of this viewer's ever completed, whatever its status since (the ticket is punched once). */
+  /**
+   * An upload of this viewer's counts here: it completed, and the viewer has not removed it
+   * themselves. Pending, approved, hidden and a removal by the host, an admin or the system all
+   * still count (Will, 2026-09-22, "Own deletes close it": a guest's own deletes close the album
+   * again, and a host's curation never does).
+   */
   contributed: boolean;
   /** The pair the presign ladder refuses `cap_reached` on: the storage cap with its grace, or the monthly ingress cap. */
   albumFull: boolean;

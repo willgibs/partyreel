@@ -18,6 +18,8 @@ import "server-only";
 import { seedFor } from "@/lib/avatar/seed";
 import { mustQuery } from "@/lib/db/must-query";
 import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
+import { getEventGuests } from "@/lib/db/queries/social";
+import { guestCount } from "@/lib/events/event-guests";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
@@ -95,39 +97,40 @@ export async function getApprovedPhotoTeaser(
 }
 
 /**
- * Header stats for the guest page (Phase 4): the approved media count + how many
- * distinct people contributed (distinct uploader guests, +1 if the host uploaded
- * anything). One admin select of guest_id over approved rows — NUMBERS ONLY ever
- * leave this function (no identities; the contributor count is as benign as the
- * media count).
+ * Header stats for the guest page: the approved media count and how many GUESTS it came from
+ * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (guest by upload, Will 2026-09-22:
+ * "Uploaded 1 photo? You're a guest."), `getEventGuests` in queries/social.ts, the same function the
+ * host's hub reads, so the album and the hub can never say two numbers for one party: a confirmed
+ * guest once per person, a named unconfirmed one once per row, never the host and never a nameless
+ * row. The host is no longer "one of the guests" here, which the old per-row count made them.
+ * NUMBERS ONLY ever leave this function (no identities).
  *
- * Visibility posture: open events are public; a LOCKED password event still gets
- * counts — that's the ratified entry tease ("N photos are waiting" over the ghost
- * grid; cardinality only, zero media URLs pre-unlock). Private never reaches here
- * (the page early-returns), but returns zeros defensively.
+ * The total is a HEAD count (`count: "exact"`), so an album past PostgREST's row cap still says its
+ * real size.
+ *
+ * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
+ * the ratified entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
+ * media URLs pre-unlock). Private never reaches here (the page early-returns), but returns zeros
+ * defensively.
  */
 export async function getGalleryStats(
   event: Pick<GuestEvent, "id" | "visibility">,
-): Promise<{ approvedTotal: number; contributorCount: number }> {
+): Promise<{ approvedTotal: number; guestCount: number }> {
   if (event.visibility !== "open" && event.visibility !== "password") {
-    return { approvedTotal: 0, contributorCount: 0 };
+    return { approvedTotal: 0, guestCount: 0 };
   }
-  const { data, error } = await createAdminClient()
-    .from("media")
-    .select("guest_id")
-    .eq("event_id", event.id)
-    .eq("status", "approved");
-  if (error) throw error;
-  const rows = data ?? [];
-  const guests = new Set<string>();
-  let hostUploaded = false;
-  for (const r of rows) {
-    if (r.guest_id) guests.add(r.guest_id);
-    else hostUploaded = true;
-  }
+  const [total, guests] = await Promise.all([
+    createAdminClient()
+      .from("media")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", event.id)
+      .eq("status", "approved"),
+    getEventGuests(event.id),
+  ]);
+  if (total.error) throw total.error;
   return {
-    approvedTotal: rows.length,
-    contributorCount: guests.size + (hostUploaded ? 1 : 0),
+    approvedTotal: total.count ?? 0,
+    guestCount: guestCount(guests),
   };
 }
 

@@ -21,9 +21,10 @@ import {
  *      rather than throwing or picking rows. The view is read on the SERVER to
  *      paint the first frame, so an unparseable value must be a safe default,
  *      never an exception on a host's home page.
- *   2. THE BIN IS NEVER IN THE LIVE LIST. "All events" means hosted and saved;
- *      a deleted event appearing among live ones is how a host restores or
- *      opens the wrong thing.
+ *   2. THE BIN IS NEVER IN THE LIVE LIST. "All events" means the events you
+ *      host and the events you added to (guest by upload, 2026-09-22); a deleted
+ *      event appearing among live ones is how a host restores or opens the
+ *      wrong thing.
  *   3. THE ORDER IS STABLE. Equal keys keep the incoming recency order, which
  *      is what makes "Most waiting" readable when nothing is waiting.
  */
@@ -69,23 +70,30 @@ describe("which view paints first", () => {
     expect(resolveEventsSort("sideways")).toBe("newest");
     expect(resolveEventsFilter(undefined)).toBe("all");
     expect(resolveEventsFilter("deleted")).toBe("deleted");
+    expect(resolveEventsFilter("guest")).toBe("guest");
     expect(resolveEventsFilter("everything")).toBe("all");
+  });
+
+  it("resolves the retired Saved lens to All events", () => {
+    // Save died with guest by upload (2026-09-22); a value stored or typed before that is a
+    // stranger like any other, never a lens that no longer exists.
+    expect(resolveEventsFilter("saved")).toBe("all");
   });
 });
 
 describe("the lens", () => {
   const rows = [
     row({ id: "h", kind: "hosted" }),
-    row({ id: "s", kind: "saved" }),
+    row({ id: "g", kind: "guest" }),
     row({ id: "d", kind: "deleted" }),
   ];
 
-  it("keeps the bin out of the live list", () => {
-    expect(filterEventRows(rows, "all").map((r) => r.id)).toEqual(["h", "s"]);
+  it("keeps the bin out of the live list, and the events you added to in it", () => {
+    expect(filterEventRows(rows, "all").map((r) => r.id)).toEqual(["h", "g"]);
   });
 
   it("shows exactly one kind when asked for one", () => {
-    expect(filterEventRows(rows, "saved").map((r) => r.id)).toEqual(["s"]);
+    expect(filterEventRows(rows, "guest").map((r) => r.id)).toEqual(["g"]);
     expect(filterEventRows(rows, "deleted").map((r) => r.id)).toEqual(["d"]);
   });
 });

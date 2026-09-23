@@ -5,7 +5,6 @@ import {
   lazy,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -15,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
 
 import { initial } from "@/components/app/user-menu";
+import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
@@ -34,9 +34,6 @@ import {
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { ReportDialog } from "@/components/guest/report-dialog";
-import { CompletePendingSave } from "@/components/guest/save-event-button";
-import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
-import { UnverifiedMarkEvent } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -57,7 +54,9 @@ import {
   DEFAULT_TILE_SIZE,
   type TileSize,
 } from "@/lib/shared/tile-size-cookie";
+import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
+import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
 import { useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
   setStoredEmailAttached,
@@ -140,9 +139,10 @@ export function EventExperience({
   /** The RSC's gallery load, NOT awaited server-side — LiveGallery resolves it
    *  via use() inside the Suspense boundary so the shell paints first. */
   galleryPromise: Promise<GalleryPayload>;
-  /** Header stats (Phase 4): numbers only, never identities. N goes live via
-   *  LiveGallery's onCountChange; M (contributors) is static per load. */
-  stats: { approvedTotal: number; contributorCount: number };
+  /** Header stats: numbers only, never identities. N goes live via
+   *  LiveGallery's onCountChange; M is THE ONE COUNT of guests (getEventGuests,
+   *  the same the host's hub reads; never the host), static per load. */
+  stats: { approvedTotal: number; guestCount: number };
   /** The demo event: "uploads" are simulated locally + nothing is polled/persisted. */
   isDemo: boolean;
   /** Server-resolved gallery access (none/teaser/full), driving the entry modal's gate. `none` =
@@ -200,14 +200,14 @@ export function EventExperience({
   // ONE resolution of the size for both boxes the album occupies: the skeleton
   // while it streams and the gallery once it lands.
   const tileSize = initialTileSize ?? DEFAULT_TILE_SIZE;
-  // The event a guest's confirmation keeps: the Unverified mark on their own
-  // credit reads it (it sits three modules deep in the album), and the save a
-  // door started before a redirect sign-in is finished against it. None in the
-  // demo, where nothing is ever saved.
-  const saveable = useMemo(
-    () => (isDemo ? null : { eventId: event.id, qrToken }),
-    [isDemo, event.id, qrToken],
-  );
+  /* ★ THE RETURN (guest by upload, 2026-09-22). This album claims the browser's
+     uploads at mount (a Google or magic-link confirmation comes back here signed
+     in) and hears every claim made on it, whichever door started it; `moment` is
+     true once a confirm door opened here AND a claim moved this album's own
+     uploads, and the post-upload slot then plays the follow moment with no
+     upload needed this visit. Never in the demo, never for the host.
+     (lib/guest/use-confirm-return.ts owns the rule.) */
+  const moment = useConfirmReturn(qrToken, !isDemo && !isOwner);
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   // The name this device typed at this event (the identity reshape). Beside the
   // session, never instead of it: the token is the capability, this is the label.
@@ -230,7 +230,7 @@ export function EventExperience({
      renders nothing until after hydration, so no server-rendered DOM depends on it. */
   const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
   // The live media count: seeded by the RSC stats, kept current by LiveGallery
-  // (incl. optimistic tiles). M (contributors) stays static per load.
+  // (incl. optimistic tiles). M (the guests) stays static per load.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
   const uploadRef = useRef<GuestUploadHandle>(null);
 
@@ -289,6 +289,23 @@ export function EventExperience({
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
   const contributed = queue.some((it) => it.status === "done");
+  /* ★ AND WHEN THAT HALF RETIRES (guest by upload, 2026-09-22: "Own deletes close it"). `contributed`
+     stays true all visit, but on a Require-an-upload-to-view event the server can take a
+     contribution back: a guest who removes their only upload is a guest who owes one again. So the
+     client's flag stands only until the server has answered since it (its gate moved off `upload`);
+     from then on the server's gate alone decides, and a later `upload` gate (after the removal's
+     refresh) puts the door back WITH its upload step, never a teaser with no way through.
+     The sanctioned adjust-state-during-render pattern (entry-modal.tsx's `prevStep`), so the
+     retired flag never reaches a render. */
+  const [contributionSeen, setContributionSeen] = useState(false);
+  const seenNow = contributionAnswered({
+    answered: contributionSeen,
+    contributed,
+    gate,
+    requireUpload: event.require_upload_to_view,
+  });
+  if (seenNow !== contributionSeen) setContributionSeen(seenNow);
+  const clientContributed = contributed && !seenNow;
   /* AND THE SERVER'S HALF, read off the decision it already made. With the switch ON the resolver
      answers `upload` exactly when this viewer owes a photograph, so anything else means they do
      not (they contributed, or the album cannot take one and the gate failed open). With the
@@ -372,6 +389,33 @@ export function EventExperience({
     if (spendStricterDrift()) return;
     uploadRef.current?.openAdd();
   }, [spendStricterDrift]);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     REMOVING YOUR LAST UPLOAD CLOSES A REQUIRE-UPLOAD ALBUM AGAIN (Will, 2026-09-22,
+     "Own deletes close it").
+
+     While uploads are open on such an event, the door opens only for a guest with an upload that
+     counts, and one they removed themselves no longer does. The lightbox's confirm says so before
+     it happens (LiveGallery hands it the line), and when the removal lands with nothing of this
+     guest's left, the page refreshes onto the server's answer AT ONCE rather than holding the album
+     until their next act the way a host's stricter switch is held: the guest chose this, after
+     being told. The server decides (a held upload still counts), so a refresh that finds the door
+     still open changes nothing, and the one that finds it shut brings the door back WITH its upload
+     step (see `contributionAnswered`).
+     ──────────────────────────────────────────────────────────────────────── */
+  const closesOnLastRemoval =
+    !isDemo &&
+    !isOwner &&
+    event.require_upload_to_view &&
+    event.accepting_uploads;
+  const handleOwnRemoved = useCallback(
+    (remaining: number) => {
+      if (!closesOnLastRemoval || remaining > 0) return;
+      pendingStricterRef.current = false;
+      router.refresh();
+    },
+    [closesOnLastRemoval, router],
+  );
 
   // The header's own name menu is a SIBLING island and cannot reach the modal's
   // handle; `lib/guest/name-door.ts` is the one channel between them (the same
@@ -635,18 +679,6 @@ export function EventExperience({
       )}
       data-reveal-curtain={holdCurtain ? "" : undefined}
     >
-      {/* Claim anonymous uploads when a magic-link return lands the visitor here signed-in. Silent on the
-          guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
-          toast); self-guards when logged out. */}
-      <ClaimUploadsOnAuth silent />
-      {/* And finish the save a door promised before that sign-in left the page (the offer card,
-          the Unverified mark and the name menu all write the intent when they open). */}
-      {saveable && (
-        <CompletePendingSave
-          eventId={saveable.eventId}
-          qrToken={saveable.qrToken}
-        />
-      )}
       <Suspense fallback={null}>
         {/* The heal holds the door (see its own note): a sheet that appears and vanishes half a
             second later is worse than one that arrives a beat late. */}
@@ -658,7 +690,7 @@ export function EventExperience({
           access={access}
           gate={gate}
           hasContributed={serverContributed}
-          contributed={contributed}
+          contributed={clientContributed}
           returning={returning}
           uploadsOpen={event.accepting_uploads}
           requireUpload={event.require_upload_to_view}
@@ -823,11 +855,11 @@ export function EventExperience({
               >
                 {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
                 {" & videos"}
-                {stats.contributorCount > 0 && (
+                {stats.guestCount > 0 && (
                   <>
                     {" "}
-                    from {stats.contributorCount}{" "}
-                    {stats.contributorCount === 1 ? "guest" : "guests"}
+                    from {stats.guestCount}{" "}
+                    {stats.guestCount === 1 ? "guest" : "guests"}
                   </>
                 )}
               </p>
@@ -994,13 +1026,30 @@ export function EventExperience({
                     // The address typed at the door a few minutes ago, so the
                     // offer card's door opens on it instead of asking twice.
                     hintEmail={attachedEmail}
+                    moment={moment}
                   />
                 </div>
               ) : (
                 !isDemo && (
-                  <p className="mt-7 text-center text-reading text-muted-foreground">
-                    The host has closed uploads. You can still browse the album.
-                  </p>
+                  <>
+                    <p className="mt-7 text-center text-reading text-muted-foreground">
+                      The host has closed uploads. You can still browse the album.
+                    </p>
+                    {/* A confirmation from the name menu or the mark can land
+                        here too, on an album whose uploads have since closed:
+                        the moment still plays, in the slot's place. */}
+                    {moment && (
+                      <div className="mt-4">
+                        <ClaimHandlePrompt
+                          doneCount={0}
+                          qrToken={qrToken}
+                          host={hostCard}
+                          moment
+                          savePrompt={null}
+                        />
+                      </div>
+                    )}
+                  </>
                 )
               ))}
           </>
@@ -1037,29 +1086,27 @@ export function EventExperience({
             }
           >
             <div className={BLEED}>
-              {/* The album's lightbox carries the Unverified mark on a guest's
-                  own credit, and its door keeps THIS event. */}
-              <UnverifiedMarkEvent event={saveable}>
-                <LiveGallery
-                  key={access}
-                  ref={attachGallery}
-                  galleryPromise={galleryPromise}
-                  qrToken={qrToken}
-                  access={access}
-                  isDemo={isDemo}
-                  onOpenGate={() => entryRef.current?.openToGate()}
-                  onAccessDrift={handleAccessDrift}
-                  onCountChange={setMediaCount}
-                  pendingUploads={inFlightUploads}
-                  onAddFirst={canUpload ? openAdd : undefined}
-                  joinUrl={joinUrl}
-                  canDeleteIds={canDeleteIds}
-                  isAuthed={isAuthed}
-                  sessionToken={sessionToken}
-                  initialTileSize={tileSize}
-                  approvedTotal={stats.approvedTotal}
-                />
-              </UnverifiedMarkEvent>
+              <LiveGallery
+                key={access}
+                ref={attachGallery}
+                galleryPromise={galleryPromise}
+                qrToken={qrToken}
+                access={access}
+                isDemo={isDemo}
+                onOpenGate={() => entryRef.current?.openToGate()}
+                onAccessDrift={handleAccessDrift}
+                onCountChange={setMediaCount}
+                pendingUploads={inFlightUploads}
+                onAddFirst={canUpload ? openAdd : undefined}
+                joinUrl={joinUrl}
+                canDeleteIds={canDeleteIds}
+                isAuthed={isAuthed}
+                sessionToken={sessionToken}
+                initialTileSize={tileSize}
+                approvedTotal={stats.approvedTotal}
+                closesOnLastRemoval={closesOnLastRemoval}
+                onOwnRemoved={handleOwnRemoved}
+              />
             </div>
           </Suspense>
 
@@ -1106,7 +1153,7 @@ export function EventExperience({
               they came to see. */}
           {isDemo && (
             <div className={COLUMN}>
-              <ClosingCard contributorCount={stats.contributorCount} />
+              <ClosingCard guestCount={stats.guestCount} />
             </div>
           )}
         </>
@@ -1117,7 +1164,7 @@ export function EventExperience({
 
 /** `next=foot`: "Yours would look like this" — the demo's second, patient
  *  conversion object, real numbers standing in for the fixture's. */
-function ClosingCard({ contributorCount }: { contributorCount: number }) {
+function ClosingCard({ guestCount }: { guestCount: number }) {
   return (
     <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-6 py-8 text-center">
       <p className="font-heading text-subsection text-balance">
@@ -1125,8 +1172,8 @@ function ClosingCard({ contributorCount }: { contributorCount: number }) {
       </p>
       <p className="max-w-sm text-reading text-pretty text-muted-foreground">
         One code
-        {contributorCount > 0
-          ? `, ${contributorCount} ${contributorCount === 1 ? "guest" : "guests"},`
+        {guestCount > 0
+          ? `, ${guestCount} ${guestCount === 1 ? "guest" : "guests"},`
           : ","}{" "}
         and every photo in one place. Free to start, nothing to install.
       </p>

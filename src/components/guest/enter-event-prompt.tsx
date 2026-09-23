@@ -13,7 +13,8 @@ import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 //
 // ★ THE GATE IS A WEAR, NOT A FORM (Will, 2026-09-20, `app-door` r1 `surfaces=one`). Everything under
 // the framing is <AccountDoor>: the same field, the same failure paths, the same existing-account
-// line as /login and Save. What stays HERE is the framing, which is this surface's alone.
+// line as /login and the album's confirm door. What stays HERE is the framing, which is this
+// surface's alone.
 export function EnterEventPrompt({
   qrToken,
   mediaTotal,

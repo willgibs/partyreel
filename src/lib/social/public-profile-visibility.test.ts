@@ -18,6 +18,10 @@
  * attends in public — a typed name or a typed, unproved address publishes nothing even when its
  * event is chosen. Both are pinned below; reverting either re-publishes by default.
  *
+ * ★ And since guest by upload (2026-09-23, migration 20260923120000) the arm FOLLOWS THE ALBUM's
+ * Require an upload to view (Will's "Follow the album"): while uploads are open on such an event,
+ * only the host and a signed-in viewer who has passed that event's upload door see the line.
+ *
  * The HOSTED arm deliberately has NO visibility gate: display_in_profile is the
  * host publishing their OWN event link (link-in-bio; discovery decoupled from
  * access), and a gated event still hits its lock at /e/. Don't "fix" that arm.
@@ -101,9 +105,9 @@ describe("get_public_profile consent scope (migration SQL)", () => {
   });
 
   it("publishes NOTHING until chosen: the opt-in table, never the opt-out one", () => {
-    // The inversion (2026-09-22). `profile_hidden_events` is not dropped — the deployed build still
-    // writes it — so a careless re-point back to it would compile, apply and silently republish
-    // every attended event by default. That is what this pair of assertions exists to stop.
+    // The inversion (2026-09-22). The opt-out table is dropped by 20260923130000, so a re-point back
+    // to it would fail at the apply; the pair still reads the arm, because an opt-OUT of any name
+    // would silently republish every attended event by default. That is what it exists to stop.
     expect(code(attended)).toContain("public.profile_shown_events");
     expect(code(attended)).not.toContain("profile_hidden_events");
   });
@@ -113,6 +117,21 @@ describe("get_public_profile consent scope (migration SQL)", () => {
     // confirmed, so an impersonator's uploads can never surface under someone else's profile.
     expect(attended.replace(/\s+/g, " ")).toContain(
       "g.verified_at is not null",
+    );
+  });
+
+  it("the attended arm follows the album's Require an upload to view (a viewer who has not passed the door learns nothing)", () => {
+    // Will's "Follow the album" (2026-09-22): while uploads are open on a require-upload event, the
+    // album holds every viewer at the teaser until an upload of theirs counts, and the teaser never
+    // renders its Guests list. So this reverse surface admits the same people and nobody else: the
+    // host, or a signed-in viewer whose own row there carries an upload they did not remove
+    // themselves. An anonymous viewer has no uid, so the EXISTS can only fail for them.
+    const gate = code(attended).replace(/\s+/g, " ");
+    expect(gate).toContain("not e.require_upload_to_view");
+    expect(gate).toContain("or not e.accepting_uploads");
+    expect(gate).toContain("vg.user_id = (select auth.uid())");
+    expect(gate).toContain(
+      "not (vm.status = 'removed' and vm.removed_by_uploader)",
     );
   });
 

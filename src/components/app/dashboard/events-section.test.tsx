@@ -23,6 +23,10 @@ import type { EventListRow } from "@/lib/dashboard/events-view";
  *   4. THE BIN IS A LENS ON THIS LIST, NOT A CHIP ROW, and it is reachable
  *      from the DEFAULT view — a filter that only existed in the row view
  *      would leave a cover-cards host with no door to their own bin.
+ *   5. THE EVENTS YOU ADDED TO ARE IN THE LIVE LIST, and the Guest lens shows
+ *      them alone (guest by upload, 2026-09-22: they took the retired Saved
+ *      lens's place), with no per-row action: a Guest card leaves with your
+ *      last live upload, never by a button here.
  *
  * Labels, icons and chrome are precedent: a contract guards function, never
  * look, and never pins copy.
@@ -37,9 +41,6 @@ vi.mock("next/navigation", () => ({
 // this test is about the list, not the chip.
 vi.mock("@/components/app/event-card-qr", () => ({
   EventCardQr: () => <span data-testid="qr" />,
-}));
-vi.mock("@/components/app/unsave-button", () => ({
-  UnsaveButton: () => <button type="button">Unsave</button>,
 }));
 vi.mock("@/components/app/restore-event-button", () => ({
   RestoreEventButton: () => <button type="button">Restore</button>,
@@ -72,6 +73,17 @@ const ROWS = [
     sortDate: "2026-08-01T00:00:00.000Z",
   }),
   row({ id: "bin", name: "Binned party", kind: "deleted", href: null }),
+  row({
+    id: "friend",
+    name: "Friend's wedding",
+    kind: "guest",
+    href: "/e/qr-friend",
+    items: 0,
+    statusLabel: null,
+    byline: "Hosted by Priya",
+    qr: null,
+    sortDate: "2026-07-01T00:00:00.000Z",
+  }),
 ];
 
 function draw(initialView: "cards" | "rows" = "cards") {
@@ -164,6 +176,32 @@ describe("the lens", () => {
     fireEvent.click(screen.getByRole("menuitemradio", { name: /deleted/i }));
     expect(screen.getByText("Binned party")).toBeInTheDocument();
     expect(screen.queryByText("Quiet party")).toBeNull();
+  });
+
+  it("keeps the events you added to in the live list, and the Guest lens shows them alone", () => {
+    draw("cards");
+    expect(screen.getByText("Friend's wedding")).toBeInTheDocument();
+    openMenu(/all events/i);
+    fireEvent.click(screen.getByRole("menuitemradio", { name: /guest/i }));
+    expect(screen.getByText("Friend's wedding")).toBeInTheDocument();
+    expect(screen.queryByText("Quiet party")).toBeNull();
+    expect(screen.queryByText("Binned party")).toBeNull();
+  });
+
+  it("gives a Guest card no action of its own: it leaves with your last upload", () => {
+    render(
+      <EventsSection
+        rows={[ROWS[3]]}
+        newestByEvent={new Map()}
+        initialView="cards"
+        siteUrl="https://partyreel.com"
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /restore/i })).toBeNull();
+    expect(screen.getByRole("link", { name: /friend's wedding/i })).toHaveAttribute(
+      "href",
+      "/e/qr-friend",
+    );
   });
 
   it("offers the create hero only to a host with nothing at all", () => {

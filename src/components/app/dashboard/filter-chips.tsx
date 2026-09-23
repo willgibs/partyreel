@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * ★ RETIRED FROM PRODUCTION, KEPT ON DISK (home-wiring, 2026-09-20). The
  * five-chip inbox this bar drove is gone: `/dashboard` is the pulse now
  * (`home=pulse`), the personal feeds moved to the profile's owner mode, and
- * the bin and the saved events became FILTERS of the events list rather than
+ * the bin (and later the events you added to) became FILTERS of the events list rather than
  * chips of their own. Nothing in the app renders this any more.
  *
  * It stays, with its props intact, because the Library's own compositions page

@@ -72,7 +72,10 @@ export function resolveGalleryDecision(
     isOwner: boolean;
     isAuthed: boolean;
     isUnlocked: boolean;
-    /** One upload of this viewer's has ever completed (approved or held for review). */
+    /**
+     * An upload of this viewer's counts (approved or held for review, and not removed by the viewer
+     * themselves: a guest's own deletes close the album again, a host's removal never does).
+     */
     hasContributed: boolean;
     /** This viewer COULD upload right now: uploads open and the album not full. */
     canContribute: boolean;

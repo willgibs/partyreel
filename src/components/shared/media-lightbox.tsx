@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -42,6 +43,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
+import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { videoPosterSrc } from "@/lib/media/poster";
 import { cn } from "@/lib/utils";
 
@@ -285,6 +287,9 @@ export function MediaLightbox({
   onRemove?: (item: GridMedia) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
+  // The album's line for what deleting THIS item costs (null everywhere else).
+  const consequenceOf = useContext(DeleteConsequence);
+  const deleteConsequence = current && consequenceOf ? consequenceOf(current) : null;
   const prevItem =
     index !== null && index > 0 ? (items[index - 1] ?? null) : null;
   const nextItem =
@@ -848,6 +853,7 @@ export function MediaLightbox({
                                 It will be removed from the event right away,
                                 and permanently deleted after a short grace
                                 period.
+                                {deleteConsequence && ` ${deleteConsequence}`}
                               </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>

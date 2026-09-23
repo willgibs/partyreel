@@ -55,8 +55,13 @@ export function FollowMomentCard({
   host: FollowMomentHost | null;
   /** This account has no handle yet: the second line earns its place. */
   needsHandle: boolean;
-  /** Photographs this guest added in this session (the sentence's number). */
-  count: number;
+  /**
+   * Photographs this guest added in this session (the sentence's number), or
+   * null when they added none this visit: a guest back from Google or a magic
+   * link is holding photos from before the redirect, and the card will not
+   * invent a number for them.
+   */
+  count: number | null;
 }) {
   const hostName = host?.displayName?.trim() || null;
   const canFollowHost = Boolean(host?.slug && hostName);
@@ -77,13 +82,16 @@ export function FollowMomentCard({
             {count === 1 ? "Your photo is safe" : "Your photos are safe"}
           </p>
           {/* ★ "In your account", never "on your profile": the claim puts the
-              photographs in the account and the offer saved the event to its
-              dashboard, while a profile shows nothing until its owner chooses
-              it (profiles-social.md), so a profile line here would be false. */}
+              photographs in the account and the event comes with them (a Guest
+              card on the dashboard: guest by upload, 2026-09-22), while a
+              profile shows nothing until its owner chooses it
+              (profiles-social.md), so a profile line here would be false. */}
           <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
             {count === 1
               ? "It is in your account now, and this event came with it."
-              : `All ${count} are in your account now, and this event came with them.`}
+              : count === null
+                ? "They are in your account now, and this event came with them."
+                : `All ${count} are in your account now, and this event came with them.`}
           </p>
         </div>
       </div>

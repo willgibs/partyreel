@@ -10,9 +10,10 @@ The model: profiles are **public by existence** (claiming a handle is the consen
 flag); the event guest list is **host-controlled** (`events.show_guest_list`; when on, every named guest
 who added photos is listed, a confirmed name or one wearing the small unverified mark, with no per-guest
 opt-in); the guest's control lives on their **own profile**, which **publishes NOTHING UNTIL CHOSEN**:
-`profile_shown_events` is an **opt-in**, so an attended event appears on `/u/[slug]` only once the guest
-turns it on (the switches on `/account`'s Public profile card), while they stay on the event's own guest
-list either way (the host's key, not theirs);
+`profile_shown_events` is an **opt-in**, so an event the guest added photos to appears on `/u/[slug]` only once
+they turn it on (the switches on `/account`'s Public profile card), while they stay on the event's own guest
+list either way (the host's key, not theirs); a person is on a list, a count or a profile line only through an
+approved upload of theirs ([guest-flow.md](guest-flow.md) holds that definition);
 follows are **open any-to-any with an owner-private graph** (lists + counts visible only to the account
 owner, the VSCO shape); **blocking** is mutual severance, private, and prevents re-follow.
 
@@ -29,9 +30,8 @@ marker on each, the person's bio under the name row, indexable, on the album's o
 its event-less mode, plus the OWNER MODE below); the Account page (slug claim, bio, attended-event
 visibility switches, Connections card); event settings (`ProfileSocialCard`, both keys persist per
 flip, LOUD permanent consent copy on `show_guest_list`); the host's Guests room
-(`/dashboard/[eventId]/guests`; the hub's Guests card counts only the proved profile cards, while the room
-also lists the named unverified, so the two numbers can differ) and the guest album's post-gallery
-"Guests" section; the dashboard's **claim card** (a confirmed caller's rows waiting under an email typed
+(`/dashboard/[eventId]/guests`; the hub's Guests card and header count exactly the people the room lists, through
+the one count) and the guest album's post-gallery "Guests" section; the dashboard's **claim card** (a confirmed caller's rows waiting under an email typed
 before it was proved, claimed or released per event — see [host-app.md](host-app.md) "Dashboard landing").
 
 **The owner mode.** When the viewer IS the person, `/u/[slug]` grows three PRIVATE sections under the
@@ -54,7 +54,7 @@ gallery and appears on no profile.
 
 ## Where it lives
 
-- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen) and the `verified_at` belt. [`20260922200000_identity_sql_gaps.sql`](../../supabase/migrations/20260922200000_identity_sql_gaps.sql) — the newest `get_public_profile` (the attended arm's confirmed-viewer gate). `profile_hidden_events` stays on disk: this tree neither reads nor writes it, but the deployed `main` build still reads it and writes it through the Account hide toggle, so `migration-guards.test.ts` refuses a migration that drops it until a milestone ships this tree.
+- Schema: [`20260708120000_profiles_social_foundation.sql`](../../supabase/migrations/20260708120000_profiles_social_foundation.sql) — `profiles.slug`, `events.display_in_profile` + `events.show_guest_list`, `user_follows`, `user_blocks`, `notification_prefs`, `profile_hidden_events`, the `follow_user`/`block_user`/`get_public_profile` RPCs, the `enforce_follow_not_blocked` trigger; its header holds the rolled-back contract check + the expected advisor delta. [`20260922122000_profile_shown_events.sql`](../../supabase/migrations/20260922122000_profile_shown_events.sql) — `profile_shown_events` (the opt-in that replaced `profile_hidden_events` in `get_public_profile`'s attended arm; deliberately NO backfill, which would publish what must stay private until chosen) and the `verified_at` belt. [`20260922200000_identity_sql_gaps.sql`](../../supabase/migrations/20260922200000_identity_sql_gaps.sql) — the attended arm's confirmed-viewer gate. [`20260923120000_guest_by_upload.sql`](../../supabase/migrations/20260923120000_guest_by_upload.sql) — the newest `get_public_profile` (the attended arm follows the album's Require an upload to view). [`20260923130000_drop_saves.sql`](../../supabase/migrations/20260923130000_drop_saves.sql) drops the dead `profile_hidden_events` with the save objects, applied after alias build 2's red-team.
 - Data layer: [`src/lib/db/queries/social.ts`](../../src/lib/db/queries/social.ts) + [`src/lib/db/mutations/social.ts`](../../src/lib/db/mutations/social.ts); pure logic in [`src/lib/social/`](../../src/lib/social) (notification-pref defaults/resolve, profile cards) + [`src/lib/validation/profile.ts`](../../src/lib/validation/profile.ts) (slug schema + reserved words).
 - UI: [`src/components/social/`](../../src/components/social) (guest list, follow button, report/block menu, slug control, bio form, visibility switches, connections) + [`profile-social-card.tsx`](../../src/components/app/event-settings/profile-social-card.tsx); routes `src/app/(guest)/u/[slug]/` and the Account/event-settings/Guests-room integrations.
 
@@ -77,10 +77,16 @@ gallery and appears on no profile.
 - **Attendance is not a capability grant.** The attended arm returns NO `qr_token`/`custom_slug`, and is
   gated on `show_guest_list` + `profile_shown_events` (the guest's own opt-in) + **`visibility = 'open'`**
   + a **PROVED identity** (`guests.verified_at is not null`: a name-only or pending-email row publishes
-  nothing, chosen or not) + an approved upload + **the album's own viewer gate**: on a Require verified
+  nothing, chosen or not) + an approved upload + **the album's own viewer gates**: on a Require verified
   emails event only the event's host or a viewer with a CONFIRMED email (`auth.users.email_confirmed_at`,
   the page's `isAuthed`) sees the line, because the album holds anyone else, anonymous or an unconfirmed
-  sign-up, at the teaser, which never renders its Guests list. The anonymous-viewer clause beside it
+  sign-up, at the teaser, which never renders its Guests list; and ★ on a Require an upload to view event
+  whose uploads are open (Will's "Follow the album"), only its host or a signed-in viewer whose own guest row
+  there carries an upload they did not remove themselves (`get_upload_gate`'s rule). That one is deliberately
+  STRICTER than the album in two corners, never looser: a full album opens for its viewers but the line stays
+  hidden, and a name-only uploader known only by a cookie is not recognised (the function sees `auth.uid()`,
+  never a session token). A choice in `profile_shown_events` survives the owner's last removal; the approved
+  upload hides the line meanwhile and a later upload shows it again unasked. The anonymous-viewer clause beside it
   still reads the legacy `allow_anonymous_uploads` (kept in sync by the `events_sync_verified_email_flags`
   trigger); the gate implies it, so dropping the column deletes that clause.
   The open-only gate is the consent scope (the album-side list renders only to viewers who can OPEN the
@@ -89,13 +95,15 @@ gallery and appears on no profile.
 - **The hosted arm is deliberately UNgated on visibility**: `display_in_profile` is the host publishing
   their OWN album link (link-in-bio; discovery decoupled from access) and includes the link; a gated
   event still hits its lock at `/e/`. Don't "fix" it to match the attended arm.
-- **One guest-list read** (`getEventGuestList`, admin client): every caller runs it AFTER its own access
-  gate (host = ownership: the hub and the Guests room; guest album = `access === "full"`, never demo), and
-  it returns null when `show_guest_list` is off. Profile cards cover approved uploaders with a PROVED
-  identity (keyed on `verified_at`, never on `user_id` alone, so an unconfirmed sign-up never passes as a
-  proven person), deduped by user; `includeUnverified` (the Guests room and the guest album) appends named
-  unverified guest rows, one per row. Explicit id-list joins (the PGRST201 embed landmine), no `select(*)`
-  on media. `GuestList` draws chips at or under `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces
+- **One count, one list** ([`queries/social.ts`](../../src/lib/db/queries/social.ts), admin client): `getEventGuests`
+  answers who is a guest (`{verifiedUserIds, unverifiedRows}`: approved uploaders, a PROVED identity once per
+  person, keyed on `verified_at` and never on `user_id` alone, a named unverified row once per row, never the host,
+  never a nameless row), from TWO reads keyed on `event_id`, each paged past PostgREST's row cap and never an
+  `.in()` of guest ids (that URL grows with the party). The hub's Guests card and header and the album's header
+  count it; `getEventGuestList` lists it, returning null when `show_guest_list` is off, with `includeUnverified`
+  (the Guests room and the guest album) appending the unverified rows. Every caller runs these AFTER its own access
+  gate (host = ownership; guest album = `access === "full"`, never demo). Profile cards hydrate by an explicit id
+  list (the PGRST201 embed landmine), no `select(*)` on media. `GuestList` draws chips at or under `GUEST_LIST_FACES_THRESHOLD` (12) and a row of six faces
   plus "N guests added photos" above it, expanding in place 24 at a time (a stand-in until the View-all
   design lands); since that row says the count, the album drops its heading pill above the threshold.
 - **Every `ProfileCardItem` carries a colour, not just an avatar URL.** `withAvatarUrls`
@@ -106,7 +114,7 @@ gallery and appears on no profile.
   [auth-accounts.md](auth-accounts.md)'s.
 - **The attended arm's covers re-prove their own scope.** `getPublicProfileAttendedCoverUrls` takes
   ids the RPC already gated and checks `show_guest_list` + `visibility = 'open'` + the owner's own
-  opt-in (`profile_shown_events`) again before presigning: a presign turns an id into someone else's
+  opt-in (`profile_shown_events`) + the owner's approved upload on a PROVED row again before presigning: a presign turns an id into someone else's
   photograph, so it proves the scope rather than inheriting it from a payload. The VIEWER's gate is the
   RPC's alone (the cover read takes no viewer), so the covers inherit it through the ids it returned.
 - **A person can be reported** (`reports.profile_id`; `event_id` is nullable under a CHECK that one
@@ -133,9 +141,12 @@ gallery and appears on no profile.
 
 ## Gotchas
 
-- `getMyAttendedEvents` (the Account show-toggles list) deliberately ignores `show_guest_list` AND
-  visibility: the toggle is the guest's own key and must be settable whether or not the host has
-  turned theirs on at all.
+- `getMyAttendedEvents` (the Account show-toggles list: "Events you added photos to") takes an APPROVED
+  upload on a PROVED row, exactly what the line needs of its owner, and deliberately ignores
+  `show_guest_list`, visibility and the album's viewer gates: the toggle is the guest's own key and must be
+  settable whether or not the host has turned theirs on at all. It reads `myLiveUploads` (the account's own live
+  uploads, one media query inner-joined to its guest rows), which the dashboard's Guest cards share with the looser
+  rule (any live upload).
 - The dashboard has no Following section: a lens on other people's events is not a hosting job. The
   owner mode's Connections lists PEOPLE (`getMyFollowing`), not their events; `getFollowedHostEventCards`
   in `queries/social.ts` has no caller.
@@ -147,7 +158,7 @@ gallery and appears on no profile.
   `generateMetadata` does not help either. The page decides the 404 at the top and streams only the
   card grid, behind its own in-page `<Suspense>`.
 - The handle is offered right after an upload lands: `ClaimHandlePrompt` owns the post-upload slot
-  and renders ONE card by state (signed out = the save-account offer; just confirmed = the follow moment,
+  and renders ONE card by state (signed out = the confirm offer; just confirmed = the follow moment,
   with the handle line folded in; signed in without a handle = the claim line; signed in with one =
   nothing), with a per-event dismissal. Its door is `/account#public-profile`, the id on the Public
   profile card.
