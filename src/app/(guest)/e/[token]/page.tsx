@@ -79,8 +79,8 @@ const socialSeam = social as unknown as {
 // The qr_token is an opaque capability — noindex (don't index join links), but emit OG
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
 // nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
-// isn't the secret) but no description; OPEN gets the full unfurl, whose description
-// also depends on the account gate (see allow_anonymous_uploads below).
+// isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
+// every open event whatever its identity switch (below).
 export async function generateMetadata({
   params,
 }: {
@@ -108,15 +108,13 @@ export async function generateMetadata({
 
   const title = `Add photos to ${event.name}`;
   // ★ A PASTED LINK INVITES, IT DOES NOT WARN (Will, 2026-09-17, the `unfurl=join`
-  // pick, overruling the recommendation). This line used to fork on
-  // allow_anonymous_uploads so an account-gated event announced its email step in
-  // the group chat: the ONE warning a guest got before tapping. He chose to drop
-  // the warning WITH ITS COST IN FRONT OF HIM ("More taps, and a share of them
-  // bounce at the email step"), so the fork is gone and every open event unfurls
-  // the same invitation. Do NOT hedge this back toward a warning: an event that
-  // requires a verified email still gates the guest after the tap, and that was
-  // the trade he took, not one he missed. The gate itself is honest where it
-  // happens, at the entry modal's account step.
+  // pick, overruling the recommendation): every open event unfurls the same
+  // invitation, never a line announcing its email step in the group chat. He took
+  // the warning's absence WITH ITS COST IN FRONT OF HIM ("More taps, and a share
+  // of them bounce at the email step"). Do NOT hedge this back toward a warning:
+  // an event that requires a verified email still gates the guest after the tap,
+  // and that was the trade he took, not one he missed. The gate itself is honest
+  // where it happens, at the entry modal's account step.
   const description = "Photos and videos from the day. Add yours.";
   return {
     title,
@@ -386,17 +384,6 @@ export default async function GuestEventPage({
       );
     }
   }
-
-  /**
-   * THE HOST'S SWITCH (the identity reshape, 2026-09-21). `GuestEvent.require_verified_email`
-   * is the field every new read keys on (guest-events.ts's own words); the legacy
-   * `allow_anonymous_uploads` stays on the type for `main`'s build and QA #36 alone.
-   * OFF means NAMES MODE: a guest types a display name at the door and uploads
-   * under it, marked.
-   */
-  // The seam collapsed at the merge (verified-email-server landed first): the
-  // field is on GuestEvent, and the legacy flag is its trigger-kept opposite.
-  const requireVerifiedEmail = event.require_verified_email;
 
   // The host as a public card, for the capture flow's follow moment. Only where
   // it can be acted on: a full-access, non-demo album with a host to follow.

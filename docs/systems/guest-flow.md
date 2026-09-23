@@ -178,8 +178,9 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
   [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to
   open, one extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm
-  door); only a nameless legacy row reads **"A guest"**, and a verified row whose account has no profile name
-  (a deleted account's surviving upload) renders no credit at all.
+  door). A row with no name renders no credit at all, only the counter, never an invented stand-in: a row
+  minted before names were asked (`create_guest` refuses a new one) and a verified row whose account has no
+  profile name (a deleted account's surviving upload).
   [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library
   gallery mounts. ★ The mark carries its OWN door rather than a prop, because the credit sits three modules
   deep under `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one.
@@ -444,11 +445,10 @@ through flags in the sheet. No step counter to desync.
 ★ **EVERY UPLOAD CARRIES AN IDENTITY, AND THE HOST'S SWITCH DECIDES WHICH KIND.** It is
 **`events.require_verified_email`**, ON by default: on, a guest confirms an email before the full album and
 any upload; off, a guest types a display name at the door and uploads under it with the unverified mark.
-`allow_anonymous_uploads` survives only as the compatibility twin the `events_sync_verified_email_flags`
-trigger holds exactly opposite (→ [database-security.md](database-security.md)). No new code keys on it, but
-`get_public_profile`'s anonymous-viewer clause still reads it and `get_event_by_qr_token` still returns it
-(→ [profiles-social.md](profiles-social.md)), so dropping it re-points that clause. Only nameless legacy rows
-still read as "A guest".
+It is the one identity switch: its legacy twin `allow_anonymous_uploads` is read and written by no code, and
+the identity contract (`20260923150000_identity_contract.sql`, applied after milestone 27) drops it with its
+trigger (→ [database-security.md](database-security.md)). A nameless row, one minted before names were
+asked, credits nobody.
 
 ★ **THREE LEVELS OF TRUST, AND A ROW IS AT EXACTLY ONE.**
 
@@ -494,7 +494,7 @@ name writes the PROFILE's; the album has no inline name panel, and the shared `S
 
 ★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S.** `EnterEventPrompt.onVerified` is a plain
 callback and `entry-modal.tsx` owns the sequence, because the door holds a name never sent anywhere and the
-order decides whether a guest lands named or as "A guest": claim this browser's anonymous uploads →
+order decides whether a guest lands named or with no name at all: claim this browser's anonymous uploads →
 `joinEvent` (verified and NAMELESS, since `create_guest` nulls a typed name beside a confirmed account) →
 one own-row read of `profiles.display_name` → when null and a name was typed, `updateDisplayNameAction` →
 hold the beat → refresh. **The account's own name wins** over a typed one, and the email step says so above
@@ -506,9 +506,10 @@ the field before they confirm.
   door believes `email_attached` over its own form (a verified-required event and a confirmed session both
   null the field). The ROUTE owns the refusals: 422 `verification_required` (the switch is on and nothing was
   proved), `name_required`, `name_invalid` (over 60, a reserved name, or profanity, checked server-side
-  because the obscenity matcher must never ship to a browser), `email_invalid`. ★ **The DB deliberately
-  still accepts a NAMELESS mint** (a confirmed joiner's row is nameless by design), **so the name
-  requirement is the route's and nothing else's.**
+  because the obscenity matcher must never ship to a browser), `email_invalid`. ★ **The name requirement
+  is the route's first**, and `create_guest` is the belt under it: it refuses a nameless mint by an
+  UNCONFIRMED caller ("Add your name to upload.", which `createGuest` maps to `name_required` ahead of its
+  `verification_required` fallback) and mints a confirmed joiner nameless by design (the identity contract).
 - **Attaching an address afterwards:** `POST /api/guests/email {qr_token, session_token, email | null}`
   over the service-role `set_guest_pending_email` (its own `attach_email` limiter) answers
   `{email_attached}`, never the address. Callers: the door's held-session path and the header menu's Add
@@ -520,13 +521,14 @@ the field before they confirm.
   `user.email_confirmed_at`, and `create_guest` stamps `verified_at` from `auth.users` itself (a proved
   claim stamps it too). The ONE precedence rule ([`uploader-identity.ts`](../../src/lib/media/uploader-identity.ts))
   reads the same way: host → `verified_at` set means the PROFILE's name, verified → else the typed
-  `guests.display_name`, unverified → else "A guest". `isAnonymous` survives narrowed to that last case.
+  `guests.display_name`, unverified → else no name at all (a row minted before names were asked), which
+  credits nobody.
 - **Naming a row afterwards:** `POST /api/guests/name {qr_token, session_token, display_name}` over
   `set_guest_display_name`, for a nameless row or a new name; its own limiter kind (`rename`), tighter than
   `join` and still venue-sized. A VERIFIED guest is refused (403): one row never carries two names. ★ **A
   HELD SESSION TOKEN ALWAYS TRIES RENAME FIRST, WHICHEVER DOOR OPENED IT.** `guest-name-step.tsx` calls
   `renameGuest` whenever a session token is held, so a device with a session but no LOCAL name never mints a
-  SECOND row and strands the first one's photographs under "A guest"; it falls back to `joinEvent` only on
+  SECOND row and strands the first one's photographs with no name; it falls back to `joinEvent` only on
   `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`) or `unauthorized` (a verified row: the
   route, not the component, is the truth).
 - ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries

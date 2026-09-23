@@ -49,7 +49,6 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: true,
       isVerified: true,
-      isAnonymous: false,
     });
   });
 
@@ -76,11 +75,10 @@ describe("resolveUploaderIdentity", () => {
       email: "alex@example.com",
       isHost: false,
       isVerified: true,
-      isAnonymous: false,
     });
   });
 
-  it("named guest, no proved email -> the TYPED name, unverified, never anonymous", () => {
+  it("named guest, no proved email -> the TYPED name, unverified", () => {
     const out = resolveUploaderIdentity(
       guest({ display_name: "Maya J." }),
       HOST,
@@ -90,7 +88,6 @@ describe("resolveUploaderIdentity", () => {
       email: null,
       isHost: false,
       isVerified: false,
-      isAnonymous: false,
     });
   });
 
@@ -149,16 +146,17 @@ describe("resolveUploaderIdentity", () => {
     expect(out.displayName).toBe("Maya J.");
     expect(out.email).toBeNull();
     expect(out.isVerified).toBe(false);
-    expect(out.isAnonymous).toBe(false);
   });
 
-  it("nameless legacy row -> no name, unverified, isAnonymous (the only case that still is)", () => {
+  it("nameless legacy row -> nobody named: no name, no address, no claim (never 'A guest')", () => {
+    // Only a row minted before names were asked lands here (create_guest refuses a nameless mint
+    // by an unconfirmed caller). The identity carries no flag that a surface could turn into an
+    // invented person: the credit shows no name, exactly as for a deleted account's upload.
     expect(resolveUploaderIdentity(guest(), HOST)).toEqual({
       displayName: null,
       email: null,
       isHost: false,
       isVerified: false,
-      isAnonymous: true,
     });
   });
 
@@ -174,13 +172,12 @@ describe("resolveUploaderIdentity", () => {
     expect(out.displayName).toBeNull();
     expect(out.email).toBeNull();
     expect(out.isVerified).toBe(false);
-    expect(out.isAnonymous).toBe(true);
   });
 
   it("a whitespace-only typed name does not count as a name", () => {
     const out = resolveUploaderIdentity(guest({ display_name: "   " }), HOST);
     expect(out.displayName).toBeNull();
-    expect(out.isAnonymous).toBe(true);
+    expect(out.isVerified).toBe(false);
   });
 
   it("deleted account (user_id nulled by cascade) -> nameless, not the host", () => {
@@ -188,7 +185,6 @@ describe("resolveUploaderIdentity", () => {
       guest({ email: "left@over.com" }),
       HOST,
     );
-    expect(out.isAnonymous).toBe(true);
     expect(out.isHost).toBe(false);
     expect(out.displayName).toBeNull();
     expect(out.email).toBeNull(); // a nameless row never carries an email
@@ -196,11 +192,11 @@ describe("resolveUploaderIdentity", () => {
 
   it("defensive: a missing guest row attributes as nameless, NEVER as the host", () => {
     const row: UploaderRow = { guest_id: "g1", guests: null };
-    expect(resolveUploaderIdentity(row, HOST)).toMatchObject({
+    expect(resolveUploaderIdentity(row, HOST)).toEqual({
       displayName: null,
+      email: null,
       isHost: false,
       isVerified: false,
-      isAnonymous: true,
     });
   });
 
@@ -218,7 +214,6 @@ describe("resolveUploaderIdentity", () => {
       displayName: null,
       isHost: false,
       isVerified: true,
-      isAnonymous: false,
     });
   });
 });

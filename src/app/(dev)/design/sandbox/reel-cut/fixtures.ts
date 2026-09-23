@@ -137,7 +137,6 @@ export const ALBUM: AlbumItem[] = [...ROLL].map((letter, i) => {
     uploaderName: mine ? PRIYA.name : UPLOADERS[i % UPLOADERS.length],
     uploaderKey: mine ? PRIYA.key : `g-${i % 5}`,
     isHost: false,
-    isAnonymous: false,
     likeCount: LIKES[i],
     createdAt: "2026-06-14T21:00:00.000Z",
     reelEligible: !isCut,

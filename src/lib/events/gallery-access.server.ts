@@ -192,7 +192,6 @@ export function galleryEtagFor(
         uploaderName: who?.displayName ?? null,
         isHost: who?.isHost ?? false,
         isVerified: who?.isVerified ?? false,
-        isAnonymous: who?.isAnonymous ?? false,
       };
     }),
   });

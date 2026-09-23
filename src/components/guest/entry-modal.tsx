@@ -345,8 +345,8 @@ export const EntryModal = forwardRef<
 
      `EnterEventPrompt` used to own this: it claimed, called back, and refreshed. It cannot own it
      any more, because the door now holds a NAME that has never been sent anywhere, and the order
-     the four writes happen in is the whole difference between a guest who lands named and one who
-     lands as "A guest". So the prompt is a plain callback and this sequence is the modal's:
+     the four writes happen in is the whole difference between a guest who lands named and one whose
+     photographs carry no name. So the prompt is a plain callback and this sequence is the modal's:
 
        1. claim this browser's anonymous uploads onto the freshly confirmed account;
        2. join, VERIFIED and nameless (create_guest nulls a typed name beside a confirmed

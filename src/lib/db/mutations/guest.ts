@@ -53,6 +53,7 @@ export type CreateGuestResult =
       code:
         | "not_found"
         | "verification_required"
+        | "name_required"
         | "name_invalid"
         | "email_invalid"
         | "unlock_required"
@@ -107,8 +108,8 @@ export async function createGuest(input: {
       };
     }
     if (error.code === CHECK_VIOLATION) {
-      // create_guest raises check_violation for four distinct refusals; disambiguate by message
-      // (the mapCheckViolation pattern below). All four are BACKSTOPS: the /api/guests route
+      // create_guest raises check_violation for six distinct refusals; disambiguate by message
+      // (the mapCheckViolation pattern below). All six are BACKSTOPS: the /api/guests route
       // pre-gates visibility, the identity gate and the name, so reaching any of these means a
       // direct-API call or a race (a host flipping the switch mid-join).
       const m = error.message.toLowerCase();
@@ -129,6 +130,12 @@ export async function createGuest(input: {
       // reads the one sentence the taxonomy owns.
       if (m.includes("email address")) {
         return { ok: false, code: "email_invalid", message: error.message };
+      }
+      // "Add your name to upload." — the identity contract's belt: an unconfirmed mint with no name
+      // (the route's own name_required 422 stands in front of it). Named here, AHEAD of the
+      // fallback below, which would otherwise send a nameless guest to the email step.
+      if (m.includes("add your name")) {
+        return { ok: false, code: "name_required", message: error.message };
       }
       // The remaining check_violation is the identity gate ("This event requires a verified email
       // to upload."), which is also the safest catch-all: a refusal we cannot name is far better
@@ -456,12 +463,10 @@ export async function createMedia(input: {
 function mapCheckViolation(message: string): CreateMediaResult {
   const m = message.toLowerCase();
   // ★ THE IDENTITY GATE COMES FIRST, AND THE ORDER IS THE WHOLE POINT. create_media's refusal reads
-  // "This event is not accepting uploads without a verified email." — worded that way ON PURPOSE by
-  // wave 0's expand migration, so the build still on main (which has no branch for it) matches
-  // "not accepting" and shows a sane "uploads are closed" instead of a generic failure. This branch
-  // is what splits it back out now that the code exists: test the SPECIFIC substring above the
-  // general one, or the identity refusal disappears into uploads_closed forever. A migration-text
-  // guard (src/lib/db/migration-guards.test.ts) pins the DB half of the pair.
+  // "This event is not accepting uploads without a verified email.", which ALSO contains the
+  // general "not accepting": test the SPECIFIC substring above the general one, or the identity
+  // refusal disappears into uploads_closed forever. A migration-text guard
+  // (src/lib/db/migration-guards.test.ts) pins the DB half of the pair.
   if (m.includes("verified email")) {
     return {
       ok: false,

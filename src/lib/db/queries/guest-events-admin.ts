@@ -175,8 +175,8 @@ export async function getHostAvatarSeed(
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
- * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified/isAnonymous onto
- * the client (never email). Two batched reads: the host's name (for host uploads), then all media
+ * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
+ * client (never email). Two batched reads: the host's name (for host uploads), then all media
  * with the uploader's guest + profile. The CASE logic is the pure resolveUploaderIdentity().
  */
 export async function getUploaderIdentities(

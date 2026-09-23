@@ -10,7 +10,9 @@
  *   1. No guest row at all (`media.guest_id IS NULL`) -> the HOST uploaded it: the host's name.
  *   2. `guests.verified_at` set -> a proved email: the PROFILE's display_name, verified.
  *   3. else a typed `guests.display_name` -> the name they entered at the door, UNVERIFIED.
- *   4. else -> nameless. "A guest": a row minted before the reshape, and nothing else.
+ *   4. else -> NO NAME AT ALL, and the credit shows none. Only a row minted before names were
+ *      asked can land here (`create_guest` refuses a nameless mint by an unconfirmed caller), and
+ *      the honest answer about it is that nobody is named: never "A guest" invented as a person.
  *
  * ★ NEVER KEY ON `user_id` ALONE (wave 0's finding, measured against the applied schema). An
  * UNCONFIRMED sign-up carries a perfectly real `guests.user_id` and keeps its typed name, so a
@@ -18,10 +20,6 @@
  * name" — which is the exact claim this whole reshape exists to stop anyone making. `verified_at`
  * is stamped by create_guest from `auth.users.email_confirmed_at` at the mint, server-side, and is
  * the only thing that means verified.
- *
- * ★ `isAnonymous` SURVIVES, NARROWED. It now means exactly one thing: case 4, a NAMELESS LEGACY
- * ROW. It is no longer "a guest without an account" (that guest has a name now), and no new row can
- * ever be one. It stays on the type because the lab's fixtures and the retired boards still draw it.
  *
  * ★ `email` IS ONLY EVER A PROVED ONE (the guest identity round, Will 2026-09-22). Case 2 and case 2
  * alone returns an address, because `guests.email` means "confirmed, copied from auth.users" and
@@ -33,18 +31,16 @@
  * sees a badge, never an address.
  *
  * `email` is resolved here but is HOST-GALLERY-ONLY downstream: guest call sites copy name/isHost/
- * isVerified/isAnonymous onto the client-facing GridMedia and never the email (email-safety by
- * construction, not a runtime flag — and grid-items.email-safety.test.ts stands guard). Names are
- * public, the same trust model as the "Hosted by" byline.
+ * isVerified onto the client-facing GridMedia and never the email (email-safety by construction,
+ * not a runtime flag — and grid-items.email-safety.test.ts stands guard). Names are public, the
+ * same trust model as the "Hosted by" byline.
  */
 export type UploaderIdentity = {
   displayName: string | null;
   email: string | null;
   isHost: boolean;
-  /** An email was proved (guests.verified_at). False renders the unverified mark. */
+  /** An email was proved (guests.verified_at). False renders the unverified mark beside a name. */
   isVerified: boolean;
-  /** Case 4 ONLY: a nameless row from before the reshape. Never true for anything minted since. */
-  isAnonymous: boolean;
 };
 
 /** The media row shape the resolver consumes (from the media -> guests -> profiles embed). */
@@ -61,6 +57,11 @@ export type UploaderRow = {
   } | null;
 };
 
+/** Case 4 (and the missing-row fallback): no name, no address, no claim of any kind. */
+function nameless(): UploaderIdentity {
+  return { displayName: null, email: null, isHost: false, isVerified: false };
+}
+
 export function resolveUploaderIdentity(
   row: UploaderRow,
   hostName: string | null,
@@ -74,31 +75,21 @@ export function resolveUploaderIdentity(
       email: null,
       isHost: true,
       isVerified: true,
-      isAnonymous: false,
     };
   }
   const guest = row.guests;
   // The defensive fallback (an over-eager delete left the media without its guest row) lands in
-  // case 4 with the legacy label — attribute it as nameless, NEVER as the host.
-  if (!guest) {
-    return {
-      displayName: null,
-      email: null,
-      isHost: false,
-      isVerified: false,
-      isAnonymous: true,
-    };
-  }
+  // case 4: nobody named, and NEVER the host.
+  if (!guest) return nameless();
   // 2. A proved email: the identity is the PROFILE's name, never a second name stored beside it.
-  // A verified guest with a null profile name keeps isAnonymous false, so the caption renders
-  // nothing rather than mislabeling a real person.
+  // A verified guest with a null profile name (a deleted account's surviving upload) resolves to no
+  // name, so the caption renders nothing rather than mislabeling a real person.
   if (guest.verified_at !== null) {
     return {
       displayName: guest.profiles?.display_name ?? null,
       email: guest.email ?? null,
       isHost: false,
       isVerified: true,
-      isAnonymous: false,
     };
   }
   // 3. A typed name, unproven — and NO ADDRESS, ever. The row may carry `guests.email` from an
@@ -112,15 +103,8 @@ export function resolveUploaderIdentity(
       email: null,
       isHost: false,
       isVerified: false,
-      isAnonymous: false,
     };
   }
-  // 4. Nameless: minted before the reshape. "A guest" (Will's to overrule).
-  return {
-    displayName: null,
-    email: null,
-    isHost: false,
-    isVerified: false,
-    isAnonymous: true,
-  };
+  // 4. Nameless: minted before names were asked. Nobody is named, so nothing is claimed.
+  return nameless();
 }

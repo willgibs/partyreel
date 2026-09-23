@@ -137,7 +137,6 @@ export const PEEKED: GridMedia = {
   ...QUEUE[PEEKED_AT],
   uploaderName: "Nina",
   isHost: false,
-  isAnonymous: false,
   isVerified: false,
   uploaderEmail: null,
 };

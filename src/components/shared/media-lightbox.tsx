@@ -132,11 +132,10 @@ function prefersReducedMotion() {
 // ★ EVERY UPLOAD CARRIES A NAME NOW (the identity reshape, 2026-09-21).
 // "Anonymous" and its (i) explainer are gone with the concept: a guest either
 // confirmed an email (their profile name, plain) or typed one at the door (that
-// name, with `UnverifiedMark` beside it). ★ "A GUEST" IS THE LEGACY LABEL, and
-// only that: rows minted before the reshape carry no name at all, and the one
-// thing the album must not do is invent one or leave the credit blank. His to
-// overrule; there is no other row it can ever describe, because nothing minted
-// after the reshape reaches this branch.
+// name, with `UnverifiedMark` beside it). ★ A ROW WITH NO NAME NAMES NOBODY: a
+// row minted before names were asked (the identity contract refuses a new one)
+// and a deleted account's surviving upload both render no credit at all, the
+// counter alone. Never an invented stand-in for a person nobody can vouch for.
 function AttributionPill({
   item,
   viewerIsHost,
@@ -150,14 +149,11 @@ function AttributionPill({
   position: string;
 }) {
   const name = item.uploaderName?.trim() || null;
-  // `isVerified` lands on GridMedia in the identity reshape's server lane; read
-  // structurally so this file is correct on both sides of that merge. Undefined
-  // (a surface that has not been rebuilt, a lab fixture) reads as VERIFIED, so a
-  // name is never marked on a guess.
-  const unverified =
-    (item as { isVerified?: boolean }).isVerified === false && name !== null;
-  const legacy = item.isAnonymous && name === null;
-  const hasAttribution = legacy || item.isHost || name !== null;
+  // Undefined (a surface that passes no identity, a lab fixture) reads as
+  // VERIFIED, so a name is never marked on a guess; only an explicit `false`
+  // beside a real name draws the mark.
+  const unverified = item.isVerified === false && name !== null;
+  const hasAttribution = item.isHost || name !== null;
   const eventName = item.eventName?.trim() || null;
   const eventLabel =
     eventName &&
@@ -184,32 +180,29 @@ function AttributionPill({
           GLASS_MARK_LIT,
         )}
       >
-        {hasAttribution &&
-          (legacy ? (
-            <span>A guest</span>
-          ) : (
-            <>
-              {name && <span>{name}</span>}
-              {unverified && (
-                <span className="pointer-events-auto">
-                  <UnverifiedMark
-                    name={name}
-                    tone="lit"
-                    own={isOwn}
-                    viewerIsHost={viewerIsHost}
-                  />
-                </span>
-              )}
-              {item.isHost && (
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 text-white hover:bg-white/20"
-                >
-                  Host
-                </Badge>
-              )}
-            </>
-          ))}
+        {hasAttribution && (
+          <>
+            {name && <span>{name}</span>}
+            {unverified && (
+              <span className="pointer-events-auto">
+                <UnverifiedMark
+                  name={name}
+                  tone="lit"
+                  own={isOwn}
+                  viewerIsHost={viewerIsHost}
+                />
+              </span>
+            )}
+            {item.isHost && (
+              <Badge
+                variant="secondary"
+                className="bg-white/20 text-white hover:bg-white/20"
+              >
+                Host
+              </Badge>
+            )}
+          </>
+        )}
         {hasAttribution && <span className="text-white/40">·</span>}
         <span className="text-white/70 tabular-nums">{position}</span>
       </span>

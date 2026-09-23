@@ -32,7 +32,6 @@ export type GalleryFingerprintItem = {
   isHost: boolean;
   /** Inside the hash: a guest can prove an email later, so this CAN change for an existing id. */
   isVerified: boolean;
-  isAnonymous: boolean;
 };
 
 export function galleryEtag(input: {
@@ -55,7 +54,6 @@ export function galleryEtag(input: {
       i.uploaderName,
       i.isHost,
       i.isVerified,
-      i.isAnonymous,
     ]),
   ]);
   const hash = createHash("sha256")
@@ -63,8 +61,8 @@ export function galleryEtag(input: {
     .digest("base64url")
     .slice(0, 27);
   // Strong, quoted, version-prefixed: a shape change bumps the version so stale clients can never
-  // false-match. g1 -> g2 at the identity reshape (2026-09-21), when isVerified joined the item
-  // tuple: a client holding a g1 ETag must re-pull rather than 304 past a mark appearing. g2 -> g3
-  // at the door round the same day, when the gate joined the tuple.
-  return `"g3-${hash}"`;
+  // false-match. The item tuple is (id, type, name, host, verified): any change to what it carries
+  // bumps this, so a client holding an older validator re-pulls rather than 304s past a change it
+  // cannot see. g4: the tuple lost the retired nameless-legacy flag (the identity contract).
+  return `"g4-${hash}"`;
 }

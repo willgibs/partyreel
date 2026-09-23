@@ -2,13 +2,10 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 
 /**
- * THIS BOARD'S OWN FIXTURES, NOT `sandbox/gallery-fixtures.ts` (the manifest).
- * That pool still mints a nameless anonymous uploader (`isAnonymous: true,
- * uploaderName: null`), which the identity reshape (2026-09-21) retired: every
- * door now asks for a name, so a credit with no name is an impossible person on
- * a current-model screen, and this board's whole subject is "who added it."
- * Every item below carries a real typed name; `isVerified: false` marks the
- * ones nobody confirmed, never a null name.
+ * THIS BOARD'S OWN FIXTURES, NOT `sandbox/gallery-fixtures.ts` (the manifest):
+ * this board's whole subject is "who added it", at one host's scale. Every door
+ * asks for a name, so every item below carries a real typed name, and
+ * `isVerified: false` marks the ones nobody confirmed, never a null name.
  *
  * ★ ONE HOST, FOUR EVENTS, AND A REASON THE BYTES ADD UP. Priya Anand shoots
  * weddings and runs each client's event page herself (`HostUpload`'s own

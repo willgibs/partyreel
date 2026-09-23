@@ -57,11 +57,6 @@ const eventFields = {
   // opt-in, behind a consequence-confirm (UploadsSection). Mirrors the
   // events.require_verified_email column default (true), which the create below applies.
   require_verified_email: z.boolean(),
-  // ITS LEGACY TWIN, kept for the deploy window only. A DB trigger holds the two exactly opposite
-  // in both directions, so a form that still submits this one lands a consistent row; the new flag
-  // WINS when a write moves both. It leaves with the column (host-app.md), and nothing new should
-  // read or send it. Mirrors the events.allow_anonymous_uploads column default (false).
-  allow_anonymous_uploads: z.boolean(),
   // ★ REQUIRE AN UPLOAD TO VIEW, OFF BY DEFAULT (the door as three steps, Will 2026-09-21).
   // On, a guest (never the host) sees the full album only
   // once one upload of theirs has completed, approved or held for review; the gate FAILS OPEN
@@ -98,7 +93,6 @@ export const createEventSchema = z.object({
   visibility: eventFields.visibility.default("open"),
   accepting_uploads: eventFields.accepting_uploads.default(true),
   require_verified_email: eventFields.require_verified_email.default(true),
-  allow_anonymous_uploads: eventFields.allow_anonymous_uploads.default(false),
   require_upload_to_view: eventFields.require_upload_to_view.default(false),
   moderation_mode: eventFields.moderation_mode.default("live"),
   qr_style: eventFields.qr_style.default("classic"),

@@ -49,8 +49,8 @@ name from the most recent claimable row's typed name when there is no OAuth name
 ## Events & the create flow
 
 `events` (host_id, opaque `qr_token` = the single DB-generated link, `moderation_mode`, `visibility` +
-`event_password_hash`, `accepting_uploads`, `require_verified_email` (a DB trigger keeps the legacy
-`allow_anonymous_uploads` exactly opposite for code that still reads it), `require_upload_to_view`,
+`event_password_hash`, `accepting_uploads`, `require_verified_email` (the one identity switch; its legacy
+twin leaves with the identity contract, `20260923150000_identity_contract.sql`), `require_upload_to_view`,
 `max_upload_bytes` (the per-upload cap on GUEST uploads, 25 MiB–10 GiB or null; the host's own uploads are exempt),
 `qr_style`, `custom_slug`, `deleted_at`/`purge_at`). The **sole create path** is the **`/dashboard/new` wizard**
 ([`create-event-wizard.tsx`](../../src/components/app/create-event-wizard.tsx)): **Name → Style → the beat**. Step 1

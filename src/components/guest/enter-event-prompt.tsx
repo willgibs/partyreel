@@ -4,7 +4,7 @@ import { Lock } from "lucide-react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 
-// The entry modal's ACCOUNT step (account-required events, allow_anonymous_uploads = false). All roads
+// The entry modal's ACCOUNT step (an event with Require verified emails on). All roads
 // lead to an account: email is PRIMARY (one tap sends a code + magic link that creates the account or
 // logs in, no password needed), with Google beside it and a quiet password link for returning users.
 // After auth, router.refresh() re-runs the page RSC -> access becomes `full` -> the modal closes (then
@@ -34,8 +34,8 @@ export function EnterEventPrompt({
    * ★ THE CALLER OWNS WHAT HAPPENS NEXT (the door as three steps, 2026-09-21). This used to claim
    * the anonymous uploads, call back and `router.refresh()` itself. The door now holds a NAME that
    * has never been sent anywhere, and the ORDER of the four writes after a confirmation is the
-   * difference between a guest who lands named and one who lands as "A guest", so the sequence
-   * moved up to `entry-modal.tsx` and this is a plain callback again.
+   * difference between a guest who lands named and one whose photographs carry no name, so the
+   * sequence moved up to `entry-modal.tsx` and this is a plain callback again.
    */
   onVerified: () => void | Promise<void>;
 }) {

@@ -51,9 +51,11 @@ The expected, accepted set:
   anyone else at the teaser, which never renders its Guests list; and on a `require_upload_to_view` event with
   uploads open, only the host or a signed-in viewer whose own row there carries an upload they did not remove
   themselves (deliberately stricter than the album where the album fails open on a full album, and blind to a
-  cookie-only name: it sees `auth.uid()`, never a session token). The QA #36 clause beside it
-  (`allow_anonymous_uploads OR a signed-in viewer`) is implied by that gate while the twin trigger holds.
-  Both keep their anon grant: the fix is the payload, not the grant.
+  cookie-only name: it sees `auth.uid()`, never a session token). The confirmed-viewer gate carries QA #36
+  (an anonymous viewer has no uid to pass it); the identity contract
+  (`20260923150000_identity_contract.sql`, applied after milestone 27) drops the legacy clause on
+  `allow_anonymous_uploads` that it implies. Both keep their anon grant: the fix is the payload, not the
+  grant.
 - **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** an anon
   EXECUTE grant on a write RPC IS the attack surface, not the route wrapping it: PostgREST calls it
   directly, past every route guard (the R2-HEAD size authority, the unlock and abuse limiters), which buys
@@ -117,10 +119,9 @@ The expected, accepted set:
   `enforce_event_limit`, `handle_new_user`, `enforce_follow_not_blocked`, `notify_gallery_change` [the
   gallery doorbell], `set_media_removal_provenance`, `guard_media_privileged_transitions`,
   `guard_event_privileged_transitions` [the transition guards, see Invariants],
-  `sync_event_verified_email_flags` [keeps `events.require_verified_email` and the legacy
-  `allow_anonymous_uploads` exact opposites both ways, so `get_public_profile`'s QA #36 clause, still on the
-  legacy flag, stays truthful; nothing new keys on the legacy flag, and the confirmed-viewer gate beside that
-  clause implies it, so dropping the column deletes the clause in the same migration]). If one shows up in
+  `sync_event_verified_email_flags` [the legacy twin-keeper; no code reads or writes its twin
+  `allow_anonymous_uploads`, and the identity contract, applied after milestone 27, drops the trigger, this
+  function and the column]). If one shows up in
   either list, an over-broad grant slipped in. The trigger-only functions keep EXECUTE **revoked from `anon`/`authenticated`** and still fire: EXECUTE on a
   trigger function is checked when the trigger is created, never when it fires.
 - **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING,
@@ -162,7 +163,7 @@ The expected, accepted set:
   - **`guests`** — NO client role reads it: `authenticated` and `anon` hold no SELECT on any column, and the table has no policy (RLS stays ENABLED, so it rides the deny-all set and a grant that ever came back would still read no row). Every reader on both codebases is the service-role client or a SECURITY DEFINER function, and a new one joins them, never a grant: the table holds `session_token`, the PLAINTEXT guest upload capability, and both addresses. ★ **THE TOKEN ALSO RIDES A COOKIE**: `pr_guest_<eventId>` carries it raw, beside the signed `pr_unlock_<eventId>`, because Require an upload to view is resolved in an RSC and localStorage is invisible there. HttpOnly (LESS reachable than the localStorage copy), Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded `/^[0-9a-f]{64}$/` on read, and UNSIGNED on purpose: the database checks it against this column's unique index, so a forged value resolves to no row. Written only by `POST /api/guests` (a mint), `POST /api/guests/name`, `POST /api/guests/email`, `POST /api/r2/complete-upload` (a created row) and the gallery poll's heal; expired by `POST /api/guests/leave`, which the guest sign-out calls so a shared phone does not open the full album on the last contributor's ticket. ★ **It is a READ capability only**: every WRITE route takes the token from the request BODY (pinned in `session-cookie.test.ts`), so the cookie adds no CSRF surface. → [guest-flow.md](guest-flow.md). Writes are fully revoked (RPC-only); the guest list and the credit are built on the admin client. ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a CONFIRMED address of the row's own account: `create_guest` copies the minting session's `auth.users` address only beside its `email_confirmed_at`, the value it stamps as `verified_at` (an unconfirmed sign-up's row keeps its `user_id` and typed name and carries no address), the two claims write the caller's confirmed address as they stamp the caller's `user_id`, and `capture_guest_email` fills an EMPTY one only when the row's own `user_id` is the confirmed account that owns the address (it reads `auth.users` itself rather than trusting its route: a session token names a row, and on a shared phone that is whoever joined last). That last one can land on an unverified row (one minted before its account confirmed), so nothing attributes an address without `verified_at`. `guests.pending_email` is ONLY EVER an address a guest TYPED and nobody proved: outside every grant, never shown to the host or another guest, never attributed to an account, never mailed on its own, never expiring. The ONLY path from the second to the first is a claim that PROVES it (`claim_guest_rows_by_email`, or `claim_anonymous_uploads` under a confirmed session), and the code holds the same line: `resolveUploaderIdentity` case 3 returns no address at all, `getEventGuestList` selects neither column, and `POST /api/guests/capture-email` requires `email_confirmed_at` before it writes `guests.email` (a bare `user.email` is satisfied by an unconfirmed sign-up). The one exception, `upload_forensics.guest_pending_email`, is deny-all + service-role: capture-only, lawful process, never rendered.
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE REVOKED, so the ONLY write path is the access-checking `like_media` RPC (a raw insert would let a user like, then via `get_my_likes` presign, media they can't see).
   - **`reel_items`** — HOST-RLS (SELECT + DELETE on the host's own event); INSERT/UPDATE REVOKED, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed) and the ONLY position-update path is `reorder_reel(p_event_id, p_media_ids)` (host-owns + a set-equality guard: the ids must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser.
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `allow_anonymous_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; never write it and its legacy twin in one statement expecting both to stand: the trigger resolves a contradiction, on an update in the new column's favour), `require_upload_to_view` (default off), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; the app writes it alone, and its legacy twin `allow_anonymous_uploads` leaves with the identity contract), `require_upload_to_view` (default off), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
 - ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers.**
   A column-scoped grant says *which* column may change, never *from what to what*: `update(status)` would
   also buy "un-remove" and `update(deleted_at)` "un-delete", past every guard the restore RPCs carry, yet
@@ -208,7 +209,7 @@ The expected, accepted set:
   the table first" is right when you re-grant the whole column list, and a loaded gun when you only mean
   to ADD one column: a belt `revoke insert, update, delete on public.events from authenticated, anon`
   leaves only the new column granted, and every `authenticated` write naming another column
-  (`allow_anonymous_uploads`, say) fails with "permission denied for table events", the whole host app
+  (`require_verified_email`, say) fails with "permission denied for table events", the whole host app
   down. **Adding a column = a bare additive `grant insert (col), update (col)`, nothing else.**
 - **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
   `anon`.** A bare `revoke … from public` does NOT remove it. Any host-only RPC created via the MCP must

@@ -229,7 +229,6 @@ describe("buildReelProps over guest-shaped items", () => {
       // name-only shape). The reel filters on `status`, never on identity, and this fixture is the
       // guard that adding a field to the guest payload did not change that.
       isVerified: false,
-      isAnonymous: false,
       width: 3024,
       height: 4032,
       durationSeconds: null,

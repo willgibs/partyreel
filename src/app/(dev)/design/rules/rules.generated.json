@@ -15004,7 +15004,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 561
+          "line": 558
         },
         {
           "title": "a name nobody proved is named AND marked",
@@ -15012,15 +15012,15 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 569
+          "line": 566
         },
         {
-          "title": "a legacy nameless row reads \"A guest\", never a blank credit",
+          "title": "a row with no name names nobody: no stand-in, no mark, the counter alone",
           "suite": [
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 577
+          "line": 574
         },
         {
           "title": "the mark offers the way out on the viewer's OWN upload only",
@@ -15028,7 +15028,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 582
+          "line": 583
         },
         {
           "title": "says nothing about proof it was never given: an item with no flag is plain",
@@ -15036,7 +15036,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 602
+          "line": 603
         },
         {
           "title": "reads \"Unverified\", never a claim that a name was checked",

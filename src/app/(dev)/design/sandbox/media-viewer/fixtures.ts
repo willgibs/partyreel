@@ -65,10 +65,10 @@ const ORDER = [
   9,
 ] as const;
 
-/** Nine guests, in the mix a real album has: mostly named, one host, one anonymous. */
+/** Nine uploaders, in the mix a real album has: the host and eight named guests. */
 const WHO: readonly (Pick<
   GridMedia,
-  "uploaderName" | "isHost" | "isAnonymous" | "uploaderEmail"
+  "uploaderName" | "isHost" | "uploaderEmail"
 > & { at: string })[] = [
   { uploaderName: "Maya", isHost: true, at: "6:10 pm" },
   { uploaderName: "Tom", at: "7:02 pm" },
@@ -168,7 +168,6 @@ export const ALBUM: GridMedia[] = [...ROLL].map((letter, i) => {
     // draws it), set the way `resolveUploaderIdentity` would: the host and every
     // confirmed guest true, a typed name false.
     isVerified: who.isHost || !UNPROVEN.has(who.uploaderName ?? ""),
-    isAnonymous: who.isAnonymous,
   } satisfies GridMedia;
 });
 

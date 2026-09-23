@@ -67,11 +67,6 @@ describe("createEventSchema: the host's identity switch", () => {
     expect(parsed.require_verified_email).toBe(true);
   });
 
-  it("keeps the legacy twin's default OPPOSITE, so a row naming either is consistent", () => {
-    const parsed = createEventSchema.parse({ name: "Sarah's wedding" });
-    expect(parsed.allow_anonymous_uploads).toBe(!parsed.require_verified_email);
-  });
-
   it("takes the switch off when the host asks", () => {
     const parsed = createEventSchema.parse({
       name: "Backyard party",

@@ -187,6 +187,19 @@ describe("Require verified emails OFF: the name is the identity", () => {
     expect(createGuest).not.toHaveBeenCalled();
   });
 
+  it("422 name_required when the DATABASE refuses a nameless mint (the belt under the route)", async () => {
+    // A race the route cannot see, or a caller that reached create_guest without a name: the RPC's
+    // own "Add your name to upload." comes back as name_required, never as the email step.
+    createGuest.mockResolvedValue({
+      ok: false,
+      code: "name_required",
+      message: "Add your name to upload.",
+    });
+    expect(await refusal({ qr_token: TOKEN, display_name: "Maya J." })).toEqual(
+      { status: 422, code: "name_required" },
+    );
+  });
+
   it("422 name_invalid past 60 characters, for a reserved name, and for profanity", async () => {
     for (const display_name of ["x".repeat(61), "admin", "fuckface"]) {
       expect(await refusal({ qr_token: TOKEN, display_name })).toEqual({

@@ -97,7 +97,6 @@ export const CUT_ITEM: GridMedia = {
   status: "approved",
   uploaderName: EVENT.host,
   isHost: true,
-  isAnonymous: false,
   likeCount: 0,
 };
 

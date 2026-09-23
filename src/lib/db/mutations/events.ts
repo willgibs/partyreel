@@ -69,13 +69,10 @@ export async function createEvent(
     // is set later via set_event_password). Clamp defensively — the wizard sends 'open'.
     visibility: values.visibility === "password" ? "open" : values.visibility,
     accepting_uploads: values.accepting_uploads,
-    // ★ A NEW EVENT NAMES ONLY THE NEW FLAG. The twin-keeper trigger derives
-    // allow_anonymous_uploads from it, and naming BOTH here would hand the trigger a contradiction
-    // to resolve on every create for no gain. The switch's own default (true) is the one that
-    // decides what a host who never touched it gets.
+    // The host's identity switch; its default (true, the schema's and the column's) is what a host
+    // who never touched it gets.
     require_verified_email: values.require_verified_email,
-    // The door's third step (off by default; the door as three steps, Will 2026-09-21). A new
-    // event names it directly too — there's no legacy twin to reconcile.
+    // The door's third step (off by default; the door as three steps, Will 2026-09-21).
     require_upload_to_view: values.require_upload_to_view,
     moderation_mode: values.moderation_mode,
     qr_style: values.qr_style,
@@ -152,15 +149,10 @@ export async function updateEvent(
   }
   if (values.accepting_uploads !== undefined)
     patch.accepting_uploads = values.accepting_uploads;
-  // The host's switch. EITHER name lands a consistent row (the twin-keeper trigger mirrors
-  // whichever column actually moved), but the new one is written ALONE when it is present: if both
-  // arrive and disagree, the trigger resolves in favour of the new column anyway, so sending only
-  // it keeps the resolution out of the database and in one readable line here.
+  // The host's identity switch: a bare granted-column write, free on every tier.
   if (values.require_verified_email !== undefined)
     patch.require_verified_email = values.require_verified_email;
-  else if (values.allow_anonymous_uploads !== undefined)
-    patch.allow_anonymous_uploads = values.allow_anonymous_uploads;
-  // The door's third step. No legacy twin, no tier gate: a bare granted-column write.
+  // The door's third step. No tier gate: a bare granted-column write.
   if (values.require_upload_to_view !== undefined)
     patch.require_upload_to_view = values.require_upload_to_view;
   if (values.moderation_mode !== undefined)
