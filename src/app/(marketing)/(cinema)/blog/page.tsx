@@ -49,7 +49,7 @@ export default function BlogIndexPage() {
           taxonomy the old hand-rolled band left unwired. */}
       <CtaBand
         heading="Start your first event free"
-        subhead="Create an event, share the QR, and watch the photos roll in. No app or account for your guests."
+        subhead="Create an event, share the QR, and watch the photos roll in. No app required."
       />
     </>
   );

@@ -16,6 +16,6 @@ export const CURATION_FAQ: FaqItem[] = [
   },
   {
     q: "What if I delete something by mistake?",
-    a: `Removed photos and videos wait in the Trash for ${RECENTLY_DELETED_WINDOW_DAYS} days. Restore one and it comes back exactly as it was; after ${RECENTLY_DELETED_WINDOW_DAYS} days it is permanently deleted.`,
+    a: `Removed photos and videos wait in Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days. Restore one and it comes back exactly as it was; after ${RECENTLY_DELETED_WINDOW_DAYS} days it is permanently deleted.`,
   },
 ];

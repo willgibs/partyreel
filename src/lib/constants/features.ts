@@ -228,9 +228,9 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         // T2.5 IA's missing-features batch.
         icon: Undo2,
         title: "30 days to change your mind",
-        body: "Deleted photos wait in a recovery bin for 30 days before they're gone for good.",
+        body: "Removed photos wait in Deleted for 30 days before they're gone for good.",
         longBody:
-          "A slip of the thumb shouldn't erase a memory. Anything you delete moves to a recovery bin and waits 30 days before it's gone for good, so an accidental swipe is always reversible.",
+          "A slip of the thumb shouldn't erase a memory. Anything you delete moves to Deleted and waits 30 days before it's gone for good, so an accidental swipe is always reversible.",
       },
       {
         icon: Wallet,

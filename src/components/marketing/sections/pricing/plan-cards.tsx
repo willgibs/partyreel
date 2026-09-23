@@ -484,7 +484,7 @@ export function PlanPair() {
                 : "Locked albums"}{" "}
               and custom links
             </Item>
-            <Item ink>Your public host page at /u/you</Item>
+            <Item ink>Never removed for inactivity</Item>
           </ul>
 
           <div className="mt-6">

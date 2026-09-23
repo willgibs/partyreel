@@ -16,7 +16,7 @@ export const PRIVACY_FAQ: FaqItem[] = [
   },
   {
     q: "What happens when I delete something?",
-    a: `It moves to a recovery bin for ${RECENTLY_DELETED_WINDOW_DAYS} days, where you can restore it exactly as it was. After that it is permanently deleted.`,
+    a: `It moves to Deleted for ${RECENTLY_DELETED_WINDOW_DAYS} days, where you can restore it exactly as it was. After that it is permanently deleted.`,
   },
   {
     q: "What happens when something gets reported?",

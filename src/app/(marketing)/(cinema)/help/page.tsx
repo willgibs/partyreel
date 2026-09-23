@@ -113,7 +113,7 @@ export default function HelpIndexPage() {
             </LearnMoreLink>
           </p>
 
-          {/* THE EMBLEM STRIP: the nine categories as a paper instrument
+          {/* THE EMBLEM STRIP: the ten categories as a paper instrument
                 row (art AND wayfinding; snap-scroll on phones), STRADDLING
                 the cinema→paper cut — the negative bottom margin ends the
                 dark stage halfway up the strip, so the index arrives out of

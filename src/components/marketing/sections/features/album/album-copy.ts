@@ -151,7 +151,7 @@ export const STAYS = {
     { title: "Stays", body: "No end date. Up until you say otherwise." },
     {
       title: "You delete",
-      body: `Waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Trash. Restores as it was.`,
+      body: `Waits ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted. Restores as it was.`,
     },
     { title: "Gone", body: "After that, the files are deleted for good." },
   ] satisfies CopyItem[],
@@ -166,7 +166,7 @@ export const STAYS = {
     },
     {
       title: "Free albums need a visit",
-      body: `Idle ${Math.round(INACTIVE_DAYS / 30)} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Trash to restore.`,
+      body: `Idle ${Math.round(INACTIVE_DAYS / 30)} months? An email ${Math.round(WARN_BEFORE_DAYS / 7)} weeks ahead, then ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted to restore.`,
     },
   ] satisfies CopyItem[],
   backup:

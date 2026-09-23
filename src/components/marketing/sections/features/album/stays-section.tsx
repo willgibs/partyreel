@@ -12,7 +12,7 @@ import { STAYS } from "./album-copy";
 /**
  * IT STAYS: the album's whole life as one device, two rows on one hairline
  * grid. Row one is the life (four steps, Inter ordinals, the app's own
- * countdown chip on the Trash tile under "You delete"); row two the three
+ * countdown chip on the Deleted tile under "You delete"); row two the three
  * honest notes on the same grid. The desk CLOSES on a drawn rule
  * ([data-mkt-rule], the masthead hairline), since its opener carried the cut:
  * two devices at one cut would be noise, so they sit at opposite ends.

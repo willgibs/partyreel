@@ -86,7 +86,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Events",
-          tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in the trash.",
+          tip: "Events that exist at once. Deleting an event frees its slot, and deleted events wait 30 days in Deleted.",
           values: [
             `${MAX_EVENTS.free}`,
             "1 per pass",
@@ -122,7 +122,7 @@ function buildGroups(): MatrixGroup[] {
         },
         {
           label: "Idle cleanup",
-          tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to the 30-day trash.",
+          tip: "A Free event untouched for about six months gets a 14-day email warning, then moves to Deleted for 30 days.",
           values: [
             "After ~6 months idle",
             "Not while the pass is live",
@@ -187,8 +187,8 @@ function buildGroups(): MatrixGroup[] {
         { label: "Custom link name", values: [false, true, true] },
         {
           label: "Public host page",
-          tip: "Claim /u/you and list the events you host. Guests never need one.",
-          values: [false, true, true],
+          tip: "Claim /u/you and list the events you host, free on every plan. Guests never need one.",
+          values: [true, true, true],
         },
       ],
     },
@@ -196,7 +196,7 @@ function buildGroups(): MatrixGroup[] {
       title: "Safety net",
       rows: [
         {
-          label: "30-day trash",
+          label: "30 days in Deleted",
           tip: "Anything you delete can be restored, exactly as it was, for 30 days.",
           values: [true, true, true],
         },

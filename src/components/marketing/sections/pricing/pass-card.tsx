@@ -156,7 +156,7 @@ export function PassCard() {
             <PassPoint>
               {MAX_REEL_SECONDS.event_pass}-second reels, no watermark
             </PassPoint>
-            <PassPoint>Password lock, custom link, your host page</PassPoint>
+            <PassPoint>Password lock, custom link, no inactivity sweep</PassPoint>
             <PassPoint>
               Passes stack: each one adds an event and{" "}
               {formatBytes(pass.storageBytes)}
@@ -170,7 +170,7 @@ export function PassCard() {
             Covers its event for about a year. Renew for{" "}
             {EVENT_PASS_RENEWAL_PRICE_LABEL} a year or let it lapse: you drop
             back to Free with a {OVER_CAP_GRACE_DAYS}-day window to free up
-            space or upgrade before anything moves toward the trash.
+            space or upgrade before anything moves toward Deleted.
           </p>
         </div>
       </div>
