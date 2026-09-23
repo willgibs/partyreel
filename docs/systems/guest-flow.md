@@ -41,7 +41,8 @@ Library's demo mounts.
 ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx) → `ClaimHandlePrompt` →
 `SaveAccountPrompt`, wearing `SaveEventButton`), never a button above an album a stranger has not seen yet.
 
-★ **THE OFFER IS THE CAPTURE FLOW** (save the event and its uploads to a profile, then follow the host).
+★ **THE OFFER IS THE CAPTURE FLOW** (keep the event and its uploads in the account, then follow the host; the
+copy says "in your account", never "on your profile", since a profile publishes nothing until its owner chooses).
 `ClaimHandlePrompt` owns the post-upload slot, ONE card at a time, once a guest has contributed and never
 in the demo: signed out → the offer card, counting what just landed; **just confirmed** →
 [`follow-moment-card.tsx`](../../src/components/guest/follow-moment-card.tsx) (what they now hold, the host
