@@ -6,8 +6,7 @@
  *   node PartyreelAI/kit/board-card.mjs --desk                     # every standing board in desk order, one line each
  *
  * Reads touchpoints.ts (the RULINGS row: title, surface, ruled, lives; DESK_ORDER), the spec (its asks and
- * recommendations, via batch-reader's parser), the ledger (what he has answered), and overtaken.ts (which
- * asks an earlier ruling reaches). Read-only; TypeScript parsed, never imported.
+ * recommendations, via batch-reader's parser), and the ledger (what he has answered). Read-only; TypeScript parsed, never imported.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -44,9 +43,6 @@ const walk = (n) => {
 };
 walk(sf);
 
-const overtakenSrc = existsSync(join(ROOT, "src/app/(dev)/design/sandbox/overtaken.ts")) ? readFileSync(join(ROOT, "src/app/(dev)/design/sandbox/overtaken.ts"), "utf8") : "";
-const overtaken = new Map(); // board -> [ask]
-for (const m of overtakenSrc.matchAll(/^\s*"([a-z0-9-]+)\.([a-z0-9-]+)":/gm)) { if (!overtaken.has(m[1])) overtaken.set(m[1], []); overtaken.get(m[1]).push(m[2]); }
 
 function ledger(board) {
   const f = join(ROOT, "docs/reviews", `${board}.json`);
@@ -63,7 +59,7 @@ if (args.includes("--desk")) {
   deskOrder.forEach((id, i) => {
     const r = rows.get(id); const spec = readSpec(id); const led = ledger(id) ?? [];
     const answered = new Set(led.filter((e) => e.choice !== null && e.choice !== undefined).map((e) => e.ask));
-    console.log(`${String(i + 1).padStart(2)}. ${id.padEnd(16)} r${spec?.round ?? "?"}  ${spec?.decisions.size ?? "?"} asks, ${answered.size} answered, ${(overtaken.get(id) ?? []).length} overtaken  ${r ? `· ${r.title} (${r.surface}) · ${r.lives.length} lives` : "· (no RULINGS row)"}`);
+    console.log(`${String(i + 1).padStart(2)}. ${id.padEnd(16)} r${spec?.round ?? "?"}  ${spec?.decisions.size ?? "?"} asks, ${answered.size} answered  ${r ? `· ${r.title} (${r.surface}) · ${r.lives.length} lives` : "· (no RULINGS row)"}`);
   });
   process.exit(0);
 }
@@ -80,8 +76,8 @@ for (const id of args) {
   const answered = new Map((led ?? []).map((e) => [e.ask, e]));
   console.log(`  spec: round ${spec.round ?? "?"}, ${spec.decisions.size} asks; ledger: ${led ? `${led.length} entries` : "none"}`);
   for (const d of spec.decisions.values()) {
-    const a = answered.get(d.id); const ov = (overtaken.get(id) ?? []).includes(d.id);
-    const state = a ? (a.choice === null ? "? (unclear)" : `answered: ${a.choice}`) : ov ? "OPEN, overtaken" : "OPEN";
+    const a = answered.get(d.id);
+    const state = a ? (a.choice === null ? "? (unclear)" : `answered: ${a.choice}`) : "OPEN";
     console.log(`    ${d.id.padEnd(22)} rec ${String(d.recommended).padEnd(12)} ${state}`);
   }
   if (r?.variants?.length) console.log(`  board.variants: ${r.variants.join(" · ")}`);

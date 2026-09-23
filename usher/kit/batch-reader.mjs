@@ -142,7 +142,6 @@ function reading(spec, v) {
   if (!d) return { kind: "unknown-ask", text: `no decision "${v.ask}" in the spec` };
   const rec = d.options.find((o) => o.id === d.recommended);
   if (v.choice === "?") return { kind: "unclear", d, rec, text: "not clear to him; the note may carry his own answer" };
-  if (v.choice === "stands") return { kind: "stands", d, rec, text: "left to the earlier ruling" };
   const o = d.options.find((x) => x.id === v.choice);
   if (!o && v.choice === "none") return { kind: "none", d, rec, text: "none of the options; the note says what to try" };
   if (!o) return { kind: "unknown-option", d, rec, text: `"${v.choice}" is not one of ${d.options.map((x) => x.id).join(", ")}` };
@@ -182,7 +181,7 @@ if (boardArg) {
 const paste = readFileSync(0, "utf8");
 const { build, reviews } = parsePaste(paste);
 const out = { build, boards: [] };
-let confirms = 0, overrules = 0, unclear = 0, stands = 0, problems = 0;
+let confirms = 0, overrules = 0, unclear = 0, problems = 0;
 
 for (const rev of reviews) {
   if (rev.error) { out.boards.push(rev); problems++; continue; }
@@ -190,22 +189,22 @@ for (const rev of reviews) {
   const board = { board: rev.board, round: rev.round, specRound: spec?.round ?? null, missing: !spec, verdicts: [], calls: rev.calls, items: rev.items, notes: rev.notes };
   for (const v of rev.verdicts) {
     const r = reading(spec, v);
-    if (r.kind === "confirms") confirms++; else if (r.kind === "overrules") overrules++; else if (r.kind === "unclear") unclear++; else if (r.kind === "stands") stands++; else if (r.kind.startsWith("unknown")) problems++;
+    if (r.kind === "confirms") confirms++; else if (r.kind === "overrules") overrules++; else if (r.kind === "unclear") unclear++; else if (r.kind.startsWith("unknown")) problems++;
     board.verdicts.push({ ...v, reading: r.kind, question: r.d?.question ?? null, chosen: r.o ? { id: r.o.id, label: r.o.label, means: r.o.means } : null, recommended: r.rec ? { id: r.rec.id, label: r.rec.label } : null, lands: r.d?.lands ?? null, overrule: r.d?.overrule ?? null, text: r.text });
   }
   out.boards.push(board);
 }
-out.totals = { confirms, overrules, unclear, stands, problems };
+out.totals = { confirms, overrules, unclear, problems };
 
 if (asJson) { console.log(JSON.stringify(out, null, 2)); process.exit(problems ? 1 : 0); }
 
-console.log(`build ${build ?? "(none)"} · ${reviews.length} boards · ${confirms} confirm · ${overrules} overrule · ${unclear} unclear · ${stands} stand${problems ? ` · ${problems} PROBLEMS` : ""}`);
+console.log(`build ${build ?? "(none)"} · ${reviews.length} boards · ${confirms} confirm · ${overrules} overrule · ${unclear} unclear${problems ? ` · ${problems} PROBLEMS` : ""}`);
 for (const b of out.boards) {
   if (b.error) { console.log(`\n!! ${b.raw}\n   ${b.error}`); continue; }
   const roundNote = b.missing ? "  (NO SPEC on this tree: retired or renamed)" : b.specRound !== null && b.specRound !== b.round ? `  (the spec is at r${b.specRound}: his paste is from an earlier round)` : "";
   console.log(`\n${"=".repeat(100)}\n${b.board} r${b.round}: ${b.verdicts.length} verdicts${b.calls.length ? `, ${b.calls.length} calls` : ""}${b.items.length ? `, ${b.items.length} items` : ""}${roundNote}`);
   for (const v of b.verdicts) {
-    const tag = { confirms: "=", overrules: "!", unclear: "?", stands: "~", none: "0", "unknown-ask": "X", "unknown-option": "X" }[v.reading] ?? " ";
+    const tag = { confirms: "=", overrules: "!", unclear: "?", none: "0", "unknown-ask": "X", "unknown-option": "X" }[v.reading] ?? " ";
     console.log(`\n  [${tag}] ${v.ask}=${v.choice}  ${v.text}`);
     if (v.question) console.log(wrap(v.question, 100, "      Q: "));
     // the picture beside the sentence (2026-09-20): the lab's own deep link to the step he answered, so a wiring lane

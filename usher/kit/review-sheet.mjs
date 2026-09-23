@@ -32,7 +32,7 @@ for (const r of reviews) {
   rows += `<h2>${esc(r.board)} <span class="dim">round ${r.round} · ${r.verdicts.length} verdicts</span></h2>`;
   for (const v of r.verdicts) {
     n++; const d = spec?.decisions?.get?.(v.ask) ?? null; const opt = d?.options?.find((o) => o.id === v.choice) ?? null;
-    const rec = d?.recommended ?? null; const tag = v.choice === "?" ? "unclear" : v.choice === "stands" ? "stands" : rec == null ? "" : v.choice === rec ? "confirms" : "overrules";
+    const rec = d?.recommended ?? null; const tag = v.choice === "?" ? "unclear" : rec == null ? "" : v.choice === rec ? "confirms" : "overrules";
     if (tag === "confirms") confirms++; if (tag === "overrules") overrules++;
     const cap = pick(r.board, v.ask, v.choice); if (cap) pictured++;
     const link = `${ALIAS}/design/lab/${r.board}?session=${r.board}.${v.ask}`;

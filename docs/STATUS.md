@@ -23,20 +23,19 @@ window of the original fetched by range and decoded on the viewer's device. The 
 
 - **On the tree:** the rolling live composer and the video window reader, with their harnesses at
   `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video` (a 20-minute soak on the alias held: no stall, the
-  clock never backward, zero failures, the heap flat at 13 to 19 MB); six boards on the desk (the view, the album's head,
-  the venue screen, the creator, the host's side, the marketing story).
-- **Next:** his desk review of the six; then the wiring (the expand migration first; the old reel stays live on the
-  alias until one build replaces it; the drop migration after the red-team).
-- **Alongside:** the reshape (the docs carry rules, never history): four lanes, listed in
-  [`tracks/orchestrator.md`](tracks/orchestrator.md).
+  clock never backward, zero failures, the heap flat at 13 to 19 MB); six boards on the desk.
+- **Next:** his desk review; then the wiring (the expand migration first; the old reel stays live on the alias until
+  one build replaces it; the drop migration after the red-team).
+- **Done alongside:** the reshape (the docs, the Library and the lab state current rules, never history) and the
+  board recheck (every standing board current with the identity and reel rounds). A fix lane closes two identity
+  leaks the reshape found in SQL (a host reading an unconfirmed address; a profile past the album's email gate).
 
 ## The desk
 
 23 standing boards at `/design/lab?key=`, in leverage order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`,
 `reel-cut`, `reel-host`, `reel-story`, `identity-door`, `identity-claims`, `identity-profile`, `guest-capture`,
 `host-curation`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`,
-`album-motion`, `loose-ends`, `contact-page`, `press-page`. Six asks on the older boards carry a badge naming the reel
-round (`src/app/(dev)/design/sandbox/overtaken.ts`) until the boards are rechecked against it.
+`album-motion`, `loose-ends`, `contact-page`, `press-page`.
 
 ## Live state
 
@@ -70,6 +69,11 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His desk review**: the six reel boards first (each board's look-at-first is on its own page), the two harnesses,
-  then the identity boards and the older standing boards.
-- **The preview key's rotation**, his call, ideally after his review (a local dev log printed it into the Orchestrator's
-  transcript on 2026-09-22; it is in no commit).
+  then the identity boards and the rechecked standing boards.
+- **Two bible questions** (the bible changes only by his word): add "crisp media motion is the foundation of our
+  visual identity" to bible 1 (recommended); "every ask is a benefit" as a copy rule beside bible 20 or a standing
+  preference (recommended: stays a preference).
+- **Two product calls**: may a plan change shrink a cap (recommended no); does the host's credit keep a confirmed
+  guest's proved address (as shipped; recommended yes).
+- **The preview key's rotation**, his call, ideally after his review (a local dev log printed it into the
+  Orchestrator's transcript on 2026-09-22; it is in no commit).

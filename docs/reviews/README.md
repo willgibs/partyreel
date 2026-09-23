@@ -9,7 +9,7 @@
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
-> lab never writes this directory itself (Will's decision, 2026-09-15). Never owned by a track.
+> lab never writes this directory itself. Never owned by a track.
 
 ## The shape
 
@@ -34,7 +34,7 @@
 One answer per ask per round; answering again in the same round overwrites (git keeps the first).
 A `choice` of `null` is Will's "this question is not clear to me" (`<ask>=? "why"` in the grammar;
 the note is required): the ask stays open on the desk, flagged as waiting on a clearer question,
-and the board rewrites it before he is asked again (the clarity round, 2026-09-15).
+and the board rewrites it before he is asked again.
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
 standing board with no answer in its latest round; a board whose asks are all answered shows its
@@ -64,7 +64,7 @@ lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 
-`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog (the revamp, 2026-09-16), where
+`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
 declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
@@ -81,20 +81,6 @@ line beside the answers, in any order:
 
 In the ledger the round grows a `calls` array beside `answers`, `items` and `notes`: one entry per call per round,
 `{ call, answer, note?, by, at }`, replaced when the same call is answered again, exactly as an ask is.
-
-```markdown
-`<ask>=stands "a note"` -- a question an EARLIER RULING REACHED, left to that ruling (Will, 2026-09-19: "I'd still
-like to see the explorations that were voided by my decisions ... add an optional trash button to kill the question
-in the board if no answer"). `stands` is a reserved word, not an option: it may only be given on an ask that
-`src/app/(dev)/design/sandbox/overtaken.ts` names, it owes a note exactly as `?` does, and it lands as
-`{ choice: "stands" }` rather than `null`, so the desk counts it as answered:
-
-    review first-event r1: hand=stands "the earlier ruling stands"
-
-Answering such a question with one of its real options is an OVERRIDE, and IS the new ruling; the transcriber then
-appends a note to `_window.json` aimed at the board whose ruling was overridden ("overridden by
-first-event.hand=show, 2026-09-20"), so the lane wiring that ruling reads it where it already reads window notes.
-```
 
 `review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
 lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
