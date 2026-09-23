@@ -13,7 +13,7 @@ import {
   useStoredName,
 } from "@/lib/guest/use-stored-name";
 import {
-  leaveGuestSession,
+  leaveAllGuestSessions,
   useStoredSession,
 } from "@/lib/guest/use-stored-session";
 import { createClient } from "@/lib/supabase/client";
@@ -38,10 +38,11 @@ type MenuData = {
 // option across these three, but maybe not the best overall solution for our nav in general
 // here"). A public profile is a guest-side page with no event behind it, and it used to wear a
 // hand-rolled header of its own that dropped a signed-in visitor's account menu the moment they
-// tapped a name. With both props omitted this is the same header minus the two things that need
-// an event: the ownership check (/api/me/menu already treats the param as optional) and the
-// stored-session clear on sign-out (there is no guest capability on this page to clear). His
-// worry about the way BACK to the scanned event is round two's, on the profile-reach board.
+// tapped a name. With both props omitted this is the same header minus the things that need an
+// event: the ownership check (/api/me/menu already treats the param as optional) and the name
+// menu. The sign-out still puts down every guest ticket on the device, since it was never about
+// the page it happens on (the upload-owner lane, 2026-09-23). His worry about the way BACK to the
+// scanned event is round two's, on the profile-reach board.
 //
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately
@@ -142,22 +143,23 @@ export function GuestHeader({
     };
   }, [eventId]);
 
-  // Client-side sign out = the replacement for the old "Switch guest" button. Clear the guest
-  // capability session FIRST (sync, even on a flaky network — notifies EventExperience so the next
-  // guest on a shared device doesn't upload under this one's session_token, and expires the
+  // Client-side sign out = the replacement for the old "Switch guest" button. Put every guest
+  // ticket on the device down FIRST (sync, even on a flaky network — notifies EventExperience so the
+  // next person on a shared device doesn't upload under this one's session_token, and expires the
   // server-readable cookie half beside it), collapse the menu back
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
   // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
   const handleSignOut = useCallback(async () => {
-    // No token on an event-less page: there is no guest upload capability to
-    // clear, so the sign-out is the account's alone. BOTH copies go where there is one: the
-    // cookie half is what a server render reads, so leaving it behind would hand the next person
-    // on a shared phone this guest's full-album ticket (see leaveGuestSession).
-    if (qrToken) leaveGuestSession(qrToken);
+    // ★ EVERY EVENT'S TICKET, NOT THIS ALBUM'S (the upload-owner lane, 2026-09-23). A confirmed
+    // guest's ticket at another album outlived this sign-out and credited the next person's
+    // photograph to them there; the upload routes now refuse that (the guarantee), and this is the
+    // courtesy: the tokens, the names and address flags beside them, the name prefill, and every
+    // `pr_guest_*` cookie. So it runs on an event-less page (/u/[slug]) too.
+    leaveAllGuestSessions();
     setMenu(null);
     await createClient().auth.signOut();
     router.refresh();
-  }, [qrToken, router]);
+  }, [router]);
 
   return (
     <header

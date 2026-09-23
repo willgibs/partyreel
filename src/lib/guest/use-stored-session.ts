@@ -2,7 +2,14 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import { SESSION_PREFIX } from "@/lib/guest/session-tokens";
+import {
+  SESSION_PREFIX,
+  storedKeysWithPrefixes,
+} from "@/lib/guest/session-tokens";
+import {
+  forgetAllStoredGuests,
+  forgetStoredGuest,
+} from "@/lib/guest/use-stored-name";
 
 // The session_token is the guest's upload capability (database-security.md). Persist it per
 // event (keyed by qr_token) so a returning guest / refresh skips the join step
@@ -65,22 +72,81 @@ export function setStoredSession(qrToken: string, value: string | null) {
 /**
  * PUT THE WHOLE TICKET DOWN, both copies (the door as three steps, 2026-09-21).
  *
- * The session now has a SERVER-readable half, the `pr_guest_<eventId>` cookie, which is what lets
- * an RSC resolve Require an upload to view for the right guest. Clearing only the localStorage
- * copy would leave a shared phone rendering the FULL album on the last contributor's ticket, which
- * is the exact leak that switch exists to close. One call clears both: the local one synchronously
- * (so this tab stops uploading under it at once, even on a flaky network) and the cookie through
- * `POST /api/guests/leave`, whose failure is best-effort by design -- a sign-out must never hang
- * on it, and the local half is already gone.
+ * The session has a SERVER-readable half, the `pr_guest_<eventId>` cookie, which is what lets an
+ * RSC resolve Require an upload to view for the right guest. Clearing only the localStorage copy
+ * would leave a shared phone rendering the FULL album on the last contributor's ticket, which is the
+ * exact leak that switch exists to close. So every put-it-down path below clears both: the local
+ * one synchronously (so this tab stops uploading under it at once, even on a flaky network) and the
+ * cookie through `POST /api/guests/leave`, which is HttpOnly and so only a response can expire.
+ *
+ * This is that second half, best-effort by design (a sign-out or a recovery must never hang on it,
+ * and the local half is already gone). It resolves either way; `keepalive` lets it outlive a
+ * sign-out's navigation. The synchronous `try` is there because a fetch that is not a real one (a
+ * test double) can throw before it returns a promise.
  */
-export function leaveGuestSession(qrToken: string): void {
+function postLeave(body: { qr_token: string } | { all: true }): Promise<void> {
+  try {
+    return fetch("/api/guests/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      keepalive: true,
+    }).then(
+      () => undefined,
+      () => undefined,
+    );
+  } catch {
+    return Promise.resolve();
+  }
+}
+
+/**
+ * PUT DOWN A TICKET THAT IS NOT THIS VIEWER'S (the upload-owner lane, 2026-09-23). The upload,
+ * rename and attach routes answer `session_other_account` when this device's token for an event
+ * names a row that belongs to an account the viewer is not (lib/guest/session-owner.ts), and every
+ * client that hears it lands here before it joins again as whoever is holding the phone: the token,
+ * the name and address flag beside it (and the prefill, when it is that same name), then the
+ * server-readable cookie.
+ *
+ * ★ THE COOKIE IS AWAITED, unlike the sign-out's. The very next thing every caller does is a join,
+ * whose response writes this event's cookie afresh; an expiry still in flight could land after it
+ * and put the NEW ticket down. Awaiting orders the two, and the leave route never fails loudly.
+ */
+export async function dropGuestTicket(qrToken: string): Promise<void> {
+  forgetStoredGuest(qrToken);
   setStoredSession(qrToken, null);
-  void fetch("/api/guests/leave", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ qr_token: qrToken }),
-    keepalive: true,
-  }).catch(() => {});
+  await postLeave({ qr_token: qrToken });
+}
+
+/**
+ * THE DEVICE HALF OF A SIGN-OUT (the upload-owner lane, 2026-09-23): every guest ticket this
+ * browser holds, for every event, with the names and address flags beside them and the name
+ * prefill. Synchronous, so it runs to completion before the account's own sign-out navigates away
+ * (the account menu calls it from its form's submit, ahead of `signOutAction`, which expires the
+ * cookie half on its own response). A sign-out is an account's; a guest's photographs on a claimed
+ * row stay theirs to manage from that account on any device.
+ */
+export function forgetGuestTickets(): void {
+  try {
+    for (const key of storedKeysWithPrefixes([SESSION_PREFIX])) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage unavailable: there were no stored tickets to forget.
+  }
+  emit();
+  forgetAllStoredGuests();
+}
+
+/**
+ * The whole sign-out courtesy for a sign-out that runs in the BROWSER (the guest page's header,
+ * which stays on the album rather than following `signOutAction` to /login): the device half now,
+ * and every guest cookie through `POST /api/guests/leave` `{ all: true }`, since script cannot read
+ * an HttpOnly cookie to name them. The server rule is the guarantee; this is the courtesy.
+ */
+export function leaveAllGuestSessions(): void {
+  forgetGuestTickets();
+  void postLeave({ all: true });
 }
 
 // localStorage-backed session via useSyncExternalStore: the server snapshot is

@@ -14,11 +14,13 @@ import {
   renameGuest,
   type JoinRefusal,
 } from "@/lib/guest/join";
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import {
   readLastName,
   setLastName,
   setStoredName,
 } from "@/lib/guest/use-stored-name";
+import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 // The route's own cap, so the field cannot accept what the parse behind it
 // refuses (the column's CHECK is the same number).
@@ -212,13 +214,17 @@ export function GuestNameStep({
          whichever door raised this step, so it is `renameGuest`'s to try
          first now, regardless of mode.
 
-         Only two of its refusals fall through to a fresh join: `invalid_session`
-         (a genuinely DEAD token — the route's own "not found") and
+         Only three of its refusals fall through to a fresh join: `invalid_session`
+         (a genuinely DEAD token — the route's own "not found"),
          `unauthorized` (a VERIFIED row, which cannot happen for a nameless
          session in practice — this door never opens for one — but the route,
          not this component's assumption, is the truth, so it falls through
-         too rather than dead-ending). Every other refusal (a bad name, the
-         limiter) is this step's to show, exactly as before.
+         too rather than dead-ending), and `session_other_account` (the
+         upload-owner lane, 2026-09-23: a live ticket whose row is an
+         account's the viewer is not, which is put down first so nothing of its
+         owner's, the name or the address flag, outlives it on this device).
+         Every other refusal (a bad name, the limiter) is this step's to show,
+         exactly as before.
          ──────────────────────────────────────────────────────────────────── */
       if (sessionToken) {
         const renamed = await renameGuest({
@@ -257,15 +263,20 @@ export function GuestNameStep({
           });
           return;
         }
-        if (
+        if (renamed.refusal.kind === SESSION_OTHER_ACCOUNT) {
+          // Somebody else's ticket: down it goes, then the fresh join below
+          // mints this person their own row under the name they just typed.
+          await dropGuestTicket(qrToken);
+        } else if (
           renamed.refusal.kind !== "invalid_session" &&
           renamed.refusal.kind !== "unauthorized"
         ) {
           setRefusal(renamed.refusal);
           return;
         }
-        // A dead token or a (defensive) verified row: nothing left to rename,
-        // so fall through to the same fresh join a session-less device takes.
+        // A dead token, a (defensive) verified row, or a ticket that was not
+        // this viewer's: nothing left to rename, so fall through to the same
+        // fresh join a session-less device takes.
       }
       /* ★ A FRESH JOIN IS ONE POST, name and address together. The key is absent
          when nothing was typed, so a guest who declined the field sends exactly

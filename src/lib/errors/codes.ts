@@ -20,6 +20,7 @@ export type ErrorCode =
   | "unauthorized"
   | "not_owner"
   | "invalid_session"
+  | "session_other_account"
   // request shape
   | "bad_request"
   | "validation"
@@ -74,6 +75,8 @@ export const FALLBACK_MESSAGES: Record<ErrorCode, string> = {
   unauthorized: "You don't have permission to do that.",
   not_owner: "You don't have permission to do that.",
   invalid_session: "Your session has expired. Refresh the page and try again.",
+  session_other_account:
+    "Someone else added photos from this device. Try again to add yours.",
   bad_request: "That request didn't look right. Please try again.",
   validation: "Please check the form and try again.",
   not_found: "We couldn't find that.",

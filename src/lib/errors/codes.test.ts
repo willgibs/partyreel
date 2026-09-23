@@ -82,6 +82,7 @@ type GuestPresignCode =
   | "video_not_allowed"
   | "cap_reached"
   | "verification_required" // the identity reshape: the switch flipped under a live session
+  | "session_other_account" // upload-owner: an account's row writes only for that account
   | "too_large";
 type HostPresignCode =
   | "unauthorized"
@@ -112,6 +113,7 @@ type GuestNameRouteCode =
   | "not_found"
   | "unauthorized" // a verified guest's name is their profile's; there is no second one to set
   | "invalid_session"
+  | "session_other_account"
   | "name_required"
   | "name_invalid"
   | "unknown";
@@ -124,6 +126,7 @@ type GuestEmailRouteCode =
   | "not_found"
   | "unauthorized"
   | "invalid_session"
+  | "session_other_account"
   | "email_invalid"
   | "unknown";
 type UnlockRouteCode =
@@ -156,6 +159,7 @@ type GuestCompleteUploadCode =
   | CompleteUploadCode
   | "unauthorized"
   | "unlock_required"
+  | "session_other_account"
   | "verification_required";
 type HostCompleteUploadCode = CompleteUploadCode | "unauthorized";
 type _avatar = Expect<IsSubtype<AvatarRouteCode, ErrorCode>>;

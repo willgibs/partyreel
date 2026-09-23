@@ -36,6 +36,7 @@
  * `session-tokens.ts` beside it, so the refusal mapping is unit-testable in the
  * node env with a stubbed `fetch` and every caller decides how a refusal is SAID.
  */
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { displayNameSchema } from "@/lib/validation/profile";
 import { parseGuestEmail } from "@/lib/validation/upload";
 
@@ -48,7 +49,10 @@ import { parseGuestEmail } from "@/lib/validation/upload";
  * (Postgres's `NO_DATA_FOUND`), the row this session named no longer exists;
  * `unauthorized` is a VERIFIED row (their name is their profile's, so a rename
  * is refused outright) from that same route, or a private event from the join
- * route; `email_invalid` is the optional address at the door, refused in the
+ * route; `session_other_account` is a LIVE token whose row belongs to an account
+ * the viewer is not (the upload-owner lane, 2026-09-23: the rename and attach
+ * routes refuse it, and the caller puts the ticket down and joins as itself);
+ * `email_invalid` is the optional address at the door, refused in the
  * same slot the name's refusals land in; `other` carries the server's own
  * sentence for everything else (rate limits, a dead link), which is always
  * better than a house paraphrase.
@@ -61,6 +65,7 @@ export type JoinRefusal = {
     | "verification_required"
     | "invalid_session"
     | "unauthorized"
+    | typeof SESSION_OTHER_ACCOUNT
     | "other";
   message: string;
 };
@@ -83,14 +88,15 @@ export type JoinResult =
   | { ok: true; guest: JoinedGuest }
   | { ok: false; refusal: JoinRefusal };
 
-/** The two routes' own codes, so a typo cannot silently become an `other`. */
-const REFUSALS = new Set([
+/** The routes' own codes, so a typo cannot silently become an `other`. */
+const REFUSALS = new Set<string>([
   "name_required",
   "name_invalid",
   "email_invalid",
   "verification_required",
   "invalid_session",
   "unauthorized",
+  SESSION_OTHER_ACCOUNT,
 ]);
 
 function refusalOf(body: unknown, fallback: string): JoinRefusal {
