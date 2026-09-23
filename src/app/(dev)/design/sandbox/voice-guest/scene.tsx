@@ -5,13 +5,11 @@ import {
   createContext,
   type ReactNode,
   useContext,
-  useEffect,
-  useRef,
   useState,
 } from "react";
 import { Lock, Sparkles, XIcon } from "lucide-react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { GridMedia } from "@/components/app/media-grid";
 import { MediaTile } from "@/components/app/media-grid";
 import { GhostRiver } from "@/components/guest/gallery-empty-state";
@@ -54,10 +52,12 @@ import { EVENT, HOST, REEL_STILL } from "./fixtures";
  * so the line being judged stands inside the first screen instead of under
  * a fold nobody on this board is asking about.
  *
- * ★ THE MACHINERY (`Fit`, `Measured`, `Scene`) IS `guest-capture`'s AND
- * `identity-door`'s, COPIED VERBATIM, never imported: a board's directory
- * leaves with its ruling, and the kit does not export them yet (a finding
- * in this lane's manifest).
+ * ★ `Fit` AND `Measured` ARE THE KIT'S NOW (`@/components/lab/scene.tsx`), NOT
+ * COPIED HERE: this board's own were byte-for-byte `guest-capture`'s and
+ * `identity-door`'s, and the one thing only this board did (a re-measure once
+ * the webfont settles) is the kit's default for every board, not a variant.
+ * `Scene` stays local: a board's directory leaves with its ruling, and its
+ * props are this board's own (a required `measure`, a single phone width).
  */
 
 export const PHONE = { w: 375, h: 812 } as const;
@@ -73,84 +73,6 @@ export const PHONE = { w: 375, h: 812 } as const;
  */
 export const ReplayCtx = createContext(0);
 export const useRunId = () => useContext(ReplayCtx);
-
-/* ── the frame, fit and measured ──────────────────────────────────────────── */
-
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/** A number read off the frame's own document, never computed: the same
- *  discipline `guest-capture` and `media-viewer` hold every caption to. */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  /** `null` means "not settled yet": the read is skipped rather than
-   *  overwriting the caption with a lie. */
-  probe: (root: HTMLElement, win: Window) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el, win);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    // The webfont lands after the first layout and takes every wrap with it,
-    // so the reads keep coming until it has.
-    const timers = [200, 900, 1800].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    win.document.fonts?.ready.then(read).catch(() => {});
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref}>{children}</div>;
-}
 
 export type Reader = (root: HTMLElement, win: Window) => string | null;
 

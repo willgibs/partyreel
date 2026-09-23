@@ -111,6 +111,7 @@ export {
   labScenePath,
   useFrameLock,
 } from "./frame";
+export { Fit, Measured } from "./scene";
 export { Compare, type CompareMode } from "./compare";
 export { comparePair, CompareTwo, type Spot, SpotCompare } from "./compare-two";
 export {

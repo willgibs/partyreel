@@ -1,9 +1,9 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { X } from "lucide-react";
 
-import { Frame, useLabPrefs } from "@/components/lab";
+import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,9 +11,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { EVENT } from "./fixtures";
 
 /**
- * THE ONE FRAME EVERY DECISION DRAWS IN (host-curation's own machinery,
- * copied rather than imported: a board's directory is deleted at its ruling,
- * so a shared import would outlive it).
+ * THE ONE FRAME EVERY DECISION DRAWS IN (`Fit` and `Measured` are the kit's;
+ * `Scene` stays here, since a board's directory is deleted at its ruling and
+ * its own props would not fit every other board's `Scene` alongside it).
  *
  * ★ 1440 FIRST, 375 ON THE KNOB. Every one of these six questions sits on a
  * host app surface that ships laptop-first (the hub, the settings sheet, the
@@ -43,79 +43,6 @@ export const VIEWPORT: Control = {
   ],
   default: "1440",
 };
-
-/** Zoom-fits a portalled frame to the lab's own Fit preference. */
-function Fit({ w, children }: { w: number; children: ReactNode }) {
-  const { fit } = useLabPrefs();
-  const zoomed = fit === "zoom";
-  const box = useRef<HTMLDivElement | null>(null);
-  const [room, setRoom] = useState<number | null>(null);
-
-  useEffect(() => {
-    const el = box.current;
-    if (!el || !zoomed) return;
-    const sync = () => setRoom(el.getBoundingClientRect().width);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [zoomed]);
-
-  const k = zoomed && room ? Math.min(1, room / w) : 1;
-  return (
-    <div
-      ref={box}
-      data-stage-fit={zoomed ? "zoom" : "true"}
-      className={zoomed ? "min-w-0 overflow-hidden" : "min-w-0 overflow-x-auto"}
-    >
-      <div style={{ width: w, zoom: k }}>{children}</div>
-    </div>
-  );
-}
-
-/** A number read off the frame's own document, never computed (the house
- *  rule: if the words above a frame and the caption under it disagree, the
- *  caption is the truth). */
-function Measured({
-  probe,
-  deps,
-  onMeasure,
-  children,
-}: {
-  probe: (root: HTMLElement, win: Window) => string | null;
-  deps: unknown[];
-  onMeasure: (text: string) => void;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const report = useRef(onMeasure);
-  useEffect(() => {
-    report.current = onMeasure;
-  });
-  useEffect(() => {
-    const el = ref.current;
-    const win = el?.ownerDocument.defaultView;
-    if (!el || !win) return;
-    const read = () => {
-      try {
-        const said = probe(el, win);
-        if (said) report.current(said);
-      } catch {
-        // Not settled yet; the next timer or resize catches it.
-      }
-    };
-    read();
-    const timers = [200, 900, 1800].map((ms) => win.setTimeout(read, ms));
-    const ro = new win.ResizeObserver(read);
-    ro.observe(el);
-    return () => {
-      timers.forEach((t) => win.clearTimeout(t));
-      ro.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
-  return <div ref={ref}>{children}</div>;
-}
 
 export function Scene({
   id,

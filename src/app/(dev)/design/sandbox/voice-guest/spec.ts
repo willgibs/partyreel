@@ -380,7 +380,7 @@ export const VOICE_GUEST = defineExploration({
       overrule:
         "If the photos she just added pull harder at this moment than the event, today's heading keeps them first.",
       lands:
-        "The capture card and the door's save words, which the Unverified mark and the name menu open too.",
+        "The capture card and the door's keep words, which the Unverified mark and the name menu open too.",
     },
   ],
 });

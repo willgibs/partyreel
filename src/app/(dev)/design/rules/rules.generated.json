@@ -7143,7 +7143,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7151,7 +7151,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7159,7 +7159,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7167,7 +7167,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7175,7 +7175,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
@@ -7391,7 +7391,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7399,7 +7399,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7407,7 +7407,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7415,7 +7415,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7423,7 +7423,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
@@ -7517,6 +7517,7 @@
         "DockRow",
         "ExplorationBoard",
         "ExplorationInput",
+        "Fit",
         "FitStage",
         "Frame",
         "FrameProps",
@@ -7536,6 +7537,7 @@
         "LibraryVerdict",
         "LookFirst",
         "Loupe",
+        "Measured",
         "Mode",
         "MotionToggle",
         "Note",
@@ -7741,7 +7743,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 79
+          "line": 81
         },
         {
           "title": "imports the kit from its new home, never the shim",
@@ -7749,7 +7751,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 97
+          "line": 99
         },
         {
           "title": "is two files at its root: a spec and a board",
@@ -7757,7 +7759,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 109
+          "line": 111
         },
         {
           "title": "is never also on the legacy list",
@@ -7765,7 +7767,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 117
+          "line": 119
         },
         {
           "title": "leaves only boards that exist on the legacy list",
@@ -7773,7 +7775,7 @@
             "a migrated board"
           ],
           "file": "src/components/lab/kit-discipline.test.ts",
-          "line": 122
+          "line": 124
         }
       ]
     },
