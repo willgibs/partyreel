@@ -74,7 +74,7 @@ export type UnverifiedGuestEntry = {
 
 /**
  * What the list renders. The profile half is left EXACTLY as it was, with `kind`
- * optional, because the retired `profile-page` sandbox board still feeds this
+ * optional, because the `profile-page` sandbox board still feeds this
  * component its own fixtures and a wiring lane never breaks the props of a
  * module the lab imports.
  */
