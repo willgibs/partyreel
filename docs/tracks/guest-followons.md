@@ -1,6 +1,6 @@
 ---
 track: guest-followons
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "6d27b17a"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -127,24 +127,161 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: no one-way door came up. Every call taken is listed under "Calls his to overrule" in the Handoff.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `guest-flow.md`: the lightbox credit (a row with no name credits nobody, the counter alone); the identity switch
+  paragraph (the legacy twin is read by no code and the contract drops it); the confirmation sequence, the precedence
+  rule and the rename rule without "A guest"; the join bullet (the route's 422 first, `create_guest`'s nameless raise
+  the belt); Stats (M rides the poll's 200); the bearer-credential invariant (nothing rotates the link: the switches
+  are the defense); the upload step's OFF line; the own-removal paragraph (the visit's adds and removals, the window,
+  the card's count, a full album). Clear of `host-followons`' lines (the address invariant).
+- `database-security.md`: the 0028 note (the confirmed-viewer gate carries QA #36; the contract drops the clause),
+  the trigger-only list (the twin-keeper and its drop), the `events` writable columns, the cascade gotcha's example.
+- `host-app.md`: `event-feed.tsx` gone (only `event-filter-pills.tsx` is dead now); the `events` row's identity
+  switch.
+- `design-system.md`: the contextual floating action bar as a pattern (its file is gone).
+- `profiles-social.md`: the attended arm's anonymous-viewer clause (the gate carries it; the contract drops it).
+- `uploads-and-r2.md`: `toGridItems`' three identity fields; the resolver's nameless case.
+- `testing-verification.md`: the reseeding line's guest mode (the brief names it).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The app: Host: `lib/shared/use-active-section.ts` and `event-feed/event-filter-pills.tsx` lost their last importer with `event-feed.tsx`; delete them, and the comments that still name `event-feed-action-bar.tsx` (`bulk-tools.tsx`, `bulk-select-mock.tsx`, `floating-layer.ts`, `type-ladder-policy.test.ts`).
+- The app: Guest: `get_event_media_by_qr_token` and `getApprovedMediaForUnlock` read an album unpaged, so past 1,000 approved items the guest album and its poll hold only the newest 1,000 (PostgREST's `max_rows`).
+- The app: Guest: the last-removal line reads the album's fullness at render (`albumFull`, the page's second gate read); an album that fills or frees mid-visit keeps the old line until a refresh, and the poll could carry it at one gate read per poll.
+- The app: Social: `social/guest-list.tsx:216` draws "A guest" for a null `displayName`, a label the product retired (a nameless credit shows nothing).
+- The lab: three boards still draw "A guest" for a null uploader name (`media-viewer/viewer.tsx:194,296`, `host-curation/queue.tsx:490`, `profile-page/album.tsx:149`), and `host-storage/spec.ts:49` still says `gallery-fixtures.ts` mints a nameless anonymous uploader, which it no longer does.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work commits** (pushed, in the brief's order, each its own): `37b8897b` the partial-save defect · `d3f929ed` the
+  identity contract (code + the UNAPPLIED SQL file) · `fd419305` the round's guest lines · `c22f0203` the demo's
+  guests. **Sync merges:** `57770b5b`, `86a2ad0c` (host-followons and lab-scene-kit) and `26c6c67b` (event-safety);
+  the only conflict each time was `docs/design/library.md`, generated, regenerated from the merged tree. The head is
+  in the chat line.
+- **Gates on the synced tree (`26c6c67b`), each on its own exit code:** `pnpm design:rules` 0 · `collect-specimens`
+  0 (no diff) · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none in a file this lane touched) · `pnpm test` 0
+  (372 files, 4,150 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3131` 0 (519
+  checks, 0 failing) · `pnpm lab:demo --board` 0 on each board whose fixtures changed or that reads the shared pool:
+  `host-curation` (8 steps), `host-storage` (5), `media-viewer` (8), `reel-cut` (9), `reel-host` (6), `reel-front`
+  (7), `reel-screen` (8), `reel-story` (7), 0 failing each. Logs:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/guest-followons/g3-*.log`.
+- **Typecheck on BOTH sides of the regeneration:** with `allow_anonymous_uploads` struck from a scratch copy of
+  `types.ts` (the post-apply shape), `tsc --noEmit` exits 0; `types.ts` itself is untouched.
+- **The SQL, `supabase/migrations/20260923150000_identity_contract.sql` (UNAPPLIED):** pre-flighted VERBATIM on a
+  throwaway PG 17 cluster loaded with the live column shapes, grants and the four current bodies (each body's
+  `md5(prosrc)` matched its repo source first): applied with every statement ok; `pg_get_functiondef` before/after is
+  exactly the intended diff; the foot's contract check reaches its deliberate raise; a probe of HEAD's paths as
+  `authenticated` (create an event naming only the new flag, a one-field save, the switch) and `anon` (the RPC, the
+  profile) passes, and milestone-26's save naming the dropped column fails, as the header says. Then proved on the
+  LIVE schema in one `execute_sql` inside `begin; … rollback;` (the file's 12 statements, comments stripped, each
+  trapped into a temp `proof` table, `lock_timeout` 3s): all 12 ok and the check's own raise reached ("ROLLED BACK: every identity-contract
+  fact held", riding `create_media` for a confirmed guest on a disposable names-mode event); afterwards the live
+  column, trigger and both bodies' md5s were unchanged and no row was left.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, run at `26c6c67b`): 71 paths (72 with this
+  manifest), all inside `owns` except exactly these nine, pasted:
+  ```
+  docs/design/library.md
+  docs/systems/database-security.md
+  docs/systems/design-system.md
+  docs/systems/guest-flow.md
+  docs/systems/host-app.md
+  docs/systems/profiles-social.md
+  docs/systems/testing-verification.md
+  docs/systems/uploads-and-r2.md
+  src/app/(dev)/design/rules/rules.generated.json
+  ```
+  The seven system docs are the edits listed above (facts inside this lane's paths; `testing-verification.md`'s line
+  is the brief's own ask). The two GENERATED files are rewritten by the gate's `pnpm design:rules`, because contract
+  tests this lane owns (`media-lightbox`, `live-gallery`, `guest-upload`, `upload-step`) changed their titles.
+- **ROADMAP Now lines this closes** (quoted), each with its fix:
+  - "Copy: the guest's delete confirm says "permanently deleted after a short grace period" (`media-lightbox.tsx`)
+    where Deleted keeps an upload for `RECENTLY_DELETED_WINDOW_DAYS`; say the window." → the uploader's own delete
+    reads "permanently deleted after 30 days"; the host's Remove and bulk Delete read "moves to Deleted, where you can
+    restore it for 30 days"; all three read the constant.
+  - "Guest: after deleting one of this visit's uploads, the post-upload handle card still counts it ("Your 2 photos
+    are on this album" with one left); count the live uploads, not the visit's queue." → `onOwnRemoved(id,
+    remaining)`, the page keeps the ids, `GuestUpload` counts finished items not among them and unmounts at zero; the
+    gallery's own-id set learns the visit's adds and removals on both identities.
+  - "Copy: the door's upload step on an event without Require an upload to view says "Add one now and the album
+    opens." though that album is already open; the line belongs to the require-upload door alone." → OFF says "Add
+    one now, or look around first." (empty: "Nothing here yet. Add the first photo."), the OFF failure line "Pick
+    something else to add."; the how-it-works mock follows.
+  - "Guest: on a require-upload event whose album is FULL, the last-removal confirm says the album closes, but the
+    gate fails open on a full album, so it does not; say it only when the gate's `album_full` is false (the lightbox
+    would need that fact)." → `resolveViewerDecision` returns `albumFull`; the page passes it; `closesOnLastRemoval`
+    (pure, pinned) turns the line and the refresh off.
+  - "Guest, the demo: every demo upload is the host's and the host never counts, so its header reads "9 photos &
+    videos" with no guests clause; seed a few guest uploads (real uploads, `seed-demo-event.mjs`) to bring back "from
+    N guests"." → `--guests` on the seed script; closes when the Orchestrator runs it.
+  - "Code hygiene: `e/[token]/page.tsx`'s `socialSeam` cast (its own comment says collapse it once the server lane
+    is on the tree, which it is) and its unused `requireVerifiedEmail` (a lint warning)." → named imports; the block
+    is gone.
+  - "Guest: two identity seams read the server's names through narrow casts (`socialSeam` and the guest list's second
+    argument in `(guest)/e/[token]/page.tsx`; `isVerified` in `media-lightbox.tsx`); collapse them onto the merged
+    types." → `splitGuestList` and the typed list; `item.isVerified` read directly, its test too.
+  - "Code hygiene: comments that still name save: `likes-provider.tsx:26` (SaveEventButton),
+    `queries/guest-events.ts:19` (`save_event` among the anon-client RPCs)." → both, plus `likes-provider` :31,
+    :160, :258, :299 and `google-icon.tsx:2`.
+  - "The lab: `sandbox/gallery-fixtures.ts` (shared by `host-curation` and four reel boards) still mints a nameless
+    `isAnonymous` uploader and puts the host's own uploads in `REVIEW_ITEMS`, neither of which the product can do
+    now." → a named, marked guest; Review holds guests' uploads only.
+  - "Guest: the album's header holds `stats.guestCount` from the render, so a guest's own first upload under-counts
+    the guests by one until a reload (`event-experience.tsx`); a small server signal on the gallery poll fixes it,
+    never a client heuristic (a returning contributor would over-count)." → `guestCount` on the poll's 200.
+  - "Host: `event-feed/event-feed.tsx` and `event-feed/event-feed-action-bar.tsx` have no importer; delete them." →
+    deleted.
+  - "The identity round's contract migration, once the alias's build no longer reads what it drops (…): drop the
+    sync trigger and `events.allow_anonymous_uploads`, recreate `get_event_by_qr_token` without the old column
+    (keeping `require_upload_to_view`), add `create_guest`'s "Add your name to upload." raise, retire `isAnonymous`
+    and the seed script's old flag, and delete `get_public_profile`'s QA #36 clause (…), moving
+    `public-profile-visibility.test.ts`'s pin to the gate." → the code is done; the line closes at the apply.
+  - "Migrations: the remaining `migration-guards.test.ts` pins that hold an object for the deployed `main` build are
+    judged by PROGRAM.md's "Before launch" principle: each contract lands once the alias's build stops calling what
+    it drops." → every pin citing a deployed build judged: the twin's become dropped-and-never-recreated, the rest
+    keep their assertion with a comment that cites no build.
+- **Also in the brief, not a Now line:** `getUploaderIdentities` walks keyset pages past the 1,000-row clamp (a
+  recording-fake test); `guest-flow.md` states that nothing rotates the link.
+- **Verified locally at 1440 and 375** (`pnpm dev -p 3131`, real Supabase): the door's upload step OFF ("guest-view-menu
+  QA", "Personal Testing Throwaway") and ON ("Gallery width (disposable)"), both widths; the album header ("7 photos &
+  videos from 1 guest", "57 … from 7 guests"); the poll carries `guestCount` on a 200 (full and teaser), answers a
+  matching `g4` validator 304, and carries none on a locked page or a missing event. The lightbox's two confirms were
+  read off a jsdom render ("…permanently deleted after 30 days. This is your last upload here, so the album closes
+  until you add another." / "…moves to Deleted, where you can restore it for 30 days. Guests won't see it."). Test
+  data: one name-only guest row "Followons check" (no upload) on each of those three disposable events.
+- **Not drivable on localhost (sign-in and upload are allow-list-gated), for the alias red-team:** the settings sheet
+  saving a name with a custom QR (the QR stays custom); a QR-style save on a review event (held uploads stay held);
+  the host's Remove confirm; a signed-in guest's new photo showing its Trash and mark at once; one of two uploads
+  deleted (the card says 1) and the last on a require-upload album (the album closes; on a full one it does not and
+  the line is silent); the header's guest count moving on a guest's first upload.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** apply
+  `supabase/migrations/20260923150000_identity_contract.sql` AFTER milestone 27 has shipped this tree (its header
+  names what the milestone-26 build would lose: every signed-out guest held at the teaser, event create and settings
+  save failing on the dropped column), then `get_advisors` (expected delta: none) and regenerate `types.ts` (the
+  `events` row and `get_event_by_qr_token` lose the column, which no code reads; typecheck already proved on that
+  shape). Then run the demo's guest mode once, e.g. `node scripts/seed-demo-event.mjs <the demo's folder> --guests
+  "Maya J.,Tom R.,Priya S."` (a dry run against the demo read the plan correctly: nothing written). No Worker,
+  Vercel, Stripe or env change.
+- **Calls his to overrule:**
+  - A row with no name (legacy) credits nobody, the counter alone, rather than any stand-in label.
+  - The OFF door's words: "Add one now, or look around first." / "Nothing here yet. Add the first photo." / "Pick
+    something else to add." (the voice board may win better ones).
+  - The host confirms name the place and the window ("moves to Deleted, where you can restore it for 30 days"); the
+    uploader's own says "permanently deleted after 30 days" and promises no way back.
+  - `albumFull` rides the page render only, bought with one identity-less `get_upload_gate` read for a guest who has
+    contributed (the gate reads the caps only for one who has not); the poll and its ETag do not carry it, so the
+    steady poll pays nothing new (the Deferred line names the gap).
+  - The guest count rides a 200 and stays outside the ETag (anything that moves it changes the hashed payload);
+    a teaser viewer's M can lag until the payload changes.
+  - The seed's guest mode assigns files in turn, host first, then each named guest; the names are the Orchestrator's
+    at the run.
+  - The contract file also rewords comments in the two replaced bodies that described the older build and the
+    dropped twin (no behaviour but the raise and the deleted clause).
+  - The ETag version moves g3 → g4, so every open album re-pulls once after the deploy.
+  - `escalation-guards.test.ts` keeps a test that asserts only what its own Q3 file wrote (retitled), rather than
+    losing the file's QA #36 half.
+- **Look at first:** the SQL file's header and foot, then `src/lib/validation/event.ts` (the defect's fix and why),
+  then `src/components/guest/live-gallery.tsx`'s own-id set and `src/components/guest/upload-step.tsx`'s two lines.
