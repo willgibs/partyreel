@@ -20,7 +20,9 @@ for row in rec.get("orchestrator", []):
         if len(hits) > 1: sys.exit(f"orchestrator.md holds {len(hits)} rows for `{row['id']}`")
         if hits: lines[hits[0]] = row["row"]; print(f"orchestrator: `{row['id']}` replaced")
         else:
-            at = max(i for i, l in enumerate(lines) if l.startswith("| `")) + 1
+            rows = [i for i, l in enumerate(lines) if l.startswith("| `")]
+            # An empty In flight table has only its header: the first row goes under the separator.
+            at = (max(rows) if rows else next(i for i, l in enumerate(lines) if l.startswith("| --- |"))) + 1
             lines.insert(at, row["row"]); print(f"orchestrator: `{row['id']}` added")
         return "\n".join(lines)
     rw("docs/tracks/orchestrator.md", f)
