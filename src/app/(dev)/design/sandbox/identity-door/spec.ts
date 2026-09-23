@@ -135,7 +135,7 @@ const DRAFT = defineExploration({
       question:
         "On the verified-required gate, should the benefit framing stay the one ruled line, or say more?",
       context:
-        'Today, ruled verbatim: "The host has asked guests to confirm an email for safety. One tap and you\'re in." His own note asked that the welcome flow "mention a couple benefits (save the event, come back anytime) to the guest".',
+        'Today, ruled verbatim: "The host has asked guests to confirm an email for safety. One tap and you\'re in." His benefits note once wanted the event saved too; that half is dead now, leaving one true benefit: her photos stay in her account.',
       options: [
         {
           id: "line",
@@ -145,9 +145,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "list",
-          label: "The line, plus two guest benefits",
+          label: "The line, plus what confirming buys her",
           means:
-            'The same sentence, then a short two-line list: "Save the event to your profile" and "Come back anytime, with every photo you add."',
+            'The same sentence, then one added line: "Every photo you add from here stays in your account."',
         },
         {
           id: "eyebrow",
@@ -156,11 +156,11 @@ const DRAFT = defineExploration({
             "\"Almost in\" becomes the host's own name (\"Maya's event\"); the ruled reason line stands unchanged beneath it.",
         },
       ],
-      recommended: "list",
+      recommended: "line",
       because:
-        "His own ruling already asks for this, verbatim: 'we can mention a couple benefits (save the event, come back anytime) to the guest of the email as well.' The shipped line never got there.",
+        "His benefits note is half dead: 'save the event' no longer exists, and the one truthful line left over, a forward promise about photos she has not added yet, is thinner than the pair he had in mind. The shipped line already carries the ask, the reason and the cost in one breath.",
       overrule:
-        "The shipped line already carries the ask, the reason and the cost in one breath; a list is one more thing to read at a gate whose whole point is one tap.",
+        "If even one true benefit is worth surfacing at the gate, the added line costs nothing and answers the question she is about to ask herself anyway.",
       lands:
         "Whether the gate sells a guest on what confirming buys her, or leaves that to be discovered afterward.",
       tile: "phone",

@@ -5,8 +5,8 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * `guest-capture`'s Priya types a name at Maya and Jay's wedding and is offered
  * a way to keep what she sent; `identity-claims`' Priya is mid-claim, sorting
  * two older events out of her inbox. THIS BOARD'S PRIYA IS PAST BOTH: a
- * verified account, three events already joined (Maya and Jay's among them, so
- * a reader who has met her twice already recognises the wedding), and
+ * verified account, three events she's added photos to (Maya and Jay's among
+ * them, so a reader who has met her twice already recognises the wedding), and
  * `docs/tracks/identity-profile.md`'s own line, verbatim: "none shown yet."
  *
  * ★ A SEPARATE FILE, NOT AN IMPORT (guest-capture's own rule, carried here): a
@@ -35,11 +35,17 @@ export type AttendedEvent = {
   /** Off by default (`profile_shown_events` is opt-in, the guest identity
    *  round, 2026-09-22): this is the state every option opens on. */
   shown: boolean;
+  /** Require an upload to view (tonight's ruling): this event's own "guest
+   *  at" line hides from a viewer who has not passed its door, so `page`'s
+   *  own count has to hide behind the same door too, never just a raw total. */
+  requireUpload?: boolean;
 };
 
-/** The three events joined, none shown: the board's own premise, never a
- *  question inside it. Maya and Jay's first, so a reader who met Priya on
- *  `guest-capture` or `identity-claims` recognises the world immediately. */
+/** The three events she's added photos to, none shown: the board's own
+ *  premise, never a question inside it. Maya and Jay's first, so a reader who
+ *  met Priya on `guest-capture` or `identity-claims` recognises the world
+ *  immediately. The Block Party alone requires an upload to view, so `page`
+ *  has a door to respect as well as a count. */
 export const ATTENDED: readonly AttendedEvent[] = [
   {
     id: "maya-jay",
@@ -64,6 +70,7 @@ export const ATTENDED: readonly AttendedEvent[] = [
     host: "Dan",
     cover: STILL(8),
     shown: false,
+    requireUpload: true,
   },
 ];
 
