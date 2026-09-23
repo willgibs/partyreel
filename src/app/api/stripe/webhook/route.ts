@@ -14,6 +14,7 @@ import {
   eventPassSession,
   proCreditSession,
   resolveSubscriptionUpdate,
+  subscriptionQuantityWarning,
 } from "@/lib/stripe/provision";
 import { assertStripeEnv } from "@/lib/env";
 import type { TablesUpdate } from "@/lib/db/types";
@@ -245,11 +246,26 @@ export async function POST(request: Request) {
       return Response.json({ received: true });
     }
 
+    // A subscription billed more than once for one cap (the old portal stepper's
+    // multiples): provisioning below still writes ONE plan's cap, unchanged, and the
+    // operator hears about it, because the host is paying for more than they get.
+    const multiple = subscriptionQuantityWarning(event);
+    if (multiple) {
+      captureWarning("billing", "stripe_subscription_quantity_above_1", {
+        subscriptionId: multiple.subscriptionId,
+        customerId: multiple.customerId,
+        quantity: multiple.quantity,
+        eventType: event.type,
+      });
+    }
+
     // Subscription lifecycle → derive tier + storage cap and write it (idempotent).
     // event_slots is nulled on EVERY subscription write: Pro is unlimited events, and a
     // stale stacked-pass slot count would cap a Pro host in enforce_event_limit's
     // coalesce. tier_expires_at is nulled for the same doctrine (billing-caps.md: nothing
-    // banked behind Pro; a credited pass already cleared it, this is the belt).
+    // banked behind Pro; a credited pass already cleared it, this is the belt). A null
+    // patch writes nothing: an unrelated event, an unknown price, or a first payment
+    // still in flight (`incomplete`, which must never downgrade a host it is paying for).
     const patch = resolveSubscriptionUpdate(event, planForPriceId);
     if (patch) {
       const result = await applyEntitlement(

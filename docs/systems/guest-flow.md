@@ -397,12 +397,18 @@ through flags in the sheet. No step counter to desync.
   cards). A `guests` row stays what it is, the device's upload ticket minted at the door: nothing reads a row as
   attendance, and there is no save. A cut added to the album is an upload like any other. A host removing all of a
   guest's uploads takes them off every list; a restore puts them back.
-- ★ **THE HOST SEES A CONFIRMED GUEST'S ADDRESS, under the name in the host's viewer** (the uploader credit's email
-  line, `getUploaderIdentities`), and never an unconfirmed one. Will, 2026-09-22: "because this is the safety
-  advantage when a host toggles on require verified accounts for events. Otherwise, if we don't display verified
-  emails, anyone could verify any email account, and there's no real verified identity tied to the safety feature.
-  If I'm a verified guest on 'fakeemail@domain.com' but the host only sees a verified badge, it implies far more
-  safety than it should." A guest never sees another guest's address.
+- ★ **THE HOST SEES A CONFIRMED GUEST'S ADDRESS, under the name, in the host's viewer and in the Guests room**, and
+  never an unconfirmed one: the viewer's uploader credit (`getUploaderIdentities`, the email line) and the room's
+  list and names panel (`GuestList`'s host-only `emails`, read by `getConfirmedGuestAddresses` in
+  [`guest-addresses.ts`](../../src/lib/db/queries/guest-addresses.ts), which proves the host itself and reads
+  `guests.email` on `verified_at` rows only; the room is its one importer and the album never passes `emails`, both
+  pinned). Will, 2026-09-22: "because this is the safety advantage when a host toggles on require verified accounts
+  for events. Otherwise, if we don't display verified emails, anyone could verify any email account, and there's no
+  real verified identity tied to the safety feature. If I'm a verified guest on 'fakeemail@domain.com' but the host
+  only sees a verified badge, it implies far more safety than it should." And 2026-09-23: "Guests should not see
+  other confirmed guests' emails, making them more comfortable knowing only the host sees it. Exposing emails
+  publicly would go from a safety feature to privacy concern - the host assumes responsibility of ensuring that
+  safety." A guest never sees another guest's address.
 - **The opaque token IS the authorization** — never give `anon` direct table access; the guest
   RPCs validate the token internally. → [database-security.md](database-security.md).
 - **A link, and an event password, are BEARER credentials.** Possession is the authorization, which is the

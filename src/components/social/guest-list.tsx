@@ -63,6 +63,17 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * second component wrapping this one on both surfaces, which is exactly the
  * drift the one-component rule exists to prevent. Its props stay plain data, so
  * both server callers pass what they always passed.
+ *
+ * ★ THE HOST SEES A CONFIRMED GUEST'S ADDRESS UNDER THE NAME, AND NOBODY ELSE
+ * DOES (Will, 2026-09-23: "Guests should not see other confirmed guests'
+ * emails, making them more comfortable knowing only the host sees it"). The
+ * address arrives through `emails`, which ONLY the Guests room passes (read by
+ * `getConfirmedGuestAddresses`, which proves the host itself); the album never
+ * does, and social.guest-identity.test.ts holds that. It is keyed by user id, so
+ * only a profile card can wear one: an unverified entry's id is a guest row's,
+ * and a name nobody proved never shows an address even if one were somehow
+ * handed over. It shows in the chips and in the opened names panel alike (both
+ * are `Chips`); the faces row names nobody, so it shows none.
  */
 
 /** A guest with no proof: a `guests` row carrying a typed name and nothing else. */
@@ -100,6 +111,67 @@ const PAGE = 24;
 const CHIP =
   "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
 
+/**
+ * A chip that carries an address is two lines tall (the name, the address under
+ * it: 20 + 16, 4px of padding and 1px of border above and below = 46px), and
+ * its face moves in to 11px from the outer edge (10 of padding, 1 of border) so
+ * the 24px avatar stays concentric with the capsule's end, 11px clear on every
+ * side (bible 9: 23 = 12 + 11).
+ */
+const CHIP_WITH_ADDRESS =
+  "flex max-w-full items-center gap-2 rounded-full border border-border py-1 pr-4 pl-2.5 text-sm";
+
+/** The longest address a chip draws whole, and the most of it a domain may take. */
+const ADDRESS_CHARS = 30;
+const DOMAIN_CHARS = 20;
+
+/**
+ * A confirmed address, shortened FROM THE MIDDLE: the part before the @ gives
+ * way first, because the domain is usually what tells a host whether an address
+ * is real (his "fakeemail@domain.com"), and only a domain longer than
+ * `DOMAIN_CHARS` loses its own end. Shortened as text rather than by CSS
+ * ellipsis, which leaves a sliver of blank before the domain wherever a glyph
+ * would not fit; the chip's `truncate` stays as the net for unusually wide ones.
+ */
+function shortAddress(email: string): string {
+  if (email.length <= ADDRESS_CHARS) return email;
+  // A cut never ends on the address's own punctuation: "1987…", not "1987.…".
+  const cut = (text: string, chars: number) =>
+    `${text.slice(0, chars).replace(/[._+-]+$/, "")}…`;
+  const at = email.lastIndexOf("@");
+  if (at <= 0) return cut(email, ADDRESS_CHARS - 1);
+  const whole = email.slice(at);
+  const domain =
+    whole.length > DOMAIN_CHARS ? cut(whole, DOMAIN_CHARS - 1) : whole;
+  const room = Math.max(3, ADDRESS_CHARS - domain.length - 1);
+  const local = at <= room ? email.slice(0, at) : cut(email, room);
+  return `${local}${domain}`;
+}
+
+/**
+ * The address under a confirmed name. A shortened one is drawn for the eye
+ * alone, with the whole address beside it for a screen reader and in the title.
+ */
+function Address({ email }: { email: string }) {
+  const short = shortAddress(email);
+  const look = "max-w-56 truncate text-caption text-muted-foreground";
+  if (short === email) {
+    return (
+      <span title={email} className={look}>
+        {email}
+      </span>
+    );
+  }
+  return (
+    <>
+      <span className="sr-only">{email}</span>
+      <span aria-hidden title={email} className={look}>
+        {short}
+      </span>
+    </>
+  );
+}
+
 // item.seed is seedFor(item.id), hydrated onto every ProfileCardItem by
 // withAvatarUrls (lib/social/cards.ts) — one colour per person, the same
 // place avatarUrl is resolved, so a guest list of two dozen strangers is
@@ -122,10 +194,12 @@ function Chips({
   items,
   viewerId,
   followingIds,
+  emails,
 }: {
   items: GuestListItem[];
   viewerId?: string | null;
   followingIds?: ReadonlySet<string>;
+  emails?: ReadonlyMap<string, string>;
 }) {
   return (
     <ul className="flex flex-wrap items-center gap-1.5">
@@ -146,12 +220,26 @@ function Chips({
             </li>
           );
         }
+        // Looked up ONLY here, on the profile half: the unverified branch above
+        // never reads the map (an address never sits under a name nobody proved).
+        const email = emails?.get(item.id) ?? null;
+        const chipClass = email ? CHIP_WITH_ADDRESS : CHIP;
+        const name = (
+          <span className="max-w-40 truncate">
+            {item.displayName ?? "Guest"}
+          </span>
+        );
         const chip = (
           <>
             <Face item={item} />
-            <span className="max-w-40 truncate">
-              {item.displayName ?? "Guest"}
-            </span>
+            {email ? (
+              <span className="flex min-w-0 flex-col text-left">
+                {name}
+                <Address email={email} />
+              </span>
+            ) : (
+              name
+            )}
           </>
         );
         // Only where it earns its space: a signed-in viewer, somebody else, a
@@ -167,12 +255,14 @@ function Chips({
             {item.slug ? (
               <Link
                 href={`/u/${item.slug}`}
-                className={`${CHIP} text-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
+                className={`${chipClass} text-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
               >
                 {chip}
               </Link>
             ) : (
-              <span className={`${CHIP} text-muted-foreground`}>{chip}</span>
+              <span className={`${chipClass} text-muted-foreground`}>
+                {chip}
+              </span>
             )}
             {canFollow && item.slug && (
               <FollowButton
@@ -192,12 +282,19 @@ export function GuestList({
   items,
   viewerId,
   followingIds,
+  emails,
 }: {
   items: GuestListItem[];
   /** The signed-in viewer, so a Follow can appear on somebody else's chip. */
   viewerId?: string | null;
   /** Who this viewer already follows: no Follow on a chip that would be a no-op. */
   followingIds?: ReadonlySet<string>;
+  /**
+   * HOST-ONLY: a confirmed guest's address by user id, drawn under the name.
+   * Only the Guests room passes it (`getConfirmedGuestAddresses`); a guest's
+   * album never does, so no guest ever sees another guest's address.
+   */
+  emails?: ReadonlyMap<string, string>;
 }) {
   // How many names are showing. 0 = the condensed row (the list is past the
   // threshold and nobody has opened it yet).
@@ -219,7 +316,12 @@ export function GuestList({
 
   if (items.length <= GUEST_LIST_FACES_THRESHOLD) {
     return (
-      <Chips items={items} viewerId={viewerId} followingIds={followingIds} />
+      <Chips
+        items={items}
+        viewerId={viewerId}
+        followingIds={followingIds}
+        emails={emails}
+      />
     );
   }
 
@@ -254,7 +356,12 @@ export function GuestList({
   const rest = items.length - page.length;
   return (
     <div className="space-y-2">
-      <Chips items={page} viewerId={viewerId} followingIds={followingIds} />
+      <Chips
+        items={page}
+        viewerId={viewerId}
+        followingIds={followingIds}
+        emails={emails}
+      />
       {rest > 0 && (
         <button
           type="button"

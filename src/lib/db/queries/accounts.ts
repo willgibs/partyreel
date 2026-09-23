@@ -11,6 +11,7 @@ import {
   toBillingTier,
   type Tier,
 } from "@/lib/constants/tiers";
+import { readHostStorageSummary } from "@/lib/db/queries/storage";
 import type { Tables } from "@/lib/db/types";
 import { serverEnv } from "@/lib/env";
 import { buildStripeCustomerUrl } from "@/lib/stripe/dashboard";
@@ -89,18 +90,24 @@ export async function getAccountDetail(
   if (error) throw error;
   if (!profile) return null;
 
-  // ACTIVE media (non-removed, in non-deleted events) → bytes + count in one pass. Matches the
-  // over-capacity sweep's definition. (Fetches one row per media; fine at this scale — an aggregate
-  // RPC would be the move only for very large accounts.)
-  const { data: media, error: mErr } = await admin
-    .from("media")
-    .select("file_size_bytes, events!media_event_id_fkey!inner(host_id, deleted_at)")
-    .eq("events.host_id", id)
-    .is("events.deleted_at", null)
-    .neq("status", "removed");
+  // ACTIVE media (non-removed, in non-deleted events): the bytes from the one aggregate the host's own meter and the
+  // storage guard read (`host_storage_summary`, whose active filter is host_active_bytes'), and the count as an exact
+  // HEAD count under the same filters. Neither reads rows, so neither is capped at PostgREST's 1,000 (an unpaged row
+  // read would sum the first thousand items of a large account and show the operator a fraction of it).
+  const [{ activeBytes }, { count: mediaCount, error: mErr }] =
+    await Promise.all([
+      readHostStorageSummary(id),
+      admin
+        .from("media")
+        .select("id, events!media_event_id_fkey!inner(host_id, deleted_at)", {
+          count: "exact",
+          head: true,
+        })
+        .eq("events.host_id", id)
+        .is("events.deleted_at", null)
+        .neq("status", "removed"),
+    ]);
   if (mErr) throw mErr;
-  const rows = (media ?? []) as unknown as { file_size_bytes: number }[];
-  const activeBytes = rows.reduce((sum, m) => sum + m.file_size_bytes, 0);
 
   const { count: eventCount, error: eErr } = await admin
     .from("events")
@@ -122,7 +129,7 @@ export async function getAccountDetail(
     activeBytes,
     storageUsedBytes: profile.storage_used_bytes,
     eventCount: eventCount ?? 0,
-    mediaCount: rows.length,
+    mediaCount: mediaCount ?? 0,
     hasSubscription: Boolean(profile.stripe_subscription_id),
     stripeCustomerUrl: profile.stripe_customer_id
       ? buildStripeCustomerUrl(profile.stripe_customer_id, stripeLive)
