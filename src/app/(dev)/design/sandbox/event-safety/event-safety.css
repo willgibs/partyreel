@@ -1,0 +1,132 @@
+/* THE SURFACES THAT CANNOT BE THE REAL ONE, QUOTED RATHER THAN INVENTED.
+   A Sheet, a Dialog, a DropdownMenu and a sonner toast all portal to the
+   document.body of the wrong realm (the frame IS the viewport: a same-origin
+   iframe), so their shells are redrawn here at the app's own tokens, still, on
+   the ruled postures: the responsive Sheet (a side panel at a desk, a bottom
+   sheet in a hand, `ui/sheet.tsx` + `floatingEdgeEntranceResponsive`), the
+   centred Dialog (`ui/dialog.tsx`, `max-w-sm`), and the toast box.
+
+   ★ KEYED OFF `data-screen`, NEVER A BREAKPOINT CLASS. A `sm:` utility only
+   this board wrote would lose to production's unprefixed one in the lab's
+   layer order (`design.css`), so the two postures are written here, where an
+   unlayered rule wins. Nothing here animates: every surface is drawn at rest,
+   so reduced motion has nothing to honour. */
+
+/* Several screens for one option: equal columns, each frame fitted to its own. */
+.es-several {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.es-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in oklab, black 10%, transparent);
+  /* `supports-backdrop-filter:backdrop-blur-xs`, the shipped overlays' own. */
+  backdrop-filter: blur(4px);
+}
+
+/* The responsive Sheet: a full-height side panel at a desk. */
+.es-sheet {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  inset-block: 0;
+  right: 0;
+  height: 100%;
+  width: 75%;
+  max-width: 28rem;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-layer);
+  font-size: 0.875rem;
+}
+/* ...and a bottom sheet in a hand, exactly the Sheet's own posture below sm. */
+.es-sheet[data-screen="375"] {
+  inset-inline: 0;
+  top: auto;
+  right: auto;
+  bottom: 0;
+  height: auto;
+  max-height: 85svh;
+  width: 100%;
+  max-width: none;
+  border-top: 1px solid var(--border);
+  border-left: none;
+  border-top-left-radius: var(--radius-float);
+  border-top-right-radius: var(--radius-float);
+}
+
+/* The centred Dialog (`ui/dialog.tsx`): the floating panel, max-w-sm, and a
+   phone's 1rem margin each side; its footer is the muted rail, a column in a
+   hand and a right-aligned row at a desk. */
+.es-dialog {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  width: calc(100% - 2rem);
+  max-width: 24rem;
+  translate: -50% -50%;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+.es-dialog-foot {
+  margin: 0 -1rem -1rem;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  border-bottom-left-radius: var(--radius-float);
+  border-bottom-right-radius: var(--radius-float);
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+.es-dialog[data-screen="1440"] .es-dialog-foot {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+/* The toast (sonner's box at the app's tokens), bottom right at a desk and
+   across the foot of a phone. */
+.es-toast {
+  position: fixed;
+  z-index: 60;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 22rem;
+  border-radius: var(--radius-float);
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0.875rem 1rem;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-layer);
+}
+.es-toast[data-screen="375"] {
+  left: 1rem;
+  right: 1rem;
+  width: auto;
+}
+
+/* A menu drawn open: the dropdown panel at its width and padding. Where it
+   stands is its caller's (pinned over the viewer, or hung under a row). */
+.es-menu {
+  z-index: 50;
+  width: 16rem;
+  padding: 0.25rem;
+}
