@@ -115,7 +115,7 @@ export const EVENT_SAFETY = defineExploration({
       id: "room-rows",
       question: "What shape does the host's own Guests room take?",
       taken:
-        "Rows: each has room for the confirmed address, a count and a menu. The album's list keeps its chips.",
+        "Rows, where today's room draws chips with the address under a name: a row has room for the address, a count and a menu.",
       overrule:
         "Keep the room on the album's chips if one list drawn two ways costs more than room for actions.",
     },
@@ -363,7 +363,7 @@ export const EVENT_SAFETY = defineExploration({
       label: "Who can join",
       question: "How should a host choose who can join, in the event's settings?",
       context:
-        "Three closed doors, free on every plan: approve newcomers, close to newcomers, an invite list. They join Require verified emails, Require an upload to view, Review and Pause; the first and last need a confirmed email.",
+        "Three closed doors, free on every plan: approve newcomers, close to newcomers, an invite list, beside Require verified emails, Require an upload to view, Review and Pause. Approving and a list need a confirmed email.",
       options: [
         {
           id: "choice",

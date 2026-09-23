@@ -142,14 +142,20 @@ function who(s: BoardState) {
   return { typed, person, uploads, item, position, people };
 }
 
-/** The viewer's menu pinned over the pill stack, opening up from the credit. */
-const OVER_CREDIT = {
-  position: "fixed",
-  left: "50%",
-  bottom: "3.9rem",
-  width: "17rem",
-  translate: "-50% 0",
-} as const;
+/**
+ * The viewer's menu pinned over the pill stack, opening up from the credit and
+ * over the action pill (a menu opened from a trigger covers what stands above
+ * it). The credit is a line shorter without a confirmed address under the
+ * name, so the menu sits a line lower for a typed name.
+ */
+const overCredit = (person: Person) =>
+  ({
+    position: "fixed",
+    left: "50%",
+    bottom: person.email ? "3.9rem" : "2.9rem",
+    width: "17rem",
+    translate: "-50% 0",
+  }) as const;
 
 /* ── decision 1: where Block lives ────────────────────────────────────────── */
 
@@ -160,7 +166,7 @@ function InViewer({ scr }: { scr: ScreenId }) {
       item={OPEN_ITEM}
       position={OPEN_POSITION}
       credit={<Credit item={OPEN_ITEM} position={OPEN_POSITION} pressed />}
-      menu={<PersonMenu person={DOM} style={OVER_CREDIT} />}
+      menu={<PersonMenu person={DOM} style={overCredit(DOM)} />}
     />
   );
 }
@@ -285,7 +291,7 @@ function blockGround(s: BoardState, shape: SheetShape): ReactNode {
         }
         menu={
           shape === "inline" ? (
-            <PersonMenu person={w.person} style={OVER_CREDIT} foot={inline} />
+            <PersonMenu person={w.person} style={overCredit(w.person)} foot={inline} />
           ) : undefined
         }
         overlay={sheet}
