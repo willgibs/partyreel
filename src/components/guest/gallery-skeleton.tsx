@@ -1,5 +1,8 @@
+import type { CSSProperties } from "react";
+
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { TileSize } from "@/lib/shared/tile-size-cookie";
 
 // The streaming fallback for the guest gallery (Phase 3): the shell paints
 // immediately while the presign-heavy gallery payload streams in. Mirrors the
@@ -12,9 +15,10 @@ const PHONE_RATIOS = ["4/5", "1/1", "3/4", "4/3", "1/1", "4/5"];
  * The rest, which exist only once the album has left the phone's two columns
  * (Will's `width=full`, 2026-09-19). Six tiles spread across a 1920 window is
  * ONE thin row of shimmer, which reads as a broken album rather than a loading
- * one; eighteen keeps it two or three deep at every count the width rule
- * produces (5, 6 and 8 columns at 1280, 1512 and 1920) without making a phone
- * scroll past nine shimmering rows before the photographs land.
+ * one; eighteen keeps it about two deep or more at every count the width rule
+ * produces (5, 6 and 7 columns at 1280, 1512 and 1920 on the default Medium
+ * tile; 10 at 1920 on Small) without making a phone scroll past nine
+ * shimmering rows before the photographs land.
  */
 const WIDE_RATIOS = [
   "3/4",
@@ -31,9 +35,25 @@ const WIDE_RATIOS = [
   "3/4",
 ];
 
-export function GallerySkeleton() {
+export function GallerySkeleton({
+  tileSize,
+}: {
+  /**
+   * The album's own tile size (the server-resolved `pr_tile_size` cookie), so
+   * the placeholder lays out the columns the album lands in. Without it the
+   * column rule falls back to its 220px floor, and a 1920 window shimmered in
+   * 8 columns under an album that landed in 7.
+   */
+  tileSize: TileSize;
+}) {
   return (
-    <section className="mt-9" aria-hidden>
+    <section
+      className="mt-9"
+      aria-hidden
+      // The knob the album sets on its own wrapper (live-gallery.tsx), read by
+      // the same column rule below, so the two boxes cannot disagree.
+      style={{ "--album-column": `${tileSize}px` } as CSSProperties}
+    >
       {/* Stands in for the gallery's "Download all" control, which sits at the
           album's RIGHT edge — `ml-auto`, because on a full-width album a
           placeholder parked on the left is most of a window away from the

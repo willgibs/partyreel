@@ -15,26 +15,33 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  SAVE_FAILED,
+  SAVED_TO_DASHBOARD,
+  completePendingSave,
+  markPendingSave,
+  saveEvent,
+  type SaveableEvent,
+} from "@/lib/events/save-event";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-// The always-visible "Save event" growth lever (Phase 3). Shown to EVERYONE — for a
-// signed-out visitor it IS the account-creation moment ("create a free account to
-// save"), surfaced proactively, not just after an upload.
+// The offer card's door (`SaveAccountPrompt`, after a guest's first photographs
+// land): for a signed-out guest it IS the account-creation moment, and confirming
+// saves the event to their dashboard.
 //
 // Save is the capability `save_event(token)` RPC (resolves the event from the page's
-// token, refuses private/your-own, idempotent); status-check + unsave are plain
-// per-user RLS calls straight from the browser client. The signed-out path opens a
-// dialog with the shared <EmailSignIn> (code-first OTP) + Google.
-
-// Remember a save intent across a REDIRECT sign-in (Google / magic link) so the save
-// completes when the visitor returns signed-in. The in-page OTP code path doesn't
-// need it (it saves in onVerified, no redirect), but setting it on dialog open covers
-// every method uniformly; save_event is idempotent so a double save is harmless.
-function pendingKey(eventId: string) {
-  return `pr_pending_save_${eventId}`;
-}
+// token, refuses private/your-own, idempotent) through `lib/events/save-event.ts`,
+// which the Unverified mark and the header's name menu share; status-check + unsave
+// are plain per-user RLS calls straight from the browser client. The signed-out path
+// opens a dialog with the shared <EmailSignIn> (code-first OTP) + Google.
+//
+// A save intent is remembered across a REDIRECT sign-in (Google / magic link) so the
+// save completes when the visitor returns signed-in (`CompletePendingSave` below, on
+// the event page). The in-page OTP code path doesn't need it (it saves in onVerified,
+// no redirect), but setting it on dialog open covers every method uniformly;
+// save_event is idempotent so a double save is harmless.
 
 export function SaveEventButton({
   eventId,
@@ -85,14 +92,8 @@ export function SaveEventButton({
   const [optIn, setOptIn] = useState(false);
 
   const save = useCallback(async (): Promise<boolean> => {
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc("save_event", {
-      p_qr_token: qrToken,
-    });
-    if (error || !data) return false;
+    if (!(await saveEvent({ eventId, qrToken }))) return false;
     setSaved(true);
-    if (typeof window !== "undefined")
-      localStorage.removeItem(pendingKey(eventId));
     onSaved?.();
     return true;
   }, [eventId, qrToken, onSaved]);
@@ -148,14 +149,19 @@ export function SaveEventButton({
         setSaved(true);
         return;
       }
-      if (localStorage.getItem(pendingKey(eventId)) === "1") {
-        if (await save()) toast.success("Saved to your dashboard.");
+      // Taken, not read: the event page's own reader may be finishing the
+      // same intent, and exactly one of them may say so.
+      if (await completePendingSave({ eventId, qrToken })) {
+        if (!active) return;
+        setSaved(true);
+        onSaved?.();
+        toast.success(SAVED_TO_DASHBOARD);
       }
     })();
     return () => {
       active = false;
     };
-  }, [eventId, save]);
+  }, [eventId, qrToken, onSaved]);
 
   async function onClick() {
     if (busy) return;
@@ -180,14 +186,13 @@ export function SaveEventButton({
       setBusy(true);
       const ok = await save();
       setBusy(false);
-      if (ok) toast.success("Saved to your dashboard.");
-      else toast.error("Couldn't save this event.");
+      if (ok) toast.success(SAVED_TO_DASHBOARD);
+      else toast.error(SAVE_FAILED);
       return;
     }
     // Signed out → remember the intent (so a redirect sign-in still saves) + open the
     // create-account-to-save dialog.
-    if (typeof window !== "undefined")
-      localStorage.setItem(pendingKey(eventId), "1");
+    markPendingSave(eventId);
     onDoorOpen?.();
     setOpen(true);
   }
@@ -244,7 +249,8 @@ export function SaveEventButton({
             onVerified={async () => {
               // In-page OTP verify (no reload) -> claim this browser's uploads directly. Silent:
               // the "Saved to your dashboard." toast below is the feedback here. The redirect paths (Google /
-              // magic link) reload /e/ and are covered by the EventExperience claim mount instead.
+              // magic link) reload /e/ and are covered by the EventExperience mounts instead (the claim,
+              // and `CompletePendingSave` for the save).
               //
               // ★ AWAITED, NOT FIRED AND FORGOTTEN (the identity reshape,
               // 2026-09-21). The save writes a row keyed on this account and the
@@ -257,8 +263,8 @@ export function SaveEventButton({
               const ok = await save();
               if (offerNewsletter && optIn) await captureNewsletter();
               setOpen(false);
-              if (ok) toast.success("Saved to your dashboard.");
-              else toast.error("Couldn't save this event.");
+              if (ok) toast.success(SAVED_TO_DASHBOARD);
+              else toast.error(SAVE_FAILED);
             }}
           >
             {offerNewsletter && (
@@ -282,4 +288,34 @@ export function SaveEventButton({
       </Dialog>
     </>
   );
+}
+
+/**
+ * THE OTHER HALF OF A DOOR THAT LEFT THE PAGE. Every door that saves an event
+ * (this card's, the Unverified mark's, the name menu's) writes its intent when
+ * it opens, and a Google or magic-link sign-in comes back to a fresh page with
+ * none of their code running. The event page mounts this once, beside the claim
+ * that runs on the same return, so the save the door promised lands whichever
+ * way the guest confirmed. It used to be read only by this button, which by
+ * then is not on the page: the offer card belongs to a guest who is signed out.
+ * Renders nothing.
+ */
+export function CompletePendingSave({ eventId, qrToken }: SaveableEvent) {
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const {
+        data: { session },
+      } = await createClient().auth.getSession();
+      // Signed out: the intent waits for the sign-in it was written for.
+      if (!active || !session) return;
+      if (await completePendingSave({ eventId, qrToken })) {
+        toast.success(SAVED_TO_DASHBOARD);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [eventId, qrToken]);
+  return null;
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  SAVE_FAILED,
+  SAVED_TO_DASHBOARD,
+  markPendingSave,
+  saveEvent,
+  type SaveableEvent,
+} from "@/lib/events/save-event";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -72,12 +80,46 @@ import { cn } from "@/lib/utils";
 export const UNVERIFIED_LABEL = "Unverified";
 
 /**
+ * THE EVENT A CONFIRMATION FROM THE MARK KEEPS. The door's words promise "this
+ * event stays in your account", and the offer card keeps that promise by SAVING
+ * the event after the claim, which is what puts it on the dashboard; a claim
+ * alone lands it only in Events you joined. The mark sits three modules deep
+ * under the album's grid, so the album's page (`event-experience.tsx`) names
+ * its event once, here, rather than threading it through modules that belong to
+ * other surfaces. Where nobody names one (a host's grid, the lab) the door
+ * claims the uploads and saves nothing, which is all it can honestly do there.
+ */
+const MarkEventContext = createContext<SaveableEvent | null>(null);
+
+export function UnverifiedMarkEvent({
+  event,
+  children,
+}: {
+  /** The album's event; null where there is nothing to save (the demo). */
+  event: SaveableEvent | null;
+  children: ReactNode;
+}) {
+  return (
+    <MarkEventContext.Provider value={event}>
+      {children}
+    </MarkEventContext.Provider>
+  );
+}
+
+/**
  * The way out, as its own subtree: the `save` wear, so confirming from a mark
  * and confirming from the offer card under the album are one act with one set
- * of words. It is the only thing here that touches the router or the auth
- * machinery, and it exists only while it is open.
+ * of words, and one result: the uploads claimed, then the event saved. It is
+ * the only thing here that touches the router or the auth machinery, and it
+ * exists only while it is open.
  */
-function ConfirmEmailDoor({ onClose }: { onClose: () => void }) {
+function ConfirmEmailDoor({
+  event,
+  onClose,
+}: {
+  event: SaveableEvent | null;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const emailRedirectTo =
     typeof window !== "undefined"
@@ -105,6 +147,13 @@ function ConfirmEmailDoor({ onClose }: { onClose: () => void }) {
             // account's, and a refresh that overtook the claim would redraw the
             // very credit the guest just paid an email to fix.
             await claimAnonymousUploads({ silent: true });
+            // Then the save, in the offer card's order and words. A redirect
+            // sign-in never reaches this line; the intent written when the door
+            // opened is finished by the event page on the way back.
+            if (event) {
+              if (await saveEvent(event)) toast.success(SAVED_TO_DASHBOARD);
+              else toast.error(SAVE_FAILED);
+            }
             onClose();
             router.refresh();
           }}
@@ -135,6 +184,8 @@ export function UnverifiedMark({
   className?: string;
 }) {
   const [doorOpen, setDoorOpen] = useState(false);
+  // The album's event, when this mark is drawn inside one (see the provider).
+  const event = useContext(MarkEventContext);
   const who = name?.trim() || "This guest";
 
   return (
@@ -190,6 +241,10 @@ export function UnverifiedMark({
                   onConfirm();
                   return;
                 }
+                // Written BEFORE the door opens: Google and a magic link
+                // leave the page, and the event page finishes the save on the
+                // way back from exactly this intent.
+                if (event) markPendingSave(event.eventId);
                 setDoorOpen(true);
               }}
             >
@@ -204,7 +259,7 @@ export function UnverifiedMark({
           grid, a lab specimen, every tile in an album) where nothing else does.
           A door that exists but is shut would make all of them depend on it. */}
       {own && !onConfirm && doorOpen && (
-        <ConfirmEmailDoor onClose={() => setDoorOpen(false)} />
+        <ConfirmEmailDoor event={event} onClose={() => setDoorOpen(false)} />
       )}
     </>
   );

@@ -69,7 +69,11 @@ describe("nothing in the host app leaves for the marketing page", () => {
     ["the create wizard", "src", "components", "app", "create-event-wizard.tsx"],
     ["the restore button", "src", "components", "app", "restore-event-button.tsx"],
     ["the bin grid", "src", "components", "app", "recently-deleted-grid.tsx"],
+    ["the pulse's storage step", "src", "components", "app", "dashboard", "next-step-band.tsx"],
   ] as const;
+
+  /** An href in any spelling: a JSX attribute, a braced string, or a field. */
+  const PRICING_HREF = /href\s*[=:]\s*\{?\s*["'`]\/pricing["'`]/;
 
   it.each(DOORS.map(([label, ...parts]) => [label, parts] as const))(
     "%s opens the sheet instead of routing to /pricing",
@@ -77,9 +81,18 @@ describe("nothing in the host app leaves for the marketing page", () => {
       const source = read(...parts);
       // A comment may still SAY /pricing (several explain why they no longer go
       // there); a link, a router.push or an href may not.
-      expect(source).not.toMatch(/href=["']\/pricing["']/);
+      expect(source).not.toMatch(PRICING_HREF);
       expect(source).not.toMatch(/push\(["']\/pricing["']\)/);
       expect(source).toContain("PricingSheet");
     },
   );
+
+  it("the pulse's rule hands the storage step no route out of the app", () => {
+    // The band draws whatever door the rule names, and the rule is a pure
+    // module, so its door was an object field this file's scan never read:
+    // that is how the storage step kept leaving for /pricing after every
+    // other door stopped.
+    const rule = read("src", "lib", "dashboard", "next-step.ts");
+    expect(rule).not.toMatch(PRICING_HREF);
+  });
 });

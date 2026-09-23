@@ -69,13 +69,15 @@ export function DangerZoneSection({
             <DialogHeader>
               <DialogTitle>Delete “{eventName}”?</DialogTitle>
               {/* TRUTHFUL (QA #16): this path is softDeleteEvent — the trigger stamps
-                  purge_at = +30 days and Trash has a working restore. The old copy
-                  ("permanently... can't be undone") was wrong in BOTH directions: a host who
-                  deleted by mistake never thought to look in Trash, and a host deleting for
-                  privacy was misinformed about what we still hold. */}
+                  purge_at = +30 days and Deleted has a working restore. "Permanently...
+                  can't be undone" would be wrong in BOTH directions: a host who deleted by
+                  mistake would never think to look for it, and a host deleting for privacy
+                  would be misinformed about what we still hold. The place is named with the
+                  app's one word for it, "Deleted": the dashboard's filter, the album's View
+                  menu and the lifecycle emails all say it, never "Trash" or "bin". */}
               <DialogDescription>
                 This removes the event and everything guests uploaded from your
-                album right away. It moves to Trash, where you can restore it
+                album right away. It moves to Deleted, where you can restore it
                 for {RECENTLY_DELETED_WINDOW_DAYS} days before it is deleted for
                 good.
               </DialogDescription>

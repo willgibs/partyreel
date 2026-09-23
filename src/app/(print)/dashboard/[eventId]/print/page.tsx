@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { PrintButton } from "@/components/app/print/print-button";
 import { PrintStock } from "@/components/app/print/print-stock";
 import { getEvent } from "@/lib/db/queries/events";
+import { preferredEventUrl } from "@/lib/events/share-urls";
 import { PRINT_STOCK, STOCK_IDS, resolveStock } from "@/lib/qr/stock";
 import { getSiteUrl } from "@/lib/site-url";
 import { cn } from "@/lib/utils";
@@ -56,9 +57,12 @@ export default async function PrintStockPage({
 
   const siteUrl = await getSiteUrl();
   const joinUrl = `${siteUrl}/e/${event.qr_token}`;
-  const readable = (
-    event.custom_slug ? `${siteUrl}/${event.custom_slug}` : joinUrl
-  ).replace(/^https?:\/\//, "");
+  // The hub's own builder, so the line printed under a code is a link that
+  // opens: a slug lives at `/e/<slug>`, never at the site's root.
+  const readable = preferredEventUrl(siteUrl, {
+    qrToken: event.qr_token,
+    customSlug: event.custom_slug,
+  }).replace(/^https?:\/\//, "");
   const piece = resolveStock(stock);
 
   return (

@@ -9,9 +9,42 @@
  * never a class name this file should freeze.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { markPendingSave, saveEvent } from "@/lib/events/save-event";
+import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
+/* The name menu's door, reduced to the one act it hands back (`onVerified`),
+   so the pin is what the MENU does with a confirmation. The door's own
+   machinery is its own contract (account-door.test.tsx). */
+const { order } = vi.hoisted(() => ({ order: [] as string[] }));
+vi.mock("@/components/auth/account-door", () => ({
+  DOOR_WEAR: {
+    save: { heading: "Keep your photos", reason: "Confirm it." },
+    signin: { heading: "Sign in", reason: "Sign in." },
+  },
+  AccountDoor: ({ onVerified }: { onVerified: () => Promise<void> }) => (
+    <button type="button" onClick={() => void onVerified()}>
+      Finish confirming
+    </button>
+  ),
+}));
+vi.mock("@/lib/guest/claim-uploads", () => ({
+  claimAnonymousUploads: vi.fn(async () => {
+    order.push("claim");
+  }),
+}));
+vi.mock("@/lib/events/save-event", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/events/save-event")>()),
+  markPendingSave: vi.fn(),
+  saveEvent: vi.fn(async () => {
+    order.push("save");
+    return true;
+  }),
+}));
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
@@ -137,5 +170,57 @@ describe("GuestHeader: a guest with a name and no account", () => {
     localStorage.setItem("pr_guest_name_tok-1", "Sam");
     render(<GuestHeader />);
     expect(screen.getByRole("link", { name: /start for free/i })).toBeVisible();
+  });
+});
+
+/**
+ * CONFIRMING FROM THE MENU KEEPS THE EVENT, as the offer card's door does and
+ * in its words ("this event stays in your account"): the uploads claimed, THEN
+ * the event saved, which is what puts it on the dashboard rather than only in
+ * Events you joined. The intent is written before the door opens, because
+ * Google and a magic link leave the page and the event page finishes the save
+ * on the way back. Sign in promises less (the photographs join the account),
+ * so it claims and saves nothing.
+ */
+describe("GuestNameMenu: confirming keeps the event", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    order.length = 0;
+    vi.clearAllMocks();
+  });
+
+  async function openDoor(row: RegExp) {
+    const trigger = await screen.findByRole("button", {
+      name: /your name on this album/i,
+    });
+    fireEvent.pointerDown(trigger, { ctrlKey: false, button: 0 });
+    fireEvent.click(await screen.findByRole("menuitem", { name: row }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Finish confirming" }),
+    );
+  }
+
+  it("Confirm your email: the intent first, then the claim, then the save", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openDoor(/confirm your email/i);
+    await waitFor(() =>
+      expect(saveEvent).toHaveBeenCalledWith({
+        eventId: "evt-1",
+        qrToken: "tok-1",
+      }),
+    );
+    expect(markPendingSave).toHaveBeenCalledWith("evt-1");
+    expect(order).toEqual(["claim", "save"]);
+    expect(toast.success).toHaveBeenCalledWith("Saved to your dashboard.");
+  });
+
+  it("Sign in: the photographs claimed, and no save it never promised", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Sam");
+    render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
+    await openDoor(/^sign in$/i);
+    await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());
+    expect(saveEvent).not.toHaveBeenCalled();
+    expect(markPendingSave).not.toHaveBeenCalled();
   });
 });

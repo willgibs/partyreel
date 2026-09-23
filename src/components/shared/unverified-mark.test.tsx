@@ -16,13 +16,50 @@
  * The public mark says the same thing either way, which is the ruling's whole
  * point — an address nobody has proved is worth nothing publicly, and a mark
  * that changed would announce that one exists.
+ *
+ * And the way out on a guest's own credit is pinned by what it DOES (the last
+ * block): it keeps the event, as the offer card's door does.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UNVERIFIED_LABEL, UnverifiedMark } from "./unverified-mark";
+import { markPendingSave, saveEvent } from "@/lib/events/save-event";
+import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+
+import {
+  UNVERIFIED_LABEL,
+  UnverifiedMark,
+  UnverifiedMarkEvent,
+} from "./unverified-mark";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
+/* The door's own machinery is the door's contract (account-door.test.tsx); here
+   it is a single "Finish confirming" button that fires `onVerified`, so what is
+   pinned is what the MARK does with a confirmation: the order and the save. */
+const { order } = vi.hoisted(() => ({ order: [] as string[] }));
+vi.mock("@/components/auth/account-door", () => ({
+  DOOR_WEAR: { save: { heading: "Keep your photos", reason: "Confirm it." } },
+  AccountDoor: ({ onVerified }: { onVerified: () => Promise<void> }) => (
+    <button type="button" onClick={() => void onVerified()}>
+      Finish confirming
+    </button>
+  ),
+}));
+vi.mock("@/lib/guest/claim-uploads", () => ({
+  claimAnonymousUploads: vi.fn(async () => {
+    order.push("claim");
+  }),
+}));
+vi.mock("@/lib/events/save-event", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/events/save-event")>()),
+  markPendingSave: vi.fn(),
+  saveEvent: vi.fn(async () => {
+    order.push("save");
+    return true;
+  }),
+}));
 
 /**
  * The mark is a tap-to-open Popover (his "tooltip", answered for thumbs as well
@@ -100,5 +137,51 @@ describe("what the popover says", () => {
     render(<UnverifiedMark name="Sam" />);
     await open();
     expect(screen.queryByText(/Require verified emails/)).toBeNull();
+  });
+});
+
+/**
+ * THE WAY OUT KEEPS THE EVENT. Confirming from the mark is the offer card's act
+ * in the offer card's words ("this event stays in your account"), so it ends
+ * where the offer card ends: the uploads claimed, THEN the event saved, which
+ * is what puts it on the dashboard rather than only in Events you joined. The
+ * intent is written before the door opens, because Google and a magic link
+ * leave the page and the event page finishes the save on the way back.
+ */
+describe("confirming from your own credit", () => {
+  const EVENT = { eventId: "evt-1", qrToken: "tok-1" };
+
+  beforeEach(() => {
+    order.length = 0;
+    vi.clearAllMocks();
+  });
+
+  async function confirm() {
+    await open();
+    fireEvent.click(screen.getByRole("button", { name: "Confirm your email" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Finish confirming" }),
+    );
+  }
+
+  it("keeps the album's event: the intent first, then the claim, then the save", async () => {
+    render(
+      <UnverifiedMarkEvent event={EVENT}>
+        <UnverifiedMark name="Sam" own />
+      </UnverifiedMarkEvent>,
+    );
+    await confirm();
+    await waitFor(() => expect(saveEvent).toHaveBeenCalledWith(EVENT));
+    expect(markPendingSave).toHaveBeenCalledWith("evt-1");
+    expect(order).toEqual(["claim", "save"]);
+    expect(toast.success).toHaveBeenCalledWith("Saved to your dashboard.");
+  });
+
+  it("outside an album, claims the uploads and saves nothing it cannot name", async () => {
+    render(<UnverifiedMark name="Sam" own />);
+    await confirm();
+    await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());
+    expect(saveEvent).not.toHaveBeenCalled();
+    expect(markPendingSave).not.toHaveBeenCalled();
   });
 });

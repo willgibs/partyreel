@@ -205,6 +205,8 @@ export function GuestHeader({
           <GuestNameMenu
             name={guestName}
             qrToken={qrToken}
+            // Confirming from the menu saves this event, as the offer card does.
+            eventId={eventId}
             sessionToken={guestSession}
             emailAttached={emailAttached}
             onRenamed={() => router.refresh()}

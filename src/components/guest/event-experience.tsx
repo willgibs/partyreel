@@ -5,6 +5,7 @@ import {
   lazy,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -33,7 +34,9 @@ import {
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
 import { ReportDialog } from "@/components/guest/report-dialog";
+import { CompletePendingSave } from "@/components/guest/save-event-button";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
+import { UnverifiedMarkEvent } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -50,7 +53,10 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import type { TileSize } from "@/lib/shared/tile-size-cookie";
+import {
+  DEFAULT_TILE_SIZE,
+  type TileSize,
+} from "@/lib/shared/tile-size-cookie";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
@@ -185,11 +191,23 @@ export function EventExperience({
   /** The event's host as a public card, for the capture flow's follow moment. */
   hostCard?: FollowMomentHost | null;
   /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
-   *  through to LiveGallery's own View menu (`controls-home=view-menu`); this
-   *  shell holds no tile-size state of its own. */
+   *  through to LiveGallery's own View menu (`controls-home=view-menu`) and to
+   *  the streaming skeleton, so both lay out one column count; this shell holds
+   *  no tile-size state of its own. */
   initialTileSize?: TileSize;
 }) {
   const router = useRouter();
+  // ONE resolution of the size for both boxes the album occupies: the skeleton
+  // while it streams and the gallery once it lands.
+  const tileSize = initialTileSize ?? DEFAULT_TILE_SIZE;
+  // The event a guest's confirmation keeps: the Unverified mark on their own
+  // credit reads it (it sits three modules deep in the album), and the save a
+  // door started before a redirect sign-in is finished against it. None in the
+  // demo, where nothing is ever saved.
+  const saveable = useMemo(
+    () => (isDemo ? null : { eventId: event.id, qrToken }),
+    [isDemo, event.id, qrToken],
+  );
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   // The name this device typed at this event (the identity reshape). Beside the
   // session, never instead of it: the token is the capability, this is the label.
@@ -621,6 +639,14 @@ export function EventExperience({
           guest page (the toast is the account-context acknowledgment + must not stack with the "Saved"
           toast); self-guards when logged out. */}
       <ClaimUploadsOnAuth silent />
+      {/* And finish the save a door promised before that sign-in left the page (the offer card,
+          the Unverified mark and the name menu all write the intent when they open). */}
+      {saveable && (
+        <CompletePendingSave
+          eventId={saveable.eventId}
+          qrToken={saveable.qrToken}
+        />
+      )}
       <Suspense fallback={null}>
         {/* The heal holds the door (see its own note): a sheet that appears and vanishes half a
             second later is worse than one that arrives a beat late. */}
@@ -999,36 +1025,41 @@ export function EventExperience({
               after sign-in via router.refresh(), a transition - old UI holds) a
               clean remount that re-seeds from the fresh promise. The fallback
               wears the SAME box as the gallery, and the skeleton the same column
-              rule, so the swap is layout-stable at every window: a two-column
-              placeholder under a six-column album would flash the old layout on
+              rule AT THE SAME TILE SIZE, so the swap is layout-stable at every
+              window: a two-column placeholder under a six-column album, or an
+              eight-column one under seven, would flash the wrong layout on
               every load. */}
           <Suspense
             fallback={
               <div className={BLEED}>
-                <GallerySkeleton />
+                <GallerySkeleton tileSize={tileSize} />
               </div>
             }
           >
             <div className={BLEED}>
-              <LiveGallery
-                key={access}
-                ref={attachGallery}
-                galleryPromise={galleryPromise}
-                qrToken={qrToken}
-                access={access}
-                isDemo={isDemo}
-                onOpenGate={() => entryRef.current?.openToGate()}
-                onAccessDrift={handleAccessDrift}
-                onCountChange={setMediaCount}
-                pendingUploads={inFlightUploads}
-                onAddFirst={canUpload ? openAdd : undefined}
-                joinUrl={joinUrl}
-                canDeleteIds={canDeleteIds}
-                isAuthed={isAuthed}
-                sessionToken={sessionToken}
-                initialTileSize={initialTileSize}
-                approvedTotal={stats.approvedTotal}
-              />
+              {/* The album's lightbox carries the Unverified mark on a guest's
+                  own credit, and its door keeps THIS event. */}
+              <UnverifiedMarkEvent event={saveable}>
+                <LiveGallery
+                  key={access}
+                  ref={attachGallery}
+                  galleryPromise={galleryPromise}
+                  qrToken={qrToken}
+                  access={access}
+                  isDemo={isDemo}
+                  onOpenGate={() => entryRef.current?.openToGate()}
+                  onAccessDrift={handleAccessDrift}
+                  onCountChange={setMediaCount}
+                  pendingUploads={inFlightUploads}
+                  onAddFirst={canUpload ? openAdd : undefined}
+                  joinUrl={joinUrl}
+                  canDeleteIds={canDeleteIds}
+                  isAuthed={isAuthed}
+                  sessionToken={sessionToken}
+                  initialTileSize={tileSize}
+                  approvedTotal={stats.approvedTotal}
+                />
+              </UnverifiedMarkEvent>
             </div>
           </Suspense>
 

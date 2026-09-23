@@ -42,6 +42,7 @@ import {
 } from "@/lib/db/queries/social";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
+import { preferredEventUrl } from "@/lib/events/share-urls";
 import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
@@ -119,10 +120,12 @@ export default async function EventDetailPage({
   const eventLink = `${siteUrl}/e/${event.qr_token}`;
   // ★ What a host READS is the slug when they have claimed one; what anything
   // COPIES is still the permanent link above. A slug can be released; a code on
-  // a table card cannot be reprinted.
-  const prettyUrl = event.custom_slug
-    ? `${siteUrl}/${event.custom_slug}`
-    : eventLink;
+  // a table card cannot be reprinted. Built by the one builder, so the readable
+  // form is a link that opens: a slug lives at `/e/<slug>`, never at the root.
+  const prettyUrl = preferredEventUrl(siteUrl, {
+    qrToken: event.qr_token,
+    customSlug: event.custom_slug,
+  });
 
   const [
     media,

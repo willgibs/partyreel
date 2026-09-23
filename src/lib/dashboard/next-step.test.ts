@@ -200,3 +200,18 @@ describe("the band's fold (`busy=collapsed`, app-shape round two, 2026-09-20)", 
     expect(foldNextSteps([])).toEqual({ head: [], rest: [] });
   });
 });
+
+describe("the storage step's door", () => {
+  it("names no route, so the band opens the plan sheet in place rather than leaving the app", () => {
+    // Every pricing door in the host app opens the plan sheet
+    // (`gated-sites.test.ts`); this step used to be the one that left for the
+    // marketing page, because its door was a path in a pure rule no scan read.
+    const [shelf] = resolveNextSteps({
+      events: [],
+      storagePct: 91,
+      today: TODAY,
+    });
+    expect(shelf?.kind).toBe("storage");
+    expect(shelf?.href).toBeNull();
+  });
+});

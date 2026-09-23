@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, Mail, MailCheck, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   AccountDoor,
@@ -27,6 +28,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  SAVE_FAILED,
+  SAVED_TO_DASHBOARD,
+  markPendingSave,
+  saveEvent,
+} from "@/lib/events/save-event";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { requestNameDoor } from "@/lib/guest/name-door";
 
@@ -44,7 +51,8 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  * ★ FOUR ROWS, AND EACH IS A DIFFERENT PERSON'S NEXT MOVE. The label says the
  * name and marks it unconfirmed (the same words the mark uses, read from it, so
  * the two cannot drift). The email row is the capture door, `save`'s wear, the
- * same act the offer card under the album offers. "Change name" reopens the
+ * same act the offer card under the album offers, with the same result: the
+ * uploads claimed, then the event saved to the dashboard. "Change name" reopens the
  * door in edit mode through `lib/guest/name-door.ts`, because this header is a
  * SIBLING island of the page that owns the modal. "Sign in" is the `signin`
  * wear, for the one person the others do not fit: somebody who already has an
@@ -72,6 +80,7 @@ import { requestNameDoor } from "@/lib/guest/name-door";
 export function GuestNameMenu({
   name,
   qrToken,
+  eventId,
   sessionToken,
   emailAttached = false,
   onRenamed,
@@ -80,6 +89,8 @@ export function GuestNameMenu({
   name: string;
   /** Needed by the add-email dialog; omitted on a page with no event behind it. */
   qrToken?: string;
+  /** The event itself, so confirming here saves it; omitted with `qrToken`. */
+  eventId?: string;
   /** The capability the address lands on. Without one there is no row to add to. */
   sessionToken?: string | null;
   /** This device put an unconfirmed address on this event's row (the device flag). */
@@ -90,6 +101,16 @@ export function GuestNameMenu({
   const router = useRouter();
   const [door, setDoor] = useState<DoorWear | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  // The event a confirmation here keeps, as the offer card's door keeps it.
+  const keep = eventId && qrToken ? { eventId, qrToken } : null;
+  /* Both ways into the confirm door (the row, and the add-email dialog's
+     "Confirm it now instead") write the save intent BEFORE it opens: Google and
+     a magic link leave the page, and the event page finishes the save on the
+     way back from exactly this intent. */
+  const openConfirm = () => {
+    if (keep) markPendingSave(keep.eventId);
+    setDoor("save");
+  };
   const emailRedirectTo =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
@@ -130,7 +151,7 @@ export function GuestNameMenu({
               <Mail /> Add your email
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem onSelect={() => setDoor("save")}>
+            <DropdownMenuItem onSelect={openConfirm}>
               <MailCheck /> Confirm your email
             </DropdownMenuItem>
           )}
@@ -176,6 +197,13 @@ export function GuestNameMenu({
                 // Awaited: the refresh below redraws every credit on the page,
                 // and a claim still in flight would redraw them unconfirmed.
                 await claimAnonymousUploads({ silent: true });
+                // Confirming keeps the event, as the offer card's door does,
+                // in its words. Sign in promises only that the photographs
+                // join the account, which the claim above already did.
+                if (door === "save" && keep) {
+                  if (await saveEvent(keep)) toast.success(SAVED_TO_DASHBOARD);
+                  else toast.error(SAVE_FAILED);
+                }
                 setDoor(null);
                 onRenamed?.();
                 router.refresh();
@@ -195,7 +223,7 @@ export function GuestNameMenu({
           onOpenChange={setAddOpen}
           // No callback: the dialog writes the device flag and the same store
           // the header subscribes to re-labels this menu on its own.
-          onConfirmInstead={() => setDoor("save")}
+          onConfirmInstead={openConfirm}
         />
       )}
     </>

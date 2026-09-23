@@ -1,12 +1,13 @@
 /**
  * Event link builder — the single place that turns an event's qr_token into the
- * absolute guest-facing URL. One link per event (database-security.md0): what a guest sees is
+ * absolute guest-facing URL. One link per event (guest-flow.md): what a guest sees is
  * driven by the host's configs (visibility / accepting_uploads / allow_anonymous_uploads),
  * not by which link they hold.
  *
  * Pure + client-safe (takes `siteUrl` as a string, no `server-only` import) so the
  * create wizard's client share step can build the URL from the `siteUrl` its server
- * route passed down. The event page builds the same URL inline server-side.
+ * route passed down. The event page and the print sheet build the same permanent
+ * URL inline server-side, and their READABLE form with `preferredEventUrl` below.
  */
 
 // A same-length stand-in for a real 32-hex `qr_token` (DB default is
@@ -30,10 +31,11 @@ export function previewJoinUrl(siteUrl: string): string {
 }
 
 /**
- * The host-facing "best" share URL: the custom slug when set, else the permanent
- * qr_token URL (host-app.md). For DASHBOARD display/copy of the prettier link only — the
- * QR and the guest page's canonical link stay on the qr_token, since the slug is mutable
- * and the printed/permanent link must never break.
+ * The host-facing READABLE link: the custom slug when set (`/e/<slug>`, the one
+ * route a slug resolves on), else the permanent qr_token URL (host-app.md). It is
+ * what the hub's link row, the code mini-modal and the print sheet SHOW; what they
+ * copy and encode stays the qr_token link, since the slug is mutable and the
+ * printed/permanent link must never break.
  */
 export function preferredEventUrl(
   siteUrl: string,

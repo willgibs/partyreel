@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -55,4 +58,24 @@ describe("preferredEventUrl", () => {
       }),
     ).toBe("https://partyreel.com/e/my-party");
   });
+});
+
+describe("the surfaces that SHOW the readable link", () => {
+  // The hub page hands its readable link to the link row and the code
+  // mini-modal; the print sheet builds the line under its codes. Both used to
+  // type `<site>/<slug>` by hand, a path with no route (a slug resolves only
+  // under /e/), so a host read a link that did not open.
+  const PAGES = [
+    ["the event hub", "src/app/(app)/dashboard/[eventId]/page.tsx"],
+    ["the print sheet", "src/app/(print)/dashboard/[eventId]/print/page.tsx"],
+  ] as const;
+
+  it.each(PAGES)(
+    "%s builds it with preferredEventUrl, never by hand",
+    (_label, path) => {
+      const source = readFileSync(join(process.cwd(), path), "utf8");
+      expect(source).toContain("preferredEventUrl(");
+      expect(source).not.toMatch(/siteUrl\}\/\$\{[^}]*custom_slug/);
+    },
+  );
 });
