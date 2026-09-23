@@ -808,39 +808,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profile_hidden_events: {
-        Row: {
-          created_at: string
-          event_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profile_hidden_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profile_hidden_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profile_shown_events: {
         Row: {
           created_at: string
@@ -1089,39 +1056,6 @@ export type Database = {
           {
             foreignKeyName: "reports_resolved_by_fkey"
             columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      saved_events: {
-        Row: {
-          event_id: string
-          saved_at: string
-          user_id: string
-        }
-        Insert: {
-          event_id: string
-          saved_at?: string
-          user_id: string
-        }
-        Update: {
-          event_id?: string
-          saved_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "saved_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "saved_events_user_id_fkey"
-            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1545,21 +1479,6 @@ export type Database = {
         }[]
       }
       get_public_profile: { Args: { p_slug: string }; Returns: Json }
-      get_saved_events: {
-        Args: never
-        Returns: {
-          accessible: boolean
-          cover_key: string
-          event_date: string
-          event_id: string
-          has_password: boolean
-          host_display_name: string
-          name: string
-          qr_token: string
-          saved_at: string
-          visibility: Database["public"]["Enums"]["event_visibility"]
-        }[]
-      }
       get_upload_context: {
         Args: {
           p_session_token: string
@@ -1625,7 +1544,6 @@ export type Database = {
       }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
-      save_event: { Args: { p_qr_token: string }; Returns: string }
       set_event_password: {
         Args: { p_event_id: string; p_password: string }
         Returns: undefined

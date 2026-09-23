@@ -35,15 +35,15 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## Next, in order
 
-1. **Will's answers of 2026-09-22 (evening)**: all five lanes merged (`recheck-by-upload` `0d6eb748`, `host-storage`
-   `602b915e`, `storage-guard` `66cd79f8`, `voice-guest` `4bd4ffa5`, `guest-by-upload` `09375611`, gates 129 to 133);
-   `20260923120000_guest_by_upload` applied (drift clean, after-md5s equal the file, advisors 15 / 5 / 34 unchanged,
-   the rolled-back check held, nothing persisted). Next: alias build 2 (this record); then the general portal
-   configuration's one Stripe call (`features[subscription_update][enabled]=false` on `bpc_1TcTxWPtjqmVkBwkcAldFEZA`);
-   the red-team (the save lane's five "look at first" walks, Will's Chrome, the account chooser); then
-   `20260923130000_drop_saves` by the protocol (advisors 0029 34 to 32), `types.ts` regenerated, STATUS naming what
-   partyreel.com loses until a milestone. A change-plan session's live look needs a real TEST subscription (Will's
-   hands: a TEST checkout as willg97, card 4242, on Stripe's page).
+1. **Will's answers of 2026-09-22 (evening) are done**: five lanes merged (gates 129 to 133); both migrations
+   applied by the protocol (`20260923120000_guest_by_upload`, `20260923130000_drop_saves`; advisors 15 / 5 / 32);
+   `types.ts` regenerated (identical to the generator); the general portal configuration lost `subscription_update`;
+   alias build 2 (`9a5eac29`) red-teamed in Will's Chrome: the hub and Guests room count the seven named guests and
+   never the host; one upload puts a Guest card on the dashboard and deleting it takes the card away; the
+   require-upload door closes after a guest's own last delete (with its upload step back) and stays open after a
+   host's removal; a Google return from the confirm door lands on the follow moment; `/account` says "Events you added
+   photos to" and a hand-set Pro host's sheet lists the six prices with the contact line. Not driven: a change-plan
+   session's confirm page (it needs a real TEST subscription: Will's hands, a TEST checkout as willg97, card 4242).
 2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G; the
    expand migration first, the drop migration and the R2 sweep of stored reel files after the red-team). The sweep
    lane also takes the reel's lines in `PRD.md`, `PRICING.md` and the two content authoring guides.

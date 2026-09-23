@@ -309,12 +309,9 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
 /**
  * Event ids I have CHOSEN to publish on my own public profile.
  *
- * ★ THE INVERSION (the guest identity round, Will 2026-09-22: "Nothing until chosen"). This used to
- * be `getMyHiddenEventIds` over `profile_hidden_events`, an opt-OUT: every event you attended was
- * public until you went and hid it, which published people who had never asked to be published. The
- * opt-IN table `profile_shown_events` replaces it, and the empty set is now the DEFAULT rather than
- * a failure to act. `profile_hidden_events` stays on disk until a later migration drops it, and
- * NOTHING reads or writes it any more.
+ * ★ AN OPT-IN, NEVER AN OPT-OUT (the guest identity round, Will 2026-09-22: "Nothing until chosen").
+ * An opt-out publishes people who never asked to be published, so `profile_shown_events` holds only
+ * what its owner turned on, and the empty set is the DEFAULT rather than a failure to act.
  */
 export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();

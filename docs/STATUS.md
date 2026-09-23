@@ -28,8 +28,8 @@ window of the original fetched by range and decoded on the viewer's device. The 
 - **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
   to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
   host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
-  guest journey. all five lanes merged; `guest-by-upload`'s first migration applied (function bodies only); the save
-  tables drop after alias build 2's red-team, and partyreel.com's older build then errors on its dashboard.
+  guest journey. all five lanes merged and red-teamed on the alias; both migrations applied (the save tables and the
+  dead opt-out table are gone), so partyreel.com's older build errors on its dashboard until a milestone.
 
 ## The desk
 
@@ -43,8 +43,8 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 
 - **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
   `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6d1e7a45`: every standing board
-  current with tonight's rulings, the six reel boards and both engines (old reel live), the key a light guard. No push
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `9a5eac29`: save gone and a guest
+  only by uploading, the storage guard, every standing board current, both engines (old reel live). No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the

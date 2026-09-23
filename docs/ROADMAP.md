@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Copy: the guest's delete confirm says "permanently deleted after a short grace period" (`media-lightbox.tsx`) where Deleted keeps an upload for `RECENTLY_DELETED_WINDOW_DAYS`; say the window.
+- Guest: after deleting one of this visit's uploads, the post-upload handle card still counts it ("Your 2 photos are on this album" with one left); count the live uploads, not the visit's queue.
+- Copy: the door's upload step on an event without Require an upload to view says "Add one now and the album opens." though that album is already open; the line belongs to the require-upload door alone.
 - Guest: on a require-upload event whose album is FULL, the last-removal confirm says the album closes, but the gate fails open on a full album, so it does not; say it only when the gate's `album_full` is false (the lightbox would need that fact).
 - Guest, the demo: every demo upload is the host's and the host never counts, so its header reads "9 photos & videos" with no guests clause; seed a few guest uploads (real uploads, `seed-demo-event.mjs`) to bring back "from N guests".
 - Social: `getProfileCards` hydrates the guest list by one `.in()` of user ids, so a party with several hundred confirmed guests builds a long URL; chunk it (the counts themselves are event-keyed).
