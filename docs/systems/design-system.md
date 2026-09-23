@@ -37,7 +37,7 @@ and actions are coloured.
 - **Cool grey in BOTH modes, at hue 286.** The chrome's greys sit at hue 286 with a chroma between 0.002
   and 0.0105, a temperature and never a colour (half again Apple's grey, because a tint disappears into
   our blacker grounds). The exceptions are pure white (the light menu, the dark hairlines' white alphas)
-  and the admin chart greys (`--chart-N`), still at chroma 0. Light = the Pearl page (bg
+  and the admin chart greys (`--chart-N`) at chroma 0. Light = the Pearl page (bg
   `oklch(0.995 0.002 286)`, card the SAME white, fg `0.145 0.006 286`, menu pure white `oklch(1 0 0)`);
   dark = the Graphite room (bg `0.105 0.0053 286`, an OPAQUE card `0.225 0.006 286`, popover `0.27`,
   secondary/accent `0.315`), ONE room for the app and every cinema chapter. A card on the page is its
@@ -66,8 +66,9 @@ and actions are coloured.
   **The action colours are UNIVERSAL**: one colour per action everywhere it appears, guest and host
   (like=rose, save/download=blue, hide/show=amber, approve=green, delete=red, add-to-reel=violet; guests
   lack the host's verbs). **Monochrome at rest → full-brightness colored STROKE on direct icon-hover + a
-  SUBTLE `/25` FILL on the active state**, so the outline stays legible; native `title` tooltips. →
-  [host-app.md](host-app.md) for the action model.
+  SUBTLE `/25` FILL on the active state**, so the outline stays legible; native `title` tooltips. They
+  land on the gallery tiles' pane and the shared lightbox's pill. → [host-app.md](host-app.md) for the
+  action model.
 - **`--gallery*` stays always-dark in both themes** (media surfaces; never overridden in `.dark`).
   ★ **A `bg-gallery` on a dark leaf paints two registers too deep.** `--gallery` is the media WELL at
   `0.065 0.0045 286`, the deepest thing in the system, so on an OLED panel a photograph is the only
@@ -76,7 +77,7 @@ and actions are coloured.
   well and read as a hole). Inside `.surface-ink`, `bg-background` IS the slab.
   ★ **Painting a subtree dark is only half the job.** `--ring`, `--border`, `--foreground`,
   `--muted-foreground` and `--brand` are not surfaces, so under `.surface-paper` they keep their LIGHT
-  values: `outline-ring/50` (applied to `*`) lands a ~1.4:1 focus ring on the slab, muted text reads
+  values: `outline-ring/50` (applied to `*`) lands a focus ring near 1.15:1 on the slab, muted text reads
   2.69:1, and a bare `border-t` paints a near-white hairline, all INVISIBLE while you work on a cinema
   page where the subtree sits inside `.dark`. Wear `.surface-ink` (the `.surface-paper` mechanism for
   one subtree), which carries every token a leaf needs: **`--brand` redeclared DIRECTLY** (a `var()`
@@ -320,7 +321,8 @@ transform drive. Pinned by test.
 | **The film strip's backlight** | [film-strip-glow.tsx](../../src/components/marketing/sections/home/film-strip-glow.tsx), full-bleed under the strip | `seam` | **sampled** from the strip's eight frames |
 | **The reel screen's pool** | [reel-screen-lamp.tsx](../../src/components/marketing/sections/home/reel-screen-lamp.tsx), under the reel player, the box exactly the screen's width under an elliptical wrapper mask | `seam` | **sampled** from the reel's poster |
 | **The Pro card's beam** | [pro-card-beam.tsx](../../src/components/marketing/sections/home/pro-card-beam.tsx) | beam (`pulse-outside`, the vendored border-beam) | the derived beam register of the lamp set |
-| **The feature heroes** (album, guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the arrivals stream, the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
+| **The feature heroes** (guests, sharing) | [screen-lamp.tsx](../../src/components/marketing/system/screen-lamp.tsx) under each page's stage (the attribution wall, the link frame) | `seam` | **sampled** from the frame the visitor is looking at |
+| **The album page's hero** | [live-album-stage.tsx](../../src/components/marketing/sections/features/album/live-album-stage.tsx), the live album lit from behind (no `ScreenLamp`) | `halo` | **sampled** from the album's own photographs (`useSampledPaletteFromDom`) |
 | **The QR plate switching on** | [qr-hero.tsx](../../src/components/marketing/sections/features/qr/qr-hero.tsx) | `bloom` armed on arrival, resting at `--glw-base: 0.34` | the house five (a code is ink on white, law 3's no-media branch) |
 | **A shared reel, in the Studio** | [publish-light.tsx](../../src/components/reel/publish-light.tsx) `StudioPublishLight`: wings at the sides of the reel's frame in [reel-studio.tsx](../../src/components/reel/reel-studio.tsx), never over the media, mounted only while the reel is shared; the room is near-black in both themes, so it is never fenced | `bloom`; the swell only for a share made on this page (`sharedHere`), otherwise the band eases up to the same base | the house five |
 | **A shared reel, on the host's share card** | `ShareCardPublishLight`, a pool centred under the bottom edge of [reel-share-card.tsx](../../src/components/reel/reel-share-card.tsx) (nothing reaches the poster); it follows the host's theme, so it is named on the light-ground fence | `bloom`, the same gate | the house five; none at all on a light ground |
@@ -448,14 +450,16 @@ the site.
 **The law is the ORDER, not the travel.** Heading sizes sit on one rung set from 12 to 160 whose ratio
 widens as it climbs. A step's desktop end is its ruled size at 1440; its phone end is the rung that
 keeps every heading ABOVE the one it heads at 375 (shifting every step by the same rungs puts the paper
-h2, `prose`, under its own sub-head on a phone). Marketing travels further than the app (bible 2), only
+h2, `prose`, under its own sub-head on a phone). On a phone the marketing steps therefore sit closer
+together than at 1440 (`section` and `prose` are both 24px at 375), so a section's weight there comes from
+its entrance and its air as much as from its type. Marketing travels further than the app (bible 2), only
 as far as the order allows. The policy reads the paper stack (title > prose > sub-head) and the body
 steps' order, FLOOR at the bottom, off the tokens at both ends.
 
 | Step | Class | Wears it |
 | --- | --- | --- |
 | Display | `text-display` | the masthead, one or two words (`PageHero scale="display"`) |
-| Hero | `text-hero` | the cinema hero and the home (`PageHero scale="xl"`) |
+| Hero | `text-hero` | the home's hand-built hero (`cinema-hero.tsx`; `PageHero scale="xl"` exists and no page passes it) |
 | Title | `text-title` | /help, the six feature heroes, /reel, /events (`PageHero scale="lg"`) |
 | Chapter | `text-chapter` | `SectionShell scale="lg"`, the article and role titles, the footer's closer, /help's ghost folio (each pane's chapter number) |
 | Section | `text-section` | the body-section h2 (`SectionShell` default) and a stat numeral: a price, a storage readout |
@@ -634,11 +638,13 @@ into a theme set they are re-declared by every paper chapter and lab board, so t
 override on `<html>` never reaches them there. Declared once on `:root`, the tuner wins everywhere,
 `--gap-gallery` included (it reads `--radius-tile`, so the tile knob moves the gap too).
 
-★ **A DERIVED radius token is not a runtime variable.** `theme.css` declares `--radius-sm..2xl` inside
-`@theme inline`, so Tailwind compiles each into its utility and emits NO custom property;
-`var(--radius-md)` is empty at runtime, and an empty var inside a `calc()` invalidates the whole
-declaration silently. Derive from `--radius`, `--radius-action`, `--radius-float` or `--radius-tile`
-(the real `:root` tokens), never from the scale's names.
+★ **A DERIVED radius token exists at runtime only while some scanned file spells it.** `theme.css`
+declares `--radius-sm..2xl` inside `@theme inline`, so Tailwind compiles each into its utility and emits
+the custom property only when a source spells `var(--radius-<step>)` (today `--radius-xl` and
+`--radius-2xl`, never `-sm`, `-md` or `-lg`). An unspelled step is empty at runtime, an empty var inside a
+`calc()` invalidates the whole declaration silently, and deleting the last spelling of a used step empties
+every other reader. Derive from `--radius`, `--radius-action`, `--radius-float` or `--radius-tile` (the
+real `:root` tokens), never from the scale's names.
 
 **Anything drawn AROUND an object takes the object's radius, never a literal** (bible 9): a ring, glow
 or bloom at offset N gets `object radius + N`, the nested rule read outward, or ring and object read as
@@ -678,9 +684,8 @@ carry everything else. The legend lives at `/design/library/foundations#elevatio
   with it and nothing in the source shows it. Wear the utility (it writes `--tw-shadow`), or re-state
   the ring first: the toast re-states sonner's focus ring for exactly this reason.
 - ★ **An unlayered rule outranks every utility.** `marketing.css` is unlayered, so a bare `box-shadow`
-  there beats `shadow-lift` on the same element whatever the specificity: the unused
-  `[data-mkt] .mkt-stack-card` recipe still sets one, so a card wearing it takes no lift. A shadow that
-  must beat that sheet is carried inline as the token, never a literal.
+  there beats `shadow-lift` on the same element whatever the specificity, and the card silently takes
+  no lift. A shadow that must beat that sheet is carried inline as the token, never a literal.
 - ★ **`cn()` files `shadow-lift` and `shadow-layer` under shadow COLOUR** (tailwind-merge does not read
   the theme). The two replace each other correctly, but `cn("shadow-layer", "shadow-none")` keeps both
   and the stylesheet's order decides. Nothing in the product does that; the fix is one `theme.shadow`
@@ -721,7 +726,8 @@ fixed 4x corner per surface, and `src/components/shared/lit-edge-contract.test.t
 its own. The numbers have ONE home, the `--glass-*` block in [`globals.css`](../../src/app/globals.css);
 [`lib/glass.ts`](../../src/lib/glass.ts) names them and [`glass.test.ts`](../../src/lib/glass.test.ts)
 holds the two files to each other. A pane that types its own `bg-black/55 backdrop-blur-sm` is the drift
-this ends.
+this refuses; `PosterCardChip` on the stored reel's poster (`reel/poster-card.tsx`) is the one pane still
+carrying its own.
 
 - **Crystal, in numbers**: a 42px blur, the backdrop at 0.68 brightness and 2x saturation, 4 percent
   black over it, and TWO hairlines (a 28 percent lip, a 10 percent ring all round). ★ **BRIGHTNESS is
@@ -763,8 +769,9 @@ this ends.
 
 ### The album tile: marks, and the desk's one pane
 
-**A tile shows STATE, not controls:** exactly three marks (an active like, a video's play mark, a subtle
-like count), and on a phone that is the whole tile. Every action and control (like, download and the
+**A tile shows STATE, not controls:** at most four marks (an active like, a video's play mark, a subtle
+like count, and on the guest album the `MineMark` on the viewer's own tiles, a tap that filters to Yours),
+and on a phone that is the whole tile. Every action and control (like, download and the
 rest) lives in the lightbox, because icons on every tile crowd a phone immediately.
 
 - **ONE tile for every album grid**: [`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)
@@ -789,9 +796,10 @@ rest) lives in the lightbox, because icons on every tile crowd a phone immediate
 
 ## Motion
 
-Motion runs on three custom curves, stays under 300ms in UI, and exits faster than it enters. The curves
-are in `@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entrances/UI), `--ease-in-out-strong`
-`cubic-bezier(0.77,0,0.175,1)` (moves/toggles), `--ease-drawer` `cubic-bezier(0.32,0.72,0,1)` (sheets).
+Motion runs on four house curves, stays under 300ms in UI, and exits faster than it enters. Three are in
+`@theme`: `--ease-emphasis` `cubic-bezier(0.23,1,0.32,1)` (entrances/UI), `--ease-in-out-strong`
+`cubic-bezier(0.77,0,0.175,1)` (moves/toggles), `--ease-drawer` `cubic-bezier(0.32,0.72,0,1)` (sheets);
+marketing adds `--mkt-ease-pop` `cubic-bezier(0.34,1.45,0.64,1)` for every bounce (marketing.css).
 **Exits faster than enters** (`data-closed:duration-*` composes with tw-animate via `--tw-duration`);
 press feedback = `active:scale-[0.97]` on buttons; explicit transition properties, never
 `transition-all` on primitives. Panel timings are the floating-layer contract's three clocks (below);
@@ -881,10 +889,7 @@ the PHOTO develops over it, and arrival hooks that must not depend on scroll (`[
 observer: the failure mode becomes "no animation", never "no content". Use the observer grammar
 (`[data-mkt-reveal]` + `Reveal`) when the beat is genuinely about scroll position, `@starting-style`
 when it is about arrival. The base-and-band landmine under Light is the same contract in the glow
-engine. The one readout of WHERE a reader is reading is `READING_BAND` (`-45% 0px -45% 0px`, the middle
-tenth of the screen) in [`photo-section.tsx`](../../src/components/shared/backdrop/photo-section.tsx), an
-observer root its trip wires pass through; a second scroll-position readout joins it there rather than
-defining its own band.
+engine.
 
 ★ **A FILLING ANIMATION OUTRANKS EVERY AUTHOR DECLARATION, so an entrance and a hover state can never
 share an element.** `[data-mkt-cut]` (and any `animation-fill-mode: both` entrance) keeps applying its
@@ -983,8 +988,8 @@ CSS-first, reduced-motion-safe and var-tunable. The motion-defining picks:
   reorganize the survivors, with entrants fading in on a delay; animating both at once makes a filter
   read cheap, because the eye cannot separate what left from what moved. The exit and the FLIP sit on
   SEPARATE elements (exit on the item, FLIP on its wrapper) or the FLIP's inline `transition: transform`
-  clobbers the exit's. Hooks: `[data-mkt-exiting]` / `[data-mkt-entering]` + `--mkt-blog-*`
-  (marketing.css).
+  clobbers the exit's. Hooks: `[data-mkt-exiting]` / `[data-mkt-entering]` + `--mkt-set-exit-ms`,
+  `--mkt-set-enter-ms` and `--mkt-set-enter-delay` (marketing.css).
 - `[data-review-tile][data-exiting]`: the bulk-action REMOVAL EXIT (opacity→0 / `scale(0.9)`,
   `--tune-review-exit-ms`, `transition-delay:0` so the acted set leaves TOGETHER). The inline review
   opts OUT of the `[data-review-tile]` open cascade (no entrance theater on an always-present surface;
@@ -1009,11 +1014,11 @@ reorder are ratified and off the tuner panel; a retune moves the CSS default, th
 JS fallback (`src/components/reel/reveal-constants.ts`) together.
 
 **The contextual floating action bar**
-([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx)) is one
-fixed-bottom surface that follows a scroll-spy (`useActiveSection`) and MORPHS its action to the section
-in view through the same `[data-section-swap]` crossfade (the Add pill / a card holding the review
-cluster / a disabled placeholder). Reuse it wherever a long scroll needs a section-aware action in
-reach.
+([`event-feed-action-bar.tsx`](../../src/components/app/event-feed/event-feed-action-bar.tsx)) has no
+importer (the hub replaced the stacked feed it served). Its pattern stands for any long scroll that needs a
+section-aware action in reach: one fixed-bottom surface following a scroll-spy (`useActiveSection`) and
+morphing its action through the same `[data-section-swap]` crossfade, and a section with nothing to act on
+shows no bar (never a disabled placeholder).
 
 **Multi-select primitives** (Review triage and the Gallery album bulk-select). `useSelection(ids)`
 ([`event-feed/use-selection.ts`](../../src/components/app/event-feed/use-selection.ts)) is the pure
@@ -1072,7 +1077,8 @@ sonner's own `toast.error` once at module load to force `duration: Infinity` and
 guarded by a `Symbol.for` flag on `toast` against Fast Refresh re-wrapping it; a call site's own
 `duration`/`closeButton` still wins. **Action:** every toast reserves the same trailing slot through
 sonner's `action`/`cancel` (Undo, Retry or a named door, nothing when unfilled), so a card's width never
-depends on the slot and there is no toast helper of our own.
+depends on the slot. The only helpers are the error pair `showErrorToast`/`showActionError`
+([`lib/errors/toast.ts`](../../src/lib/errors/toast.ts)), which ride the same toast.
 
 **State-colored toasts:** sonner's `data-type` maps to the state colors (`success` = `--success` green,
 `warning` = `--warning` amber, `error` = `--destructive` red; plain/info keep the neutral `--normal-*`).
@@ -1086,8 +1092,8 @@ went wrong; there is no separate destructive-confirmation variant.
 
 ## The arrival choreography ("Calm + 700ms")
 
-The guest arrival is the one sanctioned exception to the under-300ms rule, because it is a rare,
-first-time moment. The entry sheet ENTERS on vaul's native 500ms iOS drawer curve after a 700ms arrival
+The guest arrival is a sanctioned exception to the under-300ms rule, because it is a rare, first-time
+moment (the reel reveal's baked beats and marketing's 700ms reveal are the others). The entry sheet ENTERS on vaul's native 500ms iOS drawer curve after a 700ms arrival
 beat; everything repeated stays fast (exit 250ms, steps 220ms, height glide 300ms). The choreography
 attributes (all `@starting-style`, reduced-motion = fades): `data-arrive`/`--arrive-i` (the locked page
 settles), `[data-entry-step][data-dir]` (directional step handoffs) + `[data-entry-exit]` (the
@@ -1139,9 +1145,11 @@ Badge or Button declaring fewer variants or sizes than it has) is exactly what i
 
 ## Where it lives
 
-The tokens, utilities and guards have one source, `src/app/globals.css`, and every other part of the
-system has one home, listed here. `src/app/theme.css` (the `@theme` block and the `dark` variant, shared
-with the lab's own Tailwind entry; the `--glass-*` block and the glass utilities stay in globals.css,
+The theme sets' token values (`:root`, `.dark`, `.surface-paper`, the lamp set), the utilities and the
+guards live in `src/app/globals.css`, and every other part of the system has one home, listed here.
+`src/app/theme.css` (the `@theme` block and the `dark` variant, shared with the lab's own Tailwind entry;
+the `@theme` block itself declares the type ladder's values, the three `--ease-*` curves,
+`--tracking-tight` and `--animate-shimmer`; the `--glass-*` block and the glass utilities stay in globals.css,
 because a Tailwind `@utility` compiles only in the entry sheet) · `src/lib/glass.ts` (the material's
 NAMES, held to that block by `glass.test.ts`) · `src/app/layout.tsx` (font loading) ·
 `src/components/ui/*` (the crafted primitives) · `src/lib/errors/` (taxonomy) ·
@@ -1157,8 +1165,8 @@ when one exists (none does: a board's argument lives in its `spec.ts`), tracks f
 nav model, the link grammar (`links.ts`), the markdown reader (`docs.ts`), the legacy redirects; the
 component contracts (every test tagged `@contract-for`, collected by `pnpm design:rules` into
 `rules/rules.generated.json`, `rules-registry.test.ts` pinning it fresh); `touchpoints.ts` the rulings
-registry and the desk's order; `sandbox/` the standing boards, each with its own sheet and any scenes
-its frames portal; `src/components/lab/board-spec.ts` the board spec type; the authority model in
+registry and the desk's order; `sandbox/` the standing boards, each with whatever sheet and scenes its
+frames need; `src/components/lab/board-spec.ts` the board spec type; the authority model in
 [`../design/README.md`](../design/README.md); `pnpm lab:smoke` crawls every lab route) ·
 `src/lib/design-gate/*` + `/api/design-gate` (the gate, outside the lab because production depends on
 it). The perf baseline and its repeatable method are in git:
@@ -1193,8 +1201,9 @@ it). The perf baseline and its repeatable method are in git:
 - ★ **The lab compiles nothing if it references `globals.css`.** Two Tailwind entries, one theme, two
   scans: `globals.css` excludes the lab and `docs/` from its scan (`@source not`), and the lab compiles
   its own utilities from the entry at the top of `design.css`, which `@reference`s `theme.css`;
-  `@reference "globals.css"` would drag the exclusion along. Never move a token VALUE into `theme.css`:
-  it holds only the variant and the `@theme` mapping. Pinned by `src/app/css-source-policy.test.ts`.
+  `@reference "globals.css"` would drag the exclusion along. Never move a theme set's value (`:root`,
+  `.dark`, `.surface-paper`, the lamp set) into `theme.css`: it holds the variant and the `@theme` block.
+  Pinned by `src/app/css-source-policy.test.ts`.
 - `vitest.setup.ts` mocks sonner globally; `vi.unmock("sonner")` is the per-file escape hatch.
 - shadcn `src/components/ui/*` files are semicolon-free (generator style); app code uses semicolons.
   Don't reformat either direction.
