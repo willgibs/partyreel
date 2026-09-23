@@ -50,7 +50,11 @@ to follow, "Claim a handle and your name becomes a page." with a Claim button as
 without a handle → the handle card; with one → nothing. ★ **"Just confirmed" is a MARKER, not a guess**:
 `SaveAccountPrompt` writes `pr_pending_offer_<qr_token>` when the door OPENS (like `pr_pending_save_`:
 after a magic-link or Google redirect no code of ours is running), and the slot consumes and deletes it on
-the next mount, so in-page and full-reload returns land the SAME beat, exactly once. ★ The follow moment
+the next mount, so an in-page return lands the beat exactly once; a full-reload return does not yet (the slot mounts
+only after an upload this visit). The Unverified mark's door and the header name menu's Confirm your email claim THEN
+save the event, as the offer card does (`lib/events/save-event.ts`): every such door writes `pr_pending_save_<eventId>`
+when it opens, and `CompletePendingSave` (mounted by `EventExperience`) finishes the save after a Google or magic-link
+return. ★ The follow moment
 offers the HOST alone: the other guests already carry their own Follow on each handled chip
 ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)), and a second copy would be one list twice
 on one screen. Its card is `getHostCard(eventId)` from the page RSC; no card means no host row, never a
@@ -76,8 +80,10 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
   never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
   Two columns below 640 (`PHONE_MAX`), then as many as fit at `--album-column` (the album's tile size, see
-  "Live gallery"; 220px where no ancestor sets it, as in the skeleton). `--gap-gallery` is pinned to
-  `--radius-tile` (4px, 3px floor), the vertical gap being each tile's bottom margin. Tiles keep their
+  "Live gallery"; 220px where no ancestor sets it; the skeleton lays out on the album's own tile size, `GallerySkeleton`'s
+  `tileSize`). `--gap-gallery` is pinned to `--radius-tile` (4px, 3px floor), the vertical gap being each tile's bottom
+  margin. ★ The JS column count reads the box's RESOLVED `column-gap`, never the `--gap-gallery` token: a custom property
+  computes to its `max()` text, which parses as no gap and lays one column too many. Tiles keep their
   NATURAL aspect ratio (the plumbed `width`/`height`, 1:1 without dims; dims ride OUTSIDE the ETag hash,
   write-once per id). A 45ms entrance stagger (capped at 540ms) plays on the SEED render only (`--tile-i`;
   arrivals get 0). Videos wear a small CORNER play badge (`MediaTile`'s `playBadge="none"`; the centred

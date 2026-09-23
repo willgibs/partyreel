@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `defects-copy` | the published words made true: bible 20's refused promises, the free host page sold as paid, one word for the bin, the no-expiry lines, four help-content fixes, stale comments | cut `da64829f`, committed `cca9f7b7`; running (agent `ace4577df6c7171df`) | Sonnet, :3133 | integrate (`none`); retire the ROADMAP lines its Handoff names |
-| `defects-app` | the app's named defects: the storage step's exit to /pricing, the skeleton's tile size, the masonry gap read, the slug on a path with no route, the two confirm paths that never save the event, the app's word for the bin | cut `da64829f`, committed `cca9f7b7`; running (agent `a5cf839daa2f016dd`) | Opus, :3134 | integrate (`none`); retire the ROADMAP lines its Handoff names |
 
 ## Next, in order
 

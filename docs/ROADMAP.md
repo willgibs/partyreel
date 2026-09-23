@@ -17,12 +17,14 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest (Will's call): should signing in from the name menu keep the event too? Its Sign in row claims the guest's uploads but never saves the event; recommended yes (one `saveEvent` call on that path, and the `signin` wear's reason line saying the event stays in their account).
+- Guest: the follow moment never plays after a Google or magic-link confirm: `ClaimHandlePrompt` consumes `pr_pending_offer_<qr_token>` only inside the post-upload slot, which needs an upload this visit (`guest-upload.tsx`'s `doneCount > 0`), so a full-reload return shows nothing until the guest's next upload.
+- Code hygiene: `dashboard/trash-section.tsx` has no importer and its empty state still says "Nothing in your trash."; it retires with the other unmounted components.
 - Profiles (Will's call): should a profile's attended event also follow Require an upload to view? The album holds a viewer who has not uploaded at the teaser (no Guests list) while uploads are open, yet `get_public_profile`'s attended arm shows that viewer the line; recommended: on such an event admit only the host or a signed-in viewer whose own guest row there has a completed upload.
 - The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
 - The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
 - The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
 - The lab: `sandbox/gallery-fixtures.ts` (shared by `host-curation` and four reel boards) still mints a nameless `isAnonymous` uploader and puts the host's own uploads in `REVIEW_ITEMS`, neither of which the product can do now.
-- Host: the hub link row, the code mini-modal and the print sheet DISPLAY a claimed slug as `<site>/<slug>`, a path with no route (they copy and encode the permanent link); build it with the uncalled `preferredEventUrl` (`dashboard/[eventId]/page.tsx:123`, `(print)/dashboard/[eventId]/print/page.tsx:59`).
 - Billing (Will's call): checkout lets stacked Event Passes above the chosen Pro size start Pro, shrinking the cap into over-cap grace (`api/stripe/checkout/route.ts` compares no sizes); decide whether a move may shrink a cap.
 - Guest: the name step's field carries `autoFocus` (`guest-name-step.tsx:356`) though the password gate drops it for the iOS keyboard; check on a real iPhone.
 - Housekeeping: more files with no importer or Library-only, beyond the lines above: `getFollowedHostEventCards` (`queries/social.ts`), `features.ts` and `features-layout.ts` (read only by their tests), `anonymous-info.tsx` (Library only).
@@ -30,7 +32,6 @@ below hold the rest by surface.
 - Housekeeping: three applied migrations have no file in the repo (`reel_style_catalog`, `reel_style_catalog_drop_legacy_overload`, `reel_caps_ingress_multiplier_parity_reapply`): recover each from `supabase_migrations.schema_migrations` into `supabase/migrations/`.
 - Docs: three headings still carry a date or a status word (`admin-observability.md`'s "(Will, 2026-09-18 and 2026-09-20)", `durability-backups.md`'s "(BUILT — ships in dry-run)", two runbook headings in `trust-safety-forensics.md`): rename each with its anchors.
 - The lab: re-check `testing-verification.md`'s Browser-pane `resize_window` no-op traps against the current tool, which emulated 1440x900 for the systems lane.
-- Guest: confirming from the Unverified mark (`unverified-mark.tsx`) or the guest name menu (`guest-name-menu.tsx`) claims the uploads but never saves the event, so it lands in the account (Events you joined) and not on the dashboard, unlike the offer card's door (`SaveEventButton`): save it on those two paths too.
 - Help: `save-an-event-and-find-your-uploads.mdx` lists Uploads and Likes on the dashboard, but they live in the profile's owner mode (`u/[slug]/owner-sections.tsx`); the article and the code disagree.
 - Profile: a confirmed account with no handle has no page, so the owner mode's uploads, likes and connections are unreachable for it; they need a home that needs no handle (or `identity-profile.setup` answers it).
 - Pricing: `/pricing` and `llms.txt` sell the public host page as paid (`comparison-table.tsx` "Public host page" off on Free, `unlock-grid.tsx` "Free hosts stay unlisted.", `plan-cards.tsx`, `pass-card.tsx`, `llms.ts`), while a handle and "Show on my profile" are free on every plan (`profile-slug-control.tsx`; no tier check in `setProfileSlug` or `setEventSocialSettings`): redraw the paid list.
@@ -43,9 +44,6 @@ below hold the rest by surface.
 - `/blog`'s closing band promises "No app or account for your guests." (`src/app/(marketing)/(cinema)/blog/page.tsx:52`), which bible 20 refuses; `content-policy.test.ts` misses it.
 - The event type pages close on "Your guests need nothing but their phones." (`src/app/(marketing)/(cinema)/events/[slug]/page.tsx:195`), a promise a Require-verified-emails event breaks.
 - The `/pricing` h1 (`GOLDEN_LINES.pricing`, "Start free, upgrade when you host again.") sells Pro as hosting again; redraw it on what one big event gains (a voice ask; `PRICING.md` holds Pro's case).
-- The dashboard's storage step leaves the app for `/pricing` (`src/lib/dashboard/next-step.ts:139`) instead of the in-app plan sheet; `gated-sites.test.ts` does not cover it.
-- The guest album's skeleton takes no tile size (`src/components/guest/event-experience.tsx:1005-1010`), so it lays 8 columns at 1920 before the album lands at 7.
-- Check `src/components/shared/masonry.tsx:363`: it reads `--gap-gallery` unresolved (`max(3px, 4px)`), so the JS column count may parse no gap.
 - The toast sweep: where a control can show its own result, no toast fires (65 call sites unreviewed).
 - `help-palette.tsx` builds its own floating panel outside `src/components/ui` (a hand-worn `rounded-float` and `shadow-layer`), so `floating-layer.test.ts` cannot hold it.
 - `/design/lab/proposals` and the `docs/specs` reader have nothing to show now (a board's argument lives in its `spec.ts`): retire the route and its `status.ts`, or keep it for a board that writes a document.

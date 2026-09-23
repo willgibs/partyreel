@@ -191,9 +191,8 @@ than a dead one. Soft-deleting an event frees its slug too (the partial unique i
 slug is REFUSED so nothing can shadow the token namespace; the reserved-word list is a brand and clarity guard, not a
 routing one. The URL is `/e/<slug>`, never a top-level `/<slug>`: it reuses the one route with its `noindex` and OG,
 with zero collision risk against top-level pages (the reserved list stays valid if a top-level path is ever added).
-The hub's link row, the code mini-modal and the print sheet nevertheless DISPLAY a claimed slug as `<site>/<slug>` (no
-`/e/`), a path with no route; what they copy and encode is the permanent link, so only the readable text is wrong
-(the uncalled `preferredEventUrl` in `share-urls.ts` builds the right form).
+The hub's link row, the code mini-modal and the print sheet show a claimed slug as `<site>/e/<slug>` through
+`preferredEventUrl` (`share-urls.ts`); what they copy and encode is still the permanent link.
 
 ## First-time host welcome
 
