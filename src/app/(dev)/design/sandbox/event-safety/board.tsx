@@ -385,6 +385,11 @@ function ClosedDoor({
               <EndedNotice text="Your photo wasn't added." />
             </span>
           )}
+          {/* The dead end's one way out, as every closed door in the
+              not-found family carries it (his `private-event=family` note). */}
+          <Button size="cta" variant="outline" className="w-full" tabIndex={-1}>
+            What is Partyreel?
+          </Button>
           {below}
         </DoorStep>
       </HeldDoor>

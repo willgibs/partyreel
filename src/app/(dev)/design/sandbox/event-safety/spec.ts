@@ -100,7 +100,7 @@ export const EVENT_SAFETY = defineExploration({
       "New board on his concept: a per-event block for a bad actor and three closed doors, all free. Thirteen steps where the brief named nine, since four of its nine each held two separate choices.",
   },
   context:
-    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound this board: a block puts the person out of the event and moves their uploads to Deleted; approve newcomers, close to newcomers and an invite list keep an event closed; all of it free on every plan. Everything is drawn on Maya and Jay's wedding, where Dom Hale, a confirmed guest, keeps sending a nightclub to a wedding, at 375 with 1440 on the knob.",
+    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, profile-page.view-all, and voice-guest's seven lines.",
   bible: [1, 4, 12, 15, 19, 21, 22],
   carried: [
     {
