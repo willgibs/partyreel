@@ -246,9 +246,12 @@ export function measureReach(root: HTMLElement, win: Window): string {
 
 /** How big a quick-look surface stands against the screen it opened on, which
  *  is the whole of `quick-look`: a peek that costs half the screen is not a
- *  peek. Absent on purpose for the option that skips a surface entirely. */
+ *  peek. Absent on purpose for the option that skips a surface entirely, and
+ *  for a name with no page behind it there is then nothing at all to open. */
 export function measureCard(root: HTMLElement, win: Window): string {
   const card = root.querySelector<HTMLElement>("[data-pp-card]");
+  if (!card && root.querySelector("[data-pp-inert]"))
+    return "no look and no page: a tap on this name opens nothing at all";
   if (!card)
     return "no quick-look card on this option: a tap opens the full page directly";
   const r = card.getBoundingClientRect();

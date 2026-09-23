@@ -1,9 +1,9 @@
 "use client";
 
 import { type ReactNode } from "react";
+import Link from "next/link";
 
 import { GuestMasonry } from "@/components/guest/guest-masonry";
-import { GuestList } from "@/components/social/guest-list";
 import {
   Avatar,
   AvatarFallback,
@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { floatingPanel } from "@/components/ui/floating-layer";
+import { cn } from "@/lib/utils";
 
-import { ALBUM, type Chip, EVENT } from "./fixtures";
+import { ALBUM, type Chip, EVENT, isUnverified } from "./fixtures";
 
 /**
  * THE ALBUM'S OWN PIECES: round one's bases, kept because every round-two
@@ -24,21 +25,26 @@ import { ALBUM, type Chip, EVENT } from "./fixtures";
  * RULED AND GONE (2026-09-19): `NamedShowcase`, `ClaimShowcase`, `ListShowcase`
  * and the membership/claim helpers left with them, because nothing on this
  * board varies who is named or when a handle is offered any more. What
- * survives is the CLOSED representation his `list=faces` picked (now
- * `FacesRow`, split out of the old `Guests` so a click's four behaviours can
- * live in `reach.tsx` instead of one component's if-chain) and the one
- * expansion he already drew (`NamesSheet`, unchanged): both are the bases
+ * survives is the CLOSED representation his `list=faces` picked (`FacesRow`)
+ * and the one expansion he already drew (`NamesSheet`): both are the bases
  * `view-all` recuts.
  *
- * ★ `GuestList` IS THE REAL COMPONENT, imported and handed real-shaped items:
- * it is presentational (its only interactive part is a `Link` to `/u/<slug>`)
- * and it calls nothing. Every new shape this round draws sits beside it
- * rather than through it, because a lab board may not edit a shipped
- * component.
+ * ★ THE CHIPS ARE QUOTED, NOT THE SHIPPED `GuestList`. The shipped list
+ * condenses above twelve names into the faces row and expands only on a tap,
+ * so handing it 24 or 240 names drew that closed row inside every `view-all`
+ * option, which is not what any of them is about; and its Unverified entries
+ * mount the real mark, a Popover that would open on the lab page rather than
+ * in the frame. So `NameList` is `guest-list.tsx`'s own chip markup, copied:
+ * the confirmed first in their own colour (a link only where there is a
+ * handle), then every typed name on the plain disc wearing the mark.
  */
 
 export const HEADING =
   "text-[11px] font-semibold tracking-wide text-muted-foreground uppercase";
+
+/** The shipped list's own threshold: above this it is a row of faces, and
+ *  both callers drop the count from their heading because the row says it. */
+export const FACES_THRESHOLD = 12;
 
 /** The album's own head, as the guest page draws it above the gallery.
  *  `photoCount` overrides the wedding's own 214 for the 240-guest edge case,
@@ -90,6 +96,84 @@ export function Section({
   );
 }
 
+/** The heading count the shipped album shows: only at or under the
+ *  threshold, since above it the faces row says the number itself. */
+export const headingCount = (items: Chip[]) =>
+  items.length <= FACES_THRESHOLD ? items.length : undefined;
+
+/* ── One face, one chip, one list: the shipped markup, quoted ────────────── */
+
+/** A confirmed account wears its own colour and photograph; a typed name wears
+ *  the plain disc (a colour is an identity everywhere else, and this one has
+ *  not been proven). */
+export function Face({ chip }: { chip: Chip }) {
+  const unverified = isUnverified(chip);
+  return (
+    <Avatar size="sm" seed={unverified ? undefined : (chip.seed ?? undefined)}>
+      {!unverified && <AvatarImage src={chip.avatarUrl ?? undefined} alt="" />}
+      <AvatarFallback className="text-[10px]">
+        {(chip.displayName ?? "?").slice(0, 1).toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
+/** The Unverified mark on a chip: `unverified-mark.tsx`'s `paper` tone (a dot
+ *  in a small disc), without the Popover the product opens from it. */
+export function QuotedMark() {
+  return (
+    <span
+      role="img"
+      aria-label="Unverified"
+      className="inline-flex size-4 shrink-0 items-center justify-center rounded-full border border-border bg-muted"
+    >
+      <span aria-hidden className="size-1 rounded-full bg-muted-foreground" />
+    </span>
+  );
+}
+
+export const CHIP =
+  "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
+
+/** The list itself, every name at once: the shape each `view-all` container
+ *  holds. No Follow on any chip, as for a signed-out reader. */
+export function NameList({ items }: { items: Chip[] }) {
+  return (
+    <ul className="flex flex-wrap items-center gap-1.5">
+      {items.map((chip) => (
+        <li key={chip.id}>
+          {isUnverified(chip) ? (
+            <span className={cn(CHIP, "text-muted-foreground")}>
+              <Face chip={chip} />
+              <span className="max-w-40 truncate">
+                {chip.displayName ?? "A guest"}
+              </span>
+              <QuotedMark />
+            </span>
+          ) : chip.slug ? (
+            <Link
+              href={`/u/${chip.slug}`}
+              className={cn(CHIP, "text-foreground hover:bg-muted/60")}
+            >
+              <Face chip={chip} />
+              <span className="max-w-40 truncate">
+                {chip.displayName ?? "Guest"}
+              </span>
+            </Link>
+          ) : (
+            <span className={cn(CHIP, "text-muted-foreground")}>
+              <Face chip={chip} />
+              <span className="max-w-40 truncate">
+                {chip.displayName ?? "Guest"}
+              </span>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /* ── The closed state: round one's ruled `list=faces` ────────────────────── */
 
 /**
@@ -113,12 +197,7 @@ export function FacesRow({
     >
       <AvatarGroup>
         {shown.map((g) => (
-          <Avatar key={g.id} size="sm">
-            <AvatarImage src={g.avatarUrl ?? undefined} alt="" />
-            <AvatarFallback className="text-[10px]">
-              {(g.displayName ?? "?").slice(0, 1).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Face key={g.id} chip={g} />
         ))}
         <AvatarGroupCount className="size-6 text-[10px]">
           +{items.length - shown.length}
@@ -132,8 +211,8 @@ export function FacesRow({
 }
 
 /**
- * The names in a sheet: "the centred modal round one drew", unchanged, and one
- * of `view-all`'s four options rather than the row's only expansion now.
+ * The names in a sheet: "the centred modal round one drew", and one of
+ * `view-all`'s four options rather than the row's only expansion now.
  *
  * ★ QUOTED, NOT A `Dialog`. radix portals to the OWNING document's body, which
  * for a portalled frame is the lab page, so a real one would open over the
@@ -167,7 +246,7 @@ export function NamesSheet({
           </Button>
         </div>
         <div className="mt-4">
-          <GuestList items={items} />
+          <NameList items={items} />
         </div>
       </div>
     </div>

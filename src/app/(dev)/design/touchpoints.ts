@@ -263,7 +263,7 @@ export const RULINGS: Ruling[] = [
     title: "Keeping what she just added",
     surface: "guest",
     ruled:
-      "open: when the offer to keep her photos reaches a name-only guest, the offer's shape, whom she can follow, where she lands, and what her typed name becomes",
+      "open: when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, and whether her typed name gets one look before it becomes her account's",
     shipped: null,
     why: "The capture flow after a name-only guest's first upload is live; this board refines it and never gates the shipped flow.",
     lives: [
@@ -275,12 +275,11 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/unverified-mark.tsx",
     ],
     board: {
-      note: "Five decisions on the shipped capture flow's real pieces, over Priya, the unproven guest media-viewer's own board already marked: when the offer first reaches her, what shape it takes, whom she can follow once she confirms, where she lands afterward, and what becomes of the name she typed at the door",
+      note: "Four decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, and whether the name she typed at the door gets one look before it becomes her account's",
       variants: [
         "The moment",
         "The offer's shape",
         "The follow surface",
-        "The landing",
         "What the name becomes",
       ],
     },
@@ -1550,10 +1549,10 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "reel-cut",
   "reel-host",
   "reel-story",
-  "guest-capture",
   "identity-door",
   "identity-claims",
   "identity-profile",
+  "guest-capture",
   "host-curation",
   "export-flow",
   "admin-triage",
