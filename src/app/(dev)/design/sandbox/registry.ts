@@ -20,6 +20,7 @@ import { EMAILS } from "./emails/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
 import { HOST_STORAGE } from "./host-storage/spec";
+import { EVENT_SAFETY } from "./event-safety/spec";
 import { REEL_CUT } from "./reel-cut/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
@@ -71,6 +72,7 @@ const REGISTERED: readonly BoardSpec[] = [
   MEDIA_VIEWER,
   HOST_CURATION,
   HOST_STORAGE,
+  EVENT_SAFETY,
   // Registered beside its named neighbour rather than at the head: three reel
   // boards register in the same wave, and the head is one line for all of them.
   REEL_CUT,

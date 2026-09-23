@@ -58,6 +58,7 @@ export type RulingId =
   | "help-center"
   | "host-curation"
   | "host-storage"
+  | "event-safety"
   | "reel-host"
   | "reel-cut"
   | "first-event"
@@ -130,6 +131,7 @@ export type SandboxId =
   | "help-center"
   | "host-curation"
   | "host-storage"
+  | "event-safety"
   | "reel-host"
   | "reel-cut"
   | "press-page"
@@ -1125,6 +1127,35 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "event-safety",
+    title: "Keeping an event safe",
+    surface: "host",
+    ruled:
+      "open: where a host blocks someone, the block's sheet, the door a blocked person meets, the blocked list and letting back in, the Guests room with its list off, and the three closed doors",
+    shipped: null,
+    why: "A bad actor with a verified email can be hidden photo by photo but never stopped; a block and three closed doors, all free, end that.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/host-app.md",
+      "docs/systems/trust-safety-forensics.md",
+      "src/components/shared/media-lightbox.tsx",
+      "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
+      "src/components/app/event-feed/review-room.tsx",
+      "src/components/app/event-settings/visibility-section.tsx",
+      "src/components/guest/entry-modal.tsx",
+    ],
+    board: {
+      note: "Thirteen decisions over Maya and Jay's wedding, where Dom Hale keeps sending a nightclub to a wedding, at 375 with 1440 on the knob: where Block lives and what it says, the door a blocked person meets, the blocked list and what letting back in restores, the Guests room with its list off, how a host chooses who can join, and the doors of approving newcomers, closing to them and an invite list",
+      variants: [
+        "Where Block lives",
+        "The block itself",
+        "The blocked door",
+        "Who can join",
+        "The invite list",
+      ],
+    },
+  },
+  {
     id: "reel-cut",
     title: "From the reel to a cut",
     surface: "guest",
@@ -1619,6 +1650,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "voice-guest",
   "host-curation",
   "host-storage",
+  "event-safety",
   "export-flow",
   "admin-triage",
   "help-center",
