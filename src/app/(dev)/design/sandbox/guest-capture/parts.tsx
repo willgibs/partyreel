@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bookmark, UserCheck, UserPlus } from "lucide-react";
+import { Mail, UserCheck, UserPlus } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,8 @@ import { HandleGlyph, SettledMark } from "./scene";
  * THE PIECES EACH DECISION DRAWS, IN PARTS, SO ONLY ONE OF THEM MOVES.
  *
  * ★ NOTHING HERE CALLS A SERVER FUNCTION OR MOUNTS A RADIX PORTAL. `FollowButton`,
- * `SaveEventButton`, `ClaimHandlePrompt`'s session read and `AccountDoor`'s magic
- * link all open with the network or a Supabase session, and a Popover, Dialog,
+ * `ClaimHandlePrompt`'s session read and `AccountDoor`'s magic link all open
+ * with the network or a Supabase session, and a Popover, Dialog,
  * Sheet or DropdownMenu opened inside a portalled lab frame renders on the LAB
  * PAGE, not the phone being judged (`scene.tsx`'s own note; `host-curation`
  * names the same landmine for its lightbox). So every control below that looks
@@ -74,7 +74,7 @@ export function OfferCard({ count }: { count: number }) {
       className="rounded-xl border border-border bg-card p-5 text-center"
     >
       <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Bookmark className="size-5" />
+        <Mail className="size-5" />
       </div>
       <p className="font-heading text-subsection">{words.heading}</p>
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">

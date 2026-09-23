@@ -206,13 +206,13 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
       label: "What Finish leaves her looking at",
       question: "What should Finish leave Priya looking at?",
       context:
-        "A toast says it today: Added 4 photos to your account, and the dashboard is unchanged, the ticket gone. She just claimed Tom's leaving do and let the bonfire go.",
+        "A toast says it today: Added 4 photos to your account. Tonight's ruling adds more: claiming now settles Tom's leaving do into Your events as a Guest card too, the ticket gone. She claimed it and let the bonfire go.",
       options: [
         {
           id: "toast",
           label: "The toast, as shipped",
           means:
-            "Added 4 photos to your account. The dashboard is exactly as it was, the ticket gone.",
+            "Added 4 photos to your account. Tom's leaving do settles quietly into Your events as an ordinary Guest card, the ticket gone.",
         },
         {
           id: "profile",
@@ -224,7 +224,7 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
           id: "strip",
           label: "The claimed event opens in a strip",
           means:
-            "Tom's leaving do expands into a small strip on the dashboard, its claimed photos right there.",
+            "Unlike the baseline's quiet settle, Tom's leaving do gets one highlighted 'Just claimed' beat, expanding into a small strip with its photos right there.",
         },
       ],
       recommended: "profile",

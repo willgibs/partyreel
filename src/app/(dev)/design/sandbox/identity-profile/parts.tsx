@@ -89,7 +89,7 @@ export function SetupCards() {
           <CardTitle>Public profile</CardTitle>
           <CardDescription>
             Your page on Partyreel: the events you host and choose to share,
-            plus events you joined.
+            plus events you added photos to.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -117,7 +117,7 @@ export function SetupCards() {
           </div>
           <div className="space-y-2 border-t border-border/60 pt-4">
             <p className="text-xs font-medium text-muted-foreground">
-              Events you joined
+              Events you added photos to
             </p>
             <AttendedSwitches />
           </div>
@@ -274,7 +274,7 @@ export function SetupSheet() {
         <Card>
           <CardHeader>
             <CardTitle>Claimed</CardTitle>
-            <CardDescription>3 events joined your account.</CardDescription>
+            <CardDescription>Added photos to 3 events.</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -311,7 +311,7 @@ export function SetupSheet() {
           </div>
           <div className="space-y-2 border-t border-border/60 pt-3">
             <p className="text-xs font-medium text-muted-foreground">
-              Events you joined
+              Events you added photos to
             </p>
             <AttendedSwitches />
           </div>
@@ -481,7 +481,7 @@ export function PromptClaim() {
         <CardHeader>
           <CardTitle>Photos waiting for you</CardTitle>
           <CardDescription>
-            Claimed. 3 events joined your account.
+            Claimed. Added photos to 3 events.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -605,14 +605,18 @@ export function PageNothing() {
 }
 
 export function PageCount() {
+  // The same door a shown "guest at" line would stand behind: a stranger who
+  // has never passed The Block Party's Require-an-upload-to-view gate cannot
+  // be told it exists either, even inside a bare count (tonight's ruling).
+  const visibleCount = ATTENDED.filter((e) => !e.requireUpload).length;
   return (
     <div className="mx-auto w-full max-w-[420px] px-5 py-10">
       <EmptyIdentityRow />
       <div data-ip-empty-line className="mt-10">
         <EmptyState
           variant="quiet"
-          title="3 events, kept private"
-          description={`${PRIYA.name} joined 3 events and hasn't chosen to show any of them yet.`}
+          title={`${visibleCount} events, kept private`}
+          description={`${PRIYA.name} added photos to ${visibleCount} events you could ever see, and hasn't chosen to show any of them yet.`}
         />
       </div>
     </div>

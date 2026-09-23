@@ -9,6 +9,7 @@ import {
   AfterToastLines,
   BellButton,
   ChecklistTicket,
+  ClaimedEventCard,
   ClaimedStrip,
   ConfirmDialog,
   ConfirmInlineTicket,
@@ -236,9 +237,12 @@ function afterScreen(id: "toast" | "profile" | "strip", s: BoardState) {
         id="after-profile"
         screen={sc}
         title="What Finish leaves her looking at"
-        caption="The same toast, plus Choose what shows on your page underneath it."
+        caption="Tom's Leaving Do settles into Your events as the toast plays; a second line adds Choose what shows on your page."
       >
-        <DashboardScene overlay={<AfterToastLines withProfile />} />
+        <DashboardScene
+          extraCard={<ClaimedEventCard />}
+          overlay={<AfterToastLines withProfile />}
+        />
       </Scene>
     );
   }
@@ -248,7 +252,7 @@ function afterScreen(id: "toast" | "profile" | "strip", s: BoardState) {
         id="after-strip"
         screen={sc}
         title="What Finish leaves her looking at"
-        caption="A Just claimed strip carries Tom's Leaving Do onto the dashboard."
+        caption="A Just claimed strip singles Tom's Leaving Do out above Your events, instead of letting it settle in quietly like the baseline."
       >
         <DashboardScene ticket={<ClaimedStrip />} />
       </Scene>
@@ -259,9 +263,12 @@ function afterScreen(id: "toast" | "profile" | "strip", s: BoardState) {
       id="after-toast"
       screen={sc}
       title="What Finish leaves her looking at"
-      caption={`Added ${HERS.uploadCount} photos to your account. The ticket is gone, nothing else changed.`}
+      caption={`Added ${HERS.uploadCount} photos to your account. Tom's Leaving Do settles quietly into Your events as an ordinary Guest card, the ticket gone.`}
     >
-      <DashboardScene overlay={<AfterToastLines withProfile={false} />} />
+      <DashboardScene
+        extraCard={<ClaimedEventCard />}
+        overlay={<AfterToastLines withProfile={false} />}
+      />
     </Scene>
   );
 }
