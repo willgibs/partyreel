@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `guest-followons` | the partial-save defect; the identity contract (SQL merged UNAPPLIED); the round's guest lines; the demo's guests | building (agent a220407f82bff7c48) | Opus, :3131 | apply nothing; run the demo seed's guest mode after the merge |
 
 ## Next, in order
 

@@ -23,23 +23,14 @@ below hold the rest by surface.
 - Legal: the Terms say a profile block "removes each of you from the other's social surfaces" (`legal-terms.tsx:427`) while a block covers following only; the event-safety wiring rewrites the section.
 - Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
 - Security: changing an event's password evicts nobody already unlocked for up to 12 hours (the unlock cookie signs `{eid, exp}`, not the password); bind it to a password version so a change signs everyone out.
-- Copy: the guest's delete confirm says "permanently deleted after a short grace period" (`media-lightbox.tsx`) where Deleted keeps an upload for `RECENTLY_DELETED_WINDOW_DAYS`; say the window.
-- Guest: after deleting one of this visit's uploads, the post-upload handle card still counts it ("Your 2 photos are on this album" with one left); count the live uploads, not the visit's queue.
-- Copy: the door's upload step on an event without Require an upload to view says "Add one now and the album opens." though that album is already open; the line belongs to the require-upload door alone.
-- Guest: on a require-upload event whose album is FULL, the last-removal confirm says the album closes, but the gate fails open on a full album, so it does not; say it only when the gate's `album_full` is false (the lightbox would need that fact).
-- Guest, the demo: every demo upload is the host's and the host never counts, so its header reads "9 photos & videos" with no guests clause; seed a few guest uploads (real uploads, `seed-demo-event.mjs`) to bring back "from N guests".
-- Code hygiene: `e/[token]/page.tsx`'s `socialSeam` cast (its own comment says collapse it once the server lane is on the tree, which it is) and its unused `requireVerifiedEmail` (a lint warning).
-- Code hygiene: comments that still name save: `likes-provider.tsx:26` (SaveEventButton), `queries/guest-events.ts:19` (`save_event` among the anon-client RPCs).
 - Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
 - The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place (Will, 2026-09-22: "nail our voice in the lab, across all main and micro copy").
-- Migrations: the remaining `migration-guards.test.ts` pins that hold an object for the deployed `main` build are judged by PROGRAM.md's "Before launch" principle: each contract lands once the alias's build stops calling what it drops.
 - Help: `your-dashboard-explained.mdx` carries the stale `<Path>Account menu › Dashboard</Path>` breadcrumb (the account menu has no Dashboard item; the logo is the door), beside its own billing help-sync line.
 - Marketing: `faq-data.ts`'s "How long do you keep my photos?" answer reconciles only the Event Pass exception; the Free plan's inactivity removal (the help guide's rule 7) is missing from it.
 - Marketing: `/events/weddings` and `/events/trips` still say "no expiry clock counting down" on the memories (`src/lib/constants/events.ts`, four lines), with no word of the Free plan's inactivity removal.
 - The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
 - The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
 - The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
-- The lab: `sandbox/gallery-fixtures.ts` (shared by `host-curation` and four reel boards) still mints a nameless `isAnonymous` uploader and puts the host's own uploads in `REVIEW_ITEMS`, neither of which the product can do now.
 - Guest: the name step's field carries `autoFocus` (`guest-name-step.tsx:356`) though the password gate drops it for the iOS keyboard; check on a real iPhone.
 - Housekeeping: more files with no importer or Library-only, beyond the lines above: `getFollowedHostEventCards` (`queries/social.ts`), `features.ts` and `features-layout.ts` (read only by their tests), `anonymous-info.tsx` (Library only).
 - Housekeeping: comments that state retired facts: `getHostAvatarUrl` (`lib/avatar/seed.ts`), `resolveGalleryAccess` (several), `body-token-source.test.ts` (`lib/guest/session-cookie.ts`, `api/guests/route.ts`; the pin is `session-cookie.test.ts`), `claim-handle-prompt.tsx` on what the claim writes, `profile-slug-control.tsx`'s "EVENT slugs stay Pro", the root `not-found.tsx`'s glow, `contact-sheet.tsx`'s deleted file, `workers/backup/src/index.ts:296`'s "Cost & scaling", `share-urls.ts`'s "database-security.md0", and comments citing numbered rulings no doc holds (`upload-lock.ts`, `entitlement.ts`, `tiers.ts:181`, `request-facts.ts`, `preserve.ts`).
@@ -72,6 +63,7 @@ below hold the rest by surface.
 - Design: a mark over media, if one ships (the shimmer is banked as a delight moment), needs from the glow engine a play-once sweep, a `runId` re-key for every shape (only a one-shot has one), an additive blend over a photograph, and `[data-glw-edge-rest]` under its travelling ring; `SectionLight` ships without a dither until the grain tile lands (ASSETS row 15).
 
 The lab and the kit:
+- Three boards still draw "A guest" for a null uploader name (`media-viewer/viewer.tsx:194,296`, `host-curation/queue.tsx:490`, `profile-page/album.tsx:149`), and `host-storage/spec.ts:49` still says `gallery-fixtures.ts` mints a nameless anonymous uploader, which it no longer does.
 - `Several` (an option drawn as several screens: phones side by side on equal columns, laptops stacked and cut short) and `ScrollHere` (scroll a frame's sheet or page to the card a decision is about) are local to `event-safety`; `voice-guest`'s `Pair` is the same idea as `Several`: kit candidates.
 - `lab:demo` compares only an option's FIRST frame, so a composite option whose first frame matches another's prints "same picture" (`event-safety.entry`), and on a stage taller than about three screens a `--save-shots` capture lands misaligned (the lab's sticky bar inside it); compare every frame, each scrolled into view before its clip.
 - The kit's `Frame` exposes its pixel height to children (a CSS variable): a percentage `min-h-full` inside a frame collapses to 0 px, so a full-bleed child reaches for `fixed` or a hard-coded screen height today.
@@ -149,6 +141,10 @@ Marketing:
 - `/features/album`'s h1 is the one of six that wraps to three lines at 1440 (44 characters in `max-w-3xl` at 80 px); shorter copy is Will's call.
 
 The app:
+- Host: `lib/shared/use-active-section.ts` and `event-feed/event-filter-pills.tsx` lost their last importer with `event-feed.tsx`; delete them, and the comments that still name `event-feed-action-bar.tsx` (`bulk-tools.tsx`, `bulk-select-mock.tsx`, `floating-layer.ts`, `type-ladder-policy.test.ts`).
+- Guest: `get_event_media_by_qr_token` and `getApprovedMediaForUnlock` read an album unpaged, so past 1,000 approved items the guest album and its poll hold only the newest 1,000 (PostgREST's `max_rows`).
+- Guest: the last-removal line reads the album's fullness at render (`albumFull`, the page's second gate read); an album that fills or frees mid-visit keeps the old line until a refresh (the poll could carry it at one gate read per poll).
+- Social: `social/guest-list.tsx:216` draws "A guest" for a null `displayName`, a label the product retired (a nameless credit shows nothing).
 - Host: at 375 the hub's cards row runs past the phone's edge, so the third card (Guests) sits half off screen at rest (measured by the `event-safety` board's `queue` step, where a waiting count would live).
 - Host: the hidden-media dim never renders: `shared/masonry.tsx` appends `opacity-30` to `active:scale-[0.98]` with no space, so Tailwind never emits it and a hidden photograph sits in the host album at full brightness (`host-app.md` describes a 30 percent dim; no test covers it).
 - Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
@@ -159,7 +155,6 @@ The app:
 - Host: the View menu's Sort ships disabled because the hub gallery's client holds one page, not the whole approved list; it switches on when the list is whole or the sort moves server-side, and a size sort (largest or smallest first) joins it then, the host's way to the heaviest files (Will, 2026-09-22).
 - Host: empty states draw "nothing here yet" four ways (`shared/empty-state.tsx`, `dashboard/empty-section-teaser.tsx`, `dashboard/events-empty-teaser.tsx`, `event-feed/feed-section-empty.tsx`) and the Likes section two ways for one interaction (`EmptySectionTeaser` when the server knows it is empty, `my-likes-gallery.tsx`'s bare `EmptyState` after the last unlike); one grammar (`empty-state.tsx`'s comment calls `quiet` the default while the code defaults to `icon`).
 - Host: the ghost pack's file list is built three times (`guest/gallery-empty-state.tsx`'s `GUEST_GHOST_FRAMES`, and a list each in `dashboard/events-empty-teaser.tsx` and `dashboard/empty-section-teaser.tsx`); one exported list.
-- Host: `event-feed/event-feed.tsx` and `event-feed/event-feed-action-bar.tsx` have no importer; delete them.
 - Host: `guest/file-dropzone.tsx` is rendered only by the host's manual add (`app/host-upload.tsx`), and its "Tap to choose, or drag them here" is half wrong on a phone; move it to the host's side and word it for a hand.
 - Host: one label for creating an event (the dashboard says New event, the empty teaser Create your first event, the welcome Create my first event, the app's 404 Create an event).
 - Host: the wizard's QR swatches encode `/e/` plus 32 zeroes (`previewJoinUrl`), a 404 when a host test-scans one; say they are samples, or encode the real link once the event exists.
@@ -178,10 +173,8 @@ The app:
 - Profile: the overflow menu opens over the person's own name at 375.
 - Profile: `src/lib/validation/report.test.ts` has no person-arm cases (both subjects, neither, a cross-subject `media_id`).
 - Guest: a name-only guest whose session drops re-joins on the same device as a second guest row with the same name, so the guest list shows one person twice; key the re-join on `pr_device_id` (the same row) or de-dupe the list by name and device (Will's to pick).
-- Guest: the album's header holds `stats.guestCount` from the render, so a guest's own first upload under-counts the guests by one until a reload (`event-experience.tsx`); a small server signal on the gallery poll fixes it, never a client heuristic (a returning contributor would over-count).
 - Guest: `get_event_by_qr_token` does not return `events.max_upload_bytes`, so the upload sheet's terms line states the product's limits rather than the host's own cap; add the column (with the types and `queries/guest-events.ts`) and `uploadTermsLine`'s `capBytes` seam takes it.
 - Guest: Download all (`ExportDialog`), the confirm door (`ConfirmEmailDialog`), the add-email dialog (`add-email-dialog.tsx`) and the like door (`likes-provider.tsx`) are still centred `Dialog`s where the guest's other dialogs ride the responsive Sheet (the `export-flow` and `identity-door` boards own the first two).
-- Guest: two identity seams read the server's names through narrow casts (`socialSeam` and the guest list's second argument in `(guest)/e/[token]/page.tsx`; `isVerified` in `media-lightbox.tsx`); collapse them onto the merged types.
 - Guest: the album, the door and the report dialog carry no link to `/help` (only the guest 404s do).
 - Guest: the media viewer's own image and video have no loading state (a tile has a skeleton; the opened photograph pops in when the full-size presign lands, the slowest picture in the product on venue Wi-Fi).
 - Guest: `/api/reports` accepts a `media_id` the report dialog never sends.
