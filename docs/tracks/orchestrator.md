@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `upload-owner` | a claimed guest row uploads only for its signed-in owner (the alias red-team's finding: a kept ticket credited partyr33l's photo to hi@willgibs); sign-out clears the device's tickets | building (agent a51450b994653b8eb) | Opus, :3131 | lands after milestone 27, in milestone 28 |
 | `delete-final` | a guest's own delete is final and says so ("deleted from the event right away and can't be recovered"); no host surface shows it; the host's Recently deleted figure counts only what the host can restore | building (agent a202582d56c89a266) | Opus, :3132 | apply `20260923160000_withdrawn_out_of_standby.sql` at the merge |
 
 ## Next, in order
