@@ -34,9 +34,9 @@ agent that treats all of it as walls builds small. The nine levels, from [`READM
 
 ### identity
 
-**1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare.**
+**1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare. The media is the motion too: photographs travel with weight from a source (out of the code, down through the frame, after a hand), while the words and controls around them stay where they are; the home hero's stream, the river and the image trail are the models.**
 
-The interface stays quiet so the pictures can carry the room, but quiet is not empty: a page is never forced to choose between having media and being boring. The ramp is Graphite with the accent off, and the Aurora carries the light where there is no picture.
+The interface stays quiet so the pictures can carry the room, but quiet is not empty: a page is never forced to choose between having media and being boring. The ramp is Graphite with the accent off, and the Aurora carries the light where there is no picture. Media in motion is the foundation of the visual identity: the pieces that define it move the photographs, each from a source and with a weight, and leave the words and controls in place.
 
 <small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
 

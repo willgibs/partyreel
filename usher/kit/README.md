@@ -71,11 +71,10 @@ silent on good work. Many refusals would mean the design upstream of the scripts
 
 ## Verify
 
-- ★ **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local`: read inside a script, never printed. A local `next dev`
-  logs every request URL with its `?key=` and accepts any key, so a local run uses a dummy one, and a dev log is never
-  shown unredacted. A keyed alias page is checked in headless Chrome from a script (`page-console.mjs`, or the
-  scratchpad's `alias-capture.mjs` pattern: viewport captures, never clipped ones), never in the browser pane, whose
-  URL would carry the key.
+- **The lab key** is `DESIGN_PREVIEW_KEY` in `.env.local`, the same value as the Vercel Preview rows: a light guard for
+  the lab and the Library, not a secret (Will, 2026-09-22), so it may appear in a log, a URL or a chat. A local `next dev`
+  accepts any key. A keyed alias page may be opened in the browser pane or checked headless from a script
+  (`page-console.mjs`, or the scratchpad's `alias-capture.mjs` pattern: viewport captures, never clipped ones).
 - The built-in pane is shared with every running lane: never click in it while lanes run; never click Copy there (it
   writes Will's clipboard, and a stray paste reads as a ruling).
 - A phone width runs in the pane (`resize_window` preset `mobile` is a real 375); Will's Chrome keeps its inner width.

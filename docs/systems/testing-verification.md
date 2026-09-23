@@ -337,8 +337,8 @@ has TWO setup traps that both produce a false "broken" reading:
   alias. Where an `lp/*` origin exists: (1) it is in NO Supabase/R2/Stripe allow-list, so sign-in,
   upload, email round-trips and checkout fail there BY DESIGN (the policy home is CLAUDE.md "Local dev
   vs. live testing"); (2) it builds with the UNSCOPED preview env: `NEXT_PUBLIC_SITE_URL` inlines to the
-  prod URL (absolute QR, share and OG links point at partyreel.com), while `DESIGN_PREVIEW_KEY` is set on
-  the unscoped `preview` target as well as the `launch-prep`-scoped one, so the `/design` lab opens there
-  with `?key=` (200 with the key, 404 without); confirm scope with `GET /v9/projects/partyreel/env`
-  rather than assuming; (3) it is a FRESH origin with no stored `theme` in localStorage, so system-theme
+  prod URL (absolute QR, share and OG links point at partyreel.com), while `DESIGN_PREVIEW_KEY` (a light
+  guard, not a secret; the value is in `.env.local`) is set on the unscoped `preview` target as well as the
+  `launch-prep`-scoped one, so the `/design` lab opens there with `?key=` (200 with the key, 404 without);
+  confirm scope with `GET /v9/projects/partyreel/env` rather than assuming; (3) it is a FRESH origin with no stored `theme` in localStorage, so system-theme
   behavior can differ from the long-lived launch-prep origin (the stored-theme trap above).

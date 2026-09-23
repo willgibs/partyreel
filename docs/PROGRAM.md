@@ -137,8 +137,9 @@ Deferred lines into their ROADMAP buckets, its asset asks into `docs/ASSETS.md`,
 made (the Library, a system doc, this file) → prune the worktree and branch, and only after the lane's final line: a
 lane asked for more work after its handoff is a lane still working. A change touching more than one open lane is
 Orchestrator-only, announced in `tracks/orchestrator.md` first. Migrations are global state (one Supabase behind prod
-and every preview): agents write the SQL file, the Orchestrator applies it (additive-only while any branch is
-unmerged; `get_advisors`; regenerate `types.ts`; commit both). Workers are global too (`wrangler whoami` first).
+and every preview): agents write the SQL file, the Orchestrator applies it (additive-only while an open lane's code
+still calls what a contract would drop; `get_advisors`; regenerate `types.ts`; commit both). Workers are global too
+(`wrangler whoami` first).
 
 ## The record's depth
 
@@ -235,6 +236,12 @@ orchestrates is Will's choice per session; every commit's trailer names the mode
 and what is new consistent, an agent follows them by default, and any of them is reshaped when a better solution needs
 it (the lane says which in its Handoff). The Library hardens only as the marketing site and the app near their final
 production state, on Will's word. Until then any past decision may be relitigated for a better solution.
+
+**Before launch there are no real users** (Will, 2026-09-22: "Don't have to dance around anything like save tables
+in the database before launch"): no migration carries compatibility work to keep test data, and a contract lands as
+soon as the alias's build no longer calls what it drops (after that build's red-team), even before the milestone
+that ships it. The report names what partyreel.com loses in the meantime. The delay to launch exists so the product
+is right before anyone's data has to be adapted to it.
 
 ★ Most of the laws and don't-revert notes in this repo were written by agents against a design system that has since
 moved. Of every rule you touch, ask "a good rule that prevents bad choices, or a bad system that prevents good

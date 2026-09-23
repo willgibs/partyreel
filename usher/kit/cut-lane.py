@@ -45,7 +45,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 {s["brief"].strip()}
 
 **Binds.** The bible and the policies (`/design/library`), the contracts of every component under a path you own, and
-CLAUDE.md's working loop. `DESIGN_PREVIEW_KEY` rides the environment, never a command line or a log you print. A record doc
+CLAUDE.md's working loop. A record doc
 (`docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PROGRAM.md`, `CLAUDE.md`, `docs/ASSETS.md`, `docs/tracks/orchestrator.md`,
 `docs/reviews/`) is edited only when your `owns` names it. Stage explicitly; never `--no-verify` or force-push; every commit ends
 with the `Co-Authored-By` line naming the model you actually run on.

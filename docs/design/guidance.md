@@ -77,10 +77,12 @@ system doc. Each is a default: an exploration may beat one, and says so.
   near-copies; components that serve different purposes stay separate even when they look alike. When
   it is unclear which a pair is, the lane says so in its Handoff rather than merging by default. A
   family of near-copies drifts, and a forced merge serves two jobs badly.
-- **Every ask is a benefit.** A name, an email, a first upload or a gate is framed as what the guest or
-  the host gains ("The host has asked guests to confirm an email for safety"), never as a rule or a
-  requirement, and the first welcome reads fun, safe, easy and quick. A guest who scanned a code owes
-  us nothing, so a regulatory ask reads as a barrier.
+- **An ask says what it gives, where that comes naturally.** A name, an email, a first upload or a gate
+  reads as what the guest or the host gains when the gain is real ("The host has asked guests to confirm
+  an email for safety"); where a benefit would be forced, the line is natural or at least neutral, never
+  worded as a rule or in regulatory language. The first welcome reads fun, safe, easy and quick. A guest
+  who scanned a code owes us nothing: a regulatory ask reads as a barrier, and a forced benefit reads as
+  pandering.
 - **A limit meets you before the work.** A cap refuses before the form it would waste, with the ways
   out beside the refusal, and a locked control says why it is locked and offers the upgrade: convert,
   never block. Discovering a limit after doing the work is the worst moment to meet it.

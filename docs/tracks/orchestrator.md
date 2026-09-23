@@ -35,35 +35,26 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## Next, in order
 
-1. **The reshape (Will, 2026-09-22) is done:** every docs lane merged (`pointer-sweep`, `roadmap-lean`, `docs-rules`,
-   `docs-product-trim`, `systems-trim` at `daaf2dd2`, gate 123); the Orchestrator's own part, the bible's present-tense
-   `why` lines and memory are in. The two identity leaks it found are closed: `identity-sql-gaps` merged at `dc317541`
-   (gate 125) and its migration `20260922200000_identity_sql_gaps` applied (both bodies' checksums as proved, the host's
-   `guests.email` read refused, the contract check held and rolled back, the advisors unchanged).
-2. **The board recheck is done** (Will's suggestion): all four lanes merged (`recheck-mail-admin-export`,
-   `recheck-help-press`, `recheck-guest-identity`, `recheck-viewer-curation` at `c6c79885`, gate 124), each reached
-   question judged by his decision-outcomes rule; the overtaken mechanism retired. Every standing board is current
-   with the identity and reel rounds; one alias build carries them for his desk review.
-3. **The defects round is done** (the Orchestrator's, from the ROADMAP's Now list): `guests-grant-tidy` at `39aa374b`
-   (gate 126, its migration applied), `defects-app` at `644764ef` (gate 127), `defects-copy` at `5e21c390` (gate 128).
-   The alias serves `64fbe302`; the live look (Will's session in his Chrome) confirmed the slug on the hub's link row
-   and the print sheet (`/e/testing`), the public copy (`/blog`, `/pricing`, `/about`, `llms.txt`) headless, and the
-   delete dialog's words from source (a delete control is never clicked without his word); the storage chip (a host
-   over 85%) and the confirm doors' round trips stay pinned by tests only. It found one string the round missed,
-   fixed at `012f5059`.
-4. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
-   `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
-   migration and the R2 sweep of stored reel files after the red-team). The sweep lane also takes the reel's lines in
-   `PRD.md`, `PRICING.md` and the two content authoring guides (the Studio and panel house terms, the reel bullet).
+1. **Will's answers of 2026-09-22 (evening)**, the plan at `~/.claude/plans/great-work-however-1-dapper-twilight.md`
+   (its top section): save dies (a guest exists only by uploading; a guest's own deletes close a require-upload album
+   again), no plan change leaves a host storing more than the new cap, the voice's first board. Done before the cut:
+   the preview key (`.env.local` and the Preview rows; the auto-mode guard refused deleting the two Production rows,
+   which keep the old long value, and recreating the admin project's unscoped Preview row), and the change-plan portal
+   configuration in Stripe TEST (`bpc_1UIhooPtjqmVkBwkcLe9YgYN`, metadata `partyreel_purpose=change_plan`, found by
+   that tag, no env value). Five lanes: `recheck-by-upload` merges first with `[preview]` (alias build 1, the desk
+   current); `guest-by-upload`'s expand file at its merge; the last record `[preview]` (alias build 2); then the
+   general portal configuration loses `subscription_update`, the red-team, and `guest-by-upload`'s contract file with
+   `types.ts` regenerated.
+2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G; the
+   expand migration first, the drop migration and the R2 sweep of stored reel files after the red-team). The sweep
+   lane also takes the reel's lines in `PRD.md`, `PRICING.md` and the two content authoring guides.
 
 ## Waiting on Will
 
-- **His desk review** on the alias (`98cfa62f`, `/design/lab?key=`, Start the review): `media-viewer`, the six reel
-  boards, the three identity boards, then the rechecked standing boards; the harnesses `/design/lab/tools/reel-live`
+- **His desk review** on the alias (`/design/lab?key=`, the value in `.env.local`; Start the review): the six reel
+  boards and `media-viewer` (all but `who`) now; `identity-door`, `identity-claims`, `identity-profile`,
+  `guest-capture` and `media-viewer.who` after `recheck-by-upload` lands; the harnesses `/design/lab/tools/reel-live`
   and `/design/lab/tools/reel-video`.
-- **Two bible questions** (crisp media motion into bible 1; "every ask is a benefit" as a copy rule), **three product
-  calls** (may a plan change shrink a cap; does the host's credit keep a confirmed guest's proved address; does a
-  profile's attended event follow Require an upload to view): each with its recommendation in STATUS or the ROADMAP.
-- **The preview key's rotation**: a local dev log printed `DESIGN_PREVIEW_KEY` into the Orchestrator's transcript on
-  2026-09-22 (in no commit; every scratchpad copy scrubbed); rotating it breaks his saved `?key=` links until he takes
-  the new one from `.env.local`, so it waits for his word, ideally after his review.
+- **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
+  `milestone-26`; once the save tables drop, partyreel.com's older build errors on its dashboard until it ships.
+- **The Guests room's addresses** (a ROADMAP call: his reason for the credit's address reaches it).

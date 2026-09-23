@@ -26,16 +26,18 @@ window of the original fetched by range and decoded on the viewer's device. The 
   clock never backward, zero failures, the heap flat at 13 to 19 MB); six boards on the desk.
 - **Next:** his desk review; then the wiring (the expand migration first; the old reel stays live on the alias until
   one build replaces it; the drop migration after the red-team).
-- **Done alongside:** the reshape (the docs, the Library and the lab state current rules, never history) and the
-  board recheck (every standing board current with the identity and reel rounds). The identity leaks it found in SQL are
-  closed and applied, and a defects round fixed the published claims and app bugs the ROADMAP named.
+- **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
+  to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
+  host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
+  guest journey. Five lanes: `recheck-by-upload`, `guest-by-upload`, `storage-guard`, and the `host-storage` and
+  `voice-guest` boards (the pickup has them).
 
 ## The desk
 
-23 standing boards at `/design/lab?key=`, in leverage order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`,
-`reel-cut`, `reel-host`, `reel-story`, `identity-door`, `identity-claims`, `identity-profile`, `guest-capture`,
-`host-curation`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`,
-`album-motion`, `loose-ends`, `contact-page`, `press-page`.
+23 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
+order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`, `identity-door`,
+`identity-claims`, `identity-profile`, `guest-capture`, `host-curation`, `export-flow`, `admin-triage`, `help-center`,
+`emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
 
 ## Live state
 
@@ -68,12 +70,10 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first (each board's look-at-first is on its own page), the two harnesses,
-  then the identity boards and the rechecked standing boards.
-- **Two bible questions** (the bible changes only by his word): add "crisp media motion is the foundation of our
-  visual identity" to bible 1 (recommended); "every ask is a benefit" as a copy rule beside bible 20 or a standing
-  preference (recommended: stays a preference).
-- **Two product calls**: may a plan change shrink a cap (recommended no); does the host's credit keep a confirmed
-  guest's proved address (as shipped; recommended yes).
-- **The preview key's rotation**, his call, ideally after his review (a local dev log printed it into the
-  Orchestrator's transcript on 2026-09-22; it is in no commit).
+- **His desk review**: the six reel boards first, and every `media-viewer` question but `who`; `identity-door`,
+  `identity-claims`, `identity-profile`, `guest-capture` and `media-viewer.who` once `recheck-by-upload` lands
+  (tonight's rulings reach them).
+- **A milestone, on his word** (it changes the public site): `launch-prep` is more than 1,100 commits past
+  `milestone-26`, far beyond the "about two rounds" rule, and once the save tables drop, partyreel.com's older build
+  errors on its dashboard, its profile hide toggle and its Save buttons until it ships.
+- **One call in the ROADMAP**: whether the Guests room shows a confirmed guest's address too.

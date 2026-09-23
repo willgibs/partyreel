@@ -11,7 +11,7 @@ for i in $(seq 1 60); do curl -s -o /dev/null -w '%{http_code}' http://localhost
 for j in $(seq 1 120); do curl -s -o /dev/null -w '%{http_code}' "http://localhost:$PORT/design/library?key=$DESIGN_PREVIEW_KEY" 2>/dev/null | grep -q '^200' && break; sleep 2; done
 for b in ${(f)BOARDS}; do
   curl -s -o /dev/null "http://localhost:$PORT/design/lab/$b?key=$DESIGN_PREVIEW_KEY"
-  perl -e 'alarm 900; exec @ARGV' pnpm -s lab:demo --board "$b" --base http://localhost:$PORT --save-shots "$DIR" 2>&1 | grep -v -- "$DESIGN_PREVIEW_KEY" | grep -E "steps, " | sed "s/^/$b: /"
+  perl -e 'alarm 900; exec @ARGV' pnpm -s lab:demo --board "$b" --base http://localhost:$PORT --save-shots "$DIR" 2>&1 | grep -E "steps, " | sed "s/^/$b: /"
 done
 lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
 echo "CAPTURE-ALL DONE: $(ls "$DIR" 2>/dev/null | wc -l | tr -d ' ') pictures in $DIR"
