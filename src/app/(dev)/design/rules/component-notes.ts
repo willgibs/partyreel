@@ -25,6 +25,40 @@ export type ComponentNote = {
 };
 
 export const COMPONENT_NOTES: Record<string, ComponentNote> = {
+  // GUEST BY UPLOAD (lp/guest-by-upload, 2026-09-22): a person is a guest of an
+  // event only through an upload of theirs, and save is gone. At the head, like
+  // the round blocks below it, so lanes adding `for` lines in one round land on
+  // distinct hunks.
+  "src/components/auth/confirm-email-dialog.tsx": {
+    for: "the one confirm door on an album, opened by the offer card, the Unverified mark and the name menu (which also opens it as Sign in): the account door in its keep wear, and on a verified code the claim, awaited, before the opener's own follow-through. It never saves anything; the claim brings the event with the photographs",
+    unspecimened:
+      "a dialog over the account door and a live claim; its three openers are where it is seen, and its contract sits beside it",
+  },
+  "src/lib/dashboard/guest-events.ts": {
+    for: "the events you added to, as the dashboard's Guest cards: masked by the album's own rules (a private album blank and locked, a password album linked with no cover, a cover only for an open one), newest first by your own latest upload",
+    unspecimened:
+      "a pure mapper; EventCard's Guest specimen is where the card is seen",
+  },
+  "src/lib/events/event-guests.ts": {
+    for: "who is a guest of an event, as people: an approved upload's row, a confirmed guest once per person, a named unconfirmed one once per row, never the host and never a nameless row. The ONE count the hub's Guests card and header, the album's header and the guest list all read",
+    unspecimened:
+      "a pure resolver; the hub and the album's header are where the number shows",
+  },
+  "src/lib/guest/album-return.ts": {
+    for: "the way back to an album after a confirm door: the return marker every door writes when it OPENS (before a Google or magic-link redirect can happen), and the album on screen, so a door three modules deep and a sibling island's claim both know which album they belong to",
+    unspecimened: "a module singleton over localStorage; the album page is where it runs",
+  },
+  "src/lib/guest/claim-uploads.ts": {
+    for: "claims a browser's anonymous uploads into the account that just signed in; on an album page it claims that album's own token first and the rest after, so the result says where uploads moved, and every listener hears every claim whoever started it",
+    unspecimened:
+      "a network call behind a session; the (app) landing and the album page are where it runs",
+  },
+  "src/lib/guest/use-confirm-return.ts": {
+    for: "the album page's one hook for a claim: it claims at mount, hears every claim made on the page, plays the follow moment when a door was opened here and this album's own uploads moved (no upload needed this visit), and says the toast only for other events'",
+    unspecimened:
+      "a hook over the claim and a localStorage marker; the post-upload slot's contract draws the moment it hands on",
+  },
+
   // THE GUEST IDENTITY ROUND, wave 1 (lp/guest-email-claims, 2026-09-22), at
   // the head like the blocks below it, so several lanes adding `for` lines in
   // one round land on distinct hunks instead of on each other.
@@ -34,7 +68,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
       "reads a live RPC through a Server Function; the honest demo is /dashboard itself, and its contract sits beside it",
   },
   "src/components/social/attended-events-visibility.tsx": {
-    for: "the per-event \"show this on my profile\" switches (profiles-social.md point 2), OFF by default since the guest identity round: an attended event publishes only once ITS GUEST turns it on here, never because they failed to turn it off, and turning one off here never touches the host's own guest list",
+    for: "the per-event \"show this on my profile\" switches (profiles-social.md point 2) over the events a person added photos to (an approved upload on a confirmed identity), OFF by default: an event publishes only once ITS GUEST turns it on here, never because they failed to turn it off, and turning one off here never touches the host's own guest list",
     unspecimened:
       "a settings-card list over live Server Functions; the honest demo is /account's Public profile card, and its contract sits beside it",
   },
@@ -348,7 +382,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
       "a server-only data read behind auth.uid(); ClaimsCard is the honest demo, and its own contract sits beside it",
   },
   "src/components/app/dashboard/events-section.tsx": {
-    for: "your events, both ways: the cards by default, the rows for a host with many, the toggle opposite the heading, and the bin and the saved events as lenses rather than a chip row",
+    for: "your events, both ways: the cards by default, the rows for a host with many, the toggle opposite the heading, and the bin and the events you added to (Guest) as lenses rather than a chip row",
   },
   "src/app/(guest)/u/[slug]/owner-sections.tsx": {
     for: "the three feeds only you see on your own profile page: your uploads, your likes, the people you follow. It takes no identity at all, so it can never be pointed at somebody else",
@@ -370,7 +404,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
     for: "the two things one person can do about another: report them to the operator, or block them; it stays visible under a block in either direction, because a menu that vanished would leak one",
   },
   "src/components/guest/claim-handle-prompt.tsx": {
-    for: "the one card under a finished upload, choosing between saving the event and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
+    for: "the one card under a finished upload or a confirmation's return, choosing between confirming an email, the follow moment and claiming a handle by what the guest already has; it owns the slot, so only one ever stands",
   },
 
   /* the guest's chrome and its door (guest-chrome-wiring, 2026-09-20). */
@@ -390,7 +424,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   /* the door into an account (door-wiring, 2026-09-20): one object worn four
      ways, and the two pure modules underneath it. */
   "src/components/auth/account-door.tsx": {
-    for: "every place the product asks for an account, worn four ways (/login, the guest gate, Save, a like): one email field, Google beside it, a password on a quiet link, one Terms line and one failure table. A place passes the REASON it is asking and nothing else moves",
+    for: "every place the product asks for an account, worn five ways (/login, the guest gate, the album's confirm door, a like, a guest's sign in): one email field, Google beside it, a password on a quiet link, one Terms line and one failure table. A place passes the REASON it is asking and nothing else moves",
   },
   "src/lib/auth/door-failure.ts": {
     for: "how the door fails: a kind, one short sentence and three real ways out, shared by the /login page, the callback route's error and the code screen. The password refusal stays generic on purpose, because naming which of three things went wrong is an account-enumeration leak",
@@ -638,7 +672,7 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/components/guest/save-account-prompt.tsx": {
     for: "the offer right after a guest's first photographs land: keep these photos, counting them, over the door that confirms an email (and the marker that makes a redirect sign-in land the same beat)",
     unspecimened:
-      "supabase-bound (it resolves the viewer and the saved state); the album after an upload is where it stands",
+      "supabase-bound (it resolves the viewer) and it opens the confirm door; the album after an upload is where it stands",
   },
   "src/components/guest/follow-moment-card.tsx": {
     for: "the beat after a name-only guest confirms their email: what they now hold, the host to follow, and the handle line folded in",

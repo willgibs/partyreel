@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1225 contracts on 162 components · 23 standing boards.**
+**22 laws · 18 policies · 1272 contracts on 168 components · 23 standing boards.**
 
 ## What binds you
 
@@ -310,7 +310,7 @@ function. A contract never freezes a look.
 | `src/components/shared/set-name-step.tsx` | the one required add-your-name step, reused at every gate that asks for one | none |
 | `src/components/shared/tile-size-control.tsx` | the gallery's r1 tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter for the day they land. Superseded in production by ViewMenu's Tile size group (`app-vocabulary` r2), which is where those two reserved slots actually landed; kept on disk, unmounted, for the lab. Controlled: the caller owns the persistence | accepts exactly the three wired steps; falls back to the wired default on anything else; starts at the server-resolved size and updates optimistically; never persists a no-op pick; draws exactly the three wired steps, the current one pressed; calls onChange with the pressed step; names Sort and Filter as reserved, inert slots |
 | `src/components/shared/tooltip-slide.tsx` | the bulk bar's side-by-side tooltip: moving across a row of icon triggers slides the label between neighbours instead of swapping it. Not built on ui/tooltip.tsx (its entrance would compose badly with the cross-slide) | none |
-| `src/components/shared/unverified-mark.tsx` | the quiet mark beside a name nobody proved, in MineMark's material, carrying its own explanation and, on your own credit, the way out | renders centered: the track sits at -100% with zero offset; mouse pointers never engage the finger-follow; a sub-10px wiggle stays unlocked (tap territory); a vertical move releases the gesture to the browser; a horizontal lock engages: data-dragging + 1:1 follow; clamps a long pull toward a real neighbor to one slide width; damps the pull past the FIRST item (no prev); slow short drag springs back (200ms settle, no index change); a long slow drag commits by DISTANCE (20% of width); a quick flick commits by VELOCITY regardless of distance; a commit toward a missing neighbor cannot happen at the END of the set; pointercancel snaps back to center; reduced motion: a commit lands INSTANTLY, no transition round-trip; arrow keys step through the set within bounds; arrow keys at the edges do nothing; a CENTER tap on the letterbox closes; the click trailing a drag does NOT; a clean CENTER-third tap on the letterbox closes the viewer; a LEFT-third letterbox tap steps to the previous item (no close); a RIGHT-third letterbox tap steps to the next item (no close); a side tap at an edge is a NO-OP (never an accidental close); the position counter reflects the controlled index (pill format); a drag starting in a PLAYING video's scrubber strip never swipes; the same drag swipes once the video is PAUSED; the GUEST pill carries NO curate controls, even with a status; an APPROVED host item shows Hide + Remove (not Approve/Show); a PENDING host item shows Approve + Hide; Approve sets approved; a HIDDEN host item shows Show (not Hide/Approve); Show sets approved; host Remove is behind a modal confirm (no accidental delete); shows the Trash on the item it allows and never on another; draws the album on its own element, with the media never inside it; wears the ONE material on the pill, the capsule and the close; a confirmed name stands plain, with no mark; a name nobody proved is named AND marked; a legacy nameless row reads "A guest", never a blank credit; the mark offers the way out on the viewer's OWN upload only; says nothing about proof it was never given: an item with no flag is plain; reads "Unverified", never a claim that a name was checked; names the mark for a screen reader and a pointer alike; about somebody else: anyone can type a name, and they have not confirmed an email; names an unnamed guest without inventing one; about YOURSELF: what you did, what is missing, and the way out; offers no way out on somebody else's credit; tells the HOST about their own switch, and only the host; keeps the album's event: the intent first, then the claim, then the save; outside an album, claims the uploads and saves nothing it cannot name |
+| `src/components/shared/unverified-mark.tsx` | the quiet mark beside a name nobody proved, in MineMark's material, carrying its own explanation and, on your own credit, the way out | renders centered: the track sits at -100% with zero offset; mouse pointers never engage the finger-follow; a sub-10px wiggle stays unlocked (tap territory); a vertical move releases the gesture to the browser; a horizontal lock engages: data-dragging + 1:1 follow; clamps a long pull toward a real neighbor to one slide width; damps the pull past the FIRST item (no prev); slow short drag springs back (200ms settle, no index change); a long slow drag commits by DISTANCE (20% of width); a quick flick commits by VELOCITY regardless of distance; a commit toward a missing neighbor cannot happen at the END of the set; pointercancel snaps back to center; reduced motion: a commit lands INSTANTLY, no transition round-trip; arrow keys step through the set within bounds; arrow keys at the edges do nothing; a CENTER tap on the letterbox closes; the click trailing a drag does NOT; a clean CENTER-third tap on the letterbox closes the viewer; a LEFT-third letterbox tap steps to the previous item (no close); a RIGHT-third letterbox tap steps to the next item (no close); a side tap at an edge is a NO-OP (never an accidental close); the position counter reflects the controlled index (pill format); a drag starting in a PLAYING video's scrubber strip never swipes; the same drag swipes once the video is PAUSED; the GUEST pill carries NO curate controls, even with a status; an APPROVED host item shows Hide + Remove (not Approve/Show); a PENDING host item shows Approve + Hide; Approve sets approved; a HIDDEN host item shows Show (not Hide/Approve); Show sets approved; host Remove is behind a modal confirm (no accidental delete); shows the Trash on the item it allows and never on another; draws the album on its own element, with the media never inside it; wears the ONE material on the pill, the capsule and the close; a confirmed name stands plain, with no mark; a name nobody proved is named AND marked; a legacy nameless row reads "A guest", never a blank credit; the mark offers the way out on the viewer's OWN upload only; says nothing about proof it was never given: an item with no flag is plain; reads "Unverified", never a claim that a name was checked; names the mark for a screen reader and a pointer alike; about somebody else: anyone can type a name, and they have not confirmed an email; names an unnamed guest without inventing one; about YOURSELF: what you did, what is missing, and the way out; offers no way out on somebody else's credit; tells the HOST about their own switch, and only the host; inside an album: the return marker first, then the claim, then the refresh; outside an album, claims the uploads and leaves no marker it cannot key |
 | `src/components/shared/upload-thumbnail.tsx` | the per-file thumbnail in the upload queue | none |
 | `src/components/shared/view-menu.tsx` | the one dropdown every gallery's crowded controls move behind (`app-vocabulary` r2, `controls-home=view-menu`): a caller hands it arbitrary radio `groups` (a label, options, a value, a handler), so the host gallery's tile size/sort/filter and the guest album's tile size/Yours are the same object worn twice. A `disabled` group renders every option inert with a `hint` explaining why, rather than hiding a control he explicitly asked to stop being invisible | renders every group as a radio group named after its own label; calls the picked group's own handler with the chosen value, and no other group's; never fires a disabled group's handler, and says the row is reserved; closes once a real choice lands; names the trigger with the caller's own word |
 | `src/components/ui/avatar.tsx` | the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it | carries rounded-full and overflow-hidden at size=%s; the xl size is 80px (size-20), the fourth size on the contract; AvatarFallback never sets its own rounded-full; AvatarImage never sets its own rounded-full, and covers the disc with no gap; sets mesh's own backgroundBlendMode on the root; drops bg-muted for a transparent ground, and colours the initial; the SAME seed paints the fallback the SAME ink on two different avatars; a DIFFERENT seed paints the fallback a different ink; with no seed, the root paints nothing and the fallback stays today's grey |
@@ -358,7 +358,7 @@ Contracted but outside the library's directories:
 - `src/components/admin/inbox-pane.tsx` (4 guards)
 - `src/components/app/create-event-wizard.tsx` (17 guards)
 - `src/components/app/dashboard/claims-card.tsx` (10 guards)
-- `src/components/app/dashboard/events-section.tsx` (9 guards)
+- `src/components/app/dashboard/events-section.tsx` (11 guards)
 - `src/components/app/dashboard/next-step-band.tsx` (7 guards)
 - `src/components/app/event-feed/bulk-bar.tsx` (9 guards)
 - `src/components/app/event-feed/event-cards-row.tsx` (10 guards)
@@ -384,10 +384,11 @@ Contracted but outside the library's directories:
 - `src/components/app/share/use-copy-link.ts` (12 guards)
 - `src/components/app/welcome-flow.tsx` (7 guards)
 - `src/components/auth/account-door.tsx` (17 guards)
+- `src/components/auth/confirm-email-dialog.tsx` (5 guards)
 - `src/components/guest/add-email-dialog.tsx` (6 guards)
-- `src/components/guest/claim-handle-prompt.tsx` (8 guards)
+- `src/components/guest/claim-handle-prompt.tsx` (12 guards)
 - `src/components/guest/entry-shell.tsx` (4 guards)
-- `src/components/guest/follow-moment-card.tsx` (8 guards)
+- `src/components/guest/follow-moment-card.tsx` (12 guards)
 - `src/components/guest/gallery-empty-state.tsx` (8 guards)
 - `src/components/guest/guest-action-dock.tsx` (7 guards)
 - `src/components/guest/guest-bar.tsx` (15 guards)
@@ -395,9 +396,9 @@ Contracted but outside the library's directories:
 - `src/components/guest/guest-masonry.tsx` (5 guards)
 - `src/components/guest/guest-name-menu.tsx` (11 guards)
 - `src/components/guest/guest-name-step.tsx` (43 guards)
-- `src/components/guest/guest-upload.tsx` (28 guards)
+- `src/components/guest/guest-upload.tsx` (31 guards)
 - `src/components/guest/live-gallery.tsx` (23 guards)
-- `src/components/guest/save-account-prompt.tsx` (7 guards)
+- `src/components/guest/save-account-prompt.tsx` (10 guards)
 - `src/components/guest/upload-step.tsx` (54 guards)
 - `src/components/guest/upload/failure-sheet.tsx` (6 guards)
 - `src/components/guest/upload/intent-sheet.tsx` (9 guards)
@@ -459,13 +460,18 @@ Contracted but outside the library's directories:
 - `src/lib/avatar/seed.ts` (5 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
 - `src/lib/dashboard/arrivals.ts` (6 guards)
-- `src/lib/dashboard/events-view.ts` (9 guards)
+- `src/lib/dashboard/events-view.ts` (10 guards)
+- `src/lib/dashboard/guest-events.ts` (5 guards)
 - `src/lib/dashboard/next-step.ts` (16 guards)
-- `src/lib/db/queries/claims.ts` (10 guards)
+- `src/lib/db/queries/claims.ts` (12 guards)
+- `src/lib/events/event-guests.ts` (8 guards)
 - `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)
+- `src/lib/guest/album-return.ts` (8 guards)
+- `src/lib/guest/claim-uploads.ts` (6 guards)
 - `src/lib/guest/join.ts` (23 guards)
-- `src/lib/guest/use-upload-queue.ts` (28 guards)
+- `src/lib/guest/use-confirm-return.ts` (8 guards)
+- `src/lib/guest/use-upload-queue.ts` (31 guards)
 - `src/lib/observability/sentry.ts` (5 guards)
 - `src/lib/qr/module-floor.ts` (9 guards)
 - `src/lib/qr/stock.ts` (9 guards)

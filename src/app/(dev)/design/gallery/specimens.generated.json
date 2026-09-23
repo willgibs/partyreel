@@ -170,7 +170,7 @@
     "event-card": [
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name={SAMPLE.eventName}\n  coverUrl={SAMPLE.cover}\n  dateLabel={SAMPLE.dateLabel}\n  itemsLabel=\"128 items\"\n  statusLabel=\"Open\"\n  pendingCount={3}\n  qrSlot={qrSlot}\n/>",
       "<EventCard\n  variant=\"hosted\"\n  href=\"#\"\n  name=\"Office Summer Party\"\n  coverUrl={null}\n  dateLabel=\"Aug 2\"\n  itemsLabel=\"0 items\"\n  statusLabel=\"Open\"\n  pendingCount={0}\n/>",
-      "<EventCard\n  variant=\"saved\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n  statusLabel=\"Password\"\n/>",
+      "<EventCard\n  variant=\"guest\"\n  href=\"#\"\n  name=\"Priya &amp; Sam\"\n  coverUrl={SAMPLE.cover2}\n  dateLabel=\"May 30\"\n  byline=\"Hosted by Priya\"\n/>",
       "<EventCard\n  variant=\"trash\"\n  href={null}\n  name=\"Old Test Event\"\n  coverUrl={SAMPLE.cover3}\n  dateLabel=\"Mar 11\"\n  statusLabel=\"6 days left\"\n/>"
     ],
     "storage-meter": [
