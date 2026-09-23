@@ -1,6 +1,6 @@
 ---
 track: recheck-viewer-curation
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "c2482757"            # the launch-prep SHA the branch was cut from
 board: media-viewer
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -71,24 +71,81 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+No new one-way door. The calls this lane took and built on, each his to overrule:
+
+- `media-viewer.video`'s recommendation moves from `badge` to `auto`. Taken: `auto`, because the reel made muted motion the product's grammar for a video and a tap on the reel can open a clip mid-play, which the badge would freeze into a poster. Recommended: keep `auto` (the overrule line carries the badge's case: a clip nobody pressed costs a phone at a party nothing).
+- `host-curation.told`'s recommendation moves from `never` to `line`. Taken: `line`, because `reel-front.yours` may tell a guest when one of hers is in and her waiting tile keeps saying the host has not decided after the host has, so silence is no longer neutral. Recommended: keep `line` (the overrule carries the FAQ's public "Never").
+- The host's `who` credit shows a CONFIRMED guest's proved address and never a typed one's, as `src/lib/media/uploader-identity.ts` (case 2) ships it and `content/help/require-verified-emails-explained.mdx:30` says. Recommended: keep; if "only a badge, never the address" is meant to cover confirmed addresses too, the shipped host lightbox line (`media-lightbox.tsx:214`) is what changes, and this drawing follows it.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a lab-only recheck: no `docs/systems/` fact moved)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, the lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed`, verified by hand here); a `--state <control>=<option>` pass would press them too.
+- Now, the lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears the board's hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
+- Now, the lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` now draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
+- Now, the lab: `sandbox/gallery-fixtures.ts` (the shared pool of `host-curation` and four reel boards) still mints a nameless `isAnonymous` uploader and puts the host's own uploads in `REVIEW_ITEMS`, neither of which the product can do now; `host-curation` corrects only its peek, locally (`PEEKED`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `b542965d` (both boards rechecked, the overtaken mechanism retired). Sync-merge commits, one per landing while this lane ran its gates: `b2602ebb` (docs-rules, roadmap-lean, the bible's why lines), `209a11aa` (recheck-mail-admin-export, recheck-help-press), `1ebff657` (docs-product-trim), `7b865cc8` (recheck-guest-identity; its `guest-list.tsx` change, a `reads` file, is two comment words and moves no grammar `who` follows) and `36a663c5` (systems-trim; `guest-flow.md`, a `reads` file, rewritten in the present tense with no rule moved). Every one auto-merged clean, none touched an owned path, and the two generated files merged without conflict: `pnpm design:rules` on each synced tree reproduced them with no diff. The head is in the chat line.
+- Gates on the final synced tree `36a663c5`, each its own exit code: `pnpm design:rules` 0 (no diff); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 (no diff); `pnpm typecheck` 0 (after `rm -rf .next/dev`: on the first sync a stale `.next/dev/types/validator.ts` still named the `library/rulings/page.tsx` docs-rules deleted, so every later run cleared it first); `pnpm lint` 0 (9 pre-existing warnings in 8 files, none in a file this lane touched); `pnpm test` 0 (3837 passed, 1 skipped: `influences.test.ts`'s standing skip); `pnpm build` 0; `pnpm lab:smoke --base http://localhost:3134` 0 ("483 checks, 0 failing"); `pnpm lab:demo --board media-viewer --base http://localhost:3134` 0 ("8 steps, 0 failing"); `pnpm lab:demo --board host-curation --base http://localhost:3134` 0 ("8 steps, 0 failing"). The same nine gates ran green on each of the four earlier synced trees. Both boards were also captured by hand at 375 and 1440 with `--force-prefers-reduced-motion`, from both origins and both credits.
+- Lane check, `git diff --name-only origin/launch-prep...HEAD` (27 paths, plus this manifest on the handoff commit):
+
+      docs/design/library.md
+      scripts/lab-review.mjs
+      src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.test.ts
+      src/app/(dev)/design/(shell)/lab/_desk/queue.test.ts
+      src/app/(dev)/design/(shell)/lab/_desk/queue.ts
+      src/app/(dev)/design/(shell)/lab/_desk/review-store.ts
+      src/app/(dev)/design/(shell)/lab/_desk/session-step.ts
+      src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts
+      src/app/(dev)/design/(shell)/lab/page.tsx
+      src/app/(dev)/design/review/ledger.test.ts
+      src/app/(dev)/design/rules/component-notes.ts
+      src/app/(dev)/design/rules/rules.generated.json
+      src/app/(dev)/design/sandbox/host-curation/fixtures.ts
+      src/app/(dev)/design/sandbox/host-curation/host-curation.css
+      src/app/(dev)/design/sandbox/host-curation/queue.tsx
+      src/app/(dev)/design/sandbox/host-curation/signals.tsx
+      src/app/(dev)/design/sandbox/host-curation/spec.ts
+      src/app/(dev)/design/sandbox/media-viewer/board.tsx
+      src/app/(dev)/design/sandbox/media-viewer/fixtures.ts
+      src/app/(dev)/design/sandbox/media-viewer/media-viewer.css
+      src/app/(dev)/design/sandbox/media-viewer/reel.tsx
+      src/app/(dev)/design/sandbox/media-viewer/spec.ts
+      src/app/(dev)/design/sandbox/media-viewer/viewer.tsx
+      src/app/(dev)/design/sandbox/overtaken.test.ts
+      src/app/(dev)/design/sandbox/overtaken.ts
+      src/components/lab/step.test.tsx
+      src/components/lab/step.tsx
+
+  Exceptions: `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md`, both written by `pnpm design:rules` (the brief names the first; the second is the same command's other output, dropping the `overtaken.ts` line and the 22 retired contracts, 1237 to 1215); `src/app/(dev)/design/(shell)/lab/_desk/staging.test.ts`, one deleted line: its `AskState` fixture still built the retired `outcome` field.
+- The items, one line per reached question (old question to new; adapted, redrawn or left, and why). None REMOVED: every reached question still holds an option that can beat the current path.
+  - `media-viewer.opening` ADAPTED and REDRAWN for two origins: "How should a photograph arrive on the ground the album makes behind it?" to "How should a photograph arrive, out of its tile or out of the live reel, on the ground behind it?". `grow` became "It grows out of where it was" (out of the reel, the frame lets go of its crop), `sheet` keeps the album or the paused reel lit; recommendation `grow` kept. A new `origin` knob draws the reel as the engine's own frame of the tapped photograph, drawn once off the DOM (`media-viewer/reel.tsx`), with the flight measured from where the engine put the picture.
+  - `media-viewer.who` ADAPTED and REDRAWN on the identity model: "the unverified mark" to "the Unverified mark", context now the three trust levels. `face`: a confirmed account's face and a door to its page, a typed name's plain disc and no door (as `guest-list.tsx` draws them); the mark is the shipped `UnverifiedMark` lit tone and word where it was an amber dot labelled "Email not confirmed"; the host's credit carries a proved address only, where every uploader's was printed. A `credit` knob asks Priya (typed) and Leah (confirmed); recommendation `face` kept.
+  - `media-viewer.video` ADAPTED and REDRAWN: "How should a video meet a guest: playing, waiting, or wearing the browser's bar?" to "How should a video meet a guest in the viewer, now the live reel plays a muted window of it and may open the viewer mid-clip?". Each option says what it does opened from the reel (`auto` carries on from the reel's 1.5 s; `controls` and `badge` start over); recommendation `badge` to `auto`.
+  - `media-viewer.wayout` ADAPTED and REDRAWN for two origins: "How should a guest get back to the album?" to "How does a guest get back to where a photograph opened: its tile, or the reel?". `down` drops it into its tile or back into the reel's frame, which picks up again; recommendation `down` kept; now drawn settled, where it wore `grow`'s flight under the dismissal.
+  - `media-viewer.link` ADAPTED: "Should an open photograph have an address of its own, and what should Share hand on?" to "Should an open photograph get its own address, as the reel's ?reel will, and should Share hand on the link or the file?". The overrule no longer waits on the privacy call the cut settled, `file` stays the live road; recommendation `query` kept; captions only redrawn.
+  - `host-curation.arrivals` ADAPTED: "A photograph lands while the host is reviewing with a selection held: what should the queue do?" to "A photograph lands mid-review with a selection held, and nothing waiting reaches the reel or the wall until approved: what should the queue do?". `reel-host.review` named as the owner of any header line; silence's note says none of the three reaches the reel or the wall; recommendation `prompt` kept.
+  - `host-curation.count` ADAPTED: "How many places should tell a host how many uploads are waiting?" to "How many places should say how many uploads are waiting, now that the wall and the host's reel view may say it too?". `reel-screen.review` and `reel-host.review` named, never re-asked; one line above the three says what each answer means for them; recommendation `deeplink` kept.
+  - `host-curation.told` ADAPTED and REDRAWN: "Should a guest whose photograph was refused ever be told?" to "... ever be told, now the album may tell her when one of hers is in?". `line` loses "and on their profile" (a typed name has none, a confirmed one shows only chosen events), `message` reaches only a confirmed address; recommendation `never` to `line`. Her feed drops the host-only like counts and `line` draws the dim it names.
+  - `host-curation.peek` REDRAWN, question unchanged: the credit is a guest's typed name with the Unverified mark (`PEEKED`, "Nina, 4 of 7") where it fell back to "Anonymous" over the host's own upload; the ground is the shipped peek's (fixed, `GLASS_BEHIND`, a glass close) where a pre-glass `bg-black/95` box stopped at the content's foot.
+  - Left alone, unreached by either round: `media-viewer.holds`, `.next`, `.closeup`; `host-curation.queue`, `.verb`, `.keys`, `.undo`.
+  - The overtaken mechanism retired: `sandbox/overtaken.ts` and `overtaken.test.ts` deleted (the `press-page.the-facts` entry with them); `step.tsx` loses the badge, the `s` key, the stands button and `stood`, and `step.test.tsx` its 8 overtaken cases; `_desk/queue.ts` the `overtaken` and `outcome` fields and the two counted rows, `queue.test.ts` the real-board join block; `session-step.ts` the `OvertakenBadge` type and the `STANDS` re-export; `review-store.ts` `standAnswer`; `copy-so-far.test.ts` its 2 stands cases; `(shell)/lab/page.tsx` the stat, the tag, the bullet, the stood and overriding labels and the empty-state count; `review/ledger.test.ts` the stands exception (no ledger stores one: `grep -rn stands docs/reviews/*.json` finds nothing); `scripts/lab-review.mjs` the stands grammar, the overtaken reader, the override echo into `_window` and its help line (a pasted `=stands` is now refused as not an option); `component-notes.ts` its entry.
+  - Lines left to the Orchestrator, each naming the retired mechanism: `docs/STATUS.md:39` (six asks "carry a badge ... until the boards are rechecked"); `docs/reviews/README.md:86-92` (the `stands` grammar and its example); `docs/ROADMAP.md:58` (the dock's note-column patch, which the stands button crowded); `usher/kit/README.md:49` (`sandbox/overtaken.test.ts` among the gate tests); `usher/kit/board-card.mjs:9,47-49,66,83-84` (reads the map behind `existsSync`, now always empty); `usher/kit/batch-reader.mjs:145,185-208` and `usher/kit/review-sheet.mjs:35` (a `stands` reading nothing produces now); `usher/essays/scar-tissue.md:28`; `docs/tracks/orchestrator.md:36,53`. The `touchpoints.ts` comment the brief named left with docs-rules' rewrite; the `media-viewer` registry lines (`ruled` and `board.note`, "how they get back to the album") could read "how they get back to where it opened, a tile or the reel".
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `media-viewer.video` now recommends `auto` (was `badge`); see Questions.
+  - `host-curation.told` now recommends `line` (was `never`); see Questions.
+  - The host's `who` credit shows a confirmed guest's proved address, as shipped; see Questions.
+  - `credit=confirmed` credits Leah on Priya's photograph (the set's one portrait still) rather than on her own landscape, so the knob moves the credit and nothing else.
+  - `who` and `wayout` are drawn with the opening settled; `holds` is unreached and still shows `grow` mid-flight (Deferred).
+  - The reel origin wears `reel-view`'s own framing at its recommendations (the composition fitted in a 16 px margin, orientation following the screen, bare chrome) and Cinematic as the stand-in mood; another answer there moves this drawing, not these questions.
+  - Opened from the reel in a hand, `sheet`'s gap shows mostly the reel's own dark ground (a 9:16 reel in a taller screen): drawn as it would be, not flattered.
+  - `host-curation.peek`'s upload is credited in the board's own fixtures (`PEEKED`) rather than by editing the shared pool (Deferred).
+  - The one-line exception in `staging.test.ts` (Lane check).
+- Look at first: `media-viewer.wayout` with Opened from set to The live reel (the reel returning at full light, the frame it drops into lit), then `media-viewer.who` under The host curating on both credits (the plain disc and the mark against a face, a door and a proved address), then `host-curation.told` (the flipped recommendation, with the dim drawn).
