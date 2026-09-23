@@ -216,11 +216,11 @@ here too; `../help/AUTHORING.md` lists them.
   profile page (the events a host chooses to list on it included) are free on every plan.
 - **Lifecycle.** An event has no end date; deleting it is the only exit (the anti-abuse reason:
   otherwise fill, end, repeat would be free storage). Deleted events and media wait in Deleted
-  (the app's word; the marketing pages and the posts so far say "the Trash") for the recovery
-  window, then are purged. A free event with no activity (the host's, an edit, a new upload) for
-  about six months gets a warning email, then removal. An Event Pass covers about a year; a nudge
-  goes out before it lapses, a renewal extends it, and a lapsed pass drops the event to Free with
-  a grace window before anything is reduced.
+  (one word everywhere: the app, the marketing pages and the posts; never "trash" or "bin") for
+  the recovery window, then are purged. A free event with no activity (the host's, an edit, a new
+  upload) for about six months gets a warning email, then removal. An Event Pass covers about a
+  year; a nudge goes out before it lapses, a renewal extends it, and a lapsed pass drops the event
+  to Free with a grace window before anything is reduced.
 - **Sharing and download.** One link per event. Per-item originals; a full-quality zip for hosts
   and guests, with type filters and the host's "include hidden" option. Likes from anyone with an
   account (a signed-out tap asks for an email first); the per-event like count is host-only.

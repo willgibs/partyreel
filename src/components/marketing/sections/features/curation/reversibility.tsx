@@ -15,7 +15,7 @@ import {
 
 /**
  * Curation page section 4: the reversibility trio (hide / remove / restore)
- * beside a Trash mock. The countdown chips render from the REAL
+ * beside a Deleted mock. The countdown chips render from the REAL
  * binCountdownLabel + RECENTLY_DELETED_WINDOW_DAYS single sources, and the
  * permanent-delete confirm quotes recently-deleted-grid.tsx verbatim, so the
  * marketing claim can never drift from the shipped lifecycle.
@@ -33,7 +33,7 @@ const TRIO: { icon: LucideIcon; tint: string; title: string; body: string }[] =
       icon: Trash2,
       tint: "text-muted-foreground",
       title: "Remove",
-      body: `Deletes it from the album and into the Trash, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it${"’"}s gone for good.`,
+      body: `Deletes it from the album and into Deleted, where it waits ${RECENTLY_DELETED_WINDOW_DAYS} days before it${"’"}s gone for good.`,
     },
     {
       icon: Undo2,
@@ -43,13 +43,13 @@ const TRIO: { icon: LucideIcon; tint: string; title: string; body: string }[] =
     },
   ];
 
-const TRASH_TILES: { id: string; days: number }[] = [
+const DELETED_TILES: { id: string; days: number }[] = [
   { id: "wedding-arch", days: 0 },
   { id: "wedding-petals", days: 1 },
   { id: "party-balloons", days: 29 },
 ];
 
-function TrashMock() {
+function DeletedMock() {
   return (
     <div
       aria-hidden
@@ -57,14 +57,14 @@ function TrashMock() {
     >
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-label font-semibold text-muted-foreground uppercase">
-          Trash
+          Deleted
         </p>
         <Caption className="tabular-nums">
           restore within {RECENTLY_DELETED_WINDOW_DAYS} days
         </Caption>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
-        {TRASH_TILES.map(({ id, days }) => (
+        {DELETED_TILES.map(({ id, days }) => (
           <div
             key={id}
             className="relative aspect-square overflow-hidden rounded-lg"
@@ -109,14 +109,14 @@ export function Reversibility() {
       heading="Nothing here has to be final."
       subhead="Curation is a series of small, reversible calls. The only permanent delete is the one you confirm on purpose."
     >
-      {/* One Reveal around the whole split so the Trash mock arrives WITH the
+      {/* One Reveal around the whole split so the Deleted mock arrives WITH the
           trio instead of standing there already-painted; slots continue
           SectionShell's header count (0-2). */}
       <Reveal className="mx-auto mt-12 max-w-5xl">
         <MediaSplit
           media={
             <div data-mkt-reveal style={{ "--i": 3 } as CSSProperties}>
-              <TrashMock />
+              <DeletedMock />
             </div>
           }
           mediaSide="end"

@@ -119,7 +119,7 @@ export const ABOUT_CONVICTIONS: readonly {
   },
   {
     title: "Built to keep.",
-    body: "Albums do not expire, deletes stay reversible for 30 days, and every file lives in two regions.",
+    body: "No album has an expiry date, though an abandoned free event is eventually swept, reversible for 30 days like any delete. Every file lives in two regions.",
     linkLabel: "How long media is kept",
     href: "/help/how-long-media-is-kept",
   },

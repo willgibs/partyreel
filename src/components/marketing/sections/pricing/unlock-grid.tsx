@@ -1,9 +1,9 @@
-import { AtSign, Clapperboard, Lock, Video } from "lucide-react";
+import { CalendarPlus, Clapperboard, Lock, Video } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
+import { MAX_EVENTS, MAX_REEL_SECONDS, planById } from "@/lib/constants/tiers";
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
@@ -37,10 +37,10 @@ export function UnlockGrid() {
       freeLine: "Free shares the standard link, no password.",
     },
     {
-      icon: AtSign,
-      title: "Your host page",
-      body: "Claim /u/you and put every event you host in one public place.",
-      freeLine: "Free hosts stay unlisted.",
+      icon: CalendarPlus,
+      title: "Unlimited events",
+      body: "Host as many events as you want, each with its own album and code.",
+      freeLine: `Free is ${MAX_EVENTS.free === 1 ? "one event" : `${MAX_EVENTS.free} events`} at a time.`,
     },
   ];
 

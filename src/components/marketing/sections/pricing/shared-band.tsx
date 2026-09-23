@@ -28,7 +28,8 @@ import { formatBytes } from "@/lib/utils";
  * precedent: seven items never leave an empty grid cell). Every claim is
  * grounded: no guest limit (events.ts: the same QR works for a thousand-person
  * conference), full-res never-watermarked photos, verified-email default,
- * the reel on every tier (PRICING.md), the 30-day trash, the 10 GB file gate.
+ * the reel on every tier (PRICING.md), the 30-day Deleted window, the 10 GB
+ * file gate.
  */
 
 const ITEMS: { icon: LucideIcon; label: string }[] = [
@@ -38,7 +39,7 @@ const ITEMS: { icon: LucideIcon; label: string }[] = [
   { icon: ImageUp, label: "Full-res photos, never watermarked" },
   { icon: MailCheck, label: "Verified-email uploads" },
   { icon: Clapperboard, label: "A reel on every plan" },
-  { icon: Archive, label: "30-day trash" },
+  { icon: Archive, label: "30 days in Deleted" },
 ];
 
 export function SharedBand() {

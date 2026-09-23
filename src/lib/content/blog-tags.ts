@@ -3,8 +3,9 @@
  * the one-line description the filtered library shows under its heading.
  *
  * Three AUDIENCES (who the post is for) and three PURPOSES (what kind of piece it is).
- * A post carries one of each at most; the frontmatter schema (blog.ts) enforces membership
- * so a typo fails the BUILD, the same contract `cover` and `author` already have. The
+ * A post carries one or two tags total, at most one audience: one of each, or two purposes,
+ * are both legal, but never two audiences. The frontmatter schema (blog.ts) enforces
+ * membership so a typo fails the BUILD, the same contract `cover` and `author` already have. The
  * registry order is the RAIL order (audiences, then purposes), deliberately fixed: a
  * most-used-first rail would reshuffle every time a batch of posts lands, which is the
  * same instability the cover resolver forbids.

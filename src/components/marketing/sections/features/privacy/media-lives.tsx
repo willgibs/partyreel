@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { StatBand } from "@/components/marketing/system/stat-band";
+import { INACTIVE_DAYS } from "@/lib/lifecycle/inactivity";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
@@ -12,10 +13,13 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * verified behavior; the fenced claims (E2EE, PITR, compliance badges,
  * multi-cloud) are deliberately absent. The recovery-window number derives
  * from lib/lifecycle/recently-deleted.ts so this page can never drift from
- * what the purge cron actually enforces.
+ * what the purge cron actually enforces; the inactivity-months number derives
+ * from lib/lifecycle/inactivity.ts the same way (rule 7: never say "never
+ * expires" without the Free plan's inactivity removal in the same breath).
  */
 
 const WINDOW = RECENTLY_DELETED_WINDOW_DAYS;
+const INACTIVITY_MONTHS = Math.round(INACTIVE_DAYS / 30);
 
 const FACTS: string[] = [
   "Every file is copied to a second storage bucket in a different region within seconds of arriving.",
@@ -23,8 +27,8 @@ const FACTS: string[] = [
   "A daily sweep compares the two buckets and re-copies anything the live copy missed.",
   "The database is backed up daily to separate off-site storage, and restores are verified, not assumed.",
   "Automated cleanup can never wipe the media store. A circuit breaker halts any run that reaches too far.",
-  `Deleted media waits ${WINDOW} days in a recovery bin and restores exactly as it was.`,
-  "Events have no expiry date. The album stays up until you delete it.",
+  `Removed media waits ${WINDOW} days in Deleted and restores exactly as it was.`,
+  `A free event untouched for about ${INACTIVITY_MONTHS} months is removed; every other event has no expiry date and stays up until you delete it.`,
 ];
 
 export function MediaLives() {
@@ -63,7 +67,7 @@ export function MediaLives() {
           stats={[
             { value: 2, label: "Storage regions" },
             { value: 35, suffix: "-day", label: "Write-once backup" },
-            { value: WINDOW, suffix: "-day", label: "Recovery bin" },
+            { value: WINDOW, suffix: "-day", label: "Deleted window" },
           ]}
         />
       </div>

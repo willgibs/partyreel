@@ -55,10 +55,10 @@ export const PRICING_FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Do my events expire?",
-    a: `On Free and Pro, never: an album stays until you delete it, and deletions wait 30 days in the trash first. A Free event untouched for about six months gets a 14-day warning email before it is cleaned up. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
+    a: `Never by date: an album stays until you delete it, and deletions wait 30 days in Deleted. The one exception is a Free event untouched for about six months, which gets a 14-day warning email before it's removed; any activity resets the clock. An Event Pass covers its event for about a year and renews for ${EVENT_PASS_RENEWAL_PRICE_LABEL}.`,
   },
   {
     q: "Can I cancel Pro anytime?",
-    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward the trash.`,
+    a: `Yes, from the billing portal on your dashboard. Your media stays put. If you are over the ${formatBytes(free.storageBytes)} Free cap after cancelling, you get a ${OVER_CAP_GRACE_DAYS}-day window to free up space or re-upgrade before anything moves toward Deleted.`,
   },
 ];
