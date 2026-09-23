@@ -46,8 +46,11 @@ model Will seats (Fable or Opus); nothing here depends on which.
    with the identity and reel rounds; one alias build carries them for his desk review.
 3. **The defects round is done** (the Orchestrator's, from the ROADMAP's Now list): `guests-grant-tidy` at `39aa374b`
    (gate 126, its migration applied), `defects-app` at `644764ef` (gate 127), `defects-copy` at `5e21c390` (gate 128).
-   Owed: a signed-in live look on the alias at what the app lane could not reach locally (the storage chip and its
-   sheet, the slug displays, the delete dialog, both confirm doors' round trips).
+   The alias serves `64fbe302`; the live look (Will's session in his Chrome) confirmed the slug on the hub's link row
+   and the print sheet (`/e/testing`), the public copy (`/blog`, `/pricing`, `/about`, `llms.txt`) headless, and the
+   delete dialog's words from source (a delete control is never clicked without his word); the storage chip (a host
+   over 85%) and the confirm doors' round trips stay pinned by tests only. It found one string the round missed,
+   fixed at `012f5059`.
 4. **The reel round's wiring**, after his desk review of the six reel boards: the approved plan
    `~/.claude/plans/great-work-however-1-dapper-twilight.md` (sections A to G; the expand migration first, the drop
    migration and the R2 sweep of stored reel files after the red-team). The sweep lane also takes the reel's lines in

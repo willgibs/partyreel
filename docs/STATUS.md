@@ -41,8 +41,8 @@ window of the original fetched by range and decoded on the viewer's device. The 
 
 - **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
   `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `98cfa62f`: every standing board
-  current with the identity and reel rounds, the six reel boards and both engines, with the old reel still live. No
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `64fbe302`: every standing board
+  current with the identity and reel rounds, the defects round, the six reel boards and both engines (old reel live). No
   push deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
