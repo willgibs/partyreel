@@ -1,6 +1,6 @@
 ---
 track: guest-by-upload
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8d1f66fd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -131,24 +131,199 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+None open. Every call I took without asking is under "Calls his to overrule" below, each with the answer built.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: BELONGS HERE names who a guest is; the row's "there is no save"; THE OFFER IS THE CAPTURE FLOW (its newsletter switch); THREE CONFIRM DOORS, ONE OBJECT, AND THEY CLAIM ONLY; THE RETURN (the marker, `holdAlbum`, `useConfirmReturn`, here and elsewhere); the overlays line (the confirm door); the header's stats from the one count; the gate's "punched ONCE" rewritten as OWN DELETES CLOSE IT with Will's words; `contributionAnswered`; the last-removal line; the claim paragraph; the header menu; two invariants, a person is a guest only through an upload of theirs (Will's words) and the host sees a confirmed guest's address (his reason).
+- `docs/systems/profiles-social.md`: `profile_shown_events` as the opt-in that survives a last removal; a person on a list, a count or a profile line only through an approved upload; the attended arm's upload door and its two stricter corners; the Guests room and the hub counting through the one count; `profile_hidden_events` gone from the schema line.
+- `docs/systems/host-app.md`: the dashboard's Guest cards (the read, the mask, a card leaving with its last live upload, `RoleMarker`); the Show menu (All events · Guest · Deleted); the hub's header and Guests card counts; the upload door's own-deletes rule.
+- `docs/systems/notifications-analytics-growth.md`: the "Saved events" section deleted; the newsletter opt-in lives in the offer card's confirm door; ROLE and BELONGS HERE follow.
+- `docs/systems/auth-accounts.md`: the account door's asks (the one confirm door, claim only); the `keep` and `like` wears' words and why; every guest-side wear awaits the claim.
+- `docs/systems/database-security.md`: the attended arm's upload door; `get_upload_gate`'s read; the claim card and Claim all skip a row with no live upload; the token claim's count; `save_event`/`get_saved_events`/`saved_events` out of the inventory (true from the contract's apply).
+- `docs/SYSTEMS.md`: the guest-flow, host-app and notifications rows. `docs/PRD.md`: the Guest persona (contributes; Will's participation principle) and the core loop's offer step.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Guest: on a require-upload event whose album is FULL, the last-removal confirm says the album closes, but the gate fails open on a full album, so it does not; say it only when the gate's `album_full` is false (the lightbox would need that fact).
+- Now: Guest, the demo: every demo upload is the host's and the host never counts, so its header reads "9 photos & videos" with no guests clause; seed a few guest uploads (real uploads, `seed-demo-event.mjs`) to bring back "from N guests".
+- Now: Social: `getProfileCards` hydrates the guest list by one `.in()` of user ids, so a party with several hundred confirmed guests builds a long URL; chunk it (the counts themselves are event-keyed).
+- Now: Code hygiene: `e/[token]/page.tsx`'s `socialSeam` cast (its own comment says collapse it once the server lane is on the tree, which it is) and its unused `requireVerifiedEmail` (a lint warning).
+- Now: Code hygiene: comments that still name save: `likes-provider.tsx:26` (SaveEventButton), `queries/guest-events.ts:19` (`save_event` among the anon-client RPCs), voice-guest `parts.tsx:425,473` and `lines.ts:148` (`save-event-button.tsx`, the `save` wear), voice-guest `spec.ts`'s keep `lands` ("the door's save words").
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+**Commits.** Work, in order: `425f64a8` (the two migration files and their guards), `61701cd8` (save dies in the app; one count; the doors claim only), `cda8a989` (the confirm dialog's contract, the notes, the regenerated library), `f7abbdd2` (the help, the blog line, the legal line, the account's words), `cbde8a24` (the PRD and the system docs), `df276bf4` (the one count read once per request), `5800ae4c` (the dashboard article's billing line follows the storage guard), `414435e6` (the migrations' after-apply md5s and their order), `9812e94b` and `a81152c7` (the voice board's two lines). Syncs: `b4c83f9b` (recheck-by-upload), `8f735522` (storage-guard and host-storage) and `f0cc9d68` (voice-guest; launch-prep at `0c95387e`, 0 behind at handoff); each conflicted only on `docs/design/library.md`'s generated count line, resolved by regenerating. All pushed to `origin/lp/guest-by-upload`.
+
+**Gates on the synced tree `a81152c7`, each on its own exit code** (logs `gate3-*.log` in the lane's scratch): `pnpm design:rules` 0 (1976 contracts on 168 components from 125 contract tests, 18 policies) · `collect-specimens` 0 (140 specimens on 101 entries) · `pnpm typecheck` 0 · `pnpm lint` 0 (0 errors, 9 warnings, none in a touched file) · `pnpm test` 0 (362 files, 4026 passed, 1 skipped: `strip-metadata.test.ts`'s own) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3132` 0 (504 checks, 0 failing).
+
+**Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 105 paths before this file): all inside `owns` except
+- three GATE OUTPUTS, regenerated: `docs/design/library.md`, `rules.generated.json`, `specimens.generated.json`;
+- `src/app/(app)/account/page.tsx`, storage-guard's file: the brief's three lines ("Events you joined" becomes "Events you added photos to"), after syncing;
+- `content/help/how-partyreel-works.mdx:50`, one line: its dashboard bullet promised "any you've saved as a guest";
+- `src/app/api/cron/purge/route.ts:969`, one comment line: it named `saved_events` as the table sharing the FK, now `profile_shown_events`;
+- `src/app/(dev)/design/sandbox/voice-guest/lines.ts:167` and `spec.ts:355`, one line each (the board merged mid-lane): its `today` register is the shipped string by its own rule, and the keep door's reason is this lane's; the `today` option's meaning said the door does not hold before an upload, which this lane fixes.
+
+```
+content/blog/AUTHORING.md
+content/blog/scanned-a-qr-code-where-your-photos-go.mdx
+content/help/AUTHORING.md
+content/help/display-name-and-profile-photo.mdx
+content/help/find-your-uploads-and-events.mdx
+content/help/how-guests-join-and-upload.mdx
+content/help/how-partyreel-works.mdx
+content/help/profiles-guest-lists-and-following.mdx
+content/help/report-a-problem-as-a-guest.mdx
+content/help/require-an-upload-to-view-explained.mdx
+content/help/require-verified-emails-explained.mdx
+content/help/save-an-event-and-find-your-uploads.mdx
+content/help/sign-in-options-and-passwords.mdx
+content/help/why-an-event-asks-for-your-email.mdx
+content/help/your-dashboard-explained.mdx
+content/help/your-public-profile-following-and-blocking.mdx
+docs/PRD.md
+docs/SYSTEMS.md
+docs/design/library.md
+docs/systems/auth-accounts.md
+docs/systems/database-security.md
+docs/systems/guest-flow.md
+docs/systems/host-app.md
+docs/systems/notifications-analytics-growth.md
+docs/systems/profiles-social.md
+src/app/(app)/account/page.tsx
+src/app/(app)/dashboard/[eventId]/page.tsx
+src/app/(app)/dashboard/page.tsx
+src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
+src/app/(dev)/design/gallery/specimens.generated.json
+src/app/(dev)/design/rules/component-notes.ts
+src/app/(dev)/design/rules/rules.generated.json
+src/app/(dev)/design/sandbox/voice-guest/lines.ts
+src/app/(dev)/design/sandbox/voice-guest/spec.ts
+src/app/(guest)/u/[slug]/page.tsx
+src/app/api/cron/purge/route.ts
+src/app/api/guests/capture-email/route.ts
+src/components/app/dashboard/events-row-list.tsx
+src/components/app/dashboard/events-section.test.tsx
+src/components/app/dashboard/events-section.tsx
+src/components/app/dashboard/filter-chips.tsx
+src/components/app/dashboard/trash-section.tsx
+src/components/app/event-card.test.tsx
+src/components/app/event-card.tsx
+src/components/app/unsave-button.tsx
+src/components/auth/account-door.test.tsx
+src/components/auth/account-door.tsx
+src/components/auth/confirm-email-dialog.test.tsx
+src/components/auth/confirm-email-dialog.tsx
+src/components/guest/claim-handle-prompt.test.tsx
+src/components/guest/claim-handle-prompt.tsx
+src/components/guest/enter-event-prompt.tsx
+src/components/guest/event-experience.tsx
+src/components/guest/follow-moment-card.tsx
+src/components/guest/guest-header.test.tsx
+src/components/guest/guest-header.tsx
+src/components/guest/guest-name-menu.tsx
+src/components/guest/guest-upload.test.tsx
+src/components/guest/guest-upload.tsx
+src/components/guest/live-gallery.tsx
+src/components/guest/save-account-prompt.test.tsx
+src/components/guest/save-account-prompt.tsx
+src/components/guest/save-event-button.test.tsx
+src/components/guest/save-event-button.tsx
+src/components/shared/claim-uploads-on-auth.tsx
+src/components/shared/media-lightbox.tsx
+src/components/shared/unverified-mark.test.tsx
+src/components/shared/unverified-mark.tsx
+src/components/social/attended-events-visibility.tsx
+src/lib/constants/legal-privacy.tsx
+src/lib/content/help-redirects.ts
+src/lib/dashboard/events-view.test.ts
+src/lib/dashboard/events-view.ts
+src/lib/dashboard/guest-events.test.ts
+src/lib/dashboard/guest-events.ts
+src/lib/dashboard/layout.test.ts
+src/lib/dashboard/layout.ts
+src/lib/db/migration-guards.test.ts
+src/lib/db/queries/claims.test.ts
+src/lib/db/queries/claims.ts
+src/lib/db/queries/guest-events-admin.ts
+src/lib/db/queries/guest-gate.ts
+src/lib/db/queries/saved-events.ts
+src/lib/db/queries/social.guest-identity.test.ts
+src/lib/db/queries/social.ts
+src/lib/events/event-guests.test.ts
+src/lib/events/event-guests.ts
+src/lib/events/gallery-access.ts
+src/lib/events/save-event.test.ts
+src/lib/events/save-event.ts
+src/lib/guest/album-return.ts
+src/lib/guest/claim-uploads.test.tsx
+src/lib/guest/claim-uploads.ts
+src/lib/guest/delete-consequence.ts
+src/lib/guest/entry-steps.test.ts
+src/lib/guest/entry-steps.ts
+src/lib/guest/session-tokens.test.ts
+src/lib/guest/session-tokens.ts
+src/lib/guest/use-confirm-return.test.tsx
+src/lib/guest/use-confirm-return.ts
+src/lib/saved-events/card.test.ts
+src/lib/saved-events/card.ts
+src/lib/social/public-profile-visibility.test.ts
+supabase/migrations/20260923120000_guest_by_upload.sql
+supabase/migrations/20260923130000_drop_saves.sql
+```
+
+**The items.**
+- The expand file, `supabase/migrations/20260923120000_guest_by_upload.sql`: five bodies carried verbatim with ★ deltas, signatures and grants unchanged: a profile's "guest at" line follows the album's upload door (`get_public_profile`); own deletes close the gate (`get_upload_gate`); the claim card and Claim all skip a row with no live upload (`list_guest_rows_by_email`, `claim_guest_rows_by_email`); the token claim counts the claimed rows that carry a live upload (`claim_anonymous_uploads`).
+- The contract file, `supabase/migrations/20260923130000_drop_saves.sql`: drops `save_event`, `get_saved_events`, `saved_events` and the dead `profile_hidden_events`, functions first, all `if exists`.
+- Guards: `migration-guards.test.ts` (the gate's pin inverted; the list pin reshaped to accept `create or replace`; the `profile_hidden_events` keep-pin removed; a "guest by upload" block for every delta, the drop order and no revival) and a consent pin in `public-profile-visibility.test.ts`.
+- The one count: `getEventGuests` (`social.ts`: two event-keyed, paged reads, `cache()`d per request) over the pure `resolveEventGuests`/`guestCount` (`src/lib/events/event-guests.ts`): approved uploaders, a confirmed guest once per person, a named unverified row once, never the host, never a nameless row. The hub's header and Guests card and the album's header all say "guests" from it; `getEventGuestList` is built on it.
+- The events you added to: `getMyGuestEventCards` (admin client; the account's live uploads through one paged helper; not deleted, not hosted), masked by `guestEventCardProps` (`src/lib/dashboard/guest-events.ts`) and sorted by the latest upload; the dashboard's `guest` rows under the Show menu's "Guest" (a stored `saved` resolves to All events); `EventCard`'s `guest` variant with the shared `RoleMarker`; the rows' "Guest".
+- Save removed: `SaveEventButton`, `CompletePendingSave`, `UnsaveButton`, `save-event.ts`, the saved query and card, the `UnverifiedMarkEvent` context, the name menu's `keep`/`eventId`, `layout.ts`'s dead `resolveDashboardLayout`, the unmounted `trash-section.tsx`, and their tests.
+- The doors: `ConfirmEmailDialog` (`src/components/auth/confirm-email-dialog.tsx`), one object for the offer card, the Unverified mark and the name menu's Confirm your email and Sign in: the account door in `keep` or `signin`, the claim awaited, then the opener's own follow-through; the newsletter switch stays in the offer card's door.
+- The return: every door writes `pr_pending_offer_<qr_token>` on open (`markPendingOffer`, the album held by `holdAlbum`, `src/lib/guest/album-return.ts`); `useConfirmReturn` claims at mount, this album's token first, plays the follow moment when the marker was there and this album's uploads moved (no upload needed this visit), and toasts only for other events.
+- Never stranded: `contributionAnswered` (`entry-steps.ts`) lets the server's gate win once it has answered; on a require-upload event the lightbox's delete confirm for your last upload says the album closes until you add another, and the page refreshes to the door with its upload step.
+- The Account page's "Events you added photos to"; the attended switches and covers re-check the proved identity and the owner's approved upload.
+- Words: the save article becomes `find-your-uploads-and-events.mdx` (a redirect from the old slug), ten more articles, both AUTHORING files and the blog line; Privacy's "Likes, follows and blocks"; the PRD's participation principle; seven system docs.
+- The Library's Guest specimen (`gallery-demos.tsx`) and `for` lines for the six new contract targets.
+
+**Verified.** Both migrations, rolled back on 2026-09-23 against the shared database: the expand file applied in full, then its foot check (own deletes close the door while hidden and host-removed uploads keep it; the attended line admits host, passed and host-removed viewers and refuses anonymous, never-uploaded and self-removed ones, and opens with uploads closed or the switch off; the card and Claim all skip the empty row and leave it untouched; the token claim stamps both rows and counts only the one with a live upload; the grants), ending `ROLLED BACK — every guest-by-upload contract held` with the five after-apply md5s read inside that transaction, equal to the header's. The contract file applied on the expand's `get_public_profile`, ending `ROLLED BACK — every drop-saves contract held`. Read-only afterwards: the five live bodies still read their before-md5s, and all four save objects stand. Local, dev on :3132 in the Browser pane: the album header "57 photos & videos from 7 guests" on Gallery width (a SQL count said 7; the old count said 9); the name menu's Sign in and Confirm doors open the one dialog and write the marker, at 1440 and 375; `/u/willg`'s Host marker; the Library's Guest specimen; the voice board's keep door showing the shipped line; the demo header (see the calls).
+
+**Not verified, the red-team's** (localhost cannot mint a session): every signed-in surface, listed under "Look at first".
+
+**Assets requested from Will:** none.
+
+**Proposed migrations (the Orchestrator's; no Worker, Vercel, Stripe or env change).**
+1. `20260923120000_guest_by_upload.sql`, with this merge: the drift check (the before-md5s in its header) → apply verbatim → the same query reads the after-md5s in its header → `get_advisors` (expected delta none) → the rolled-back check at its foot. No type change.
+2. `20260923130000_drop_saves.sql`, after alias build 2's red-team: step 0, the expand is applied; confirm the alias calls none of the four objects → apply → `get_advisors` (0029 goes 34 → 32) → the rolled-back check → regenerate `src/lib/db/types.ts`. Until a milestone ships this tree, partyreel.com's main build loses its dashboard (it throws via `get_saved_events`), its profile hide toggle and its Save buttons.
+
+**For the Orchestrator's own files.**
+- `legal.ts`: Privacy 1.5 → 1.6 (2026-09-23), a comment like "the guest-by-upload round: saved events are no longer kept; the list reads Likes, follows and blocks."
+- ROADMAP closes: the follow moment after Google or a magic link (`:31`); `trash-section.tsx` (`:32`, and its half of `:155`); the profile's attended line following the album (`:33`); the hub's Guests card counting the named unverified (`:149`). Retarget `:174` (`stats.contributorCount` is `stats.guestCount`; the line stays open) and `:176` (Save's dialog is gone; the confirm door, `ConfirmEmailDialog`, is the centred Dialog beside `ExportDialog`).
+- `touchpoints.ts:1181` (read-only to me): "Save" among AccountDoor's asks is now the confirm door (`keep`).
+- `database-security.md` lists 0029 without `save_event`/`get_saved_events`, true from the contract's apply; between the two applies it is two ahead.
+- storage-guard's pricing-sheet note in `component-notes.ts` is still yours; this lane left that block untouched, so it lands without a conflict.
+
+**Calls his to overrule.**
+- `claim_anonymous_uploads` returns the claimed rows that carry a live upload (the stamp itself unchanged), so "We added your uploads to your account." and the follow moment play only when an upload moved.
+- The `save` wear is renamed `keep` (heading "Keep your photos"); its reason holds before an upload: "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account."
+- The `like` wear promises no place: "Confirm your email and your likes stay in your account. Confirming makes a free account."
+- One `ConfirmEmailDialog` for the three doors, still the centred Dialog each of them was.
+- The album the mark's door writes its marker for comes from a module registry (`holdAlbum`, the `name-door.ts` shape), not a React context, so the mark needs no provider.
+- The name menu's Sign in writes the marker too: a sign-in that carries this album's uploads plays the follow moment.
+- With nothing uploaded this visit, the follow moment reads "They are in your account now, and this event came with them." (no number).
+- On the album the toast plays only when a claim reached other events; the (app) layout keeps its own toast.
+- The last-removal confirm adds "This is your last upload here, so the album closes until you add another.", and the page refreshes as soon as that removal lands.
+- The Show menu says "Guest"; the Guest view's empty line is "Nothing here yet. Add a photo to someone else's album and it shows up here."
+- A Guest card wears the profile's Guest marker top-right with no item count; in rows, "Guest" fills the right column and a private event shows a lock.
+- The hub's Guests card reads "N guests" with the list on and "Turn on the list" with it off; the hub header reads "N guests".
+- `list_guest_rows_by_email`'s pin was reshaped to accept `create or replace` rather than dropping and recreating the function, which keeps its ACL.
+- The offer card's glyph is `MailCheck` (the bookmark belonged to Save).
+- The demo's header reads "9 photos & videos" with no guests clause (the host never counts); seeding guest uploads brings the clause back (deferred).
+- The dashboard article's billing line follows storage-guard: a Pro host's meter link reads "Change plan" and lists every Pro size; the portal keeps the card, invoices and cancelling.
+
+**Look at first** (alias build 2, after the expand applies):
+1. Signed in as a guest, add one photo to someone else's album: a Guest card on the dashboard (and under Show › Guest); delete it: the card leaves, and on the next load the album header and the hub's Guests card drop by one (the count needs an APPROVED upload, so use an event without review).
+2. A require-upload event: add a photo, then delete your own last one: the confirm names the closing, and the door returns WITH its upload step; a host's removal of a guest's upload keeps the album open for them.
+3. The return: signed out, add a photo under a typed name, tap Confirm your email, take Google (the account chooser), come back: the follow moment plays with no upload this visit, and no toast unless another event's uploads moved.
+4. The hub counts a named unverified guest and never the host; the Guests room lists exactly that count.
+5. `/account` reads "Events you added photos to"; on a require-upload event with uploads open, a profile's "guest at" line is hidden from a signed-in viewer who never uploaded there.
