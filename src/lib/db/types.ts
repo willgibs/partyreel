@@ -165,7 +165,6 @@ export type Database = {
       events: {
         Row: {
           accepting_uploads: boolean
-          allow_anonymous_uploads: boolean
           created_at: string
           custom_slug: string | null
           deleted_at: string | null
@@ -189,7 +188,6 @@ export type Database = {
         }
         Insert: {
           accepting_uploads?: boolean
-          allow_anonymous_uploads?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -213,7 +211,6 @@ export type Database = {
         }
         Update: {
           accepting_uploads?: boolean
-          allow_anonymous_uploads?: boolean
           created_at?: string
           custom_slug?: string | null
           deleted_at?: string | null
@@ -1387,7 +1384,6 @@ export type Database = {
         Args: { p_qr_token: string }
         Returns: {
           accepting_uploads: boolean
-          allow_anonymous_uploads: boolean
           custom_slug: string
           description: string
           event_date: string

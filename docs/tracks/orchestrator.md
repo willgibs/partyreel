@@ -45,15 +45,13 @@ tagged, both projects READY, the partyreel.com pass green).
    browser (A uploads to a names-mode event, signs out; B signs in and uploads: B's own row; B signs out; a signed-out
    upload meets the door, never A's or B's name).
 2. **Milestone 28, on Will's word** (it changes partyreel.com): `upload-owner` fixes a live misattribution.
-3. **The identity contract** (`20260923150000_identity_contract.sql`): the drift check passed (all four live bodies
-   match their files) and the live search found nothing else naming the column; the auto-mode classifier refused the
-   destructive apply, so it waits on Will's approval. After it: `get_advisors` (no delta expected), `types.ts`
-   regenerated, the foot's rolled-back check, a smoke on partyreel.com and the alias (a disposable event created and a
-   setting saved, a name-only join, a require-upload door, a password event signed out, `/u/<handle>` both ways).
-4. **Stripe with Will** (the plan's section 6), when he says he is at the keyboard: the reads are done (no passes, the
-   customer free, the price ids equal across environments, the prod webhook answering without a redirect); stage
-   willg97 to Free and relink `cus_Ubm3ANAZmqMfDB`, open the plan sheet's Pro 100 GB in his Chrome; his card and
-   Subscribe; read back; Change plan to Pro 500 GB; his Back and Confirm; read back.
+3. **Done 2026-09-23 (Will's approval):** the identity contract applied (after-md5s equal the file's bodies, advisors
+   15 / 5 / 32 unchanged, the foot's rolled-back check held, nothing persisted, `types.ts` four lines shorter); the
+   Stripe TEST walk passed on partyreel.com (Checkout to Pro 100 GB, Change plan to 500 GB, the $10.00 proration).
+4. **Next, on Will's note of 2026-09-23:** a guest's own delete is final and says so ("deleted immediately from the
+   event and cannot be recovered"; no host surface shows or restores it; the host's Deleted bytes exclude it), and
+   the 1,000-row audit (every read PostgREST's `max_rows` could clip: lists, counts, pagination, `.in()` lists,
+   filters over a capped read). Both merge before milestone 28, which he approved "once you're fully ready".
 5. **The purge cron's first scheduled run on the new code** (04:00 UTC, only production runs crons): read back its
    heartbeat from the jobs console the morning after milestone 27.
 6. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G; the
@@ -61,10 +59,6 @@ tagged, both projects READY, the partyreel.com pass green).
 
 ## Waiting on Will
 
-- **The Stripe clicks** once he is at the keyboard (a test card and Subscribe; then Back and Confirm).
-- **The identity contract's apply** (approve the destructive migration, or leave the unused column).
-- **Pushes to `launch-prep`** after milestone 27: the auto-mode classifier refused one ([Modify Shared Resources]); the
-  record commits sit local until he allows it.
-- **Milestone 28** once `upload-owner` is red-teamed.
+- Milestone 28 is approved ("once you're fully ready"): after `upload-owner`, the delete finality and the 1,000-row audit merge and are red-teamed.
 - **His desk review** on the alias (`/design/lab?key=`, the value in `.env.local`): 26 boards, the six reel boards
   first, the harnesses `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`, and the new `event-safety`.
