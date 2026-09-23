@@ -274,7 +274,7 @@ export function EventGallery({
           {loading && !bin ? (
             <p className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" aria-hidden />
-              Looking in the bin…
+              Opening Deleted…
             </p>
           ) : binError ? (
             <p className="py-10 text-sm text-muted-foreground">{binError}</p>
