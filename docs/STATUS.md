@@ -28,16 +28,16 @@ window of the original fetched by range and decoded on the viewer's device. The 
 - **Alongside, Will's answers of 2026-09-22 (evening):** save dies (a person is a guest of an event only by uploading
   to it; the upload is the save, and a guest's own deletes close a require-upload album again); no plan change leaves a
   host storing more than the new cap (a separate size view to find the largest files); the voice's first board, on the
-  guest journey. `recheck-by-upload`, `storage-guard` and the `host-storage` board are merged; `guest-by-upload` and
-  the `voice-guest` board follow (the pickup has them).
+  guest journey. `recheck-by-upload`, `storage-guard` and the `host-storage` and `voice-guest` boards are merged;
+  `guest-by-upload` follows (the pickup has it).
 
 ## The desk
 
-24 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
+25 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
 order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`, `identity-door`,
-`identity-claims`, `identity-profile`, `guest-capture`, `host-curation`, `host-storage`, `export-flow`, `admin-triage`,
-`help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`,
-`press-page`.
+`identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `export-flow`,
+`admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
+`contact-page`, `press-page`.
 
 ## Live state
 

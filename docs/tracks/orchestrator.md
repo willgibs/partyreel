@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `guest-by-upload` | save dies; one definition of a guest; the profile line follows the album; own deletes close the door | running | Opus, :3132 | apply the expand file at the merge; the contract file only after alias build 2's red-team, then `types.ts`; the Privacy version line in `legal.ts`; the `app-door` ruled row in `touchpoints.ts` |
-| `voice-guest` | NEW board: seven real lines of the guest journey, the capture's words among them | running | Opus, :3135 | syncs after `recheck-by-upload`; desk after `guest-capture` |
 
 ## Next, in order
 
