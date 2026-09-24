@@ -4,151 +4,169 @@ import {
   buildEngagementTrend,
   buildSignupTrend,
   countBySource,
-  summarizeLinkStats,
-  summarizeProfiles,
-  type ProfileMetricRow,
+  parseMetricsSnapshot,
+  summarizeAccounts,
+  summarizeEngagement,
+  type MetricsSnapshot,
 } from "@/lib/metrics/aggregate";
 
-const NOW = new Date("2026-06-01T00:00:00.000Z");
-const RECENT = "2026-05-20T00:00:00.000Z"; // within 30 days of NOW
-const OLD = "2026-01-01T00:00:00.000Z"; // outside the window
+/**
+ * THE METRICS REDUCERS, OVER THE SNAPSHOT (the 1,000-row round, 2026-09-23). The database counts
+ * every figure (`admin_metrics_snapshot()`, pinned in `db/queries/metrics.test.ts`); what is pinned
+ * here is the part with a TypeScript home: the snapshot's shape is refused when it drifts, the raw
+ * tiers fold onto the billing tiers ("max" reads as Pro), the newsletter source rule, and the
+ * zero-filled UTC day buckets the charts draw.
+ */
 
-function profile(p: Partial<ProfileMetricRow>): ProfileMetricRow {
+const NOW = new Date("2026-06-01T00:00:00.000Z");
+
+function snapshot(over: Partial<MetricsSnapshot> = {}): MetricsSnapshot {
   return {
-    tier: "free",
-    created_at: OLD,
-    last_active_at: OLD,
-    storage_used_bytes: 0,
-    stripe_subscription_id: null,
-    is_admin: false,
-    ...p,
+    as_of: "2026-06-01T00:00:00.000000+00:00",
+    window_days: 30,
+    fortnight_days: 14,
+    accounts: {
+      total: 0,
+      new_in_window: 0,
+      active_in_window: 0,
+      new_in_fortnight: 0,
+      new_in_prior_fortnight: 0,
+      active_in_fortnight: 0,
+      active_in_prior_fortnight: 0,
+      paid: 0,
+      storage_used_bytes: 0,
+      by_tier: {},
+      signups_by_day: {},
+    },
+    engagement: { qr_scans: 0, album_views: 0, by_day: {} },
+    newsletter: { by_source: [] },
+    ...over,
   };
 }
 
-describe("summarizeProfiles", () => {
-  it("excludes the operator (is_admin) from every tally", () => {
-    const m = summarizeProfiles(
-      [
-        profile({
-          is_admin: true,
-          tier: "pro",
-          stripe_subscription_id: "sub_1",
-          storage_used_bytes: 999,
-        }),
-        profile({ tier: "free" }),
-      ],
-      NOW,
-    );
-    expect(m.total).toBe(1);
-    expect(m.paidSubscribers).toBe(0);
-    expect(m.totalStorageBytes).toBe(0);
-    expect(m.tierMix.pro).toBe(0);
+describe("parseMetricsSnapshot", () => {
+  it("reads the function's own shape", () => {
+    const parsed = parseMetricsSnapshot(snapshot());
+    expect(parsed.window_days).toBe(30);
+    expect(parsed.accounts.by_tier).toEqual({});
   });
 
-  it("counts new + active within the 30-day window", () => {
-    const m = summarizeProfiles(
-      [
-        profile({ created_at: RECENT, last_active_at: RECENT }),
-        profile({ created_at: OLD, last_active_at: OLD }),
-        profile({ created_at: OLD, last_active_at: RECENT }),
-      ],
-      NOW,
+  it("refuses a drifted shape rather than drawing zeros", () => {
+    const { accounts: _accounts, ...missing } = snapshot();
+    expect(() => parseMetricsSnapshot(missing)).toThrow(
+      /admin_metrics_snapshot/,
     );
-    expect(m.total).toBe(3);
-    expect(m.newLast30).toBe(1);
-    expect(m.activeLast30).toBe(2);
-  });
-
-  it("builds tier mix (coercing retired 'max' to pro) + paid subs + storage sum", () => {
-    const m = summarizeProfiles(
-      [
-        profile({ tier: "free" }),
-        profile({
-          tier: "pro",
-          stripe_subscription_id: "sub_1",
-          storage_used_bytes: 100,
-        }),
-        profile({
-          tier: "max", // retired enum value → coerced to pro
-          stripe_subscription_id: "sub_2",
-          storage_used_bytes: 200,
-        }),
-        profile({ tier: "event_pass", storage_used_bytes: 50 }),
-      ],
-      NOW,
-    );
-    expect(m.tierMix).toEqual({ free: 1, pro: 2, event_pass: 1 });
-    expect(m.eventPassHolders).toBe(1);
-    expect(m.paidSubscribers).toBe(2);
-    expect(m.totalStorageBytes).toBe(350);
+    expect(() => parseMetricsSnapshot(null)).toThrow(/admin_metrics_snapshot/);
+    expect(() =>
+      parseMetricsSnapshot({
+        ...snapshot(),
+        accounts: { ...snapshot().accounts, total: "12" },
+      }),
+    ).toThrow(/accounts\.total/);
   });
 });
 
-describe("summarizeLinkStats", () => {
-  it("sums counts by kind", () => {
-    expect(
-      summarizeLinkStats([
-        { kind: "qr_scan", day: "2026-05-30", count: 3 },
-        { kind: "album_view", day: "2026-05-30", count: 5 },
-        { kind: "qr_scan", day: "2026-05-31", count: 2 },
-      ]),
-    ).toEqual({ qrScans: 5, albumViews: 5 });
+describe("summarizeAccounts", () => {
+  it("takes the counted figures as they come, past 1,000", () => {
+    const m = summarizeAccounts({
+      ...snapshot().accounts,
+      total: 2500,
+      new_in_window: 1300,
+      active_in_window: 1800,
+      paid: 400,
+      storage_used_bytes: 5_000_000_000_000,
+    });
+    expect(m).toMatchObject({
+      total: 2500,
+      newLast30: 1300,
+      activeLast30: 1800,
+      paidSubscribers: 400,
+      totalStorageBytes: 5_000_000_000_000,
+    });
   });
 
-  it("is zero on empty", () => {
-    expect(summarizeLinkStats([])).toEqual({ qrScans: 0, albumViews: 0 });
+  it("folds the raw tiers onto the billing tiers, the retired 'max' reading as Pro", () => {
+    const m = summarizeAccounts({
+      ...snapshot().accounts,
+      by_tier: { free: 1800, pro: 300, max: 100, event_pass: 250 },
+    });
+    expect(m.tierMix).toEqual({ free: 1800, pro: 400, event_pass: 250 });
+    expect(m.eventPassHolders).toBe(250);
+  });
+
+  it("an empty platform is zeros, every tier present", () => {
+    expect(summarizeAccounts(snapshot().accounts).tierMix).toEqual({
+      free: 0,
+      pro: 0,
+      event_pass: 0,
+    });
+  });
+});
+
+describe("summarizeEngagement", () => {
+  it("takes the lifetime sums", () => {
+    expect(
+      summarizeEngagement({ qr_scans: 12_000, album_views: 30_500, by_day: {} }),
+    ).toEqual({ qrScans: 12_000, albumViews: 30_500 });
   });
 });
 
 describe("countBySource", () => {
-  it("tallies + sorts desc, mapping null/blank to 'direct'", () => {
+  it("merges raw sources by the rule, sorting desc, null and blank reading 'direct'", () => {
     expect(
       countBySource([
-        { source: "event_page" },
-        { source: null },
-        { source: "event_page" },
-        { source: "  " },
-        { source: "landing" },
+        { source: "event_page", count: 1200 },
+        { source: null, count: 700 },
+        { source: "  ", count: 600 },
+        { source: " event_page ", count: 5 },
+        { source: "landing", count: 40 },
       ]),
     ).toEqual([
-      { source: "event_page", count: 2 },
-      { source: "direct", count: 2 },
-      { source: "landing", count: 1 },
+      { source: "direct", count: 1300 },
+      { source: "event_page", count: 1205 },
+      { source: "landing", count: 40 },
     ]);
+  });
+
+  it("is empty for no signups", () => {
+    expect(countBySource([])).toEqual([]);
   });
 });
 
 describe("buildSignupTrend", () => {
-  it("zero-fills the 30-day window and counts signups on their UTC day (excl. is_admin)", () => {
+  it("zero-fills the window and places each counted day on its UTC day", () => {
     const trend = buildSignupTrend(
-      [
-        profile({ created_at: "2026-06-01T10:00:00.000Z" }),
-        profile({ created_at: "2026-06-01T23:30:00.000Z" }),
-        profile({ created_at: "2026-05-31T12:00:00.000Z" }),
-        profile({ is_admin: true, created_at: "2026-06-01T08:00:00.000Z" }),
-        profile({ created_at: "2026-01-01T00:00:00.000Z" }), // outside the window
-      ],
+      { "2026-06-01": 2, "2026-05-31": 1, "2026-05-03": 4 },
       NOW,
       30,
     );
     expect(trend).toHaveLength(30);
-    expect(trend[0].day).toBe("2026-05-03"); // oldest bucket
+    expect(trend[0]).toEqual({ day: "2026-05-03", count: 4 }); // oldest bucket
     expect(trend[29]).toEqual({ day: "2026-06-01", count: 2 }); // newest
     expect(trend[28]).toEqual({ day: "2026-05-31", count: 1 });
-    expect(trend.reduce((s, d) => s + d.count, 0)).toBe(3); // in-window, non-admin
+    expect(trend.reduce((s, d) => s + d.count, 0)).toBe(7);
+  });
+
+  it("draws a shorter span from the same counts (the home's fortnight)", () => {
+    const trend = buildSignupTrend(
+      { "2026-06-01": 2, "2026-05-03": 4 },
+      NOW,
+      14,
+    );
+    expect(trend).toHaveLength(14);
+    expect(trend[0].day).toBe("2026-05-19");
+    // A day before the span is not drawn, rather than drawn as a false zero.
+    expect(trend.reduce((s, d) => s + d.count, 0)).toBe(2);
   });
 });
 
 describe("buildEngagementTrend", () => {
-  it("zero-fills + sums scans/views per day, dropping out-of-window days", () => {
+  it("zero-fills scans and views per day", () => {
     const trend = buildEngagementTrend(
-      [
-        { kind: "qr_scan", day: "2026-06-01", count: 10 },
-        { kind: "qr_scan", day: "2026-06-01", count: 6 },
-        { kind: "album_view", day: "2026-06-01", count: 4 },
-        { kind: "qr_scan", day: "2026-05-31", count: 2 },
-        { kind: "album_view", day: "2020-01-01", count: 99 }, // outside the window
-      ],
+      {
+        "2026-06-01": { qr_scans: 16, album_views: 4 },
+        "2026-05-31": { qr_scans: 2, album_views: 0 },
+      },
       NOW,
       30,
     );
@@ -162,8 +180,8 @@ describe("buildEngagementTrend", () => {
     expect(trend[0]).toEqual({ day: "2026-05-03", qrScans: 0, albumViews: 0 });
   });
 
-  it("empty input → an all-zero series of the requested length", () => {
-    const trend = buildEngagementTrend([], NOW, 7);
+  it("no traffic → an all-zero series of the requested length", () => {
+    const trend = buildEngagementTrend({}, NOW, 7);
     expect(trend).toHaveLength(7);
     expect(trend.every((d) => d.qrScans === 0 && d.albumViews === 0)).toBe(
       true,

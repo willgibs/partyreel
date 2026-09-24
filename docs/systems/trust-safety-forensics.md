@@ -25,9 +25,11 @@ preservation machinery serves EVERY abuse report, not only the CSAM case the run
   [`forensics/request-facts.ts`](../../src/lib/forensics/request-facts.ts). Device UUID:
   [`upload/device-id.ts`](../../src/lib/upload/device-id.ts) → `device_uuid` in the complete body.
 - Hold exclusions: the pure predicates [`forensics/legal-hold.ts`](../../src/lib/forensics/legal-hold.ts)
-  (which also enumerates every hard-delete path and why each is safe) + filters in
-  [`cron/purge`](../../src/app/api/cron/purge/route.ts) and `purgeMediaNow`; the SQL choke-point
-  guards live in `purge_media_rows` / `purge_media_now` / `restore_media`.
+  (which also enumerates every hard-delete path and why each is safe) + filters in the purge sweeps
+  ([`lifecycle/sweeps/`](../../src/lib/lifecycle/sweeps), account deletion) and `purgeMediaNow`; the
+  event-level question (does this event hold anything?) is `held_event_ids(uuid[])` through
+  `readHeldEventIds` ([`lifecycle/reclaim.ts`](../../src/lib/lifecycle/reclaim.ts)); the SQL
+  choke-point guards live in `purge_media_rows` / `purge_media_now` / `restore_media`.
 - Preservation: keys in [`r2/keys.ts`](../../src/lib/r2/keys.ts) (`preservedOriginalKey` /
   `preservedForensicsKey` — the single source; deliberately OUTSIDE `events/`), the server-side
   copy in [`r2/objects.ts`](../../src/lib/r2/objects.ts) (multipart ranged copy past the 5 GB
@@ -35,14 +37,20 @@ preservation machinery serves EVERY abuse report, not only the CSAM case the run
 - Admin: [`/admin/forensics`](../../src/app/admin/forensics) (coverage signal, holds list,
   preserve form, audit log) + the export route
   [`/admin/forensics/export`](../../src/app/admin/forensics/export/route.ts); reads in
-  [`db/queries/forensics.ts`](../../src/lib/db/queries/forensics.ts).
+  [`db/queries/forensics.ts`](../../src/lib/db/queries/forensics.ts) (every hold read whole, its lookups chunked; a
+  failed count or lookup throws, and the record export fails with an error audit row when its media or event
+  read fails).
 
 ## Invariants (don't break)
 
 - ★ **Held media is NEVER hard-deleted — object OR row.** Every R2 delete is R2-FIRST, so each
   caller must filter held items BEFORE building its key list (the SQL guard alone would save only
-  the row after the object died). An expired event containing ANY held media is skipped WHOLE (the
-  FK cascade is all-or-nothing). The backup-prune Worker needs no change: its dual-gate (primary
+  the row after the object died). An expired event, or a deleted account's event, containing ANY held
+  media is skipped WHOLE (the FK cascade is all-or-nothing). ★ Which events hold anything is ONE
+  `held_event_ids` answer per candidate set, never a read of held ROWS: PostgREST cuts a row read at
+  1,000, and an event whose held rows fell past the cut would read as purgeable. The media reads leave
+  held rows out, and the holds are asked again right before the event rows go, so a hold placed while a
+  sweep runs keeps its row and its event. The backup-prune Worker needs no change: its dual-gate (primary
   object absent AND row gone) can never be satisfied by a held item.
 - ★ **The device UUID is CAPTURE-ONLY.** Never product logic, never gating, never rendered to a
   host/guest. Same for every `upload_forensics` column: the readers are `/admin/forensics` and a

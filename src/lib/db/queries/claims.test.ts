@@ -9,6 +9,12 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  asSupabase,
+  createFakePostgrest,
+  type FakeRow,
+} from "@/lib/db/testing/fake-postgrest";
+
 vi.mock("server-only", () => ({}));
 
 type RpcRow = {
@@ -31,8 +37,11 @@ const rpc = vi.fn(
   }),
 );
 
+/** The client the query reads through: the recording stub, or a `fake-postgrest` for the paging pins. */
+let client: unknown = { rpc };
+
 vi.mock("@/lib/supabase/request-auth", () => ({
-  getRequestAuth: async () => ({ supabase: { rpc }, user }),
+  getRequestAuth: async () => ({ supabase: client, user }),
 }));
 
 const { getMyClaimableGuestRows } = await import("@/lib/db/queries/claims");
@@ -52,6 +61,7 @@ const row = (over: Partial<RpcRow>): RpcRow => ({
 beforeEach(() => {
   rows = [];
   user = { id: "u1" };
+  client = { rpc };
   rpc.mockClear();
 });
 
@@ -196,5 +206,60 @@ describe("a real error", () => {
   it("throws rather than swallowing it", async () => {
     rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
     await expect(getMyClaimableGuestRows()).rejects.toBeTruthy();
+  });
+});
+
+/**
+ * THE WHOLE CARD, PAST 1,000 ROWS (the 1,000-row round, 2026-09-23). The RPC pages on its own order,
+ * (last upload desc, guest id desc), and the query walks it with the last row's `last_upload_at` and
+ * `guest_id`. Against `fake-postgrest`, which clamps a set-returning function at 1,000 rows as the
+ * platform does: 2,500 rows across 1,250 events come back whole, grouped, in the RPC's order.
+ */
+describe("the claim card, read whole", () => {
+  /** The function as the SQL answers it: the keyset on (last upload desc, guest id desc), clamped. */
+  function listed(all: FakeRow[]) {
+    const order = [...all].sort((a, b) =>
+      a.last_upload_at === b.last_upload_at
+        ? String(b.guest_id).localeCompare(String(a.guest_id))
+        : String(b.last_upload_at).localeCompare(String(a.last_upload_at)),
+    );
+    return (args: Record<string, unknown>) => {
+      const at = args.p_after_at as string | undefined;
+      const id = args.p_after_id as string | undefined;
+      const limit = args.p_limit == null ? Infinity : Math.min(Number(args.p_limit), 1000);
+      return order
+        .filter(
+          (r) =>
+            at === undefined ||
+            String(r.last_upload_at) < at ||
+            (r.last_upload_at === at && String(r.guest_id) < String(id)),
+        )
+        .slice(0, limit);
+    };
+  }
+
+  it("★ groups 2,500 rows across 1,250 events, every row counted, the RPC's order kept", async () => {
+    // Two rows an event; every ten rows share a last upload to the microsecond, so ties straddle pages.
+    const all: FakeRow[] = Array.from({ length: 2500 }, (_, i) => ({
+      ...row({
+        guest_id: `g${String(i).padStart(5, "0")}`,
+        event_id: `e${String(Math.floor(i / 2)).padStart(5, "0")}`,
+        upload_count: 1,
+        last_upload_at: `2026-09-${String(20 - Math.floor(i / 1000)).padStart(2, "0")}T10:00:${String(Math.floor((i % 1000) / 10) % 60).padStart(2, "0")}.000000+00:00`,
+      }),
+    }));
+    const fake = createFakePostgrest({
+      rpc: { list_guest_rows_by_email: listed(all) },
+    });
+    client = asSupabase(fake);
+
+    const result = await getMyClaimableGuestRows();
+
+    expect(result).toHaveLength(1250);
+    expect(result.reduce((sum, r) => sum + r.uploadCount, 0)).toBe(2500);
+    expect(result.every((r) => r.uploadCount === 2)).toBe(true);
+    expect(fake.requests.map((r) => r.returned)).toEqual([1000, 1000, 500]);
+    // Every page past the first carried the last row's own keys.
+    expect(fake.requests.every((r) => !r.failed)).toBe(true);
   });
 });

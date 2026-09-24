@@ -33,6 +33,7 @@ import {
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
 import { Button } from "@/components/ui/button";
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 /**
@@ -59,6 +60,10 @@ export function classifyRefusal(code: string | undefined): RefusalClass {
     case "unlock_required":
       return "refresh";
     case "invalid_session":
+    // A ticket that was not this viewer's (the upload-owner lane, 2026-09-23). The queue never
+    // leaves it on a file (the ticket goes down and the file waits for a new one), so this is the
+    // ladder staying complete: the capability is the problem, never the photograph.
+    case SESSION_OTHER_ACCOUNT:
       return "session";
     case "verification_required":
       return "verify";

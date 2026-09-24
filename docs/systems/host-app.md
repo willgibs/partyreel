@@ -21,10 +21,14 @@ bands, in this order (notices and storage, the most global, sit above the events
 - **The storage line** — the ambient `StorageMeter`, UNCONDITIONAL: a host with no events still has a plan and a
   shelf. The over-cap grace banner is its own red top alert, never inside the meter.
 - **Your events** — the events you host and the events you added photos to (Guest cards), by recency, in two views
-  (the events-list bullet under "Events & the create flow").
+  (the events-list bullet under "Events & the create flow"). The cards' counts are `event_card_stats` and their covers
+  `event_covers` (one jsonb each for any number of events, the ids in the POST body); "X of N used" is
+  `countActiveEvents()`, a head count.
 - **Just arrived** — the newest approved uploads in a window that WIDENS until it holds twelve (the last hour, then
   today, then the newest across events), captioned with the window it settled on
-  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)); with nothing approved it renders nothing. ★ These tiles are
+  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)); the window's number is a HEAD count over every approved upload
+  of the host's live events, never a read's length, and the row view's newest four are read per event (one row per
+  event, the four embedded), so every event has its strip. With nothing approved it renders nothing. ★ These tiles are
   the ONE host surface that keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just arrived.
   Reads + presigns live in [`pulse.ts`](../../src/lib/db/queries/pulse.ts), apart from `events.ts` on purpose: every
   event room and the settings sheet share `events.ts`, and the home's reads there would tie them to the dashboard.
@@ -124,7 +128,7 @@ stays the guard behind the door (the wizard toasts on `limit_reached`).
   `EventCard`'s `guest` variant wears the profile's own Guest marker (`RoleMarker`, shared with `/u/[slug]`) and a
   "Hosted by" byline, with no per-row action. Masked by the album's rules
   ([`guest-events.ts`](../../src/lib/dashboard/guest-events.ts)): a private album blank and locked, a password album
-  linked with no cover, a cover (the newest approved photograph, `adminCoverUrls`) only for an open one; newest first
+  linked with no cover, a cover (the newest approved photograph through `event_covers`, its preview when it has one) only for an open one; newest first
   by the account's own latest upload there.
   ★ **The view is a cookie set by a Server Action, not localStorage, and that is load-bearing**: the
   server has to know the view before the first byte or every cold load paints cards and swaps to rows
@@ -315,14 +319,17 @@ SHEETS; the album is the hub page itself.
   signals and never on a timer: the guest's own Realtime doorbell
   ([`use-gallery-doorbell.ts`](../../src/lib/guest/use-gallery-doorbell.ts), the public `gallery:<qr_token>` channel,
   bursts coalesced), or a changed validator from
-  [`/api/events/<id>/live`](../../src/app/api/events/[eventId]/live/route.ts) (RLS-scoped reads, no presigns, a
-  bodiless 304 when nothing moved), polled on the guest album's hybrid cadence (60 s while the socket is up, 12 s when
-  it is down, stopping when the tab goes hidden). ★ **The poll is not redundant with the socket**: the
-  `media_gallery_doorbell` trigger fires only on the APPROVED-VISIBLE set, so on a moderated event a held upload wakes
-  nobody; the host fingerprint ([`lib/events/host-fingerprint.ts`](../../src/lib/events/host-fingerprint.ts): event
-  id, the visible ids and statuses, the PENDING count) is how the one person who can approve it hears of it. A refresh
-  is the page's whole RSC (eleven queries plus three presigns an item), which is why nothing spends one on a
-  clock. ★ The first 200 only SEEDS the validator, or every load would refresh itself. `HostMediaGrid` marks arrivals by
+  [`/api/events/<id>/live`](../../src/app/api/events/[eventId]/live/route.ts) (two RLS-scoped head counts and a
+  one-row read, no presigns, no list, a bodiless 304 when nothing moved), polled on the guest album's hybrid cadence
+  (60 s while the socket is up, 12 s when it is down, stopping when the tab goes hidden). ★ **The poll is not
+  redundant with the socket**: the `media_gallery_doorbell` trigger fires only on the APPROVED-VISIBLE set, so on a
+  moderated event a held upload wakes nobody; the host fingerprint
+  ([`lib/events/host-fingerprint.ts`](../../src/lib/events/host-fingerprint.ts), `h2-`: event id, the album count
+  (approved + hidden), the PENDING count, and the newest `updated_at` among the event's non-removed media, which
+  `media_set_updated_at` stamps on every write, so a second tab's hide moves it though no count does) is how the one
+  person who can approve it hears of it. It hashes numbers, never the item list, so it costs the same at any album
+  size and no row past the 1,000th can change unseen. A refresh is the page's whole RSC (a dozen queries plus three
+  presigns an item), which is why nothing spends one on a clock. ★ The first 200 only SEEDS the validator, or every load would refresh itself. `HostMediaGrid` marks arrivals by
   diffing its own item IDS across the refresh (never the presigned urls, which roll about every 30 minutes) and passes
   them as `arrivedIds`; **`stagger` stays OFF** (a seeded first-render entrance is what the emil contract forbids on a
   host album), and the glow runs regardless, on the tile's own `::after`. The pip renders nothing until the channel is
@@ -332,7 +339,16 @@ SHEETS; the album is the hub page itself.
   the row's only other verbs. The bin is the menu's Deleted filter, and the menu always renders, so a host reaches an
   empty bin from an empty album. ★ The bin is fetched **on demand**
   through `listDeletedMediaAction` (a `getUser()`-gated Server Function), never with the page: each item needs its own
-  presign, and the hub must not pay N of them for a drawer a host opens once. Bin items are never in the album's count.
+  presign, and the hub must not pay N of them for a drawer a host opens once. It reads the whole bin, paged on
+  `(removed_at desc, id desc)` (a bulk Delete stamps one `removed_at` on its whole selection). Bin items are never in
+  the album's count.
+- ★ **The hub's album is read whole and its numbers are counted.** It presigns the `album` slice of
+  [`listEventMedia`](../../src/lib/db/queries/media.ts) (approved + hidden), which pages
+  `(created_at desc, id desc)` through `readAllPages` to the album's last photograph; every number on the page is a
+  head count, never a list's length: `countEventMedia` (the album, approved + hidden, and Review's pending) for the
+  header, the Review card and the album's own count, and `countReelItems` (the membership predicate) for the Reel
+  card's "N clips". The other slices: `pending` is the Review room's queue, `live` (every status but removed) is the
+  host's Download all, whose manifest refuses past 2,000 items with a 413.
   ★ **The View menu** ([`ViewMenu`](../../src/components/shared/view-menu.tsx), one shared primitive taking arbitrary
   radio `groups`, on the shipped `ui/dropdown-menu.tsx`) holds three groups here: **Tile size** (180/240/300, setting
   `--album-column`, `masonry.tsx`'s own knob, on the ancestor wrapping the album grid, persisted per device in the
@@ -364,7 +380,7 @@ The share, settings, pricing, guest-flow and admin destructive sheets all use it
 
 `media.status` enum `pending | approved | hidden | removed`; `create_media` sets `pending`/`approved` from the event's
 `moderation_mode`. The album grid ([`host-media-grid.tsx`](../../src/components/app/host-media-grid.tsx)) moderates per
-item (the gallery-action model below). Pending uploads (`hold_for_approval`) surface in the **Review ROOM** ([`/review`](../../src/app/(app)/dashboard/[eventId]/review/page.tsx)): `ReviewSection` draws
+item (the gallery-action model below). Pending uploads (`hold_for_approval`) surface in the **Review ROOM** ([`/review`](../../src/app/(app)/dashboard/[eventId]/review/page.tsx), which reads and presigns the `pending` slice alone, whole): `ReviewSection` draws
 it and the thin [`review-room.tsx`](../../src/components/app/event-feed/review-room.tsx) boundary owns the triage state
 machine ([`use-review-triage.ts`](../../src/components/app/event-feed/use-review-triage.ts)). Four states: **pending**
 (the triage grid under an amber header with the count), **caught-up**, **moderation-off** (a one-tap "Turn on review"
@@ -379,8 +395,9 @@ caught up" pop).
   still peeks).
 - The bulk controls live once in [`review-actions.tsx`](../../src/components/app/event-feed/review-actions.tsx), in the
   room's header in BOTH modes: `FeedSectionHeader`'s action slot must never go empty, or a host mid-selection has no
-  visible Hide, Approve or Cancel. **Approve all** is the FAST primary path (`approveAllPending`, no confirm: most
-  moderation is scroll-then-approve); **Select** turns the header into the shared
+  visible Hide, Approve or Cancel. **Approve all** is the FAST primary path (the queue's own ids through
+  `approveBulkAction`, in consecutive batches of 2,000, so a host approves exactly what they saw and a queue of any
+  size goes through; no confirm: most moderation is scroll-then-approve); **Select** turns the header into the shared
   [`BulkBar`](../../src/components/app/event-feed/bulk-bar.tsx) (All/Clear · N · Hide · Approve · Cancel,
   `GalleryBulkBar`'s sibling).
 - **Turning moderation OFF** in the settings sheet while a queue exists pops a `ConfirmSwitch` confirm that names the
@@ -436,8 +453,11 @@ shared `useSelection(ids)`.
 never wipes an in-progress selection. Add-to-reel + Like loop the idempotent `add_to_reel`/`like_media` RPCs with one
 SUMMARY toast, not N (`ReelProvider.addMany` / `LikesProvider.likeMany`); Add-to-reel returns without writing where no
 `ReelProvider` wraps the album. Hide/Show + Delete are the GENERAL bulk mutations `setMediaStatusBulk` /
-`removeMediaBulk` (plain RLS, `.in('id', …)`, NO `pending` predicate, so they act on the live album, unlike the review
-queue's `approveBulk`/`hideBulk`).
+`removeMediaBulk` (plain RLS, NO `pending` predicate, so they act on the live album, unlike the review
+queue's `approveBulk`/`hideBulk`). ★ Every bulk write, and Delete forever's reads, sends its selection through
+`inChunks` (150 ids a request: an unchunked `.in('id', …)` over a big selection outgrew the URL and failed whole),
+and every bulk action refuses more than `MAX_BULK_ITEMS` (2,000, the export's cap,
+[`lib/event/bulk-selection.ts`](../../src/lib/event/bulk-selection.ts)) with "Select up to 2,000 items at a time."
 ★ **The select grid MUST pass the same `clampAspect` as the normal `MasonryColumns`**, or toggling select reflows the
 tile heights (the album clamps extreme ratios; the review queue does not).
 
@@ -506,7 +526,9 @@ and no other surface has a reorder mode. Drag is our own dependency-free
 drop-index is geometric, so hand-rolling beats dnd-kit, see [design-system.md](design-system.md)); the dock feeds it an
 explicit `repeat(N, …)` so the maths collapses to a single-row shuffle, and touch keeps the hook's 450ms press-to-grab
 so scrolling the dock never lifts a tile. Reorder covers the **FULL membership** (`orderedIds`; hidden members show
-dimmed) and persists via the **`reorder_reel(p_event_id, p_media_ids)`** SECURITY DEFINER RPC (the SECOND reel write
+dimmed; the room reads the album slice and `listReelItems` whole, the members paged on
+`(position, added_at, media_id)`, so a member outside the album's newest 1,000 is still in the set) and persists via
+the **`reorder_reel(p_event_id, p_media_ids)`** SECURITY DEFINER RPC (the SECOND reel write
 path, since `reel_items` UPDATE is grant-revoked): host-owns + a **set-equality membership guard** (rejects
 cross-event / partial / dup / stale lists with `reason:'stale'`), one `UPDATE … FROM unnest(…) WITH ORDINALITY`
 (1-based positions; only relative order matters). `ReelProvider.reorder` is optimistic and reverts on `stale`/error.
@@ -581,7 +603,9 @@ columns, `theme` kept synced = style_id as a legacy column). `media.clip_*` stay
   [`render-service.ts`](../../src/lib/reel/render-service.ts)).
 - **The mint is the abuse choke point:** host-authed (getUser + own-event via
   [`own-event.ts`](../../src/lib/reel/own-event.ts)), the ENTIRE config re-derived server-side
-  (`resolveReelRenderContext`: tier → watermark + length clamp, membership, hash; the client's hash is an opaque echo
+  (`resolveReelRenderContext`: tier → watermark + length clamp, the timeline (the reel's members through a
+  `media!inner` embed filtered to approved BEFORE the 150-clip bound, in add-order with `media_id` breaking a tie),
+  hash; the client's hash is an opaque echo
   recompared each phase, so a mid-encode config change 409s), a **content-length-bound `video/mp4` presign** capped at
   server length × a bitrate budget ([`client-encode-budget.ts`](../../src/lib/reel/client-encode-budget.ts),
   parity-tested against the encoder's max bitrate), the `reel_render_enabled` kill-switch + `reel_render` limiter.

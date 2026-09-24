@@ -13,16 +13,16 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: the loose ends, milestone 27, and the event-safety board
+## The current round: no read stops at 1,000 rows, then milestone 28
 
-Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
-- **The rulings round's loose ends**, in two production lanes and a lab lane. First a live defect: a one-field event
-  save (a QR style, the review switch) also reset visibility, pause, both door switches and moderation to their
-  defaults, opening a password or private album and approving every held upload. Then the round's Now lines, the
-  identity contract (dropping `allow_anonymous_uploads`), the Guests room showing a confirmed guest's address to the
-  host alone (his ruling: "only the host sees it"), and one storage aggregate (`host_storage_summary`, applied).
-- **Milestone 27** (his yes) after the lanes' alias red-team; the identity contract right after its pass; then a real
-  TEST subscription on partyreel.com with his final clicks (Checkout, then the change-plan confirm page).
+Will's asks of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
+- **Milestone 27 is live** (`546e2489`) with the identity contract applied after it; the Stripe TEST walk passed on
+  partyreel.com; `upload-owner` and `delete-final` are merged (a claimed guest row uploads only for its owner; a guest's
+  own delete is final and says so), their migrations applied.
+- **The 1,000-row round is merged** ("Let's ensure we will not face any of those issues here"): PostgREST's
+  `max_rows` (live: 1,000; write responses uncapped) had silently clipped 50 audited reads. Every list now reads whole
+  (`readAllPages`), every count counts, every id list chunks, every set-returning RPC pages, every sweep reports what it
+  left; `row-cap-policy.test.ts` and a Sentry tripwire keep it so. Next: alias build 4, its red-team, milestone 28.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
@@ -39,18 +39,21 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-26` (`df173c2e`); `admin.partyreel.com` is served by the
-  `partyreel-admin` project (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`, so `/admin` is a 404 there).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `a760b998` (build 3, red-teamed
-  2026-09-23 in Will's Chrome): a one-field save keeps every other setting, the Guests room shows a confirmed
-  guest's address to the host alone, the delete confirm names 30 days, the post-upload card and the header's guest
-  count move live, a guest-made account lands on its Guest card, the demo reads "from 3 guests". Found there: a
-  kept ticket credits the next person's uploads to a confirmed guest (`upload-owner` is fixing it). No push
-  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **Prod:** partyreel.com is `main` at tag `milestone-27` (`546e2489`, 2026-09-23), both projects READY and passed:
+  the dashboard renders again, `/account` and profiles, the demo reads "from 3 guests", a real upload held for review
+  on a verified-emails event, the lab 404s without its key, no runtime error since the deploy. `admin.partyreel.com`
+  is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6e67494b` (build 4), red-teamed
+  2026-09-24 in Will's Chrome: the scale probe whole for the host (1,145 on the card, the hub and Download all; Review's
+  20 oldest; the bin's 30, no withdrawal) and for a guest (the poll 1,145 then 304); a kept ticket never credits the next
+  account (a planted foreign ticket re-joined as the signer; signed-out presigns with confirmed tickets 403); a guest's
+  own delete reads "deleted from the event right away and can't be recovered" and reaches no host surface. The admin
+  portal's live look waits on Will's TOTP. No push deploys; each `[preview]` record gets one build by API
+  ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 3,870 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 4,640 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
   backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.
@@ -71,6 +74,4 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: the six reel boards first; every standing board is current with the rulings of 2026-09-22.
-- **The Stripe clicks** once milestone 27 is live: a test card and Subscribe on Stripe Checkout as willg97, then Back
-  and Confirm on the change-plan confirm page (staged for him when he is ready).
+- **His desk review**: 26 boards; the six reel boards first, and the new `event-safety`.

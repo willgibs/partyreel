@@ -42,6 +42,12 @@ vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
+// Whose ticket is this (the upload-owner lane, 2026-09-23): the rule itself is pinned in
+// lib/guest/session-owner.test.ts against the real clients; here it is the route's gate.
+const checkSessionOwner = vi.fn();
+vi.mock("@/lib/guest/session-owner.server", () => ({
+  checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
+}));
 
 const { POST } = await import("@/app/api/guests/name/route");
 
@@ -75,6 +81,41 @@ beforeEach(() => {
   setGuestDisplayName.mockResolvedValue({
     ok: true,
     data: { guest_id: "g1", display_name: "Sam" },
+  });
+  checkSessionOwner.mockResolvedValue({ ok: true });
+});
+
+describe("an account's row is renamed only by that account (upload-owner)", () => {
+  it("★ 403 session_other_account for a ticket whose row is someone else's, and the row is never touched", async () => {
+    checkSessionOwner.mockResolvedValue({
+      ok: false,
+      code: "session_other_account",
+      message:
+        "Someone else added photos from this device. Try again to add yours.",
+    });
+    const res = await post({
+      qr_token: TOKEN,
+      session_token: SESSION,
+      display_name: "Sam",
+    });
+    expect(res.status).toBe(403);
+    expect(((await res.json()) as { code?: string }).code).toBe(
+      "session_other_account",
+    );
+    expect(setGuestDisplayName).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("asks about the POSTED ticket, and only once the name itself has passed", async () => {
+    await post({ qr_token: TOKEN, session_token: SESSION, display_name: "" });
+    expect(checkSessionOwner).not.toHaveBeenCalled();
+    await post({
+      qr_token: TOKEN,
+      session_token: SESSION,
+      display_name: "Sam",
+    });
+    expect(checkSessionOwner).toHaveBeenCalledWith(SESSION);
   });
 });
 

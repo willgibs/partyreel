@@ -3,7 +3,7 @@ title: How long your media is kept
 description: "Until you delete it. Events have no end date on any plan; an Event Pass covers about a year and settles to the free plan after. Deleted items wait 30 days, and every file lives in two regions."
 category: privacy-and-safety
 order: 4
-updated: "2026-09-01"
+updated: "2026-09-23"
 audience: both
 keywords:
   - how long
@@ -16,7 +16,7 @@ keywords:
   - Event Pass year
 ---
 
-Albums do not expire, deletes stay reversible for <RecoveryDays />, and every file lives in two regions. That's the whole policy; the rest is detail.
+Albums do not expire, a host's deletes stay reversible for <RecoveryDays />, and every file lives in two regions. That's the whole policy; the rest is detail.
 
 ## On every plan
 
@@ -34,9 +34,11 @@ A pass covers its event with <EventPassStorage /> for <EventPassTerm /> from pur
 
 Removing a photo or deleting an event moves it to Deleted for <RecoveryDays />, with a countdown and a <UiLabel>Restore</UiLabel> button. After that, the file is permanently deleted. <UiLabel>Delete permanently</UiLabel> skips the wait. See [hide, remove, and restore](/help/hide-remove-and-restore).
 
+A guest deleting their own upload is different: it's deleted from the event right away and can't be recovered, by the guest or the host, so it never waits in Deleted.
+
 ## Where the files live
 
-Every upload is stored in one region and copied to a second region minutes after it arrives; the album's records are copied nightly. That's the whole durability story: two regions, and deletes that wait <RecoveryDays />.
+Every upload is stored in one region and copied to a second region minutes after it arrives; the album's records are copied nightly. That's the whole durability story: two regions, and a host's deletes that wait <RecoveryDays /> in Deleted.
 
 <Callout type="tip" title="Keep your own copy too">
 

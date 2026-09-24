@@ -32,6 +32,7 @@ import {
 import { resolveNextSteps } from "@/lib/dashboard/next-step";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import {
+  countActiveEvents,
   getEventCardStats,
   getEventCoverUrls,
   listEvents,
@@ -98,16 +99,28 @@ export default async function DashboardPage({
   // 2026-09-22: "uploading to an event is now effectively saving"): every event
   // where this account holds a live upload and does not host, read from the
   // uploads themselves, so a card leaves when its last live upload does.
-  const [events, profile, guestCards, deletedEvents, storage, siteUrl, jar] =
-    await Promise.all([
-      listEvents(),
-      getProfile(),
-      getMyGuestEventCards(),
-      listRecentlyDeletedEvents(),
-      getHostStorageSummary(),
-      getSiteUrl(),
-      cookies(),
-    ]);
+  // `eventCount` is COUNTED, never `events.length` (the 1,000-row round,
+  // 2026-09-23): the "X of N used" line and the cap are the same head count the
+  // create route's `enforce_event_limit` compares, whatever the list holds.
+  const [
+    events,
+    eventCount,
+    profile,
+    guestCards,
+    deletedEvents,
+    storage,
+    siteUrl,
+    jar,
+  ] = await Promise.all([
+    listEvents(),
+    countActiveEvents(),
+    getProfile(),
+    getMyGuestEventCards(),
+    listRecentlyDeletedEvents(),
+    getHostStorageSummary(),
+    getSiteUrl(),
+    cookies(),
+  ]);
 
   // Onboarding gate: every account must set a public display name (Phase 1) before reaching the
   // dashboard, and a brand-new one (welcomed_at null) gets the one-time intro, UNLESS it is a
@@ -118,7 +131,7 @@ export default async function DashboardPage({
   const entry = resolveDashboardEntry({
     displayName: profile?.display_name,
     welcomedAt: profile?.welcomed_at,
-    hostedEvents: events.length,
+    hostedEvents: eventCount,
     guestCards: guestCards.length,
   });
   if (entry === "welcome") redirect("/welcome");
@@ -157,7 +170,7 @@ export default async function DashboardPage({
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
   // count and overrides the static tier limit, exactly as enforce_event_limit does in SQL.
   const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
-  const used = events.length;
+  const used = eventCount;
   // withinLimit(current, limit) answers "can I add one more?" — so its negation
   // is "already at the cap." `null` maxEvents (Pro = unlimited) is never at cap.
   const atCap = !withinLimit(used, maxEvents);

@@ -93,14 +93,15 @@ iPhone: if the keyboard covers the textarea, the fix is the Sheet's
 phone half becoming vaul-backed for every consumer, never a per-dialog exception.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
-  → `{approvedTotal, guestCount}`: a head count of approved media, and THE ONE COUNT of guests (`getEventGuests`,
-  the same function the host's hub reads, so the album and the hub never say two numbers for one party; never the
-  host). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
-  `onCountChange`; M is seeded by the page RSC and kept current by the gallery poll, which carries `guestCount` on
-  a 200 only (read after its 304 check, so the steady poll pays nothing, and never on a locked page) and hands it up
-  through `onGuestCountChange`: a guest's own first upload moves M without a reload, and only the server can tell a
-  first upload from a returning contributor's. It stays outside the ETag: whatever moves M changes the payload the
-  ETag already hashes.
+  → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
+  stats and the gallery payload share one answer), and THE ONE COUNT of guests (`getEventGuests`, the same
+  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host).
+  ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
+  `onCountChange` (the head count every gallery payload carries, "One true count" below); M is seeded by the page
+  RSC and kept current by the gallery poll, which carries `guestCount` on a 200 only (read after its 304 check, so
+  the steady poll pays nothing, and never on a locked page) and hands it up through `onGuestCountChange`: a guest's
+  own first upload moves M without a reload, and only the server can tell a first upload from a returning
+  contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
 - **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED
   column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
   never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
@@ -155,9 +156,10 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
     status, so it never eats ids `Retry all` just re-queued in the same close. While the door's upload step
     shows, it owns the run's failures (`suppressFailures`).
   - ★ **THE FLIP, MID-RUN.** A host can turn Require verified emails ON mid-run; the routes then answer 403
-    `verification_required`, carried up as `UploadOutcome.code` (the ONE code the queue reads by name). It
-    spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their uid mints a verified
-    row and the run continues); a name-only guest cannot, so the session is dropped and everything still
+    `verification_required`, carried up as `UploadOutcome.code` (one of the TWO codes the queue reads by name,
+    both the session's). It spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their
+    uid mints a verified row and the run continues on it: the queue reads its ticket per FILE, never once per
+    run); a name-only guest cannot, so the session is dropped and everything still
     queued fails in place with the SERVER's sentence, opening the failure sheet once. ★ **THE PAGE'S REFRESH
     WAITS FOR THE SHEET TO CLOSE.** `useUploadQueue`'s `onVerificationRequired(message, hadQueuedFiles)`
     tells `EventExperience` whether a sheet is about to stand in the way: `hadQueuedFiles=true` holds the
@@ -165,6 +167,15 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
     `router.refresh()` flips `access` to `teaser` and remounts the gallery-and-upload slot (`key={access}`)
     out from under it; `hadQueuedFiles=false` (`joinSilently`'s own refusal) and a run from the door's step
     (outside `key={access}`) refresh at once.
+  - ★ **SOMEBODY ELSE'S TICKET** (`session_other_account`, the Invariants' owner rule). The file is NOT failed:
+    the queue puts the ticket down (`dropGuestTicket`: the token, its name and address flag, the name prefill
+    when it is that same name, then the cookie, AWAITED so it cannot land after the re-join's fresh one) and
+    re-queues it. A CONFIRMED viewer joins silently (once per chain) and the same file goes up on their own row;
+    anyone else is handed to the door (`onDoorNeeded`: the page refreshes, so a sign-out in another tab is seen,
+    and the name or email step opens) while the files wait `queued`, resuming the moment its join hands a ticket
+    down through `sessionToken`. A join nobody at the door could fix fails the waiting files in place, and a
+    Retry with no ticket joins first. The name step and the add-email dialog read the code the same way: the
+    ticket goes down, then a fresh join (the dialog closes and the door asks).
   ★ **The blob re-key**: an in-flight tile's object URL is keyed by queue id and re-keyed to the media id at
   approved completion (`UploadedItem.queueId`): the SAME URL object, so the `<img src>` never changes and
   the tile turns optimistic with zero flicker.
@@ -193,8 +204,11 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   a presigned media URL: the guest album and the host gallery pass it; the personal Uploads and the
   recovery bin omit it.
 - Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
-  opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). Like
-  COUNTS are host-only → [host-app.md](host-app.md), [database-security.md](database-security.md).
+  opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
+  seeded through `my_liked_media_ids` with the grid's ids in the POST BODY (never a URL, which a whole album
+  outgrows), asking only the ids not yet answered as the grid grows; a failed seed is reported (Sentry, `media`)
+  and the hearts simply start unfilled. Like COUNTS are host-only → [host-app.md](host-app.md),
+  [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
   make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
   nothing event-specific.
@@ -241,6 +255,12 @@ does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-g
 `isAuthed` means a CONFIRMED email (`user.email_confirmed_at`), never a bare `user.id`.
 
 - **`full`** — the whole gallery: the owner (host), the demo, and any viewer past every gate that applies.
+  ★ **READ WHOLE, IN ONE ORDER, BY EITHER ARM** (the 1,000-row rule, `read-all.ts`): PostgREST cuts a read at
+  1,000 rows with no error, so both arms walk keyset pages on the display order (`created_at desc, id desc`) with
+  the last row's RAW `(created_at, id)` as the cursor: the open album through `get_event_media_by_qr_token`'s
+  `(p_before_created_at, p_before_id, p_limit)` ([`guest-events.ts`](../../src/lib/db/queries/guest-events.ts)),
+  the unlocked password album through the same cursor as a table `.or()` (`olderThan`, `getApprovedMediaForUnlock`).
+  The pages concatenate in order, which the grid, the reconcile and the ETag all keep.
 - **`teaser`** — the newest `TEASER_LIMIT` (9) approved PHOTOS + the true total; the rest withheld. Shown to
   a viewer with no confirmed email on a `require_verified_email` event (gate `account`), and to a guest who
   owes a first upload on a `require_upload_to_view` event (gate `upload`). The confirmed email, or the
@@ -268,22 +288,32 @@ when absent or different: by `POST /api/guests` (a mint), `POST /api/guests/name
 `POST /api/guests/email` (success), `POST /api/r2/complete-upload` (a created row, via
 `CreateRecordOutcome.setCookies`, applied to the 200 alone) and the gallery poll's heal (a differing body
 token), **only as a 200 with no ETag**, because Vercel's edge turns a validator-matching 200 into a 304
-and drops `Set-Cookie`. `POST /api/guests/leave` expires it, and the guest sign-out calls it via
-`leaveGuestSession`, so a shared phone never renders the full album on the last contributor's ticket. ★ The
-WRITE routes (name, email, mine, remove, presign, complete) read the token from the BODY only, pinned by a
-source test in `session-cookie.test.ts`, so the CSRF surface does not move.
+and drops `Set-Cookie`. `POST /api/guests/leave` expires it (`{ qr_token }` one event's, `{ all: true }` every
+`pr_guest_*` the request carried); ★ **EVERY SIGN-OUT PUTS DOWN EVERY TICKET ON THE DEVICE**, the tokens, names,
+address flags and the name prefill with the cookies: the guest page's account menu through
+`leaveAllGuestSessions`, the app's account menu through `forgetGuestTickets` on its form's submit and
+`signOutAction` expiring the cookies on its own response
+([`session-cookie-family.ts`](../../src/lib/guest/session-cookie-family.ts)), so a shared phone never renders
+the full album, or uploads, on the last person's ticket (the owner rule is the guarantee; this is the
+courtesy). ★ The WRITE routes (name, email, mine, remove, presign, complete) read the token from the BODY only,
+pinned by a source test in `session-cookie.test.ts`, so the CSRF surface does not move.
 
 ★ **The withheld set never reaches the browser**: the teaser is a capped server read (`getApprovedPhotoTeaser`,
 self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a CSS blur over a loaded
 gallery, so dev-tools or a direct poll call can't reveal it. ★ **The poll enforces the SAME decision**:
 gating only the RSC would be a trivial bypass. The guest-facing gate is the door (below).
 
-★ **ONE TRUE COUNT AT `teaser`, READ THE SAME WAY EVERYWHERE IT IS SAID.** The loaded teaser is capped and
-photo-only, so neither its count nor the photo-only `teaserTotal` is the album's size. `LiveGallery` reads
-`approvedTotal` (the shell's `stats`, i.e. `stats.approvedTotal`, photos and videos) and reports it to the
-header via `onCountChange` while `access === "teaser"` (never at `full`, where the loaded count is live and
-true); the CTA says the same number, "See all N photos & videos" ("Confirm your email to see everything"
-when nothing more is withheld). Without `approvedTotal` it falls back to the photo-only `teaserTotal`.
+★ **ONE TRUE COUNT, EXACT AND LIVE, READ THE SAME WAY EVERYWHERE IT IS SAID.** A count is counted, never a
+list's length: the loaded teaser is capped and photo-only, and neither its count nor the photo-only `teaserTotal`
+is the album's size. Every gallery payload (the render's and each poll's 200) carries `approvedTotal`,
+`countApprovedMedia`'s head count (photos and videos), and the ETag hashes it, since a video landing behind an
+unchanged nine moves nothing else. `LiveGallery` reports that number plus what this device changed since it
+arrived (an approved upload's optimistic tile in, the guest's own removal out: `albumCount`) through
+`onCountChange`, at `teaser` AND `full`; the CTA says the same number, "See all N photos & videos" ("Confirm your
+email to see everything" when nothing more is withheld), and so does the door (its `mediaTotal` is the header's
+live count). A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
+`stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none` no gallery mounts and no poll
+runs: the lock line says the render's head count.
 
 ## The ARRIVAL (the door: one held sheet, then the album)
 
@@ -452,7 +482,21 @@ through flags in the sheet. No step counter to desync.
   that must stay true: `anon` never gets EXECUTE on `remove_my_upload_by_session` (service-role only, reached
   through `/api/guests/remove` behind the join limiter); a session token never travels in a URL; and a guest
   row with `user_id` set is untouchable by the session path, so a shared phone's stale token can never delete
-  a signed-in person's photograph. A withdrawal is final for the host (`removed_by_uploader`).
+  a signed-in person's photograph. ★ **A withdrawal is final for the host** (`removed_by_uploader`; Will,
+  2026-09-23: "I want it gone everywhere, not still visible to the host as well"): no host surface shows or
+  restores it (the album and its viewer, Review, Deleted and `restore_media`, the home's pulse and the events
+  list's counts and covers, the exports, the reel's timeline), `host_storage_summary`'s Deleted figure counts
+  it in neither number, and the confirm says so with no window ("It's deleted from the event right away and
+  can't be recovered."), because a number of days reads as a hold the host can still reach.
+  [`media.test.ts`](../../src/lib/db/queries/media.test.ts) pins the host reads against a withdrawn row.
+- ★ **UPLOADS ARE HELD TO THE SAME OWNER: a guest row with `user_id` set writes only for that signed-in
+  account.** Presign AND complete (a presign outlives a sign-out), rename and attach-address ask
+  `checkSessionOwner` ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's
+  `user_id`, service-role and never returned, against `getUser()`, which only a claimed row pays) and refuse
+  anyone else with 403 `session_other_account`, under the lock and closed uploads and ABOVE the identity gate (a
+  confirmed row's own `verified_at` is what let a stale ticket upload past Require verified emails). A confirmed
+  row whose account was deleted (`user_id` nulled by the FK, `verified_at` kept) writes for nobody. A name-only
+  row stays the device's ticket. The client's side is "The upload act".
 
 ## Joining + identity
 
@@ -543,8 +587,9 @@ the field before they confirm.
   HELD SESSION TOKEN ALWAYS TRIES RENAME FIRST, WHICHEVER DOOR OPENED IT.** `guest-name-step.tsx` calls
   `renameGuest` whenever a session token is held, so a device with a session but no LOCAL name never mints a
   SECOND row and strands the first one's photographs with no name; it falls back to `joinEvent` only on
-  `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`) or `unauthorized` (a verified row: the
-  route, not the component, is the truth).
+  `invalid_session` (a DEAD token, the route's own `NO_DATA_FOUND`), `unauthorized` (a verified row: the
+  route, not the component, is the truth) or `session_other_account` (an account's row the viewer is not,
+  whose ticket goes down first).
 - ★ **THE GATE IS RE-CHECKED ON EVERY UPLOAD, NOT ONLY AT THE JOIN.** `get_upload_context` carries
   `require_verified_email` + `guest_verified`, so presign and complete both answer 403
   `verification_required` (with a `captureWarning`, so a flip mid-party is visible) rather than letting a
@@ -604,12 +649,14 @@ the field before they confirm.
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
   when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
-  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns); see
+  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns, but
+  the reads that build the fingerprint still run: the whole album, its identity sweep and its head count); see
   the ETag invariant below.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
   fingerprint ([`gallery-fingerprint.ts`](../../src/lib/events/gallery-fingerprint.ts)) hashes `access` +
-  `gate` + `teaserTotal` + the item ids/attribution (the verified mark included) + the presign bucket id,
-  and the not-found/private early return carries NO ETag. A teaser validator replayed with full-access
+  `gate` + `teaserTotal` + `approvedTotal` (the album's head count, the header's live number) + the item
+  ids/attribution (the verified mark included) + the presign bucket id, and the not-found/private early return
+  carries NO ETag. A teaser validator replayed with full-access
   cookies must 200, and a guest whose gate moved from `account` to `upload` never 304s onto the step they
   passed. The bucket id rolls the ETag every 30 min so clients re-pull fresh URLs before old ones expire.
 - **Reconcile by id — do NOT `setState` the raw poll result:** `reconcileGalleryItems`
@@ -669,8 +716,12 @@ the field before they confirm.
   what this visit removed, on EITHER identity (the completion and the removal are themselves server answers), so
   a signed-in guest's new photograph has its Trash and mark at once and a removed one stops counting. The ids
   reach the grid as `canDelete`, gating the lightbox's Trash per item. A removal marks `removed_by_uploader`, so
-  the host's bin never shows it and `restore_media` refuses it; the purge cron reclaims the bytes after
-  `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm names. The post-upload card counts this visit's
+  the host's bin never shows it and `restore_media` refuses it (the Invariants above); the purge cron reclaims the
+  bytes after `RECENTLY_DELETED_WINDOW_DAYS`, which the guest's confirm deliberately never names. The personal
+  Uploads on a profile share that confirm and hold one other kind: an upload to an event the viewer HOSTS is
+  `remove_my_upload`'s host arm, restorable from that event's Deleted, so the owner mode marks it `isHost`
+  ([`owner-sections.tsx`](<../../src/app/(guest)/u/[slug]/owner-sections.tsx>), an event the viewer hosts) and
+  the lightbox gives it the host's words (Deleted, and the window). The post-upload card counts this visit's
   uploads still in the album (the page keeps the removed ids) and leaves once none is left. ★ **On a
   Require-an-upload-to-view album with uploads open, removing your LAST live upload closes the album again** (Own
   deletes close it), unless the album is FULL (the gate fails open there, so the page reads `albumFull`, a second
@@ -707,11 +758,12 @@ CTA (the SSR default → zero flash for the anonymous majority); logged-in → t
 ([`guest-account-menu.tsx`](../../src/components/guest/guest-account-menu.tsx)), fetched via
 `GET /api/me/menu?event=<id>` ONLY when a session exists (the avatar is the viewer's public Storage URL;
 event-ownership is an RLS-scoped select → the owner-only "Manage event" deep link). The menu's **Sign out**
-puts the guest capability down (`leaveGuestSession`: the localStorage token through the module-singleton
-`emit()` in [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), the `pr_guest_<eventId>`
-cookie through `POST /api/guests/leave`), signs out, then `router.refresh()`s — so the visitor STAYS on
-the event page, a verified-email event re-gates to the door's email step (`<EnterEventPrompt>`), and the
-next person on a shared device inherits nothing.
+puts EVERY guest ticket on the device down, not only this album's (`leaveAllGuestSessions`: the localStorage
+tokens, names and flags through the module-singleton `emit()`s in
+[`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through
+`POST /api/guests/leave` `{ all: true }`, on `/u/[slug]` too), signs out, then `router.refresh()`s — so the
+visitor STAYS on the event page, a verified-email event re-gates to the door's email step
+(`<EnterEventPrompt>`), and the next person on a shared device inherits nothing.
 
 ★ **A THIRD STATE, for the commonest person at a name-only party**: signed out WITH a stored name, the
 header wears [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the

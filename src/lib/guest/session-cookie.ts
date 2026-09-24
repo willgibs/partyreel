@@ -21,17 +21,32 @@
  * the session token from the BODY only (pinned by `body-token-source.test.ts`), so this cookie adds
  * a READ capability to the request and moves the CSRF surface not one inch.
  *
- * ★ AND A SHARED PHONE CAN PUT IT DOWN: `POST /api/guests/leave` expires it, called from the guest
- * sign-out and the leave paths, so the last contributor's ticket does not open the full album for
- * whoever picks the phone up next.
+ * ★ AND A SHARED PHONE CAN PUT IT DOWN: `POST /api/guests/leave` expires it (one event's, or with
+ * `{ all: true }` every one this browser carries), called from the guest sign-out and the leave
+ * paths, and the account sign-out (`signOutAction`) expires every one on its own response, so the
+ * last contributor's ticket does not open the full album for whoever picks the phone up next.
  */
 import "server-only";
 
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 
-/** Sixty days: a wedding album is looked at for weeks, and the token behind it never expires. */
-export const GUEST_SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 60;
+import {
+  GUEST_SESSION_COOKIE_MAX_AGE,
+  GUEST_SESSION_COOKIE_PREFIX,
+  guestSessionCookieAttrs,
+  isGuestSessionCookieName,
+} from "@/lib/guest/session-cookie-family";
+
+// The family's name, attributes and every-one expiry live in `session-cookie-family.ts`, with no
+// `server-only` guard: the account sign-out's module is imported by a client component, and every
+// component test that mounts it loads that module for real. Re-exported so this stays the one
+// import for a route that reads or writes the ticket.
+export {
+  GUEST_SESSION_COOKIE_MAX_AGE,
+  guestSessionCookieAttrs,
+  isGuestSessionCookieName,
+};
 
 /**
  * `create_guest` mints `replace(gen_random_uuid()::text,'-','') || replace(gen_random_uuid()::text,'-','')`,
@@ -40,24 +55,7 @@ export const GUEST_SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 60;
 const SESSION_TOKEN_SHAPE = /^[0-9a-f]{64}$/;
 
 export function guestSessionCookieName(eventId: string): string {
-  return `pr_guest_${eventId}`;
-}
-
-/** The attributes every write of this cookie shares (one place, so a route cannot drift). */
-export function guestSessionCookieAttrs(): {
-  httpOnly: true;
-  secure: boolean;
-  sameSite: "lax";
-  path: "/";
-  maxAge: number;
-} {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: GUEST_SESSION_COOKIE_MAX_AGE,
-  };
+  return `${GUEST_SESSION_COOKIE_PREFIX}${eventId}`;
 }
 
 /**
@@ -103,6 +101,24 @@ export function guestSessionCookieWrite(
 /** The expiry write for `POST /api/guests/leave` (and any other put-it-down path). */
 export function guestSessionCookieClear(eventId: string): GuestCookieWrite {
   return { name: guestSessionCookieName(eventId), value: "", maxAge: 0 };
+}
+
+/**
+ * THE EXPIRY WRITES FOR EVERY GUEST TICKET THIS REQUEST CARRIES (the upload-owner lane,
+ * 2026-09-23), for `POST /api/guests/leave` `{ all: true }`. A sign-out puts down every event's
+ * ticket, not only the album on screen: the next person on a shared phone should start clean
+ * wherever they scan next. Only the names the browser actually sent are expired, so nothing is
+ * invented and nothing another family owns is touched. (A Server Function, which has no
+ * `NextResponse`, uses the family's `expireGuestSessionCookies` on its cookie store instead.)
+ */
+export async function guestSessionCookieClearAll(): Promise<
+  GuestCookieWrite[]
+> {
+  const store = await cookies();
+  return store
+    .getAll()
+    .filter((cookie) => isGuestSessionCookieName(cookie.name))
+    .map((cookie) => ({ name: cookie.name, value: "", maxAge: 0 }));
 }
 
 /**

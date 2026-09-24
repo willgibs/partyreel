@@ -24,9 +24,12 @@ storage cap for paid tiers, so the abuse bound scales with the plan.
   [`queries/storage.ts`](../../src/lib/db/queries/storage.ts)): one SUM each for active and Deleted bytes, whatever
   the album's size, SECURITY DEFINER and service-role only like its sibling, called on the admin client with the
   `getUser()` id (the admin's account view passes the account it shows, and counts its items with a HEAD count).
-  Its active filter is `host_active_bytes`' own and its Deleted filter the exact negation, which
-  [`storage-summary.test.ts`](../../src/lib/billing/storage-summary.test.ts) reads off both migrations; a failed
-  read throws, because the guard would read a swallowed failure as an empty account and sell any size.
+  Its active filter is `host_active_bytes`' own; its Deleted filter is the negation LESS a guest's own
+  withdrawal (`status = 'removed' and removed_by_uploader`), so Deleted is only what the host can restore and a
+  withdrawal counts in neither number (Will, 2026-09-23: a guest's own delete is gone everywhere for the host).
+  [`storage-summary.test.ts`](../../src/lib/billing/storage-summary.test.ts) reads both filters off the
+  migrations; a failed read throws, because the guard would read a swallowed failure as an empty account and
+  sell any size.
 - **`storage_used_bytes` is the PHYSICAL meter ONLY** (++ on create, −− only in `purge_media_rows`); it
   never gates uploads, so deleting frees cap room immediately (the "Recently deleted" model).
 - **The monthly meter is INGRESS BYTES, not counts**, and `cumulative_bytes` **never decrements** — it is

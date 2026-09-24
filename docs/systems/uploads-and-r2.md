@@ -80,7 +80,9 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   JSON shapes/key order are the `uploadFile()` contract, byte-for-byte frozen. The guest/host asymmetries
   are DELIBERATE (don't "finish" the consolidation): auth placement (host `getUser()` gates in the route
   BEFORE the engine, the 401-before-body-parse ordering duplicated verbatim in both host routes; guest
-  tokens validate inside the RPCs); the per-event `max_upload_bytes` cap binds GUESTS ONLY; refusal framing
+  tokens validate inside the RPCs, and a token whose row carries an account uploads only for that signed-in
+  account, the strategies' `checkSessionOwner` at presign AND complete → [guest-flow.md](guest-flow.md));
+  the per-event `max_upload_bytes` cap binds GUESTS ONLY; refusal framing
   (the guest failure sheet prints each refused file's sentence VERBATIM, so its precision is user-facing
   copy; guest video refusals are EVENT-framed so a guest never learns the host's plan; host refusals are
   tier-framed; host `not_owner` → 404, an existence non-leak); per-pair `errorStatus` maps; NO request rate

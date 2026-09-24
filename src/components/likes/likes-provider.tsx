@@ -18,15 +18,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { QueryFailedError } from "@/lib/db/must-query";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/client";
 
 // The like controller for a gallery. Rendered ONCE per surface that opts into likes (the guest event
-// page, the Uploads tab, the Likes tab); a surface that doesn't wrap its grid gets no like UI because
-// useLikes() returns null. It is one state machine for a whole grid:
+// page, the host's album, the Uploads tab, the Likes tab); a surface that doesn't wrap its grid gets
+// no like UI because useLikes() returns null. It is one state machine for a whole grid:
 //   * signedIn resolved on mount (getSession, local);
-//   * a `liked` Set seeded from the viewer's OWN media_likes rows (owner-RLS select, anon => empty), so
-//     hearts paint correctly without threading state through SSR / the 12s poll / the feed RPCs;
+//   * a `liked` Set seeded from `my_liked_media_ids` (the viewer's OWN likes among the grid's ids, the
+//     ids in the POST body; anon => nothing asked), so hearts paint correctly without threading state
+//     through SSR / the gallery poll / the feed RPCs;
 //   * toggle() does an optimistic flip + the RPC (like_media) / RLS delete (unlike), reverting on failure;
 //   * the signed-OUT path: stash a pending intent + open ONE shared create-account dialog;
 //     the in-page OTP verify replays the like, and a redirect sign-in (Google / magic link) replays any
@@ -68,7 +71,7 @@ export function LikesProvider({
   onRemoved,
   children,
 }: {
-  /** The visible media ids — seeds liked state (owner-RLS select) + re-seeds when the set grows (poll). */
+  /** The visible media ids — seeds liked state (`my_liked_media_ids`) + asks about each id that joins the set (poll). */
   mediaIds: string[];
   /** Optional instant-paint seed (the Likes tab passes every id, all liked) before the select resolves. */
   initialLikedIds?: string[];
@@ -85,6 +88,10 @@ export function LikesProvider({
   const [dialogOpen, setDialogOpen] = useState(false);
   const pendingIdRef = useRef<string | null>(null);
   const busyRef = useRef<Set<string>>(new Set()); // collapse double-taps per id
+  // The ids already asked about and answered. The seed only ever ADDS hearts (a heart this tab
+  // flips is the toggle's own state), so an answered id stays answered, and a poll that brings one
+  // new photograph into a thousand-item album asks about that one id, not the whole album again.
+  const askedRef = useRef<Set<string>>(new Set());
 
   // A stable dependency for "the visible set changed" (not "a new array identity each poll").
   const idsKey = mediaIds.join(",");
@@ -101,24 +108,40 @@ export function LikesProvider({
       setSignedIn(Boolean(session));
       if (!session) return;
 
-      // Seed: which of the visible media has THIS user liked (owner-RLS scopes it to auth.uid()).
+      // Seed: which of the grid's media has THIS user liked, through `my_liked_media_ids` (SECURITY
+      // INVOKER over media_likes' owner-only RLS, so it can answer only for auth.uid()).
+      // ★ THE IDS RIDE THE POST BODY (the 1,000-row round). The old `.in("media_id", ids)` put every
+      // visible id in the URL, about 37 bytes an id, so once the album was read whole a large one's
+      // request failed outright, and the failure was swallowed: the hearts simply started empty.
+      // The answer is ONE uuid[], which neither a URL nor the row cap can clip (measured: a body of
+      // 100,000 ids answers 200). Only the ids not yet answered are asked.
       // Add-only merge => never clobbers an in-flight optimistic toggle, and genuinely-new poll items
       // (which the user hasn't liked) correctly stay unfilled.
-      if (mediaIds.length > 0) {
-        // DELIBERATE swallow: this only SEEDS which hearts start filled. A failed
-        // read leaves them unfilled and the (idempotent) like RPC corrects it on
-        // the next tap; the add-only merge means we never clobber real state.
-        // eslint-disable-next-line partyreel/no-swallowed-db-error
-        const { data } = await supabase
-          .from("media_likes")
-          .select("media_id")
-          .in("media_id", mediaIds);
-        if (active && data) {
-          setLiked((prev) => {
-            const next = new Set(prev);
-            for (const row of data) next.add(row.media_id);
-            return next;
-          });
+      const fresh = mediaIds.filter((id) => !askedRef.current.has(id));
+      if (fresh.length > 0) {
+        const { data, error } = await supabase.rpc("my_liked_media_ids", {
+          p_media_ids: fresh,
+        });
+        if (error) {
+          // The seed is cosmetic, so no toast: the hearts start unfilled, the ids stay unasked (the
+          // next change of the grid asks again), and the idempotent like RPC still lands a tap. But
+          // it is never silent either: a failed read is reported.
+          captureError(
+            "media",
+            new QueryFailedError("likes: my_liked_media_ids", error),
+            { ids: fresh.length },
+          );
+        } else if (active) {
+          for (const id of fresh) askedRef.current.add(id);
+          // One uuid[] value (never rows); anything else reads as no hearts rather than a crash.
+          const likedIds: string[] = Array.isArray(data) ? data : [];
+          if (likedIds.length > 0) {
+            setLiked((prev) => {
+              const next = new Set(prev);
+              for (const id of likedIds) next.add(id);
+              return next;
+            });
+          }
         }
       }
 

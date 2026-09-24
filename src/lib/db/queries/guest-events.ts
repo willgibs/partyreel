@@ -7,6 +7,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -162,23 +163,72 @@ export type GuestMediaRow = {
   width: number | null;
   height: number | null;
   duration_seconds: number | null;
+  /**
+   * The album's order key, and its keyset cursor: the RAW timestamp string Postgres returned
+   * (`2026-09-23T23:31:24.644108+00:00`), never a `Date`, because microseconds decide ties and a
+   * `Date` keeps milliseconds (read-all.ts, rule 1). Server-side only: toGridItems never copies it
+   * onto a GridMedia, and the ETag does not hash it (write-once per id, like the dimensions).
+   */
+  created_at: string;
 };
 
-// Approved media for the qr_token's event, NEWEST-FIRST, returned ONLY when the
-// event is public (the RPC enforces `is_public`). Powers both the SSR gallery
-// batch and the poll route (/api/guests/gallery) — NOT cached, since the poll
-// wants fresh rows each call (and within one request there's a single caller).
+/** Where the next page of a newest-first album resumes: the last row's own `(created_at, id)`. */
+export type AlbumCursor = { at: string; id: string };
+
+/** The cursor a page's last row hands the next page. */
+export function albumCursorOf(row: {
+  created_at: string;
+  id: string;
+}): AlbumCursor {
+  return { at: row.created_at, id: row.id };
+}
+
+/**
+ * The rows strictly AFTER a cursor in newest-first order, as a PostgREST logic tree for `.or()`:
+ * older than its timestamp, or the same timestamp with a smaller id. The table-read twin of the
+ * RPC's `(created_at, id) < (p_before_created_at, p_before_id)`, so an open album (the RPC) and an
+ * unlocked password album (the table) page through one order. The timestamp rides unquoted, the
+ * shape read-all.ts prescribes; on the scale probe (2026-09-24) it walked all 1,145 approved rows
+ * in two pages, in the RPC's exact order.
+ */
+export function olderThan(after: AlbumCursor): string {
+  return `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`;
+}
+
+/**
+ * The OPEN album: every approved item of the qr_token's event, NEWEST FIRST (`created_at desc,
+ * id desc`), returned ONLY while the event is open (the RPC's own `visibility = 'open'` gate). It
+ * serves the SSR gallery, the poll route and the guest export, all through
+ * `loadGalleryRowsForAccess`. NOT cached: the poll wants fresh rows on every call, and within one
+ * request there is a single caller.
+ *
+ * ★ READ WHOLE (the 1,000-row round). PostgREST cuts a set-returning RPC at 1,000 rows with no
+ * error, so a single call handed the probe's 1,145-item album its newest 1,000 and the oldest
+ * never showed. It pages through `readAllPages` on the album's own display order, the last row's
+ * `(created_at, id)` as the cursor and `p_limit` on every page, and the pages concatenate in that
+ * order. The ORDER is load-bearing: `mergeGalleryItems`, `reconcileGalleryItems` and toGridItems
+ * keep server order, and the gallery ETag hashes the ids in order.
+ */
 export async function getEventMediaByQrToken(
   qrToken: string,
 ): Promise<GuestMediaRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_event_media_by_qr_token", {
-    p_qr_token: qrToken,
-  });
-  if (error) throw error;
+  const { rows } = await readAllPages(
+    "guest album: get_event_media_by_qr_token",
+    (after: AlbumCursor | null, limit) =>
+      supabase.rpc("get_event_media_by_qr_token", {
+        p_qr_token: qrToken,
+        // Undefined on the first page: the keys drop out of the POST body and the SQL defaults
+        // (null, null) read from the newest item.
+        p_before_created_at: after?.at,
+        p_before_id: after?.id,
+        p_limit: limit,
+      }),
+    albumCursorOf,
+  );
   // The generated RPC types overstate non-nullness (the columns are nullable);
   // normalize like `description` above so callers see honest nulls.
-  return (data ?? []).map((m) => ({
+  return rows.map((m) => ({
     id: m.id,
     type: m.type,
     original_key: m.original_key,
@@ -186,5 +236,6 @@ export async function getEventMediaByQrToken(
     width: m.width ?? null,
     height: m.height ?? null,
     duration_seconds: m.duration_seconds ?? null,
+    created_at: m.created_at,
   }));
 }

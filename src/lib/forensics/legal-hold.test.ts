@@ -29,11 +29,11 @@ describe("isUnderLegalHold / excludeHeld", () => {
   });
 });
 
-describe("partitionEventsByHold", () => {
-  it("blocks ONLY the events that contain held media", () => {
+describe("partitionEventsByHold (the held set is held_event_ids' answer)", () => {
+  it("blocks ONLY the events the held set names", () => {
     const { purgeable, blocked } = partitionEventsByHold(
       ["e1", "e2", "e3"],
-      [{ event_id: "e2" }, { event_id: "e2" }],
+      ["e2"],
     );
     expect(purgeable).toEqual(["e1", "e3"]);
     expect(blocked).toEqual(["e2"]);
@@ -46,11 +46,17 @@ describe("partitionEventsByHold", () => {
   });
 
   it("blocks everything when every event holds evidence", () => {
-    const { purgeable, blocked } = partitionEventsByHold(
-      ["e1"],
-      [{ event_id: "e1" }],
-    );
+    const { purgeable, blocked } = partitionEventsByHold(["e1"], ["e1"]);
     expect(purgeable).toEqual([]);
+    expect(blocked).toEqual(["e1"]);
+  });
+
+  it("ignores a held id that is not a candidate, and keeps the candidates' order", () => {
+    const { purgeable, blocked } = partitionEventsByHold(
+      ["e3", "e1", "e2"],
+      ["e9", "e1"],
+    );
+    expect(purgeable).toEqual(["e3", "e2"]);
     expect(blocked).toEqual(["e1"]);
   });
 });

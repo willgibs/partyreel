@@ -1,7 +1,11 @@
 // @contract-for: src/lib/dashboard/arrivals.ts
 import { describe, expect, it } from "vitest";
 
-import { describeArrivals, pickArrivalWindow } from "./arrivals";
+import {
+  arrivalWindowStarts,
+  describeArrivals,
+  pickArrivalWindow,
+} from "./arrivals";
 
 /**
  * "JUST ARRIVED" WIDENS RATHER THAN EMPTIES (home-wiring, 2026-09-20).
@@ -13,6 +17,11 @@ import { describeArrivals, pickArrivalWindow } from "./arrivals";
  * empty... until more things start to happen"; a strip that blanks itself
  * between parties is exactly that, and a strip that presents week-old
  * photographs as "the last hour" is worse.
+ *
+ * ★ And the number it says is the whole number (the 1,000-row round,
+ * 2026-09-23): the window is picked from two exact counts, so a first hour of
+ * 1,500 uploads reads 1,500, where counting the rows of a 240-row read could
+ * never say more than 240.
  */
 
 const NOW = Date.parse("2026-09-20T20:00:00.000Z");
@@ -23,42 +32,49 @@ const HOUR = 60 * MIN;
 
 describe("the widening window", () => {
   it("stays on the last hour when the hour holds twelve", () => {
-    const rows = Array.from({ length: 14 }, (_, i) => ago(i * MIN));
-    expect(pickArrivalWindow(rows, NOW, START_OF_TODAY)).toEqual({
+    expect(pickArrivalWindow({ inHour: 14, inToday: 30 })).toEqual({
       window: "hour",
       count: 14,
     });
   });
 
+  it("says the whole count, past any read's length", () => {
+    // A wedding's first hour: every upload counts, not the newest 240.
+    const picked = pickArrivalWindow({ inHour: 1500, inToday: 1500 });
+    expect(picked).toEqual({ window: "hour", count: 1500 });
+    expect(describeArrivals(picked.window, picked.count, ago(MIN), NOW)).toBe(
+      "1500 in the last hour, across your events",
+    );
+  });
+
   it("widens to today when the hour is short", () => {
-    const rows = [
-      ...Array.from({ length: 2 }, (_, i) => ago(i * MIN)),
-      ...Array.from({ length: 15 }, (_, i) => ago(3 * HOUR + i * MIN)),
-    ];
     // Two this hour, seventeen today: the strip fills from today rather than
     // showing two tiles under a fresher-sounding label. This case is why the
     // "keep the narrow window whenever it has anything" branch came out.
-    expect(pickArrivalWindow(rows, NOW, START_OF_TODAY)).toEqual({
+    expect(pickArrivalWindow({ inHour: 2, inToday: 17 })).toEqual({
       window: "today",
       count: 17,
     });
   });
 
   it("takes the widest window when nothing fills the strip, and dates it", () => {
-    const rows = Array.from({ length: 6 }, (_, i) => ago(10 * MIN + i * MIN));
-    const picked = pickArrivalWindow(rows, NOW, START_OF_TODAY);
-    expect(picked).toEqual({ window: "recent", count: 6 });
+    const picked = pickArrivalWindow({ inHour: 6, inToday: 6 });
+    expect(picked.window).toBe("recent");
     // The caption is where freshness still reaches the host.
-    expect(describeArrivals(picked.window, picked.count, rows[0], NOW)).toBe(
-      "Newest, 10 min ago",
-    );
+    expect(
+      describeArrivals(picked.window, picked.count, ago(10 * MIN), NOW),
+    ).toBe("Newest, 10 min ago");
   });
 
   it("widens past today only when today is genuinely empty", () => {
-    const rows = Array.from({ length: 20 }, (_, i) =>
-      ago(3 * 24 * HOUR + i * MIN),
-    );
-    expect(pickArrivalWindow(rows, NOW, START_OF_TODAY).window).toBe("recent");
+    expect(pickArrivalWindow({ inHour: 0, inToday: 0 }).window).toBe("recent");
+  });
+
+  it("counts each window from where it starts: the last sixty minutes, and the host's midnight", () => {
+    expect(arrivalWindowStarts(NOW, START_OF_TODAY)).toEqual({
+      hour: ago(HOUR),
+      today: "2026-09-20T00:00:00.000Z",
+    });
   });
 
   it("says which window it settled on, including how stale the newest is", () => {

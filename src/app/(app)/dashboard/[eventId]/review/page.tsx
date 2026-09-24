@@ -43,18 +43,20 @@ export default async function EventReviewPage({ params }: PageProps) {
   const event = await getEvent(eventId);
   if (!event) notFound();
 
-  const [media, uploaderIdentities, likeCounts] = await Promise.all([
-    listEventMedia(event.id),
+  // The queue ALONE, read whole: the `pending` slice pages to its last item, so
+  // the room presigns what it shows and nothing else, and reaches the queue's
+  // oldest upload however large the album around it grows.
+  const [pending, uploaderIdentities, likeCounts] = await Promise.all([
+    listEventMedia(event.id, "pending"),
     getUploaderIdentities(event.id),
     getEventLikeCounts(event.id),
   ]);
-  const items = await toHostGalleryItems({
-    media,
+  const pendingItems = await toHostGalleryItems({
+    media: pending,
     eventName: event.name,
     uploaderIdentities,
     likeCounts,
   });
-  const pendingItems = items.filter((m) => m.status === "pending");
 
   return (
     <div data-route-fade className="space-y-6">

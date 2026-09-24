@@ -11,7 +11,7 @@ import {
   toBillingTier,
   withinLimit,
 } from "@/lib/constants/tiers";
-import { listEvents } from "@/lib/db/queries/events";
+import { countActiveEvents, listEvents } from "@/lib/db/queries/events";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getSiteUrl } from "@/lib/site-url";
 import { needsDisplayName } from "@/lib/welcome";
@@ -32,10 +32,10 @@ export const metadata: Metadata = { title: "New event" };
 // beat for the door. The server's `enforce_event_limit` trigger stays the guard
 // behind both (the wizard toasts and returns on `limit_reached`).
 export default async function NewEventPage() {
-  const [profile, siteUrl, events] = await Promise.all([
+  const [profile, siteUrl, eventCount] = await Promise.all([
     getProfile(),
     getSiteUrl(),
-    listEvents(),
+    countActiveEvents(),
   ]);
 
   // A host's name shows publicly on their own uploads + the "Hosted by" byline, so require it
@@ -47,7 +47,14 @@ export default async function NewEventPage() {
   // is the webhook-derived concurrent-pass count and overrides the static tier
   // limit, exactly as enforce_event_limit does in SQL (billing-caps.md).
   const maxEvents = profile?.event_slots ?? MAX_EVENTS[tier];
-  const atCap = !withinLimit(events.length, maxEvents);
+  // The cap is decided on a COUNT (the 1,000-row round, 2026-09-23): the same
+  // head count the dashboard's "X of N used" shows, never a list's length. The
+  // names are read only for the door, which renders only at the cap, so a host
+  // with room never pays for a read of every event they hold.
+  const atCap = !withinLimit(eventCount, maxEvents);
+  const cappedEvents = atCap
+    ? (await listEvents()).map((e) => ({ id: e.id, name: e.name }))
+    : [];
 
   return (
     <div className="space-y-6">
@@ -65,7 +72,7 @@ export default async function NewEventPage() {
         maxEvents={maxEvents}
         // Only what the door says out loud. The row carries the password hash
         // and every setting; a client island gets a name and an id.
-        cappedEvents={events.map((e) => ({ id: e.id, name: e.name }))}
+        cappedEvents={cappedEvents}
       />
     </div>
   );

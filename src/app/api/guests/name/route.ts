@@ -28,6 +28,13 @@
  *   (403): their name is their profile's, and a row that carried two names could disagree with
  *   itself.
  *
+ * ★ AND AN ACCOUNT'S ROW IS RENAMED ONLY BY THAT ACCOUNT (the upload-owner lane, 2026-09-23;
+ *   lib/guest/session-owner.ts). A row claimed by an account that never confirmed keeps its typed
+ *   name, so the RPC's "comes from your account" refusal does not cover it, and a browser that kept
+ *   that account's ticket would otherwise let the next person on the phone rename it. 403
+ *   `session_other_account`: the name step reads it by name, puts the ticket down and mints this
+ *   person their own row under the name they just typed.
+ *
  * ★ BOTH TOKENS TRAVEL IN THE BODY, never the URL (a capability in a query string ends up in a log,
  *   a referrer and somebody's history).
  */
@@ -39,6 +46,7 @@ import {
   applyGuestCookies,
   guestSessionCookieIfChanged,
 } from "@/lib/guest/session-cookie";
+import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -134,6 +142,17 @@ export async function POST(request: Request) {
         message: "That name isn't available.",
       },
       { status: 422 },
+    );
+  }
+
+  // Whose ticket is this (see the head comment): checked after the name, so a bad name is still
+  // answered as a bad name, and before the write, so a row that is not this caller's is never
+  // touched.
+  const owner = await checkSessionOwner(session_token);
+  if (!owner.ok) {
+    return NextResponse.json(
+      { ok: false, code: owner.code, message: owner.message },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 

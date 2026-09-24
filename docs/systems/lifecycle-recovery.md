@@ -14,8 +14,32 @@ against `Bearer ${CRON_SECRET}`. `CRON_SECRET` is `.optional()` in [`env.ts`](..
 **12 sweeps, each independently try/caught:** `expired_events`, `removed_media`, `deleted_accounts`,
 `orphans`, `expired_passes`, `over_capacity`, `renewal_nudges`, `inactive_free_events`,
 `standby_budget`, `unlock_attempts`, `action_attempts`, and last `job_health` (the platform freshness
-scan, → [admin-observability.md](admin-observability.md)). The `orphans` sweep is guarded by the
-circuit-breaker (→ [durability-backups.md](durability-backups.md)).
+scan, → [admin-observability.md](admin-observability.md)). The route only runs them; their bodies are
+[`lifecycle/sweeps/`](../../src/lib/lifecycle/sweeps) and account deletion
+([`lifecycle/account-deletion.ts`](../../src/lib/lifecycle/account-deletion.ts)), each tested on the
+clamping PostgREST fake. The `orphans` sweep is guarded by the circuit-breaker
+(→ [durability-backups.md](durability-backups.md)).
+
+★ **Every sweep is whole and budgeted** (the 1,000-row rules, [`db/read-all.ts`](../../src/lib/db/read-all.ts)).
+The run is one invocation (`maxDuration` 60), so every sweep works in keyset batches (`readAllPages`, id
+lists through `inChunks`) and checks a deadline before each batch, never mid-batch. The nine budgeted
+sweeps share `SWEEP_WINDOW_MS` (42 s) as they start, each taking an equal share of what is left
+([`lifecycle/sweep-budget.ts`](../../src/lib/lifecycle/sweep-budget.ts)), so a backlog in one never starves
+the rest nor runs the invocation into Vercel's kill. A sweep the deadline stops returns `stopped_early`
+with a counted `remaining` where one can be taken, raises one `sweep_stopped_early` warning, and its run
+reads "Needs a look" on `/admin/jobs` (→ [admin-observability.md](admin-observability.md)).
+- **The sweeps that DELETE drain**, so the next run starts at what is left: `expired_events` (keyset on
+  the event id, each batch's media reclaimed in `MAX_ROWS` pages before its event rows go, a batch the
+  deadline interrupts keeping its event rows), `removed_media` (oldest `purge_at` first, on the
+  `(purge_at, id)` cursor), `deleted_accounts` (the queue by `(deletion_requested_at, id)`, no per-run cap;
+  an account caught mid-purge is `unfinished` and keeps its events and auth user) and `standby_budget`.
+- **The sweeps that EXAMINE accounts rotate**: `expired_passes`, `over_capacity`, `renewal_nudges` and
+  `inactive_free_events` store `resume_after` (the last id attempted) on their run row when the deadline
+  stops them, and the next run starts after it (`readSweepCursor`,
+  [`queries/jobs.ts`](../../src/lib/db/queries/jobs.ts)), so a list longer than one night still has every
+  candidate examined in turn. An unreadable cursor starts from the beginning, with a warning.
+- **`orphans` does not resume**: at most 20 R2 pages of `MAX_ROWS` objects a run, from the top each
+  night, and a run that stops says so.
 
 **FOUR of them are jobs of their own** (`orphans`, `deleted_accounts`, `inactive_free_events`,
 `over_capacity`, the ones that loop over ACCOUNTS and email somebody or delete bytes): each opens its own
@@ -26,14 +50,18 @@ others. → [admin-observability.md](admin-observability.md).
 
 ★ **Isolation is per-ROW inside those loops.** `forEachIsolated`
 ([`jobs/isolate.ts`](../../src/lib/jobs/isolate.ts)) wraps the per-account bodies of `over_capacity`,
-`inactive_free_events`, `renewal_nudges` and `deleted_accounts`, so one bounced address never costs
-every account behind it. It never buys silence: the tally travels with the sweep's result, any
-`rows_failed` closes that sub-sweep's run as an ERROR, and five consecutive failures abort the loop (a
-dead dependency, not a bad row).
+`inactive_free_events`, `renewal_nudges`, `expired_passes` and `deleted_accounts`, so one bounced
+address never costs every account behind it. It never buys silence: the tally travels with the sweep's
+result, any `rows_failed` closes that sweep's run as an ERROR (the parent run's too, for a sweep that
+rides it), and five consecutive failures abort the loop (a dead dependency, not a bad row). Its
+`stopWhen` is the deadline: the rows it leaves are `unreached`, a backlog, never a failure.
 
 `purge_media_rows` deletes the rows (never a held one) and decrements `storage_used_bytes` atomically;
-every caller deletes the R2 objects FIRST. It is **service-role-only** and stays REVOKED from
-anon/authenticated. [`r2/delete.ts`](../../src/lib/r2/delete.ts):
+every caller deletes the R2 objects FIRST, through `reclaimMedia`
+([`lifecycle/reclaim.ts`](../../src/lib/lifecycle/reclaim.ts)), which hands it at most `MAX_ROWS` ids a
+call, one call at a time (its one row per host can never outgrow its input, so the freed bytes are never
+clipped; concurrent calls could deadlock on the hosts' profile rows). It is **service-role-only** and
+stays REVOKED from anon/authenticated. [`r2/delete.ts`](../../src/lib/r2/delete.ts):
 `deleteR2Objects()` chunks to ≤1000 keys per `DeleteObjectsCommand` (the S3 cap) and treats an absent key
 as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
@@ -46,17 +74,25 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   `RECENTLY_DELETED_BUDGET_MULTIPLIER × effective cap` (the multiplier is 1), evicting oldest-first: the
   anti-abuse backstop (size is the bound, not the clock). So a move to a smaller cap shrinks Deleted too and
   its oldest items purge early; the plan sheet says so before a switch that fits but shrinks the cap.
-  `profiles.storage_grace_until` is service-role-write-only.
+  `profiles.storage_grace_until` is service-role-write-only. The sweep finds its hosts through
+  `standby_hosts(p_after, p_limit)`, whose bytes are exactly its bin: a host's removals less the system's
+  (`removed_by_system`) and less a guest's own withdrawal (`removed_by_uploader`: never counted in the host's
+  budget and never evicted by it; it purges on its own window), plus the live media of a soft-deleted event,
+  never a held row. Only a host over budget has its bin read, and it is read whole, so eviction is
+  oldest-first across all of it. The meter's Deleted figure (below) also counts system-removed and held
+  rows, so it can read higher than the budget's sum, never lower.
 - **Delete-own** reuses this window: a signed-in uploader through the authenticated SECURITY DEFINER
   `remove_my_upload(uuid)` RPC ("Your uploads" on their own `/u/[slug]`, and the guest album's delete;
   re-checks ownership via the `get_my_uploads` host-arm/guest-arm predicates, then soft-removes;
   idempotent), a name-only guest through `POST /api/guests/remove` → the service-role
   `remove_my_upload_by_session`. ★ A guest's self-deletion of an upload to SOMEONE ELSE's event is marked
-  **`media.removed_by_uploader=true` = PRIVATE to that host**: excluded from the host's bin by
-  `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (RLS does NOT filter it, so
-  dropping that line shows the host a Restore the RPC always refuses) AND refused by `restore_media` (the
-  uploader's deletion wins; it still auto-purges and counts in that host's standby meter). A host deleting
-  their OWN event's upload leaves it `false` (host-restorable, like the gallery's Remove). The marker is
+  **`media.removed_by_uploader=true` = FINAL, for that host too** (Will, 2026-09-23): excluded from the host's
+  bin by `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate (RLS does NOT filter it, so
+  dropping that line shows the host a Restore the RPC always refuses), refused by `restore_media` (the
+  uploader's deletion wins), and counted in NEITHER of `host_storage_summary`'s numbers (a removed row, and
+  not the host's to restore). It still auto-purges on the window. Its confirm names no window ("It's deleted
+  from the event right away and can't be recovered."). A host deleting their OWN event's upload leaves it
+  `false` (host-restorable, like the gallery's Remove), and that confirm says Deleted and the window. The marker is
   write-locked: set only by those two delete-own RPCs and by `disown_guest_rows_by_email` (the dashboard's
   "Not mine"), never in the `authenticated (status, removed_at)` grant.
 
@@ -64,9 +100,10 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
 
 - ★ **Legal-hold media is excluded from EVERY hard-delete path.** `media.legal_hold_at`
   set → the removed-media sweep, standby eviction, and `purgeMediaNow` filter it BEFORE their
-  R2-first delete; an expired event containing ANY held media is skipped WHOLE (the FK cascade is
-  all-or-nothing); `purge_media_rows`/`purge_media_now`/`restore_media` guard it at the SQL boundary.
-  Full model + the runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
+  R2-first delete; an expired event (or a deleted account's event) containing ANY held media is skipped
+  WHOLE (the FK cascade is all-or-nothing), decided by ONE `held_event_ids` answer per batch and asked
+  again right before the event rows go; `purge_media_rows`/`purge_media_now`/`restore_media` guard it at
+  the SQL boundary. Full model + the runbook: [trust-safety-forensics.md](trust-safety-forensics.md).
 - **`media.removed_at` is the purge grace clock; NEVER use `updated_at`.** The `set_updated_at` trigger
   bumps `updated_at` on every touch, so the 30-day grace must read the stable `removed_at` stamp.
 - **The three counters are deliberately different; do NOT reconcile them:** the per-event slot counts
@@ -96,10 +133,11 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   change-plan refuse a plan the host does not fit (the storage guard, [billing-caps.md](billing-caps.md)), so
   what remains is a lapse, a change made in the Stripe dashboard, or storage that grew between the check and
   Stripe's confirm; Free is upload-blocked before it can exceed its cap; candidates are accounts over 2 GB
-  used), and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at hard-delete). Over → set
-  `storage_grace_until` (`OVER_CAP_GRACE_DAYS`=45) + email; near the deadline → reminder; past grace →
-  auto-reduce (`selectForAutoReduce`, largest-first → the removed path reclaims after the window) + email;
-  back under → clear grace.
+  used, read whole and rotated), and keys off ACTIVE bytes (not `storage_used_bytes`, which only drops at
+  hard-delete), read from `host_storage_summary` (`readHostStorageSummary`, the meter's own aggregate).
+  Over → set `storage_grace_until` (`OVER_CAP_GRACE_DAYS`=45) + email; near the deadline → reminder; past
+  grace → auto-reduce (`selectForAutoReduce` over the host's whole active set, largest-first, the
+  soft-remove chunked; the removed path reclaims after the window) + email; back under → clear grace.
 - **Renewal** = a 14-day pre-expiry nudge for Event Pass; `RENEWAL_NUDGE_DAYS` is single-sourced in
   [`lifecycle/renewal.ts`](../../src/lib/lifecycle/renewal.ts) (shared with the notification bell).
   `expired_passes` downgrades lapsed passes to Free. → [billing-caps.md](billing-caps.md).
@@ -109,7 +147,9 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   newest media.created_at)`, so a used or still-collecting event never trips it; the pure decision is
   `inactivityAction` ([`lifecycle/inactivity.ts`](../../src/lib/lifecycle/inactivity.ts), `INACTIVE_DAYS`=180,
   `WARN_BEFORE_DAYS`=14). `touchHostActive` bumps `profiles.last_active_at` (throttled to 12 h, best-effort,
-  service-role) in an `after()` callback in the `(app)` layout, so ANY host use counts.
+  service-role) in an `after()` callback in the `(app)` layout, so ANY host use counts. The candidates are
+  free, live events whose `updated_at` AND host `last_active_at` are both past the warning line (the clock
+  is a max, so no other event can be due), in keyset batches rotated from the last run's cursor.
 - **SYSTEM-removal emails** (over-cap reduced, inactivity removed) state the concrete 30-day window and point
   to the in-app self-serve restore (NOT "reply to this email"); voluntary deletes are never emailed (the bell
   nudge covers them in-app → [notifications-analytics-growth.md](notifications-analytics-growth.md)).
@@ -144,7 +184,8 @@ as deleted (re-runs are idempotent); `listR2Objects()` paginates.
   read through RLS (`listRecentlyDeletedEvents`/`listRecentlyDeletedMedia`, windowed to 30d; the countdown
   is computed in the QUERY so the RSC stays render-pure). The storage meter reads ACTIVE bytes
   (`getHostStorageSummary`, [`db/queries/storage.ts`](../../src/lib/db/queries/storage.ts)) plus a
-  "+ X in Deleted (frees automatically)" line and an over-budget note. The lightbox hides Save when an
+  "+ X in Deleted (frees automatically)" line, whose X is only what the host can restore (the bin above; a
+  guest's withdrawal is in neither number), and an over-budget note. The lightbox hides Save when an
   item has no `downloadUrl` (no download from the bin).
 
 ## See also

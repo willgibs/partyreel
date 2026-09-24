@@ -12,6 +12,9 @@
  *   node scripts/backfill-strip-exif.mjs --live      # actually PUT + fix the DB ledger
  *   node scripts/backfill-strip-exif.mjs --prefix events/<eventId>/   # narrow the sweep
  *
+ * What --live does, first: read every listed original's media row and its event's host, whole and
+ * chunked by id, BEFORE any object is written, so a failed lookup aborts with nothing changed.
+ *
  * What --live does per changed object:
  *   1. PUT the stripped bytes back under the SAME key + content-type (images shrink;
  *      videos keep their exact length - boxes are blanked in place).
@@ -160,6 +163,23 @@ async function listOriginals() {
 
 const fmt = (n) => n.toLocaleString("en-US");
 
+/**
+ * The script's `inChunks` (the app's is `src/lib/db/read-all.ts`): this script runs on Node's own
+ * type stripping, which cannot resolve that module's `@/` import, so it keeps a local copy of the
+ * same rule (the 1,000-row round). A runtime id list rides the request URL, so it goes `IN_CHUNK`
+ * ids at a time (read-all's value), deduped, one chunk after another; a chunk that fails throws, so
+ * a lookup is whole or it is nothing. By id, a chunk also bounds its read: one row an id.
+ */
+const IN_CHUNK = 150;
+async function inChunks(ids, run) {
+  const unique = [...new Set(ids)];
+  const rows = [];
+  for (let i = 0; i < unique.length; i += IN_CHUNK) {
+    rows.push(...(await run(unique.slice(i, i + IN_CHUNK))));
+  }
+  return rows;
+}
+
 // --- main -----------------------------------------------------------------------
 
 console.log(
@@ -168,6 +188,52 @@ console.log(
 
 const objects = await listOriginals();
 console.log(`Found ${fmt(objects.length)} original media object(s).\n`);
+
+// --- the DB rows, read BEFORE any R2 write (live only) ------------------------------------------
+// Every listed original's media row, and each row's event host, read whole (chunked by id) before
+// the first PUT. Read after the PUTs, as this used to be, a failed lookup left objects replaced and
+// the ledger never fixed; and one `.in()` over every shrunk id rode a single URL and came back cut
+// at PostgREST's 1,000 rows. Now a failed lookup aborts before anything is written.
+let rowById = new Map();
+let hostByEvent = new Map();
+if (LIVE) {
+  if (!supabase) {
+    console.error("SUPABASE_SECRET_KEY missing - nothing was written.");
+    process.exit(1);
+  }
+  try {
+    const rows = await inChunks(
+      objects.map((o) => o.mediaId),
+      async (chunk) => {
+        const { data, error } = await supabase
+          .from("media")
+          .select("id, event_id, file_size_bytes, created_at")
+          .in("id", chunk);
+        if (error) throw new Error(`media lookup failed: ${error.message}`);
+        return data ?? [];
+      },
+    );
+    rowById = new Map(rows.map((r) => [r.id, r]));
+    const events = await inChunks(
+      rows.map((r) => r.event_id),
+      async (chunk) => {
+        const { data, error } = await supabase
+          .from("events")
+          .select("id, host_id")
+          .in("id", chunk);
+        if (error) throw new Error(`events lookup failed: ${error.message}`);
+        return data ?? [];
+      },
+    );
+    hostByEvent = new Map(events.map((e) => [e.id, e.host_id]));
+  } catch (e) {
+    console.error(`  ${e?.message ?? e} - nothing was written.`);
+    process.exit(1);
+  }
+  console.log(
+    `Read ${fmt(rowById.size)} media row(s) across ${fmt(hostByEvent.size)} event(s) before any write.\n`,
+  );
+}
 
 const stats = {
   total: objects.length,
@@ -255,28 +321,6 @@ if (LIVE && dbFixes.length > 0) {
   console.log(
     `\nUpdating the DB ledger for ${fmt(dbFixes.length)} shrunk object(s)...`,
   );
-
-  const ids = dbFixes.map((f) => f.mediaId);
-  const { data: rows, error } = await supabase
-    .from("media")
-    .select("id, event_id, file_size_bytes, created_at")
-    .in("id", ids);
-  if (error) {
-    console.error(`  media lookup failed: ${error.message}`);
-    process.exit(1);
-  }
-  const rowById = new Map((rows ?? []).map((r) => [r.id, r]));
-
-  const eventIds = [...new Set((rows ?? []).map((r) => r.event_id))];
-  const { data: events, error: evErr } = await supabase
-    .from("events")
-    .select("id, host_id")
-    .in("id", eventIds);
-  if (evErr) {
-    console.error(`  events lookup failed: ${evErr.message}`);
-    process.exit(1);
-  }
-  const hostByEvent = new Map((events ?? []).map((e) => [e.id, e.host_id]));
 
   // Per-host + per-(host, upload-month) delta aggregation, then clamped decrements.
   const hostDelta = new Map();

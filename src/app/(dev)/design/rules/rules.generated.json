@@ -696,7 +696,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 40
+          "line": 38
         },
         {
           "title": "moves when a photograph arrives",
@@ -704,7 +704,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 44
+          "line": 42
         },
         {
           "title": "moves when a photograph leaves",
@@ -712,15 +712,23 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 50
+          "line": 53
         },
         {
-          "title": "moves when one is hidden from a second tab",
+          "title": "moves when one is hidden from a second tab, though no count moves",
           "suite": [
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 54
+          "line": 57
+        },
+        {
+          "title": "moves when an arrival and a removal cancel in the counts",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 68
         },
         {
           "title": "moves when something lands in Review, which the doorbell never reports",
@@ -728,7 +736,15 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 63
+          "line": 79
+        },
+        {
+          "title": "hashes an empty event, and moves when its first photograph lands",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 86
         },
         {
           "title": "never validates across two events",
@@ -736,7 +752,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 70
+          "line": 99
         },
         {
           "title": "carries a version prefix, quoted and strong",
@@ -744,7 +760,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 74
+          "line": 103
         },
         {
           "title": "cannot be confused with the guest gallery's validator",
@@ -752,7 +768,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 81
+          "line": 112
         },
         {
           "title": "re-verifies the caller rather than trusting the cookie",
@@ -760,7 +776,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 89
+          "line": 120
         },
         {
           "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
@@ -768,7 +784,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 98
+          "line": 129
         },
         {
           "title": "answers 304 when nothing moved",
@@ -776,7 +792,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 107
+          "line": 138
         },
         {
           "title": "presigns nothing",
@@ -784,7 +800,15 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 113
+          "line": 144
+        },
+        {
+          "title": "counts the album and lists none of it",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 152
         },
         {
           "title": "is never cached",
@@ -792,7 +816,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 121
+          "line": 166
         }
       ]
     },
@@ -1708,7 +1732,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1716,7 +1740,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1724,7 +1748,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1732,7 +1756,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -1800,7 +1824,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1808,7 +1832,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1816,7 +1840,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1824,7 +1848,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -2006,7 +2030,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -2014,7 +2038,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -2022,7 +2046,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -2030,7 +2054,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -2205,7 +2229,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -2213,7 +2237,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -2221,7 +2245,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -2229,7 +2253,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -5601,7 +5625,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 217
+          "line": 225
         },
         {
           "title": "adds Showing once the guest owns something, the count inside Yours' own label",
@@ -5609,7 +5633,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 222
+          "line": 230
         },
         {
           "title": "Showing's value follows the live intent, never a stale snapshot",
@@ -5617,7 +5641,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 231
+          "line": 239
         },
         {
           "title": "routes Showing's onChange to setShowingMine as a boolean, never the raw string",
@@ -5625,7 +5649,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 240
+          "line": 248
         },
         {
           "title": "reserves Tile size below 640 rather than removing it",
@@ -5633,7 +5657,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 251
+          "line": 259
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5641,7 +5665,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 257
+          "line": 265
         },
         {
           "title": "routes Tile size's onChange to setTileSize as a number, never the raw string",
@@ -5649,7 +5673,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 263
+          "line": 271
         },
         {
           "title": "paints --album-column from the server-resolved initialTileSize on first render",
@@ -5657,7 +5681,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 272
+          "line": 280
         },
         {
           "title": "falls back to the wired default when the cookie was missing",
@@ -5665,7 +5689,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 278
+          "line": 286
         },
         {
           "title": "checks the matching option in the View menu, never just the CSS",
@@ -5673,7 +5697,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 284
+          "line": 292
         },
         {
           "title": "omits Showing when the guest owns nothing on the album",
@@ -5681,7 +5705,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 296
+          "line": 304
         },
         {
           "title": "adds Showing, with the owned count in Yours, once something is theirs",
@@ -5689,7 +5713,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 303
+          "line": 311
         },
         {
           "title": "disables the group with the Wider screens hint under 640",
@@ -5697,7 +5721,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 316
+          "line": 324
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5705,7 +5729,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 328
+          "line": 336
         },
         {
           "title": "reports the true approvedTotal to the header, and the CTA counts the same album",
@@ -5713,7 +5737,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 353
+          "line": 361
         },
         {
           "title": "falls back to the photo-only teaserTotal when approvedTotal is not passed",
@@ -5721,7 +5745,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 367
+          "line": 375
         },
         {
           "title": "falls to the account line once nothing more exists beyond what loaded",
@@ -5729,7 +5753,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 376
+          "line": 384
         },
         {
           "title": "says one photo in the singular",
@@ -5737,7 +5761,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 385
+          "line": 393
         },
         {
           "title": "patches only the caller's own items, leaving everyone else's alone, no network call",
@@ -5745,7 +5769,7 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 406
+          "line": 414
         },
         {
           "title": "does nothing when this device owns nothing on the album",
@@ -5753,7 +5777,7 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 425
+          "line": 433
         },
         {
           "title": "holds a full gallery's items and count against a narrower teaser poll, firing the drift once",
@@ -5761,7 +5785,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 455
+          "line": 463
         },
         {
           "title": "applies at once when a teaser gallery polls into a fuller decision, firing the drift once",
@@ -5769,7 +5793,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 492
+          "line": 500
         },
         {
           "title": "a fresh mount at a new access prop shows exactly that payload (the shell's own key={access} remount)",
@@ -5777,7 +5801,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 518
+          "line": 526
         },
         {
           "title": "a signed-in guest's new photograph is theirs the moment it lands (Trash and mark)",
@@ -5785,7 +5809,7 @@
             "LiveGallery: a visit's own adds and removals, on either identity"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 569
+          "line": 577
         },
         {
           "title": "passes each removed id up, and a removal leaves the count on a signed-in guest too",
@@ -5793,7 +5817,7 @@
             "LiveGallery: a visit's own adds and removals, on either identity"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 587
+          "line": 595
         },
         {
           "title": "reports the poll's guest count, and only from a poll that carried one",
@@ -5801,7 +5825,7 @@
             "LiveGallery: the header's guest count comes from the server"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 613
+          "line": 621
         },
         {
           "title": "a 304 changes nothing",
@@ -5809,7 +5833,79 @@
             "LiveGallery: the header's guest count comes from the server"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 633
+          "line": 641
+        },
+        {
+          "title": "is the server's head count plus what this device changed since",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 662
+        },
+        {
+          "title": "wins over the page's fallback and the photo-only total when the payload carried it",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 682
+        },
+        {
+          "title": "without a head count keeps the earlier rule (an older server's payload)",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 694
+        },
+        {
+          "title": "never goes below zero",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 713
+        },
+        {
+          "title": "at full, reports the payload's head count, never the list's length",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 726
+        },
+        {
+          "title": "at teaser, a poll moves the count when only the album behind the nine grew (a video landed)",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 733
+        },
+        {
+          "title": "an approved upload counts the instant its tile lands, and the next 200 settles it",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 762
+        },
+        {
+          "title": "the guest's own removal leaves the count at once",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 798
+        },
+        {
+          "title": "a stricter drift holds the count with the album (the rows and the count move together)",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 812
         }
       ]
     },
@@ -14830,7 +14926,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 139
+          "line": 141
         },
         {
           "title": "mouse pointers never engage the finger-follow",
@@ -14838,7 +14934,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 144
+          "line": 146
         },
         {
           "title": "a sub-10px wiggle stays unlocked (tap territory)",
@@ -14846,7 +14942,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 156
+          "line": 158
         },
         {
           "title": "a vertical move releases the gesture to the browser",
@@ -14854,7 +14950,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 163
+          "line": 165
         },
         {
           "title": "a horizontal lock engages: data-dragging + 1:1 follow",
@@ -14862,7 +14958,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 173
+          "line": 175
         },
         {
           "title": "clamps a long pull toward a real neighbor to one slide width",
@@ -14870,7 +14966,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 184
+          "line": 186
         },
         {
           "title": "damps the pull past the FIRST item (no prev)",
@@ -14878,7 +14974,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 191
+          "line": 193
         },
         {
           "title": "slow short drag springs back (200ms settle, no index change)",
@@ -14886,7 +14982,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 203
+          "line": 205
         },
         {
           "title": "a long slow drag commits by DISTANCE (20% of width)",
@@ -14894,7 +14990,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 214
+          "line": 216
         },
         {
           "title": "a quick flick commits by VELOCITY regardless of distance",
@@ -14902,7 +14998,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 228
+          "line": 230
         },
         {
           "title": "a commit toward a missing neighbor cannot happen at the END of the set",
@@ -14910,7 +15006,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 237
+          "line": 239
         },
         {
           "title": "pointercancel snaps back to center",
@@ -14918,7 +15014,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 246
+          "line": 248
         },
         {
           "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
@@ -14926,7 +15022,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 255
+          "line": 257
         },
         {
           "title": "arrow keys step through the set within bounds",
@@ -14934,7 +15030,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 268
+          "line": 270
         },
         {
           "title": "arrow keys at the edges do nothing",
@@ -14942,7 +15038,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 276
+          "line": 278
         },
         {
           "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
@@ -14950,7 +15046,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 282
+          "line": 284
         },
         {
           "title": "a clean CENTER-third tap on the letterbox closes the viewer",
@@ -14958,7 +15054,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 294
+          "line": 296
         },
         {
           "title": "a LEFT-third letterbox tap steps to the previous item (no close)",
@@ -14966,7 +15062,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 304
+          "line": 306
         },
         {
           "title": "a RIGHT-third letterbox tap steps to the next item (no close)",
@@ -14974,7 +15070,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 312
+          "line": 314
         },
         {
           "title": "a side tap at an edge is a NO-OP (never an accidental close)",
@@ -14982,7 +15078,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 320
+          "line": 322
         },
         {
           "title": "the position counter reflects the controlled index (pill format)",
@@ -14990,7 +15086,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 328
+          "line": 330
         },
         {
           "title": "a drag starting in a PLAYING video's scrubber strip never swipes",
@@ -14998,7 +15094,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 335
+          "line": 337
         },
         {
           "title": "the same drag swipes once the video is PAUSED",
@@ -15006,7 +15102,7 @@
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 351
+          "line": 353
         },
         {
           "title": "the GUEST pill carries NO curate controls, even with a status",
@@ -15014,7 +15110,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 389
+          "line": 391
         },
         {
           "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
@@ -15022,7 +15118,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 399
+          "line": 401
         },
         {
           "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
@@ -15030,7 +15126,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 410
+          "line": 412
         },
         {
           "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
@@ -15038,7 +15134,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 419
+          "line": 421
         },
         {
           "title": "host Remove is behind a modal confirm (no accidental delete)",
@@ -15046,7 +15142,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 429
+          "line": 431
         },
         {
           "title": "shows the Trash on the item it allows and never on another",
@@ -15054,7 +15150,31 @@
             "canDelete gates the personal Delete per item"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 451
+          "line": 453
+        },
+        {
+          "title": "a guest's own delete promises no window and no place it waits, and still deletes",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 515
+        },
+        {
+          "title": "a host's own upload keeps the host's words: Deleted, and the window off the constant",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 524
+        },
+        {
+          "title": "the album's consequence line still follows the final sentence",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 530
         },
         {
           "title": "draws the album on its own element, with the media never inside it",
@@ -15062,7 +15182,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 496
+          "line": 550
         },
         {
           "title": "wears the ONE material on the pill, the capsule and the close",
@@ -15070,7 +15190,7 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 517
+          "line": 571
         },
         {
           "title": "a confirmed name stands plain, with no mark",
@@ -15078,7 +15198,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 558
+          "line": 612
         },
         {
           "title": "a name nobody proved is named AND marked",
@@ -15086,7 +15206,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 566
+          "line": 620
         },
         {
           "title": "a row with no name names nobody: no stand-in, no mark, the counter alone",
@@ -15094,7 +15214,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 574
+          "line": 628
         },
         {
           "title": "the mark offers the way out on the viewer's OWN upload only",
@@ -15102,7 +15222,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 583
+          "line": 637
         },
         {
           "title": "says nothing about proof it was never given: an item with no flag is plain",
@@ -15110,7 +15230,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 603
+          "line": 657
         },
         {
           "title": "reads \"Unverified\", never a claim that a name was checked",
@@ -16250,20 +16370,20 @@
       "indexed": false,
       "contracts": [
         {
-          "title": "leaves the operator out of every one of them",
-          "suite": [
-            "the four figures"
-          ],
-          "file": "src/lib/admin/kpi.test.ts",
-          "line": 46
-        },
-        {
           "title": "counts a fortnight against the fortnight before it",
           "suite": [
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 52
+          "line": 45
+        },
+        {
+          "title": "takes every account the database counted, past 1,000",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 51
         },
         {
           "title": "reads 'active' as last seen, and says so",
@@ -16271,7 +16391,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 64
+          "line": 57
         },
         {
           "title": "takes uploads whole and by fortnight from the counts it is handed",
@@ -16279,7 +16399,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 74
+          "line": 64
         },
         {
           "title": "gives paid subscribers NO delta, because nothing remembers last fortnight",
@@ -16287,7 +16407,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 80
+          "line": 70
         },
         {
           "title": "says something true about an empty platform rather than dividing by zero",
@@ -16295,7 +16415,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 95
+          "line": 80
         },
         {
           "title": "draws one point per day, in order",
@@ -16303,7 +16423,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 103
+          "line": 88
         },
         {
           "title": "puts the highest count at the top of the box and the lowest at the bottom",
@@ -16311,7 +16431,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 110
+          "line": 95
         },
         {
           "title": "draws a flat fortnight flat instead of dividing by zero",
@@ -16319,7 +16439,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 117
+          "line": 102
         },
         {
           "title": "draws nothing for no days at all",
@@ -16327,7 +16447,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 125
+          "line": 110
         }
       ]
     },
@@ -17005,7 +17125,15 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 25
+          "line": 34
+        },
+        {
+          "title": "says the whole count, past any read's length",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 41
         },
         {
           "title": "widens to today when the hour is short",
@@ -17013,7 +17141,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 33
+          "line": 50
         },
         {
           "title": "takes the widest window when nothing fills the strip, and dates it",
@@ -17021,7 +17149,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 47
+          "line": 60
         },
         {
           "title": "widens past today only when today is genuinely empty",
@@ -17029,7 +17157,15 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 57
+          "line": 69
+        },
+        {
+          "title": "counts each window from where it starts: the last sixty minutes, and the host's midnight",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 73
         },
         {
           "title": "says which window it settled on, including how stale the newest is",
@@ -17037,7 +17173,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 64
+          "line": 80
         },
         {
           "title": "never claims freshness it cannot back up",
@@ -17045,7 +17181,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 75
+          "line": 91
         }
       ]
     },
@@ -17346,7 +17482,7 @@
             "signed out"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 59
+          "line": 69
         },
         {
           "title": "maps every field",
@@ -17354,7 +17490,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 67
+          "line": 77
         },
         {
           "title": "withholds nothing the RPC already withheld (a gated event's null date passes through)",
@@ -17362,7 +17498,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 82
+          "line": 92
         },
         {
           "title": "drops a blank or missing typed name rather than listing an empty string",
@@ -17370,7 +17506,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 88
+          "line": 98
         },
         {
           "title": "collapses into one entry: names collected, counts summed, the newer upload wins",
@@ -17378,7 +17514,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 96
+          "line": 106
         },
         {
           "title": "never lets a null last_upload_at from one row erase a real one from another",
@@ -17386,7 +17522,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 121
+          "line": 131
         },
         {
           "title": "dedupes an identical typed name across the group's rows",
@@ -17394,7 +17530,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 130
+          "line": 140
         },
         {
           "title": "keeps the RPC's own order (most recently active first)",
@@ -17402,7 +17538,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 141
+          "line": 151
         },
         {
           "title": "keeps a group's rank at its best-placed row, even when its second row arrives later",
@@ -17410,7 +17546,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 150
+          "line": 160
         },
         {
           "title": "is never offered: an empty row alone carries no event onto the card",
@@ -17418,7 +17554,7 @@
             "an event with nothing to claim"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 170
+          "line": 180
         },
         {
           "title": "keeps an event whose second row is empty, counted by what is live",
@@ -17426,7 +17562,7 @@
             "an event with nothing to claim"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 184
+          "line": 194
         },
         {
           "title": "throws rather than swallowing it",
@@ -17434,7 +17570,15 @@
             "a real error"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 196
+          "line": 206
+        },
+        {
+          "title": "★ groups 2,500 rows across 1,250 events, every row counted, the RPC's order kept",
+          "suite": [
+            "the claim card, read whole"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 241
         }
       ]
     },
@@ -17524,7 +17668,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 40
+          "line": 38
         },
         {
           "title": "moves when a photograph arrives",
@@ -17532,7 +17676,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 44
+          "line": 42
         },
         {
           "title": "moves when a photograph leaves",
@@ -17540,15 +17684,23 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 50
+          "line": 53
         },
         {
-          "title": "moves when one is hidden from a second tab",
+          "title": "moves when one is hidden from a second tab, though no count moves",
           "suite": [
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 54
+          "line": 57
+        },
+        {
+          "title": "moves when an arrival and a removal cancel in the counts",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 68
         },
         {
           "title": "moves when something lands in Review, which the doorbell never reports",
@@ -17556,7 +17708,15 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 63
+          "line": 79
+        },
+        {
+          "title": "hashes an empty event, and moves when its first photograph lands",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 86
         },
         {
           "title": "never validates across two events",
@@ -17564,7 +17724,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 70
+          "line": 99
         },
         {
           "title": "carries a version prefix, quoted and strong",
@@ -17572,7 +17732,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 74
+          "line": 103
         },
         {
           "title": "cannot be confused with the guest gallery's validator",
@@ -17580,7 +17740,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 81
+          "line": 112
         },
         {
           "title": "re-verifies the caller rather than trusting the cookie",
@@ -17588,7 +17748,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 89
+          "line": 120
         },
         {
           "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
@@ -17596,7 +17756,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 98
+          "line": 129
         },
         {
           "title": "answers 304 when nothing moved",
@@ -17604,7 +17764,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 107
+          "line": 138
         },
         {
           "title": "presigns nothing",
@@ -17612,7 +17772,15 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 113
+          "line": 144
+        },
+        {
+          "title": "counts the album and lists none of it",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 152
         },
         {
           "title": "is never cached",
@@ -17620,7 +17788,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 121
+          "line": 166
         }
       ]
     },
@@ -19018,6 +19186,13 @@
       "scope": "marketing",
       "title": "MDX prose obeys the copy rules",
       "summary": "an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.",
+      "line": 1
+    },
+    {
+      "file": "src/lib/db/row-cap-policy.test.ts",
+      "scope": "engineering",
+      "title": "Every read reaches its last row",
+      "summary": "an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends.",
       "line": 1
     },
     {

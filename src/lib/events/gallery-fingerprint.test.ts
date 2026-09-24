@@ -15,6 +15,7 @@ const base = {
   access: "full",
   gate: null as string | null,
   teaserTotal: null,
+  approvedTotal: 2 as number | null,
   bucketId: "991337",
   items: [
     item(),
@@ -30,9 +31,24 @@ describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    // g4 since the identity contract: the item tuple lost the retired nameless-legacy flag, and a
-    // client holding an older ETag must re-pull rather than 304 past a change it cannot see.
-    expect(a).toMatch(/^"g4-[A-Za-z0-9_-]{27}"$/);
+    // g5 since the 1,000-row round: the payload carries the album's head count, and a client
+    // holding an older ETag must re-pull rather than 304 past a change it cannot see.
+    expect(a).toMatch(/^"g5-[A-Za-z0-9_-]{27}"$/);
+  });
+
+  // THE ALBUM'S SIZE IS IN THE HASH (the 1,000-row round). The teaser's nine photographs can stay
+  // exactly the same while the album grows behind them (a video approved, a photograph removed
+  // from deeper in the album), and the header's live count rides this payload: a validator blind
+  // to it would 304 the guest past the new number for as long as the nine held still.
+  it("changes with approvedTotal alone, the items and the teaser total held still", () => {
+    const teaser = { ...base, access: "teaser", gate: "account", teaserTotal: 9 };
+    const before = galleryEtag({ ...teaser, approvedTotal: 48 });
+    expect(galleryEtag({ ...teaser, approvedTotal: 49 })).not.toBe(before);
+    expect(galleryEtag({ ...teaser, approvedTotal: 48 })).toBe(before);
+    // A locked gallery's null never collides with an empty album's zero.
+    expect(galleryEtag({ ...base, approvedTotal: null })).not.toBe(
+      galleryEtag({ ...base, approvedTotal: 0 }),
+    );
   });
 
   it("changes with item order, membership, and every identity field", () => {

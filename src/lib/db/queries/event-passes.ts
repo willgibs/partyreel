@@ -15,6 +15,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * what each row still grants; expiry is a derivation, not a stored state).
  */
 export async function getLivePasses(profileId: string): Promise<PassRow[]> {
+  // row-cap: one profile's unconsumed Event Passes: each one a purchase, a handful at most
   const { data, error } = await createAdminClient()
     .from("event_passes")
     .select("id, start_at, expires_at, price_cents, consumed_at")

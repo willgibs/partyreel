@@ -18,18 +18,9 @@
  */
 import "server-only";
 
+import { readAllPages } from "@/lib/db/read-all";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
-
-/** PostgREST answers at most `max_rows` (1000 on this project) per request, silently. */
-const PAGE = 1000;
-
-type AddressRow = {
-  id: string;
-  user_id: string | null;
-  email: string | null;
-  verified_at: string | null;
-};
 
 /**
  * Confirmed addresses of the listed people at one event, keyed by user id (a `GuestList` profile card's `id`).
@@ -40,9 +31,9 @@ type AddressRow = {
  * its own gate (or a guest page that imported this by mistake) gets nothing.
  *
  * ★ KEYED ON THE EVENT, NEVER AN `.in()` OF USER IDS: an id list rides the URL and grows with the party, so the rows
- * are read by `event_id` in keyset pages (by id, an exact count on the first page, so an ordinary party is one round
- * trip) and narrowed to `userIds` in memory. Only the listed people leave this function, so the page's payload holds
- * no address it does not show.
+ * are read by `event_id` in keyset pages on `id` (`readAllPages`: an ordinary party is one round trip, and a page
+ * short of 1,000 is the last) and narrowed to `userIds` in memory. Only the listed people leave this function, so the
+ * page's payload holds no address it does not show.
  *
  * One address per person: a guest who confirmed on two devices has two rows, and the newest proof wins (an address
  * changed between the two mints shows as it stands now).
@@ -68,49 +59,38 @@ export async function getConfirmedGuestAddresses(
   if (!event || event.host_id !== user.id) return new Map();
   const hostId = event.host_id;
 
-  const newest = new Map<string, { email: string; verifiedAt: number }>();
-  let total: number | null = null;
-  let seen = 0;
-  let lastId: string | null = null;
-  for (;;) {
-    // The SELECT names its four columns and no other address (guest-addresses.test.ts pins it); the filters ask the
-    // database for proved rows only, and the loop below checks each one again, because an address on a row the
-    // filter should have dropped is the one mistake this module exists to never make.
-    let query = admin
-      .from("guests")
-      .select(
-        "id, user_id, email, verified_at",
-        lastId === null ? { count: "exact" } : undefined,
-      )
-      .eq("event_id", eventId)
-      .not("verified_at", "is", null)
-      .not("email", "is", null)
-      .not("user_id", "is", null)
-      .neq("user_id", hostId)
-      .order("id", { ascending: true })
-      .limit(PAGE);
-    if (lastId !== null) query = query.gt("id", lastId);
-    const { data, error, count } = await query;
-    if (error) throw error;
-    if (lastId === null) total = count ?? null;
+  // The SELECT names its four columns and no other address (guest-addresses.test.ts pins it); the filters ask the
+  // database for proved rows only, and the loop below checks each one again, because an address on a row the filter
+  // should have dropped is the one mistake this module exists to never make.
+  const { rows } = await readAllPages(
+    "guests room: confirmed addresses",
+    (after: string | null, limit) => {
+      let q = admin
+        .from("guests")
+        .select("id, user_id, email, verified_at")
+        .eq("event_id", eventId)
+        .not("verified_at", "is", null)
+        .not("email", "is", null)
+        .not("user_id", "is", null)
+        .neq("user_id", hostId)
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after) q = q.gt("id", after);
+      return q;
+    },
+    (row) => row.id,
+  );
 
-    const rows = (data ?? []) as AddressRow[];
-    if (rows.length === 0) break;
-    for (const row of rows) {
-      if (!row.user_id || row.user_id === hostId || !wanted.has(row.user_id))
-        continue;
-      if (!row.verified_at || !row.email?.trim()) continue;
-      const verifiedAt = Date.parse(row.verified_at);
-      const held = newest.get(row.user_id);
-      if (!held || verifiedAt > held.verifiedAt) {
-        newest.set(row.user_id, { email: row.email.trim(), verifiedAt });
-      }
+  const newest = new Map<string, { email: string; verifiedAt: number }>();
+  for (const row of rows) {
+    if (!row.user_id || row.user_id === hostId || !wanted.has(row.user_id))
+      continue;
+    if (!row.verified_at || !row.email?.trim()) continue;
+    const verifiedAt = Date.parse(row.verified_at);
+    const held = newest.get(row.user_id);
+    if (!held || verifiedAt > held.verifiedAt) {
+      newest.set(row.user_id, { email: row.email.trim(), verifiedAt });
     }
-    seen += rows.length;
-    lastId = rows[rows.length - 1].id;
-    // A short page is not proof of the last one (PostgREST clamps to its own max_rows): stop at the count or at an
-    // empty page, whichever comes first.
-    if (total !== null && seen >= total) break;
   }
 
   return new Map([...newest].map(([userId, { email }]) => [userId, email]));

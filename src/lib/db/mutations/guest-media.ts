@@ -33,6 +33,11 @@
  */
 import "server-only";
 
+import type { PostgrestError } from "@supabase/supabase-js";
+
+import { mustQuery } from "@/lib/db/must-query";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Below this, a token is not a token — refuse before touching the database. */
@@ -93,6 +98,7 @@ export async function listSessionMediaIds(input: {
 }): Promise<string[]> {
   const token = input.sessionToken.trim();
   if (token.length < MIN_SESSION_TOKEN) return [];
+  // row-cap: a session token names one guest row (guests.session_token is unique)
   return mediaIdsForGuests(
     input.eventId,
     createAdminClient()
@@ -114,6 +120,7 @@ export async function listAccountMediaIds(input: {
   eventId: string;
   userId: string;
 }): Promise<string[]> {
+  // row-cap: one account's guest rows in one event: one per session it claimed, a handful
   return mediaIdsForGuests(
     input.eventId,
     createAdminClient()
@@ -131,26 +138,61 @@ export async function listAccountMediaIds(input: {
  * the one query whose answer decides whether a delete control appears.
  * Already-removed rows drop: a tile that is gone needs no Remove.
  *
- * A read failure is an empty list, deliberately. The worst case is a guest who
- * cannot remove their photograph for one render; the alternative — failing the
- * page, or failing OPEN — is worse in both directions.
+ * READ WHOLE (the 1,000-row round): a guest can upload far past 1,000 items to
+ * one event (a photographer on the guest link), so the ids page on `id` through
+ * `readAllPages`, inside `inChunks` over the guest rows (one for a session, a
+ * handful for an account, never a URL's worth): one read would end at 1,000 and
+ * leave the rest of their photographs without a Remove.
+ *
+ * ★ FAIL CLOSED, LOUDLY. A read failure is an empty list, deliberately: the
+ * worst case is a guest who cannot remove their photograph for one render, and
+ * the alternatives (failing the page a guest is standing in front of, or
+ * failing OPEN) are worse in both directions. The failure is captured, never
+ * swallowed, the way `guest-gate.ts` fails open loudly, so a read that keeps
+ * failing is an alert and not a feature that silently went away.
  */
 async function mediaIdsForGuests(
   eventId: string,
-  guestQuery: PromiseLike<{ data: { id: string }[] | null; error: unknown }>,
+  guestQuery: PromiseLike<{
+    data: { id: string }[] | null;
+    error: PostgrestError | null;
+  }>,
 ): Promise<string[]> {
-  const { data: guests, error } = await guestQuery;
-  if (error || !guests || guests.length === 0) return [];
+  try {
+    const guests = await mustQuery(guestQuery, "guest media: guest rows");
+    const guestIds = (guests ?? []).map((g) => g.id);
+    if (guestIds.length === 0) return [];
 
-  const { data: media, error: mediaError } = await createAdminClient()
-    .from("media")
-    .select("id")
-    .eq("event_id", eventId)
-    .in(
-      "guest_id",
-      guests.map((g) => g.id),
-    )
-    .neq("status", "removed");
-  if (mediaError || !media) return [];
-  return media.map((m) => m.id);
+    const admin = createAdminClient();
+    const media = await inChunks(
+      "guest media: ids",
+      guestIds,
+      async (chunk) => {
+        const { rows } = await readAllPages(
+          "guest media: ids",
+          (after: string | null, limit) => {
+            let q = admin
+              .from("media")
+              .select("id")
+              .eq("event_id", eventId)
+              .in("guest_id", chunk)
+              .neq("status", "removed")
+              .order("id", { ascending: true })
+              .limit(limit);
+            if (after) q = q.gt("id", after);
+            return q;
+          },
+          (m) => m.id,
+        );
+        return rows;
+      },
+    );
+    return media.map((m) => m.id);
+  } catch (error) {
+    captureError("media", error, {
+      seam: "guest_media_ids_fail_closed",
+      eventId,
+    });
+    return [];
+  }
 }

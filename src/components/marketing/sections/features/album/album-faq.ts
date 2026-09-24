@@ -33,7 +33,7 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "Can a guest delete their own upload?",
-    a: "Yes. From their dashboard, and it leaves the album at once. As host you can remove anything.",
+    a: "Yes, right on the album or from their profile, and it's gone for good: you can't restore it. As host you can remove anything.",
   },
   {
     q: "What happens when the album is full?",

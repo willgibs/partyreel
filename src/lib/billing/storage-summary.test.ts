@@ -1,13 +1,16 @@
 /**
- * THE STORAGE METER AND THE STORAGE GUARD READ ONE AGGREGATE (`public.host_storage_summary`, 20260923140000).
+ * THE STORAGE METER AND THE STORAGE GUARD READ ONE AGGREGATE (`public.host_storage_summary`, 20260923140000, its
+ * Deleted figure narrowed by 20260923160000).
  *
  * The meter's two numbers, and the storage guard's one (a plan change is refused off `activeBytes`, so an
  * undercount SELLS a plan the host does not fit), come from one SQL SUM each, whatever the album's size. What is
  * pinned: the read goes to the function with the id `getUser()` proved and nothing else, answers in one request, reads
  * nothing for a signed-out caller, and throws rather than reporting an empty account; the admin's account view reads
- * the same function and counts its items without reading rows; and the function's ACTIVE filter is `host_active_bytes`'
+ * the same function and counts its items without reading rows; the function's ACTIVE filter is `host_active_bytes`'
  * (the one definition every upload function enforces), read off both migrations, so the meter can never show a host
- * a number the cap does not enforce.
+ * a number the cap does not enforce; and its DELETED filter is only what the host can restore, so a guest's own
+ * withdrawal (Will, 2026-09-23: "I want it gone everywhere, not still visible to the host as well") counts in
+ * neither number.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -86,7 +89,7 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const { getHostStorageSummary, readHostStorageSummary, tallyStorageRows } =
+const { getHostStorageSummary, readHostStorageSummary } =
   await import("@/lib/db/queries/storage");
 const { getAccountDetail } = await import("@/lib/db/queries/accounts");
 
@@ -181,41 +184,13 @@ describe("the admin's account view reads the same aggregate", () => {
   });
 });
 
-describe("the definitions, in code", () => {
-  const live = { deleted_at: null };
-  const gone = { deleted_at: "2026-09-01T00:00:00Z" };
-  const row = (
-    n: number,
-    bytes: number,
-    status = "approved",
-    events: { deleted_at: string | null } | null = live,
-  ) => ({ id: `m-${n}`, file_size_bytes: bytes, status, events });
-
-  it("splits active from Deleted by status and by the event's deletion, every row exactly once", () => {
-    expect(
-      tallyStorageRows({ activeBytes: 0, standbyBytes: 0 }, [
-        row(1, 10),
-        row(2, 20, "removed"),
-        row(3, 40, "approved", gone),
-        row(4, 80, "hidden"),
-        row(5, 160, "pending"),
-      ]),
-    ).toEqual({ activeBytes: 250, standbyBytes: 60 });
-  });
-
-  it("adds onto the running totals", () => {
-    expect(
-      tallyStorageRows({ activeBytes: 1, standbyBytes: 2 }, [row(1, 3)]),
-    ).toEqual({ activeBytes: 4, standbyBytes: 2 });
-  });
-});
-
 /* ────────────────────────────────────────────────────────────────────────────
-   THE AGGREGATE'S ACTIVE BYTES ARE host_active_bytes', READ OFF THE MIGRATIONS. Text-parsed (Vitest has no Postgres)
-   from the NEWEST migration defining each function, so a redefinition of either is read the day it lands, and
-   fail-closed: a body this parser cannot read fails rather than passes.
+   THE AGGREGATE'S ACTIVE BYTES ARE host_active_bytes', AND ITS DELETED BYTES ARE WHAT THE HOST CAN RESTORE, READ OFF
+   THE MIGRATIONS. Text-parsed (Vitest has no Postgres) from the NEWEST migration defining each function, so a
+   redefinition of any is read the day it lands, and fail-closed: a body this parser cannot read fails rather than
+   passes.
    ──────────────────────────────────────────────────────────────────────────── */
-describe("host_storage_summary's active filter is host_active_bytes'", () => {
+describe("host_storage_summary's filters, read off the migrations", () => {
   const MIGRATIONS = join(process.cwd(), "supabase", "migrations");
 
   function newestBody(fn: string): {
@@ -264,10 +239,43 @@ describe("host_storage_summary's active filter is host_active_bytes'", () => {
     };
   }
 
-  /** `a and b and c` → {a, b, c}, each trimmed (the filters here are flat conjunctions). */
+  /** `a and b and c` → {a, b, c}, each trimmed (for a flat conjunction). */
   function conjuncts(text: string): Set<string> {
     return new Set(text.split(/\s+and\s+/).map((part) => part.trim()));
   }
+
+  /**
+   * The TOP-LEVEL `and` conjuncts of a filter, parentheses respected:
+   * `not (a and b) and not (c and d)` → [`not (a and b)`, `not (c and d)`].
+   */
+  function topLevelConjuncts(text: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === "(") depth++;
+      else if (text[i] === ")") depth--;
+      else if (depth === 0 && text.startsWith(" and ", i)) {
+        parts.push(text.slice(start, i).trim());
+        start = i + " and ".length;
+        i = start - 1;
+      }
+    }
+    parts.push(text.slice(start).trim());
+    return parts;
+  }
+
+  /** The aggregate's two SUM filters, active first and standby second. */
+  function summaryFilters(): string[] {
+    return [
+      ...summary.body.matchAll(
+        /sum\(m\.file_size_bytes\) filter \( where (.+?) \)/g,
+      ),
+    ].map(([, text]) => text);
+  }
+
+  /** "The guest removed it themselves", as get_upload_gate reads it (20260923120000) and restore_media refuses it. */
+  const WITHDRAWN = "m.status = 'removed' and m.removed_by_uploader";
 
   const active = newestBody("host_active_bytes");
   const summary = newestBody("host_storage_summary");
@@ -295,11 +303,7 @@ describe("host_storage_summary's active filter is host_active_bytes'", () => {
     const activeRule = conjuncts(where);
     activeRule.delete("e.host_id = p_host_id");
 
-    const filters = [
-      ...summary.body.matchAll(
-        /sum\(m\.file_size_bytes\) filter \( where (.+?) \)/g,
-      ),
-    ].map(([, text]) => text);
+    const filters = summaryFilters();
     // Two SUMs: active first, standby second.
     expect(filters).toHaveLength(2);
     expect(conjuncts(filters[0])).toEqual(activeRule);
@@ -308,19 +312,29 @@ describe("host_storage_summary's active filter is host_active_bytes'", () => {
     );
   });
 
-  it("★ standby is everything else: exactly the negation of the active filter, so every row is one of the two", () => {
-    const filters = [
-      ...summary.body.matchAll(
-        /sum\(m\.file_size_bytes\) filter \( where (not \((.+?)\)) \)/g,
-      ),
-    ];
-    expect(filters).toHaveLength(1);
-    const [, , negated] = filters[0];
-    const activeFilter = summary.body.match(
-      /sum\(m\.file_size_bytes\) filter \( where ((?!not ).+?) \)/,
-    )?.[1];
-    expect(activeFilter).toBeDefined();
-    expect(conjuncts(negated)).toEqual(conjuncts(activeFilter as string));
+  it("★ standby is what the host can restore: the negation of the active filter, less a guest's own withdrawal", () => {
+    const [activeFilter, standbyFilter] = summaryFilters();
+    const standby = topLevelConjuncts(standbyFilter);
+    // Exactly two conditions: not active (a host's removal, a deleted event's media) and not withdrawn.
+    expect(standby).toHaveLength(2);
+    const notActive = standby.find((part) => !part.includes("removed_by_uploader"));
+    const negated = notActive?.match(/^not \((.+)\)$/)?.[1];
+    if (!negated) {
+      throw new Error(`Cannot read standby's "not active" arm in ${summary.file}.`);
+    }
+    expect(conjuncts(negated)).toEqual(conjuncts(activeFilter));
+    // ...and a withdrawal counts in NEITHER number: it fails active (it is removed) and this arm keeps it out
+    // of standby, whatever the event's state.
+    expect(standby).toContain(`not (${WITHDRAWN})`);
+  });
+
+  it("leaves out exactly the row the host's restore refuses on the uploader's behalf", () => {
+    // restore_media's ownership read carries the uploader's marker, so the bytes the figure drops are the
+    // bytes no Restore could ever bring back: the Deleted figure and the Deleted list agree.
+    const restore = newestBody("restore_media");
+    expect(restore.body).toContain("and m.removed_by_uploader = false");
+    // The same words get_upload_gate uses for "the guest removed it themselves".
+    expect(newestBody("get_upload_gate").body).toContain(`not (${WITHDRAWN})`);
   });
 
   it("both stay service-role only: SECURITY DEFINER, an empty search_path, EXECUTE revoked from every client role", () => {

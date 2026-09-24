@@ -14,7 +14,7 @@ load-bearing: without it the daily orphan sweep could wipe the bucket on a DB-lo
 ## Where it lives
 
 - Pillar A (breaker): [`r2/orphan-guard.ts`](../../src/lib/r2/orphan-guard.ts) (`evaluateOrphanSweep`),
-  wired into `sweepOrphans` in [`/api/cron/purge`](../../src/app/api/cron/purge/route.ts).
+  wired into `sweepOrphans` in [`lifecycle/sweeps/orphans.ts`](../../src/lib/lifecycle/sweeps/orphans.ts).
 - Pillar B (media backup): [`workers/backup/`](../../workers/backup) — a Cloudflare Worker + Queue + DLQ.
   The weekly **deletion-aware prune** is the `prune` branch of its `scheduled()` +
   [`prune-strategy.ts`](../../workers/backup/src/prune-strategy.ts), with the app-side breaker

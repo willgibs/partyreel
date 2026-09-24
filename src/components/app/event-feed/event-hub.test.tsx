@@ -129,18 +129,22 @@ describe("the album, and the bin as its filter", () => {
       /bin/.test(branch![1]),
       "the album's count started including something other than the album",
     ).toBe(false);
-    const hub = read(HUB);
+    // The hub passes the album's COUNTED number (the 1,000-row round: a list's
+    // length stops where PostgREST stops reading, at 1,000), and that count is
+    // approved + hidden, the bin's `removed` and Review's `pending` in neither:
+    // media.test.ts pins countEventMedia's answer against a live album, a held
+    // upload, the host's own removal and two withdrawals.
+    const hub = code(HUB);
     expect(
-      /albumCount=\{visibleItems\.length\}/.test(hub),
-      "the hub stopped passing the live album's own length as the count",
+      /albumCount=\{itemCount\}/.test(hub) &&
+        /const \{ album: itemCount, pending: pendingCount \} = counts;/.test(hub) &&
+        /countEventMedia\(event\.id\)/.test(hub),
+      "the hub stopped passing the album's own counted number as the count",
     ).toBe(true);
-    // visibleItems excludes pending (the Review room) and listEventMedia
-    // already excludes removed (the bin), so the count is approved + hidden.
     expect(
-      /const visibleItems = galleryItems\.filter\(\(m\) => m\.status !== "pending"\)/.test(
-        hub,
-      ),
-    ).toBe(true);
+      /albumCount=\{[^}]*\.length\}/.test(hub),
+      "the album's count went back to being a list's length",
+    ).toBe(false);
   });
 
   it("loads the bin only when the filter is chosen, and only once", () => {

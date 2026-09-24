@@ -9,6 +9,7 @@ import { createBrowserClient } from "@supabase/ssr";
 
 import type { Database } from "@/lib/db/types";
 import { env } from "@/lib/env";
+import { withRowCapTripwire } from "@/lib/supabase/row-cap-tripwire";
 
 /**
  * PASSKEYS, BEHIND A FLAG (Will, 2026-09-20, `app-door` r1 `return=tap`, with
@@ -37,7 +38,14 @@ export function createClient() {
     // ★ `createBrowserClient` is a SINGLETON by default, so these options are
     // read once per document, on the first call. The flag is a build-time
     // constant so that is exactly right — but it is why this cannot become a
-    // per-call option later without also passing `isSingleton: false`.
-    PASSKEYS_ENABLED ? { auth: { experimental: { passkey: true } } } : undefined,
+    // per-call option later without also passing `isSingleton: false`. ONE
+    // options object: the tripwire (a read clipped at PostgREST's 1,000 rows
+    // warns in Sentry once, row-cap-tripwire.ts) rides every document, and the
+    // passkey flag joins it only when set. The object carries no `isSingleton`,
+    // so the singleton default holds exactly as it did with no options at all.
+    {
+      global: { fetch: withRowCapTripwire() },
+      ...(PASSKEYS_ENABLED ? { auth: { experimental: { passkey: true } } } : {}),
+    },
   );
 }

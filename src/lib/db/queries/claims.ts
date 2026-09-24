@@ -8,6 +8,7 @@
  */
 import "server-only";
 
+import { readAllPages } from "@/lib/db/read-all";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 /** One event's claimable rows, already grouped (see below). */
@@ -50,13 +51,28 @@ export type ClaimableEventRow = {
  * releasing it would remove nothing. The RPC skips such rows since migration
  * 20260923120000; this drop is the belt, so the card is right even against a
  * database that has not taken that file yet.
+ *
+ * ★ READ WHOLE (the 1,000-row round, 2026-09-23): the RPC pages on its own order,
+ * (last upload desc, guest id desc), and the cursor is the last row's own
+ * `last_upload_at` and `guest_id` (a listed row always carries a live upload, so
+ * its last upload is never null and IS the order's key). Past 1,000 rows the
+ * card used to end silently; the grouping below needs every row of an event to
+ * sum its uploads.
  */
 export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  const { data, error } = await supabase.rpc("list_guest_rows_by_email");
-  if (error) throw error;
+  const { rows } = await readAllPages(
+    "dashboard: claimable guest rows",
+    (after: { at: string; id: string } | null, limit) =>
+      supabase.rpc("list_guest_rows_by_email", {
+        p_after_at: after?.at,
+        p_after_id: after?.id,
+        p_limit: limit,
+      }),
+    (row) => ({ at: lastUploadAt(row), id: row.guest_id }),
+  );
 
   type Group = {
     eventId: string;
@@ -69,7 +85,7 @@ export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
   };
   const byEvent = new Map<string, Group>();
 
-  (data ?? []).forEach((row, index) => {
+  rows.forEach((row, index) => {
     const name = row.display_name?.trim();
     const existing = byEvent.get(row.event_id);
     if (!existing) {
@@ -106,4 +122,19 @@ export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
       uploadCount: g.uploadCount,
       lastUploadAt: g.lastUploadAt,
     }));
+}
+
+/** A full page's last row is the next page's cursor, and the cursor's time is its last upload. */
+function lastUploadAt(row: {
+  guest_id: string;
+  last_upload_at: string | null;
+}): string {
+  // The RPC lists only rows with a live upload, so this is never null; a null here would restart
+  // the read from the top, so it fails loudly instead.
+  if (!row.last_upload_at) {
+    throw new Error(
+      `dashboard: claimable guest rows: guest row ${row.guest_id} has no last upload to page on`,
+    );
+  }
+  return row.last_upload_at;
 }

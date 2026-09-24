@@ -3,9 +3,17 @@
  * forensic_audit_log, and media.legal_hold_* are deny-all / service-role territory, so every read
  * goes through the admin client (the portal is gated by requireAdmin + AAL2 upstream). Powers the
  * capture-coverage health signal, the holds list, and the audit trail.
+ *
+ * ★ EVERY HOLD, EVERY FAILURE LOUD (the 1,000-row round, 2026-09-23). The holds list pages on its
+ * own order and its lookups ride `inChunks`, where one read stopped at 1,000 holds and two `.in()`
+ * lists carried every held id in a URL; and a failed read THROWS, where the health counts read a
+ * failure as a confident zero and the lookups dropped their errors, so a hold could render with no
+ * event name or no preservation state and nothing said why.
  */
 import "server-only";
 
+import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ForensicsHealth = {
@@ -21,36 +29,46 @@ export async function getForensicsHealth(): Promise<ForensicsHealth> {
   const admin = createAdminClient();
   const since = new Date(Date.now() - 86_400_000).toISOString();
 
-  const [uploads, captured, holds, auditErrors] = await Promise.all([
-    admin
-      .from("media")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since),
-    admin
-      .from("upload_forensics")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since)
-      // Only rows the UPLOAD SEAM wrote count as coverage; preserve-created rows for
-      // pre-capture uploads carry no request facts (user_agent is the reliable marker —
-      // every real browser sends one).
-      .not("user_agent", "is", null),
-    admin
-      .from("media")
-      .select("id", { count: "exact", head: true })
-      .not("legal_hold_at", "is", null),
-    admin
-      .from("forensic_audit_log")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", since)
-      .eq("outcome", "error"),
-  ]);
+  // A failed count THROWS (mustCount): a health signal that reads an unreachable table as zero
+  // reports "healthy" exactly when it cannot know.
+  const [uploads24h, captured24h, activeHolds, auditErrors24h] =
+    await Promise.all([
+      mustCount(
+        admin
+          .from("media")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", since),
+        "admin forensics: uploads (24h)",
+      ),
+      mustCount(
+        admin
+          .from("upload_forensics")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", since)
+          // Only rows the UPLOAD SEAM wrote count as coverage; preserve-created rows for
+          // pre-capture uploads carry no request facts (user_agent is the reliable marker —
+          // every real browser sends one).
+          .not("user_agent", "is", null),
+        "admin forensics: captured (24h)",
+      ),
+      mustCount(
+        admin
+          .from("media")
+          .select("id", { count: "exact", head: true })
+          .not("legal_hold_at", "is", null),
+        "admin forensics: active holds",
+      ),
+      mustCount(
+        admin
+          .from("forensic_audit_log")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", since)
+          .eq("outcome", "error"),
+        "admin forensics: failed actions (24h)",
+      ),
+    ]);
 
-  return {
-    uploads24h: uploads.count ?? 0,
-    captured24h: captured.count ?? 0,
-    activeHolds: holds.count ?? 0,
-    auditErrors24h: auditErrors.count ?? 0,
-  };
+  return { uploads24h, captured24h, activeHolds, auditErrors24h };
 }
 
 export type HeldMediaRow = {
@@ -63,59 +81,83 @@ export type HeldMediaRow = {
   preservedAt: string | null;
 };
 
-/** Every media row under an active legal hold, with its preservation state. */
+/**
+ * Every media row under an active legal hold, with its preservation state: newest hold first, read
+ * whole on (legal_hold_at desc, id desc), then each hold's preservation state and event name looked
+ * up at most 150 ids a request.
+ */
 export async function listHeldMedia(): Promise<HeldMediaRow[]> {
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("media")
-    .select("id, event_id, status, legal_hold_at, legal_hold_reason")
-    .not("legal_hold_at", "is", null)
-    .order("legal_hold_at", { ascending: false });
-  if (error) throw error;
-  const rows = data ?? [];
+  const { rows } = await readAllPages(
+    "admin forensics: held media",
+    (after: { at: string; id: string } | null, limit) => {
+      let q = admin
+        .from("media")
+        .select("id, event_id, status, legal_hold_at, legal_hold_reason")
+        .not("legal_hold_at", "is", null)
+        .order("legal_hold_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `legal_hold_at.lt.${after.at},and(legal_hold_at.eq.${after.at},id.lt.${after.id})`,
+        );
+      }
+      return q;
+    },
+    (row) => ({ at: heldAt(row), id: row.id }),
+  );
   if (rows.length === 0) return [];
 
-  const mediaIds = rows.map((r: { id: string }) => r.id);
-  const eventIds = [
-    ...new Set(rows.map((r: { event_id: string }) => r.event_id)),
-  ];
-
-  const [{ data: forensics }, { data: events }] = await Promise.all([
-    admin
-      .from("upload_forensics")
-      .select("media_id, preserved_at")
-      .in("media_id", mediaIds),
-    admin.from("events").select("id, name").in("id", eventIds),
+  const [forensics, events] = await Promise.all([
+    inChunks(
+      "admin forensics: preservation state",
+      rows.map((r) => r.id),
+      async (chunk) => {
+        // row-cap: upload_forensics.media_id is unique (upload_forensics_media_idx), so a chunk of media ids reads at most one row an id
+        return (
+          (await mustQuery(
+            admin
+              .from("upload_forensics")
+              .select("media_id, preserved_at")
+              .in("media_id", chunk),
+            "admin forensics: preservation state",
+          )) ?? []
+        );
+      },
+    ),
+    inChunks(
+      "admin forensics: held events",
+      rows.map((r) => r.event_id),
+      async (chunk) =>
+        (await mustQuery(
+          admin.from("events").select("id, name").in("id", chunk),
+          "admin forensics: held events",
+        )) ?? [],
+    ),
   ]);
   const preservedBy = new Map<string, string | null>(
-    (forensics ?? []).map(
-      (f: { media_id: string; preserved_at: string | null }) => [
-        f.media_id,
-        f.preserved_at,
-      ],
-    ),
+    forensics.map((f) => [f.media_id, f.preserved_at]),
   );
-  const names = new Map<string, string>(
-    (events ?? []).map((e: { id: string; name: string }) => [e.id, e.name]),
-  );
+  const names = new Map<string, string>(events.map((e) => [e.id, e.name]));
 
-  return rows.map(
-    (r: {
-      id: string;
-      event_id: string;
-      status: string;
-      legal_hold_at: string;
-      legal_hold_reason: string | null;
-    }) => ({
-      id: r.id,
-      eventId: r.event_id,
-      eventName: names.get(r.event_id) ?? null,
-      status: r.status,
-      heldAt: r.legal_hold_at,
-      holdReason: r.legal_hold_reason,
-      preservedAt: preservedBy.get(r.id) ?? null,
-    }),
-  );
+  return rows.map((r) => ({
+    id: r.id,
+    eventId: r.event_id,
+    eventName: names.get(r.event_id) ?? null,
+    status: r.status,
+    heldAt: heldAt(r),
+    holdReason: r.legal_hold_reason,
+    preservedAt: preservedBy.get(r.id) ?? null,
+  }));
+}
+
+/** A held row's hold stamp: the list's filter guarantees one, and a cursor without it could not advance. */
+function heldAt(row: { id: string; legal_hold_at: string | null }): string {
+  if (!row.legal_hold_at) {
+    throw new Error(`admin forensics: held media ${row.id} has no legal_hold_at`);
+  }
+  return row.legal_hold_at;
 }
 
 export type ForensicAuditRow = {

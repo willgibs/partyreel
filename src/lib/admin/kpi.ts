@@ -1,14 +1,20 @@
 import type { UploadCounts } from "@/lib/db/queries/metrics";
-import type { ProfileMetricRow } from "@/lib/metrics/aggregate";
 
 /**
  * THE FOUR FIGURES THE PORTAL OPENS ON (`home=kpi`, Will 2026-09-20: "the
  * numbers first, the queue beneath").
  *
- * Pure, so the arithmetic is testable without a database: the page fetches the
- * rows, this reduces them. A FORTNIGHT is the window because the home's
- * sparkline draws fourteen days, and a figure whose delta covers a different
- * span from the line under it is a figure nobody can read.
+ * Pure, so the arithmetic is testable without a database: the database counts,
+ * this phrases. A FORTNIGHT is the window because the home's sparkline draws
+ * fourteen days, and a figure whose delta covers a different span from the line
+ * under it is a figure nobody can read.
+ *
+ * ★ THE COUNTS ARRIVE COUNTED (the 1,000-row round, 2026-09-23). This used to
+ * walk every profile row and count them here, from a read PostgREST cut at
+ * 1,000 rows, so every figure stopped growing at the 1,001st account.
+ * `admin_metrics_snapshot()` counts them in SQL now, the operator left out
+ * (the operator is not a customer, so the portal's own account never shows up
+ * as growth), and `getPlatformDbMetrics` hands the fortnight's figures here.
  *
  * ★ THREE OF THE FOUR DELTAS ARE REAL AND THE FOURTH SAYS SO. Accounts, active
  * hosts and uploads all have a timestamp per row, so "this fortnight against
@@ -20,8 +26,28 @@ import type { ProfileMetricRow } from "@/lib/metrics/aggregate";
  * ROADMAP carries the line that would make a real delta possible.
  */
 
-const DAY_MS = 86_400_000;
 export const FORTNIGHT_DAYS = 14;
+
+/**
+ * The accounts behind the home's figures, counted over two fortnights. `last_active_at` is one
+ * timestamp, so "active in the fortnight before" can only mean "last seen in it": somebody who came
+ * back yesterday counts in this fortnight and not in that one, which is the honest reading of a
+ * column that keeps no history.
+ */
+export type FortnightAccounts = {
+  /** Every account but the operator's. */
+  total: number;
+  /** Created in the last fortnight. */
+  newAccounts: number;
+  /** Created in the fortnight before it. */
+  newAccountsBefore: number;
+  /** Last seen in the last fortnight. */
+  active: number;
+  /** Last seen in the fortnight before it. */
+  activeBefore: number;
+  /** With a live Stripe subscription. */
+  paid: number;
+};
 
 export type AdminKpi = {
   id: "accounts" | "active" | "uploads" | "paid";
@@ -41,57 +67,26 @@ function plural(n: number, one: string, many = `${one}s`): string {
 }
 
 export function buildAdminKpis(
-  profiles: ProfileMetricRow[],
+  accounts: FortnightAccounts,
   uploads: UploadCounts,
-  now: Date = new Date(),
 ): AdminKpi[] {
-  const nowMs = now.getTime();
-  const oneAgo = nowMs - FORTNIGHT_DAYS * DAY_MS;
-  const twoAgo = nowMs - 2 * FORTNIGHT_DAYS * DAY_MS;
-
-  let accounts = 0;
-  let accountsNew = 0;
-  let accountsNewBefore = 0;
-  let activeNow = 0;
-  let activeBefore = 0;
-  let paid = 0;
-
-  for (const row of profiles) {
-    // The operator is not a customer, the same exclusion `summarizeProfiles`
-    // makes, so the portal's own account never shows up as growth.
-    if (row.is_admin) continue;
-    accounts += 1;
-
-    const created = new Date(row.created_at).getTime();
-    if (created >= oneAgo) accountsNew += 1;
-    else if (created >= twoAgo) accountsNewBefore += 1;
-
-    // `last_active_at` is one timestamp, so "active in the fortnight before" can
-    // only mean "last seen in it": somebody who came back yesterday counts in
-    // this fortnight and not in that one, which is the honest reading of a
-    // column that keeps no history.
-    const seen = new Date(row.last_active_at).getTime();
-    if (seen >= oneAgo) activeNow += 1;
-    else if (seen >= twoAgo) activeBefore += 1;
-
-    if (row.stripe_subscription_id) paid += 1;
-  }
-
-  const paidShare = accounts === 0 ? 0 : Math.round((paid / accounts) * 100);
+  const paidShare =
+    accounts.total === 0 ? 0 : Math.round((accounts.paid / accounts.total) * 100);
 
   return [
     {
       id: "accounts",
       label: "Accounts",
-      value: accounts,
-      delta: accountsNew - accountsNewBefore,
-      sub: `${plural(accountsNew, "new")} this fortnight`,
+      value: accounts.total,
+      delta: accounts.newAccounts - accounts.newAccountsBefore,
+      // "new" is its own plural: "2 new this fortnight", never "2 news".
+      sub: `${plural(accounts.newAccounts, "new", "new")} this fortnight`,
     },
     {
       id: "active",
       label: "Active hosts",
-      value: activeNow,
-      delta: activeNow - activeBefore,
+      value: accounts.active,
+      delta: accounts.active - accounts.activeBefore,
       sub: "Last seen in the past fortnight",
     },
     {
@@ -104,11 +99,11 @@ export function buildAdminKpis(
     {
       id: "paid",
       label: "Paid subscribers",
-      value: paid,
+      value: accounts.paid,
       // No history is stored, so no arrow is drawn (see the note above).
       delta: null,
       sub:
-        accounts === 0
+        accounts.total === 0
           ? "No accounts yet"
           : `${paidShare}% of accounts, no history to compare`,
     },

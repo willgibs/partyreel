@@ -25,3 +25,24 @@ export function collectStoredSessionTokens(
   }
   return [...tokens];
 }
+
+/**
+ * Every stored KEY under any of `prefixes`, collected before anything is removed (the upload-owner
+ * lane, 2026-09-23: the sign-out puts down every guest ticket on the device). Collected first on
+ * purpose: removing while walking `storage.key(i)` shifts the indices under the loop and skips every
+ * other key. Pure and Node-testable like the enumeration above; the callers pass their OWN prefix
+ * constants, so no family's literal is ever written twice.
+ */
+export function storedKeysWithPrefixes(
+  prefixes: readonly string[],
+  storage: Pick<Storage, "length" | "key"> = window.localStorage,
+): string[] {
+  const keys: string[] = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (key && prefixes.some((prefix) => key.startsWith(prefix))) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}

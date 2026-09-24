@@ -47,6 +47,12 @@
  *      executable SQL after the drop names the column; get_event_by_qr_token returns the two door
  *      switches and no legacy key; create_guest refuses a nameless mint by an unconfirmed caller in
  *      its own words, which the app maps ahead of its verification fallback.
+ *  12. The row cap (Will, 2026-09-23; migrations 20260924010000/020000/030000): every SQL shape the
+ *      1,000-row fixes read, pinned as the contract the TypeScript lanes compile against. Each new or
+ *      replaced function's signature (PostgREST resolves an RPC by its argument names), security
+ *      mode, empty search_path and grants; the album's order, cursor and limit; the like counts'
+ *      liked-only join; the claim card's keyset; the sweeps' predicates. The paging POLICY across
+ *      every function is row-cap-sql.test.ts.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -741,12 +747,17 @@ describe("the guest identity round — the four claim and attach RPCs", () => {
     // even for their own address. A parameter here would turn the product into "is this address a
     // Partyreel guest?".
     const { body, file } = latestDefinition("list_guest_rows_by_email");
-    // The signature is the pin, in either form: guest by upload (20260923120000) replaced the body
-    // with `create or replace` (same signature and RETURNS TABLE, so the ACL is kept), where the
-    // original needed a plain create. What must never appear is a parameter between the parens.
-    expect(body).toMatch(
-      /^create (or replace )?function public\.list_guest_rows_by_email\(\)/,
+    // The signature is the pin. The row cap (20260924020000) gave it a keyset cursor and a page size,
+    // all three defaulting to null so the no-argument call still reaches it; what must never appear is
+    // a TEXT parameter, which is the only shape an address could take.
+    expect(collapse(body)).toMatch(
+      /^create (or replace )?function public\.list_guest_rows_by_email\( p_after_at timestamptz default null, p_after_id uuid default null, p_limit integer default null \)/,
     );
+    const params = collapse(body).slice(
+      collapse(body).indexOf("(") + 1,
+      collapse(body).indexOf(")"),
+    );
+    expect(params).not.toMatch(/\btext\b/);
     const collapsed = collapse(body);
     expect(collapsed).toContain("v_uid uuid := (select auth.uid());");
     expect(collapsed).toContain(
@@ -756,10 +767,10 @@ describe("the guest identity round — the four claim and attach RPCs", () => {
     expect(collapsed).not.toContain("qr_token");
     expect(collapsed).not.toContain("custom_slug");
     expect(file).toContain(
-      "revoke all on function public.list_guest_rows_by_email() from public, anon;",
+      "revoke all on function public.list_guest_rows_by_email(timestamptz, uuid, integer) from public, anon, authenticated;",
     );
     expect(file).toContain(
-      "grant execute on function public.list_guest_rows_by_email() to authenticated;",
+      "grant execute on function public.list_guest_rows_by_email(timestamptz, uuid, integer) to authenticated;",
     );
   });
 
@@ -812,6 +823,7 @@ describe("the guest identity round — the four claim and attach RPCs", () => {
     const sql = collapse(allMigrations());
     for (const signature of [
       "public.list_guest_rows_by_email()",
+      "public.list_guest_rows_by_email(timestamptz, uuid, integer)",
       "public.claim_guest_rows_by_email(uuid[])",
       "public.disown_guest_rows_by_email(uuid[])",
       "public.set_guest_pending_email(text, text)",
@@ -1142,6 +1154,282 @@ describe("guest by upload: a person is a guest of an event only through an uploa
       /create table (if not exists )?public\.profile_hidden_events\b/,
     ]) {
       expect(after).not.toMatch(revival);
+    }
+  });
+});
+
+describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
+  // PostgREST cuts every table read and every set-returning RPC at max_rows (1,000) with no error and
+  // no flag. Each function below answers with one value (a jsonb or a uuid[]) or a keyset page whose
+  // p_limit is clamped to 1,000 in SQL, and a NULL p_limit reads everything so the deployed builds'
+  // old calls return exactly what they did. Each pin reads CODE (comments stripped), and each grant
+  // reads the defining file's executable SQL, so a quoted example can never stand in for either.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+  const PAGE =
+    "limit case when p_limit is null then null else least(p_limit, 1000) end;";
+
+  describe("get_event_media_by_qr_token: the guest album, paged on its display order", () => {
+    it("keeps p_qr_token and adds the cursor and the page size, each defaulting to null", () => {
+      expect(code("get_event_media_by_qr_token")).toContain(
+        "create function public.get_event_media_by_qr_token( p_qr_token text, p_before_created_at timestamptz default null, p_before_id uuid default null, p_limit integer default null ) returns table( id uuid, type public.media_type, original_key text, preview_key text, width integer, height integer, duration_seconds double precision, created_at timestamptz )",
+      );
+    });
+
+    it("stays the SECURITY DEFINER anon capability read, search_path pinned", () => {
+      expect(code("get_event_media_by_qr_token")).toContain(
+        "language sql stable security definer set search_path to ''",
+      );
+    });
+
+    it("keeps its four gates, the event resolved first so the index walks in display order", () => {
+      expect(code("get_event_media_by_qr_token")).toContain(
+        "from public.media m where m.event_id = ( select e.id from public.events e where e.qr_token = p_qr_token and e.visibility = 'open' and e.deleted_at is null ) and m.status = 'approved'",
+      );
+    });
+
+    it("orders created_at then id, pages strictly after (created_at, id), and reads everything on a null p_limit", () => {
+      expect(code("get_event_media_by_qr_token")).toContain(
+        `and (p_before_created_at is null or (m.created_at, m.id) < (p_before_created_at, p_before_id)) order by m.created_at desc, m.id desc ${PAGE}`,
+      );
+    });
+
+    it("replaces the old signature in the same file and re-grants anon (one of the five 0028 reads)", () => {
+      const file = grants("get_event_media_by_qr_token");
+      const drop = file.indexOf(
+        "drop function public.get_event_media_by_qr_token(text);",
+      );
+      expect(drop).toBeGreaterThan(-1);
+      expect(drop).toBeLessThan(
+        file.indexOf("create function public.get_event_media_by_qr_token("),
+      );
+      expect(file).toContain(
+        "revoke all on function public.get_event_media_by_qr_token(text, timestamptz, uuid, integer) from public;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_media_by_qr_token(text, timestamptz, uuid, integer) to anon, authenticated;",
+      );
+    });
+
+    it("ships the index its pages walk", () => {
+      expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).toContain(
+        "create index media_event_created_id_idx on public.media (event_id, created_at desc, id desc);",
+      );
+    });
+  });
+
+  describe("get_event_like_counts: liked media only, for the host alone", () => {
+    it("keeps p_event_id and adds the cursor and the page size", () => {
+      expect(code("get_event_like_counts")).toContain(
+        "create function public.get_event_like_counts( p_event_id uuid, p_after uuid default null, p_limit integer default null ) returns table (media_id uuid, like_count integer) language sql stable security definer set search_path = ''",
+      );
+    });
+
+    it("★ joins FROM the likes, so an unliked item never takes a row", () => {
+      const body = code("get_event_like_counts");
+      expect(body).toContain(
+        "select l.media_id, count(*)::integer from public.media_likes l join public.media m on m.id = l.media_id where m.event_id = p_event_id",
+      );
+      expect(body).not.toContain("left join");
+    });
+
+    it("keeps the host gate: anyone else reads zero rows, so a count never reaches a guest", () => {
+      expect(code("get_event_like_counts")).toContain(
+        "and exists ( select 1 from public.events e where e.id = p_event_id and e.host_id = (select auth.uid()) and e.deleted_at is null )",
+      );
+    });
+
+    it("pages on media_id", () => {
+      expect(code("get_event_like_counts")).toContain(
+        `and (p_after is null or l.media_id > p_after) group by l.media_id order by l.media_id ${PAGE}`,
+      );
+    });
+
+    it("replaces the old signature and stays authenticated-only", () => {
+      const file = grants("get_event_like_counts");
+      expect(file).toContain(
+        "drop function public.get_event_like_counts(uuid);",
+      );
+      expect(file).toContain(
+        "revoke all on function public.get_event_like_counts(uuid, uuid, integer) from public, anon, authenticated;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_like_counts(uuid, uuid, integer) to authenticated;",
+      );
+    });
+  });
+
+  describe("my_liked_media_ids: the caller's own hearts, the ids in the POST body", () => {
+    it("returns ONE uuid[] as SECURITY INVOKER over the owner-only RLS, filtered to the caller", () => {
+      expect(code("my_liked_media_ids")).toContain(
+        "create function public.my_liked_media_ids(p_media_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(l.media_id order by l.media_id), '{}'::uuid[]) from public.media_likes l where l.user_id = (select auth.uid()) and l.media_id = any(p_media_ids); $$;",
+      );
+    });
+
+    it("is authenticated-only", () => {
+      const file = grants("my_liked_media_ids");
+      expect(file).toContain(
+        "revoke all on function public.my_liked_media_ids(uuid[]) from public, anon, authenticated;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.my_liked_media_ids(uuid[]) to authenticated;",
+      );
+    });
+  });
+
+  describe("event_card_stats and event_covers: one jsonb for any number of cards", () => {
+    it("event_card_stats is SECURITY INVOKER, answers every input id, and counts outside the bin", () => {
+      const body = code("event_card_stats");
+      expect(body).toContain(
+        "create function public.event_card_stats(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(body).toContain(
+        "from ( select distinct u.event_id from unnest(p_event_ids) as u(event_id) where u.event_id is not null ) ids left join",
+      );
+      expect(body).toContain(
+        "count(*) filter (where m.status = 'approved') as approved, count(*) filter (where m.status = 'pending') as pending from public.media m where m.event_id = any(p_event_ids) and m.removed_at is null",
+      );
+    });
+
+    it("event_covers is SECURITY INVOKER: the newest approved photo outside the bin, id as the tiebreak", () => {
+      const body = code("event_covers");
+      expect(body).toContain(
+        "create function public.event_covers(p_event_ids uuid[]) returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(body).toContain(
+        "select distinct on (m.event_id) m.event_id, m.preview_key, m.original_key from public.media m where m.event_id = any(p_event_ids) and m.status = 'approved' and m.type = 'photo' and m.removed_at is null order by m.event_id, m.created_at desc, m.id desc",
+      );
+    });
+
+    it("the cards read on the user's client; the covers on the service role too; neither for anon", () => {
+      expect(grants("event_card_stats")).toContain(
+        "revoke all on function public.event_card_stats(uuid[]) from public, anon, authenticated; grant execute on function public.event_card_stats(uuid[]) to authenticated;",
+      );
+      expect(grants("event_covers")).toContain(
+        "revoke all on function public.event_covers(uuid[]) from public, anon, authenticated; grant execute on function public.event_covers(uuid[]) to authenticated, service_role;",
+      );
+    });
+
+    it("event_link_totals is SECURITY INVOKER over the host's own link_stats, authenticated-only", () => {
+      expect(code("event_link_totals")).toContain(
+        "create function public.event_link_totals(p_event_id uuid) returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(grants("event_link_totals")).toContain(
+        "revoke all on function public.event_link_totals(uuid) from public, anon, authenticated; grant execute on function public.event_link_totals(uuid) to authenticated;",
+      );
+    });
+  });
+
+  describe("list_guest_rows_by_email: the claim card, paged on its own order", () => {
+    it("stays SECURITY DEFINER with an empty search_path", () => {
+      expect(code("list_guest_rows_by_email")).toContain(
+        "language plpgsql stable security definer set search_path = ''",
+      );
+    });
+
+    it("pages strictly after (last upload, guest id), ordered with the id as the tiebreak", () => {
+      const body = code("list_guest_rows_by_email");
+      expect(body).toContain(
+        "and (p_after_at is null or (coalesce(m.last_at, g.created_at), g.id) < (p_after_at, p_after_id))",
+      );
+      expect(body).toContain(
+        `order by coalesce(m.last_at, g.created_at) desc, g.id desc ${PAGE}`,
+      );
+    });
+
+    it("replaces the no-argument signature in the same file (PostgREST forbids overloads)", () => {
+      const file = grants("list_guest_rows_by_email");
+      const drop = file.indexOf(
+        "drop function public.list_guest_rows_by_email();",
+      );
+      expect(drop).toBeGreaterThan(-1);
+      expect(drop).toBeLessThan(
+        file.indexOf("create function public.list_guest_rows_by_email("),
+      );
+    });
+  });
+
+  describe("admin_metrics_snapshot: every metric that came from a whole-table read", () => {
+    it("is SECURITY INVOKER, takes the pages' two windows with today's defaults, and refuses a bad one", () => {
+      const body = code("admin_metrics_snapshot");
+      expect(body).toContain(
+        "create function public.admin_metrics_snapshot( p_window_days integer default 30, p_fortnight_days integer default 14 ) returns jsonb language plpgsql stable security invoker set search_path = ''",
+      );
+      expect(body).toContain("using errcode = 'invalid_parameter_value';");
+    });
+
+    it("never counts the operator as a customer, and reads paid the way the JavaScript did", () => {
+      const body = code("admin_metrics_snapshot");
+      expect(body).toContain("from public.profiles p where not p.is_admin;");
+      expect(body).toContain(
+        "'paid', count(*) filter (where coalesce(p.stripe_subscription_id, '') <> '')",
+      );
+      // 24-hour days, as `days * 86_400_000` ms: a calendar-day interval would move across DST.
+      expect(body).toContain(
+        "v_window_start := v_now - make_interval(hours => 24 * p_window_days);",
+      );
+    });
+
+    it("is service_role only: anon and authenticated hold no EXECUTE", () => {
+      expect(grants("admin_metrics_snapshot")).toContain(
+        "revoke all on function public.admin_metrics_snapshot(integer, integer) from public, anon, authenticated; grant execute on function public.admin_metrics_snapshot(integer, integer) to service_role;",
+      );
+    });
+  });
+
+  describe("the sweeps: the legal-hold partition and the standby budget's hosts", () => {
+    it("held_event_ids answers ONE uuid[] of the events that hold anything", () => {
+      expect(code("held_event_ids")).toContain(
+        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and m.legal_hold_at is not null ) h; $$;",
+      );
+    });
+
+    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no hold", () => {
+      expect(code("standby_hosts")).toContain(
+        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader) or (m.status <> 'removed' and e.deleted_at is not null) )",
+      );
+    });
+
+    it("standby_hosts pages on host id and lists only hosts with bytes", () => {
+      const body = code("standby_hosts");
+      expect(body).toContain(
+        "create function public.standby_hosts(p_after uuid default null, p_limit integer default null) returns table (host_id uuid, standby_bytes bigint) language sql stable security invoker set search_path = ''",
+      );
+      expect(body).toContain(
+        `and (p_after is null or e.host_id > p_after) group by e.host_id having sum(m.file_size_bytes) > 0 order by e.host_id ${PAGE}`,
+      );
+    });
+
+    it("both are service_role only", () => {
+      expect(grants("held_event_ids")).toContain(
+        "revoke all on function public.held_event_ids(uuid[]) from public, anon, authenticated; grant execute on function public.held_event_ids(uuid[]) to service_role;",
+      );
+      expect(grants("standby_hosts")).toContain(
+        "revoke all on function public.standby_hosts(uuid, integer) from public, anon, authenticated; grant execute on function public.standby_hosts(uuid, integer) to service_role;",
+      );
+    });
+  });
+
+  it("no function of the round is executable by anon but the album", () => {
+    const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+    for (const signature of [
+      "public.get_event_like_counts(uuid, uuid, integer)",
+      "public.my_liked_media_ids(uuid[])",
+      "public.event_card_stats(uuid[])",
+      "public.event_covers(uuid[])",
+      "public.event_link_totals(uuid)",
+      "public.list_guest_rows_by_email(timestamptz, uuid, integer)",
+      "public.admin_metrics_snapshot(integer, integer)",
+      "public.held_event_ids(uuid[])",
+      "public.standby_hosts(uuid, integer)",
+    ]) {
+      expect(sql).not.toMatch(
+        new RegExp(
+          `grant execute on function ${signature.replace(/[()[\]]/g, "\\$&")} to [^;]*\\banon\\b`,
+        ),
+      );
     }
   });
 });

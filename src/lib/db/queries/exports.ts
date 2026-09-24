@@ -36,6 +36,7 @@ export async function listRecentExports(limit = 50): Promise<ExportLogRow[]> {
   ];
   const names = new Map<string, string>();
   if (ids.length) {
+    // row-cap: the events named on one page of the log: at most `limit` ids (50 from its one caller)
     const evs = await mustQuery(
       admin.from("events").select("id, name").in("id", ids),
       "admin/exports: event names",

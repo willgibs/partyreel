@@ -30,7 +30,10 @@
  * ★ A SESSION CAN ONLY EVER SET ITS OWN. The RPC looks the row up BY the posted session token, so a
  *   mismatched `qr_token` cannot reach another event's guest; the token scopes the limiter and the
  *   visibility gate, nothing more. A VERIFIED guest is refused outright (403): their address is
- *   their account's, and a row carrying two could disagree with itself.
+ *   their account's, and a row carrying two could disagree with itself. And an account's row takes
+ *   an address only from that signed-in account (the upload-owner lane, 2026-09-23;
+ *   lib/guest/session-owner.ts): 403 `session_other_account` for anyone else holding its ticket,
+ *   which the add-email dialog reads by name and answers by putting the ticket down.
  *
  * ★ THE LIMITER (`attach_email`, abuse-rate-limit.ts) carries the rename's numbers for the rename's
  *   reasoning — venue-shaped, breadth doing the real work. Fails OPEN like every other guest route:
@@ -44,6 +47,7 @@ import {
   applyGuestCookies,
   guestSessionCookieIfChanged,
 } from "@/lib/guest/session-cookie";
+import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -138,6 +142,16 @@ export async function POST(request: Request) {
       );
     }
     email = checked.email;
+  }
+
+  // Whose ticket is this (see the head comment): after the parse, so a typo is still answered under
+  // the field, and before the write, so a row that is not this caller's is never touched.
+  const owner = await checkSessionOwner(session_token);
+  if (!owner.ok) {
+    return NextResponse.json(
+      { ok: false, code: owner.code, message: owner.message },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 
   const result = await setGuestPendingEmail({

@@ -17,7 +17,9 @@ import {
   checkGuestEmail,
   type JoinRefusal,
 } from "@/lib/guest/join";
+import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { setStoredEmailAttached } from "@/lib/guest/use-stored-name";
+import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
@@ -88,6 +90,18 @@ export function AddEmailDialog({
         email: address,
       });
       if (!put.ok) {
+        /* ★ EXCEPT A TICKET THAT WAS NOT THIS VIEWER'S (the upload-owner lane,
+           2026-09-23). The name in this menu belongs to a row an account owns,
+           kept by this device past that account's sign-out: nothing typed here
+           could fix that, so a sentence under the field would be a dead end. The
+           ticket goes down instead (its name with it, so this menu closes), and
+           the door asks the person actually holding the phone for their own. */
+        if (put.refusal.kind === SESSION_OTHER_ACCOUNT) {
+          await dropGuestTicket(qrToken);
+          onOpenChange(false);
+          setEmail("");
+          return;
+        }
         // Every refusal lands under the field, including a dead session: this
         // is one small optional act and a toast for it would outlive the
         // surface it is about.

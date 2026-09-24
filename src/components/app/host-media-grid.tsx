@@ -321,7 +321,9 @@ export function HostMediaGrid({
         setExiting(new Set());
         const res = await removeMediaBulkAction(eventId, ids);
         if (!res.ok) {
-          toast.error("Couldn't remove those items. Please try again.");
+          toast.error(
+            res.message || "Couldn't remove those items. Please try again.",
+          );
         }
         resolve();
       });

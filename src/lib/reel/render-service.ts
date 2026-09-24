@@ -46,6 +46,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 type Admin = SupabaseClient<Database>;
 
 // Bound the render cost: a curated highlight reel is small; this is a runaway guard, not a product cap.
+// The tier length (30 s free, 60 s paid) keeps every rendered reel far below it (`buildReelProps`'
+// `capToLength` keeps only the clips that finish inside the length), so the slice never changes what
+// plays: it bounds the timeline READ to one short page (`resolveReelRenderContext`).
 const MAX_RENDER_CLIPS = 150;
 
 type ReelRow = Database["public"]["Tables"]["highlight_reels"]["Row"];
@@ -109,7 +112,7 @@ async function reelDownloadUrl(
 /**
  * The SERVER-side render identity for an event's reel, resolved for every client-encode phase
  * (begin/mint/finalize): the event + host tier (→ watermark + length clamp), the stored config, the
- * ordered approved media, and the resulting render hash (the cache key). Resolved fresh from the DB —
+ * reel's approved members in order, and the resulting render hash (the cache key). Resolved fresh from the DB —
  * the client is never trusted for style/length/watermark/membership. Returns null when the event is
  * gone (deleted or never existed).
  */
@@ -127,18 +130,8 @@ export type ReelRenderContext = {
   /** The tier-clamped effective length (always a positive number; feeds the hash + size budget). */
   lengthSeconds: number;
   coverMediaId: string | null;
+  /** The timeline: the reel's approved members in add-order, at most MAX_RENDER_CLIPS of them. */
   orderedApprovedIds: string[];
-  approved: Map<
-    string,
-    {
-      id: string;
-      type: Database["public"]["Tables"]["media"]["Row"]["type"];
-      original_key: string;
-      status: string;
-      width: number | null;
-      height: number | null;
-    }
-  >;
   row: ReelRow | null;
   hash: string;
 };
@@ -172,26 +165,36 @@ export async function resolveReelRenderContext(
   const tier = toBillingTier(prof?.tier ?? "free");
   const watermark = tier === "free";
 
-  // The curated reel: ordered ids + the approved media for the event.
-  const [{ data: reelRows }, { data: mediaRows }, { data: reelRow }] =
-    await Promise.all([
+  // The TIMELINE, straight from the curation: the reel's members whose media is APPROVED, in
+  // add-order, the first MAX_RENDER_CLIPS of them. The `!inner` embed filters to approved BEFORE the
+  // limit, so a hidden or removed member never takes one of the 150 slots (slicing first would change
+  // which clips play). One bounded read: the members arrive with their media embedded, so the event's
+  // album is never read to learn which are approved. `media_id` breaks a position tie the way
+  // `listReelItems` does, so the hash's order is the Studio's order, and one order on every phase.
+  // Both reads THROW on an error (`mustQuery`): a swallowed one would render an empty reel, or hash
+  // the default config as the host's.
+  const [reelRows, reelRow] = await Promise.all([
+    mustQuery(
       admin
         .from("reel_items")
-        .select("media_id, position, added_at")
+        .select("media_id, media!reel_items_media_id_fkey!inner(status)")
         .eq("event_id", eventId)
+        .eq("media.status", "approved")
         .order("position", { ascending: true })
-        .order("added_at", { ascending: true }),
-      admin
-        .from("media")
-        .select("id, type, original_key, status, width, height")
-        .eq("event_id", eventId)
-        .eq("status", "approved"),
+        .order("added_at", { ascending: true })
+        .order("media_id", { ascending: true })
+        .limit(MAX_RENDER_CLIPS),
+      "reel render: timeline",
+    ),
+    mustQuery(
       admin
         .from("highlight_reels")
         .select("*")
         .eq("event_id", eventId)
         .maybeSingle(),
-    ]);
+      "reel render: config",
+    ),
+  ]);
 
   const row = (reelRow ?? null) as ReelRow | null;
   // The style id (mood or treatment). Fall back to the legacy `theme` column (pre-migration rows), then the
@@ -208,12 +211,8 @@ export async function resolveReelRenderContext(
   const lengthSeconds = clampReelSeconds(tier, storedLengthSeconds);
   const coverMediaId = row?.cover_media_id ?? null;
 
-  // Resolve the ordered, approved, present ids (the render identity).
-  const approved = new Map((mediaRows ?? []).map((m) => [m.id, m]));
-  const orderedApprovedIds = (reelRows ?? [])
-    .map((r) => r.media_id)
-    .filter((id) => approved.has(id))
-    .slice(0, MAX_RENDER_CLIPS);
+  // The ordered, approved, present ids (the render identity).
+  const orderedApprovedIds = (reelRows ?? []).map((r) => r.media_id);
 
   const hash = renderHash({
     orderedApprovedIds,
@@ -236,7 +235,6 @@ export async function resolveReelRenderContext(
     lengthSeconds,
     coverMediaId,
     orderedApprovedIds,
-    approved,
     row,
     hash,
   };

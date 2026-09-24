@@ -239,11 +239,14 @@ export function EventExperience({
      reads storage during the hydration render and feeds only the lazily-loaded entry sheet, which
      renders nothing until after hydration, so no server-rendered DOM depends on it. */
   const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
-  // The live media count: seeded by the RSC stats, kept current by LiveGallery
-  // (incl. optimistic tiles). M (the guests) is the SERVER's count, seeded by the
-  // RSC and refreshed by any gallery poll that changed something: a guest's own
-  // first upload makes them one, and only the server can tell a first upload from
-  // a returning contributor's.
+  // The live media count: seeded by the RSC stats' head count, then kept current
+  // by LiveGallery at `teaser` and `full` (the head count every gallery payload
+  // carries, plus this device's own optimistic tiles and removals; the 1,000-row
+  // round's C9). A locked page mounts no gallery and runs no poll, so there it
+  // stays the render's exact count. M (the guests) is the SERVER's count, seeded
+  // by the RSC and refreshed by any gallery poll that changed something: a
+  // guest's own first upload makes them one, and only the server can tell a
+  // first upload from a returning contributor's.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   // A refresh re-renders the page with a fresh server count: adopt it (the sanctioned
@@ -307,6 +310,13 @@ export function EventExperience({
       }
       router.refresh();
     },
+    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN (the
+       upload-owner lane, 2026-09-23). The queue has already put the ticket down (token, name,
+       address flag, cookie) and kept the files waiting; the refresh re-resolves who is here from
+       the server's side, so a sign-out in another tab is seen as one, and the door opens on the
+       step that names them (the name, or the email step on a verified event). Nothing is failed, so
+       there is no failure sheet to wait for, unlike the flip above. */
+    onDoorNeeded: () => router.refresh(),
   });
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
@@ -739,7 +749,9 @@ export function EventExperience({
           onRetry={retry}
           onDismissFailures={dismiss}
           onUploadStepActive={onUploadStepActive}
-          mediaTotal={stats.approvedTotal}
+          // The header's own live number, so a door opened over the teaser
+          // never says a different size than the line beside it.
+          mediaTotal={mediaCount}
           // The welcome's byline. On a locked page `event` is the REDACTED
           // shellEvent (host_display_name null), so the host name hides
           // itself there - the privacy rule needs no extra guard.

@@ -21,6 +21,8 @@ import { z } from "zod";
 
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 import { constantTimeEquals } from "@/lib/crypto/constant-time";
+import { mustQuery } from "@/lib/db/must-query";
+import { inChunks, MAX_ROWS } from "@/lib/db/read-all";
 import { sendOnce } from "@/lib/email/send";
 import { pruneBreakerEmail } from "@/lib/email/templates";
 import { assertPruneApiEnv, serverEnv } from "@/lib/env";
@@ -32,8 +34,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Bound a single batch — mirrors the Worker's batch size and keeps the `id = any($1)` arg sane.
-const MAX_BATCH = 1000;
+// Bound a single batch: mirrors the Worker's batch size (1,000), pinned to `MAX_ROWS` by construction
+// so a batch can never ask for more rows than one read could answer. The existence check below
+// chunks it for the URL all the same: a thousand ids in one `.in()` ride a URL of about 39 KB, which
+// the live API refuses outright (400, measured 2026-09-23), so a full batch could never be confirmed.
+const MAX_BATCH = MAX_ROWS;
 
 const bodySchema = z.object({
   mediaIds: z.array(z.uuid()).min(1).max(MAX_BATCH),
@@ -67,20 +72,25 @@ export async function POST(request: Request): Promise<Response> {
   const admin = createAdminClient();
 
   // Which of the sent ids STILL have a media row? Anything not returned is gone (the DB half of the
-  // dual-gate). Indexed PK lookup — cheap even at the max batch size.
-  const { data: existing, error: existErr } = await admin
-    .from("media")
-    .select("id")
-    .in("id", body.mediaIds);
-  if (existErr) {
-    captureError(
-      "cron",
-      new Error(`prune confirm select: ${existErr.message}`),
-      { job: "backup_prune" },
+  // dual-gate). Indexed PK lookups in `IN_CHUNK`-id chunks (`inChunks`). ★ FAIL CLOSED: an id this
+  // check never asked about would read as GONE and its backup copy as prunable, so ANY failed chunk
+  // fails the whole confirm (inChunks throws on the first), never a partial answer.
+  let existing: { id: string }[];
+  try {
+    existing = await inChunks(
+      "prune confirm select",
+      body.mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin.from("media").select("id").in("id", chunk),
+          "prune confirm select",
+        )) ?? [],
     );
+  } catch (e) {
+    captureError("cron", e, { job: "backup_prune" });
     return new Response("Confirm query failed", { status: 500 });
   }
-  const existingIds = new Set((existing ?? []).map((r) => r.id));
+  const existingIds = new Set(existing.map((r) => r.id));
   const goneIds = body.mediaIds.filter((id) => !existingIds.has(id));
 
   // Authoritative row count for the breaker (mirrors the orphan sweep's `media_table_empty` guard).

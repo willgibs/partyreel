@@ -84,8 +84,36 @@ function builderFor(table: string) {
   return builder;
 }
 
+/**
+ * `event_covers` as the SQL answers it, from the media the fake holds: the first approved photo outside
+ * the bin per asked-for event (the covers ride the function since the 1,000-row round, 2026-09-23).
+ */
+function coversFor(eventIds: string[]) {
+  const out: Record<string, { preview_key: string | null; original_key: string }> =
+    {};
+  for (const m of answers.media ?? []) {
+    const id = m.event_id as string;
+    if (!eventIds.includes(id) || out[id]) continue;
+    if (m.status !== "approved" || (m.type ?? "photo") !== "photo" || m.removed_at)
+      continue;
+    out[id] = {
+      preview_key: (m.preview_key as string | undefined) ?? null,
+      original_key: (m.original_key as string | undefined) ?? "key",
+    };
+  }
+  return out;
+}
+
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: () => ({ from: (table: string) => builderFor(table) }),
+  createAdminClient: () => ({
+    from: (table: string) => builderFor(table),
+    rpc: (fn: string, args: { p_event_ids: string[] }) =>
+      Promise.resolve(
+        fn === "event_covers"
+          ? { data: coversFor(args.p_event_ids), error: null }
+          : { data: null, error: { message: `no function ${fn}`, code: "PGRST202" } },
+      ),
+  }),
 }));
 
 const { getRequestAuth } = await import("@/lib/supabase/request-auth");
@@ -93,11 +121,9 @@ const { presignDownload } = await import("@/lib/r2/presign");
 const {
   getEventGuestList,
   getEventGuests,
-  getFollowedHostEventCards,
   getHostCard,
   getMyAttendedEvents,
   getMyBlocks,
-  getMyFollowers,
   getMyFollowing,
   getMyGuestEventCards,
 } = await import("@/lib/db/queries/social");
@@ -702,11 +728,9 @@ describe("queries/social.ts: no address leaves in any output", () => {
       eventGuests: await getEventGuests(EVENT),
       hostCard: await getHostCard(EVENT),
       following: await getMyFollowing(),
-      followers: await getMyFollowers(),
       blocks: await getMyBlocks(),
       guestCards: await getMyGuestEventCards(),
       attended: await getMyAttendedEvents(),
-      followedHostEvents: await getFollowedHostEventCards(),
     };
     // A canary for the fake itself: the reads really did return people and events to inspect.
     expect(JSON.stringify(outputs)).toContain("Alex");

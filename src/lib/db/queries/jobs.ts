@@ -25,6 +25,7 @@ import "server-only";
 import {
   JOBS,
   SIGNAL_WINDOW_MS,
+  countsStoppedEarly,
   jobsWithRuns,
   type JobId,
   type JobRunSummary,
@@ -32,6 +33,7 @@ import {
 } from "@/app/admin/jobs/catalog";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import type { Json, Database } from "@/lib/db/types";
+import { cursorFrom } from "@/lib/jobs/sweep-tally";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type JobRunStatus = "running" | "ok" | "error" | "skipped";
@@ -47,18 +49,6 @@ export type JobRunRow = {
   duration_ms: number | null;
   counts: Json | null;
   note: string | null;
-};
-
-type JobRunInsert = {
-  id?: string;
-  job: string;
-  status: JobRunStatus;
-  triggered_by?: string;
-  started_at?: string;
-  finished_at?: string | null;
-  duration_ms?: number | null;
-  counts?: Json | null;
-  note?: string | null;
 };
 
 function jobRunsDb() {
@@ -92,6 +82,7 @@ export async function getJobFlags(): Promise<Record<JobId, boolean>> {
   const keys = JOBS.map((j) => j.flagKey).filter(
     (k): k is string => k !== null,
   );
+  // row-cap: the kill switches of the JOBS registry: a fixed handful of config rows
   const rows = await mustQuery(
     admin.from("ops_flags").select("key, enabled").in("key", keys),
     "admin/jobs: kill switches",
@@ -325,6 +316,8 @@ export async function getJobStates(): Promise<JobState[]> {
               finishedAtMs: run.finished_at
                 ? Date.parse(run.finished_at)
                 : null,
+              // A finished run that ran out of time with work left reads as `attention`.
+              stoppedEarly: countsStoppedEarly(run.counts),
             }
           : null,
         lastFinishedAtMs: lastFinished?.finished_at
@@ -333,6 +326,33 @@ export async function getJobStates(): Promise<JobState[]> {
       };
     }),
   );
+}
+
+/**
+ * WHERE A SWEEP LEFT OFF (the 1,000-row round): the resume cursor its last FINISHED run stored in
+ * `counts` (`RESUME_KEY` in `src/lib/jobs/sweep-tally.ts`, which says which sweeps keep one). A
+ * sub-sweep keeps it on its own row (`job` alone); a sweep riding the parent run keeps it in its
+ * nested tally (`job` = `purge_cron`, `sweep` = its name). The newest `ok` or `error` run decides: a
+ * `running` row is this very run (or one that died), a `skipped` row carries no counts, and a pause
+ * must not reset the rotation. Null means "start from the beginning", which re-examines rows but can
+ * never skip one. A failed read THROWS, like every read here; the sweep catches it and starts over.
+ */
+export async function readSweepCursor(
+  job: JobId,
+  sweep?: string,
+): Promise<string | null> {
+  const row = await mustQuery(
+    jobRunsDb()
+      .from("job_runs")
+      .select("counts")
+      .eq("job", job)
+      .in("status", ["ok", "error"])
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    `admin/jobs: resume cursor (${sweep ?? job})`,
+  );
+  return cursorFrom(row?.counts ?? null, sweep);
 }
 
 // ---------------------------------------------------------------------------

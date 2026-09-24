@@ -13,6 +13,11 @@ import { MasonryColumns } from "@/components/shared/masonry";
 // ONE write this surface owns: delete-your-own (the lightbox Trash button -> remove_my_upload). NO host
 // moderation (this is a personal feed, not an event album). The lightbox shows each item's event context.
 // A truncation footer keeps the v1 cap honest; the empty state lives in the dashboard tab.
+//
+// ★ ONE TRASH, TWO OUTCOMES, AND THE CONFIRM NAMES THE RIGHT ONE: an upload to somebody else's event is
+// final (the guest arm marks it `removed_by_uploader`: never in that host's Deleted, never restorable), while
+// an upload to an event the viewer hosts lands in its Deleted (the host arm). The owner mode marks the host
+// arm's items `isHost` (owner-sections.tsx) and the lightbox reads it, so nothing here decides the words.
 export function MyUploadsGallery({
   items,
   truncated,

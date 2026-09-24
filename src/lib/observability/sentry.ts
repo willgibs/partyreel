@@ -27,6 +27,8 @@ export type SentryArea =
   | "security"
   | "export"
   | "reel"
+  // The row-cap tripwire (lib/supabase/row-cap-tripwire.ts): a read that came back clipped at 1,000.
+  | "db"
   | "other"
   | "render:app"
   | "render:guest"
