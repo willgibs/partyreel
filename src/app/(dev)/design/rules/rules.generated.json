@@ -5601,7 +5601,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 217
+          "line": 225
         },
         {
           "title": "adds Showing once the guest owns something, the count inside Yours' own label",
@@ -5609,7 +5609,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 222
+          "line": 230
         },
         {
           "title": "Showing's value follows the live intent, never a stale snapshot",
@@ -5617,7 +5617,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 231
+          "line": 239
         },
         {
           "title": "routes Showing's onChange to setShowingMine as a boolean, never the raw string",
@@ -5625,7 +5625,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 240
+          "line": 248
         },
         {
           "title": "reserves Tile size below 640 rather than removing it",
@@ -5633,7 +5633,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 251
+          "line": 259
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5641,7 +5641,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 257
+          "line": 265
         },
         {
           "title": "routes Tile size's onChange to setTileSize as a number, never the raw string",
@@ -5649,7 +5649,7 @@
             "buildGuestViewGroups: the guest album's View menu, as arithmetic"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 263
+          "line": 271
         },
         {
           "title": "paints --album-column from the server-resolved initialTileSize on first render",
@@ -5657,7 +5657,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 272
+          "line": 280
         },
         {
           "title": "falls back to the wired default when the cookie was missing",
@@ -5665,7 +5665,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 278
+          "line": 286
         },
         {
           "title": "checks the matching option in the View menu, never just the CSS",
@@ -5673,7 +5673,7 @@
             "LiveGallery: the cookie's value reaches the album's wrapper"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 284
+          "line": 292
         },
         {
           "title": "omits Showing when the guest owns nothing on the album",
@@ -5681,7 +5681,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 296
+          "line": 304
         },
         {
           "title": "adds Showing, with the owned count in Yours, once something is theirs",
@@ -5689,7 +5689,7 @@
             "LiveGallery: the Showing group's own gate"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 303
+          "line": 311
         },
         {
           "title": "disables the group with the Wider screens hint under 640",
@@ -5697,7 +5697,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 316
+          "line": 324
         },
         {
           "title": "is live at 640 and up, with no hint",
@@ -5705,7 +5705,7 @@
             "LiveGallery: Tile size reserved below 640"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 328
+          "line": 336
         },
         {
           "title": "reports the true approvedTotal to the header, and the CTA counts the same album",
@@ -5713,7 +5713,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 353
+          "line": 361
         },
         {
           "title": "falls back to the photo-only teaserTotal when approvedTotal is not passed",
@@ -5721,7 +5721,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 367
+          "line": 375
         },
         {
           "title": "falls to the account line once nothing more exists beyond what loaded",
@@ -5729,7 +5729,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 376
+          "line": 384
         },
         {
           "title": "says one photo in the singular",
@@ -5737,7 +5737,7 @@
             "LiveGallery: the teaser's one true count (POLISH 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 385
+          "line": 393
         },
         {
           "title": "patches only the caller's own items, leaving everyone else's alone, no network call",
@@ -5745,7 +5745,7 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 406
+          "line": 414
         },
         {
           "title": "does nothing when this device owns nothing on the album",
@@ -5753,7 +5753,7 @@
             "LiveGallery: renameMine patches this device's own credits (POLISH 2)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 425
+          "line": 433
         },
         {
           "title": "holds a full gallery's items and count against a narrower teaser poll, firing the drift once",
@@ -5761,7 +5761,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 455
+          "line": 463
         },
         {
           "title": "applies at once when a teaser gallery polls into a fuller decision, firing the drift once",
@@ -5769,7 +5769,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 492
+          "line": 500
         },
         {
           "title": "a fresh mount at a new access prop shows exactly that payload (the shell's own key={access} remount)",
@@ -5777,7 +5777,7 @@
             "LiveGallery: a stricter drift never yanks an open album (DEFECT 1)"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 518
+          "line": 526
         },
         {
           "title": "a signed-in guest's new photograph is theirs the moment it lands (Trash and mark)",
@@ -5785,7 +5785,7 @@
             "LiveGallery: a visit's own adds and removals, on either identity"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 569
+          "line": 577
         },
         {
           "title": "passes each removed id up, and a removal leaves the count on a signed-in guest too",
@@ -5793,7 +5793,7 @@
             "LiveGallery: a visit's own adds and removals, on either identity"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 587
+          "line": 595
         },
         {
           "title": "reports the poll's guest count, and only from a poll that carried one",
@@ -5801,7 +5801,7 @@
             "LiveGallery: the header's guest count comes from the server"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 613
+          "line": 621
         },
         {
           "title": "a 304 changes nothing",
@@ -5809,7 +5809,79 @@
             "LiveGallery: the header's guest count comes from the server"
           ],
           "file": "src/components/guest/live-gallery.test.tsx",
-          "line": 633
+          "line": 641
+        },
+        {
+          "title": "is the server's head count plus what this device changed since",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 662
+        },
+        {
+          "title": "wins over the page's fallback and the photo-only total when the payload carried it",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 682
+        },
+        {
+          "title": "without a head count keeps the earlier rule (an older server's payload)",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 694
+        },
+        {
+          "title": "never goes below zero",
+          "suite": [
+            "albumCount: the header's number, as arithmetic (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 713
+        },
+        {
+          "title": "at full, reports the payload's head count, never the list's length",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 726
+        },
+        {
+          "title": "at teaser, a poll moves the count when only the album behind the nine grew (a video landed)",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 733
+        },
+        {
+          "title": "an approved upload counts the instant its tile lands, and the next 200 settles it",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 762
+        },
+        {
+          "title": "the guest's own removal leaves the count at once",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 798
+        },
+        {
+          "title": "a stricter drift holds the count with the album (the rows and the count move together)",
+          "suite": [
+            "LiveGallery: the header's count, exact and live (C9)"
+          ],
+          "file": "src/components/guest/live-gallery.test.tsx",
+          "line": 812
         }
       ]
     },

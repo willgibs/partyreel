@@ -239,11 +239,14 @@ export function EventExperience({
      reads storage during the hydration render and feeds only the lazily-loaded entry sheet, which
      renders nothing until after hydration, so no server-rendered DOM depends on it. */
   const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
-  // The live media count: seeded by the RSC stats, kept current by LiveGallery
-  // (incl. optimistic tiles). M (the guests) is the SERVER's count, seeded by the
-  // RSC and refreshed by any gallery poll that changed something: a guest's own
-  // first upload makes them one, and only the server can tell a first upload from
-  // a returning contributor's.
+  // The live media count: seeded by the RSC stats' head count, then kept current
+  // by LiveGallery at `teaser` and `full` (the head count every gallery payload
+  // carries, plus this device's own optimistic tiles and removals; the 1,000-row
+  // round's C9). A locked page mounts no gallery and runs no poll, so there it
+  // stays the render's exact count. M (the guests) is the SERVER's count, seeded
+  // by the RSC and refreshed by any gallery poll that changed something: a
+  // guest's own first upload makes them one, and only the server can tell a
+  // first upload from a returning contributor's.
   const [mediaCount, setMediaCount] = useState(stats.approvedTotal);
   const [guestCount, setGuestCount] = useState(stats.guestCount);
   // A refresh re-renders the page with a fresh server count: adopt it (the sanctioned
@@ -746,7 +749,9 @@ export function EventExperience({
           onRetry={retry}
           onDismissFailures={dismiss}
           onUploadStepActive={onUploadStepActive}
-          mediaTotal={stats.approvedTotal}
+          // The header's own live number, so a door opened over the teaser
+          // never says a different size than the line beside it.
+          mediaTotal={mediaCount}
           // The welcome's byline. On a locked page `event` is the REDACTED
           // shellEvent (host_display_name null), so the host name hides
           // itself there - the privacy rule needs no extra guard.

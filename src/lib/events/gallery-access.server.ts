@@ -12,6 +12,7 @@ import {
   type GuestMediaRow,
 } from "@/lib/db/queries/guest-events";
 import {
+  countApprovedMedia,
   getApprovedMediaForUnlock,
   getApprovedPhotoTeaser,
   getUploaderIdentities,
@@ -149,54 +150,76 @@ export async function resolveViewerDecision(
   return { ...decision, albumFull };
 }
 
-/** The un-presigned gallery for one viewer: rows + attribution + the teaser count. */
+/** The un-presigned gallery for one viewer: rows + attribution + the teaser count + the album's size. */
 export type GalleryRows = {
   rows: GuestMediaRow[];
   identities: Map<string, UploaderIdentity> | undefined;
   teaserTotal: number | null;
+  /**
+   * The album's size, photos and videos: `countApprovedMedia`'s head count, read beside the rows at
+   * `teaser` and `full` (null at `none`, where the locked page's own stats say it and no gallery
+   * mounts). It is the header's "N photos & videos" at every level the header shows it, so it
+   * rides every payload, and the ETag hashes it: a video approved behind a nine-photo teaser changes
+   * neither the rows nor `teaserTotal`, and without it in the hash that poll would 304 past the
+   * new number.
+   */
+  approvedTotal: number | null;
 };
 
 /**
  * Fetch + cap the gallery ROWS for a resolved access level (no presigning -- the poll route
  * fingerprints these first and skips presigning entirely on a 304). The full set is NEVER fetched
- * for `teaser`; `none` fetches nothing. Identities + media load in parallel (they're independent;
- * this was sequential pre-Phase-3). Identity resolution skipped for the demo, matching the page.
+ * for `teaser`; `none` fetches nothing. Identities, media and the album's head count load in
+ * parallel (they're independent). Identity resolution skipped for the demo, matching the page.
  */
 export async function loadGalleryRowsForAccess(
   event: GuestEvent,
   access: GalleryAccess,
 ): Promise<GalleryRows> {
   if (access === "none")
-    return { rows: [], identities: undefined, teaserTotal: null };
+    return {
+      rows: [],
+      identities: undefined,
+      teaserTotal: null,
+      approvedTotal: null,
+    };
 
   const identitiesPromise = isDemoToken(event.qr_token)
     ? Promise.resolve(undefined)
     : getUploaderIdentities(event.id);
+  const approvedTotalPromise = countApprovedMedia(event);
 
   if (access === "teaser") {
-    const [identities, teaser] = await Promise.all([
+    const [identities, teaser, approvedTotal] = await Promise.all([
       identitiesPromise,
       getApprovedPhotoTeaser(event, TEASER_LIMIT),
+      approvedTotalPromise,
     ]);
-    return { rows: teaser.rows, identities, teaserTotal: teaser.total };
+    return {
+      rows: teaser.rows,
+      identities,
+      teaserTotal: teaser.total,
+      approvedTotal,
+    };
   }
 
-  // full
-  const [identities, rows] = await Promise.all([
+  // full: the whole album, each arm read in keyset pages on the album's own display order.
+  const [identities, rows, approvedTotal] = await Promise.all([
     identitiesPromise,
     event.visibility === "password"
       ? getApprovedMediaForUnlock(event.id) // self-guarded by the unlock cookie
       : getEventMediaByQrToken(event.qr_token), // anon RPC, gates on visibility='open'
+    approvedTotalPromise,
   ]);
-  return { rows, identities, teaserTotal: null };
+  return { rows, identities, teaserTotal: null, approvedTotal };
 }
 
 /**
  * The conditional-request validator for a loaded gallery: hashes the viewer-visible content
- * (ids in order + attribution exactly as toGridItems would emit it) + the whole DECISION +
- * the current presign bucket. MUST mirror toGridItems' identity fallbacks (`?? null/false`)
- * or a 304 could hide an attribution change. Dimensions/duration are deliberately NOT
- * hashed (write-once per id - see gallery-fingerprint.ts).
+ * (ids in order + attribution exactly as toGridItems would emit it + the album's size) + the whole
+ * DECISION + the current presign bucket. MUST mirror toGridItems' identity fallbacks
+ * (`?? null/false`) or a 304 could hide an attribution change. Dimensions/duration are
+ * deliberately NOT hashed (write-once per id - see gallery-fingerprint.ts).
  *
  * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL (the door as three steps, 2026-09-21). `teaser`
  * has two causes now, and the poll carries the gate to the client's step machine: two decisions
@@ -211,6 +234,7 @@ export function galleryEtagFor(
     access: decision.access,
     gate: decision.gate,
     teaserTotal: gallery.teaserTotal,
+    approvedTotal: gallery.approvedTotal,
     bucketId: presignBucketId(Date.now()),
     items: gallery.rows.map((r) => {
       const who = gallery.identities?.get(r.id);
@@ -242,12 +266,18 @@ export async function presignGalleryRows(
 export async function loadGalleryForAccess(
   event: GuestEvent,
   decision: GalleryDecision,
-): Promise<{ items: GridMedia[]; teaserTotal: number | null; etag: string }> {
+): Promise<{
+  items: GridMedia[];
+  teaserTotal: number | null;
+  approvedTotal: number | null;
+  etag: string;
+}> {
   const gallery = await loadGalleryRowsForAccess(event, decision.access);
   const etag = galleryEtagFor(decision, gallery);
   return {
     items: await presignGalleryRows(event, gallery),
     teaserTotal: gallery.teaserTotal,
+    approvedTotal: gallery.approvedTotal,
     etag,
   };
 }

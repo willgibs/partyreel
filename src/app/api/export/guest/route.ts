@@ -4,8 +4,9 @@
  * Authz mirrors the gallery RSC + poll EXACTLY (the single source of "what this viewer sees"):
  * getEventByQrToken → resolveViewerDecision → loadGalleryRowsForAccess. A guest can NEVER export more
  * than `gallery.rows` (hidden/pending/removed are never in that set; a teaser caps to the 9; a
- * locked/private/none event is rejected). The guest gallery rows omit file_size_bytes, so we do ONE
- * authoritative admin read keyed by the ALREADY access-gated ids (never client input) to get sizes.
+ * locked/private/none event is rejected). The guest gallery rows omit file_size_bytes, so the sizes
+ * come from an authoritative admin read keyed by the ALREADY access-gated ids (never client input),
+ * in chunks of `IN_CHUNK` ids, so the whole album is measured however large it is.
  */
 import { NextResponse } from "next/server";
 
@@ -13,6 +14,7 @@ import { z } from "zod";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { inChunks } from "@/lib/db/read-all";
 import { isDemoToken } from "@/lib/demo";
 import {
   isEventOwner,
@@ -99,30 +101,45 @@ export async function POST(request: Request) {
   }
 
   const gallery = await loadGalleryRowsForAccess(event.data, access);
-  const ids = gallery.rows.map((r) => r.id);
-  const sizeById = new Map<string, number>();
-  if (ids.length) {
-    // mustQuery is the CAP GUARD here, not just hygiene. This is the only read of
-    // the real byte sizes; if it failed silently every row fell back to 0, so a
-    // 40 GB album summarised as "0 files, 0 bytes" (an empty-looking download to
-    // the guest) AND sailed through the 20 GB ceiling in exportSummary. A failed
-    // size read must abort the export, never approve an unmeasured one.
-    // row-cap-todo: C11 every gallery id rides one URL, which fails past about 200 ids
-    const sizes = await mustQuery(
-      createAdminClient()
-        .from("media")
-        .select("id, file_size_bytes")
-        .in("id", ids),
-      "export/guest: media sizes",
-    );
-    for (const s of sizes ?? []) sizeById.set(s.id, s.file_size_bytes);
-  }
-  const rows: ExportMediaRow[] = gallery.rows.map((r) => ({
-    type: r.type,
-    original_key: r.original_key,
-    file_size_bytes: sizeById.get(r.id) ?? 0,
-    status: "approved",
-  }));
+  // mustQuery is the CAP GUARD here, not just hygiene. This is the only read of
+  // the real byte sizes; if it failed silently every row fell back to 0, so a
+  // 40 GB album summarised as "0 files, 0 bytes" (an empty-looking download to
+  // the guest) AND sailed through the 20 GB ceiling in exportSummary. A failed
+  // size read must abort the export, never approve an unmeasured one, and a
+  // failed chunk stops the rest (inChunks).
+  //
+  // ★ READ IN CHUNKS (the 1,000-row round). The album is read whole now, and one
+  // `.in("id", ids)` over all of it put every id in a single URL, which fails
+  // outright past about 200 ids; `inChunks` sends at most 150 a request, each
+  // chunk at most one row an id, far under the 1,000-row cap.
+  const admin = createAdminClient();
+  const sizes = await inChunks(
+    "export/guest: media sizes",
+    gallery.rows.map((r) => r.id),
+    async (chunk) =>
+      (await mustQuery(
+        admin.from("media").select("id, file_size_bytes").in("id", chunk),
+        "export/guest: media sizes",
+      )) ?? [],
+  );
+  const sizeById = new Map(sizes.map((s) => [s.id, s.file_size_bytes]));
+  // ★ AN UNMEASURED ROW IS NEVER ZERO BYTES. With every chunk read, an id with no
+  // size is a row that stopped existing between the album read and this one (a
+  // purge or a deletion racing the request): it leaves the export rather than
+  // counting as nothing toward the 20 GB ceiling, and its object may be gone.
+  const rows: ExportMediaRow[] = gallery.rows.flatMap((r) => {
+    const size = sizeById.get(r.id);
+    return size === undefined
+      ? []
+      : [
+          {
+            type: r.type,
+            original_key: r.original_key,
+            file_size_bytes: size,
+            status: "approved" as const,
+          },
+        ];
+  });
 
   if (step === "summary") {
     return NextResponse.json({ ok: true, summary: exportSummary(rows) });

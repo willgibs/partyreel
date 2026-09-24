@@ -1,9 +1,11 @@
 /**
  * Turn media rows (R2 KEYS) into render-ready GridMedia (presigned URLs) for the
- * galleries. SERVER-ONLY — raw keys never reach the browser (uploads-and-r2.md). Two
- * presigns per item from the same key: an INLINE url (grid/lightbox render) and an
- * `attachment` download url (the lightbox Save). Single source so the public album,
- * the guest event page, and the gallery poll route all presign identically.
+ * galleries. SERVER-ONLY — raw keys never reach the browser (uploads-and-r2.md). Up to
+ * three presigns per item: an INLINE url (grid/lightbox render) and an `attachment`
+ * download url (the lightbox Save) from the original key, plus the small tile preview
+ * from `preview_key` when the row has one (`toModerationFeedItems` mints the first two
+ * alone). Single source so the public album, the guest event page, and the gallery poll
+ * route all presign identically.
  */
 import "server-only";
 

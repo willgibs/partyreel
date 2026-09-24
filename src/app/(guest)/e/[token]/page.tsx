@@ -229,14 +229,19 @@ export default async function GuestEventPage({
         { withAlbumFull: true },
       );
   const access = decision.access;
-  // Deliberately NOT awaited (Phase 3 streaming): the gallery load presigns
-  // 2 URLs per item, the slowest part of this page. The shell streams first;
-  // LiveGallery resolves this inside its Suspense boundary.
+  // Deliberately NOT awaited (Phase 3 streaming): the gallery load reads the
+  // whole album in keyset pages and presigns up to three URLs per item (the
+  // inline, the download and the small preview), the slowest part of this page.
+  // The shell streams first; LiveGallery resolves this inside its Suspense
+  // boundary.
   const galleryPromise = loadGalleryForAccess(event, decision);
 
   // Header stats (Phase 4): cheap awaited read (numbers only — never identities).
   // For a LOCKED password event this still returns counts: the ratified entry
   // tease (the sheet says "N photos are waiting"; the header shows name only).
+  // Its media count is the same request-scoped head count the gallery payload
+  // carries (`countApprovedMedia`), so the header's seed and the gallery's
+  // first report are one number.
   //
   // The guest REEL read (R3, guest-flow.md) rides alongside it, awaited CONCURRENTLY:
   // both are cheap indexed reads, and the reel card must be in the SHELL HTML
