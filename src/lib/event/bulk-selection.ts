@@ -7,10 +7,12 @@
  * over whatever it is handed is a work amplifier; a named ceiling, refused in words, is the honest
  * shape.
  *
- * WHY 2,000: it is the export's own cap (`MAX_EXPORT_ITEMS`), and the album bar's Download already
- * refuses a bigger selection, so one selection meets one limit whichever verb the host picks.
+ * WHY 2,000: it is the export's own cap (`MAX_EXPORT_ITEMS`), and the album bar's Download refuses
+ * a bigger selection in the same words (`/api/export/host`), so one selection meets one limit, said
+ * one way, whichever verb the host picks.
  *
- * Pure (no server imports): the actions refuse with it and the Review room batches with it.
+ * Pure (no server imports): the actions and the export route refuse with it, and the Review room
+ * batches with it.
  */
 import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
 

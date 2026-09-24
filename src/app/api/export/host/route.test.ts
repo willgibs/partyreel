@@ -150,10 +150,18 @@ describe("the host export reads the whole album", () => {
     expect(all.ok && all.payload.items).toHaveLength(1500);
   });
 
-  it("refuses a selection past the cap before reading anything", async () => {
+  it("refuses a selection past the cap in the bulk verbs' words, before reading anything", async () => {
     const tooMany = Array.from({ length: 2001 }, (_, i) => uuid(i));
-    const { status } = await post({ step: "mint", ids: tooMany });
+    const { status, body } = await post({ step: "mint", ids: tooMany });
     expect(status).toBe(400);
+    expect(body).toEqual({
+      ok: false,
+      code: "bad_request",
+      message: "Select up to 2,000 items at a time.",
+    });
     expect(fake.requests).toHaveLength(0);
+    // Any other malformed body stays a bare bad_request.
+    const other = await post({ step: "mint", ids: ["not-a-uuid"] });
+    expect(other.body).toEqual({ ok: false, code: "bad_request" });
   });
 });
