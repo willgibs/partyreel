@@ -75,5 +75,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review, resumed** on build 5: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, then the two rounds 2.
+- **His desk review**, on the refreshed boards once the refresh wave lands (it supersedes build 5's), `album-columns` first.
 - **A 10-second iPhone check** on build 5's album: Save to Photos lands in Photos; a shared photo arrives as a photo.
