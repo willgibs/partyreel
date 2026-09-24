@@ -4,163 +4,382 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { EVENT, LIVE_ALBUM_COUNT } from "./fixtures";
-import { AddToAlbumConfirm, AlbumWithCut, ReviewRoom } from "./parts-curation";
+import { EVENT, LIVE_ALBUM_COUNT, MINIMUM, WAITING } from "./fixtures";
+import { AS_WIRED, BellPanelAgree, PhoneDashboard } from "./parts-counts";
+import { AddToAlbumConfirm, AlbumWithCut, PhoneReviewRoom } from "./parts-curation";
+import { type PulseOption, PulsePair } from "./parts-dashboard";
 import {
-  EventCardWithLine,
-  PlayingEventCard,
-  ThresholdPair,
-} from "./parts-dashboard";
-import { HubCardsRow, HubHeader } from "./parts-hub";
-import { measureReelView, ReelView } from "./parts-reel-view";
+  Hub,
+  ProgressBand,
+  ReelCard,
+  ReelHomeCard,
+  ScreenDoor,
+  ScreenLinkRow,
+  StepRow,
+  WaitingTile,
+} from "./parts-hub";
+import { Tv } from "./parts-screen";
 import {
   ProfileGuestsCard,
+  ReelDefaultsCard,
   ReelHeadCard,
-  ReelMoodsCard,
   UnrelatedSettingsCards,
 } from "./parts-settings";
 import { ShareSheetWithScreen } from "./parts-share";
+import { type Device, HostView, measureView } from "./parts-view";
 import {
-  AppHeader,
-  HostGround,
+  Composite,
+  DashboardBar,
   Scene,
-  screenOf,
   SCREENS,
   type ScreenId,
+  screenOf,
   SheetGround,
 } from "./scene";
 import { REEL_HOST } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE (`identity-profile` and `guest-capture`'s
- * own discipline, carried here). Every option holds the rest of the picture
- * steady and moves only the one thing its ask is about: `style`'s three vary
- * only where the Style control lives, never the album under it; `pulse`'s
- * three vary only how the dashboard's own card speaks, never which event or
- * how many items it holds unless the ask IS the count.
+ * THE PREVIEWS, AND NOTHING ELSE. Every option holds the rest of the picture
+ * steady and moves only the one thing its ask is about: the progression's four
+ * vary only how the page speaks below the minimum, never the event; the screen
+ * door's five vary only where the door sits, never the view it opens.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: a swatch count, a
- * chip's own words, whether a line exists at all. When the words above a
- * frame and the number under it disagree, the number is the truth.
+ * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: which words the page
+ * says, how many icons the dock carries, what the screen says beside the code.
+ * When the words above a frame and the caption under it disagree, the caption
+ * is the truth.
  */
 
 type Reader = (root: HTMLElement, win: Window) => string | null;
 const viewportOf = (s: BoardState): ScreenId => screenOf(s.viewport as string);
+const deviceOf = (sc: ScreenId): Device => (sc === "375" ? "phone" : "laptop");
+const itemsOf = (s: BoardState): number => {
+  const n = Number(s.items ?? "1");
+  return Number.isFinite(n) ? Math.max(0, Math.min(MINIMUM, n)) : 1;
+};
 
-/* ── style: where the host's Style control lives ─────────────────────────── */
+/** The visible words of an element, whitespace folded, cut for a caption. */
+const said = (el: Element | null | undefined, max = 90): string => {
+  const t = ((el as HTMLElement | null)?.innerText ?? "").trim().replace(/\s+/g, " ");
+  return t.length > max ? `${t.slice(0, max - 3)}...` : t;
+};
+
+/** The host's event page, which every sheet on this board really opens over. */
+const hubBehind = (device: Device) => (
+  <Hub device={device} items={LIVE_ALBUM_COUNT} />
+);
+
+/* ── progress: the way to the reel ───────────────────────────────────────── */
+
+type ProgressId = "card" | "band" | "tile" | "step";
+
+const measureProgress: Reader = (root) => {
+  const face = root.querySelector<HTMLElement>("[data-rh-reel-card]")?.dataset
+    .rhReelCard;
+  const lines = [...root.querySelectorAll("[data-rh-said]")]
+    .map((el) => said(el, 70))
+    .filter(Boolean);
+  const card =
+    face === "living"
+      ? "the Reel card wears the living crossfade"
+      : face === "counting"
+        ? "the Reel card counts"
+        : "the Reel card says \"Not yet\"";
+  return lines.length
+    ? `Measured: the page says "${lines.join(" / ")}"; ${card}.`
+    : `Measured: nothing on the page speaks of the reel; ${card}.`;
+};
+
+function progressScene(id: ProgressId, s: BoardState) {
+  const sc = viewportOf(s);
+  const device = deviceOf(sc);
+  const items = itemsOf(s);
+  const below = items < MINIMUM;
+  return (
+    <Scene
+      id={`progress-${id}-${items}`}
+      screen={sc}
+      title="The way to the reel"
+      measure={measureProgress}
+    >
+      <Hub
+        device={device}
+        items={items}
+        reel={
+          id === "card" && below ? (
+            <ReelCard device={device} face="counting" items={items} />
+          ) : undefined
+        }
+        above={
+          id === "band" ? (
+            <ProgressBand device={device} items={items} />
+          ) : id === "step" && items === 1 ? (
+            <StepRow />
+          ) : undefined
+        }
+        after={id === "tile" && items === 1 ? <WaitingTile /> : undefined}
+        launchWithReel={id === "step" && items === 0}
+      />
+    </Scene>
+  );
+}
+
+/* ── open: where the door to a big screen sits ───────────────────────────── */
+
+type OpenId = "view" | "hub" | "share" | "settings" | "link";
+
+const measureOpen: Reader = (root) => {
+  if (root.querySelector("[data-rh-view]")) return measureView(root);
+  const door = root.querySelector("[data-rh-screen-door]");
+  const later = root.querySelector("[data-rh-link-later]");
+  if (door) {
+    // In a hand the row scrolls sideways, and a fifth card starts past its edge.
+    const edge = root.ownerDocument.documentElement.clientWidth;
+    const past = door.getBoundingClientRect().left >= edge - 8;
+    return `Measured: a fifth door in the cards row, "${said(door, 40)}"${past ? ", past the row's edge on a phone" : ""}${later ? ", and a screen link drawn as later work under the row" : ""}.`;
+  }
+  const block = root.querySelector("[data-rh-screen-block] h3");
+  if (block)
+    return `Measured: a block in the share sheet, "${said(block)}", between the code's verbs and the readable link.`;
+  const row = root.querySelector("[data-rh-screen-row]");
+  if (row)
+    return `Measured: a row in the reel's own Settings card, "${said(row.querySelector("p"))}", under Show the reel.`;
+  return null;
+};
+
+function openScene(id: OpenId, s: BoardState) {
+  const sc = viewportOf(s);
+  const device = deviceOf(sc);
+  const title = "Onto a big screen";
+  const body =
+    id === "view" ? (
+      <div data-rh-open-view="">
+        <HostView device={device} dock="up" extra="screen" />
+      </div>
+    ) : id === "share" ? (
+      <SheetGround
+        screen={sc}
+        title={`Share ${EVENT.name}`}
+        behind={hubBehind(device)}
+      >
+        <ShareSheetWithScreen />
+      </SheetGround>
+    ) : id === "settings" ? (
+      <SheetGround
+        screen={sc}
+        title="Settings"
+        description={EVENT.name}
+        behind={hubBehind(device)}
+      >
+        <ReelHeadCard withScreenRow />
+        <UnrelatedSettingsCards />
+      </SheetGround>
+    ) : (
+      <Hub
+        device={device}
+        items={LIVE_ALBUM_COUNT}
+        door={<ScreenDoor device={device} />}
+        below={id === "link" ? <ScreenLinkRow /> : undefined}
+      />
+    );
+  return (
+    <Scene id={`open-${id}`} screen={sc} title={title} measure={measureOpen}>
+      {body}
+    </Scene>
+  );
+}
+
+/* ── review: what tells the host about a waiting queue ───────────────────── */
+
+type ReviewId = "wired" | "agree" | "card" | "header" | "feed" | "chip" | "room";
+
+const PHONE_LABEL: Record<ReviewId, string> = {
+  wired: "Mia's phone: the hub, its counts as wired",
+  agree: "Mia's phone: the bell, open",
+  card: "Mia's phone: the dashboard",
+  header: "Mia's phone: Review",
+  feed: "Mia's phone: her own view of the reel",
+  chip: "Mia's phone: the hub, as wired",
+  room: "Mia's phone: the hub, as wired",
+};
+
+const measureReview: Reader = (root) => {
+  const tv = root.querySelector("[data-rh-tv-said]");
+  const phone = root.querySelector("[data-rh-phone]");
+  if (!phone) return null;
+  const screen = tv
+    ? `the screen says "${said(tv, 50)}" beside the code`
+    : "the screen says nothing but the code";
+  const line = phone.querySelector("[data-rh-said]");
+  const host = phone.querySelector("[data-rh-dashboard]")
+    ? `the phone's one count is the event card's chip, "${WAITING} to review", and the bell has no badge`
+    : line
+      ? `the phone says "${said(line, 60)}"`
+      : `the phone carries the bell's ${WAITING} and Review's "${WAITING} waiting"; as wired the bell says "${AS_WIRED?.body ?? ""}" and lands on the dashboard`;
+  return `Measured: ${screen}; ${host}.`;
+};
+
+function reviewScene(id: ReviewId) {
+  const hubAsWired = (
+    <Hub device="phone" items={LIVE_ALBUM_COUNT} waiting={WAITING} bell={WAITING} />
+  );
+  const phone =
+    id === "agree" ? (
+      <Hub
+        device="phone"
+        items={LIVE_ALBUM_COUNT}
+        waiting={WAITING}
+        bell={WAITING}
+        bellPanel={<BellPanelAgree />}
+      />
+    ) : id === "card" ? (
+      <PhoneDashboard />
+    ) : id === "header" ? (
+      <PhoneReviewRoom />
+    ) : id === "feed" ? (
+      <HostView device="phone" dock="rest" feed="waiting" mode="contain" />
+    ) : (
+      hubAsWired
+    );
+  return (
+    <Composite
+      id={`review-${id}`}
+      title="Waiting uploads"
+      measure={measureReview}
+      screenLabel="The big screen, drawn at half a 1920 wall"
+      phoneLabel={PHONE_LABEL[id]}
+      screen={<Tv says={id === "chip" ? "chip" : id === "room" ? "room" : "nothing"} />}
+      phone={phone}
+    />
+  );
+}
+
+/* ── style: where the reel's defaults live ───────────────────────────────── */
+
+type StyleId = "view" | "sheet" | "both";
+
+const measureStyle: Reader = (root) => {
+  const view = root.querySelector("[data-rh-style-popover]");
+  const card = root.querySelector("[data-rh-defaults]");
+  const line = said(root.querySelector("[data-rh-default-line]"), 80);
+  const moods = root.querySelectorAll("[data-rh-defaults] [data-rh-mood]").length;
+  const steps = root.querySelector<HTMLElement>("[data-rh-hold-steps]")?.dataset
+    .rhHoldSteps;
+  const parts = [
+    view ? `the view's Style popover says "${line}"` : null,
+    card ? `a Settings card carries ${moods} moods and ${steps} hold steps` : null,
+  ].filter(Boolean);
+  return parts.length ? `Measured: ${parts.join("; ")}.` : null;
+};
 
 /**
- * `style=both`: the view's own shortcut ABOVE, the sheet still the default's
- * real home BELOW, in one frame, so "both" is a picture rather than a claim.
+ * `style=both`: the view with the host's popover and the Settings card in one
+ * frame, so "both" is a picture rather than a claim. At a laptop the sheet is
+ * where it really opens, a panel on the right; in a hand the two stack.
  *
- * ★ PIXELS, NEVER PERCENTAGES (found live, 2026-09-22, on the same pass as
- * `SheetGround`'s own fix): this frame's own document hands nothing a
- * percentage height down from, so `h-[46%]` of an ancestor that resolves to
- * 0 is 0. `SCREENS[screen].h` is the one number this board actually knows
- * (the Scene it sits in was built at exactly that pixel height), so the
- * split is arithmetic on it rather than CSS asking an ancestor for a cut of
- * a height that was never really there.
+ * ★ PIXELS, NEVER PERCENTAGES: this frame's own document hands nothing a
+ * percentage height down from (the old board's finding), so every split is
+ * arithmetic on the frame's known size.
  */
-function StyleShortcutAndSheet({ screen }: { screen: ScreenId }) {
-  const total = SCREENS[screen].h;
-  const bar = 32;
-  const top = Math.round(total * 0.46);
+function StyleBoth({ screen }: { screen: ScreenId }) {
+  const { w, h } = SCREENS[screen];
+  if (screen === "1440") {
+    const panel = 384;
+    return (
+      <div className="relative bg-background" style={{ width: w, height: h }}>
+        <div className="absolute inset-y-0 left-0" style={{ width: w - panel }}>
+          <HostView device="laptop" dock="up" popover="style-both" mode="contain" />
+        </div>
+        <div
+          className="absolute inset-y-0 right-0 flex flex-col gap-3 overflow-hidden border-l border-border bg-popover p-4 text-popover-foreground"
+          style={{ width: panel }}
+        >
+          <p className="font-heading text-card-title font-medium">Settings</p>
+          <ReelDefaultsCard />
+        </div>
+      </div>
+    );
+  }
+  const top = Math.round(h * 0.56);
   return (
-    <div className="relative bg-background" style={{ height: total }}>
-      <div
-        className="absolute inset-x-0 top-0 overflow-hidden"
-        style={{ height: top }}
-      >
-        <ReelView extra="style" mode="contain" />
+    <div className="relative bg-background" style={{ width: w, height: h }}>
+      <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: top }}>
+        <HostView device="phone" dock="up" popover="style-both" mode="contain" />
       </div>
       <div
-        className="absolute inset-x-0 flex items-center border-y border-border bg-muted/50 px-4 text-[11px] font-medium text-muted-foreground"
-        style={{ top, height: bar }}
+        className="absolute inset-x-0 bottom-0 overflow-hidden bg-background p-3 text-foreground"
+        style={{ top }}
       >
-        Also here, still the default&apos;s home
-      </div>
-      <div
-        className="absolute inset-x-0 bottom-0 overflow-y-auto bg-background p-4 text-foreground"
-        style={{ top: top + bar }}
-      >
-        <ReelMoodsCard />
+        <ReelDefaultsCard />
       </div>
     </div>
   );
 }
 
-const measureStyleSheet: Reader = (root) => {
-  const moods = root.querySelectorAll("[data-rh-mood]").length;
-  return moods
-    ? `Measured: the settings sheet carries ${moods} mood swatches, no reel view in sight.`
-    : "Measured: no mood swatches found in the sheet.";
-};
-
-const measureStyleBoth: Reader = (root) => {
-  const shortcut = root.querySelector("[data-rh-style-control]");
-  const moods = root.querySelectorAll("[data-rh-mood]").length;
-  return `Measured: the view carries ${shortcut ? "its own Style shortcut" : "no shortcut"}; the sheet beneath still carries ${moods} mood swatches.`;
-};
-
-function styleScene(id: "view" | "sheet" | "both", s: BoardState) {
+function styleScene(id: StyleId, s: BoardState) {
   const sc = viewportOf(s);
-  const title = "Where Style lives";
-  if (id === "view") {
-    return (
-      <Scene id="style-view" screen={sc} title={title} measure={measureReelView}>
-        <ReelView extra="style" />
-      </Scene>
-    );
-  }
-  if (id === "both") {
-    return (
-      <Scene id="style-both" screen={sc} title={title} measure={measureStyleBoth}>
-        <StyleShortcutAndSheet screen={sc} />
-      </Scene>
-    );
-  }
-  return (
-    <Scene id="style-sheet" screen={sc} title={title} measure={measureStyleSheet}>
-      <SheetGround screen={sc} title="Settings" description={EVENT.name}>
+  const device = deviceOf(sc);
+  const title = "The reel's defaults";
+  const body =
+    id === "view" ? (
+      <HostView device={device} dock="up" popover="style-view" />
+    ) : id === "sheet" ? (
+      <SheetGround
+        screen={sc}
+        title="Settings"
+        description={EVENT.name}
+        behind={hubBehind(device)}
+      >
+        <ReelDefaultsCard />
         <UnrelatedSettingsCards />
-        <ReelMoodsCard />
       </SheetGround>
+    ) : (
+      <StyleBoth screen={sc} />
+    );
+  return (
+    <Scene id={`style-${id}`} screen={sc} title={title} measure={measureStyle}>
+      {body}
     </Scene>
   );
 }
 
-/* ── switch: where the "Show the reel" row sits ──────────────────────────── */
+/* ── switch: where "Show the reel" sits ──────────────────────────────────── */
 
-const measureSwitchRow: Reader = (root) => {
-  const row = root.querySelector<HTMLElement>("[data-rh-reel-row]");
-  if (row) {
-    const label = row.querySelector("span")?.textContent?.trim();
-    return `Measured: a third row, "${label}", joins the guest list switch in one card.`;
-  }
-  const firstCard = root.querySelector<HTMLElement>(
-    '[data-rh-sheet] [data-slot="card"]',
-  );
-  const heading = firstCard
-    ?.querySelector('[data-slot="card-title"]')
-    ?.textContent?.trim();
-  return heading
-    ? `Measured: the sheet's first card reads "${heading}", ahead of Details.`
+type SwitchId = "guestlist" | "first" | "inview" | "card";
+
+const measureSwitch: Reader = (root) => {
+  if (root.querySelector("[data-rh-host-switch]"))
+    return "Measured: a host-only Show the reel switch closes the dock's top row; Settings carries no row.";
+  if (root.querySelector("[data-rh-reel-home]"))
+    return "Measured: the reel's own card above the album holds the switch beside its living thumbnail.";
+  if (root.querySelector("[data-rh-reel-row]"))
+    return "Measured: a third row, Show the reel, joins the guest list switch in one card.";
+  const first = root.querySelector('[data-rh-sheet] [data-slot="card-title"]');
+  return first
+    ? `Measured: the sheet's first card reads "${said(first)}", ahead of Details.`
     : null;
 };
 
-function switchScene(id: "guestlist" | "first" | "inview", s: BoardState) {
+function switchScene(id: SwitchId, s: BoardState) {
   const sc = viewportOf(s);
-  const title = "The 'Show the reel' row";
-  if (id === "inview") {
-    return (
-      <Scene id="switch-inview" screen={sc} title={title} measure={measureReelView}>
-        <ReelView extra="switch" />
-      </Scene>
-    );
-  }
-  return (
-    <Scene id={`switch-${id}`} screen={sc} title={title} measure={measureSwitchRow}>
-      <SheetGround screen={sc} title="Settings" description={EVENT.name}>
+  const device = deviceOf(sc);
+  const title = "Show the reel";
+  const body =
+    id === "inview" ? (
+      <HostView device={device} dock="up" extra="switch" />
+    ) : id === "card" ? (
+      <Hub
+        device={device}
+        items={LIVE_ALBUM_COUNT}
+        above={<ReelHomeCard device={device} />}
+      />
+    ) : (
+      <SheetGround
+        screen={sc}
+        title="Settings"
+        description={EVENT.name}
+        behind={hubBehind(device)}
+      >
         {id === "first" ? (
           <>
             <ReelHeadCard />
@@ -173,109 +392,41 @@ function switchScene(id: "guestlist" | "first" | "inview", s: BoardState) {
           </>
         )}
       </SheetGround>
+    );
+  return (
+    <Scene id={`switch-${id}`} screen={sc} title={title} measure={measureSwitch}>
+      {body}
     </Scene>
   );
 }
 
-/* ── screen: where "Play on a screen" lives ──────────────────────────────── */
+/* ── pulse: the dashboard's line ─────────────────────────────────────────── */
 
-const measureScreenHub: Reader = (root) => {
-  const door = root.querySelector<HTMLElement>("[data-rh-screen-door]");
-  const label = door?.querySelectorAll("span")[0]?.textContent?.trim();
-  return label
-    ? `Measured: a fifth door, "${label}", sits beside the four rooms.`
-    : "Measured: no screen door found in the cards row.";
-};
-
-const measureScreenShare: Reader = (root) => {
-  const block = root.querySelector<HTMLElement>("[data-rh-screen-block]");
-  const heading = block?.querySelector("h3")?.textContent?.trim();
-  return heading
-    ? `Measured: a third block, "${heading}", sits under the code and above the readable link.`
-    : "Measured: no screen block found in the share sheet.";
-};
-
-function screenScene(id: "hub" | "view" | "share", s: BoardState) {
-  const sc = viewportOf(s);
-  const title = "Where 'Play on a screen' lives";
-  if (id === "view") {
-    return (
-      <Scene id="screen-view" screen={sc} title={title} measure={measureReelView}>
-        <ReelView extra="screen" />
-      </Scene>
-    );
-  }
-  if (id === "share") {
-    return (
-      <Scene id="screen-share" screen={sc} title={title} measure={measureScreenShare}>
-        <SheetGround screen={sc} title={`Share ${EVENT.name}`}>
-          <ShareSheetWithScreen />
-        </SheetGround>
-      </Scene>
-    );
-  }
-  return (
-    <Scene id="screen-hub" screen={sc} title={title} measure={measureScreenHub}>
-      <HostGround screen={sc} wide>
-        <HubHeader />
-        <HubCardsRow withScreenButton />
-      </HostGround>
-    </Scene>
+const measurePulse: Reader = (root) => {
+  const lines = [...root.querySelectorAll("[data-rh-reel-line]")].map((l) =>
+    said(l),
   );
-}
-
-/* ── pulse: the dashboard's line for the reel ────────────────────────────── */
-
-const measurePulseLive: Reader = (root) => {
-  const line = root.querySelector<HTMLElement>("[data-rh-reel-line]");
-  const words = line?.textContent?.trim().replace(/\s+/g, " ");
-  return words
-    ? `Measured: the card's own line reads "${words}"`
-    : "Measured: no reel line found under the card.";
+  const moving = root.querySelector("[data-rh-playing-cover]");
+  const parts = [
+    lines.length ? `the cards say "${lines.join(" / ")}"` : "no card carries a line",
+    moving ? "the live event's cover crossfades" : "every cover holds still",
+  ];
+  return `Measured: ${parts.join("; ")}.`;
 };
 
-const measurePulseThreshold: Reader = (root) => {
-  const lines = root.querySelectorAll("[data-rh-reel-line]").length;
-  const cards = root.querySelectorAll("[data-rh-relevant]").length;
-  return `Measured: ${lines} of ${cards} cards carry the reel line, the one past three items.`;
-};
-
-const measurePulseCover: Reader = (root) => {
-  const cover = root.querySelector<HTMLElement>("[data-rh-playing-cover]");
-  const frames = cover?.querySelectorAll("img").length ?? 0;
-  const line = root.querySelector("[data-rh-reel-line]");
-  return cover
-    ? `Measured: the cover cycles through ${frames} stills; ${line ? "a line still shows" : "no line, no words"}.`
-    : "Measured: no playing cover found.";
-};
-
-function pulseScene(id: "live" | "threshold" | "cover", s: BoardState) {
+function pulseScene(id: PulseOption, s: BoardState) {
   const sc = viewportOf(s);
-  const body =
-    id === "live" ? (
-      <EventCardWithLine items={LIVE_ALBUM_COUNT} showLine />
-    ) : id === "threshold" ? (
-      <ThresholdPair />
-    ) : (
-      <PlayingEventCard />
-    );
-  const measure =
-    id === "live"
-      ? measurePulseLive
-      : id === "threshold"
-        ? measurePulseThreshold
-        : measurePulseCover;
   return (
-    <Scene id={`pulse-${id}`} screen={sc} title="The dashboard's line" measure={measure}>
-      <HostGround screen={sc}>
-        <AppHeader label="Dashboard" />
-        <div className="space-y-2 px-2 pt-2">
+    <Scene id={`pulse-${id}`} screen={sc} title="The dashboard's line" measure={measurePulse}>
+      <div className="min-h-full bg-background text-foreground">
+        <DashboardBar />
+        <div className={sc === "375" ? "space-y-3 px-4 py-5" : "space-y-4 px-8 py-7"}>
           <p className="text-label font-semibold text-muted-foreground uppercase">
             Your events
           </p>
-          {body}
+          <PulsePair option={id} device={deviceOf(sc)} />
         </div>
-      </HostGround>
+      </div>
     </Scene>
   );
 }
@@ -283,15 +434,15 @@ function pulseScene(id: "live" | "threshold" | "cover", s: BoardState) {
 /* ── cut: a host's own cut, added to the album ───────────────────────────── */
 
 const measureCutMark: Reader = (root) => {
-  const chip = root.querySelector<HTMLElement>("[data-rh-cut-chip]");
+  const chip = root.querySelector("[data-rh-cut-chip]");
   return chip
-    ? `Measured: the cut's tile wears a "${chip.textContent?.trim()}" mark.`
+    ? `Measured: the cut's tile wears a "${said(chip)}" mark.`
     : "Measured: the cut's tile carries no mark of its own.";
 };
 
 const measureCutConfirm: Reader = (root) => {
-  const box = root.querySelector<HTMLElement>("[data-rh-relevant]");
-  const words = box?.querySelector("p")?.textContent?.trim();
+  const box = root.querySelector("[data-rh-relevant]");
+  const words = said(box?.querySelector("p"), 120);
   return words ? `Measured: the sheet reads "${words}"` : null;
 };
 
@@ -307,37 +458,9 @@ function cutScene(id: "marked" | "plain" | "confirm", s: BoardState) {
   }
   return (
     <Scene id={`cut-${id}`} screen={sc} title={title} measure={measureCutMark}>
-      <HostGround screen={sc} wide>
+      <div className="min-h-full bg-background py-2 text-foreground">
         <AlbumWithCut mark={id === "marked"} />
-      </HostGround>
-    </Scene>
-  );
-}
-
-/* ── review: the live reel's interplay with a waiting queue ──────────────── */
-
-const measureReviewRoom: Reader = (root) => {
-  const note = root.querySelector<HTMLElement>("[data-rh-reel-note]");
-  return note
-    ? `Measured: the header carries one added line, "${note.textContent?.trim()}"`
-    : "Measured: the review room says nothing about the reel.";
-};
-
-function reviewScene(id: "viewsays" | "roomsays" | "nothing", s: BoardState) {
-  const sc = viewportOf(s);
-  const title = "Review's interplay with the reel";
-  if (id === "viewsays") {
-    return (
-      <Scene id="review-viewsays" screen={sc} title={title} measure={measureReelView}>
-        <ReelView extra="review" />
-      </Scene>
-    );
-  }
-  return (
-    <Scene id={`review-${id}`} screen={sc} title={title} measure={measureReviewRoom}>
-      <HostGround screen={sc} wide>
-        <ReviewRoom withReelNote={id === "roomsays"} />
-      </HostGround>
+      </div>
     </Scene>
   );
 }
@@ -345,6 +468,25 @@ function reviewScene(id: "viewsays" | "roomsays" | "nothing", s: BoardState) {
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof REEL_HOST> = {
+  "progress.card": (s) => progressScene("card", s),
+  "progress.band": (s) => progressScene("band", s),
+  "progress.tile": (s) => progressScene("tile", s),
+  "progress.step": (s) => progressScene("step", s),
+
+  "open.view": (s) => openScene("view", s),
+  "open.hub": (s) => openScene("hub", s),
+  "open.share": (s) => openScene("share", s),
+  "open.settings": (s) => openScene("settings", s),
+  "open.link": (s) => openScene("link", s),
+
+  "review.wired": () => reviewScene("wired"),
+  "review.agree": () => reviewScene("agree"),
+  "review.card": () => reviewScene("card"),
+  "review.header": () => reviewScene("header"),
+  "review.feed": () => reviewScene("feed"),
+  "review.chip": () => reviewScene("chip"),
+  "review.room": () => reviewScene("room"),
+
   "style.view": (s) => styleScene("view", s),
   "style.sheet": (s) => styleScene("sheet", s),
   "style.both": (s) => styleScene("both", s),
@@ -352,22 +494,15 @@ const PREVIEWS: PreviewsFor<typeof REEL_HOST> = {
   "switch.guestlist": (s) => switchScene("guestlist", s),
   "switch.first": (s) => switchScene("first", s),
   "switch.inview": (s) => switchScene("inview", s),
+  "switch.card": (s) => switchScene("card", s),
 
-  "screen.hub": (s) => screenScene("hub", s),
-  "screen.view": (s) => screenScene("view", s),
-  "screen.share": (s) => screenScene("share", s),
-
-  "pulse.live": (s) => pulseScene("live", s),
+  "pulse.counts": (s) => pulseScene("counts", s),
   "pulse.threshold": (s) => pulseScene("threshold", s),
   "pulse.cover": (s) => pulseScene("cover", s),
 
   "cut.marked": (s) => cutScene("marked", s),
   "cut.plain": (s) => cutScene("plain", s),
   "cut.confirm": (s) => cutScene("confirm", s),
-
-  "review.viewsays": (s) => reviewScene("viewsays", s),
-  "review.roomsays": (s) => reviewScene("roomsays", s),
-  "review.nothing": (s) => reviewScene("nothing", s),
 };
 
 export function ReelHostBoard() {
