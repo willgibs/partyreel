@@ -3,27 +3,29 @@
  * shape: the words in one pure module, so the preview that sets a line, the
  * reader that measures it and the Handoff that quotes it read one string).
  *
- * ★ FOUR KEYS PER LINE, THE SAME FOUR EVERYWHERE: `today` is the shipped
- * string, read out of the file named above it; `warm`, `bright` and `exact`
- * are the three registers the brief asks the candidates to span (plain and
- * warm, bright and playful, quiet and exact). The keys ARE the option ids, so
- * a ledger of answers reads as a voice at a glance: welcome=bright,
- * failed=warm, and so on. Each register is written for its place, never as
- * a costume: a line that could not ship where it is drawn is not a candidate.
+ * ★ FIVE KEYS PER LINE, NOT A FIXED FOUR: `today` is the shipped string, read
+ * out of the file named above it; `warm`, `bright` and `exact` are the three
+ * registers the brief first asked the candidates to span (plain and warm,
+ * bright and playful, quiet and exact); `tender` (soft and tender) is this
+ * round's addition, a fifth real direction rather than another costume on the
+ * same three. The keys ARE the option ids, so a ledger of answers reads as a
+ * voice at a glance: welcome=bright, failed=warm, and so on. Each register is
+ * written for its place, never as a costume: a line that could not ship where
+ * it is drawn is not a candidate.
  *
  * ★ EVERY LINE CLEARS THE FENCES BEFORE IT IS A CANDIDATE: no em-dash, never
  * "no account", never "anonymous" (all the affirmative-only rule, bible 10),
  * the album is the noun, "in your account" and never "on your profile", no
  * promise of what the host will decide, and "night" never used as identity.
- * Lines Will ruled verbatim stay verbatim inside every candidate that carries
- * them ("No app required.", "The album starts with you").
+ * Two lines already ship unchanged inside every candidate that carries them
+ * ("No app required.", "The album starts with you").
  *
  * The host's and the event's names are PARAMETERS, never typed into a line,
  * because the product fills them from the event; a candidate that only reads
  * well for "Maya" is not one.
  */
 
-export type Register = "today" | "warm" | "bright" | "exact";
+export type Register = "today" | "warm" | "bright" | "exact" | "tender";
 
 /** 1. The door's welcome: its two rows under the event's name
  *  (`entry-modal.tsx`, `WelcomeStep`). */
@@ -50,6 +52,11 @@ export const WELCOME: Record<
     lead: "Add photos and videos from your phone. No app required.",
     album: (_host, count) => `One shared album. ${count} so far.`,
   },
+  tender: {
+    lead: "Add the moments only you caught. No app required.",
+    album: (host, count) =>
+      `They’ll join ${host}’s album, ${count} kept safe there already.`,
+  },
 };
 
 /** 2. The password step's lede, under "Almost in" and "<event> is private"
@@ -57,11 +64,12 @@ export const WELCOME: Record<
 export const ASK: Record<Register, string> = {
   today:
     "The host keeps this album private for guests. Enter the password from your invite to come in.",
-  // The ruled gate line's own shape (`account-door.tsx`, `gate`): why, then
+  // The shipped gate line's own shape (`account-door.tsx`, `gate`): why, then
   // the cost, then "and you're in".
   warm: "This album is just for the guests. One password and you’re in.",
   bright: "Guests only, and that means you. The password is on your invite.",
   exact: "Enter the password the host shared with guests.",
+  tender: "Kept for the people who were there. The password’s on your invite.",
 };
 
 /** 3. The stack tile's last beat, as the last of a pick lands
@@ -84,6 +92,10 @@ export const LANDED: Record<
   exact: {
     guest: (n) => `${n} added`,
     member: (n) => `${n} added · in your account`,
+  },
+  tender: {
+    guest: (n) => `All ${n}, kept safe in the album`,
+    member: (n) => `All ${n}, kept safe in your account`,
   },
 };
 
@@ -122,9 +134,15 @@ export const FAILED: Record<
     retry: (failed) =>
       failed === 1 ? "Retry" : failed === 2 ? "Retry both" : `Retry all ${failed}`,
   },
+  tender: {
+    heading: (failed) =>
+      failed === 1 ? "1 didn’t come through" : `${failed} didn’t come through`,
+    line: (host) => `The rest are safe in ${host}’s album.`,
+    retry: (failed) => (failed === 1 ? "Try it again" : "Try them again"),
+  },
 };
 
-/** 5. The empty album's one button, under the ruled heading
+/** 5. The empty album's one button, under the shipped heading
  *  (`gallery-empty-state.tsx`). */
 export const EMPTY_HEADING = "The album starts with you";
 export const EMPTY: Record<Register, string> = {
@@ -132,6 +150,7 @@ export const EMPTY: Record<Register, string> = {
   warm: "Add the first photo",
   bright: "Get it started",
   exact: "Add photos",
+  tender: "Start it with one of yours",
 };
 
 /** 6. A held photograph's own tile, as the guest who sent it sees it
@@ -141,6 +160,7 @@ export const WAITING: Record<Register, string> = {
   warm: "The host sees it first",
   bright: "Over to the host",
   exact: "Only you see this for now",
+  tender: "Kept safe until the host looks",
 };
 
 /** 7. The capture after her first photographs: the card's heading, reason
@@ -189,5 +209,13 @@ export const KEEP: Record<
     doorHeading: "Keep your photos",
     doorReason:
       "Confirm your email to keep this event and your photos in your account. Confirming makes a free account.",
+  },
+  tender: {
+    heading: () => "Hold onto today",
+    body: (n, event) =>
+      `Confirm your email and today stays with you: ${event}, your ${n} photos, kept safe in your account.`,
+    doorHeading: "Hold onto today",
+    doorReason:
+      "Confirm your email and today stays with you, every photo included, kept safe in your account. Confirming makes a free account.",
   },
 };

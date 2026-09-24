@@ -179,7 +179,7 @@ export const RULINGS: Ruling[] = [
     title: "Keeping what she just added",
     surface: "guest",
     asks:
-      "when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, and whether her typed name gets one look before it becomes her account's",
+      "when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, whether her typed name is written silently, confirmed or told, and whether a moderated event gives her a tracker",
     why: "The capture flow after a name-only guest's first upload is live; this board refines it and never gates the shipped flow.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -190,12 +190,13 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/unverified-mark.tsx",
     ],
     board: {
-      note: "Four decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, and whether the name she typed at the door gets one look before it becomes her account's",
+      note: "Five decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, whether the name she typed at the door is silent, confirmed or told, and whether a moderated event gives her a tracker for her own batch",
       variants: [
         "The moment",
         "The offer's shape",
         "The follow surface",
         "What the name becomes",
+        "Her tracker",
       ],
     },
   },
@@ -216,7 +217,7 @@ export const RULINGS: Ruling[] = [
       "src/components/auth/account-door.tsx",
     ],
     board: {
-      note: "Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside three registers (plain and warm, bright and playful, quiet and exact), so the lines he picks build the voice",
+      note: "Seven real lines of the guest journey, each drawn where it ships on a 375 phone over Priya at Maya and Jay's wedding, today's words beside four registers (plain and warm, bright and playful, quiet and exact, soft and tender), so the lines he picks build the voice",
       variants: [
         "The welcome",
         "The password's ask",
