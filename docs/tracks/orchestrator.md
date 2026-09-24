@@ -41,12 +41,17 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
 
 1. **Integrate `docs-sharpen`** when it hands off: review its cut table; apply its scratch copies
    `docs-sharpen/CLAUDE.md` and `docs-sharpen/PROGRAM.md` (the two are never lane-owned).
-2. **Integrate `bible-ten`**: apply its listed citation lines in CLAUDE.md and PROGRAM.md; send `reel-guest-wiring` its
-   eight guest-file lines; return the released claims (bible.ts, bible.test.ts, globals.css, theme.css, marketing.css,
-   registry.ts, boards.ts) to this file's `owns`.
-3. **Cut `library-lean`** (Opus) from `specs/library-lean-brief.md`: the Library as brand kit, catalog and the ten; the
-   rules machinery retired; the look tests deleted (Will's answer); the recipe proved by a fresh agent. Apply its
-   CLAUDE.md, PROGRAM.md and `package.json` lines at the merge. Then a `[preview]` for Will.
+2. **Integrate `bible-ten`**: apply its listed citation lines in CLAUDE.md and PROGRAM.md; return `globals.css` and
+   `theme.css` to this file's `owns` (bible.ts, bible.test.ts, registry.ts, boards.ts and marketing.css stay released:
+   `library-lean` owns `src/app/(dev)/` and `src/app/(marketing)/`, and they return at its merge). The guest lane's eight
+   bible lines wait for `library-lean`, so that lane syncs once and takes both (below).
+3. **Cut `library-lean`** (Opus) from the ready spec `specs/library-lean.json` (brief in `specs/library-lean-brief.md`;
+   44 owns covering the directive strip, all outside the held guest lane): the Library as brand kit, catalog and the
+   ten; the rules machinery retired; the look tests deleted (Will's answer); the recipe proved by a fresh agent. Hand-merge
+   it in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and
+   `docs/reviews/README.md` lines, then its new gate), since the old merge script calls `design:rules`. Then a
+   `[preview]` for Will, and one message to `reel-guest-wiring`: sync, apply its eight bible lines, strip the
+   `@contract-for`, `@policy` and `@refuses` headers in its owns, re-gate, hand off again.
 4. **A root `kit/` folder** (Will, 2026-09-24): a hand-off brand kit for outside agents, kept current by the
    Orchestrator, which Will copies for outside work (an intro video agent went off brand and asked for: logo files as SVG
    and transparent PNG incl. a dark-background version; the font families and weights for headlines, body and buttons;
