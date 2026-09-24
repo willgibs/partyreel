@@ -1,4 +1,5 @@
 import { sparklinePath } from "@/lib/admin/kpi";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,7 +37,7 @@ export function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
       role="img"
-      aria-label={`${label}: ${total} over ${counts.length} days`}
+      aria-label={`${label}: ${formatCount(total)} over ${counts.length} days`}
       className={cn("h-10 w-full", className)}
     >
       {/* The fill first, so the stroke sits on top of its own wash. It reuses

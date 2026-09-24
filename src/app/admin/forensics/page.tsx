@@ -25,6 +25,8 @@ import {
   listForensicAudit,
   listHeldMedia,
 } from "@/lib/db/queries/forensics";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 
 import { PreserveForm, ReleaseHoldButton } from "./forensics-controls";
 
@@ -69,14 +71,14 @@ export default async function ForensicsPage() {
             <CardTitle>Capture coverage (24h)</CardTitle>
             {captureGap > 0 ? (
               <Badge variant="destructive">
-                {captureGap} uploads missing a record
+                {formatCount(captureGap)} uploads missing a record
               </Badge>
             ) : (
               <Badge variant="secondary">healthy</Badge>
             )}
             {health.auditErrors24h > 0 ? (
               <Badge variant="destructive">
-                {health.auditErrors24h} failed actions (24h)
+                {formatCount(health.auditErrors24h)} failed actions (24h)
               </Badge>
             ) : null}
           </div>
@@ -93,19 +95,19 @@ export default async function ForensicsPage() {
           <div className="flex gap-6 text-sm">
             <div>
               <p className="text-2xl font-semibold tabular-nums">
-                {health.uploads24h}
+                {formatCount(health.uploads24h)}
               </p>
               <p className="text-muted-foreground">uploads</p>
             </div>
             <div>
               <p className="text-2xl font-semibold tabular-nums">
-                {health.captured24h}
+                {formatCount(health.captured24h)}
               </p>
               <p className="text-muted-foreground">records captured</p>
             </div>
             <div>
               <p className="text-2xl font-semibold tabular-nums">
-                {health.activeHolds}
+                {formatCount(health.activeHolds)}
               </p>
               <p className="text-muted-foreground">active holds</p>
             </div>
@@ -169,13 +171,8 @@ export default async function ForensicsPage() {
                     <TableCell>
                       {h.eventName ?? `${h.eventId.slice(0, 8)}\u2026`}
                     </TableCell>
-                    {/* A locale render is the server's timezone during SSR and
-                        the browser's on hydration: React #418 without this. */}
-                    <TableCell
-                      suppressHydrationWarning
-                      className="whitespace-nowrap text-muted-foreground"
-                    >
-                      {new Date(h.heldAt).toLocaleString()}
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatAdminTimestamp(h.heldAt)}
                     </TableCell>
                     <TableCell>
                       {h.preservedAt ? (
@@ -247,11 +244,8 @@ export default async function ForensicsPage() {
                     key={a.id}
                     tone={a.outcome === "ok" ? undefined : "destructive"}
                   >
-                    <TableCell
-                      suppressHydrationWarning
-                      className="whitespace-nowrap text-muted-foreground"
-                    >
-                      {new Date(a.createdAt).toLocaleString()}
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatAdminTimestamp(a.createdAt)}
                     </TableCell>
                     <TableCell>{ACTION_LABEL[a.action] ?? a.action}</TableCell>
                     <TableCell className="text-caption whitespace-nowrap tabular-nums">

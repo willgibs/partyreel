@@ -17128,7 +17128,7 @@
           "line": 34
         },
         {
-          "title": "says the whole count, past any read's length",
+          "title": "says the whole count, past any read's length, grouped for reading",
           "suite": [
             "the widening window"
           ],
@@ -17141,7 +17141,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 50
+          "line": 52
         },
         {
           "title": "takes the widest window when nothing fills the strip, and dates it",
@@ -17149,7 +17149,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 60
+          "line": 62
         },
         {
           "title": "widens past today only when today is genuinely empty",
@@ -17157,7 +17157,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 69
+          "line": 71
         },
         {
           "title": "counts each window from where it starts: the last sixty minutes, and the host's midnight",
@@ -17165,7 +17165,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 73
+          "line": 75
         },
         {
           "title": "says which window it settled on, including how stale the newest is",
@@ -17173,7 +17173,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 80
+          "line": 82
         },
         {
           "title": "never claims freshness it cannot back up",
@@ -17181,7 +17181,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 91
+          "line": 93
         }
       ]
     },
@@ -17466,6 +17466,105 @@
           ],
           "file": "src/lib/dashboard/next-step.test.ts",
           "line": 205
+        }
+      ]
+    },
+    {
+      "id": "viewer-day",
+      "file": "src/lib/dashboard/viewer-day.ts",
+      "names": [
+        "VIEWER_ZONE_HEADER"
+      ],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "takes a valid IANA zone from the header",
+          "suite": [
+            "resolveViewerZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 21
+        },
+        {
+          "title": "falls back on a missing header",
+          "suite": [
+            "resolveViewerZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 27
+        },
+        {
+          "title": "falls back on a garbage header rather than throwing",
+          "suite": [
+            "resolveViewerZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 33
+        },
+        {
+          "title": "answers a real IANA zone Intl itself accepts",
+          "suite": [
+            "serverZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 42
+        },
+        {
+          "title": "spring-forward, 2026-03-08: midnight is still EST, before the 2am jump to EDT",
+          "suite": [
+            "calendarDayInZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 51
+        },
+        {
+          "title": "fall-back, 2026-11-01: midnight is still EDT, before the 2am repeat of 1am",
+          "suite": [
+            "calendarDayInZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 60
+        },
+        {
+          "title": "Kolkata (+5:30, no DST): a half-hour offset resolves exactly",
+          "suite": [
+            "calendarDayInZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 69
+        },
+        {
+          "title": "Kiritimati (+14, no DST): the furthest-ahead zone on Earth",
+          "suite": [
+            "calendarDayInZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 76
+        },
+        {
+          "title": "Honolulu (-10, no DST): the furthest-behind common zone",
+          "suite": [
+            "calendarDayInZone"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 86
+        },
+        {
+          "title": "21:00 in New York the evening before: the server's UTC day is already tomorrow",
+          "suite": [
+            "the evening-before scenario: 'Print the code' must not disappear"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 109
+        },
+        {
+          "title": "the same instant, read from Kolkata, is already the event's own day",
+          "suite": [
+            "the evening-before scenario: 'Print the code' must not disappear"
+          ],
+          "file": "src/lib/dashboard/viewer-day.test.ts",
+          "line": 126
         }
       ]
     },
@@ -17789,6 +17888,161 @@
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
           "line": 166
+        }
+      ]
+    },
+    {
+      "id": "admin-time",
+      "file": "src/lib/format/admin-time.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders in UTC and says so",
+          "suite": [
+            "formatAdminTimestamp"
+          ],
+          "file": "src/lib/format/admin-time.test.ts",
+          "line": 17
+        },
+        {
+          "title": "never prints a 24-hour midnight",
+          "suite": [
+            "formatAdminTimestamp"
+          ],
+          "file": "src/lib/format/admin-time.test.ts",
+          "line": 21
+        },
+        {
+          "title": "takes a Date or an epoch millisecond the same as an ISO string",
+          "suite": [
+            "formatAdminTimestamp"
+          ],
+          "file": "src/lib/format/admin-time.test.ts",
+          "line": 27
+        },
+        {
+          "title": "renders the UTC calendar day, labelled, with no time of day",
+          "suite": [
+            "formatAdminDate"
+          ],
+          "file": "src/lib/format/admin-time.test.ts",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "id": "count",
+      "file": "src/lib/format/count.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "groups with commas, explicitly en-US",
+          "suite": [
+            "formatCount"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 19
+        },
+        {
+          "title": "leaves a small count unchanged",
+          "suite": [
+            "formatCount"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 24
+        },
+        {
+          "title": "signs a positive delta and groups it",
+          "suite": [
+            "formatSignedCount"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 31
+        },
+        {
+          "title": "signs a negative delta with one minus, never two",
+          "suite": [
+            "formatSignedCount"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 35
+        },
+        {
+          "title": "reads zero as a bare zero, no sign",
+          "suite": [
+            "formatSignedCount"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 39
+        },
+        {
+          "title": "leaves numbers under 1,000 unchanged",
+          "suite": [
+            "formatCompactNumber"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 45
+        },
+        {
+          "title": "compacts thousands and millions the way a chart tick should",
+          "suite": [
+            "formatCompactNumber"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 50
+        },
+        {
+          "title": "never shrinks below the chart's original fixed width",
+          "suite": [
+            "compactAxisWidth"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 61
+        },
+        {
+          "title": "widens for a longer compact label",
+          "suite": [
+            "compactAxisWidth"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 65
+        },
+        {
+          "title": "is stable for an empty series",
+          "suite": [
+            "compactAxisWidth"
+          ],
+          "file": "src/lib/format/count.test.ts",
+          "line": 71
+        }
+      ]
+    },
+    {
+      "id": "date-in-zone",
+      "file": "src/lib/format/date-in-zone.ts",
+      "names": [],
+      "specimens": [],
+      "indexed": false,
+      "contracts": [
+        {
+          "title": "renders the day as it falls in the given zone",
+          "suite": [
+            "formatDateInZone"
+          ],
+          "file": "src/lib/format/date-in-zone.test.ts",
+          "line": 17
+        },
+        {
+          "title": "takes a Date the same as an ISO string",
+          "suite": [
+            "formatDateInZone"
+          ],
+          "file": "src/lib/format/date-in-zone.test.ts",
+          "line": 24
         }
       ]
     },

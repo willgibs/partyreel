@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ReportStatus, ReviewProfileReport } from "@/lib/db/queries/reports";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 /**
  * The operator's view of a REPORTED PERSON (Will, `block=report`, 2026-09-19).
@@ -93,7 +94,7 @@ function PersonReportCard({ report }: { report: ReviewProfileReport }) {
           {report.reason ?? "No reason given."}
         </p>
         <p className="text-xs text-muted-foreground">
-          Reported {new Date(report.created_at).toLocaleString()}
+          Reported {formatAdminTimestamp(report.created_at)}
         </p>
       </CardContent>
       {report.status === "open" && (

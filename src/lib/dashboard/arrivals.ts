@@ -23,6 +23,8 @@
  * (no clock in a pure function, and none in RSC render).
  */
 
+import { formatCount } from "@/lib/format/count";
+
 /** The strip holds twelve at a desk, eight in a hand; twelve is what we seek. */
 export const ARRIVALS_TARGET = 12;
 
@@ -91,10 +93,10 @@ export function describeArrivals(
   now: number,
 ): string {
   if (window === "hour") {
-    return `${count} in the last hour, across your events`;
+    return `${formatCount(count)} in the last hour, across your events`;
   }
   if (window === "today") {
-    return `${count} today, across your events`;
+    return `${formatCount(count)} today, across your events`;
   }
   if (!newestIso) return "Nothing yet";
   return `Newest, ${relativeAge(Date.parse(newestIso), now)}`;

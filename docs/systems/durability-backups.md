@@ -74,6 +74,11 @@ transiently wrong, which is exactly when a restore is in progress.
   36-day age gate + dry-run, below); never add another.
 - **There is NO Docker in production.** The "Worker" is a Cloudflare edge function; Docker exists only
   inside the GitHub runner (to run `supabase db dump`).
+- **The DB-backup Action's Supabase CLI version is PINNED, never `"latest"`.** `version: latest` asks GitHub's
+  unauthenticated release API from a shared runner IP and can rate-limit (GitHub Actions run 35717761607,
+  2026-09-22: "Failed to resolve latest Supabase CLI release: rate limit exceeded"), a live network call this
+  pin removes entirely. [`db-backup.yml`](../../.github/workflows/db-backup.yml) carries the pinned version + how
+  to bump it in a comment beside the install step.
 - **R2 cost GOTCHA:** the R2 *overview* page's "Billable usage" donut is a FORECAST ARTIFACT that can show a
   scary number (~$9.92 with near-zero real usage, by rounding Class A up to its $9/million list rate). The
   authoritative truth is **Billing → Billable usage** ($0.00 total + projected). A **$10 usage budget

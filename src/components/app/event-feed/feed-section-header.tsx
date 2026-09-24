@@ -1,3 +1,4 @@
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 // The single subtle header EVERY stacked feed section leads with (Gallery / Reel / Review), so a long
@@ -41,7 +42,7 @@ export function FeedSectionHeader({
                 : "bg-muted text-muted-foreground",
             )}
           >
-            {count}
+            {formatCount(count)}
           </span>
         ) : null}
       </h2>

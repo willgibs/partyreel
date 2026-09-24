@@ -25,6 +25,8 @@ import {
   getExportEnabled,
   listRecentExports,
 } from "@/lib/db/queries/exports";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 
 import { ExportKillSwitch } from "./export-kill-switch";
@@ -86,7 +88,9 @@ export default async function ExportsPage() {
           <CardTitle className="flex items-center gap-2">
             Recent exports
             {rejections > 0 ? (
-              <Badge variant="secondary">{rejections} rejected (24h)</Badge>
+              <Badge variant="secondary">
+                {formatCount(rejections)} rejected (24h)
+              </Badge>
             ) : null}
           </CardTitle>
           <CardDescription>
@@ -117,14 +121,8 @@ export default async function ExportsPage() {
                     // the ones that did not work by scrolling, not by reading.
                     tone={r.outcome === "minted" ? undefined : "warning"}
                   >
-                    {/* A locale render is the server's timezone during SSR and
-                        the browser's on hydration: React #418 without this
-                        (admin-observability.md's gotcha). */}
-                    <TableCell
-                      suppressHydrationWarning
-                      className="whitespace-nowrap text-muted-foreground"
-                    >
-                      {new Date(r.created_at).toLocaleString()}
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatAdminTimestamp(r.created_at)}
                     </TableCell>
                     <TableCell className="capitalize">{r.scope}</TableCell>
                     <TableCell>
@@ -135,7 +133,7 @@ export default async function ExportsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {r.itemCount || ""}
+                      {r.itemCount ? formatCount(r.itemCount) : ""}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {r.totalBytes ? formatBytes(r.totalBytes) : ""}

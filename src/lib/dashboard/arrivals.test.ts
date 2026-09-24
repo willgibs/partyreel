@@ -38,12 +38,14 @@ describe("the widening window", () => {
     });
   });
 
-  it("says the whole count, past any read's length", () => {
-    // A wedding's first hour: every upload counts, not the newest 240.
+  it("says the whole count, past any read's length, grouped for reading", () => {
+    // A wedding's first hour: every upload counts, not the newest 240 — and
+    // it groups like every other count in the product (the 1,000-row round's
+    // follow-on: `lib/format/count.ts`).
     const picked = pickArrivalWindow({ inHour: 1500, inToday: 1500 });
     expect(picked).toEqual({ window: "hour", count: 1500 });
     expect(describeArrivals(picked.window, picked.count, ago(MIN), NOW)).toBe(
-      "1500 in the last hour, across your events",
+      "1,500 in the last hour, across your events",
     );
   });
 

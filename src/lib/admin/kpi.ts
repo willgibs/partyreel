@@ -1,4 +1,5 @@
 import type { UploadCounts } from "@/lib/db/queries/metrics";
+import { formatCount } from "@/lib/format/count";
 
 /**
  * THE FOUR FIGURES THE PORTAL OPENS ON (`home=kpi`, Will 2026-09-20: "the
@@ -63,7 +64,7 @@ export type AdminKpi = {
 };
 
 function plural(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
+  return `${formatCount(n)} ${n === 1 ? one : many}`;
 }
 
 export function buildAdminKpis(

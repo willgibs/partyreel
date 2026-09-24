@@ -33,6 +33,17 @@ bands, in this order (notices and storage, the most global, sit above the events
   Reads + presigns live in [`pulse.ts`](../../src/lib/db/queries/pulse.ts), apart from `events.ts` on purpose: every
   event room and the settings sheet share `events.ts`, and the home's reads there would tie them to the dashboard.
 
+★ **"Today" is the VIEWER's own calendar day, never the server's.** The server's clock is UTC on Vercel, so from
+evening on in any zone west of UTC the server's own "today" is already tomorrow. The page resolves the viewer's IANA
+zone from Vercel's `x-vercel-ip-timezone` request header (validated by constructing an `Intl` formatter with it;
+falling back to the server's own zone — UTC on Vercel, the machine's zone locally — on a missing or bad value, never a
+guess) and computes that zone's calendar day DST-safely
+([`viewer-day.ts`](../../src/lib/dashboard/viewer-day.ts)). Both the "just arrived" window's "N today" and the
+next-best-step rule's "an event dated tomorrow" (`next-step.ts`'s `tomorrowOf`) read this one day, and the Event Pass
+expiry and the over-cap grace deadline render in the same zone
+([`date-in-zone.ts`](../../src/lib/format/date-in-zone.ts)). The zone is derived per request, used only to render, and
+never stored or logged: no privacy text changes for it.
+
 A host with nothing in the events list sees the create-first hero (`events-empty-teaser.tsx`), the storage line and the
 create door, and no "what needs you" band: a rule with nothing to rule on is the empty surface the pulse exists to
 avoid. A first live event holds the pulse as above and grows no share prompt: sharing stays the event's own door.

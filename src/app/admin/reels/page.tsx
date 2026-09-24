@@ -25,6 +25,8 @@ import {
   getReelRenderEnabled,
   listRecentReelRenders,
 } from "@/lib/db/queries/reel-renders";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 
 import { ReelRenderKillSwitch } from "./reel-render-kill-switch";
 
@@ -92,7 +94,9 @@ export default async function ReelsPage() {
           <CardTitle className="flex items-center gap-2">
             Recent renders
             {failures > 0 ? (
-              <Badge variant="destructive">{failures} failed (24h)</Badge>
+              <Badge variant="destructive">
+                {formatCount(failures)} failed (24h)
+              </Badge>
             ) : null}
           </CardTitle>
           <CardDescription>
@@ -125,14 +129,8 @@ export default async function ReelsPage() {
                       key={r.id}
                       tone={r.outcome === "failed" ? "destructive" : undefined}
                     >
-                      {/* A locale render is the server's timezone during SSR
-                          and the browser's on hydration: React #418 without
-                          this (admin-observability.md's gotcha). */}
-                      <TableCell
-                        suppressHydrationWarning
-                        className="whitespace-nowrap text-muted-foreground"
-                      >
-                        {new Date(r.created_at).toLocaleString()}
+                      <TableCell className="whitespace-nowrap text-muted-foreground">
+                        {formatAdminTimestamp(r.created_at)}
                       </TableCell>
                       <TableCell>
                         {r.eventName ?? (

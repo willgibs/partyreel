@@ -109,11 +109,20 @@ jobs:
           echo "run_id=$(echo "$RESP" | jq -r '.runId // empty')" >> "$GITHUB_OUTPUT"
           echo "started_at_ms=$(echo "$RESP" | jq -r '.startedAtMs // empty')" >> "$GITHUB_OUTPUT"
 
+      # PINNED, never "latest": run 35717761607 (2026-09-22) failed in 573ms with
+      # "Failed to resolve latest Supabase CLI release: rate limit exceeded" — `version: latest`
+      # asked GitHub's unauthenticated release API from a shared runner IP, whose rate limit is
+      # shared across every job on the pool. 2.117.0 is the version confirmed installed by the next
+      # green run (35849733290, 2026-09-23): GitHub's own `/repos/supabase/cli/releases/latest` and
+      # npm's `supabase` package "latest" dist-tag both still name it as of this pin (2026-09-24; npm
+      # last moved it 2026-09-07). To bump: confirm a newer version on EITHER source
+      # (`gh api repos/supabase/cli/releases/latest --jq .tag_name`, or `npm view supabase version`)
+      # and update the value below — never revert to "latest", which is the failure this removes.
       - name: Install Supabase CLI
         if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: "2.117.0"
 
       - name: Install rclone
         if: steps.guard.outputs.ready == 'true' && steps.job.outputs.paused != 'true'

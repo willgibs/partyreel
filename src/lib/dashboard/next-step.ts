@@ -22,6 +22,8 @@
  * TESTED in. The existing `listRecentlyDeletedEvents` sets the same precedent.
  */
 
+import { formatCount } from "@/lib/format/count";
+
 export type NextStepKind = "review" | "paused" | "reel" | "print" | "storage";
 
 export type NextStep = {
@@ -78,8 +80,8 @@ export function nextStepForEvent(
     return {
       kind: "review",
       eventId: event.id,
-      label: `${event.pending} waiting on ${event.name}`,
-      short: `${event.pending} to review`,
+      label: `${formatCount(event.pending)} waiting on ${event.name}`,
+      short: `${formatCount(event.pending)} to review`,
       href,
       tone: "waiting",
     };
