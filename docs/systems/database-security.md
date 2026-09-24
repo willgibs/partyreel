@@ -25,7 +25,7 @@ service-role admin client (`server-only`).
 
 ## The advisor model (`get_advisors` — run after EVERY schema change)
 
-The expected, accepted set:
+The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled_no_policy`, 5 in `0028`, 32 in `0029`):
 
 - **5 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
   revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
@@ -95,7 +95,8 @@ The expected, accepted set:
   guard (no client-spoofable value, so it stays browser-callable); for a CONFIRMED caller it also stamps
   `verified_at` and `email` and clears `pending_email`, and the count it returns is the claimed rows that carry a
   LIVE upload (→ [guest-flow.md](guest-flow.md)).
-  **The claim by address** (`list_guest_rows_by_email()`, `claim_guest_rows_by_email(uuid[])`,
+  **The claim by address** (`list_guest_rows_by_email(timestamptz, uuid, integer)`, whose three parameters
+  are a keyset cursor and a page size, `claim_guest_rows_by_email(uuid[])`,
   `disown_guest_rows_by_email(uuid[])`) is keyed on the CALLER'S OWN CONFIRMED address, read from
   `auth.users` under definer privilege. ★ The address is never a parameter, which is the whole oracle gate:
   nothing can answer "is this address a Partyreel guest?", and an UNCONFIRMED caller gets an empty set even
@@ -109,8 +110,18 @@ The expected, accepted set:
   **Likes:** `like_media(uuid)` favorites media the caller can SEE (host of its event, a guest of it, or
   an OPEN album; a password/private PURE viewer who never joined cannot like, by design);
   `get_my_likes(integer)` RE-APPLIES that predicate, so a now-inaccessible like never leaks its presigned
-  key; `get_event_like_counts(uuid)` is HOST-GATED (zero rows to a non-host) and the ONLY count path, so a
-  like count NEVER reaches a guest. Unlike + heart-state are owner-RLS from the browser.
+  key; `get_event_like_counts(uuid, uuid, integer)` is HOST-GATED (zero rows to a non-host) and the ONLY
+  count path, so a like count NEVER reaches a guest; it answers only LIKED media, paged on media_id, and a
+  reader maps an absent id to 0. Unlike is an owner-RLS delete from the browser, and the heart state is
+  owner-RLS too, read through `my_liked_media_ids(uuid[])` (SECURITY INVOKER, one uuid[], the ids in the
+  POST body rather than a URL).
+- **SECURITY INVOKER read helpers (in NEITHER list by construction; the caller's own RLS and column
+  grants scope them):** `my_liked_media_ids(uuid[])`, `event_card_stats(uuid[])` and
+  `event_link_totals(uuid)` are authenticated-only; `event_covers(uuid[])` is authenticated and
+  service_role (the dashboard on the user's client, the profile cards on the admin client);
+  `admin_metrics_snapshot(integer, integer)`, `held_event_ids(uuid[])` and `standby_hosts(uuid, integer)`
+  are service_role only. INVOKER is the default for a new read: a grant that ever reached the wrong role
+  would read only that role's own rows, where a DEFINER body would read everyone's.
 - **Service-role-only (must NEVER appear in either advisor list):** the server-mediated RPCs above, plus
   `action_rate`, `purge_media_rows`, `record_link_hit`, `host_active_bytes`, `host_storage_summary` (the storage
   meter's and the storage guard's active and Deleted bytes in one aggregate, called on the admin client after
@@ -256,6 +267,31 @@ The expected, accepted set:
   runs AFTER the honeypot (a bot caught free must not spend a real person's budget on a shared office
   address) and BEFORE the insert and the send. ★ And the swallow is captured at the swallow point: a dead
   limiter otherwise looks exactly like a healthy one.
+
+## Set-returning functions and the row cap
+
+PostgREST cuts every table read and every set-returning RPC at `max_rows` (1,000 on this project, the
+`[api]` value in [`supabase/config.toml`](../../supabase/config.toml)) with no error and no flag; writes are
+not capped (a `PATCH … Prefer: return=representation` over 1,040 rows returned all 1,040).
+- A set-returning function pages on a keyset cursor (`p_after…`/`p_before…`: the last row's key on a total
+  order) and `p_limit`, clamped in SQL to 1,000, or returns one row: a scalar, a `jsonb` or a `uuid[]`.
+  ★ A null `p_limit` reads everything, spelled `limit case when p_limit is null then null else
+  least(p_limit, 1000) end`: `least` ignores a null, so the bare `least(p_limit, 1000)` would silently cap
+  a call without it at 1,000 inside the database. [`row-cap-sql.test.ts`](../../src/lib/db/row-cap-sql.test.ts)
+  holds every function's winning definition to this (drop-aware), with each exception's reason on its
+  `SINGLE_ROW` or `CALLER_BOUNDED` list.
+- Prefer SECURITY INVOKER; a new DEFINER function is service-role only, so the advisor lists never grow.
+- An MCP-created function inherits an anon EXECUTE grant that a bare `revoke … from public` leaves behind,
+  so every grant block names the client roles: it revokes from `public` and from each client role the
+  function must not keep, then grants exactly; a drop-and-create restates its grants in full.
+- ★ The TypeScript reader (`readAllPages`) takes a page shorter than it asked for as the end, so the live
+  `max_rows` must never go below 1,000: verified 2026-09-23, an unbounded read of the 1,200-photo scale probe
+  answered 1,000 rows with `Content-Range: 0-999/*`.
+- The shapes the 1,000-row fixes read live in `20260924010000_row_cap_album.sql` (the guest album paged on
+  `(created_at, id)` with its index `media_event_created_id_idx`, the like counts, the hearts),
+  `20260924020000_row_cap_host.sql` (the card counts, the covers, an event's link totals, the claim card,
+  the operator's metrics) and `20260924030000_row_cap_sweeps.sql` (the legal-hold partition, the standby
+  budget's hosts); each file's header carries its keys and its rolled-back check.
 
 ## Workflow (every schema change)
 
