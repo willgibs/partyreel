@@ -416,3 +416,48 @@ export async function getLiveReelServerFacts(
 export function resetLiveReelServerFactsCache(): void {
   reelFactsCache.clear();
 }
+
+/**
+ * ONE PHOTOGRAPH, FOR ITS OWN LINK CARD (reel-guest-wiring, 2026-09-24): `/e/<token>?photo=<id>`
+ * pasted into a chat unfurls as that photograph, on an album anyone with the link may open whole.
+ *
+ * SELF-GUARDED like every read here: an OPEN event only (a password or private event's media never
+ * leaves through a card), and the row must be APPROVED and belong to THIS event, so an unknown,
+ * held, hidden or foreign id answers null and the caller keeps the event's own card, with no sign
+ * the item exists. The caller also requires that an anonymous viewer would see the whole album (no
+ * email or upload gate), which this cannot know. Keys stay here; only the caller's presign leaves.
+ */
+export async function getOpenAlbumItemForCard(
+  event: Pick<GuestEvent, "id" | "visibility">,
+  mediaId: string,
+): Promise<{
+  type: "photo" | "video";
+  originalKey: string;
+  previewKey: string | null;
+  width: number | null;
+  height: number | null;
+} | null> {
+  if (event.visibility !== "open") return null;
+  const { data, error } = await createAdminClient()
+    .from("media")
+    .select("type, original_key, preview_key, width, height")
+    .eq("id", mediaId)
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .maybeSingle();
+  // A failed read degrades to the event's own card (a link preview is cosmetic), reported.
+  if (error) {
+    captureWarning("media", "photo card: the item could not be read", {
+      code: error.code,
+    });
+    return null;
+  }
+  if (!data) return null;
+  return {
+    type: data.type,
+    originalKey: data.original_key,
+    previewKey: data.preview_key,
+    width: data.width,
+    height: data.height,
+  };
+}

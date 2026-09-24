@@ -17,6 +17,7 @@
  * The other half is that the tick cannot die: a throwing draw must report and keep running, because
  * a rAF that dies is a black rectangle for the rest of the night.
  */
+import { createRef } from "react";
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -53,6 +54,7 @@ const { LiveReelPlayer } = await import("./player-live");
 const { createClipSource } = await import("@/lib/reel/live/source");
 type LiveMediaItem = import("@/lib/reel/live/items").LiveMediaItem;
 type LiveFrameState = import("./player-live").LiveFrameState;
+type LiveReelPlayerHandle = import("./player-live").LiveReelPlayerHandle;
 
 // ── A hand-driven rAF clock ────────────────────────────────────────────────
 // ★ `nowMs` is MODULE-level and only ever advances, because rAF timestamps do: a per-call counter
@@ -439,6 +441,42 @@ describe("LiveReelPlayer", () => {
       );
       view.unmount();
     }
+  });
+
+  it("★ a step moves the photograph, never the clock (the view's arrow keys)", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const source = makeSource();
+    const { seen } = await mountPlayer({ source, ref: handle });
+    await tickFrames(12, 1000 / 24);
+    const before = seen.at(-1)!;
+
+    // Forward: the next photograph, at once, with the clock where it was.
+    await act(async () => handle.current!.step(1));
+    await tickFrames(1, 1000 / 24);
+    const forward = seen.at(-1)!;
+    expect(forward.clipId).not.toBe(before.clipId);
+    expect(forward.globalFrame).toBeGreaterThanOrEqual(before.globalFrame);
+
+    // Back, straight away: within its first half-second, so the photograph before it.
+    await act(async () => handle.current!.step(-1));
+    await tickFrames(1, 1000 / 24);
+    expect(seen.at(-1)!.clipId).toBe(before.clipId);
+    expect(monotonic(seen)).toBe(true);
+  });
+
+  it("★ a step past a window's last photograph hands over to the next window", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const source = makeSource();
+    const { seen } = await mountPlayer({ source, ref: handle });
+    await tickFrames(4, 1000 / 24);
+    const windowAtStart = seen.at(-1)!.windowIndex;
+    // Four clips a window here: three steps reach its last photograph, the fourth leaves it.
+    for (let i = 0; i < 4; i++) {
+      await act(async () => handle.current!.step(1));
+      await tickFrames(1, 1000 / 24);
+    }
+    expect(seen.at(-1)!.windowIndex).toBeGreaterThan(windowAtStart);
+    expect(monotonic(seen)).toBe(true);
   });
 
   it("★ a throwing draw reports and the tick keeps running", async () => {

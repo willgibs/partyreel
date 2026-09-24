@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
+import { z } from "zod";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
@@ -19,8 +20,12 @@ import { listAccountMediaIds } from "@/lib/db/mutations/guest-media";
 import {
   getGalleryStats,
   getHostAvatarSeed,
+  getOpenAlbumItemForCard,
 } from "@/lib/db/queries/guest-events-admin";
-import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import {
+  getEventByQrToken,
+  type GuestEvent,
+} from "@/lib/db/queries/guest-events";
 import { getProfileMenu } from "@/lib/db/queries/profile";
 import {
   getEventGuestList,
@@ -29,14 +34,20 @@ import {
 } from "@/lib/db/queries/social";
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
+import { resolveGalleryDecision } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
   loadGalleryForAccess,
   resolveViewerDecision,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import {
+  EVENT_CARD_ALT,
+  EVENT_CARD_SIZE,
+  eventCardPath,
+} from "@/lib/guest/event-card";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
-import { getGuestReelContext } from "@/lib/reel/guest-reel";
+import { presignDownload } from "@/lib/r2/presign";
 import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
@@ -49,11 +60,15 @@ export const dynamic = "force-dynamic";
 // so a pasted link previews. Visibility decides what leaks: a PRIVATE event reveals
 // nothing (generic title); a PASSWORD event shows its NAME (it's link-shared, the name
 // isn't the secret) but no description; OPEN gets the full unfurl, one invitation for
-// every open event whatever its identity switch (below).
+// every open event whatever its identity switch (below). The IMAGE is the event's own
+// card (`/e/<token>/card`), or, for a link to one photograph on an album anyone may open,
+// that photograph (`photoCard` below).
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const { token } = await params;
   const result = await getEventByQrToken(token);
@@ -61,21 +76,28 @@ export async function generateMetadata({
     return {
       title: result.ok ? "Private event" : "Join event",
       robots: { index: false },
+      openGraph: { images: [eventCardImage(token)] },
+      twitter: { card: "summary_large_image", images: [eventCardImage(token)] },
     };
   }
 
   const event = result.data;
+  const card = eventCardImage(event.qr_token);
   if (event.visibility === "password") {
     const title = event.name;
     return {
       title,
       robots: { index: false, follow: false },
-      openGraph: { title, url: `/e/${event.qr_token}`, type: "website" },
-      twitter: { card: "summary_large_image", title },
+      openGraph: {
+        title,
+        url: `/e/${event.qr_token}`,
+        type: "website",
+        images: [card],
+      },
+      twitter: { card: "summary_large_image", title, images: [card] },
     };
   }
 
-  const title = `Add photos to ${event.name}`;
   // ★ A PASTED LINK INVITES, IT DOES NOT WARN (Will, 2026-09-17, the `unfurl=join`
   // pick, overruling the recommendation): every open event unfurls the same
   // invitation, never a line announcing its email step in the group chat. He took
@@ -85,6 +107,31 @@ export async function generateMetadata({
   // and that was the trade he took, not one he missed. The gate itself is honest
   // where it happens, at the entry modal's account step.
   const description = "Photos and videos from the day. Add yours.";
+
+  const photo = await photoCard(event, (await searchParams).photo);
+  if (photo) {
+    const title = `A photo from ${event.name}`;
+    return {
+      title,
+      description,
+      robots: { index: false, follow: false },
+      openGraph: {
+        title,
+        description,
+        url: `/e/${event.qr_token}`,
+        type: "website",
+        images: [photo],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [photo],
+      },
+    };
+  }
+
+  const title = `Add photos to ${event.name}`;
   return {
     title,
     description,
@@ -94,9 +141,65 @@ export async function generateMetadata({
       description,
       url: `/e/${event.qr_token}`,
       type: "website",
+      images: [card],
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [card] },
   };
+}
+
+/** The event's own card (the route beside this page draws it). */
+function eventCardImage(qrToken: string) {
+  return {
+    url: eventCardPath(qrToken),
+    ...EVENT_CARD_SIZE,
+    alt: EVENT_CARD_ALT,
+    type: "image/png",
+  };
+}
+
+const photoIdSchema = z.uuid();
+
+/**
+ * ★ ONE PHOTOGRAPH'S LINK CARD (reel-guest-wiring, 2026-09-24): `/e/<token>?photo=<id>` (the media
+ * viewer's own address for a photograph) unfurls as that photograph, titled "A photo from <event>",
+ * its preview presigned here on the server. Only where the link alone opens the whole album: an OPEN
+ * event with no email or upload gate an anonymous visitor would meet (an unfurler IS an anonymous
+ * visitor), so a gated album keeps the event card exactly as before. An id that is malformed,
+ * unknown, held, hidden or another event's keeps the event card too, with no sign it exists. A video
+ * unfurls as its poster, or as the event card when it has none (a player file is no image).
+ */
+async function photoCard(
+  event: GuestEvent,
+  raw: string | string[] | undefined,
+): Promise<{ url: string; width?: number; height?: number; alt: string } | null> {
+  const parsed = photoIdSchema.safeParse(Array.isArray(raw) ? raw[0] : raw);
+  if (!parsed.success) return null;
+  const anonymous = resolveGalleryDecision(event, {
+    isOwner: false,
+    isAuthed: false,
+    isUnlocked: false,
+    hasContributed: false,
+    canContribute: event.accepting_uploads,
+  });
+  if (anonymous.access !== "full") return null;
+  const item = await getOpenAlbumItemForCard(event, parsed.data);
+  if (!item) return null;
+  const key =
+    item.previewKey ?? (item.type === "photo" ? item.originalKey : null);
+  if (!key) return null;
+  try {
+    const url = await presignDownload({ key, stable: true });
+    return {
+      url,
+      ...(item.width && item.height
+        ? { width: item.width, height: item.height }
+        : {}),
+      alt: `A photo from ${event.name}`,
+    };
+  } catch {
+    // A failed presign keeps the event's own card: a link preview is never worth an error page.
+    return null;
+  }
 }
 
 // The unified guest EVENT page — a scanned QR lands here. The opaque qr_token IS the
@@ -243,14 +346,9 @@ export default async function GuestEventPage({
   // carries (`countApprovedMedia`), so the header's seed and the gallery's
   // first report are one number.
   //
-  // The guest REEL read (R3, guest-flow.md) rides alongside it, awaited CONCURRENTLY:
-  // both are cheap indexed reads, and the reel card must be in the SHELL HTML
-  // (a streamed top card would shift the keepsake album's hero as it lands), so
-  // it cannot stream like the gallery does — but it must not cost a serial
-  // round-trip either. Returns null for everything that isn't "this viewer may
-  // see a published, non-empty reel" (access, publish state, curation, locks),
-  // so the card below needs no further gating. The raw `event` on purpose: it
-  // carries the canonical qr_token the RPC matches on.
+  // ★ NO REEL READ HERE ANY MORE (reel-guest-wiring, 2026-09-24): the live reel
+  // stores nothing, and its facts ride the gallery payload itself (`reel`,
+  // gallery-reel.ts), streamed with the album rather than awaited in the shell.
   //
   // A GUEST'S OWN PHOTOGRAPHS ride alongside them (Will, `yours`, 2026-09-20:
   // "A guest can delete any photo they've personally uploaded, ever"). For a
@@ -262,9 +360,8 @@ export default async function GuestEventPage({
   // identity is a session token in the browser's own storage, so LiveGallery
   // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
   // rendered to remove) and in the demo (nothing there is real).
-  const [stats, guestReel, canDeleteIds, cookieJar] = await Promise.all([
+  const [stats, canDeleteIds, cookieJar] = await Promise.all([
     getGalleryStats(event),
-    getGuestReelContext(event, access),
     userId && !isDemo && access !== "none"
       ? listAccountMediaIds({ eventId: event.id, userId })
       : Promise.resolve<string[]>([]),
@@ -290,6 +387,8 @@ export default async function GuestEventPage({
           host_display_name: null,
           description: null,
           event_date: null,
+          // The slug is only ever said by the reel's code plate, which a locked page never draws.
+          custom_slug: null,
         }
       : event;
 
@@ -397,7 +496,6 @@ export default async function GuestEventPage({
         hostSeed={hostSeed}
         isOwner={isOwner}
         guestListSlot={guestListSlot}
-        guestReel={guestReel}
         canDeleteIds={canDeleteIds}
         isAuthed={Boolean(userId)}
         // Identity keys on a CONFIRMED account, never a uid alone (wave 0's

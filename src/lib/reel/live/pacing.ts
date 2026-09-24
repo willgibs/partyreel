@@ -39,9 +39,18 @@ export const DEFAULT_SURFACE: Surface = "hand";
 /** The video window at factor 1 (the plan's six seconds); `reel-engine-video` reads it through here. */
 export const BASE_VIDEO_WINDOW_SEC = 6;
 
-/** The knob's safe range. Outside it the reel is either a slideshow of stills or a strobe. */
+/**
+ * The knob's safe range. Outside it the reel is either a slideshow of stills or a strobe.
+ *
+ * ★ THE CEILING IS SIX, NOT THREE (reel-guest-wiring, 2026-09-24). The view's Hold control takes
+ * ABSOLUTE seconds (Will's `pacing=unhurried`, amended: "3 seconds the default, but this should be
+ * adjustable"), converted per mood into this factor (lib/guest/reel-prefs.ts's `holdScaleFor`),
+ * and the slowest step, 7 s, on the fastest mood (Kinetic holds 1.4 s) is a factor of 5. A ceiling
+ * of three silently capped that viewer at 4.2 s. The edit keeps its proportions at any factor (the
+ * header), so the widened range is a slower film, never a broken one.
+ */
 const MIN_SCALE = 0.25;
-const MAX_SCALE = 3;
+const MAX_SCALE = 6;
 
 /** The one factor: the surface's own, times the board knob's multiplier (default 1). */
 export function pacingFactor(surface: Surface, holdScale = 1): number {

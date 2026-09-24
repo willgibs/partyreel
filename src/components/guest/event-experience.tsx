@@ -20,7 +20,7 @@ import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 import { GallerySkeleton } from "@/components/guest/gallery-skeleton";
 import { GhostRiver } from "@/components/guest/gallery-empty-state";
-import { GuestReelCard } from "@/components/guest/guest-reel-card";
+import { GalleryLiveProvider } from "@/components/guest/gallery-live";
 import { GuestShare } from "@/components/guest/guest-share";
 import {
   GuestUpload,
@@ -33,6 +33,7 @@ import {
   type GalleryPayload,
   type LiveGalleryHandle,
 } from "@/components/guest/live-gallery";
+import { LiveReel, LiveReelTile } from "@/components/guest/reel/live-reel";
 import { ReportDialog } from "@/components/guest/report-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,6 @@ import {
   type DemoPairArrival,
 } from "@/lib/demo";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
-import type { GuestReelPayload } from "@/lib/reel/guest-reel-payload";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import {
   DEFAULT_TILE_SIZE,
@@ -127,7 +127,6 @@ export function EventExperience({
   hostSeed,
   isOwner,
   guestListSlot,
-  guestReel,
   canDeleteIds,
   isAuthed,
   isVerified = false,
@@ -173,10 +172,6 @@ export function EventExperience({
   /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
    *  host enabled show_guest_list AND access is full (the page owns that gate). */
   guestListSlot?: React.ReactNode;
-  /** The published reel for THIS viewer, or null (R3, guest-flow.md). Null already covers
-   *  unpublished / empty / locked / below-full-access, so the card renders on
-   *  non-null alone: this component adds only the ruled PLACEMENT. */
-  guestReel: GuestReelPayload | null;
   /** The media ids in this album this SIGNED-IN viewer uploaded — resolved in the
    *  page RSC, never asserted by the browser (Will, `yours`, 2026-09-20). Empty
    *  for an anonymous guest, whose list comes from `/api/guests/mine` instead. */
@@ -296,7 +291,13 @@ export function EventExperience({
      by the effect beside `handleUploaded`. One indirection, rather than reordering the whole
      shell around a hook that has to exist before the album does. */
   const handleUploadedRef = useRef<(u: UploadedItem) => void>(() => {});
-  const { items: queue, addFiles, retry, dismiss } = useUploadQueue({
+  const {
+    items: queue,
+    addFiles,
+    addCut,
+    retry,
+    dismiss,
+  } = useUploadQueue({
     qrToken,
     sessionToken,
     onSession: setSessionToken,
@@ -470,18 +471,11 @@ export function EventExperience({
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
-  // THE REEL CARD's two ruled placements (guest-flow.md ruling 2), a function of the
-  // event's lifecycle: while uploads are open, adding photos is still the page's
-  // primary job, so the reel sits UNDER the action block; once the host closes
-  // uploads the link IS the keepsake album, so the reel leads the page.
-  // Mutually exclusive by construction, and both null unless the server resolved
-  // a reel this viewer may see.
-  const heroReel = guestReel && !event.accepting_uploads ? guestReel : null;
-  const inlineReel = guestReel && event.accepting_uploads ? guestReel : null;
-  // The hero takes the first reveal beat, so the header's own beats step back one
-  // and the cascade still reads top-to-bottom (the inline card instead lands
-  // AFTER the action block's beat, where nothing follows it in this track).
-  const revealBase = heroReel ? 1 : 0;
+  /* ★ THE STORED REEL'S CARD AND OVERLAY NO LONGER RENDER (reel-guest-wiring, 2026-09-24). The reel
+     is live now: the Highlight reel tile sits in its own slot above the album and opens the
+     full-screen view (reel/live-reel.tsx), both reading the album's own live payload. The stored
+     reel's two components stay on disk for the teardown lane, which deletes them with the tables. */
+  const revealBase = 0;
   /* ────────────────────────────────────────────────────────────────────────
      THE IMMEDIATE HEAL (the door as three steps, 2026-09-21).
 
@@ -689,6 +683,26 @@ export function EventExperience({
       ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}`
       : joinUrl;
 
+  /* ★ THE CUT'S SEAM (reel-guest-wiring, 2026-09-24): the on-device creator's finished cut goes
+     through this page's ONE queue like any upload, written `reel_eligible = false` so the live reel
+     never plays a reel (use-upload-queue.ts's `addCut`). The creator itself is the cut lane's
+     (reel/creator-seam.ts); this is only the door it will use. */
+  const addCutToAlbum = useCallback(
+    (file: File, poster: Blob) => addCut(file, poster),
+    [addCut],
+  );
+  /* The address the reel's code plate prints for a person to read: the custom slug's when the
+     event has one (what the host chose to be read aloud), the token's otherwise. The CODE always
+     carries the canonical token link (`joinUrl`); this is words, never a link. */
+  const displayAddress = (() => {
+    try {
+      const host = new URL(joinUrl).host;
+      return `${host}/e/${event.custom_slug ?? qrToken}`;
+    } catch {
+      return joinUrl;
+    }
+  })();
+
   // `try=turn`: the same upload, then one card. Paired, the two lines above
   // say more (the SAME moment, worded for a second screen); unpaired, the
   // plain turn card owns it. One slot, never stacked.
@@ -821,29 +835,6 @@ export function EventExperience({
             guest-header.tsx, pinned to the top, so it never scrolls away —
             the whole reason the banner needed re-saying itself was that it
             did. */}
-        {/* THE KEEPSAKE HERO: uploads are closed, so the reel opens the page (ruled
-          promotion). Above the header on purpose - the album's first statement is
-          now "here is the film of your night", and the event name lives on the
-          card itself. It renders in the SHELL HTML (the page awaits the read), so
-          it costs no layout shift as the gallery streams in below. No access
-          guard needed here: guestReel is null at anything below full access. */}
-        {heroReel && (
-          <div
-            className="mb-6"
-            data-reveal
-            style={{ "--reveal-i": 0 } as React.CSSProperties}
-          >
-            <GuestReelCard
-              payload={heroReel}
-              eventName={event.name}
-              joinUrl={joinUrl}
-              qrToken={qrToken}
-              galleryPromise={galleryPromise}
-              variant="hero"
-            />
-          </div>
-        )}
-
         {/* LEFT-EDITORIAL header (the ratified V1, per the lab demo composition):
           identity title, one byline line, the stats line, then the action block.
           PRIVACY RULE: at `none` (locked password event) only the NAME renders —
@@ -1020,28 +1011,6 @@ export function EventExperience({
               </div>
             </div>
 
-            {/* THE MID-EVENT REEL CARD: under the action block (ruled), so the primary
-              Add still sits above it - the party is still happening and uploading
-              is the page's job; the reel is the reward on the way past. It takes
-              the beat AFTER the action block's, which nothing else in this track
-              follows, so no other index shifts. */}
-            {inlineReel && (
-              <div
-                className="mt-7"
-                data-reveal
-                style={{ "--reveal-i": revealBase + 4 } as React.CSSProperties}
-              >
-                <GuestReelCard
-                  payload={inlineReel}
-                  eventName={event.name}
-                  joinUrl={joinUrl}
-                  qrToken={qrToken}
-                  galleryPromise={galleryPromise}
-                  variant="inline"
-                />
-              </div>
-            )}
-
             {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
               owns every step in front of them now). Uploads off => a quiet view-only line.
 
@@ -1106,23 +1075,18 @@ export function EventExperience({
           {/* THE ALBUM, and nothing else, leaves the column (`width=full`). It
               is a sibling of the words box now, not a block inside it, which is
               the whole structural change on this page. */}
-          {/* `try=turn` / `phone=pair`: one card directly above the album's
-              first tile — the photograph a visitor just added IS that tile
-              (the album is newest first), so whatever is said here is said
-              right beside it. It keeps the ALBUM's own box (BLEED), not the
-              words' column, so it lines up with the photographs under it;
-              the album itself is one CSS multi-column box and nothing can be
-              put in the middle of one. */}
-          {aboveAlbum && <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>}
-          {/* The gallery streams in (the presign-heavy payload): the skeleton holds
-              its layout slot. key={access} makes an access flip (teaser -> full
-              after sign-in via router.refresh(), a transition - old UI holds) a
-              clean remount that re-seeds from the fresh promise. The fallback
-              wears the SAME box as the gallery, and the skeleton the same column
-              rule AT THE SAME TILE SIZE, so the swap is layout-stable at every
-              window: a two-column placeholder under a six-column album, or an
-              eight-column one under seven, would flash the wrong layout on
-              every load. */}
+          {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL (reel-guest-wiring, 2026-09-24). The
+              provider owns the gallery's live state (the refreshed list, the arrivals, this device's
+              own ids, the doorbell and the poll), so the Highlight reel tile, the full-screen view
+              and the album all read ONE list: an upload reaches the grid and the reel in the same
+              breath. The gallery streams in (the presign-heavy payload): the skeleton holds its
+              layout slot, and nothing above the album waits for it. key={access} makes an access
+              flip (teaser -> full after sign-in via router.refresh(), a transition - old UI holds)
+              a clean remount that re-seeds from the fresh promise. The fallback wears the SAME box
+              as the gallery, and the skeleton the same column rule AT THE SAME TILE SIZE, so the
+              swap is layout-stable at every window: a two-column placeholder under a six-column
+              album, or an eight-column one under seven, would flash the wrong layout on every
+              load. */}
           <Suspense
             fallback={
               <div className={BLEED}>
@@ -1130,30 +1094,64 @@ export function EventExperience({
               </div>
             }
           >
-            <div className={BLEED}>
-              <LiveGallery
-                key={access}
-                ref={attachGallery}
-                galleryPromise={galleryPromise}
-                qrToken={qrToken}
-                access={access}
-                isDemo={isDemo}
-                onOpenGate={() => entryRef.current?.openToGate()}
-                onAccessDrift={handleAccessDrift}
-                onCountChange={setMediaCount}
-                pendingUploads={inFlightUploads}
-                onAddFirst={canUpload ? openAdd : undefined}
+            <GalleryLiveProvider
+              key={access}
+              ref={attachGallery}
+              galleryPromise={galleryPromise}
+              qrToken={qrToken}
+              access={access}
+              isDemo={isDemo}
+              onAccessDrift={handleAccessDrift}
+              onCountChange={setMediaCount}
+              pendingUploads={inFlightUploads}
+              canDeleteIds={canDeleteIds}
+              isAuthed={isAuthed}
+              sessionToken={sessionToken}
+              approvedTotal={stats.approvedTotal}
+              onOwnRemoved={handleOwnRemoved}
+              onGuestCountChange={setGuestCount}
+            >
+              <LiveReel
+                eventId={event.id}
                 joinUrl={joinUrl}
-                canDeleteIds={canDeleteIds}
-                isAuthed={isAuthed}
-                sessionToken={sessionToken}
-                initialTileSize={tileSize}
-                approvedTotal={stats.approvedTotal}
-                closesOnLastRemoval={closesOnLastRemoval}
-                onOwnRemoved={handleOwnRemoved}
-                onGuestCountChange={setGuestCount}
-              />
-            </div>
+                displayAddress={displayAddress}
+                qrStyle={event.qr_style}
+                isDemo={isDemo}
+                moderated={event.moderation_mode !== "live"}
+                onAddYours={canUpload ? openAdd : undefined}
+                addCutToAlbum={canUpload ? addCutToAlbum : null}
+                queue={queue}
+              >
+                {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
+                    album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
+                    reads as the page's showpiece rather than a banner the width of the window.
+                    Absent below the minimum (`states=nothing`). */}
+                <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
+                {/* `try=turn` / `phone=pair`: one card directly above the album's
+                    first tile — the photograph a visitor just added IS that tile
+                    (the album is newest first), so whatever is said here is said
+                    right beside it. It keeps the ALBUM's own box (BLEED), not the
+                    words' column, so it lines up with the photographs under it;
+                    the album itself is one CSS multi-column box and nothing can be
+                    put in the middle of one. */}
+                {aboveAlbum && (
+                  <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
+                )}
+                <div className={BLEED}>
+                  <LiveGallery
+                    galleryPromise={galleryPromise}
+                    qrToken={qrToken}
+                    access={access}
+                    isDemo={isDemo}
+                    onOpenGate={() => entryRef.current?.openToGate()}
+                    onAddFirst={canUpload ? openAdd : undefined}
+                    joinUrl={joinUrl}
+                    initialTileSize={tileSize}
+                    closesOnLastRemoval={closesOnLastRemoval}
+                  />
+                </div>
+              </LiveReel>
+            </GalleryLiveProvider>
           </Suspense>
 
           {/* The named Guests section (profiles-social.md, host-keyed) — after the album,

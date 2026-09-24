@@ -40,6 +40,12 @@ export type GuestEvent = {
   qr_style: string;
   // Joined from profiles — null if the host hasn't set a display name.
   host_display_name: string | null;
+  /**
+   * The event's custom slug (a mutable, human-readable alias of the permanent `qr_token`), or null.
+   * Only ever SAID, never linked: the live reel's code plate prints it as the address a person can
+   * read off a screen, while every link and every code still carries the canonical token.
+   */
+  custom_slug: string | null;
   /** The host's switch for the live reel on the album, default ON (the live reel's expand). */
   show_reel: boolean;
   /** The host's default mood for the live reel; null is the default mood. A viewer's own pick
@@ -146,6 +152,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
+    custom_slug: row.custom_slug ?? null,
     // The live reel's two event facts. `?? true` / `?? null`: an RPC from before the expand never
     // returned them, and a missing switch must read as the default (on), never as off.
     show_reel: row.show_reel ?? true,

@@ -30,7 +30,15 @@
  * remount, and the harness swaps players over the same album.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { Ref } from "react";
 
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 import {
@@ -80,7 +88,24 @@ export type LiveFrameState = {
   } | null;
 };
 
+/**
+ * What a caller can ask of a playing reel beyond its props (the view's arrow keys).
+ *
+ * ★ A STEP MOVES THE WINDOW'S TIMELINE, NEVER THE CLOCK. The clock only ever goes forward (this
+ * file's one contract); a step moves the OFFSET between the clock and the window, exactly as a
+ * splice or a cutaway does, so a step back replays a photograph without the clock running backward.
+ * Forward lands on the clean start of the next photograph (its entrance already played, the way a
+ * viewer who pressed "next" expects to see it, not half-dissolved); at a window's last photograph it
+ * hands over to the next window at once when that window is ready. Back restarts the photograph on
+ * screen, or, pressed again within its first half-second, goes to the one before it in this window.
+ * A window already released is gone for good, so the first photograph of a window only restarts.
+ */
+export type LiveReelPlayerHandle = {
+  step: (delta: 1 | -1) => void;
+};
+
 export type LiveReelPlayerProps = {
+  ref?: Ref<LiveReelPlayerHandle>;
   source: ClipSource;
   /** A MOOD id; a treatment falls back to the default mood (the loop is moods only). */
   styleId: string;
@@ -100,6 +125,14 @@ export type LiveReelPlayerProps = {
   paused?: boolean;
   /** Cap the canvas's longest backing-store dimension (the album tile's thumb). */
   maxDim?: number;
+  /**
+   * FULL-BLEED (the view's `posture=follow`: "Reel media presentation should feel like a full-screen
+   * experience so that, if used on big screens at events, it fills them"). The canvas covers its box
+   * (`object-fit: cover`, no corner, no letterbox) instead of keeping its own aspect: the caller's
+   * box is the viewport, and the composition's orientation already follows it, so the crop is only
+   * ever the sliver between a screen's aspect and 9:16 or 16:9.
+   */
+  fill?: boolean;
   className?: string;
   /** The item now on screen: the caption, the "just added by" beat, the tap-to-jump. */
   onClipChange?: (item: LiveMediaItem | null) => void;
@@ -135,6 +168,7 @@ function prefersReducedMotion(): boolean {
 }
 
 export function LiveReelPlayer({
+  ref,
   source,
   styleId,
   surface = DEFAULT_SURFACE,
@@ -144,6 +178,7 @@ export function LiveReelPlayer({
   includeVideos = false,
   paused,
   maxDim,
+  fill = false,
   className,
   onClipChange,
   onFailure,
@@ -371,6 +406,74 @@ export function LiveReelPlayer({
     }
     state.ahead.clear();
   }, [source]);
+
+  /**
+   * Put the next window on screen at `resume` (its local frame), keeping the clock where it is. The
+   * handover's and a step's shared mechanics: the leaving window gives its readers back, the source
+   * learns which window is current, the one two behind is released, and the prefetch refills.
+   */
+  const swapTo = useCallback(
+    (next: Active, resume: number, globalFrame: number) => {
+      const state = rt.current;
+      state.ahead.delete(next.window.index);
+      const previous = state.index;
+      state.active?.playback?.dispose();
+      state.index = next.window.index;
+      state.frameOffset = globalFrame - resume;
+      state.active = next;
+      source.setCurrentWindow(state.index);
+      if (previous >= 1) source.release(previous - 1);
+      ensureAhead();
+    },
+    [source, ensureAhead],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      step(delta) {
+        const state = rt.current;
+        const active = state.active;
+        if (!active || state.cuttingAway || state.splicing) return;
+        const globalFrame = Math.floor(state.elapsedSec * FPS);
+        const plan = active.window.plan;
+        const lastFrame = Math.max(0, plan.totalFrames - 1);
+        const local = Math.min(
+          lastFrame,
+          Math.max(0, globalFrame - state.frameOffset),
+        );
+        const starts = clipStartFrames(plan);
+        // A photograph's first frame with its entrance already played.
+        const cleanStart = (i: number) =>
+          i <= 0 ? 0 : starts[i] + (plan.gaps[i - 1]?.durationInFrames ?? 0);
+        const top = frameStateAt(plan, local).top.clipIndex;
+
+        if (delta > 0) {
+          if (top + 1 < plan.clips.length) {
+            state.frameOffset = globalFrame - cleanStart(top + 1);
+            return;
+          }
+          const next = state.ahead.get(state.index + 1);
+          if (next && next.window.plan.clips.length > 1) {
+            const nextStarts = clipStartFrames(next.window.plan);
+            const resume =
+              nextStarts[1] +
+              (next.window.plan.gaps[0]?.durationInFrames ?? 0);
+            swapTo(next, resume, globalFrame);
+            return;
+          }
+          // Nothing ready to jump into: run to the end, where the ordinary handover takes it.
+          state.frameOffset = globalFrame - lastFrame;
+          return;
+        }
+        // Back: the photograph before, when this one has barely begun; else this one, again.
+        const intoTop = local - cleanStart(top);
+        const target = top > 0 && intoTop < FPS / 2 ? top - 1 : top;
+        state.frameOffset = globalFrame - cleanStart(target);
+      },
+    }),
+    [swapTo],
+  );
 
   // ── The first window ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -638,8 +741,6 @@ export function LiveReelPlayer({
       if (local >= state.active.window.handoverFrame) {
         const next = state.ahead.get(state.index + 1);
         if (next) {
-          state.ahead.delete(state.index + 1);
-          const previous = state.index;
           const leaving = state.active.window;
           // ★ THE RESUME FRAME IS THE LEAVING WINDOW'S (the small-album seam, 2026-09-24): its
           // `handoverOffset` is how far into the shared clip its entering transition ended, plus
@@ -654,13 +755,7 @@ export function LiveReelPlayer({
           const resume =
             leaving.handoverOffset + Math.max(0, drawn - leaving.handoverFrame);
           // The window we are leaving keeps no readers: the incoming one cues its own.
-          state.active.playback?.dispose();
-          state.index = next.window.index;
-          state.frameOffset = globalFrame - resume;
-          state.active = next;
-          source.setCurrentWindow(state.index);
-          if (previous >= 1) source.release(previous - 1);
-          ensureAhead();
+          swapTo(next, resume, globalFrame);
           local = globalFrame - state.frameOffset;
         }
       }
@@ -741,7 +836,7 @@ export function LiveReelPlayer({
       document.removeEventListener("visibilitychange", sync);
       observer?.disconnect();
     };
-  }, [source, ensureAhead, dropAhead, bumpFailures, attachVideo]);
+  }, [source, ensureAhead, dropAhead, bumpFailures, attachVideo, swapTo]);
 
   // Every retain this player took, given back. The SOURCE is not disposed: it is the caller's.
   useEffect(() => {
@@ -777,12 +872,21 @@ export function LiveReelPlayer({
         ref={canvasRef}
         width={width}
         height={height}
-        className="rounded-xl bg-black"
-        style={{
-          display: "block",
-          width: "100%",
-          aspectRatio: `${width} / ${height}`,
-        }}
+        className={fill ? "bg-black" : "rounded-xl bg-black"}
+        style={
+          fill
+            ? {
+                display: "block",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }
+            : {
+                display: "block",
+                width: "100%",
+                aspectRatio: `${width} / ${height}`,
+              }
+        }
       />
     </div>
   );
