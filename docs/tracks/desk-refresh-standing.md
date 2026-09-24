@@ -1,6 +1,6 @@
 ---
 track: desk-refresh-standing
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "74794b60"            # the launch-prep SHA the branch was cut from
 board: media-viewer
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -86,24 +86,40 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: every open call below is drawn as an option on its own board (his to pick), not a blocking one-way door.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: no `docs/systems/` doc names a fact this lane's `owns` touches.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: `touchpoints.ts`'s `RULINGS` summary line (the "ruled:" text `board-card.mjs` prints) is stale for `host-curation` (still lists "the count") and `media-viewer` (still lists all eight round-1 asks); a hand-written text refresh at integration, no code change, since `touchpoints.ts` is the Orchestrator's.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `08056d2f` ("desk re-cut: the standing boards batch 1 reaches, media-viewer round 2"), pushed to `origin/lp/desk-refresh-standing`. No sync commit: `origin/launch-prep` was at `0ab6b0fe` at boot and stayed there through hand-off (`git merge-base --is-ancestor origin/launch-prep HEAD` holds).
+- Gates on the synced tree (== the work tree; nothing to sync), each its own exit code, all `0`: `pnpm design:rules` (unchanged output: no contract/policy under my `owns`); `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` (unchanged); `pnpm typecheck`; `pnpm lint` (0 errors; the 6 pre-existing warnings are all outside my `owns`, none mine); `pnpm test` (431 files, 4700 passed, 1 skipped: the 1 originally-failing `no-em-dash-policy` catch on my own new `export-flow` copy is fixed, recast without the dash); `pnpm build` (clean, `rm -rf .next` first); `pnpm lab:smoke --base http://localhost:3135` (501 checks, 0 failing, every touched board's reading under its 1200-word budget: guest-capture 338, host-curation 415, export-flow 623, identity-door 310, voice-guest 615, help-center 403, media-viewer 127); `pnpm lab:demo --board <each> --base http://localhost:3135` for all seven, each "0 failing" and "Every step draws its options" (guest-capture 5 steps, host-curation 7, export-flow 7, identity-door 5, voice-guest 7, help-center 7, media-viewer 1).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` lists 24 files, all seven owned prefixes, no exceptions (`export-flow/{board.tsx,spec.ts,surfaces.tsx}`, `guest-capture/{board.tsx,fixtures.ts,parts.tsx,scene.tsx,spec.ts}`, `help-center/{fixtures.ts,spec.ts}`, `host-curation/{board.tsx,fixtures.ts,queue.tsx,signals.tsx,spec.ts}`, `identity-door/spec.ts`, `media-viewer/{board.tsx,board-r1.tsx (new),fixtures.ts,page-parts.tsx,spec.ts}`, `voice-guest/{board.tsx,scene.tsx,spec.ts}`).
+- The items, one line each:
+  - `guest-capture`: added the `tracker` ask (his own idea, verbatim, at a moderated event): three options (a floating button's queue sheet; identity-door.menu's sheet grown; the status inline on her tiles, voice-guest.waiting's words), each drawn with all four states (sending, held, approved, refused) in one 375 frame; `moment`'s context drops "Yours is in it"; every scene's `ReelTile` now wears reel-front r1 (headed "Highlight reel", described "Make your own clip to share", no meta line, no badge) and is absent below his dropped minimum of two.
+  - `host-curation`: removed the `count` ask (merging to `reel-host`'s review question, per his merge rule) and its now-dead fixtures (`EVENTS`/`BELL`/`PENDING_TOTAL`); `told`'s `line` option now names "her tracker"; `peek`'s `viewer` option redrawn on media-viewer r1 (a face-led credit top-left, no "i of N", neighbours peeking at the edges, the actions split into two stacked pills, Save/Share/Remove above Hide/Approve); `verb`'s `chip` option grows the amber corner's own pill into a "Hidden" label instead of a second chip on the own-item mark's corner.
+  - `export-flow`: `phone` re-argued from his Save-to-Photos note: `zip` (renamed from `files`), `batch` (every file to the share sheet at once, Photos first, no zip), `both` (recommended: the sheet's own button saves to Photos, a quiet line still offers the zip to Files); `ShareSheet` grew an optional `photos` count that leads its rows with "Save N Photos".
+  - `identity-door`: `menu`'s context now names `guest-capture`'s tracker ask as the neighbour that may grow its `sheet` option.
+  - `voice-guest`: `waiting`'s context names the tracker; `landed`'s context and overrule drop "Yours is in it" for the toast; `ReelTile` simplified to a zero-prop component wearing reel-front r1 (no count, no `yours` chip) and `AlbumGround` dropped its now-meaningless `reel` prop (four call sites in `board.tsx` updated).
+  - `help-center`: the reel category's blurb now reads "Live from the second photo, on a screen, and yours to cut."
+  - `media-viewer` round 2: `asks` reduced to one, `mine` (round 1's eight are answered, `docs/reviews/media-viewer.json`, and landing via `media-viewer-wiring`); four options: `dot` (today, shipped, kept for comparison), `label` (same corner, worded), `ring` (recommended: no corner glyph, a soft accent ring on the whole tile), `none` (nothing on the tile, the standing Yours control and the viewer's own "You" credit carry it), drawn on the real 26-item album at 375 with 1440 on the knob, three tiles marked (the same guest `MINE_AT` already named). Round one's own preview code (867 lines: `openingScreen` through `linkScreen`, every measure reader, `Probe`/`Screen`/`OriginPage`) moved verbatim, unimported, to the new `board-r1.tsx`, following `site-chrome`'s own precedent at its round two (`chrome.tsx`/`menu.tsx`, unimported since that board's round two); `board.tsx` is rewritten lean for `mine` alone; `page-parts.tsx`'s `LabMasonry`/`AlbumPage` grew optional `mineIds`/`mineStyle`/`scrolled` props, additive, every other caller unaffected.
+- The stacking rule (`node usher/kit/board-card.mjs --desk`, then per-board cards for all seven mine plus the six reel boards): no open ask repeats. Nearest neighbours, and why they differ:
+  - `guest-capture.tracker` vs `reel-host.review` (unedited by me; per `reel-refresh-host`'s manifest, a HOST surface for "does anything tell the host waiting uploads aren't in the reel"): mine is the GUEST's own batch status; different audience, not a repeat.
+  - `export-flow.phone` vs `reel-cut.finish` (unedited by me; per `reel-refresh-cut`'s manifest, draws Save as "Save to Photos" for the on-device CUT): both answer his one Save-to-Photos note, but for different artifacts: a single rendered video (trivial `<a download>`/share) versus a bulk album (needing a zip or a many-file share-sheet batch); not a repeat.
+  - `media-viewer.mine` vs `reel-cut.mark` ("the free mark", unedited by me, almost certainly the free tier's export watermark): a naming coincidence only, unrelated concepts.
+  - `host-curation.told` vs `reel-front.yours` (already answered `toast`, not open): complementary and already cross-referenced in `told`'s own context (refusal-silence vs approval-toast).
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `guest-capture.tracker` is drawn on a SEPARATE moderated-event fixture (`TRACKER_ITEMS`, four rows) rather than switching Maya's whole open wedding to Review-on, since every other ask on this board depends on that wedding staying open; if he'd rather see the tracker live on the SAME open wedding turned moderated, that is a rebuild of the board's shared ground, not this ask alone.
+  - `guest-capture.tracker` has no 1440 variant (phone only, mirroring `export-flow.phone`'s own precedent: a guest's own status check is a party-phone act); say so if a host-side or laptop guest case should see it too.
+  - `media-viewer` round 2 drops round one's eight asks from `asks` entirely rather than carrying them forward inert; this follows `site-chrome`'s own precedent (its round two did the same to its other seven), but it is a structural call about how a multi-round board's spec stays typed, not a design one.
+  - `media-viewer.mine`'s three marked tiles reuse the fixture's own pre-named "one this device added" guest (`MINE_AT`, index 5 → Nina) rather than Priya (who this board's `who` ask already used for a different purpose); no other guest was pre-wired for it.
+  - `host-curation.verb`'s `chip` option now grows the SAME top-right amber pill into a wider "Hidden" label rather than inventing a fourth corner; the tile's only two free corners are already the play/like marks' and the own-item mark's, so a second glyph had nowhere else to stand without crowding a corner `media-viewer` round 2 is actively redrawing.
+- Look at first: `guest-capture` → `tracker` (all three options, each drawn with all four states in one frame); `host-curation` → `peek.viewer` (the face-led credit, the peeking neighbours, the two stacked pills) and `verb.chip` (the grown amber pill); `export-flow` → `phone.both` (the sheet's own two-button foot) and `phone.batch` (the share sheet's "Save N Photos" leading its rows); `media-viewer` → `mine` (all four options, the `ring` recommendation especially, against the shipped `dot`).
