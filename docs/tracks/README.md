@@ -48,19 +48,6 @@ Lane check, pasted into the Handoff (every line must sit under an `owns` prefix,
 git diff --name-only origin/launch-prep...HEAD
 ```
 
-## Who edits what
-
-| file | agents | the Orchestrator |
-| --- | --- | --- |
-| `docs/tracks/<track>.md` | fill it (their own) | cuts it, reads the Handoff, deletes it in the merge commit |
-| `docs/STATUS.md`, `ROADMAP.md`, `PROGRAM.md`, `CLAUDE.md` | never, unless released | rewrites STATUS; folds each manifest's Deferred lines into ROADMAP at integration |
-| `docs/systems/*.md` | in place, only for a fact inside their owned paths, listed in the manifest | reads every listed edit by eye at the merge |
-| `content/<x>/AUTHORING.md` | whoever owns `content/<x>/` | promotes shared vocabulary to `src/components/marketing/mdx/spec-shared.tsx` |
-| `src/components/marketing/mdx/spec-shared.tsx` | never (read it) | grows it by promotion |
-| `src/lib/env.ts`, migrations, Workers, Vercel / Stripe / Supabase config | propose in the Handoff | applies |
-| `docs/ASSETS.md` (open asset asks) | never (ask in the Handoff, one bullet per asset) | folds each ask into a row; a delivered and wired asset leaves the file |
-| `docs/reviews/` (the ledgers and the grammar) | never (a board's review panel composes a message; the UI never writes; a grammar change goes in the Handoff verbatim) | transcribes Will's pasted line with `pnpm lab:review`; lands a grammar change at the merge |
-
 ## The template
 
 What `usher/kit/cut-lane.py` writes; an agent from a bare goal copies it into `docs/tracks/<track>.md` and fills it.
@@ -87,8 +74,8 @@ in this lane.
 Everything the lane needs: Will's words for the task, the calls already made, what to read, the neighbour a new
 board registers after.
 
-**Binds.** The bible and the policies (`/design/library`), the contracts of every component under a path you own, and
-CLAUDE.md's working loop; everything else is precedent you may break, judged from the ground up.
+**Binds.** CLAUDE.md's working loop and the bible's ten (`/design/library`); the tests are the real rules, and
+everything else is precedent you may break.
 
 **Verify on.** For a board: 1440 and 375 with reduced motion honoured, `pnpm lab:smoke` whole, `pnpm lab:demo --board
 <board>` pressing every step. For a wiring lane: the gate on the synced tree and the surfaces the Handoff is judged
@@ -119,27 +106,7 @@ on, local and live.
 - Look at first: ...
 ```
 
-## Spawning a lane from its manifest
+## Spawning a lane
 
-The manifest is the init. The Orchestrator's spawns use `usher/kit/spawn-prompt.txt`; the prompt Will pastes to start
-one himself:
-
-> You are an AGENT on Partyreel's elevation program. Track `<track>`: your manifest is committed at
-> `docs/tracks/<track>.md` and is your whole init. **Return DECISIONS, not a paper**: author with
-> `defineExploration` (`src/components/lab/exploration.ts`), one question per decision in plain words asking for one
-> winner, every option drawn as a preview of the real surface, six to eight decisions a round at most; a big goal is
-> shaped progressively (`after` stages a question behind another answer). The newest `defineExploration` board in
-> `src/app/(dev)/design/sandbox/` is the worked example. Read his notes on the last round first
-> (`docs/reviews/<board>.json`). Anything the goal leaves open goes under the manifest's Questions with your
-> recommended answer, and you carry on with the recommendation. Design law is the bible and the component contracts
-> on `/design/library`; everything else is precedent, judged from the ground up, in the lab first. The Mobbin MCP is
-> there for inspiration, never required (`docs/design/guidance.md`). Boot per `docs/PROGRAM.md` "Agent boot", build,
-> then hand off by filling the manifest's Handoff, setting `status: handed-off`, and pushing. The chat report is one
-> line: "handed off at <sha>".
-
-## Previews and CI
-
-No push creates a Vercel deployment: the Orchestrator creates the alias's build by API from a `[preview]` record
-commit and prunes deployments after it. CI is not the gate; the local steps are: `ci.yml` runs on `main` and
-`launch-prep` pushes that touch code (record commits say `[skip ci]`) and on PRs to `main`; an `lp/*` push runs it
-only on `[ci]`.
+The manifest is the init: the prompt is in [`../PROGRAM.md`](../PROGRAM.md) "Starting a session" (the Orchestrator's
+spawns use `usher/kit/spawn-prompt.txt`).
