@@ -2,11 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { jobById } from "@/app/admin/jobs/catalog";
 import {
+  RESUME_KEY,
   SUB_SWEEP_JOB_BY_NAME,
+  cursorFrom,
+  purgeRunVerdict,
+  readRemaining,
   readRowsNote,
   sanitizeCounts,
+  stoppedEarlyNote,
   subSweepJobFor,
   subSweepParityGap,
+  sweepStoppedEarly,
   tallyReportsFailedRows,
 } from "@/lib/jobs/sweep-tally";
 import { Throttle } from "@/lib/jobs/throttle";
@@ -22,7 +28,7 @@ describe("the sub-sweep map", () => {
   });
 
   it("leaves every other sweep riding the parent run", () => {
-    // The other seven are cheap, loop-free or both; a card each would drown the console.
+    // The other eight are cheap, loop-free or both; a card each would drown the console.
     expect(subSweepJobFor("expired_passes")).toBeNull();
     expect(subSweepJobFor("job_health")).toBeNull();
     expect(subSweepJobFor("standby_budget")).toBeNull();
@@ -122,6 +128,108 @@ describe("readRowsNote", () => {
 
   it("bounds the note, because a note column is not a log", () => {
     expect(readRowsNote({ rows_note: "x".repeat(900) })?.length).toBe(300);
+  });
+});
+
+describe("stopped early (the 1,000-row round)", () => {
+  const cursor = "0f1e2d3c-4b5a-4968-8776-655443322110";
+
+  it("reads the catalog's flag, and only an explicit true", () => {
+    expect(sweepStoppedEarly({ stopped_early: true, remaining: 3 })).toBe(true);
+    expect(sweepStoppedEarly({ stopped_early: "yes" })).toBe(false);
+    expect(sweepStoppedEarly({ media_rows: 3 })).toBe(false);
+    expect(sweepStoppedEarly(null)).toBe(false);
+  });
+
+  it("keeps the flag, the count and the cursor on a sub-sweep's own row, and drops the note", () => {
+    expect(
+      sanitizeCounts({
+        candidates: 9,
+        stopped_early: true,
+        remaining: 4,
+        [RESUME_KEY]: cursor,
+        stopped_note: "a line for the note column",
+      }),
+    ).toEqual({
+      candidates: 9,
+      stopped_early: true,
+      remaining: 4,
+      resume_after: cursor,
+    });
+  });
+
+  it("writes the run note from the count, or the sweep's own line", () => {
+    expect(stoppedEarlyNote({ stopped_early: true, remaining: 1_200 })).toBe(
+      "Stopped at its time budget with 1,200 left; the next run carries on.",
+    );
+    expect(stoppedEarlyNote({ stopped_early: true })).toBe(
+      "Stopped at its time budget with work left; the next run carries on.",
+    );
+    expect(
+      stoppedEarlyNote({
+        stopped_early: true,
+        stopped_note: "Listed 20 pages.",
+      }),
+    ).toBe("Listed 20 pages.");
+    expect(stoppedEarlyNote({ remaining: 3 })).toBeUndefined();
+    expect(readRemaining({ remaining: 7 })).toBe(7);
+    expect(readRemaining({ remaining: "7" })).toBeNull();
+  });
+
+  it("reads a cursor off a sub-sweep's row, or off one sweep's nested tally on the parent row", () => {
+    expect(cursorFrom({ [RESUME_KEY]: cursor })).toBe(cursor);
+    expect(
+      cursorFrom(
+        { renewal_nudges: { [RESUME_KEY]: cursor } },
+        "renewal_nudges",
+      ),
+    ).toBe(cursor);
+    expect(
+      cursorFrom({ renewal_nudges: { error: true } }, "renewal_nudges"),
+    ).toBeNull();
+    // Only a uuid is a cursor: anything else starts from the beginning.
+    expect(cursorFrom({ [RESUME_KEY]: "id.gt.x,or(y)" })).toBeNull();
+    expect(cursorFrom(null)).toBeNull();
+    expect(cursorFrom({ [RESUME_KEY]: cursor.toUpperCase() })).toBe(cursor);
+  });
+});
+
+describe("purgeRunVerdict", () => {
+  it("is a clean ok with nothing to say when every sweep finished whole", () => {
+    expect(
+      purgeRunVerdict({
+        expired_events: { events: 2 },
+        orphans: { r2_deleted: 0 },
+      }),
+    ).toEqual({ status: "ok", note: undefined, flags: {} });
+  });
+
+  it("fails the run for a thrown sweep AND for failed rows in a sweep that rides the parent row", () => {
+    const verdict = purgeRunVerdict({
+      removed_media: { error: "boom" },
+      renewal_nudges: { nudged: 3, rows_failed: 2 },
+    });
+    expect(verdict.status).toBe("error");
+    expect(verdict.note).toBe(
+      "Sweeps failed: removed_media. Rows failed in: renewal_nudges.",
+    );
+  });
+
+  it("leaves a stopped run ok but flagged, and names what each stopped sweep left", () => {
+    const verdict = purgeRunVerdict({
+      removed_media: {
+        media_rows: 1_000,
+        stopped_early: true,
+        remaining: 1_500,
+      },
+      orphans: { scanned_pages: 20, stopped_early: true },
+      expired_events: { events: 0 },
+    });
+    expect(verdict).toEqual({
+      status: "ok",
+      note: "Stopped early, the next run carries on: removed_media (1,500 left), orphans.",
+      flags: { stopped_early: true, sweeps_stopped_early: 2 },
+    });
   });
 });
 

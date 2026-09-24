@@ -33,6 +33,7 @@ import "server-only";
 
 import { softDeleteEvent } from "@/lib/db/mutations/events";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { readAllPages } from "@/lib/db/read-all";
 import {
   ANONYMISED_PROFILE_PATCH,
   isDeletionSchemaMissing,
@@ -215,6 +216,9 @@ async function binHostedEvents(
 ): Promise<number> {
   if (actor === "operator") {
     const admin = createAdminClient();
+    // ONE write for every live event, and its count is the length of what the write returned:
+    // PostgREST does not cap a write's returned rows (a PATCH over 1,040 rows returned all 1,040 on
+    // the 1,000-row round's probe), so this count is complete however many events the host has.
     const binned = await mustQuery(
       admin
         .from("events")
@@ -228,17 +232,26 @@ async function binHostedEvents(
   }
 
   const supabase = await createClient();
-  // row-cap-todo: N1 the self-service deletion bins only the first 1,000 hosted events
-  const live = await mustQuery(
-    supabase
-      .from("events")
-      .select("id")
-      .eq("host_id", userId)
-      .is("deleted_at", null),
+  // Every live event, whole, by keyset (the 1,000-row round): one read stopped at 1,000, and the
+  // events past it stayed live on an account that had asked to be deleted until the sweep got there.
+  // Read in full BEFORE the first soft-delete, so binning never shifts a page under the read.
+  const { rows: live } = await readAllPages(
     "binHostedEvents: self",
+    (after: string | null, limit) => {
+      let query = supabase
+        .from("events")
+        .select("id")
+        .eq("host_id", userId)
+        .is("deleted_at", null)
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after) query = query.gt("id", after);
+      return query;
+    },
+    (row) => row.id,
   );
   let binned = 0;
-  for (const { id } of live ?? []) {
+  for (const { id } of live) {
     const result = await softDeleteEvent(id);
     if (result.ok) binned += 1;
   }

@@ -251,8 +251,21 @@ cron's scan can never hold three definitions of healthy.
 - ★ **Per-row isolation never buys silence.** `forEachIsolated`
   ([`jobs/isolate.ts`](../../src/lib/jobs/isolate.ts)) lets the accounts BEHIND a bad row still run,
   and the tally travels with the sweep's result: any `rows_failed` closes that sub-sweep's run as an
-  ERROR. Five consecutive failures abort the loop instead, because that is a dead dependency rather
-  than a bad row, and a run that "completed" against a dead database would be a lie.
+  ERROR, and the parent purge run too for a sweep that rides it (`purgeRunVerdict`,
+  [`jobs/sweep-tally.ts`](../../src/lib/jobs/sweep-tally.ts); its card prints no nested tally, so the
+  parent's status and note are where those failures show). Five consecutive failures abort the loop
+  instead, because that is a dead dependency rather than a bad row, and a run that "completed" against a
+  dead database would be a lie.
+- ★ **A run that stopped early reads "Needs a look".** A purge sweep whose time budget ran out with
+  work left (→ [lifecycle-recovery.md](lifecycle-recovery.md)) sets `stopped_early: true` on its tally
+  (the catalog's `STOPPED_EARLY_KEY`) with a counted `remaining` where it can take one; the parent run
+  sets the flag and `sweeps_stopped_early` when any sweep did, and names each with what it left in its
+  note. `getJobStates` reads the flag into `stoppedEarly`, and `jobHealth` turns a finished `ok` run that
+  carries it into `attention` (a failure, a pause or a missed run still outranks it), so the band and the
+  bell show a backlog that outlasts a night. A promoted sweep's own row closes `ok` with the stop in its
+  note; the runner raises one `sweep_stopped_early` warning per sweep per run; the card's Reported line
+  leads with `remaining` and never prints a rotating sweep's resume cursor (`resume_after`, which rides
+  the run row for its next run).
 - **A signal's failure count is a FLOOR, not a census.** The failure log damps a burst to one row per
   quarter hour per instance so a database outage cannot storm the very table the console reads; every
   event still reaches Sentry unthrottled, and the card says so.

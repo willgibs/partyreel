@@ -1,21 +1,21 @@
 /**
  * THE PURGE CRON'S SUB-SWEEPS, promoted to jobs of their own (the admin-jobs round).
  *
- * The daily purge runs eleven sweeps inside one invocation. Until now the whole thing was ONE
- * heartbeat row: eleven tallies squeezed into its `counts`, one shared `ok`/`error`, one kill
- * switch. That made the console honest about the RUN and blind about the WORK — an operator could
- * not see that the over-capacity sweep had failed for a week while the run stayed green on the other
- * ten, and could not stop the inactivity sweep for one night without giving up storage reclamation.
+ * The daily purge runs twelve sweeps inside one invocation. Until the admin-jobs round the whole
+ * thing was ONE heartbeat row: every tally squeezed into its `counts`, one shared `ok`/`error`, one
+ * kill switch. That made the console honest about the RUN and blind about the WORK: an operator could
+ * not see that the over-capacity sweep had failed for a week while the run stayed green on the rest,
+ * and could not stop the inactivity sweep for one night without giving up storage reclamation.
  *
  * So the four heaviest sweeps (the ones that loop over ACCOUNTS and either email somebody or delete
- * bytes) now open and close a `job_runs` row of their own, with their own `ops_flags` switch and
- * their own card on /admin/jobs. The other seven are unchanged and still ride the parent row.
+ * bytes) open and close a `job_runs` row of their own, with their own `ops_flags` switch and their
+ * own card on /admin/jobs. The other eight still ride the parent row.
  *
- * WHERE THIS LIVES, and why not in the route: `src/app/api/cron/purge/route.ts` belongs to another
- * lane this round, and the sweep bodies are 800 lines of lifecycle logic with no business moving. So
- * the route keeps its sweeps and hands each to the runner below; its `runSweep` closure becomes two
- * lines. For a sweep with no catalog entry the behaviour is byte-identical to the route's original
- * inline try/catch, so nothing changes for the other seven.
+ * WHERE THIS LIVES: the route (`src/app/api/cron/purge/route.ts`) hands every sweep to the runner
+ * below through its `runSweep`; the sweep bodies are in `src/lib/lifecycle/sweeps/`. For a sweep with
+ * no catalog entry the runner is the route's original inline try/catch. For every sweep it also
+ * raises ONE `sweep_stopped_early` warning when the sweep's time budget stopped it with work left
+ * (the 1,000-row round), and a promoted sweep's own row says so in its note.
  *
  * POSTURE ON AN UNREADABLE SWITCH: fail CLOSED, matching the parent cron. All four promoted sweeps
  * delete or soft-delete something; one skipped night costs nothing (the next run sees the same rows)
@@ -32,9 +32,12 @@ import {
   type JobTrigger,
 } from "@/lib/db/queries/jobs";
 import {
+  readRemaining,
   readRowsNote,
   sanitizeCounts,
+  stoppedEarlyNote,
   subSweepJobFor,
+  sweepStoppedEarly,
   tallyReportsFailedRows,
 } from "@/lib/jobs/sweep-tally";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
@@ -96,12 +99,19 @@ export function createSweepRunner(triggeredBy: JobTrigger): SweepRunner {
     try {
       const result = await fn();
       const lostRows = tallyReportsFailedRows(result);
+      // Both lines when both are true: rows that failed AND a budget that ran out are two facts.
+      const note = [
+        lostRows
+          ? (readRowsNote(result) ?? "Some rows failed and were skipped.")
+          : undefined,
+        stoppedEarlyNote(result),
+      ]
+        .filter((line): line is string => Boolean(line))
+        .join(" ");
       const done = await finishJobRun(run, {
         status: lostRows ? "error" : "ok",
         counts: sanitizeCounts(result) ?? undefined,
-        note: lostRows
-          ? (readRowsNote(result) ?? "Some rows failed and were skipped.")
-          : undefined,
+        note: note || undefined,
       });
       reportHeartbeat(job, done.heartbeatError, "finish");
       return result;
@@ -121,16 +131,40 @@ export function createSweepRunner(triggeredBy: JobTrigger): SweepRunner {
   return {
     async run(name, fn) {
       const job = subSweepJobFor(name);
-      if (job) return runTracked(job, name, fn);
-      // Not promoted: byte-identical to the route's original inline try/catch.
-      try {
-        return await fn();
-      } catch (e) {
-        captureError("cron", e, { sweep: name });
-        return { error: String(e) };
-      }
+      const result = job
+        ? await runTracked(job, name, fn)
+        : await runUntracked(name, fn);
+      reportStoppedEarly(name, result);
+      return result;
     },
   };
+}
+
+/** A sweep that rides the parent run: the route's original inline try/catch, unchanged. */
+async function runUntracked(
+  name: string,
+  fn: () => Promise<unknown>,
+): Promise<unknown> {
+  try {
+    return await fn();
+  } catch (e) {
+    captureError("cron", e, { sweep: name });
+    return { error: String(e) };
+  }
+}
+
+/**
+ * ONE WARNING PER SWEEP PER RUN when its time budget stopped it with work left (the 1,000-row
+ * round). The run row already says so on /admin/jobs (the card reads `attention`); the warning is
+ * what reaches somebody who is not looking at the console, and one a night is the right volume for
+ * a backlog that is draining. Its count rides along; the cursor never does.
+ */
+function reportStoppedEarly(name: string, result: unknown): void {
+  if (!sweepStoppedEarly(result)) return;
+  captureWarning("cron", "sweep_stopped_early", {
+    sweep: name,
+    remaining: readRemaining(result),
+  });
 }
 
 /**
