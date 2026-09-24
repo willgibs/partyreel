@@ -71,7 +71,11 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    `usher/kit/` at the same merge.
 5. **At the next `[preview]`**, confirm on Sentry that the Vercel build uploaded its source maps (`894501ad` gated
    the upload on `VERCEL`; local builds verified silent).
-6. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+6. **The lab revamp**, once the desk's open boards close and before new explorations open (Will: lanes should spend
+   their context building for the lab, not learning it): a board as one self-registering folder (no shared
+   registries, so no merge repairs), its metadata in its spec, lab checks scoped to the lane's own boards, the
+   authoring API trimmed to what a board needs, and a fresh agent proving it can build a board from the recipe alone.
+7. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
