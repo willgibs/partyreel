@@ -86,8 +86,8 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed on `lp/systems-lean`:** the work `690567f0` (the twelve docs and the index) and `9db2f0e8` (two trims); the sync `3e8ca3d4` merges `origin/launch-prep` at `fbc1e512` (brand-kit merged, album-columns cut, CLAUDE.md's docs guidance). The branch was cut at `45087a69` and fast-forwarded to `91e3696b` before any work (CLAUDE.md, a read, had changed).
-- **Gates on the synced tree, each on its own exit code:** `pnpm typecheck` 0, `pnpm lint` 0 (8 warnings, none in a changed file: only markdown changed), `pnpm test` 0 (434 files, 4,776 passed, 1 skipped), `pnpm build` 0.
+- **Commits, pushed on `lp/systems-lean`:** the work `690567f0` (the twelve docs and the index) and `9db2f0e8` (two trims); the syncs `3e8ca3d4` (`origin/launch-prep` at `fbc1e512`: brand-kit merged, album-columns cut, CLAUDE.md's docs guidance) and `e5e51ad8` (at `7336788a`: the refresh wave's specs, the Handoff template's board-ideas line). The branch was cut at `45087a69` and fast-forwarded to `91e3696b` before any work (CLAUDE.md, a read, had changed).
+- **Gates on the synced tree (`e5e51ad8`), each on its own exit code:** `pnpm typecheck` 0, `pnpm lint` 0 (8 warnings, none in a changed file: only markdown changed), `pnpm test` 0 (434 files, 4,776 passed, 1 skipped), `pnpm build` 0.
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the thirteen owned docs, plus this file at the handoff commit. No exception.
 - **Links:** every relative link in the thirteen docs resolves (91 checked by script: each `](target)` joined to its file's directory and tested for existence).
 
@@ -138,6 +138,7 @@ Realtime no-op). 77 + 1 + 2 blocks + 4 = 84. Every other invariant survives as a
 - Resolve with no change: the migrations' "→ Workflow", "Set-returning functions and the row cap" and "(database-security.md, Gotchas)"; `workers/backup/src/index.ts:296` "Cost & scaling" (the section now exists) and `:76` "scale note"; the Worker files' "Pillar B"; `stream-probe/page.tsx:31` "the streaming contract"; `queries/storage.ts:19` "no plan change leaves a host storing"; `webhook/route.ts:164` "extends, never resets"; `comparison-table.tsx:30` "unmarketed" (billing now says the ingress bound is never marketed). The applied migration `20260708120000_profiles_social_foundation.sql:27` ("4 anon capability RPCs") stays history.
 
 - Assets requested from Will: none.
+- Board ideas: none (the pointer sweep above is comment work for the mandate sweep, not a board).
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none.
 
 **Calls his to overrule:**
