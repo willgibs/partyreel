@@ -6,6 +6,7 @@ import { AtSign, Check } from "lucide-react";
 import { FollowButton } from "@/components/social/follow-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 
 /**
  * THE MOMENT AFTER CONFIRMING (the identity reshape, 2026-09-21; Will's own
@@ -91,7 +92,7 @@ export function FollowMomentCard({
               ? "It is in your account now, and this event came with it."
               : count === null
                 ? "They are in your account now, and this event came with them."
-                : `All ${count} are in your account now, and this event came with them.`}
+                : `All ${formatCount(count)} are in your account now, and this event came with them.`}
           </p>
         </div>
       </div>

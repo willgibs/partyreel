@@ -16,6 +16,8 @@
  * Pure: time is a number the caller passes, so every rule is pinnable without a clock.
  */
 
+import { formatCount } from "@/lib/format/count";
+
 /** One person's chip. `extra` counts the photographs past their first while it has been up. */
 export type ArrivalEntry = {
   /** The grouping key: the uploader's name, or the id for a photograph that names nobody. */
@@ -113,7 +115,7 @@ export function arrivalRows(
 
 /** A person's line as the chip reads it: "Theo", "Theo +2", or "New photo". */
 export function arrivalLabel(row: ArrivalRow): string {
-  if (row.kind === "more") return `+${row.count} more`;
+  if (row.kind === "more") return `+${formatCount(row.count)} more`;
   const who = row.name ?? "New photo";
-  return row.extra > 0 ? `${who} +${row.extra}` : who;
+  return row.extra > 0 ? `${who} +${formatCount(row.extra)}` : who;
 }

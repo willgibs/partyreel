@@ -10,6 +10,7 @@ import {
   type FollowMomentHost,
 } from "@/components/guest/follow-moment-card";
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
 import { createClient } from "@/lib/supabase/client";
 
@@ -193,7 +194,7 @@ export function ClaimHandlePrompt({
         <p className="text-sm text-foreground">
           {doneCount === 1
             ? "Your photo is on this album under your name."
-            : `Your ${doneCount} photos are on this album under your name.`}
+            : `Your ${formatCount(doneCount)} photos are on this album under your name.`}
         </p>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Claim a handle and that name becomes a page.

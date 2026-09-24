@@ -3,6 +3,7 @@
 import { Lock } from "lucide-react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
+import { formatCount } from "@/lib/format/count";
 
 // The entry modal's ACCOUNT step (an event with Require verified emails on). All roads
 // lead to an account: email is PRIMARY (one tap sends a code + magic link that creates the account or
@@ -63,7 +64,7 @@ export function EnterEventPrompt({
           says it. The count itself is unchanged. */}
       <p className="mt-1.5 font-heading text-page text-balance">
         {mediaTotal && mediaTotal > 0
-          ? `${mediaTotal} ${mediaTotal === 1 ? "photo" : "photos"} & videos ${mediaTotal === 1 ? "is" : "are"} waiting`
+          ? `${formatCount(mediaTotal)} ${mediaTotal === 1 ? "photo" : "photos"} & videos ${mediaTotal === 1 ? "is" : "are"} waiting`
           : "See all the photos"}
       </p>
       {/* ★ RULED (Will, 2026-09-19, voice r1 `gate=ask`), his own adjustment to

@@ -27,6 +27,7 @@ import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { uploadTermsLine } from "@/components/guest/upload/upload-terms";
 import { usePickUrls } from "@/components/guest/upload/use-pick-urls";
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 
 /** A picked file with an identity of its own: a File is not a key, and two
  *  photographs off a camera roll can share a name, a size and a timestamp. */
@@ -85,7 +86,7 @@ export function ReviewStep({
           className="w-full active:scale-[0.99] motion-reduce:active:scale-100"
           onClick={onSend}
         >
-          Send {picks.length}
+          Send {formatCount(picks.length)}
         </Button>
         {/* The facts, under the button that acts on them (`warning=both`), at
             the reading rung like every other sentence this act says. */}

@@ -49,6 +49,7 @@ import {
   type DemoPairArrival,
 } from "@/lib/demo";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
+import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import {
   DEFAULT_TILE_SIZE,
@@ -889,12 +890,13 @@ export function EventExperience({
                 style={{ "--reveal-i": revealBase + 1 } as React.CSSProperties}
                 className="mt-1 text-xs text-muted-foreground"
               >
-                {mediaCount} {mediaCount === 1 ? "photo" : "photos"}
+                {formatCount(mediaCount)} {mediaCount === 1 ? "photo" : "photos"}
                 {" & videos"}
                 {guestCount > 0 && (
                   <>
                     {" "}
-                    from {guestCount} {guestCount === 1 ? "guest" : "guests"}
+                    from {formatCount(guestCount)}{" "}
+                    {guestCount === 1 ? "guest" : "guests"}
                   </>
                 )}
               </p>
@@ -938,7 +940,7 @@ export function EventExperience({
               <Lock className="size-4" aria-hidden />
               <p className="text-reading">
                 {stats.approvedTotal > 0
-                  ? `${stats.approvedTotal} ${stats.approvedTotal === 1 ? "photo" : "photos"} & videos inside`
+                  ? `${formatCount(stats.approvedTotal)} ${stats.approvedTotal === 1 ? "photo" : "photos"} & videos inside`
                   : "This event is private"}
               </p>
             </div>
@@ -1217,7 +1219,7 @@ function ClosingCard({ guestCount }: { guestCount: number }) {
       <p className="max-w-sm text-reading text-pretty text-muted-foreground">
         One code
         {guestCount > 0
-          ? `, ${guestCount} ${guestCount === 1 ? "guest" : "guests"},`
+          ? `, ${formatCount(guestCount)} ${guestCount === 1 ? "guest" : "guests"},`
           : ","}{" "}
         and every photo in one place. Free to start, nothing to install.
       </p>

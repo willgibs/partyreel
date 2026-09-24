@@ -37,6 +37,7 @@ import { ImageUp } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 export function GuestActionDock({
@@ -118,7 +119,7 @@ export function GuestActionDock({
             <ImageUp /> Add photos
             {uploadingCount > 0 && (
               <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-micro tabular-nums">
-                {uploadingCount} uploading
+                {formatCount(uploadingCount)} uploading
               </span>
             )}
           </Button>

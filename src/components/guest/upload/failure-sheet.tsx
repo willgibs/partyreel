@@ -39,6 +39,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatCount } from "@/lib/format/count";
 
 /** One file that did not go: the queue's id, its file, and the server's words. */
 export type UploadFailure = { id: string; file: File; error?: string };
@@ -47,7 +48,7 @@ export type UploadFailure = { id: string; file: File; error?: string };
 export function uploadFailureHeading(count: number): string {
   // Quoted verbatim by /features/album's cap mock (`how-much-fits.tsx`);
   // mock-parity.test.ts is the proof.
-  return count === 1 ? "1 file did not go" : `${count} files did not go`;
+  return count === 1 ? "1 file did not go" : `${formatCount(count)} files did not go`;
 }
 
 /**

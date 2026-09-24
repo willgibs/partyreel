@@ -97,6 +97,15 @@ describe("arrivalRows", () => {
       "+4 more",
     ]);
   });
+
+  it("groups a count past 999 the way every count is printed (formatCount)", () => {
+    expect(arrivalLabel({ kind: "more", key: "more", count: 1145 })).toBe(
+      "+1,145 more",
+    );
+    expect(
+      arrivalLabel({ kind: "person", key: "name:Theo", name: "Theo", extra: 1200 }),
+    ).toBe("Theo +1,200");
+  });
 });
 
 describe("the feed's own clock", () => {

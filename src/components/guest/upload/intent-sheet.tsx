@@ -47,6 +47,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatCount } from "@/lib/format/count";
 
 /**
  * ★ THE BODY IS ITS OWN EXPORT NOW (the door as three steps, 2026-09-21). The guest door's UPLOAD
@@ -70,7 +71,7 @@ export function uploadIntentHeading(pickCount: number): {
     return { title: "Add photos", description: "", reviewing: false };
   }
   return {
-    title: pickCount === 1 ? "Send this one?" : `Send these ${pickCount}?`,
+    title: pickCount === 1 ? "Send this one?" : `Send these ${formatCount(pickCount)}?`,
     description: "Tap the cross on anything you did not mean to pick.",
     reviewing: true,
   };

@@ -7,6 +7,7 @@ import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { formatCount } from "@/lib/format/count";
 import { markPendingOffer } from "@/lib/guest/album-return";
 import { createClient } from "@/lib/supabase/client";
 
@@ -170,7 +171,7 @@ export function SaveAccountPrompt({
           profile shows nothing until its owner chooses it (profiles-social.md). */}
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
         Confirm your email and{" "}
-        {count === 1 ? "it stays" : count > 1 ? `all ${count} stay` : "they stay"}{" "}
+        {count === 1 ? "it stays" : count > 1 ? `all ${formatCount(count)} stay` : "they stay"}{" "}
         with you: this event in your account, and everything you added to it.
       </p>
       <div className="flex justify-center">

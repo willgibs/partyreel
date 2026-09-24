@@ -36,6 +36,7 @@ import {
 } from "@/components/guest/guest-masonry";
 import { yoursView } from "@/components/guest/yours-filter";
 import { ViewMenu, type ViewMenuGroup } from "@/components/shared/view-menu";
+import { formatCount } from "@/lib/format/count";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { Button } from "@/components/ui/button";
@@ -126,7 +127,7 @@ export function buildGuestViewGroups({
       onChange: (v) => setShowingMine(v === "mine"),
       options: [
         { value: "all", label: "Everyone's" },
-        { value: "mine", label: `Yours (${ownedCount})` },
+        { value: "mine", label: `Yours (${formatCount(ownedCount)})` },
       ],
     });
   }
@@ -379,7 +380,7 @@ function LiveGalleryView({
           {access !== "none" && items.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
               <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-                {count} {count === 1 ? "photo" : "photos"}
+                {formatCount(count)} {count === 1 ? "photo" : "photos"}
                 {" & videos"}
               </p>
               {!isDemo && (
@@ -410,7 +411,7 @@ function LiveGalleryView({
               <span className="text-muted-foreground">
                 Showing yours
                 <span className="ml-1.5 text-faint tabular-nums">
-                  {yours.count}
+                  {formatCount(yours.count)}
                 </span>
               </span>
               <span aria-hidden className="text-faint">
@@ -492,7 +493,7 @@ function LiveGalleryView({
         <div className="mt-5 flex justify-center">
           <Button onClick={onOpenGate} className="active:scale-[0.99]">
             {count > rawCount
-              ? `See all ${count} ${count === 1 ? "photo" : "photos"} & videos`
+              ? `See all ${formatCount(count)} ${count === 1 ? "photo" : "photos"} & videos`
               : "Confirm your email to see everything"}
           </Button>
         </div>

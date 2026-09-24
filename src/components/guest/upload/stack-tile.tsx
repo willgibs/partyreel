@@ -34,6 +34,7 @@ import type { CSSProperties } from "react";
 import { Clock } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
+import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,7 @@ export function UploadStackTile({
                 "shrink-0 text-reading font-medium text-white tabular-nums",
               )}
             >
-              {remaining} to go
+              {formatCount(remaining)} to go
             </span>
           )}
           <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">

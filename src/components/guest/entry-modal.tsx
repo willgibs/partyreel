@@ -28,6 +28,7 @@ import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
+import { formatCount } from "@/lib/format/count";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { computeDoor, type EntryStep } from "@/lib/guest/entry-steps";
 import { joinEvent } from "@/lib/guest/join";
@@ -860,7 +861,7 @@ function WelcomeStep({
         <p className="flex items-start gap-3 text-base leading-relaxed">
           <Images className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
           {count > 0
-            ? `Everyone's shots land in one album. ${count} ${count === 1 ? "is" : "are"} already inside.`
+            ? `Everyone's shots land in one album. ${formatCount(count)} ${count === 1 ? "is" : "are"} already inside.`
             : "Everyone's shots land in one album, yours included."}
         </p>
       </div>
