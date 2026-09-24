@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The voice: one line for the QR's ask across paper and screen (the printed sign's "Scan to add your photos" against the view's "Scan to add yours"), a `voice-guest` question.
+- The reel: `reel-cut`'s finish could be one adaptive door (Share where the browser can hand off a file, Save where it cannot) instead of both; and `src/lib/dashboard/next-step.ts`'s reel step ("has no reel yet", into the stored reel's room) is the host wiring's to rewrite or retire, whatever `reel-host.pulse` picks.
 - The lab and the kit: `album-motion`'s `bloom` recipe lives in the shared `AlbumStream` engine (`stream-engine.ts`, `album-stream.css`) because the board renders the production component; it leaves with the board unless Will picks it.
 - Code hygiene: `GLASS_TOKENS` and `NOT_GLASS` in `src/lib/glass.ts` are read by nothing since the glass look tests went.
 - The lab and the kit: seven catalog entry pages log next/image dev warnings from their specimens (`loading="eager"` on an LCP image; `sizes="100vw"` on a `fill` image narrower than the viewport), and the components family page scrolls sideways at 1440 (its `w-screen` breakouts).

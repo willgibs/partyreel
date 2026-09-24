@@ -34,7 +34,6 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself).
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `refresh-pages` | `help-center`, `emails`, `contact-page` and `press-page` refreshed | running (agent `a265e63ffcfab973f`), cut at `011d1f52` | Sonnet, :3132 | integrate; then the wave's `[preview]` for Will's sitting |
 | `mandate-sweep` | the comments and lab text outside the boards (172 files) state their reason, never a pick, a ruling or a law; the docs lanes' pointer repairs | running (agent `ac7728734ce8ddfb8`), cut at `011d1f52` | Sonnet, :3133 | integrate; return marketing.css, globals.css and theme.css to `owns` |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); handed off again at `f3aa612c`, synced past the lean round (directives stripped, comments synthesized, the entry-modal flake fixed); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
