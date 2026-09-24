@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 
 import { SupportList } from "@/components/admin/support-list";
 import { TriageFilter } from "@/components/admin/triage-filter";
+import {
+  hrefWith,
+  LIST_PAGE,
+  parseShow,
+  showParam,
+} from "@/lib/admin/list-depth";
 import { serverNow } from "@/lib/admin/pending";
+import { ShowMoreLine } from "@/lib/admin/show-more";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { triageStatusSchema, type TriageStatus } from "@/lib/constants/triage";
 import { listContactSubmissions } from "@/lib/db/queries/support";
@@ -15,19 +22,30 @@ export const metadata: Metadata = { title: "Support" };
 export default async function AdminSupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; id?: string }>;
+  searchParams: Promise<{ status?: string; id?: string; show?: string }>;
 }) {
   const ctx = await requireAdmin();
   // Don't read operator data until MFA is satisfied (the layout shows the gate at AAL1).
   if (ctx.aal !== "aal2") return null;
 
-  const { status: statusParam, id } = await searchParams;
+  const { status: statusParam, id, show: showRaw } = await searchParams;
   const parsed = triageStatusSchema.safeParse(statusParam);
   const status: TriageStatus | undefined = parsed.success
     ? parsed.data
     : undefined;
+  // The newest `show` messages (the 1,000-row round, 2026-09-23): the line under
+  // the list says how deep it reads and offers the next page, and `show` rides
+  // every link on the page so opening a message keeps the depth.
+  const show = parseShow(showRaw);
 
-  const submissions = await listContactSubmissions(status);
+  const { rows: submissions, more } = await listContactSubmissions(
+    status,
+    show,
+  );
+  const listPath = hrefWith("/admin/support", {
+    status,
+    show: showParam(show),
+  });
 
   return (
     <div className="space-y-6">
@@ -49,8 +67,18 @@ export default async function AdminSupportPage({
       <SupportList
         submissions={submissions}
         selectedId={id ?? null}
-        basePath={status ? `/admin/support?status=${status}` : "/admin/support"}
+        basePath={listPath}
         nowMs={serverNow()}
+      />
+
+      <ShowMoreLine
+        shown={submissions.length}
+        more={more}
+        href={hrefWith("/admin/support", {
+          status,
+          show: show + LIST_PAGE,
+          id,
+        })}
       />
     </div>
   );

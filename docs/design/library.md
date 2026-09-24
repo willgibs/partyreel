@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 19 policies · 1299 contracts on 168 components · 26 standing boards.**
+**22 laws · 19 policies · 1302 contracts on 168 components · 26 standing boards.**
 
 ## What binds you
 
@@ -460,11 +460,11 @@ Contracted but outside the library's directories:
 - `src/lib/avatar/measure.ts` (3 guards)
 - `src/lib/avatar/seed.ts` (5 guards)
 - `src/lib/constants/feature-pages.ts` (3 guards)
-- `src/lib/dashboard/arrivals.ts` (6 guards)
+- `src/lib/dashboard/arrivals.ts` (8 guards)
 - `src/lib/dashboard/events-view.ts` (10 guards)
 - `src/lib/dashboard/guest-events.ts` (5 guards)
 - `src/lib/dashboard/next-step.ts` (16 guards)
-- `src/lib/db/queries/claims.ts` (12 guards)
+- `src/lib/db/queries/claims.ts` (13 guards)
 - `src/lib/events/event-guests.ts` (8 guards)
 - `src/lib/events/host-fingerprint.ts` (13 guards)
 - `src/lib/glass.ts` (6 guards)

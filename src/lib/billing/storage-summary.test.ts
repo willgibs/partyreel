@@ -89,7 +89,7 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const { getHostStorageSummary, readHostStorageSummary, tallyStorageRows } =
+const { getHostStorageSummary, readHostStorageSummary } =
   await import("@/lib/db/queries/storage");
 const { getAccountDetail } = await import("@/lib/db/queries/accounts");
 
@@ -181,40 +181,6 @@ describe("the admin's account view reads the same aggregate", () => {
         ["neq", "status", "removed"],
       ]),
     );
-  });
-});
-
-/*
- * The TypeScript tally (`tallyStorageRows`, storage.ts) has no `removed_by_uploader` in its row shape, so it cannot
- * tell a guest's withdrawal from a host's removal, and no read calls it: the aggregate below is the definition. The
- * rows here are the ones the tally can judge (none of them a withdrawal), where it and the aggregate agree.
- */
-describe("the definitions, in code", () => {
-  const live = { deleted_at: null };
-  const gone = { deleted_at: "2026-09-01T00:00:00Z" };
-  const row = (
-    n: number,
-    bytes: number,
-    status = "approved",
-    events: { deleted_at: string | null } | null = live,
-  ) => ({ id: `m-${n}`, file_size_bytes: bytes, status, events });
-
-  it("splits active from Deleted by status and by the event's deletion", () => {
-    expect(
-      tallyStorageRows({ activeBytes: 0, standbyBytes: 0 }, [
-        row(1, 10),
-        row(2, 20, "removed"),
-        row(3, 40, "approved", gone),
-        row(4, 80, "hidden"),
-        row(5, 160, "pending"),
-      ]),
-    ).toEqual({ activeBytes: 250, standbyBytes: 60 });
-  });
-
-  it("adds onto the running totals", () => {
-    expect(
-      tallyStorageRows({ activeBytes: 1, standbyBytes: 2 }, [row(1, 3)]),
-    ).toEqual({ activeBytes: 4, standbyBytes: 2 });
   });
 });
 

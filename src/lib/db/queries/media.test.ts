@@ -14,8 +14,9 @@
  *
  * Pinned elsewhere, not repeated here: restore_media's refusal (forensics/migration-guards.test.ts),
  * the reel's membership (reel.test.ts), the guest count and the Guests room (the approved-only read
- * in social.guest-identity.test.ts), the zip's manifest (export/build-manifest.test.ts) and the
- * storage meter's Deleted figure (billing/storage-summary.test.ts).
+ * in social.guest-identity.test.ts), the zip's manifest (export/build-manifest.test.ts), the
+ * storage meter's Deleted figure (billing/storage-summary.test.ts), and the dashboard's pulse and
+ * event cards (queries/pulse.test.ts and queries/events.test.ts, where the counts and covers are SQL).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -160,10 +161,6 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
 const { listEventMedia, listRecentlyDeletedMedia } = await import(
   "@/lib/db/queries/media"
 );
-const { getPulse } = await import("@/lib/db/queries/pulse");
-const { getEventCardStats, getEventCoverUrls } = await import(
-  "@/lib/db/queries/events"
-);
 const { getNotificationData } = await import("@/lib/db/queries/notifications");
 const { resolveReelRenderContext } = await import("@/lib/reel/render-service");
 
@@ -214,7 +211,6 @@ const WITHDRAWN_OLD = media("m-withdrawn-old", {
   purge_at: at(5 * DAY),
   removed_by_uploader: true,
 });
-const WITHDRAWN = new Set(["m-withdrawn-new", "m-withdrawn-old"]);
 
 const ids = (rows: readonly { id: string }[]) => rows.map((r) => r.id);
 
@@ -258,24 +254,6 @@ describe("a guest's own withdrawal never reaches a host read", () => {
     const bin = await listRecentlyDeletedMedia("ev-1");
     expect(ids(bin)).toEqual(["m-host-removed"]);
     expect(bin[0].countdownDays).toBe(28);
-  });
-
-  it("the home's Just arrived strip and every event's newest four never show it", async () => {
-    const startOfToday = Date.parse("2026-09-23T00:00:00.000Z");
-    const pulse = await getPulse(["ev-1"], NOW, startOfToday);
-    const shown = [
-      ...pulse.arrivals,
-      ...(pulse.newestByEvent.get("ev-1") ?? []),
-    ].map((tile) => tile.id);
-    expect(shown).toContain("m-live");
-    for (const id of shown) expect(WITHDRAWN.has(id), id).toBe(false);
-  });
-
-  it("the events list's counts and cover never count it", async () => {
-    const stats = await getEventCardStats(["ev-1"]);
-    expect(stats.get("ev-1")).toEqual({ approved: 1, pending: 1 });
-    const covers = await getEventCoverUrls(["ev-1"]);
-    expect(covers.get("ev-1")).toBe(`signed:${LIVE.original_key}`);
   });
 
   it("the reel's timeline, which the guest payload's items are, drops a withdrawn moment", async () => {
